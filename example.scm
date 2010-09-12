@@ -1,4 +1,4 @@
-#!/usr/local/bin/gsi-script
+#!/usr/bin/env gsi-script
 
 (load "statprof.scm")
 
