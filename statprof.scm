@@ -27,7 +27,7 @@
   (let ((locat (##continuation-locat cont)))
     (if locat
         (let* ((container (##locat-container locat))
-               (file (##container->file container)))
+               (file (##container->path container)))
           (if file
               (let* ((filepos (##position->filepos (##locat-position locat)))
                      (line (##fixnum.+ (##filepos-line filepos) 1))
@@ -46,18 +46,18 @@
              (set! *total* (+ *total* 1))
              (if (not bucket)
                  (begin
-                   (set! *buckets* (cons 
-                                    (cons (car id) 
+                   (set! *buckets* (cons
+                                    (cons (car id)
                                           ;; fixme: arbitrary hard limit
                                           ;; on the length of source
                                           ;; files
-                                          (make-vector 5000 0)) 
+                                          (make-vector 5000 0))
                                     *buckets*))
                    (set! bucket (car *buckets*))))
 
              (vector-set! (cdr bucket)
-                          (cadr id) 
-                          (+ (vector-ref (cdr bucket) 
+                          (cadr id)
+                          (+ (vector-ref (cdr bucket)
                                          (cadr id))
                              1))))))))
 
@@ -78,14 +78,14 @@
 (define (gradient from to step)
   (let ((inc (map (lambda (x) (/ x step))
                   (map - to from))))
-    
+
     (let loop ((i 0)
                (acc '()))
-      (if (= i step) 
+      (if (= i step)
           (reverse acc)
           (loop (+ i 1)
-                (cons (map 
-                       (lambda (x o) 
+                (cons (map
+                       (lambda (x o)
                          (round (+ x (* i o))))
                        from
                        inc)
@@ -99,9 +99,9 @@
           col)))
 
 (define palette
-  (list->vector 
-   (cons '(255 255 255) 
-         (gradient '(127 127 255) 
+  (list->vector
+   (cons '(255 255 255)
+         (gradient '(127 127 255)
                    '(255 127 127)
                    16))))
 
@@ -114,10 +114,10 @@
   (define (iota1 n)
     (let loop ((n n)
                (l '()))
-      (if (>= n 1) 
+      (if (>= n 1)
           (loop (- n 1) (cons n l))
           l)))
-  
+
   (define directory-name (string-append (current-directory)
                                         profile-name
                                         "/"))
@@ -126,24 +126,24 @@
      ;; ignore the exception, it probably means that the directory
      ;; already existed.  If there's another problem it will be
      ;; signaled later.
-     #f) 
+     #f)
    (lambda ()
      (create-directory (list path: directory-name
                              permissions: #o755))))
-  
-  (let ((max-intensity 
+
+  (let ((max-intensity
          (apply max
                 (map
                  (lambda (data)
-                   (apply max 
+                   (apply max
                           (vector->list data)))
                  (map cdr *buckets*)))))
 
-    (map 
+    (map
      (lambda (bucket)
        (let ((file (car bucket))
              (data (cdr bucket)))
-       
+
          (define (get-color n)
            (let ((i (vector-ref data n)))
              (if (= i 0)
@@ -151,43 +151,43 @@
                  (let ((x (* (/ (log (+ 1. i))
                                 (ceiling (log max-intensity)))
                              (- (vector-length palette) 1))))
-                   (as-rgb (vector-ref palette 
+                   (as-rgb (vector-ref palette
                                        (inexact->exact (ceiling x))))))))
 
-         (with-output-to-file (string-append 
+         (with-output-to-file (string-append
                                directory-name
                                (path-strip-directory file)
                                ".html")
-           (let ((lines (call-with-input-file file 
+           (let ((lines (call-with-input-file file
                           (lambda (p) (read-all p read-line)))))
              (lambda ()
-               (display
+               (print
                 (sexp->html
-                 `(html 
+                 `(html
                    (body
-                    (table 
-                     cellspacing: 0 
+                    (table
+                     cellspacing: 0
                      cellpadding: 0
                      border: 0
                      style: "font-size: 12px;"
                      ,@(map
                         (lambda (line line#)
-                          `(tr 
-                            (td ,(string-append 
+                          `(tr
+                            (td ,(string-append
                                   (number->string line#)
                                   ": "))
-                            ;; (td 
+                            ;; (td
                             ;;  align: center
                             ;;  ,(let ((n (vector-ref data line#)))
                             ;;     (if (= n 0)
                             ;;         ""
-                            ;;         (string-append "[" 
+                            ;;         (string-append "["
                             ;;                        (number->string n)
                             ;;                        "/"
                             ;;                        (number->string *total*)
                             ;;                        "]"))))
-                            
-                            (td 
+
+                            (td
                              align: center
                              ,(let ((n (vector-ref data line#)))
                                 (if (= n 0)
@@ -196,32 +196,32 @@
                                      (number->string
                                       (round% (/ n *total*)))
                                      "% "))))
-                               
-                            (td (pre style: ,(string-append     
+
+                            (td (pre style: ,(string-append
                                               "background-color:#"
                                               (get-color line#))
                                      ,line))))
                         lines
                         (iota1 (length lines)))))))))))))
-     
+
      *buckets*))
 
   (with-output-to-file (string-append directory-name "index.html")
     (lambda ()
-      (display
+      (print
        (sexp->html
         `(html
           (body
            ,@(map (lambda (bucket)
-                    (let ((file-path (string-append 
+                    (let ((file-path (string-append
                                       directory-name
-                                      (path-strip-directory (car bucket)) 
+                                      (path-strip-directory (car bucket))
                                       ".html")))
                       `(p (a href: ,file-path ,file-path)
                           " ["
                           ,(round%
                             (/ (apply + (vector->list (cdr bucket)))
-                               *total*)) 
+                               *total*))
                           " %]")))
                   *buckets*))))))))
 
@@ -244,37 +244,37 @@
 (define (stringify x)
   (with-output-to-string ""
     (lambda ()
-      (display x))))
+      (print x))))
 
 (define (to-escaped-string x)
-  (stringify 
+  (stringify
    (map (lambda (c)
           (case c
             ((#\<) "&lt;")
             ((#\>) "&gt;")
             ((#\&) "&amp;")
             (else c)))
-        (string->list 
+        (string->list
          (stringify x)))))
 
 ;; Quick and dirty conversion of s-expressions to html
 (define (sexp->html exp)
-  
+
   ;; write the opening tag
   (define (open-tag exp)
     (cond
      ;; null tag isn't valid
-     ((null? exp) 
+     ((null? exp)
       (error "null tag"))
-     
+
      ;; a tag must be a list beginning with a symbol
      ((and (pair? exp)
            (symbol? (car exp)))
-      (list "<" 
+      (list "<"
             (car exp)
-            " " 
+            " "
             (maybe-args (car exp) (cdr exp))))
-     
+
      (else
       (error "invalid tag" exp))))
 
@@ -331,4 +331,4 @@
   ;; we rely on Gambit's flattening of list when printed with DISPLAY
   (with-output-to-string ""
                          (lambda ()
-                           (display (open-tag exp)))))
+                           (print (open-tag exp)))))
