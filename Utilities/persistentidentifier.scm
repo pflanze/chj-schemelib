@@ -1,0 +1,224 @@
+;;; Copyright 2010 by Christian Jaeger <chrjae@gmail.com>
+
+;;; This file is part of GIT System.
+;;;
+;;;    GIT System is free software: you can redistribute it and/or modify
+;;;    it under the terms of the GNU Lesser General Public License as published by
+;;;    the Free Software Foundation, either version 3 of the License, or
+;;;    (at your option) any later version.
+;;;
+;;;    GIT System is distributed in the hope that it will be useful,
+;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;    GNU Lesser General Public License for more details.
+;;;
+;;;    You should have received a copy of the GNU Lesser General Public License
+;;;    along with GIT System.  If not, see <http://www.gnu.org/licenses/>.
+
+;;;
+;;;; Identifiers for tables and their fields
+;;;
+
+(define-struct persistentidentifier
+  constructor-name: _make-persistentidentifier
+  id
+  maybe-parent
+  name)
+
+(define (make-persistentidentifier id maybe-parent name)
+  (values (inc id)
+	  (_make-persistentidentifier id maybe-parent name)))
+
+(define persistentidentifier-eq?
+  (on persistentidentifier-id fx=))
+
+(TEST
+ > (persistentidentifier-eq? '#(persistentidentifier 12 #f "a")
+			     '#(persistentidentifier 11 #f "b"))
+ #f
+ > (persistentidentifier-eq? '#(persistentidentifier 12 #f "a")
+			     '#(persistentidentifier 12 #f "a"))
+ #t 
+ ;; This should of course never happen:
+ > (persistentidentifier-eq? '#(persistentidentifier 12 #f "a")
+			     '#(persistentidentifier 12 #f "b"))
+ #t 
+ )
+
+(define (strings->persistentidentifiers maybe-parent)
+  (lambda (from-id lis)
+    (fold-right
+     (lambda-values
+      (str (id pis))
+      (letv ((id* pi) (make-persistentidentifier id maybe-parent str))
+	    (values id*
+		    (cons pi pis))))
+     (values from-id
+	     '())
+     lis)))
+
+(TEST
+ > (define-values (id l) ((strings->persistentidentifiers #f) 10 '("a" "b" "ha")))
+ > id
+ 13
+ > l
+ (#(persistentidentifier 12 #f "a")
+   #(persistentidentifier 11 #f "b")
+   #(persistentidentifier 10 #f "ha"))
+ )
+
+
+;; ==========================================================================
+;;;
+;;;; Hash tables with persistentidentifier as keys
+;;;
+
+(define empty-pitable (vector))
+
+;; "size" here meaning the number of slots in the vector (pairs of
+;; vector entries)
+
+(define (pitable-length->pitable-size^ len)
+  (fxlength (+ len (fxarithmetic-shift len -2))))
+
+(define (pitable-size^->vector-length size)
+  (fxarithmetic-shift 1 (inc size)))
+;; ^-inverse-v (for allowed values)
+(define (vector-length->pitable-size^ vlen)
+  (fx- (fxlength vlen) 2))
+
+(define pitable-length->vector-length
+  (compose pitable-size^->vector-length
+	   pitable-length->pitable-size^))
+
+(TEST
+ > (pitable-length->vector-length 0)
+ 2
+ > (pitable-length->vector-length 1)
+ 4
+ > (pitable-length->vector-length 2)
+ 8
+ > (pitable-length->vector-length 3)
+ 8
+ > (pitable-length->vector-length 4)
+ 16
+ > (pitable-length->vector-length 6)
+ 16
+ > (pitable-length->vector-length 7)
+ 32
+ > (pitable-length->vector-length 12)
+ 32
+ > (pitable-length->vector-length 13)
+ 64
+ )
+
+;; (define (pitable-vec->))
+
+(define (inc2 n)
+  (fx+ n 2))
+
+(define (inc2/top n top)
+  (let ((n (inc2 n)))
+    (if (fx>= n top)
+	0
+	n)))
+
+(define pitable-vector-length vector-length)
+
+(define (pitable-size^->mask size^)
+  (dec (arithmetic-shift 1 size^)))
+
+(define _pitable-update
+  (lambda (t key handle-found handle-not-found)
+    (let* ((vlen (pitable-vector-length t))
+	   (vec t)
+	   (slot (bitwise-and
+		  (persistentidentifier-id key)
+		  (pitable-size^->mask (vector-length->pitable-size^ vlen)))))
+      (let lp ((i (arithmetic-shift slot 1)))
+	(cond ((vector-ref vec i)
+	       => (lambda (key*)
+		    (if (persistentidentifier-eq? key key*)
+			(handle-found vec (inc i))
+			(lp (inc2/top i vlen)))))
+	      (else
+	       (handle-not-found)))))))
+
+(define (pitable-ref t key alternate-value)
+  (_pitable-update t key vector-ref (lambda ()
+				      alternate-value)))
+
+(define (pitable-update! t key fn #!optional not-found)
+  (_pitable-update t key
+		   (lambda (vec i)
+		     (vector-set! vec i (fn (vector-ref vec i))))
+		   (or not-found
+		       (lambda ()
+			 (error "key not found")))))
+
+(define (pitable-update t key fn #!optional not-found)
+  (_pitable-update t key
+		   (lambda (vec i)
+		     (let ((vec (vector-copy vec)))
+		       (vector-set! vec i (fn (vector-ref vec i)))
+		       vec))
+		   (or not-found
+		       (lambda ()
+			 (error "key not found")))))
+
+(define (list->pitable l)
+  (let* ((len (length l))
+	 (size^ (pitable-length->pitable-size^ len))
+	 (vlen (pitable-size^->vector-length size^))
+	 (vec (make-vector vlen #f))
+	 (mask (pitable-size^->mask size^)))
+    (let lp ((l l))
+      (if (not (null? l))
+	  (let* ((a (car l))
+		 ;; ch carl.  was war das  wo w  schonwd ?
+		 ;;no fxbitwise-and ?...
+		 (slot (bitwise-and (persistentidentifier-id (car a)) mask)))
+	    (let lp ((i (arithmetic-shift slot 1)))
+	      (if (vector-ref vec i)
+		  (lp (inc2/top i vlen))
+		  (begin
+		    (vector-set! vec i (car a))
+		    (vector-set! vec (inc i) (cdr a)))))
+	    (lp (cdr l)))))
+    vec))
+
+(TEST
+ > (define t
+     (list->pitable (map (lambda (pi)
+			   (cons pi
+				 (string-append "moo-"
+						(persistentidentifier-name pi))))
+			 l)))
+ > t
+ #(#(persistentidentifier 12 #f "a")
+    "moo-a"
+    #f
+    #f
+    #(persistentidentifier 10 #f "ha")
+    "moo-ha"
+    #(persistentidentifier 11 #f "b")
+    "moo-b")
+ > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ "moo-ha"
+ > (pitable-ref t '#(persistentidentifier 13 #f "hu") 'not-found)
+ not-found
+ > (pitable-update! t '#(persistentidentifier 10 #f "ha") (lambda (x) 1))
+ > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ 1
+ > (pitable-update! t '#(persistentidentifier 10 #f "ha") inc)
+ > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ 2
+ > (define t2 (pitable-update t '#(persistentidentifier 10 #f "ha") inc))
+ > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ 2
+ > (pitable-ref t2 '#(persistentidentifier 10 #f "ha") 'not-found)
+ 3
+ > (pitable-update t '#(persistentidentifier 13 #f "hu") inc (lambda () 'no))
+ no
+
+ )
