@@ -181,7 +181,7 @@
 
  ;; the actual pitable tests:
 
- > (define (mkmapping+pitable id len)
+ > (define (mkmapping+pitable id len) ;; -> (values m t gaps)
      (letv ((nongaps gaps) (mkmapping id))
 	   (let ((m (F (stream-take nongaps len))))
 	     (values m
@@ -227,5 +227,22 @@
 
  )
 
-;; (define (bench-pi)
-;;   (let ((m+t (mkmapping+pitable 1000 )))))
+(define (bench-pi len n)
+  (letv ((m t gaps) (mkmapping+pitable 1000 len))
+	(let ((nongaps (map car m)))
+	  (let ((b (lambda (l)
+		     (let lp1 ((n n)
+			       (v '?1))
+		       (if (positive? n)
+			   (let lp2 ((l l)
+				     (v '?2))
+			     (if (null? l)
+				 (lp1 (dec n)
+				      v)
+				 (lp2 (cdr l)
+				      (pitable-ref t (car l) 'not-found3))))
+			   v))))
+		(pp (lambda (v)
+		      (##pretty-print v (current-output-port)))))
+	    (pp (time (b nongaps)))
+	    (pp (time (b gaps)))))))
