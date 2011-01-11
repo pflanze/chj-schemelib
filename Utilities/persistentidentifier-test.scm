@@ -228,6 +228,10 @@
  )
 
 (define (bench-pi len n)
+  (declare (standard-bindings)
+	   (extended-bindings)
+	   (fixnum)
+	   (not safe))
   (letv ((m t gaps) (mkmapping+pitable 1000 len))
 	(let ((nongaps (map car m)))
 	  (let ((b (lambda (l)
