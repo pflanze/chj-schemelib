@@ -126,7 +126,7 @@
 (define pitable-vector-length vector-length)
 
 (define (pitable-size^->mask size^)
-  (dec (arithmetic-shift 1 size^)))
+  (dec (fxarithmetic-shift 1 size^)))
 
 (define _pitable-update
   (lambda (t key handle-found handle-not-found)
@@ -135,7 +135,7 @@
 	   (slot (bitwise-and
 		  (persistentidentifier-id key)
 		  (pitable-size^->mask (vector-length->pitable-size^ vlen)))))
-      (let lp ((i (arithmetic-shift slot 1)))
+      (let lp ((i (fxarithmetic-shift slot 1)))
 	(cond ((vector-ref vec i)
 	       => (lambda (key*)
 		    (if (persistentidentifier-eq? key key*)
@@ -178,7 +178,7 @@
 		 ;; ch carl.  was war das  wo w  schonwd ?
 		 ;;no fxbitwise-and ?...
 		 (slot (bitwise-and (persistentidentifier-id (car a)) mask)))
-	    (let lp ((i (arithmetic-shift slot 1)))
+	    (let lp ((i (fxarithmetic-shift slot 1)))
 	      (if (vector-ref vec i)
 		  (lp (inc2/top i vlen))
 		  (begin
