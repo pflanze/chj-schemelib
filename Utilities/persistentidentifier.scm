@@ -139,7 +139,9 @@
 	   (slot (bitwise-and
 		  id
 		  (pitable-size^->mask (vector-length->pitable-size^ vlen)))))
+    ;;(warn "vlen,slot=" vlen slot)
       (let lp ((i (fxarithmetic-shift slot 1)))
+      ;;(warn "   lp: i,key2=" i (vector-ref vec i))
 	(cond ((vector-ref vec i)
 	       => (lambda (key*)
 		    (if (persistentidentifier-id-eq? id key*)
@@ -148,9 +150,56 @@
 	      (else
 	       (handle-not-found)))))))
 
-(define (pitable-ref t key alternate-value)
+(define (pitable-ref.1 t key alternate-value)
   (_pitable-update t key vector-ref (lambda ()
 				      alternate-value)))
+
+(c-declare "
+// #include <stdio.h>
+")
+
+(define (@pitable-ref t key alternate-value)
+  (##c-code "
+___SCMOBJ t = ___ARG1;
+___SCMOBJ key = ___ARG2;
+___SCMOBJ alternate_value = ___ARG3;
+
+#define ___persistentidentifier_id(pi) ___INT(___VECTORREF(pi,___FIX(1)))
+
+___SCMOBJ vec = t;
+___WORD vlen = ___INT(___VECTORLENGTH(vec));
+
+___WORD id = ___persistentidentifier_id(key);
+// (define-inline (vector-length->pitable-size^ vlen)
+//    (fx- (fxlength vlen) 2))
+___WORD sizepot = ___INT(___FIXLENGTH(___FIX(vlen)))  - 2;
+// (define-inline (pitable-size^->mask size^)
+//   (dec (fxarithmetic-shift 1 size^)))
+___WORD mask = (1 << sizepot)-1;
+___WORD slot = id & mask;
+
+// printf(\"vlen=%ld, id=%ld, sizepot=%ld, mask=%ld, slot=%ld\\n\", vlen,id,sizepot,mask,slot);
+
+___WORD i= slot << 1;
+lp: {
+    ___SCMOBJ key2 = ___VECTORREF(vec,___FIX(i));
+    // printf(\"   lp:  i=%ld, key2=%ld\\n\", i,key2);
+    if (key2 != ___FAL) {
+        if (___persistentidentifier_id(key2) == id) {
+            ___RESULT= ___VECTORREF(vec,___FIX(i+1));
+        } else {
+            i=i+2;
+            if (i >= vlen) i=0;
+            goto lp;
+        }
+    } else {
+        ___RESULT= alternate_value;
+    }
+}"
+	    t key alternate-value))
+
+(define pitable-ref @pitable-ref) ;;; XXX undo
+
 
 (define (pitable-update! t key fn #!optional not-found)
   (_pitable-update t key
