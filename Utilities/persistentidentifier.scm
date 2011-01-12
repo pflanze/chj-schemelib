@@ -156,6 +156,31 @@
 
 (c-declare "
 // #include <stdio.h>
+
+static inline
+___WORD ___fxlength(___WORD x)
+{
+#if 0
+   // use (supposedly portable) Gambit macro
+   ___WORD ___temp;
+   return ___INT(___FIXLENGTH(___FIX(x)));
+#else
+   // use faster gcc builtin
+   // ATTENTION: gcc info doc says __builtin_clz* is undefined for 0;
+   // \"for me\" this gives 0, as the Gambit function does.
+   return
+# if ___WORD_WIDTH == 32
+       32 - __builtin_clzl
+# else
+#  if ___WORD_WIDTH == 64
+       64 - __builtin_clzll
+#  else
+#    error \"unknown ___WORD_WIDTH\"
+#  endif
+# endif
+          (x);
+#endif
+}
 ")
 
 (define (@pitable-ref t key alternate-value)
@@ -172,7 +197,7 @@ ___WORD vlen = ___INT(___VECTORLENGTH(vec));
 ___WORD id = ___persistentidentifier_id(key);
 // (define-inline (vector-length->pitable-size^ vlen)
 //    (fx- (fxlength vlen) 2))
-___WORD sizepot = ___INT(___FIXLENGTH(___FIX(vlen)))  - 2;
+___WORD sizepot = ___fxlength(vlen)  - 2;
 // (define-inline (pitable-size^->mask size^)
 //   (dec (fxarithmetic-shift 1 size^)))
 ___WORD mask = (1 << sizepot)-1;
