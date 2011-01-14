@@ -19,11 +19,32 @@
 ;;;; Identifiers for tables and their fields
 ;;;
 
+(c-declare "
+#define likely(expr) __builtin_expect(expr, 1)
+#define unlikely(expr) __builtin_expect(expr, 0)
+")
+
 (define-struct persistentidentifier
   constructor-name: _make-persistentidentifier
   id
   maybe-parent
   name)
+
+;; XX: keep in sync with above definition!
+(c-declare "
+___SCMOBJ ___persistentidentifier_symbol= 0;
+static
+int ___persistentidentifierp(___SCMOBJ x)
+{
+    ___WORD ___temp;
+    return likely(___VECTORP(x))
+	    && likely(___VECTORLENGTH(x)>=___FIX(1))
+	    && likely(___VECTORREF(x,___FIX(0)) == ___persistentidentifier_symbol);
+}
+")
+(##c-code "___persistentidentifier_symbol=___ARG1;" 'persistentidentifier)
+(define (persistentidentifier?:c x)
+  (##c-code "___RESULT= ___persistentidentifierp(___ARG1) ? ___TRU : ___FAL;" x))
 
 (define (make-persistentidentifier id maybe-parent name)
   (values (inc id)
@@ -75,6 +96,17 @@
 ;;;
 ;;;; Hash tables with persistentidentifier as keys
 ;;;
+
+(define pitable? vector?)
+;; XX: keep in sync with above definition!
+(c-declare "
+static
+int ___pitablep(___SCMOBJ x)
+{
+    ___WORD ___temp;
+    return likely(___VECTORP(x));
+}
+")
 
 (define empty-pitable (vector))
 
@@ -150,7 +182,7 @@
 	      (else
 	       (handle-not-found)))))))
 
-(define (pitable-ref.1 t key alternate-value)
+(define (pitable-ref:scheme t key alternate-value)
   (_pitable-update t key vector-ref (lambda ()
 				      alternate-value)))
 
@@ -181,18 +213,35 @@ ___WORD ___fxlength(___WORD x)
           (x);
 #endif
 }
+
+___SCMOBJ ___error_invalid_type= 0;
 ")
 
-(define (@pitable-ref t key alternate-value)
-  (##c-code "
+(define pitable-ref:c:invalid-type (gensym))
+(##c-code "___error_invalid_type=___ARG1;" pitable-ref:c:invalid-type)
+(define (pitable-ref:c t key alternate-value)
+  (declare (standard-bindings)
+	   (extended-bindings)
+	   (not safe))
+  (let ((res (##c-code "
 ___SCMOBJ t = ___ARG1;
 ___SCMOBJ key = ___ARG2;
 ___SCMOBJ alternate_value = ___ARG3;
 
 #define ___persistentidentifier_id(pi) ___INT(___VECTORREF(pi,___FIX(1)))
 
+if (unlikely(! ___pitablep(t))) {
+    ___RESULT= ___error_invalid_type;
+    goto end;
+}
+
 ___SCMOBJ vec = t;
 ___WORD vlen = ___INT(___VECTORLENGTH(vec));
+
+if (unlikely(! ___persistentidentifier_id(key))) {
+    ___RESULT= ___error_invalid_type;
+    goto end;
+}
 
 ___WORD id = ___persistentidentifier_id(key);
 // (define-inline (vector-length->pitable-size^ vlen)
@@ -209,7 +258,13 @@ ___WORD i= slot << 1;
 lp: {
     ___SCMOBJ key2 = ___VECTORREF(vec,___FIX(i));
     // printf(\"   lp:  i=%ld, key2=%ld\\n\", i,key2);
-    if (key2 != ___FAL) {
+    if (unlikely (key2 == ___FAL)) {
+        ___RESULT= alternate_value;
+    } else {
+	if (unlikely(! ___persistentidentifierp(key2))) {
+	    ___RESULT= ___error_invalid_type;
+	    goto end;
+	}
         if (___persistentidentifier_id(key2) == id) {
             ___RESULT= ___VECTORREF(vec,___FIX(i+1));
         } else {
@@ -217,13 +272,16 @@ lp: {
             if (i >= vlen) i=0;
             goto lp;
         }
-    } else {
-        ___RESULT= alternate_value;
     }
-}"
-	    t key alternate-value))
+}
+end:
+"
+		       t key alternate-value)))
+    (if (eq? res pitable-ref:c:invalid-type)
+	(error "invalid type")
+	res)))
 
-(define pitable-ref @pitable-ref) ;;; XXX undo
+(define pitable-ref pitable-ref:c) ;; choose
 
 
 (define (pitable-update! t key fn #!optional not-found)
