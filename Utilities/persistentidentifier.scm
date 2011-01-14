@@ -32,6 +32,9 @@
 (define persistentidentifier-eq?
   (on persistentidentifier-id fx=))
 
+(define (persistentidentifier-id-eq? id pi)
+  (fx= id (persistentidentifier-id pi)))
+
 (TEST
  > (persistentidentifier-eq? '#(persistentidentifier 12 #f "a")
 			     '#(persistentidentifier 11 #f "b"))
@@ -132,13 +135,14 @@
   (lambda (t key handle-found handle-not-found)
     (let* ((vlen (pitable-vector-length t))
 	   (vec t)
+	   (id (persistentidentifier-id key))
 	   (slot (bitwise-and
-		  (persistentidentifier-id key)
+		  id
 		  (pitable-size^->mask (vector-length->pitable-size^ vlen)))))
       (let lp ((i (fxarithmetic-shift slot 1)))
 	(cond ((vector-ref vec i)
 	       => (lambda (key*)
-		    (if (persistentidentifier-eq? key key*)
+		    (if (persistentidentifier-id-eq? id key*)
 			(handle-found vec (inc i))
 			(lp (inc2/top i vlen)))))
 	      (else
