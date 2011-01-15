@@ -19,6 +19,16 @@
 ;;;; Randomized tests and benchmarking
 ;;;
 
+;; just to stay 'compatible' to persistentidentifier:
+(define (make-symbol id maybe-parent name)
+  (values (inc id)
+	  (string->symbol
+	   (string-append (if maybe-parent (string-append maybe-parent ":")
+			      "")
+			  name
+			  "."
+			  (number->string id)))))
+
 (TEST
  ;; randomized-test data
  > (define (strings) (pseudorandomsource*->a-z-string-stream
@@ -41,7 +51,7 @@
      ;; 	       (strs (strings)))
      ;;   (delay
      ;; 	 (let-pair ((str strs*) (force strs))
-     ;; 		   (letv ((id* pi) (make-persistentidentifier id maybe-parent str))
+     ;; 		   (letv ((id* pi) (make-symbol id maybe-parent str))
      ;; 			 (cons pi
      ;; 			       (rec id* strs*))))))
 
@@ -51,22 +61,24 @@
       (lambda-values
        ((id strs))
        (let-pair ((str strs*) (force strs))
-		 (letv ((id* pi) (make-persistentidentifier id maybe-parent str))
+		 (letv ((id* pi) (make-symbol id maybe-parent str))
 		       (values pi
 			       (values id* strs*)))))
       (values from-id
 	      (strings))))
  > (F (stream-take (mkpis 1000) 10))
- (#(persistentidentifier 1000 #f "jsipz")
-   #(persistentidentifier 1001 #f "kqw")
-   #(persistentidentifier 1002 #f "qhro")
-   #(persistentidentifier 1003 #f "cfupo")
-   #(persistentidentifier 1004 #f "kzv")
-   #(persistentidentifier 1005 #f "irqb")
-   #(persistentidentifier 1006 #f "ica")
-   #(persistentidentifier 1007 #f "ctpm")
-   #(persistentidentifier 1008 #f "ivy")
-   #(persistentidentifier 1009 #f "ntj"))
+ (
+  jsipz.1000
+  kqw.1001
+  qhro.1002
+  cfupo.1003
+  kzv.1004
+  irqb.1005
+  ica.1006
+  ctpm.1007
+  ivy.1008
+  ntj.1009
+  )
 
  > (define (_split-gaps gaplens pis) ;; -> (values gaps nongaps)
      ;; (back to open coding. already for filter-gaps.)
@@ -126,23 +138,27 @@
 
  > (define-values (nongaps gaps) (split-gaps (gaplengths) (mkpis 1000)))
  > (F (stream-take nongaps 8))
- (#(persistentidentifier 1001 #f "kqw")
-   #(persistentidentifier 1004 #f "kzv")
-   #(persistentidentifier 1005 #f "irqb")
-   #(persistentidentifier 1006 #f "ica")
-   #(persistentidentifier 1007 #f "ctpm")
-   #(persistentidentifier 1009 #f "ntj")
-   #(persistentidentifier 1010 #f "btbb")
-   #(persistentidentifier 1011 #f "tqpvi"))
+ (
+  kqw.1001
+  kzv.1004
+  irqb.1005
+  ica.1006
+  ctpm.1007
+  ntj.1009
+  btbb.1010
+  tqpvi.1011
+  )
  > (F (stream-take gaps 8)) ;; which are more spaced than nongaps
- (#(persistentidentifier 1000 #f "jsipz")
-   #(persistentidentifier 1002 #f "qhro")
-   #(persistentidentifier 1003 #f "cfupo")
-   #(persistentidentifier 1008 #f "ivy")
-   #(persistentidentifier 1023 #f "deq")
-   #(persistentidentifier 1024 #f "zuka")
-   #(persistentidentifier 1025 #f "nft")
-   #(persistentidentifier 1026 #f "klnpp"))
+ (
+  jsipz.1000
+  qhro.1002
+  cfupo.1003
+  ivy.1008
+  deq.1023
+  zuka.1024
+  nft.1025
+  klnpp.1026
+  )
 
  > (define (mkmapping from-id)
      (values (stream-map cons
@@ -157,59 +173,63 @@
  (1. 2. 0. 0. 0. 1. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 4. 0. 0. 0. 0. 17.)
  > (define-values (nongaps gaps) (mkmapping 1000))
  > (F (stream-take nongaps 10))
- ((#(persistentidentifier 1001 #f "kqw") . 0)
-  (#(persistentidentifier 1004 #f "kzv") . 1)
-  (#(persistentidentifier 1005 #f "irqb") . 2)
-  (#(persistentidentifier 1006 #f "ica") . 3)
-  (#(persistentidentifier 1007 #f "ctpm") . 4)
-  (#(persistentidentifier 1009 #f "ntj") . 5)
-  (#(persistentidentifier 1010 #f "btbb") . 6)
-  (#(persistentidentifier 1011 #f "tqpvi") . 7)
-  (#(persistentidentifier 1012 #f "wutn") . 8)
-  (#(persistentidentifier 1013 #f "hgmh") . 9))
+ (
+  (kqw.1001 . 0)
+  (kzv.1004 . 1)
+  (irqb.1005 . 2)
+  (ica.1006 . 3)
+  (ctpm.1007 . 4)
+  (ntj.1009 . 5)
+  (btbb.1010 . 6)
+  (tqpvi.1011 . 7)
+  (wutn.1012 . 8)
+  (hgmh.1013 . 9)
+  )
  > (drop (F (stream-take nongaps 30)) 20)
- ((#(persistentidentifier 1028 #f "ezqvs") . 20)
-  (#(persistentidentifier 1029 #f "gngb") . 21)
-  (#(persistentidentifier 1030 #f "rornt") . 22)
-  (#(persistentidentifier 1031 #f "xeukj") . 23)
-  (#(persistentidentifier 1049 #f "hile") . 24)
-  (#(persistentidentifier 1050 #f "bzdoi") . 25)
-  (#(persistentidentifier 1051 #f "ssawn") . 26)
-  (#(persistentidentifier 1052 #f "bog") . 27)
-  (#(persistentidentifier 1053 #f "gvm") . 28)
-  (#(persistentidentifier 1054 #f "tuxww") . 29))
+ (
+  (ezqvs.1028 . 20)
+  (gngb.1029 . 21)
+  (rornt.1030 . 22)
+  (xeukj.1031 . 23)
+  (hile.1049 . 24)
+  (bzdoi.1050 . 25)
+  (ssawn.1051 . 26)
+  (bog.1052 . 27)
+  (gvm.1053 . 28)
+  (tuxww.1054 . 29)
+  )
 
- ;; the actual pitable tests:
+ ;; the actual symboltable tests:
 
- > (define (mkmapping+pitable id len) ;; -> (values m t gaps)
+ > (define (mkmapping+symboltable id len) ;; -> (values m t gaps)
      (letv ((nongaps gaps) (mkmapping id))
 	   (let ((m (F (stream-take nongaps len))))
 	     (values m
-		     (list->pitable m)
+		     (list->symboltable m)
 		     (F (stream-take gaps len))))))
- ;;> (define-values (m t gaps) (mkmapping+pitable 1000 30))
+ ;;> (define-values (m t gaps) (mkmapping+symboltable 1000 30))
  > (define (sum l) (fold + 0 l))
- > (define test-mapping+pitable
+ > (define test-mapping+symboltable
      (lambda-values ((m t gaps))
 		    (let ((sum1 (sum (map cdr m)))
 			  (sum2 (sum (map (lambda (pi)
-					    (pitable-ref t pi 'not-found))
+					    (symboltable-ref t pi 'not-found))
 					  (map car m))))
 			  (invalid-gaps (filter (lambda (v)
 						  (not (eq? v 'not-found2)))
 						(map (lambda (pi)
-						       (pitable-ref t pi 'not-found2))
+						       (symboltable-ref t pi 'not-found2))
 						     gaps))))
 		      (values sum1 sum2 invalid-gaps))))
- > (values->vector (test-mapping+pitable (mkmapping+pitable 1000 10)))
+ > (values->vector (test-mapping+symboltable (mkmapping+symboltable 1000 10)))
  #(45 45 ())
- > (values->vector (test-mapping+pitable (mkmapping+pitable 1000 1038)))
+ > (values->vector (test-mapping+symboltable (mkmapping+symboltable 1000 1038)))
  #(538203 538203 ())
- > (values->vector (test-mapping+pitable (mkmapping+pitable 10 1038)))
+ > (values->vector (test-mapping+symboltable (mkmapping+symboltable 10 1038)))
  #(538203 538203 ())
 
  > (define (test-for len)
-     (letv ((sum1 sum2 invalid-gaps) (test-mapping+pitable (mkmapping+pitable 1000 len)))
+     (letv ((sum1 sum2 invalid-gaps) (test-mapping+symboltable (mkmapping+symboltable 1000 len)))
 	   (and (= sum1 sum2)
 		(null? invalid-gaps))))
  
@@ -227,12 +247,12 @@
 
  )
 
-(define (bench-pi len n)
+(define (bench-symbol len n)
   (declare (standard-bindings)
 	   (extended-bindings)
 	   (fixnum)
 	   (not safe))
-  (letv ((m t gaps) (mkmapping+pitable 1000 len))
+  (letv ((m t gaps) (mkmapping+symboltable 1000 len))
 	(let ((nongaps (map car m)))
 	  (let ((b (lambda (l)
 		     (let lp1 ((n n)
@@ -244,7 +264,7 @@
 				 (lp1 (dec n)
 				      v)
 				 (lp2 (cdr l)
-				      (pitable-ref t (car l) 'not-found3))))
+				      (symboltable-ref t (car l) 'not-found3))))
 			   v))))
 		(pp (lambda (v)
 		      (##pretty-print v (current-output-port)))))
