@@ -16,7 +16,7 @@
 ;;;    along with GIT System.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;;
-;;;; Identifiers for tables and their fields
+;;;; Hash tables with symbols as keys
 ;;;
 
 (c-declare "
@@ -24,131 +24,73 @@
 #define unlikely(expr) __builtin_expect(expr, 0)
 ")
 
-(define-struct persistentidentifier
-  constructor-name: _make-persistentidentifier
-  id
-  maybe-parent
-  name)
-
-;; XX: keep in sync with above definition!
 (c-declare "
-___SCMOBJ ___persistentidentifier_symbol= 0;
-static
-int ___persistentidentifierp(___SCMOBJ x)
-{
-    ___WORD ___temp;
-    return likely(___VECTORP(x))
-	    && likely(___VECTORLENGTH(x)>=___FIX(1))
-	    && likely(___VECTORREF(x,___FIX(0)) == ___persistentidentifier_symbol);
-}
+#define ___keyp ___SYMBOLP
 ")
-(##c-code "___persistentidentifier_symbol=___ARG1;" 'persistentidentifier)
-(define (persistentidentifier?:c x)
-  (##c-code "___RESULT= ___persistentidentifierp(___ARG1) ? ___TRU : ___FAL;" x))
+(define (symboltable:key? x)
+  (##c-code "___RESULT= ___keyp(___ARG1) ? ___TRU : ___FAL;" x))
 
-(define (make-persistentidentifier id maybe-parent name)
-  (values (inc id)
-	  (_make-persistentidentifier id maybe-parent name)))
+(define symboltable:key-eq?
+  eq?)
 
-(define persistentidentifier-eq?
-  (on persistentidentifier-id fx=))
+(define (symboltable:key-id v)
+  (if (symboltable:key? v)
+      (##symbol-hash v)
+      (error "invalid type")))
 
-(define (persistentidentifier-id-eq? id pi)
-  (fx= id (persistentidentifier-id pi)))
+(define symboltable:key-name symbol->string)
 
-(TEST
- > (persistentidentifier-eq? '#(persistentidentifier 12 #f "a")
-			     '#(persistentidentifier 11 #f "b"))
- #f
- > (persistentidentifier-eq? '#(persistentidentifier 12 #f "a")
-			     '#(persistentidentifier 12 #f "a"))
- #t 
- ;; This should of course never happen:
- > (persistentidentifier-eq? '#(persistentidentifier 12 #f "a")
-			     '#(persistentidentifier 12 #f "b"))
- #t 
- )
-
-(define (strings->persistentidentifiers maybe-parent)
-  (lambda (from-id lis)
-    (fold-right
-     (lambda-values
-      (str (id pis))
-      (letv ((id* pi) (make-persistentidentifier id maybe-parent str))
-	    (values id*
-		    (cons pi pis))))
-     (values from-id
-	     '())
-     lis)))
-
-(TEST
- > (define-values (id l) ((strings->persistentidentifiers #f) 10 '("a" "b" "ha")))
- > id
- 13
- > l
- (#(persistentidentifier 12 #f "a")
-   #(persistentidentifier 11 #f "b")
-   #(persistentidentifier 10 #f "ha"))
- )
-
-
-;; ==========================================================================
-;;;
-;;;; Hash tables with persistentidentifier as keys
-;;;
-
-(define pitable? vector?)
+(define symboltable? vector?)
 ;; XX: keep in sync with above definition!
 (c-declare "
-static
-int ___pitablep(___SCMOBJ x)
+static inline
+int ___tablep(___SCMOBJ x)
 {
     ___WORD ___temp;
-    return likely(___VECTORP(x));
+    return ___VECTORP(x);
 }
 ")
 
-(define empty-pitable (vector))
+(define empty-symboltable (vector))
 
 ;; "size" here meaning the number of slots in the vector (pairs of
 ;; vector entries)
 
-(define (pitable-length->pitable-size^ len)
+(define (symboltable:length->size^ len)
   (fxlength (+ len (fxarithmetic-shift len -2))))
 
-(define (pitable-size^->vector-length size)
+(define (symboltable:size^->vector-length size)
   (fxarithmetic-shift 1 (inc size)))
 ;; ^-inverse-v (for allowed values)
-(define (vector-length->pitable-size^ vlen)
+(define (symboltable:vector-length->size^ vlen)
   (fx- (fxlength vlen) 2))
 
-(define pitable-length->vector-length
-  (compose pitable-size^->vector-length
-	   pitable-length->pitable-size^))
+(define symboltable:length->vector-length
+  (compose symboltable:size^->vector-length
+	   symboltable:length->size^))
 
 (TEST
- > (pitable-length->vector-length 0)
+ > (symboltable:length->vector-length 0)
  2
- > (pitable-length->vector-length 1)
+ > (symboltable:length->vector-length 1)
  4
- > (pitable-length->vector-length 2)
+ > (symboltable:length->vector-length 2)
  8
- > (pitable-length->vector-length 3)
+ > (symboltable:length->vector-length 3)
  8
- > (pitable-length->vector-length 4)
+ > (symboltable:length->vector-length 4)
  16
- > (pitable-length->vector-length 6)
+ > (symboltable:length->vector-length 6)
  16
- > (pitable-length->vector-length 7)
+ > (symboltable:length->vector-length 7)
  32
- > (pitable-length->vector-length 12)
+ > (symboltable:length->vector-length 12)
  32
- > (pitable-length->vector-length 13)
+ > (symboltable:length->vector-length 13)
  64
  )
 
-;; (define (pitable-vec->))
-
+;; COPIES/DOUBLES
 (define (inc2 n)
   (fx+ n 2))
 
@@ -157,34 +99,35 @@ int ___pitablep(___SCMOBJ x)
     (if (fx>= n top)
 	0
 	n)))
+;;/ DOUBLES
 
-(define pitable-vector-length vector-length)
+(define symboltable:vector-length vector-length)
 
-(define (pitable-size^->mask size^)
+(define (symboltable:size^->mask size^)
   (dec (fxarithmetic-shift 1 size^)))
 
-(define _pitable-update
+(define symboltable:_update
   (lambda (t key handle-found handle-not-found)
-    (let* ((vlen (pitable-vector-length t))
+    (let* ((vlen (symboltable:vector-length t))
 	   (vec t)
-	   (id (persistentidentifier-id key))
+	   (id (symboltable:key-id key))
 	   (slot (bitwise-and
 		  id
-		  (pitable-size^->mask (vector-length->pitable-size^ vlen)))))
-    ;;(warn "vlen,slot=" vlen slot)
+		  (symboltable:size^->mask (symboltable:vector-length->size^ vlen)))))
+      ;;(warn "vlen,slot=" vlen slot)
       (let lp ((i (fxarithmetic-shift slot 1)))
-      ;;(warn "   lp: i,key2=" i (vector-ref vec i))
+	;;(warn "   lp: i,key2=" i (vector-ref vec i))
 	(cond ((vector-ref vec i)
 	       => (lambda (key*)
-		    (if (persistentidentifier-id-eq? id key*)
+		    (if (symboltable:key-eq? key* key)
 			(handle-found vec (inc i))
 			(lp (inc2/top i vlen)))))
 	      (else
 	       (handle-not-found)))))))
 
-(define (pitable-ref:scheme t key alternate-value)
-  (_pitable-update t key vector-ref (lambda ()
-				      alternate-value)))
+(define (symboltable-ref:scheme t key alternate-value)
+  (symboltable:_update t key vector-ref (lambda ()
+					  alternate-value)))
 
 (c-declare "
 // #include <stdio.h>
@@ -217,9 +160,9 @@ ___WORD ___fxlength(___WORD x)
 ___SCMOBJ ___error_invalid_type= 0;
 ")
 
-(define pitable-ref:c:invalid-type (gensym))
-(##c-code "___error_invalid_type=___ARG1;" pitable-ref:c:invalid-type)
-(define (pitable-ref:c t key alternate-value)
+(define symboltable-ref:c:invalid-type (gensym))
+(##c-code "___error_invalid_type=___ARG1;" symboltable-ref:c:invalid-type)
+(define (symboltable-ref:c t key alternate-value)
   (declare (standard-bindings)
 	   (extended-bindings)
 	   (not safe))
@@ -228,9 +171,10 @@ ___SCMOBJ t = ___ARG1;
 ___SCMOBJ key = ___ARG2;
 ___SCMOBJ alternate_value = ___ARG3;
 
-#define ___persistentidentifier_id(pi) ___INT(___VECTORREF(pi,___FIX(1)))
+#define ___key_id(v) ___INT(___VECTORREF(v,___FIX(1)))
+// lol same
 
-if (unlikely(! ___pitablep(t))) {
+if (unlikely(! ___tablep(t))) {
     ___RESULT= ___error_invalid_type;
     goto end;
 }
@@ -238,16 +182,16 @@ if (unlikely(! ___pitablep(t))) {
 ___SCMOBJ vec = t;
 ___WORD vlen = ___INT(___VECTORLENGTH(vec));
 
-if (unlikely(! ___persistentidentifier_id(key))) {
+if (unlikely(! ___key_id(key))) {
     ___RESULT= ___error_invalid_type;
     goto end;
 }
 
-___WORD id = ___persistentidentifier_id(key);
-// (define-inline (vector-length->pitable-size^ vlen)
+___WORD id = ___key_id(key);
+// (define-inline (symboltable:vector-length->size^ vlen)
 //    (fx- (fxlength vlen) 2))
 ___WORD sizepot = ___fxlength(vlen)  - 2;
-// (define-inline (pitable-size^->mask size^)
+// (define-inline (symboltable:size^->mask size^)
 //   (dec (fxarithmetic-shift 1 size^)))
 ___WORD mask = (1 << sizepot)-1;
 ___WORD slot = id & mask;
@@ -261,11 +205,13 @@ lp: {
     if (unlikely (key2 == ___FAL)) {
         ___RESULT= alternate_value;
     } else {
-	if (unlikely(! ___persistentidentifierp(key2))) {
+/*
+	if (unlikely(! ___keyp(key2))) {
 	    ___RESULT= ___error_invalid_type;
 	    goto end;
 	}
-        if (___persistentidentifier_id(key2) == id) {
+*/
+        if (key2 == key) { // XX only works for interned symbols!
             ___RESULT= ___VECTORREF(vec,___FIX(i+1));
         } else {
             i=i+2;
@@ -277,23 +223,23 @@ lp: {
 end:
 "
 		       t key alternate-value)))
-    (if (eq? res pitable-ref:c:invalid-type)
+    (if (eq? res symboltable-ref:c:invalid-type)
 	(error "invalid type")
 	res)))
 
-(define pitable-ref pitable-ref:c) ;; choose
+(define symboltable-ref symboltable-ref:c) ;; choose
 
 
-(define (pitable-update! t key fn #!optional not-found)
-  (_pitable-update t key
+(define (symboltable-update! t key fn #!optional not-found)
+  (symboltable:_update t key
 		   (lambda (vec i)
 		     (vector-set! vec i (fn (vector-ref vec i))))
 		   (or not-found
 		       (lambda ()
 			 (error "key not found")))))
 
-(define (pitable-update t key fn #!optional not-found)
-  (_pitable-update t key
+(define (symboltable-update t key fn #!optional not-found)
+  (symboltable:_update t key
 		   (lambda (vec i)
 		     (let ((vec (vector-copy vec)))
 		       (vector-set! vec i (fn (vector-ref vec i)))
@@ -302,18 +248,17 @@ end:
 		       (lambda ()
 			 (error "key not found")))))
 
-(define (list->pitable l)
+(define (list->symboltable l)
   (let* ((len (length l))
-	 (size^ (pitable-length->pitable-size^ len))
-	 (vlen (pitable-size^->vector-length size^))
+	 (size^ (symboltable:length->size^ len))
+	 (vlen (symboltable:size^->vector-length size^))
 	 (vec (make-vector vlen #f))
-	 (mask (pitable-size^->mask size^)))
+	 (mask (symboltable:size^->mask size^)))
     (let lp ((l l))
       (if (not (null? l))
 	  (let* ((a (car l))
-		 ;; ch carl.  was war das  wo w  schonwd ?
 		 ;;no fxbitwise-and ?...
-		 (slot (bitwise-and (persistentidentifier-id (car a)) mask)))
+		 (slot (bitwise-and (symboltable:key-id (car a)) mask)))
 	    (let lp ((i (fxarithmetic-shift slot 1)))
 	      (if (vector-ref vec i)
 		  (lp (inc2/top i vlen))
@@ -324,37 +269,32 @@ end:
     vec))
 
 (TEST
+ > (define l '(a b ha))
  > (define t
-     (list->pitable (map (lambda (pi)
-			   (cons pi
-				 (string-append "moo-"
-						(persistentidentifier-name pi))))
-			 l)))
+     (list->symboltable
+      (map (lambda (pi)
+	     (cons pi
+		   (string-append "moo-"
+				  (symboltable:key-name pi))))
+	   l)))
  > t
- #(#(persistentidentifier 12 #f "a")
-    "moo-a"
-    #f
-    #f
-    #(persistentidentifier 10 #f "ha")
-    "moo-ha"
-    #(persistentidentifier 11 #f "b")
-    "moo-b")
- > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ #(#f #f ha "moo-ha" b "moo-b" a "moo-a")
+ > (symboltable-ref t 'ha 'not-found)
  "moo-ha"
- > (pitable-ref t '#(persistentidentifier 13 #f "hu") 'not-found)
+ > (symboltable-ref t 'hu 'not-found)
  not-found
- > (pitable-update! t '#(persistentidentifier 10 #f "ha") (lambda (x) 1))
- > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ > (symboltable-update! t 'ha (lambda (x) 1))
+ > (symboltable-ref t 'ha 'not-found)
  1
- > (pitable-update! t '#(persistentidentifier 10 #f "ha") inc)
- > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ > (symboltable-update! t 'ha inc)
+ > (symboltable-ref t 'ha 'not-found)
  2
- > (define t2 (pitable-update t '#(persistentidentifier 10 #f "ha") inc))
- > (pitable-ref t '#(persistentidentifier 10 #f "ha") 'not-found)
+ > (define t2 (symboltable-update t 'ha inc))
+ > (symboltable-ref t 'ha 'not-found)
  2
- > (pitable-ref t2 '#(persistentidentifier 10 #f "ha") 'not-found)
+ > (symboltable-ref t2 'ha 'not-found)
  3
- > (pitable-update t '#(persistentidentifier 13 #f "hu") inc (lambda () 'no))
+ > (symboltable-update t 'hu inc (lambda () 'no))
  no
 
  )
