@@ -40,18 +40,27 @@
 
 (define symboltable:key-name symbol->string)
 
-(define symboltable? vector?)
+(define (symboltable? x)
+  (and (vector? x)
+       (let ((len (vector-length x)))
+	 (and (>= len 2)
+	      (even? len)))))
 ;; XX: keep in sync with above definition!
 (c-declare "
 static inline
 int ___tablep(___SCMOBJ x)
 {
     ___WORD ___temp;
-    return ___VECTORP(x);
+    if (___VECTORP(x)) {
+        ___WORD vlen = ___INT(___VECTORLENGTH(x));
+        return (vlen >= 2) && (!(vlen & 1));
+    } else {
+        return 0;
+    }
 }
 ")
 
-(define empty-symboltable (vector))
+(define empty-symboltable '#(#f #f))
 
 ;; "size" here meaning the number of slots in the vector (pairs of
 ;; vector entries)
@@ -101,7 +110,10 @@ int ___tablep(___SCMOBJ x)
 	n)))
 ;;/ DOUBLES
 
-(define symboltable:vector-length vector-length)
+(define (symboltable:vector-length v)
+  (if (symboltable? v)
+      (vector-length v)
+      (error "invalid type")))
 
 (define (symboltable:size^->mask size^)
   (dec (fxarithmetic-shift 1 size^)))
@@ -179,13 +191,15 @@ if (unlikely(! ___tablep(t))) {
     goto end;
 }
 
-___SCMOBJ vec = t;
-___WORD vlen = ___INT(___VECTORLENGTH(vec));
-
 if (unlikely(! ___key_id(key))) {
     ___RESULT= ___error_invalid_type;
     goto end;
 }
+
+___SCMOBJ vec = t;
+___WORD vlen = ___INT(___VECTORLENGTH(vec));
+/* when compiling with -O3, the length retrieval seems to be merged
+   with the one from ___tablep */
 
 ___WORD id = ___key_id(key);
 // (define-inline (symboltable:vector-length->size^ vlen)
@@ -269,6 +283,23 @@ end:
     vec))
 
 (TEST
+ > (symboltable-ref '#(#f #f) 'ha 'not-found)
+ not-found
+ > (map (lambda (v)
+	  (map (lambda (ref)
+		 (with-exception-catcher
+		  (lambda (x) (cond ((range-exception? x) 'range)
+				    ((error-exception? x) 'error)
+				    ((type-exception? x) 'type)
+				    (else x)))
+		  (lambda () (ref v 'ha 'not-found))))
+	       (list symboltable-ref:scheme symboltable-ref:c)))
+	'(foo #() #(#f) #(#f #f) #(#f #f #f)))
+ ((error error)
+  (error error)
+  (error error)
+  (not-found not-found)
+  (error error))
  > (define l '(a b ha))
  > (define t
      (list->symboltable
