@@ -446,31 +446,38 @@ end:
 
 (define make-parent-test:first-time-count 0)
 
+(define make-parent:nothing (gensym))
+
 (define (make-parent splitchar)
   (let ((cache empty-symboltable))
     (lambda (sym)
       (let ((cache* cache))
-	(or (symboltable-ref cache* sym #f)
-	    (begin
-	      (inc! make-parent-test:first-time-count)
-	      (let* ((str (symbol->string sym))
-		     (len (string-length str))
-		     (parent (let lp ((i (dec len)))
-			       (if (negative? i)
-				   #f ;; nil.  !
-				   (let ((ch (string-ref str i)))
-				     (if (char=? ch splitchar)
+	(let ((v (symboltable-ref cache* sym make-parent:nothing)))
+	  (if (eq? v make-parent:nothing)
+	      (begin
+		(inc! make-parent-test:first-time-count)
+		(let* ((str (symbol->string sym))
+		       (len (string-length str))
+		       (parent (let lp ((i (dec len)))
+				 (if (negative? i)
+				     #f ;; nil.  !
+				     (if (char=? (string-ref str i) splitchar)
 					 (string->symbol (substring str 0 i))
-					 (lp (dec i))))))))
-		(set! cache
-		      (symboltable-add cache* sym parent))
-		parent)))))))
+					 (lp (dec i)))))))
+		  (set! cache
+			(symboltable-add cache* sym parent))
+		  parent))
+	      v))))))
 
 (define maybe-parent-.-symbol (make-parent #\.))
 
 (TEST
  > make-parent-test:first-time-count
  0
+ > (maybe-parent-.-symbol 'Foo)
+ #f
+ > make-parent-test:first-time-count
+ 1
  > (maybe-parent-.-symbol 'Foo)
  #f
  > make-parent-test:first-time-count
