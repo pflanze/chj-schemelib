@@ -329,3 +329,30 @@ end:
  no
 
  )
+
+
+;; Utility library:
+
+;; Symbol hierarchy
+
+(define (make-parent splitchar)
+  (let ((cache empty-symboltable))
+    (lambda (sym)
+      (or (symboltable-ref cache sym #f)
+	  (begin
+	    (println "first time")
+	    (let* ((str (symbol->string sym))
+		   (len (string-length str))
+		   (parent (let lp ((i (dec len)))
+			     (if (negative? i)
+				 #f ;; nil.  !
+				 (let ((ch (string-ref str i)))
+				   (if (char=? ch splitchar)
+				       (string->symbol (substring str 0 i))
+				       (lp (dec i))))))))
+	      (set! cache
+		    (symboltable-set cache sym parent))
+	      parent))))))
+
+(define maybe-parent-.-symbol (make-parent #\.))
+
