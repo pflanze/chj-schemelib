@@ -444,24 +444,47 @@ end:
 
 ;; Symbol hierarchy
 
+(define make-parent-test:first-time-count 0)
+
 (define (make-parent splitchar)
   (let ((cache empty-symboltable))
     (lambda (sym)
-      (or (symboltable-ref cache sym #f)
-	  (begin
-	    (println "first time")
-	    (let* ((str (symbol->string sym))
-		   (len (string-length str))
-		   (parent (let lp ((i (dec len)))
-			     (if (negative? i)
-				 #f ;; nil.  !
-				 (let ((ch (string-ref str i)))
-				   (if (char=? ch splitchar)
-				       (string->symbol (substring str 0 i))
-				       (lp (dec i))))))))
-	      (set! cache
-		    (symboltable-add cache sym parent))
-	      parent))))))
+      (let ((cache* cache))
+	(or (symboltable-ref cache* sym #f)
+	    (begin
+	      (inc! make-parent-test:first-time-count)
+	      (let* ((str (symbol->string sym))
+		     (len (string-length str))
+		     (parent (let lp ((i (dec len)))
+			       (if (negative? i)
+				   #f ;; nil.  !
+				   (let ((ch (string-ref str i)))
+				     (if (char=? ch splitchar)
+					 (string->symbol (substring str 0 i))
+					 (lp (dec i))))))))
+		(set! cache
+		      (symboltable-add cache* sym parent))
+		parent)))))))
 
 (define maybe-parent-.-symbol (make-parent #\.))
 
+(TEST
+ > make-parent-test:first-time-count
+ 0
+ > (maybe-parent-.-symbol 'Foo)
+ #f
+ > make-parent-test:first-time-count
+ 1
+ > (maybe-parent-.-symbol 'Foo.bar)
+ Foo
+ > make-parent-test:first-time-count
+ 2
+ > (maybe-parent-.-symbol 'Foo.bar)
+ Foo
+ > make-parent-test:first-time-count
+ 2
+ > (maybe-parent-.-symbol '.bar)
+ ||
+ > make-parent-test:first-time-count
+ 3
+ )
