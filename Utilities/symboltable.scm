@@ -20,7 +20,7 @@
 ;;;
 
 (compile-time
- (define compile? #t))
+ (define compile? #f))
 
 (IF compile?
     (begin
@@ -51,8 +51,9 @@
 (define (symboltable? x)
   (and (vector? x)
        (let ((len (vector-length x)))
-	 (and (>= len 2)
-	      (even? len)))))
+	 (and (>= len 3)
+	      (odd? len)
+	      (fixnum? (vector-ref x 0))))))
 ;; XX: keep in sync with above definition!
 (IF compile?
     (c-declare "
@@ -62,26 +63,42 @@ int ___tablep(___SCMOBJ x)
     ___WORD ___temp;
     if (___VECTORP(x)) {
         ___WORD vlen = ___INT(___VECTORLENGTH(x));
-        return (vlen >= 2) && (!(vlen & 1));
+        return ((vlen >= 3)
+		&& (vlen & 1)
+		&& ___FIXNUMP(___VECTORREF(x, ___FIX(0))));
     } else {
         return 0;
     }
 }
 "))
 
-(define empty-symboltable '#(#f #f))
+(define empty-symboltable '#(0 #f #f))
 
-;; "size" here meaning the number of slots in the vector (pairs of
-;; vector entries)
+
+;; XX move to common place?
+(define (type-error v)
+  (error "invalid type: " v))
+
+
+;; length, size, vector-length, and masks
+;;
+;; length= number of keys contained in table
+;; size= number of slots for keys in the table (always > length)
+;; vector-length= 2*size+1
+
+(define (symboltable-length t)
+  (if (symboltable? t)
+      (vector-ref t 0)
+      (type-error t)))
 
 (define (symboltable:length->size^ len)
   (fxlength (+ len (fxarithmetic-shift len -2))))
 
 (define (symboltable:size^->vector-length size)
-  (fxarithmetic-shift 1 (inc size)))
+  (inc (fxarithmetic-shift 1 (inc size))))
 ;; ^-inverse-v (for allowed values)
 (define (symboltable:vector-length->size^ vlen)
-  (fx- (fxlength vlen) 2))
+  (fx- (fxlength (dec vlen)) 2))
 
 (define symboltable:length->vector-length
   (compose symboltable:size^->vector-length
@@ -89,40 +106,40 @@ int ___tablep(___SCMOBJ x)
 
 (TEST
  > (symboltable:length->vector-length 0)
- 2
+ 3
  > (symboltable:length->vector-length 1)
- 4
+ 5
  > (symboltable:length->vector-length 2)
- 8
+ 9
  > (symboltable:length->vector-length 3)
- 8
+ 9
  > (symboltable:length->vector-length 4)
- 16
+ 17
  > (symboltable:length->vector-length 6)
- 16
+ 17
  > (symboltable:length->vector-length 7)
- 32
+ 33
  > (symboltable:length->vector-length 12)
- 32
+ 33
  > (symboltable:length->vector-length 13)
- 64
+ 65
  )
 
 ;; COPIES/DOUBLES
 (define (inc2 n)
   (fx+ n 2))
 
-(define (inc2/top n top)
+(define (inc2/top+bottom n top bottom)
   (let ((n (inc2 n)))
     (if (fx>= n top)
-	0
+	bottom
 	n)))
 ;;/ DOUBLES
 
 (define (symboltable:vector-length v)
   (if (symboltable? v)
       (vector-length v)
-      (error "invalid type")))
+      (type-error v)))
 
 (define (symboltable:size^->mask size^)
   (dec (fxarithmetic-shift 1 size^)))
@@ -136,13 +153,13 @@ int ___tablep(___SCMOBJ x)
 		  id
 		  (symboltable:size^->mask (symboltable:vector-length->size^ vlen)))))
       ;;(warn "vlen,slot=" vlen slot)
-      (let lp ((i (fxarithmetic-shift slot 1)))
+      (let lp ((i (inc (fxarithmetic-shift slot 1))))
 	;;(warn "   lp: i,key2=" i (vector-ref vec i))
 	(cond ((vector-ref vec i)
 	       => (lambda (key*)
 		    (if (symboltable:key-eq? key* key)
 			(handle-found vec (inc i))
-			(lp (inc2/top i vlen)))))
+			(lp (inc2/top+bottom i vlen 1)))))
 	      (else
 	       (handle-not-found)))))))
 
@@ -210,7 +227,7 @@ if (unlikely(! ___key_id(key))) {
 
 ___SCMOBJ vec = t;
 ___WORD vlen = ___INT(___VECTORLENGTH(vec));
-/* when compiling with -O3, the length retrieval seems to be merged
+/* when compiling with -O3, the length retrieval might be merged
    with the one from ___tablep */
 
 ___WORD id = ___key_id(key);
@@ -224,7 +241,7 @@ ___WORD slot = id & mask;
 
 // printf(\"vlen=%ld, id=%ld, sizepot=%ld, mask=%ld, slot=%ld\\n\", vlen,id,sizepot,mask,slot);
 
-___WORD i= slot << 1;
+___WORD i= (slot << 1)+1;
 lp: {
     ___SCMOBJ key2 = ___VECTORREF(vec,___FIX(i));
     // printf(\"   lp:  i=%ld, key2=%ld\\n\", i,key2);
@@ -241,7 +258,7 @@ lp: {
             ___RESULT= ___VECTORREF(vec,___FIX(i+1));
         } else {
             i=i+2;
-            if (i >= vlen) i=0;
+            if (i >= vlen) i=1;
             goto lp;
         }
     }
@@ -285,22 +302,85 @@ end:
 	 (vlen (symboltable:size^->vector-length size^))
 	 (vec (make-vector vlen #f))
 	 (mask (symboltable:size^->mask size^)))
+    (vector-set! vec 0 len)
     (let lp ((l l))
       (if (not (null? l))
 	  (let* ((a (car l))
 		 ;;no fxbitwise-and ?...
 		 (slot (bitwise-and (symboltable:key-id (car a)) mask)))
-	    (let lp ((i (fxarithmetic-shift slot 1)))
+	    (let lp ((i (inc (fxarithmetic-shift slot 1))))
 	      (if (vector-ref vec i)
-		  (lp (inc2/top i vlen))
+		  (lp (inc2/top+bottom i vlen 1))
 		  (begin
 		    (vector-set! vec i (car a))
 		    (vector-set! vec (inc i) (cdr a)))))
 	    (lp (cdr l)))))
     vec))
 
+(define symboltable-add
+  (lambda (t key val)
+    ;; key must not be contained in the table already
+    (let* ((old-vlen (symboltable:vector-length t))
+	   (old-vec t)
+	   (id (symboltable:key-id key))
+	   ;; new length
+	   (newlen (inc (symboltable-length t)))
+	   (size^ (symboltable:length->size^ newlen))
+	   (vlen (symboltable:size^->vector-length size^))
+	   ;; slot for new vector
+	   (mask (symboltable:size^->mask size^))
+	   (slot (bitwise-and id mask))
+	   (vec
+	    (if (= old-vlen vlen)
+		(vector-copy old-vec)
+		;; fold and add!
+		;;still checking whether the old key is already present--ehrdum.jeder der walkten keys IST unique.
+		(let ((new-vec (make-vector vlen #f)))
+		  (let lp ((old-i 1))
+		    (if (< old-i old-vlen)
+			(begin
+			  (cond ((vector-ref old-vec old-i)
+				=>
+				(lambda (key)
+				  (let ((val (vector-ref old-vec
+							 (inc old-i))))
+				    (let* ((id (symboltable:key-id key))
+					   (slot (bitwise-and id mask)))
+				      (let lp
+					  ((i (inc
+					       (fxarithmetic-shift slot 1))))
+					(if (vector-ref new-vec i)
+					    ;; no eq? check necessary
+					    (lp (inc2/top+bottom i vlen 1))
+					    (begin
+					      (vector-set! new-vec i key)
+					      (vector-set! new-vec (inc i) val)))))))))
+			
+			  (lp (inc2 old-i)))
+			new-vec))))))
+      (vector-set! vec 0 newlen)
+      (let ((handle-found
+	     (lambda (vec i)
+	       (error "key already in table:" key)))
+	    (handle-not-found
+	     (lambda (vec i)
+	       (vector-set! vec i key)
+	       (vector-set! vec (inc i) val)
+	       vec)))
+       ;; copypaste from _update... - almost. handle-not-found is different
+       ;;(warn "vlen,slot=" vlen slot)
+       (let lp ((i (inc (fxarithmetic-shift slot 1))))
+	 ;;(warn "   lp: i,key2=" i (vector-ref vec i))
+	 (cond ((vector-ref vec i)
+		=> (lambda (key*)
+		     (if (symboltable:key-eq? key* key)
+			 (handle-found vec (inc i))
+			 (lp (inc2/top+bottom i vlen 1)))))
+	       (else
+		(handle-not-found vec i))))))))
+
 (TEST
- > (symboltable-ref '#(#f #f) 'ha 'not-found)
+ > (symboltable-ref '#(0 #f #f) 'ha 'not-found)
  not-found
  > (map (lambda (v)
 	  (map (lambda (ref)
@@ -311,8 +391,10 @@ end:
 				    (else x)))
 		  (lambda () (ref v 'ha 'not-found))))
 	       (list symboltable-ref:scheme symboltable-ref:c)))
-	'(foo #() #(#f) #(#f #f) #(#f #f #f)))
+	'(foo #() #(#f) #(#f #f) #(#f #f #f) #(0 #f #f) #(0 #f #f #f)))
  ((error error)
+  (error error)
+  (error error)
   (error error)
   (error error)
   (not-found not-found)
@@ -326,7 +408,7 @@ end:
 				  (symboltable:key-name pi))))
 	   l)))
  > t
- #(#f #f ha "moo-ha" b "moo-b" a "moo-a")
+ #(3 #f #f ha "moo-ha" b "moo-b" a "moo-a")
  > (symboltable-ref t 'ha 'not-found)
  "moo-ha"
  > (symboltable-ref t 'hu 'not-found)
@@ -345,6 +427,16 @@ end:
  > (symboltable-update t 'hu inc (lambda () 'no))
  no
 
+ > t
+ #(3 #f #f ha 2 b "moo-b" a "moo-a")
+ > (define t2 (symboltable-add t 'c "moo-c"))
+ > t2
+ #(4 #f #f ha 2 #f #f #f #f #f #f c "moo-c" b "moo-b" a "moo-a")
+ > (symboltable-add t2 'd "moo-d")
+ #(5 #f #f ha 2 #f #f #f #f d "moo-d" c "moo-c" b "moo-b" a "moo-a")
+ > (with-exception-catcher error-exception-message
+			   (thunk (symboltable-add t 'b "moo-c")))
+ "key already in table:"
  )
 
 
@@ -368,7 +460,7 @@ end:
 				       (string->symbol (substring str 0 i))
 				       (lp (dec i))))))))
 	      (set! cache
-		    (symboltable-set cache sym parent))
+		    (symboltable-add cache sym parent))
 	      parent))))))
 
 (define maybe-parent-.-symbol (make-parent #\.))
