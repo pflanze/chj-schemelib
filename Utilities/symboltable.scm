@@ -19,16 +19,24 @@
 ;;;; Hash tables with symbols as keys
 ;;;
 
-(c-declare "
+(compile-time
+ (define compile? #t))
+
+(IF compile?
+    (begin
+      
+      (c-declare "
 #define likely(expr) __builtin_expect(expr, 1)
 #define unlikely(expr) __builtin_expect(expr, 0)
 ")
 
-(c-declare "
+      (c-declare "
 #define ___keyp ___SYMBOLP
 ")
-(define (symboltable:key? x)
-  (##c-code "___RESULT= ___keyp(___ARG1) ? ___TRU : ___FAL;" x))
+      (define (symboltable:key?:c x)
+	(##c-code "___RESULT= ___keyp(___ARG1) ? ___TRU : ___FAL;" x))))
+
+(define symboltable:key? symbol?)
 
 (define symboltable:key-eq?
   eq?)
@@ -46,7 +54,8 @@
 	 (and (>= len 2)
 	      (even? len)))))
 ;; XX: keep in sync with above definition!
-(c-declare "
+(IF compile?
+    (c-declare "
 static inline
 int ___tablep(___SCMOBJ x)
 {
@@ -58,7 +67,7 @@ int ___tablep(___SCMOBJ x)
         return 0;
     }
 }
-")
+"))
 
 (define empty-symboltable '#(#f #f))
 
@@ -141,7 +150,10 @@ int ___tablep(___SCMOBJ x)
   (symboltable:_update t key vector-ref (lambda ()
 					  alternate-value)))
 
-(c-declare "
+(IF compile?
+    (begin
+
+      (c-declare "
 // #include <stdio.h>
 
 static inline
@@ -242,6 +254,11 @@ end:
 	res)))
 
 (define symboltable-ref symboltable-ref:c) ;; choose
+)
+
+(begin ;; not compile
+  (define symboltable-ref:c symboltable-ref:scheme) ;; fake
+  (define symboltable-ref symboltable-ref:scheme)))
 
 
 (define (symboltable-update! t key fn #!optional not-found)
