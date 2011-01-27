@@ -245,6 +245,25 @@
  				 20)))
  (#t #t #t #t #t #t #t #t #t #t #t #t #t #t #t #t #t #t #t #t)
 
+
+ ;; test -add
+ > (define testsize 2000)
+ > (define t (stream-fold-left (lambda (k.v t) (symboltable-add t (car k.v) (cdr k.v))) empty-symboltable (stream-take nongaps testsize)))
+ > (= (symboltable-length t) testsize)
+ #t
+ > (stream-fold-left (lambda (k.v res)
+		       (and res (= (symboltable-ref t (car k.v) 'not-found)
+				   (cdr k.v))))
+		     #t
+		     (stream-take nongaps testsize))
+ #t
+ > (stream-fold-left (lambda (k res)
+		       (and res (eq? (symboltable-ref t k 'not-found)
+				     'not-found)))
+		     #t
+		     (stream-take gaps testsize))
+ ;; ^ here the number of elements doesn't actually matter
+ #t
  )
 
 (define (bench-symbol len n)
