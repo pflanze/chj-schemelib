@@ -472,6 +472,8 @@ end:
 (define maybe-parent-.-symbol (make-parent #\.))
 
 (TEST
+ > (define make-parent-test:first-time-count 0)
+ > (define maybe-parent-.-symbol (make-parent #\.))
  > make-parent-test:first-time-count
  0
  > (maybe-parent-.-symbol 'Foo)
