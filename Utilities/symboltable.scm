@@ -505,6 +505,7 @@ end:
 		    (substring str (inc mid) end))))
 
 (define maybe-parent-.-symbol (maybe-parent-symbol #\.))
+(define maybe-leaf-.-symbol (maybe-leaf-symbol #\.))
 
 (TEST
  > (define parent-test:first-time-count 0)
