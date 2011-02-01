@@ -509,6 +509,56 @@ end:
  )
 
 
+;; Symbol index with multiple values per key, and *both* key and value
+;; being symbols:
+
+(define empty-symbolmindex empty-symboltable)
+
+(define (symbolmindex-add m key val)
+  (cond ((symboltable-ref m key #f)
+	 ;; ^ can't use symboltable-update (yet?) for empty case
+	 => (lambda (c)
+	      ;; but have to use it here
+	      (symboltable-update m
+				  key
+				  (lambda (old)
+				    (symbolcollection-add c val)))))
+	(else
+	 (symboltable-add m key
+			  (symbolcollection-add empty-symbolcollection val)))))
+
+(define (symbolmindex->list m)
+  (symboltable:fold m '() (lambda (k c res)
+			    (cons (cons k (symbolcollection->list c))
+				  res))))
+
+(define (symbolmindex:fold-key m key tail fn)
+  (cond ((symboltable-ref m key #f)
+	 => (lambda (c)
+	      (symbolcollection:fold c tail fn)))
+	(else
+	 ;; or die?
+	 tail)))
+
+(TEST
+ > (define m (fold (lambda (v m)
+		     (symbolmindex-add m (car v) (cadr v)))
+		   empty-symbolmindex
+		   '((a one)
+		     (b two)
+		     (b three)
+		     (c four)
+		     (d five)
+		     (a onetwo))))
+ > (cmp-sort (symbolmindex:fold-key m 'a '() cons) symbol-cmp)
+ (one onetwo)
+ > (cmp-sort (symbolmindex:fold-key m 'c '() cons) symbol-cmp)
+ (four)
+ > (symbolmindex:fold-key m 'foo '() cons)
+ ()
+ )
+
+
 ;; Utility library:
 
 ;; Symbol hierarchy
