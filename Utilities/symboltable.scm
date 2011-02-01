@@ -532,7 +532,7 @@ end:
 			    (cons (cons k (symbolcollection->list c))
 				  res))))
 
-(define (symbolmindex:fold-key m key tail fn)
+(define (symbolmindex:fold-at m key tail fn)
   (cond ((symboltable-ref m key #f)
 	 => (lambda (c)
 	      (symbolcollection:fold c tail fn)))
@@ -550,11 +550,11 @@ end:
 		     (c four)
 		     (d five)
 		     (a onetwo))))
- > (cmp-sort (symbolmindex:fold-key m 'a '() cons) symbol-cmp)
+ > (cmp-sort (symbolmindex:fold-at m 'a '() cons) symbol-cmp)
  (one onetwo)
- > (cmp-sort (symbolmindex:fold-key m 'c '() cons) symbol-cmp)
+ > (cmp-sort (symbolmindex:fold-at m 'c '() cons) symbol-cmp)
  (four)
- > (symbolmindex:fold-key m 'foo '() cons)
+ > (symbolmindex:fold-at m 'foo '() cons)
  ()
  )
 
