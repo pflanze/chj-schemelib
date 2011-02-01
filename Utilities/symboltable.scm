@@ -444,18 +444,18 @@ end:
 
 ;; Symbol hierarchy
 
-(define make-parent-test:first-time-count 0)
+(define parent-test:first-time-count 0)
 
-(define make-parent:nothing (gensym))
+(define parent:nothing (gensym))
 
-(define (make-parent splitchar)
+(define (maybe-parent-symbol splitchar)
   (let ((cache empty-symboltable))
     (lambda (sym)
       (let ((cache* cache))
-	(let ((v (symboltable-ref cache* sym make-parent:nothing)))
-	  (if (eq? v make-parent:nothing)
+	(let ((v (symboltable-ref cache* sym parent:nothing)))
+	  (if (eq? v parent:nothing)
 	      (begin
-		(inc! make-parent-test:first-time-count)
+		(inc! parent-test:first-time-count)
 		(let* ((str (symbol->string sym))
 		       (len (string-length str))
 		       (parent (let lp ((i (dec len)))
@@ -469,31 +469,31 @@ end:
 		  parent))
 	      v))))))
 
-(define maybe-parent-.-symbol (make-parent #\.))
+(define maybe-parent-.-symbol (maybe-parent-symbol #\.))
 
 (TEST
- > (define make-parent-test:first-time-count 0)
- > (define maybe-parent-.-symbol (make-parent #\.))
- > make-parent-test:first-time-count
+ > (define parent-test:first-time-count 0)
+ > (define maybe-parent-.-symbol (maybe-parent-symbol #\.))
+ > parent-test:first-time-count
  0
  > (maybe-parent-.-symbol 'Foo)
  #f
- > make-parent-test:first-time-count
+ > parent-test:first-time-count
  1
  > (maybe-parent-.-symbol 'Foo)
  #f
- > make-parent-test:first-time-count
+ > parent-test:first-time-count
  1
  > (maybe-parent-.-symbol 'Foo.bar)
  Foo
- > make-parent-test:first-time-count
+ > parent-test:first-time-count
  2
  > (maybe-parent-.-symbol 'Foo.bar)
  Foo
- > make-parent-test:first-time-count
+ > parent-test:first-time-count
  2
  > (maybe-parent-.-symbol '.bar)
  ||
- > make-parent-test:first-time-count
+ > parent-test:first-time-count
  3
  )
