@@ -465,6 +465,50 @@ end:
  )
 
 
+;; Symbol Collections:
+
+;; (just build on symbotable for now)
+
+(define empty-symbolcollection empty-symboltable)
+
+(define (list->symbolcollection l)
+  (list->symboltable (map (cut cons <> #t) l)))
+
+(define (symbolcollection-add c item)
+  (symboltable-add c item #t))
+
+(define (symbolcollection-member? c item)
+  (symboltable-ref c item #f))
+
+(define (symbolcollection:fold c tail fn)
+  (symboltable:fold c tail (lambda (k v res)
+			     (fn k res))))
+
+(define (symbolcollection->list c #!optional (tail '()))
+  (symbolcollection:fold c tail cons))
+
+(TEST
+ > (define c (list->symbolcollection '(a x y)))
+ > (symbolcollection-member? c 'a)
+ #t
+ > (symbolcollection-member? c 'b)
+ #f
+ > (symbolcollection-member? c 'x)
+ #t
+ > (symbolcollection-member? c 'y)
+ #t
+ > (symbolcollection-member? c 'A)
+ #f
+ > (symbolcollection-member? (symbolcollection-add c 'A) 'A)
+ #t
+ > (with-exception-catcher error-exception-message
+			   (thunk (symbolcollection-add c 'a)))
+ "key already in table:"
+ > (cmp-sort (symbolcollection->list c) symbol-cmp)
+ (a x y)
+ )
+
+
 ;; Utility library:
 
 ;; Symbol hierarchy
