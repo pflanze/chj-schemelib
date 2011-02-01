@@ -264,6 +264,16 @@
 		     (stream-take gaps testsize))
  ;; ^ here the number of elements doesn't actually matter
  #t
+
+
+ ;; test symboltable->list
+ > (define (test-symboltable->list n)
+     (letv ((m t gaps) (mkmapping+symboltable 100 n))
+	   (equal? (sort (symboltable->list t) (on cdr <))
+		   m)))
+ > (fold andf #t (map test-symboltable->list (iota 50)))
+ #t
+ 
  )
 
 (define (bench-symbol len n)

@@ -125,16 +125,19 @@ int ___tablep(___SCMOBJ x)
  65
  )
 
-;; COPIES/DOUBLES
+;; lib
 (define (inc2 n)
   (fx+ n 2))
+
+(define (dec2 n)
+  (fx- n 2))
 
 (define (inc2/top+bottom n top bottom)
   (let ((n (inc2 n)))
     (if (fx>= n top)
 	bottom
 	n)))
-;;/ DOUBLES
+;;/ lib
 
 (define (symboltable:vector-length v)
   (if (symboltable? v)
@@ -316,6 +319,28 @@ end:
 		    (vector-set! vec (inc i) (cdr a)))))
 	    (lp (cdr l)))))
     vec))
+
+(define (symboltable:fold t tail fn)
+  (let ((vlen (symboltable:vector-length t))
+	(vec t))
+    (let lp ((i (dec2 vlen))
+	     (res tail))
+      (let lp2 ((i i))
+	(if (positive? i)
+	    (cond ((vector-ref vec i)
+		   => (lambda (key)
+			(lp (dec2 i)
+			    (fn key
+				(vector-ref vec (inc i))
+				res))))
+		  (else
+		   (lp2 (dec2 i))))
+	    res)))))
+
+(define (symboltable->list t #!optional (tail '()))
+  (symboltable:fold t tail (lambda (k v r)
+			     (cons (cons k v)
+				   r))))
 
 (define symboltable-add
   (lambda (t key val)
