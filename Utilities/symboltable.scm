@@ -448,26 +448,36 @@ end:
 
 (define parent:nothing (gensym))
 
-(define (maybe-parent-symbol splitchar)
-  (let ((cache empty-symboltable))
-    (lambda (sym)
-      (let ((cache* cache))
-	(let ((v (symboltable-ref cache* sym parent:nothing)))
-	  (if (eq? v parent:nothing)
-	      (begin
-		(inc! parent-test:first-time-count)
-		(let* ((str (symbol->string sym))
-		       (len (string-length str))
-		       (parent (let lp ((i (dec len)))
-				 (if (negative? i)
-				     #f ;; nil.  !
-				     (if (char=? (string-ref str i) splitchar)
-					 (string->symbol (substring str 0 i))
-					 (lp (dec i)))))))
-		  (set! cache
-			(symboltable-add cache* sym parent))
-		  parent))
-	      v))))))
+(define (maybe-_-symbol stringpart)
+  (lambda (splitchar)
+    (let ((cache empty-symboltable))
+      (lambda (sym)
+	(let ((cache* cache))
+	  (let ((v (symboltable-ref cache* sym parent:nothing)))
+	    (if (eq? v parent:nothing)
+		(begin
+		  (inc! parent-test:first-time-count)
+		  (let* ((str (symbol->string sym))
+			 (len (string-length str))
+			 (parent (let lp ((i (dec len)))
+				   (if (negative? i)
+				       #f ;; nil.  !
+				       (if (char=? (string-ref str i) splitchar)
+					   (string->symbol
+					    (stringpart str i len))
+					   (lp (dec i)))))))
+		    (set! cache
+			  (symboltable-add cache* sym parent))
+		    parent))
+		v)))))))
+
+(define maybe-parent-symbol
+  (maybe-_-symbol (lambda (str mid end)
+		    (substring str 0 mid))))
+
+(define maybe-leaf-symbol
+  (maybe-_-symbol (lambda (str mid end)
+		    (substring str (inc mid) end))))
 
 (define maybe-parent-.-symbol (maybe-parent-symbol #\.))
 
@@ -496,4 +506,22 @@ end:
  ||
  > parent-test:first-time-count
  3
+ ;; and maybe-leaf-symbol:
+ > (define maybe-leaf-%-symbol (maybe-leaf-symbol #\%))
+ > (maybe-leaf-%-symbol 'Foo.bar%baz)
+ baz
+ > parent-test:first-time-count
+ 4
+ > (maybe-leaf-%-symbol 'Foo.bar%baz)
+ baz
+ > parent-test:first-time-count
+ 4
+ > (maybe-leaf-%-symbol 'Foo.bar%baz%buzz)
+ buzz
+ > parent-test:first-time-count
+ 5
+ > (maybe-leaf-%-symbol 'Foo.bar%baz%buzz)
+ buzz
+ > parent-test:first-time-count
+ 5
  )
