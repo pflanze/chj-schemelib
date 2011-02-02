@@ -572,14 +572,74 @@ end:
     (lambda (k)
       (let ((cache* cache))
 	(let ((v (symboltable-ref cache* k symboltable:nothing)))
-	 (if (eq? v symboltable:nothing)
-	     (begin
-	       (inc! symboltable:caching/1-first-time-count)
-	       (let ((v (fn k)))
-		 (set! cache
-		       (symboltable-add cache* k v))
-		 v))
-	     v))))))
+	  (if (eq? v symboltable:nothing)
+	      (begin
+		(inc! symboltable:caching/1-first-time-count)
+		(let ((v (fn k)))
+		  (set! cache
+			(symboltable-add cache* k v))
+		  v))
+	      v))))))
+
+;; this is rather just a workaround for the missing symboltable-set,
+;; offering the same api as symboltable-add (and certainly not
+;; working in the most efficient manner):
+(define (symboltable-replace t k v)
+  (symboltable-update t k (lambda (_)
+			    v)))
+
+(define (symboltable:caching/2 fn)
+  (let ((cache1 empty-symboltable))
+    (lambda (k1 k2)
+      (let* ((cache1* cache1)
+	     (set
+	      (lambda (symboltable-set cache2*)
+		(let ((v (fn k1 k2)))
+		  (inc! symboltable:caching/1-first-time-count)
+		  (set! cache1
+			(symboltable-set cache1*
+					 k1
+					 (symboltable-add cache2*
+							  k2
+							  v)))
+		  v))))
+	(cond ((symboltable-ref cache1* k1 #f)
+	       => (lambda (cache2*)
+		    (let ((v (symboltable-ref cache2* k2 symboltable:nothing)))
+		      (if (eq? v symboltable:nothing)
+			  (set symboltable-replace cache2*)
+			  v))))
+	      (else
+	       (set symboltable-add empty-symboltable)))))))
+
+(TEST
+ > (define count 0)
+ > (define t (symboltable:caching/2
+	      (lambda (x y)
+		(inc! count)
+		(symbol-append x y))))
+ > (t 'a 'b)
+ ab
+ > count
+ 1
+ > (t 'a 'b)
+ ab
+ > count
+ 1
+ > (t 'c 'b)
+ cb
+ > count
+ 2
+ > (t 'c 'c)
+ cc
+ > count
+ 3
+ > (t 'c 'b)
+ cb
+ > count
+ 3
+ )
+
 
 
 ;; Symbol hierarchy
