@@ -561,19 +561,35 @@ end:
 
 ;; Utility library:
 
+;; Caches for symbolic keys
+
+(define symboltable:nothing (gensym))
+
+(define (symboltable:caching/1 fn)
+  (let ((cache empty-symboltable))
+    (lambda (k)
+      (let ((cache* cache))
+	(let ((v (symboltable-ref cache* k symboltable:nothing)))
+	 (if (eq? v symboltable:nothing)
+	     (begin
+	       (let ((v (fn k)))
+		 (set! cache
+		       (symboltable-add cache* k v))
+		 v))
+	     v))))))
+
+
 ;; Symbol hierarchy
 
 (define parent-test:first-time-count 0)
-
-(define parent:nothing (gensym))
 
 (define (maybe-_-symbol stringpart)
   (lambda (splitchar)
     (let ((cache empty-symboltable))
       (lambda (sym)
 	(let ((cache* cache))
-	  (let ((v (symboltable-ref cache* sym parent:nothing)))
-	    (if (eq? v parent:nothing)
+	  (let ((v (symboltable-ref cache* sym symboltable:nothing)))
+	    (if (eq? v symboltable:nothing)
 		(begin
 		  (inc! parent-test:first-time-count)
 		  (let* ((str (symbol->string sym))
