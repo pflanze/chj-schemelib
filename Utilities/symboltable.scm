@@ -565,6 +565,8 @@ end:
 
 (define symboltable:nothing (gensym))
 
+(define symboltable:caching/1-first-time-count 0)
+
 (define (symboltable:caching/1 fn)
   (let ((cache empty-symboltable))
     (lambda (k)
@@ -572,6 +574,7 @@ end:
 	(let ((v (symboltable-ref cache* k symboltable:nothing)))
 	 (if (eq? v symboltable:nothing)
 	     (begin
+	       (inc! symboltable:caching/1-first-time-count)
 	       (let ((v (fn k)))
 		 (set! cache
 		       (symboltable-add cache* k v))
@@ -581,30 +584,20 @@ end:
 
 ;; Symbol hierarchy
 
-(define parent-test:first-time-count 0)
-
 (define (maybe-_-symbol stringpart)
   (lambda (splitchar)
-    (let ((cache empty-symboltable))
-      (lambda (sym)
-	(let ((cache* cache))
-	  (let ((v (symboltable-ref cache* sym symboltable:nothing)))
-	    (if (eq? v symboltable:nothing)
-		(begin
-		  (inc! parent-test:first-time-count)
-		  (let* ((str (symbol->string sym))
-			 (len (string-length str))
-			 (parent (let lp ((i (dec len)))
-				   (if (negative? i)
-				       #f ;; nil.  !
-				       (if (char=? (string-ref str i) splitchar)
-					   (string->symbol
-					    (stringpart str i len))
-					   (lp (dec i)))))))
-		    (set! cache
-			  (symboltable-add cache* sym parent))
-		    parent))
-		v)))))))
+    (symboltable:caching/1
+     (lambda (sym)
+       (let* ((str (symbol->string sym))
+	      (len (string-length str))
+	      (parent (let lp ((i (dec len)))
+			(if (negative? i)
+			    #f ;; nil.  !
+			    (if (char=? (string-ref str i) splitchar)
+				(string->symbol
+				 (stringpart str i len))
+				(lp (dec i)))))))
+	 parent)))))
 
 (define maybe-parent-symbol
   (maybe-_-symbol (lambda (str mid end)
@@ -618,46 +611,46 @@ end:
 (define maybe-leaf-.-symbol (maybe-leaf-symbol #\.))
 
 (TEST
- > (define parent-test:first-time-count 0)
+ > (define symboltable:caching/1-first-time-count 0)
  > (define maybe-parent-.-symbol (maybe-parent-symbol #\.))
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  0
  > (maybe-parent-.-symbol 'Foo)
  #f
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  1
  > (maybe-parent-.-symbol 'Foo)
  #f
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  1
  > (maybe-parent-.-symbol 'Foo.bar)
  Foo
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  2
  > (maybe-parent-.-symbol 'Foo.bar)
  Foo
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  2
  > (maybe-parent-.-symbol '.bar)
  ||
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  3
  ;; and maybe-leaf-symbol:
  > (define maybe-leaf-%-symbol (maybe-leaf-symbol #\%))
  > (maybe-leaf-%-symbol 'Foo.bar%baz)
  baz
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  4
  > (maybe-leaf-%-symbol 'Foo.bar%baz)
  baz
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  4
  > (maybe-leaf-%-symbol 'Foo.bar%baz%buzz)
  buzz
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  5
  > (maybe-leaf-%-symbol 'Foo.bar%baz%buzz)
  buzz
- > parent-test:first-time-count
+ > symboltable:caching/1-first-time-count
  5
  )
