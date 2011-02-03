@@ -563,12 +563,15 @@ end:
 
 ;; "Inverse symbol-vectors":
 
-(define (vector->symboltable vec)
-  ;; mapping back vector values to index
+(define (positionallist->symboltable l)
   (list->symboltable
    (map cons
-	(vector->list vec)
-	(iota (vector-length vec)))))
+	l
+	(iota (length l)))))
+
+(define (vector->symboltable vec)
+  (positionallist->symboltable (vector->list vec)))
+
 
 (TEST
  > (cmp-sort (symboltable->list (vector->symboltable '#(a b c))) (on cdr number-cmp))
