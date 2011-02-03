@@ -561,6 +561,21 @@ end:
 
 ;; Utility library:
 
+;; "Inverse symbol-vectors":
+
+(define (vector->symboltable vec)
+  ;; mapping back vector values to index
+  (list->symboltable
+   (map cons
+	(vector->list vec)
+	(iota (vector-length vec)))))
+
+(TEST
+ > (cmp-sort (symboltable->list (vector->symboltable '#(a b c))) (on cdr number-cmp))
+ ((a . 0) (b . 1) (c . 2))
+ )
+
+
 ;; Caches for symbolic keys
 
 (define symboltable:nothing (gensym))
