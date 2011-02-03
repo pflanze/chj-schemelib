@@ -342,6 +342,15 @@ end:
 			     (cons (cons k v)
 				   r))))
 
+(define (symboltable-keys t #!optional (tail '()))
+  (symboltable:fold t tail (lambda (k v r)
+			     (cons k
+				   r))))
+
+(define (symboltable-sortedkeys t #!optional (tail '()))
+  (cmp-sort (symboltable-keys t tail) symbol-cmp))
+
+
 ;; quasi combination of fold and update:
 (define (symboltable-update-all t fn/2)
   ;; (largely copy from symboltable:fold, sigh)
