@@ -342,6 +342,28 @@ end:
 			     (cons (cons k v)
 				   r))))
 
+;; quasi combination of fold and update:
+(define (symboltable-update-all t fn/2)
+  ;; (largely copy from symboltable:fold, sigh)
+  (let ((vlen (symboltable:vector-length t))
+	(vec t))
+    (let ((newvec (make-vector vlen #f)))
+      (vector-set! newvec 0 (vector-ref vec 0))
+      (let lp ((i (dec2 vlen)))
+	(let lp2 ((i i))
+	  (if (positive? i)
+	      (cond ((vector-ref vec i)
+		     => (lambda (key)
+			  ;; (the core of the difference)
+			  (vector-set! newvec i key)
+			  (vector-set! newvec (inc i)
+				       (fn/2 key
+					     (vector-ref vec (inc i))))
+			  (lp (dec2 i))))
+		    (else
+		     (lp2 (dec2 i))))
+	      newvec))))))
+
 (define symboltable-add
   (lambda (t key val)
     ;; key must not be contained in the table already
@@ -574,8 +596,16 @@ end:
 
 
 (TEST
- > (cmp-sort (symboltable->list (vector->symboltable '#(a b c))) (on cdr number-cmp))
+ > (define t (vector->symboltable '#(a b c)))
+ > (cmp-sort (symboltable->list t) (on cdr number-cmp))
  ((a . 0) (b . 1) (c . 2))
+ ;; being lazy, reusing the above test data for symboltable-update-all:
+ > (cmp-sort (symboltable->list
+	      (symboltable-update-all t
+				      (lambda (k v)
+					(dec v))))
+	     (on cdr number-cmp))
+ ((a . -1) (b . 0) (c . 1))
  )
 
 
