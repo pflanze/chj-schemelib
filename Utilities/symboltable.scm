@@ -281,6 +281,12 @@ end:
   (define symboltable-ref symboltable-ref:scheme)))
 
 
+(define (symboltable-refx t key)
+  (let ((res (symboltable-ref t key symboltable:nothing)))
+    (if (eq? res symboltable:nothing)
+	(error "key not found:" key)
+	res)))
+
 (define (symboltable-update! t key fn #!optional not-found)
   (symboltable:_update t key
 		   (lambda (vec i)
