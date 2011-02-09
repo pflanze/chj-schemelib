@@ -287,23 +287,33 @@ end:
 	(error "key not found:" key)
 	res)))
 
+(define symboltable:error-key-not-found
+  (lambda ()
+    (error "key not found")))
+
 (define (symboltable-update! t key fn #!optional not-found)
   (symboltable:_update t key
-		   (lambda (vec i)
-		     (vector-set! vec i (fn (vector-ref vec i))))
-		   (or not-found
-		       (lambda ()
-			 (error "key not found")))))
+		       (lambda (vec i)
+			 (vector-set! vec i (fn (vector-ref vec i))))
+		       (or not-found symboltable:error-key-not-found)))
 
 (define (symboltable-update t key fn #!optional not-found)
   (symboltable:_update t key
-		   (lambda (vec i)
-		     (let ((vec (vector-copy vec)))
-		       (vector-set! vec i (fn (vector-ref vec i)))
-		       vec))
-		   (or not-found
-		       (lambda ()
-			 (error "key not found")))))
+		       (lambda (vec i)
+			 (let ((vec (vector-copy vec)))
+			   (vector-set! vec i (fn (vector-ref vec i)))
+			   vec))
+		       (or not-found symboltable:error-key-not-found)))
+
+;; allow fn to pass on an additional value
+(define (symboltable-update* t key fn #!optional not-found)
+  (symboltable:_update t key
+		       (lambda (vec i)
+			 (let ((vec (vector-copy vec)))
+			   (letv ((val ret2) (fn (vector-ref vec i)))
+				 (vector-set! vec i val)
+				 (values vec ret2))))
+		       (or not-found symboltable:error-key-not-found)))
 
 (define (list->symboltable l)
   (let* ((len (length l))
@@ -488,6 +498,14 @@ end:
  3
  > (symboltable-update t 'hu inc (lambda () 'no))
  no
+ > (define-values (t3 res)
+     (symboltable-update* t2 'ha (lambda (v)
+				   (values (inc v)
+					   (/ v)))))
+ > (symboltable-ref t3 'ha 'not-found)
+ 4
+ > res
+ 1/3
 
  > t
  #(3 #f #f ha 2 b "moo-b" a "moo-a")
