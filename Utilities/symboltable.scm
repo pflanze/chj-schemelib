@@ -1,4 +1,4 @@
-;;; Copyright 2010 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2010, 2011 by Christian Jaeger <chrjae@gmail.com>
 
 ;;; This file is part of GIT System.
 ;;;
