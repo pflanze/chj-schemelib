@@ -795,3 +795,13 @@ end:
  > symboltable:caching/1-first-time-count
  5
  )
+
+
+;; test always run to make sure changes in Gambit won't make
+;; serialized symboltables fail undetected:
+
+(assert (= (symboltable:key-id 'a)
+	   509649879))
+(assert (= (symboltable:key-id 'gehvoie0g280dfasdfasfabjl)
+	   465590930))
+
