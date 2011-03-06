@@ -20,9 +20,9 @@
 ;;;
 
 (compile-time
- (define compile? #f))
+ (define use-implementation-in-c? (set-compiler:compiled?)))
 
-(IF compile?
+(IF use-implementation-in-c?
     (begin
       
       (c-declare "
@@ -55,7 +55,7 @@
 	      (odd? len)
 	      (fixnum? (vector-ref x 0))))))
 ;; XX: keep in sync with above definition!
-(IF compile?
+(IF use-implementation-in-c?
     (c-declare "
 static inline
 int ___tablep(___SCMOBJ x)
@@ -170,7 +170,7 @@ int ___tablep(___SCMOBJ x)
   (symboltable:_update t key vector-ref (lambda ()
 					  alternate-value)))
 
-(IF compile?
+(IF use-implementation-in-c?
     (begin
 
       (c-declare "
