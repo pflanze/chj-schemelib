@@ -406,27 +406,28 @@ end:
 	    (if (= old-vlen vlen)
 		(vector-copy old-vec)
 		;; fold and add!
-		;;still checking whether the old key is already present--ehrdum.jeder der walkten keys IST unique.
 		(let ((new-vec (make-vector vlen #f)))
 		  (let lp ((old-i 1))
 		    (if (< old-i old-vlen)
 			(begin
-			  (cond ((vector-ref old-vec old-i)
-				=>
-				(lambda (key)
-				  (let ((val (vector-ref old-vec
-							 (inc old-i))))
-				    (let* ((id (symboltable:key-id key))
-					   (slot (bitwise-and id mask)))
-				      (let lp
-					  ((i (inc
-					       (fxarithmetic-shift slot 1))))
-					(if (vector-ref new-vec i)
-					    ;; no eq? check necessary
-					    (lp (inc2/top+bottom i vlen 1))
-					    (begin
-					      (vector-set! new-vec i key)
-					      (vector-set! new-vec (inc i) val)))))))))
+			  (cond
+			   ((vector-ref old-vec old-i)
+			    =>
+			    (lambda (key)
+			      (let ((val (vector-ref old-vec
+						     (inc old-i))))
+				(let* ((id (symboltable:key-id key))
+				       (slot (bitwise-and id mask)))
+				  (let lp
+				      ((i (inc
+					   (fxarithmetic-shift slot 1))))
+				    (if (vector-ref new-vec i)
+					;; no eq? check necessary
+					(lp (inc2/top+bottom i vlen 1))
+					(begin
+					  (vector-set! new-vec i key)
+					  (vector-set! new-vec
+						       (inc i) val)))))))))
 			
 			  (lp (inc2 old-i)))
 			new-vec))))))
@@ -439,17 +440,17 @@ end:
 	       (vector-set! vec i key)
 	       (vector-set! vec (inc i) val)
 	       vec)))
-       ;; copypaste from _update... - almost. handle-not-found is different
-       ;;(warn "vlen,slot=" vlen slot)
-       (let lp ((i (inc (fxarithmetic-shift slot 1))))
-	 ;;(warn "   lp: i,key2=" i (vector-ref vec i))
-	 (cond ((vector-ref vec i)
-		=> (lambda (key*)
-		     (if (symboltable:key-eq? key* key)
-			 (handle-found vec (inc i))
-			 (lp (inc2/top+bottom i vlen 1)))))
-	       (else
-		(handle-not-found vec i))))))))
+	;; copypaste from _update... - almost. handle-not-found is different
+	;;(warn "vlen,slot=" vlen slot)
+	(let lp ((i (inc (fxarithmetic-shift slot 1))))
+	  ;;(warn "   lp: i,key2=" i (vector-ref vec i))
+	  (cond ((vector-ref vec i)
+		 => (lambda (key*)
+		      (if (symboltable:key-eq? key* key)
+			  (handle-found vec (inc i))
+			  (lp (inc2/top+bottom i vlen 1)))))
+		(else
+		 (handle-not-found vec i))))))))
 
 (TEST
  > (symboltable-ref '#(0 #f #f) 'ha 'not-found)
