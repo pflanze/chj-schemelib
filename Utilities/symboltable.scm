@@ -389,68 +389,195 @@ end:
 		     (lp2 (dec2 i))))
 	      newvec))))))
 
-(define symboltable-add
-  (lambda (t key val)
-    ;; key must not be contained in the table already
+(define (_symboltable-add/del-prepare
+	 doing-remove?
+	 handle-not-found)
+  (lambda (t key cont)
     (let* ((old-vlen (symboltable:vector-length t))
 	   (old-vec t)
 	   (id (symboltable:key-id key))
 	   ;; new length
-	   (newlen (inc (symboltable-length t)))
-	   (size^ (symboltable:length->size^ newlen))
-	   (vlen (symboltable:size^->vector-length size^))
-	   ;; slot for new vector
-	   (mask (symboltable:size^->mask size^))
-	   (slot (bitwise-and id mask))
-	   (vec
-	    (if (= old-vlen vlen)
-		(vector-copy old-vec)
-		;; fold and add!
-		(let ((new-vec (make-vector vlen #f)))
-		  (let lp ((old-i 1))
-		    (if (< old-i old-vlen)
-			(begin
-			  (cond
-			   ((vector-ref old-vec old-i)
-			    =>
-			    (lambda (key)
-			      (let ((val (vector-ref old-vec
-						     (inc old-i))))
-				(let* ((id (symboltable:key-id key))
-				       (slot (bitwise-and id mask)))
-				  (let lp
-				      ((i (inc
-					   (fxarithmetic-shift slot 1))))
-				    (if (vector-ref new-vec i)
-					;; no eq? check necessary
-					(lp (inc2/top+bottom i vlen 1))
-					(begin
-					  (vector-set! new-vec i key)
-					  (vector-set! new-vec
-						       (inc i) val)))))))))
+	   (newlen ((if doing-remove?
+			dec
+			inc)
+		    (symboltable-length t))))
+      (if (negative? newlen) ;; no use to test for doing-remove? first.
+	  (handle-not-found key)
+	  (let* ((size^ (symboltable:length->size^ newlen))
+		 (vlen (symboltable:size^->vector-length size^))
+		 ;; slot for new vector
+	   
+		 (mask (symboltable:size^->mask size^))
+		 (slot (bitwise-and id mask))
+		 (vec
+		  (if (= old-vlen vlen)
+		      (vector-copy old-vec)
+		      ;; fold and add!
+		      (let ((new-vec (make-vector vlen #f)))
+			(let lp ((old-i 1))
+			  (if (< old-i old-vlen)
+			      (begin
+				(cond
+				 ((vector-ref old-vec old-i)
+				  =>
+				  (lambda (k)
+				    (if (and doing-remove?
+					     (symboltable:key-eq? k key))
+					(void)
+					(let ((val (vector-ref old-vec
+							       (inc old-i))))
+					  (let* ((id (symboltable:key-id k))
+						 (slot (bitwise-and id mask)))
+					    (let lp
+						((i (inc
+						     (fxarithmetic-shift
+						      slot 1))))
+					      (if (vector-ref new-vec i)
+						  ;; no eq? check necessary
+						  (lp (inc2/top+bottom i vlen 1))
+						  (begin
+						    (vector-set! new-vec i k)
+						    (vector-set!
+						     new-vec
+						     (inc i) val))))))))))
 			
-			  (lp (inc2 old-i)))
-			new-vec))))))
-      (vector-set! vec 0 newlen)
-      (let ((handle-found
-	     (lambda (vec i)
-	       (error "key already in table:" key)))
-	    (handle-not-found
-	     (lambda (vec i)
-	       (vector-set! vec i key)
-	       (vector-set! vec (inc i) val)
-	       vec)))
-	;; copypaste from _update... - almost. handle-not-found is different
-	;;(warn "vlen,slot=" vlen slot)
-	(let lp ((i (inc (fxarithmetic-shift slot 1))))
-	  ;;(warn "   lp: i,key2=" i (vector-ref vec i))
-	  (cond ((vector-ref vec i)
-		 => (lambda (key*)
-		      (if (symboltable:key-eq? key* key)
-			  (handle-found vec (inc i))
-			  (lp (inc2/top+bottom i vlen 1)))))
-		(else
-		 (handle-not-found vec i))))))))
+				(lp (inc2 old-i)))
+			      new-vec))))))
+	    (vector-set! vec 0 newlen)
+	    (cont old-vlen
+		  vlen
+		  slot
+		  vec))))))
+
+
+(define symboltable-add
+  ;; key must not be contained in the table already
+  (let ((prepare (_symboltable-add/del-prepare
+		  #f
+		  (void))))
+    (lambda (t key val)
+      (prepare
+       t key
+       (lambda (old-vlen
+		vlen
+		slot
+		vec)
+	 (let ((handle-found
+		(lambda (vec i key)
+		  (error "key already in table:" key)))
+	       (handle-not-found
+		(lambda (vec i key)
+		  (vector-set! vec i key)
+		  (vector-set! vec (inc i) val)
+		  vec)))
+	   ;; almost copypaste from _update...
+	   ;;(warn "vlen,slot=" vlen slot)
+	   (let lp ((i (inc (fxarithmetic-shift slot 1))))
+	     ;;(warn "   lp: i,key2=" i (vector-ref vec i))
+	     (cond ((vector-ref vec i)
+		    => (lambda (key*)
+			 (if (symboltable:key-eq? key* key)
+			     (handle-found vec i key)
+			     (lp (inc2/top+bottom i vlen 1)))))
+		   (else
+		    (handle-not-found vec i key))))))))))
+
+
+;; (Note: there's no hysteresis implemented for the resizing, up and
+;; down is at same number of keys.)
+
+(define symboltable-remove
+  ;; key must be contained in the table
+  (let* ((handle-not-found
+	  (lambda (key)
+	    (error "key not in table:" key)))
+	 (prepare
+	  (_symboltable-add/del-prepare
+	   #t
+	   handle-not-found)))
+    (lambda (t key)
+      (prepare
+       t key
+       (lambda (old-vlen
+		vlen
+		slot
+		vec)
+	 (if (not (= old-vlen vlen))
+	     ;; already done
+	     vec
+	     ;; otherwise, remove slot, and reorder elements thereafter
+	     (letrec
+		 ((handle-found
+		   (lambda (vec i key)
+		     ;; (warn "   removing: i,key="i key)
+		     (vector-set! vec i #f)
+		     (vector-set! vec (inc i) #f)
+		     ;; also remove all subsequent items:
+		     ;; XX another of those almost copypastes:
+		     (let takeout! ((i (inc2/top+bottom i vlen 1))
+				    (items '()))
+		       ;; (warn "   takeout!: i,key2=" i (vector-ref vec i))
+		       (cond
+			((vector-ref vec i)
+			 => (lambda (key*)
+			      (let ((val (vector-ref vec (inc i))))
+				;; delete
+				(vector-set! vec i #f)
+				(vector-set! vec (inc i) #f)
+				(takeout! (inc2/top+bottom i vlen 1)
+					  (cons (cons key*
+						      val)
+						items)))))
+			(else
+			 ;; re-insert them
+			 ;; (warn "   start reinsert items: " items)
+			 ;; XX yet another of those almosties:
+			 ;; don't want a vec copy here, also no
+			 ;; changes to symboltable-length, also
+			 ;; no need to refetch vlen.
+			 (let* ((size^ (symboltable:vector-length->size^
+					vlen))
+				(mask (symboltable:size^->mask size^)))
+			   (let reinsert! ((items items))
+			     (if (pair? items)
+				 (let-pair
+				  ((k+v items*) items)
+				  (let-pair
+				   ((key val) k+v)
+				   (let lp
+				       ((i (let* ((id (symboltable:key-id key))
+						  (slot (bitwise-and id mask)))
+					     (inc (fxarithmetic-shift slot
+								      1)))))
+				     ;; (warn "   reinsert!: i,key,keyslot="
+				     ;; 	   i key (vector-ref vec i))
+				     (cond
+				      ((vector-ref vec i)
+				       => (lambda (key*)
+					    (if (symboltable:key-eq? key* key)
+						(error "BUG")
+						(lp (inc2/top+bottom
+						     i vlen 1)))))
+				      (else
+				       ;; (XX the usual 2 writing statmts..)
+				       (vector-set! vec i key)
+				       (vector-set! vec (inc i) val)
+				       (reinsert! items*))))))
+				 ;; done
+				 (void)))))))
+		     vec)))
+	       ;; XX still copy paste, basically:
+	       (let lp ((i (inc (fxarithmetic-shift slot 1))))
+		 ;;(warn "   lp: i,key2=" i (vector-ref vec i))
+		 (cond ((vector-ref vec i)
+			=> (lambda (key*)
+			     (if (symboltable:key-eq? key* key)
+				 (handle-found vec i key)
+				 (lp (inc2/top+bottom i vlen 1)))))
+		       (else
+			(handle-not-found key)))))))))))
+
+
 
 (TEST
  > (symboltable-ref '#(0 #f #f) 'ha 'not-found)
@@ -513,11 +640,30 @@ end:
  > (define t2 (symboltable-add t 'c "moo-c"))
  > t2
  #(4 #f #f ha 2 #f #f #f #f #f #f c "moo-c" b "moo-b" a "moo-a")
+ > (symboltable-remove t2 'c)
+ #(3 #f #f ha 2 b "moo-b" a "moo-a")
+ > (symboltable-remove t2 'a)
+ #(3 #f #f ha 2 c "moo-c" b "moo-b")
+ > (symboltable-remove t2 'b)
+ #(3 #f #f ha 2 c "moo-c" a "moo-a")
+ > (symboltable-remove (symboltable-remove t2 'a) 'b)
+ #(2 #f #f ha 2 c "moo-c" #f #f)
+ > (symboltable-remove (symboltable-remove (symboltable-remove t2 'a) 'b) 'c)
+ #(1 #f #f ha 2)
+ > (symboltable-remove (symboltable-remove (symboltable-remove t2 'a) 'b) 'ha)
+ #(1 #f #f c "moo-c")
+ > (symboltable-remove (symboltable-remove (symboltable-remove (symboltable-remove t2 'a) 'b) 'ha) 'c)
+ #(0 #f #f)
+ > (%try-error (symboltable-remove empty-symboltable 'c))
+ #(error "key not in table:" c)
+
  > (symboltable-add t2 'd "moo-d")
  #(5 #f #f ha 2 #f #f #f #f d "moo-d" c "moo-c" b "moo-b" a "moo-a")
- > (with-exception-catcher error-exception-message
-			   (thunk (symboltable-add t 'b "moo-c")))
- "key already in table:"
+
+ > (%try-error (symboltable-add t 'b "moo-c"))
+ #(error "key already in table:" b)
+ > (%try-error (symboltable-remove t 'nono))
+ #(error "key not in table:" nono)
  )
 
 

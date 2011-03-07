@@ -248,7 +248,10 @@
 
  ;; test -add
  > (define testsize 2000)
- > (define t (stream-fold-left (lambda (k.v t) (symboltable-add t (car k.v) (cdr k.v))) empty-symboltable (stream-take nongaps testsize)))
+ > (define t (stream-fold-left (lambda (k.v t)
+				 (symboltable-add t (car k.v) (cdr k.v)))
+			       empty-symboltable
+			       (stream-take nongaps testsize)))
  > (= (symboltable-length t) testsize)
  #t
  > (stream-fold-left (lambda (k.v res)
@@ -265,6 +268,18 @@
  ;; ^ here the number of elements doesn't actually matter
  #t
 
+ ;; test -remove
+ > (define t2 (stream-fold-left (lambda (k.v t)
+				  (symboltable-remove t (car k.v)))
+				t
+				(stream-take (stream-drop nongaps 2)
+					     (- testsize 2))))
+ > (sort (symboltable->list t2) (on cdr <))
+ ((kqw.1001 . 0)
+  (kzv.1004 . 1))
+ > (vector-length t2)
+ 9
+ 
 
  ;; test symboltable->list
  > (define (test-symboltable->list n)
