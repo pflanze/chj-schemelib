@@ -280,12 +280,17 @@ end:
   (define symboltable-ref:c symboltable-ref:scheme) ;; fake
   (define symboltable-ref symboltable-ref:scheme)))
 
+(define symboltable:nothing (gensym 'nothing))
 
 (define (symboltable-refx t key)
   (let ((res (symboltable-ref t key symboltable:nothing)))
     (if (eq? res symboltable:nothing)
 	(error "key not found:" key)
 	res)))
+
+(define (symboltable-contains? t key)
+  (not (eq? (symboltable-ref t key symboltable:nothing)
+	    symboltable:nothing)))
 
 (define symboltable:error-key-not-found
   (lambda ()
@@ -389,10 +394,9 @@ end:
 		     (lp2 (dec2 i))))
 	      newvec))))))
 
-(define (_symboltable-add/del-prepare
-	 doing-remove?
-	 handle-not-found)
-  (lambda (t key cont)
+(define _symboltable-add/del-prepare
+  (lambda (doing-remove? t key cont)
+    ;; careful: to be removed key *has* to be in table
     (let* ((old-vlen (symboltable:vector-length t))
 	   (old-vec t)
 	   (id (symboltable:key-id key))
@@ -401,86 +405,82 @@ end:
 			dec
 			inc)
 		    (symboltable-length t))))
-      (if (negative? newlen) ;; no use to test for doing-remove? first.
-	  (handle-not-found key)
-	  (let* ((size^ (symboltable:length->size^ newlen))
-		 (vlen (symboltable:size^->vector-length size^))
-		 ;; slot for new vector
+      (let* ((size^ (symboltable:length->size^ newlen))
+	     (vlen (symboltable:size^->vector-length size^))
+	     ;; slot for new vector
 	   
-		 (mask (symboltable:size^->mask size^))
-		 (slot (bitwise-and id mask))
-		 (vec
-		  (if (= old-vlen vlen)
-		      (vector-copy old-vec)
-		      ;; fold and add!
-		      (let ((new-vec (make-vector vlen #f)))
-			(let lp ((old-i 1))
-			  (if (< old-i old-vlen)
-			      (begin
-				(cond
-				 ((vector-ref old-vec old-i)
-				  =>
-				  (lambda (k)
-				    (if (and doing-remove?
-					     (symboltable:key-eq? k key))
-					(void)
-					(let ((val (vector-ref old-vec
-							       (inc old-i))))
-					  (let* ((id (symboltable:key-id k))
-						 (slot (bitwise-and id mask)))
-					    (let lp
-						((i (inc
-						     (fxarithmetic-shift
-						      slot 1))))
-					      (if (vector-ref new-vec i)
-						  ;; no eq? check necessary
-						  (lp (inc2/top+bottom i vlen 1))
-						  (begin
-						    (vector-set! new-vec i k)
-						    (vector-set!
-						     new-vec
-						     (inc i) val))))))))))
+	     (mask (symboltable:size^->mask size^))
+	     (slot (bitwise-and id mask))
+	     (vec
+	      (if (= old-vlen vlen)
+		  (vector-copy old-vec)
+		  ;; fold and add!
+		  (let ((new-vec (make-vector vlen #f)))
+		    (let lp ((old-i 1))
+		      (if (< old-i old-vlen)
+			  (begin
+			    (cond
+			     ((vector-ref old-vec old-i)
+			      =>
+			      (lambda (k)
+				(if (and doing-remove?
+					 (symboltable:key-eq? k key))
+				    (void)
+				    (let ((val (vector-ref old-vec
+							   (inc old-i))))
+				      (let* ((id (symboltable:key-id k))
+					     (slot (bitwise-and id mask)))
+					(let lp
+					    ((i (inc
+						 (fxarithmetic-shift
+						  slot 1))))
+					  (if (vector-ref new-vec i)
+					      ;; no eq? check necessary
+					      (lp (inc2/top+bottom i vlen 1))
+					      (begin
+						(vector-set! new-vec i k)
+						(vector-set!
+						 new-vec
+						 (inc i) val))))))))))
 			
-				(lp (inc2 old-i)))
-			      new-vec))))))
-	    (vector-set! vec 0 newlen)
-	    (cont old-vlen
-		  vlen
-		  slot
-		  vec))))))
+			    (lp (inc2 old-i)))
+			  new-vec))))))
+	(vector-set! vec 0 newlen)
+	(cont old-vlen
+	      vlen
+	      slot
+	      vec)))))
 
 
 (define symboltable-add
   ;; key must not be contained in the table already
-  (let ((prepare (_symboltable-add/del-prepare
-		  #f
-		  (void))))
-    (lambda (t key val)
-      (prepare
-       t key
-       (lambda (old-vlen
-		vlen
-		slot
-		vec)
-	 (let ((handle-found
-		(lambda (vec i key)
-		  (error "key already in table:" key)))
-	       (handle-not-found
-		(lambda (vec i key)
-		  (vector-set! vec i key)
-		  (vector-set! vec (inc i) val)
-		  vec)))
-	   ;; almost copypaste from _update...
-	   ;;(warn "vlen,slot=" vlen slot)
-	   (let lp ((i (inc (fxarithmetic-shift slot 1))))
-	     ;;(warn "   lp: i,key2=" i (vector-ref vec i))
-	     (cond ((vector-ref vec i)
-		    => (lambda (key*)
-			 (if (symboltable:key-eq? key* key)
-			     (handle-found vec i key)
-			     (lp (inc2/top+bottom i vlen 1)))))
-		   (else
-		    (handle-not-found vec i key))))))))))
+  (lambda (t key val)
+    (_symboltable-add/del-prepare
+     #f
+     t key
+     (lambda (old-vlen
+	      vlen
+	      slot
+	      vec)
+       (let ((handle-found
+	      (lambda (vec i key)
+		(error "key already in table:" key)))
+	     (handle-not-found
+	      (lambda (vec i key)
+		(vector-set! vec i key)
+		(vector-set! vec (inc i) val)
+		vec)))
+	 ;; almost copypaste from _update...
+	 ;;(warn "vlen,slot=" vlen slot)
+	 (let lp ((i (inc (fxarithmetic-shift slot 1))))
+	   ;;(warn "   lp: i,key2=" i (vector-ref vec i))
+	   (cond ((vector-ref vec i)
+		  => (lambda (key*)
+		       (if (symboltable:key-eq? key* key)
+			   (handle-found vec i key)
+			   (lp (inc2/top+bottom i vlen 1)))))
+		 (else
+		  (handle-not-found vec i key)))))))))
 
 
 ;; (Note: there's no hysteresis implemented for the resizing, up and
@@ -490,92 +490,93 @@ end:
   ;; key must be contained in the table
   (let* ((handle-not-found
 	  (lambda (key)
-	    (error "key not in table:" key)))
-	 (prepare
+	    (error "key not in table:" key))))
+    (lambda (t key)
+      (if (symboltable-contains? t key)
 	  (_symboltable-add/del-prepare
 	   #t
-	   handle-not-found)))
-    (lambda (t key)
-      (prepare
-       t key
-       (lambda (old-vlen
-		vlen
-		slot
-		vec)
-	 (if (not (= old-vlen vlen))
-	     ;; already done
-	     vec
-	     ;; otherwise, remove slot, and reorder elements thereafter
-	     (letrec
-		 ((handle-found
-		   (lambda (vec i key)
-		     ;; (warn "   removing: i,key="i key)
-		     (vector-set! vec i #f)
-		     (vector-set! vec (inc i) #f)
-		     ;; also remove all subsequent items:
-		     ;; XX another of those almost copypastes:
-		     (let takeout! ((i (inc2/top+bottom i vlen 1))
-				    (items '()))
-		       ;; (warn "   takeout!: i,key2=" i (vector-ref vec i))
-		       (cond
-			((vector-ref vec i)
-			 => (lambda (key*)
-			      (let ((val (vector-ref vec (inc i))))
-				;; delete
-				(vector-set! vec i #f)
-				(vector-set! vec (inc i) #f)
-				(takeout! (inc2/top+bottom i vlen 1)
-					  (cons (cons key*
-						      val)
-						items)))))
-			(else
-			 ;; re-insert them
-			 ;; (warn "   start reinsert items: " items)
-			 ;; XX yet another of those almosties:
-			 ;; don't want a vec copy here, also no
-			 ;; changes to symboltable-length, also
-			 ;; no need to refetch vlen.
-			 (let* ((size^ (symboltable:vector-length->size^
-					vlen))
-				(mask (symboltable:size^->mask size^)))
-			   (let reinsert! ((items items))
-			     (if (pair? items)
-				 (let-pair
-				  ((k+v items*) items)
-				  (let-pair
-				   ((key val) k+v)
-				   (let lp
-				       ((i (let* ((id (symboltable:key-id key))
-						  (slot (bitwise-and id mask)))
-					     (inc (fxarithmetic-shift slot
-								      1)))))
-				     ;; (warn "   reinsert!: i,key,keyslot="
-				     ;; 	   i key (vector-ref vec i))
-				     (cond
-				      ((vector-ref vec i)
-				       => (lambda (key*)
-					    (if (symboltable:key-eq? key* key)
-						(error "BUG")
-						(lp (inc2/top+bottom
-						     i vlen 1)))))
-				      (else
-				       ;; (XX the usual 2 writing statmts..)
-				       (vector-set! vec i key)
-				       (vector-set! vec (inc i) val)
-				       (reinsert! items*))))))
-				 ;; done
-				 (void)))))))
-		     vec)))
-	       ;; XX still copy paste, basically:
-	       (let lp ((i (inc (fxarithmetic-shift slot 1))))
-		 ;;(warn "   lp: i,key2=" i (vector-ref vec i))
-		 (cond ((vector-ref vec i)
-			=> (lambda (key*)
-			     (if (symboltable:key-eq? key* key)
-				 (handle-found vec i key)
-				 (lp (inc2/top+bottom i vlen 1)))))
-		       (else
-			(handle-not-found key)))))))))))
+	   t key
+	   (lambda (old-vlen
+		    vlen
+		    slot
+		    vec)
+	     (if (not (= old-vlen vlen))
+		 ;; already done
+		 vec
+		 ;; otherwise, remove slot, and reorder elements thereafter
+		 (letrec
+		     ((handle-found
+		       (lambda (vec i key)
+			 ;; (warn "   removing: i,key="i key)
+			 (vector-set! vec i #f)
+			 (vector-set! vec (inc i) #f)
+			 ;; also remove all subsequent items:
+			 ;; XX another of those almost copypastes:
+			 (let takeout! ((i (inc2/top+bottom i vlen 1))
+					(items '()))
+			   ;; (warn "   takeout!: i,key2=" i (vector-ref vec i))
+			   (cond
+			    ((vector-ref vec i)
+			     => (lambda (key*)
+				  (let ((val (vector-ref vec (inc i))))
+				    ;; delete
+				    (vector-set! vec i #f)
+				    (vector-set! vec (inc i) #f)
+				    (takeout! (inc2/top+bottom i vlen 1)
+					      (cons (cons key*
+							  val)
+						    items)))))
+			    (else
+			     ;; re-insert them
+			     ;; (warn "   start reinsert items: " items)
+			     ;; XX yet another of those almosties:
+			     ;; don't want a vec copy here, also no
+			     ;; changes to symboltable-length, also
+			     ;; no need to refetch vlen.
+			     (let* ((size^ (symboltable:vector-length->size^
+					    vlen))
+				    (mask (symboltable:size^->mask size^)))
+			       (let reinsert! ((items items))
+				 (if (pair? items)
+				     (let-pair
+				      ((k+v items*) items)
+				      (let-pair
+				       ((key val) k+v)
+				       (let lp
+					   ((i (let* ((id (symboltable:key-id key))
+						      (slot (bitwise-and id mask)))
+						 (inc (fxarithmetic-shift slot
+									  1)))))
+					 ;; (warn "   reinsert!: i,key,keyslot="
+					 ;; 	   i key (vector-ref vec i))
+					 (cond
+					  ((vector-ref vec i)
+					   => (lambda (key*)
+						(if (symboltable:key-eq? key* key)
+						    (error "BUG")
+						    (lp (inc2/top+bottom
+							 i vlen 1)))))
+					  (else
+					   ;; (XX the usual 2 writing statmts..)
+					   (vector-set! vec i key)
+					   (vector-set! vec (inc i) val)
+					   (reinsert! items*))))))
+				     ;; done
+				     (void)))))))
+			 vec)))
+		   ;; XX still copy paste, basically:
+		   (let lp ((i (inc (fxarithmetic-shift slot 1))))
+		     ;;(warn "   lp: i,key2=" i (vector-ref vec i))
+		     (cond ((vector-ref vec i)
+			    => (lambda (key*)
+				 (if (symboltable:key-eq? key* key)
+				     (handle-found vec i key)
+				     (lp (inc2/top+bottom i vlen 1)))))
+			   (else
+			    ;; XX cannot ever happen now that we check
+			    ;; with contains? first, right?
+			    (handle-not-found key))))))))
+	  (handle-not-found key)))))
 
 
 
@@ -664,6 +665,23 @@ end:
  #(error "key already in table:" b)
  > (%try-error (symboltable-remove t 'nono))
  #(error "key not in table:" nono)
+
+ ;; test removal of non-existing keys in the case where the table
+ ;; would be resized:
+ > (list->symboltable '((a . 1) (b . 2)))
+ #(2 #f #f #f #f b 2 a 1)
+ > (symboltable-remove # 'a)
+ #(1 b 2 #f #f)
+ > (%try-error (symboltable-remove # 'a))
+ #(error "key not in table:" a)
+ ;; and not #(0 b 2)
+ > (list->symboltable '((a . 1) (b . 2)))
+ #(2 #f #f #f #f b 2 a 1)
+ > (symboltable-remove # 'b)
+ #(1 #f #f a 1)
+ > (%try-error (symboltable-remove # 'b))
+ #(error "key not in table:" b)
+ ;; and not #(0 a 1)
  )
 
 ;; test always run to make sure changes in Gambit won't make
