@@ -59,7 +59,7 @@
 	 ;; other stuff
 	 (numfields (length fields))
 	 (offset 1) ;; Change to 0 if no type head is used (future unsafe mode) !
-	 (inc-by-offset
+	 (add-offset
 	  (lambda (i)
 	    (+ offset i)))
 	 (safe-accessor-for-field
@@ -78,7 +78,7 @@
        (define ,predicate-name
 	 (lambda (v)
 	   (and (vector? v)
-		(= (vector-length v) ,(inc-by-offset numfields))
+		(= (vector-length v) ,(add-offset numfields))
 		(eq? (vector-ref v 0)
 		     ',tag))))
        (define ,error-name
@@ -92,7 +92,7 @@
 		   (define ,(safe-accessor-for-field field)
 		     (lambda (v)
 		       (if (,predicate-name v)
-			   (vector-ref v ,(inc-by-offset i))
+			   (vector-ref v ,(add-offset i))
 			   (,error-name v))))
 		   ;; unsafe version:
 		   (define ,(symbol-append prefix
@@ -101,7 +101,7 @@
 					   separator
 					   field)
 		     (lambda (v)
-		       (vector-ref v ,(inc-by-offset i))))))
+		       (vector-ref v ,(add-offset i))))))
 	      fields
 	      (iota numfields))
        (define-macro* (,let*-name vars+inp-s . body)
@@ -113,7 +113,7 @@
 		(name ',tag)
 		(generic-accessor-prefix ',generic-accessor-prefix)
 		;; copies of procedures from the outer expander
-		(inc-by-offset
+		(add-offset
 		 (lambda (i)
 		   (+ offset i)))
 		(generic-accessor-for-field
@@ -149,7 +149,7 @@
 				(if (,',predicate-name ,V)
 				    (,C
 				     ,@(map (lambda (v+f+i)
-					      `(vector-ref ,V ,(inc-by-offset (vector-ref v+f+i 2))))
+					      `(vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
 					    real-v+f+i-s))
 				    ;; (,',error-name ,V)
 				    ;; or, in a setting with generics, fall back to the dynamic dispatches:
