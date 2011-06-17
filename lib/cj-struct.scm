@@ -56,6 +56,9 @@
 	       "let-" name)))
 	 (error-name
 	  (symbol-append prefix name "-type-error"))
+	 (genericsetter-name
+	  ;; (XX: even more risk for name conflicts, thus uppercase it, k?)
+	  (symbol-append prefix name "-GENERIC-SET"))
 	 ;; other stuff
 	 (numfields (length fields))
 	 (offset 1) ;; Change to 0 if no type head is used (future unsafe mode) !
@@ -69,6 +72,10 @@
 			   name
 			   separator
 			   (source-code field))))
+	 (safe-setter-for-field
+	  (lambda (field)
+	    ;; always just "-set"?
+	    (symbol-append (safe-accessor-for-field field) "-set")))
 	 )
     `(begin
        (define ,constructor-name
@@ -87,6 +94,13 @@
 				  (symbol->string name)
 				  ", got:")
 		  v)))
+       (define ,genericsetter-name
+	 (lambda (v offset val)
+	   (if (,predicate-name v)
+	       (let ((v* (##vector-copy v)))
+		 (vector-set! v* offset val)
+		 v*)
+	       (,error-name v))))
        ,@(map (lambda (field i)
 		`(begin
 		   (define ,(safe-accessor-for-field field)
@@ -101,7 +115,12 @@
 					   separator
 					   field)
 		     (lambda (v)
-		       (vector-ref v ,(add-offset i))))))
+		       (vector-ref v ,(add-offset i))))
+		   ;; functional setter:
+		   (define ,(safe-setter-for-field field)
+		     (lambda (v val)
+		       ;; use shared code
+		       (,genericsetter-name v ,(add-offset i) val)))))
 	      fields
 	      (iota numfields))
        (define-macro* (,let*-name vars+inp-s . body)
