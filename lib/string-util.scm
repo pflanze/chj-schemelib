@@ -39,4 +39,4 @@
   (reverse (map reverse (r-list-split l separator))))
 
 (define (string-split str char)
-  (map list->string (list-split (string->list str))))
+  (map list->string (list-split (string->list str) char)))

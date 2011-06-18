@@ -99,7 +99,7 @@
 (define-macro* (with-pair var* . body)
   (assert* symbol? var*
 	   (lambda (var)
-	     (let ((l (split-string (symbol->string var) #\.)))
+	     (let ((l (string-split (symbol->string var) #\.)))
 	       (if (= (length l) 2)
 		   `(let-pair (,(map string->symbol l) ,var*) ,@body)
 		   (source-error

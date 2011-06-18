@@ -164,7 +164,7 @@
 (define-macro* (with-values var* . body)
   (assert* symbol? var*
 	   (lambda (var)
-	     (let ((l (split-string (symbol->string var) #\.)))
+	     (let ((l (string-split (symbol->string var) #\.)))
 	       `(let-values ((,(map string->symbol l) ,var*))
 		  ,@body)))))
 
