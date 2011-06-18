@@ -40,3 +40,21 @@
 
 (define (string-split str char)
   (map list->string (list-split (string->list str) char)))
+
+(define (lists-join ls seplis #!optional (tail '()))
+  (let rec ((ls ls))
+    (if (null? ls)
+	tail
+	(let-pair
+	 ((l ls*) ls)
+	 (if (null? ls*)
+	     (append l (rec ls*))
+	     (append l seplis (rec ls*)))))))
+
+(TEST
+ > (lists-join '((a b) (d) (e f)) '(1 2))
+ (a b 1 2 d 1 2 e f)
+ )
+
+(define (strings-join strs str)
+  (list->string (lists-join (map string->list strs) (string->list str))))
