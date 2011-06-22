@@ -6,10 +6,6 @@
 ;;;    (at your option) any later version.
 
 
-;;;
-;;;; improper-map
-;;;
-
 ;;; a map accepting improper lists (i.e. including non-pairs as l)
 
 (define (improper-map fn l #!optional (tail '()))
@@ -234,5 +230,4 @@
  > (rappend '(2 1) '(3))
  (1 2 3)
  )
-
 
