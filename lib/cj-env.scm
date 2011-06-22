@@ -321,3 +321,6 @@
 	  (cons expr (recur))))))
 
 
+(define (identity x)
+  x)
+
