@@ -180,21 +180,43 @@
 
 ;; test for exceptions:
 
+(define (try-error-handler x-exception?
+			   x
+			   x-exception-message
+			   x-exception-parameters)
+  (lambda (e)
+    (cond ((x-exception? e)
+	   (apply vector
+		  x
+		  (x-exception-message e)
+		  (x-exception-parameters e)))
+	  (else
+	   (raise e)))))
+
 (define (%try-error-f thunk)
   (with-exception-catcher
-   (lambda (e)
-     (cond ((error-exception? e)
-	    (apply vector
-		   'error
-		   (error-exception-message e)
-		   (error-exception-parameters e)))
-	   (else
-	    (raise e))))
+   (try-error-handler error-exception?
+		      'error
+		      error-exception-message
+		      error-exception-parameters)
    thunk))
 
 (define-macro* (%try-error form)
   `(%try-error-f (thunk ,form)))
 
+;; and for syntax exceptions:
+
+(define (%try-syntax-error-f thunk)
+  (with-exception-catcher
+   (try-error-handler source-error?
+		      'source-error
+		      source-error-message
+		      source-error-args ;; uh consistency?
+		      )
+   thunk))
+
+(define-macro* (%try-syntax-error form)
+  `(%try-syntax-error-f (thunk (eval ',form))))
 
 ;; utilities for writing concurrency tests:
 
