@@ -154,16 +154,14 @@
   (and (real? x)
        (positive? x)))
 
-;; a real compile-time only: (to avoid creating duplicates with List-Utilities)
-(insert-result-of
+(both-times
  (define (make-list n v)
    (let lp ((n n)
 	    (res '()))
      (if (positive? n)
 	 (lp (dec n)
 	     (cons v res))
-	 res)))
- '(begin))
+	 res))))
 
 (define-macro* (first-then arity* access cmp)
   (let ((arity (eval arity*)))
