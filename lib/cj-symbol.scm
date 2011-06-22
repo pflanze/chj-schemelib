@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(define symbol<?
+  (on symbol->string string<?))
+
 ;; a gensym that returns interned symbols
 
 (define gensym-prefix "GEN:")
