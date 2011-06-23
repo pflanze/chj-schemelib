@@ -282,3 +282,11 @@
     ;; for run time:
     res))
 
+;; Gambit work around aborting error handler during macro expansion:
+;; "define-macro*-debug"
+(define-macro* (define-macro*d name+args . body)
+  `(define-macro* ,name+args
+     (with-exception-handler
+      ##primordial-exception-handler
+      (lambda ()
+	,@body))))
