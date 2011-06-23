@@ -92,6 +92,29 @@
      (()
       `(begin ,@body)))))
 
+(define-macro* (lambda-pair bindforms . body)
+  ;; for now just support a single argument pair. Should look into
+  ;; generalizing lambda-values.
+  (match-list*
+   bindforms
+   ((argpair1)
+    ;;(with-gensym V  dependency sigh.
+    (let ((V (gensym 'V)))
+      (match-list*
+       argpair1
+       ((a r)
+	`(lambda (,V)
+	   (let-pair ((,a ,r) ,V)
+		     ,@body))))))
+   (_
+    (source-error
+     stx "lambda-pair: only a single argument pair supported for now"))))
+
+(TEST
+ > ((lambda-pair ((a b)) (vector a b)) (cons 9 10))
+ #(9 10)
+ )
+
 (define-macro* (with-pair var* . body)
   (assert* symbol? var*
 	   (lambda (var)
