@@ -100,10 +100,10 @@
 (TEST
  > (define (half x) (/ x 2))
  > (define (square x) (* x x))
- > (define (x*y x y) (* x y))
+ > (define x*y (lambda-values ((x y)) (* x y)))
  > ((compose** half inc square) 10)
  101/2
- > ((compose** half inc x*y) 10 20)
+ > ((compose** half inc x*y) (values 10 20))
  201/2
  > (define (inc2values x y) (values (inc x) (inc y)))
  > ((compose** half x*y inc2values) 10 20)
