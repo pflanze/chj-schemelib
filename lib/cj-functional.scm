@@ -15,8 +15,8 @@
     (not (apply fn v))))
 
 (define (compose f g)
-  (lambda (x)
-    (f (g x))))
+  (lambda x
+    (f (apply g x))))
 
 ;; name?
 (define (or-apply f g)
