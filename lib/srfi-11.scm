@@ -320,6 +320,43 @@
   (begin (define a GEN:a451) (set! GEN:a451 #f)))
  )
 
+(define (values-ref v i)
+  (define (err len i)
+    (error "values-ref: index out of range (len,i):" len i))
+  (if (##values? v)
+      (let ((len (##vector-length v)))
+	(if (and (natural0? i)
+		 (< i len))
+	    (##vector-ref v i)
+	    (err len i)))
+      (if (= i 0)
+	  v
+	  (err 1 i))))
+
+;; (define fst (cut values-ref <> 0))
+;; (define snd (cut values-ref <> 1))
+;; (define 3rd (cut values-ref <> 2))
+;;dependency issue?
+(define fst (lambda (<>) (values-ref <> 0)))
+(define snd (lambda (<>) (values-ref <> 1)))
+(define 3rd (lambda (<>) (values-ref <> 2)))
+
+(TEST
+ > (fst (values 'a))
+ a
+ > (fst 'A)
+ A
+ > (fst (values 'a 'b))
+ a
+ > (snd (values 'a 'b))
+ b
+ > (snd (values 'a 'b 'c))
+ b
+ > (3rd (values 'a 'b 'c))
+ c
+ > (%try-error (3rd (values 'a 'b)))
+ #(error "values-ref: index out of range (len,i):" 2 2)
+ )
 
 ;; This is a pretty broken-Gambit workaround:
 
