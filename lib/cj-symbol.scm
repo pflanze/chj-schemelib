@@ -145,3 +145,14 @@
 
 (define-macro* (with-gensym var . body)
   `(with-gensyms (,var) ,@body))
+
+(define-macro* (symbol-case expr . clauses)
+  (with-gensyms
+   (V V*)
+   `(let ((,V ,expr))
+      (assert*1 symbol? ,V
+		(lambda (,V*)
+		  (case ,V*
+		    ;; XXX should check clauses for whether they really
+		    ;; check for symbols...
+		    ,@clauses))))))

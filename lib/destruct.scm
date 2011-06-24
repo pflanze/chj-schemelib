@@ -6,20 +6,6 @@
 ;;;    (at your option) any later version.
 
 
-;lib
-(define-macro* (symbol-case* expr . clauses)
-  (with-gensyms
-   (V V*)
-   `(let ((,V ,expr))
-      (assert*1 symbol? ,V
-		(lambda (,V*)
-		  (case ,V*
-		    ;; XXX should check clauses for whether they really
-		    ;; check for symbols...
-		    ,@clauses))))))
-;;/lib
-
-
 ;; destructuring bind
 
 ;; (list 1 2 x ,x) matches `(1 2 ,x ,X) with anything in X, binding x
@@ -202,7 +188,7 @@
   (lambda (input opgroup)
     ;; XX assumes that there is only one group; should move V* V LEN up
     (let ((constructor (clause:constructor-xsym (source-code (car opgroup)))))
-      (symbol-case*
+      (symbol-case
        constructor
        ((list)
 	;; XX later: reuse the same code for 'apply list'
