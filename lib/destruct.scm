@@ -155,9 +155,11 @@
 	   ;; (of course, potential for optimizing accesses
 	   ;; (constructions) here too, especially the pos'ed
 	   ;; fields)
-	   (if (equal? (,@(if apply? '(apply) '())
-			,constructor
-			,@clause-code-rest) ,V)
+	   (if (equal? ,(cj-possibly-sourcify-deep
+			 `(,@(if apply? '(apply) '())
+			   ,constructor
+			   ,@clause-code-rest)
+			 (clause:test clause)) ,V)
 	       (begin
 		 ,@(clause:body clause))
 	       ,remainder))))))
@@ -346,7 +348,7 @@
 			((list 1 2) 'found12)
 			((list 1 ,x) (list 'foundx x))
 			((list 1 ,x 4) (list 'foundx4 x))
-			((apply list ,x ,y ,r) (list 'foundr x y r))))
+			((apply list x ,y ,r) (list 'foundr x y r))))
  > (t '(1 2))
  found12
  > (t '(1 2 4))
