@@ -139,7 +139,7 @@
    vars
    (vars
     `(let ,(map (lambda (v)
-		  `(,v (gensym)))
+		  `(,v (gensym ',v)))
 		vars)
        ,@body))))
 
