@@ -182,6 +182,11 @@
 		;; doesn't contain anything, so:
 		c)))))))
 
+(define (cj-possibly-sourcify-deep s master)
+  (if (source? master)
+      (cj-sourcify-deep s master)
+      s))
+
 (define (cj-desourcify x)
   (let ((x (if (##source? x) (##source-code x) x)))
     (cond ((pair? x)
