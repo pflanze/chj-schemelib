@@ -11,12 +11,12 @@
   (with-gensyms
    (V V*)
    `(let ((,V ,expr))
-      (assert* symbol? ,V
-	       (lambda (,V*)
-		 (case ,V*
-		   ;; XXX should check clauses for whether they really
-		   ;; check for symbols...
-		   ,@clauses))))))
+      (assert*1 symbol? ,V
+		(lambda (,V*)
+		  (case ,V*
+		    ;; XXX should check clauses for whether they really
+		    ;; check for symbols...
+		    ,@clauses))))))
 ;;/lib
 
 
@@ -38,33 +38,26 @@
 (define clause:test (compose fst clause:parse))
 (define clause:body (compose snd clause:parse))
 
-;; (define clause:testhead-xsym
-;;   (lambda (clause)
-;;     (assert* pair? (clause:test clause)
-;; 	     (lambda (test)
-;; 	       (assert* symbol? (car test)
-;; 			identity)))))
-
 (define clause:test-parse
   ;; (values constructor apply? rest)
   (lambda (clause)
-    (assert* pair? (clause:test clause)
-	     (lambda (test)
-	       (assert* symbol? (car test)
-			(lambda (hd)
-			  (case hd
-			    ((apply)
-			     (assert* pair? (cdr test)
-				      (lambda (test)
-					(assert* symbol? (car test)
-						 (lambda_
-						  (values _
-							  #t
-							  (cdr test)))))))
-			    (else
-			     (values hd
-				     #f
-				     (cdr test))))))))))
+    (assert*1 pair? (clause:test clause)
+	      (lambda (test)
+		(assert*1 symbol? (car test)
+			  (lambda (hd)
+			    (case hd
+			      ((apply)
+			       (assert*1 pair? (cdr test)
+					 (lambda (test)
+					   (assert*1 symbol? (car test)
+						     (lambda_
+						      (values _
+							      #t
+							      (cdr test)))))))
+			      (else
+			       (values hd
+				       #f
+				       (cdr test))))))))))
 
 (define clause:constructor-xsym (compose fst clause:test-parse))
 (define clause:apply? (compose snd clause:test-parse))
