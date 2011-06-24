@@ -327,7 +327,7 @@
 			((list 1 2) 'found12)
 			((list 1 ,x) (list 'foundx x))
 			((list 1 ,x 4) (list 'foundx4 x))
-			((apply list x ,y ,r) (list 'foundr x y r))))
+			((apply list ,x ,y ,r) (list 'foundr x y r))))
  > (t '(1 2))
  found12
  > (t '(1 2 4))
