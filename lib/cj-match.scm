@@ -15,55 +15,58 @@
 
 
 ;; clause 'data type':
-(define clause:parse
-  (lambda (clause)
-    (match* clause
-	    ((test . body)
-	     (values test body)))))
 
-(define clause:test (compose fst clause:parse))
-(define clause:body (compose snd clause:parse))
+(compile-time
+ 
+ (define clause:parse
+   (lambda (clause)
+     (match* clause
+	     ((test . body)
+	      (values test body)))))
 
-(define clause:test-parse
-  ;; (values constructor apply? rest)
-  (lambda (clause)
-    (assert*1 pair? (clause:test clause)
-	      (lambda (test)
-		(assert*1 symbol? (car test)
-			  (lambda (hd)
-			    (case hd
-			      ((apply)
-			       (assert*1 pair? (cdr test)
-					 (lambda (test)
-					   (assert*1 symbol? (car test)
-						     (lambda_
-						      (values _
-							      #t
-							      (cdr test)))))))
-			      (else
-			       (values hd
-				       #f
-				       (cdr test))))))))))
+ (define clause:test (compose fst clause:parse))
+ (define clause:body (compose snd clause:parse))
 
-(define clause:constructor-xsym (compose fst clause:test-parse))
-(define clause:apply? (compose snd clause:test-parse))
-(define clause:args (compose 3rd clause:test-parse))
+ (define clause:test-parse
+   ;; (values constructor apply? rest)
+   (lambda (clause)
+     (assert*1 pair? (clause:test clause)
+	       (lambda (test)
+		 (assert*1 symbol? (car test)
+			   (lambda (hd)
+			     (case hd
+			       ((apply)
+				(assert*1 pair? (cdr test)
+					  (lambda (test)
+					    (assert*1 symbol? (car test)
+						      (lambda_
+						       (values _
+							       #t
+							       (cdr test)))))))
+			       (else
+				(values hd
+					#f
+					(cdr test))))))))))
 
-(define clause:test-nargs
-  ;; negative like improper-length if it's an n-ary application
-  (lambda (clause)
-    (let ((len (improper-length
-		;; ^ just to handle error myself
-		(source-code (clause:args clause)))))
-      (if (negative? len)
-	  (source-error clause "invalid function application (improper list)")
-	  (if (clause:apply? clause)
-	      (if (zero? len)
-		  ;; is this just a stupid Scheme limitation?
-		  (source-error (clause:test clause)
-				"wrong number of arguments passed to apply")
-		  (- len))
-	      len)))))
+ (define clause:constructor-xsym (compose fst clause:test-parse))
+ (define clause:apply? (compose snd clause:test-parse))
+ (define clause:args (compose 3rd clause:test-parse))
+
+ (define clause:test-nargs
+   ;; negative like improper-length if it's an n-ary application
+   (lambda (clause)
+     (let ((len (improper-length
+		 ;; ^ just to handle error myself
+		 (source-code (clause:args clause)))))
+       (if (negative? len)
+	   (source-error clause "invalid function application (improper list)")
+	   (if (clause:apply? clause)
+	       (if (zero? len)
+		   ;; is this just a stupid Scheme limitation?
+		   (source-error (clause:test clause)
+				 "wrong number of arguments passed to apply")
+		   (- len))
+	       len))))))
 
 (TEST
  > (clause:test-nargs '((list a b c) foo))
@@ -112,58 +115,62 @@
    ((1 . b) (2 . c)))
  )
 
-(define clause->check
-  (lambda (clause V remainder)
-    (let*-values (((constructor apply? rest) (clause:test-parse clause))
-		  ((clause-code-rest pos+vars) (extract-variables rest)))
-      (let* ((just-list-ref
-	      (lambda-pair ((pos var))
-			   `(,var (list-ref ,V ,pos))))
-	     (pos+var->code
-	      ;; (XX: potential for optimization of list extraction)
-	      (let ((nargs (clause:test-nargs clause)))
-		(if (negative? nargs)
-		    (let ((lastpos (dec (- nargs))))
-		      (lambda-pair ((pos var))
-				   (if (= pos lastpos)
-				       `(,var (drop ,V ,pos))
-				       (just-list-ref (cons pos var)))))
-		    just-list-ref))))
-	`(let ,(map pos+var->code
-		    pos+vars)
-	   ;; (of course, potential for optimizing accesses
-	   ;; (constructions) here too, especially the pos'ed
-	   ;; fields)
-	   (if (equal? ,(cj-possibly-sourcify-deep
-			 `(,@(if apply? '(apply) '())
-			   ,constructor
-			   ,@clause-code-rest)
-			 (clause:test clause)) ,V)
-	       (begin
-		 ,@(clause:body clause))
-	       ,remainder))))))
+(compile-time
+ 
+ (define clause->check
+   (lambda (clause V remainder)
+     (let*-values (((constructor apply? rest) (clause:test-parse clause))
+		   ((clause-code-rest pos+vars) (extract-variables rest)))
+       (let* ((just-list-ref
+	       (lambda-pair ((pos var))
+			    `(,var (list-ref ,V ,pos))))
+	      (pos+var->code
+	       ;; (XX: potential for optimization of list extraction)
+	       (let ((nargs (clause:test-nargs clause)))
+		 (if (negative? nargs)
+		     (let ((lastpos (dec (- nargs))))
+		       (lambda-pair ((pos var))
+				    (if (= pos lastpos)
+					`(,var (drop ,V ,pos))
+					(just-list-ref (cons pos var)))))
+		     just-list-ref))))
+	 `(let ,(map pos+var->code
+		     pos+vars)
+	    ;; (of course, potential for optimizing accesses
+	    ;; (constructions) here too, especially the pos'ed
+	    ;; fields)
+	    (if (equal? ,(cj-possibly-sourcify-deep
+			  `(,@(if apply? '(apply) '())
+			    ,constructor
+			    ,@clause-code-rest)
+			  (clause:test clause)) ,V)
+		(begin
+		  ,@(clause:body clause))
+		,remainder)))))))
 
 (TEST
  > (clause->check '((list a ,b c) (run b)) 'MYV 'REM)
  (let ((b (list-ref MYV 1))) (if (equal? (list a b c) MYV) (begin (run b)) REM))
  )
 
-(define clauses->check
-  (lambda (group V rem)
-    (fold-right
-     (lambda (clause rem)
-       (clause->check clause
-		      V
-		      rem))
-     rem
-     group)))
+(compile-time
 
-(define (arity-compatible? inpa clausea)
-  (if (negative? inpa)
-      (error "bug")
-      (if (negative? clausea)
-	  (>= inpa (- -1 clausea))
-	  (= inpa clausea))))
+ (define clauses->check
+   (lambda (group V rem)
+     (fold-right
+      (lambda (clause rem)
+	(clause->check clause
+		       V
+		       rem))
+      rem
+      group)))
+
+ (define (arity-compatible? inpa clausea)
+   (if (negative? inpa)
+       (error "bug")
+       (if (negative? clausea)
+	   (>= inpa (- -1 clausea))
+	   (= inpa clausea)))))
 
 (TEST
  > (arity-compatible? 1 1)
@@ -184,102 +191,103 @@
  #t
  )
 
-(define handle-op-group
-  (lambda (input opgroup)
-    ;; XX assumes that there is only one group; should move V* V LEN up
-    (let ((constructor (clause:constructor-xsym (source-code (car opgroup)))))
-      (symbol-case
-       constructor
-       ((list)
-	;; XX later: reuse the same code for 'apply list'
-	(let* ((grouped-by-nargs
-		(list-group-by opgroup (on clause:test-nargs <))))
-	  ;; split into n-ary and fixed arity cases:
-	  (letv ((groups-nary groups-fixed)
-		 (partition (compose* negative?
-				      clause:test-nargs
-				      car)
-			    grouped-by-nargs))
-		;; nary groups need to be given names so as to be reusable:
-		(let* ((narity->name+group
-			(map (lambda (group)
-			       ;; first item in list is alist key 
-			       (list (clause:test-nargs (car group))
-				     (gensym)
-				     group))
-			     groups-nary))
-		       (narity->name
-			;; ((table accessor converters how?))
-			(lambda (a)
-			  (car (number-alist-ref narity->name+group a)))))
-		  (with-gensyms
-		   (V* V LEN NO-MATCH)
-		   `(let* ((,V* ,input)
-			   (,V (source-code ,V*))
-			   (,LEN (improper-length ,V))
-			   (,NO-MATCH (lambda ()
-					(source-error ,V* "no match"))))
-		      (let ,(map (lambda_
-				  (apply
-				   (lambda (nargs name group)
-				     (with-gensyms
-				      (CONT)
-				      `(,name
-					(lambda (,CONT)
-					  ,(clauses->check group
-							   V
-							   `(,CONT))))))
-				   _))
-				 narity->name+group)
-			(if (negative? ,LEN)
-			    (source-error
-			     ,V*
-			     "matching of improper lists is not implemented")
-			    (case ,LEN
-			      ,@(map
-				 (lambda (group)
-				   (let ((nargs
-					  (clause:test-nargs (car group))))
-				     `((,nargs)
-				       ,(fold-right
-					 (lambda (clause rem)
-					   (let ((cnargs
-						  (clause:test-nargs clause)))
-					     (if (arity-compatible? nargs
-								    cnargs)
-						 (if (negative? cnargs)
-						     `(,(narity->name cnargs)
-						       (lambda ()
-							 ,rem))
-						     (clause->check clause
-								    V
-								    rem))
-						 rem)))
-					 `(,NO-MATCH)
-					 opgroup))))
-				 groups-fixed)
-			      (else
-			       ;; possible nary clauses; hm also still
-			       ;; keep the clause ordering, so have to
-			       ;; re-check arity for each and every
-			       ;; one of them.
-			       ,(fold-right
-				 (lambda (clause rem)
-				   (let ((nargs (clause:test-nargs clause)))
-				     (with-gensym
-				      REM
-				      `(let ((,REM (lambda ()
-						     ,rem)))
-					 (if (>= ,LEN ,(- -1 nargs))
-					     (,(narity->name nargs)
-					      ,REM)
-					     (,REM))))))
-				 `(source-error ,V* "no match")
-				 (filter clause:apply?
-					 opgroup))))))))))))
-       (else
-	(source-error constructor
-		      "only list matching is implemented"))))))
+(compile-time
+ (define handle-op-group
+   (lambda (input opgroup)
+     ;; XX assumes that there is only one group; should move V* V LEN up
+     (let ((constructor (clause:constructor-xsym (source-code (car opgroup)))))
+       (symbol-case
+	constructor
+	((list)
+	 ;; XX later: reuse the same code for 'apply list'
+	 (let* ((grouped-by-nargs
+		 (list-group-by opgroup (on clause:test-nargs <))))
+	   ;; split into n-ary and fixed arity cases:
+	   (letv ((groups-nary groups-fixed)
+		  (partition (compose* negative?
+				       clause:test-nargs
+				       car)
+			     grouped-by-nargs))
+		 ;; nary groups need to be given names so as to be reusable:
+		 (let* ((narity->name+group
+			 (map (lambda (group)
+				;; first item in list is alist key 
+				(list (clause:test-nargs (car group))
+				      (gensym)
+				      group))
+			      groups-nary))
+			(narity->name
+			 ;; ((table accessor converters how?))
+			 (lambda (a)
+			   (car (number-alist-ref narity->name+group a)))))
+		   (with-gensyms
+		    (V* V LEN NO-MATCH)
+		    `(let* ((,V* ,input)
+			    (,V (source-code ,V*))
+			    (,LEN (improper-length ,V))
+			    (,NO-MATCH (lambda ()
+					 (source-error ,V* "no match"))))
+		       (let ,(map (lambda_
+				   (apply
+				    (lambda (nargs name group)
+				      (with-gensyms
+				       (CONT)
+				       `(,name
+					 (lambda (,CONT)
+					   ,(clauses->check group
+							    V
+							    `(,CONT))))))
+				    _))
+				  narity->name+group)
+			 (if (negative? ,LEN)
+			     (source-error
+			      ,V*
+			      "matching of improper lists is not implemented")
+			     (case ,LEN
+			       ,@(map
+				  (lambda (group)
+				    (let ((nargs
+					   (clause:test-nargs (car group))))
+				      `((,nargs)
+					,(fold-right
+					  (lambda (clause rem)
+					    (let ((cnargs
+						   (clause:test-nargs clause)))
+					      (if (arity-compatible? nargs
+								     cnargs)
+						  (if (negative? cnargs)
+						      `(,(narity->name cnargs)
+							(lambda ()
+							  ,rem))
+						      (clause->check clause
+								     V
+								     rem))
+						  rem)))
+					  `(,NO-MATCH)
+					  opgroup))))
+				  groups-fixed)
+			       (else
+				;; possible nary clauses; hm also still
+				;; keep the clause ordering, so have to
+				;; re-check arity for each and every
+				;; one of them.
+				,(fold-right
+				  (lambda (clause rem)
+				    (let ((nargs (clause:test-nargs clause)))
+				      (with-gensym
+				       REM
+				       `(let ((,REM (lambda ()
+						      ,rem)))
+					  (if (>= ,LEN ,(- -1 nargs))
+					      (,(narity->name nargs)
+					       ,REM)
+					      (,REM))))))
+				  `(source-error ,V* "no match")
+				  (filter clause:apply?
+					  opgroup))))))))))))
+	(else
+	 (source-error constructor
+		       "only list matching is implemented")))))))
 
 (define-macro*d (match input . clauses)
   ;; group according to type of datum
