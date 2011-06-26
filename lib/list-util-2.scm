@@ -75,6 +75,9 @@
 	((if improper? improper proper) res)))
 
 (TEST
+ > (define (inccons n l)
+     (cons (inc n)
+	   l))
  > ((improper-fold-right/yn-cont list vector) inccons 'end '(1 2 3))
  ((2 3 4 . end))
  > ((improper-fold-right/yn-cont list vector) inccons 'end '(1 2 . 3))
