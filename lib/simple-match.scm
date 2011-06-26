@@ -224,22 +224,35 @@
 3
  )
 
+(compile-time
+ (define (assert*-expand desourcify gen-full-desourcify/1 pred val yes-cont no-cont)
+   (define V* (gensym 'v*))
+   (define V (gensym 'v))
+   `(let* ((,V* ,val)
+	   (,V (,desourcify ,V*)))
+      (if (,pred ,V)
+	  (,yes-cont ,V)
+	  ,(if (source-code no-cont)
+	       no-cont
+	       `(source-error ,V*
+			      ,(string-append "does not match "
+					      (object->string
+					       (cj-desourcify pred))
+					      " predicate")
+			      ,(gen-full-desourcify/1 V* V)))))))
 
 (define-macro* (assert* pred val yes-cont #!optional no-cont)
-  (define V* (gensym 'v*))
-  (define V (gensym 'v))
-  `(let* ((,V* ,val)
-	  (,V (cj-desourcify ,V*)))
-     (if (,pred ,V)
-	 (,yes-cont ,V)
-	 ,(if (source-code no-cont)
-	      no-cont
-	      `(source-error ,V*
-			     ,(string-append "does not match "
-					     (object->string
-					      (cj-desourcify pred))
-					     " predicate")
-			     ,V)))))
+  (assert*-expand 'cj-desourcify
+		  (lambda (V* V)
+		    V)
+		  pred val yes-cont no-cont))
+
+;; only remove location information 1 level (uh, better names?)
+(define-macro* (assert*1 pred val yes-cont #!optional no-cont)
+  (assert*-expand 'source-code
+		  (lambda (V* V)
+		    `(cj-desourcify ,V*))
+		  pred val yes-cont no-cont))
 
 ;; different from assert* in two ways (1) pass the unwrapped result in
 ;; 'the same variable as' v instead of expecting a function, (2) evals
