@@ -289,7 +289,7 @@
 	 (source-error constructor
 		       "only list matching is implemented")))))))
 
-(define-macro*d (match input . clauses)
+(define-macro* (match input . clauses)
   ;; group according to type of datum
   (let* ((clausegroups
 	  (list-group-by clauses
@@ -463,7 +463,7 @@
  (apply list 'a b ,c)
  )
 
-(define-macro*d (list-match input . clauses)
+(define-macro* (list-match input . clauses)
   `(match
     ,input
     ,@(map (lambda (clause)
