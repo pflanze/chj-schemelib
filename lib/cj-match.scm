@@ -347,3 +347,148 @@
  > (t '(1 2 4 3))
  (foundr 1 2 (4 3))
  )
+
+
+;; Wrapper that goes back to a more 'traditional' syntax (?):
+
+(compile-time
+
+ ;; can't use improper-fold-right* since (unquote x) and (quasiquote x) can
+ ;; be in tail position.
+
+ (define (maybe-quasiquote-or-unquote e*)
+   (let ((e (source-code e*)))
+     ;; (use and shortcutting, thanks to *-less mixmatching of those)
+     (and (pair? e)
+	  (let-pair
+	   ((a* r) e)
+	   (let ((a (source-code a*)))
+	     (and (symbol? a)
+		  (or (eq? a 'quasiquote)
+		      (eq? a 'unquote))
+		  (null? (cdr r))
+		  (values a
+			  (car r))))))))
+
+ ;; > (maybe-quasiquote-or-unquote '`a)
+ ;; quasiquote
+ ;; a
+ ;; > (maybe-quasiquote-or-unquote ',b)
+ ;; unquote
+ ;; b
+ ;; > (maybe-quasiquote-or-unquote ''b)
+ ;; #f
+ ;; > (maybe-quasiquote-or-unquote '(unquote b c))
+ ;; #f
+ ;; > (maybe-quasiquote-or-unquote '(unquote b . c))
+ ;; #f
+
+ (define add-quote
+   (lambda (e*)
+     (list 'quote e*)))
+ 
+ (define changequote
+   (lambda-values
+    ((which var))
+    (symbol-case which
+		 ((unquote)
+		  ;; let it evaluate
+		  var)
+		 ((quote)
+		  ;; hm just double quote it, I guess?
+		  (add-quote var))
+		 ((quasiquote)
+		  ;; bind to variable 
+		  (list 'unquote var))
+		 (else
+		  (add-quote var)))))
+
+ (define change-expr
+   (lambda (e)
+     (cond ((maybe-quasiquote-or-unquote e)
+	    => changequote)
+	   (else
+	    (add-quote e)))))
+ 
+ (define list-match-test->match-test
+   (lambda (test)
+     (let* ((proper
+	     (lambda (r)
+	       `(list ,@r)))
+	    (improper
+	     (lambda (r)
+	       `(apply list ,@r)))
+	    )
+       (letv ((improper? test*)
+	      (let rec ((cl test))
+		(cond ((maybe-quasiquote-or-unquote cl)
+		       => (compose (lambda (r)
+				     (values #t
+					     (list r)))
+				   changequote))
+		      (else
+		       (let ((cl* (source-code cl)))
+			 (cond ((pair? cl*)
+				(let-pair ((a r) cl*)
+					  (letv ((improper? r) (rec r))
+						(values improper?
+							(cons (change-expr a)
+							      r)))))
+			       ((null? cl*)
+				(values #f
+					'()))
+			       (else
+				(source-error
+				 test
+				 "impossible to create such input with list"))))))))
+	     ((if improper? improper proper) test*)))))
+
+ )
+
+(TEST
+ > (change-expr 'a)
+ 'a
+ > (change-expr ',a)
+ a
+ > (change-expr '`a)
+ ,a
+
+ > (list-match-test->match-test '(a b c))
+ (list 'a 'b 'c)
+ > (%try-syntax-error (list-match-test->match-test '(a b . c)))
+ #(source-error "impossible to create such input with list")
+ > (list-match-test->match-test ',a)
+ (apply list a)
+ > (list-match-test->match-test '(a ,b . `c))
+ (apply list 'a b ,c)
+ )
+
+(define-macro*d (list-match input . clauses)
+  `(match
+    ,input
+    ,@(map (lambda (clause)
+	     (match clause
+		    ((apply list ,test ,body)
+		     `(,(list-match-test->match-test test)
+		       ,@body))))
+	   clauses)))
+
+(TEST
+ > (list-match '(a b)
+	       ((a b) 1))
+ 1
+ > (list-match '(a c)
+	       ((a b) 1)
+	       ((a `b) b))
+ c
+ > (list-match '(a c) ((a b) 1) ((a `b . `c) (vector b c)))
+ #(c ())
+ > (list-match '(a c f) ((a b) 1) ((a `b . `c) (vector b c)))
+ #(c (f))
+ > (define b 'c)
+ > (list-match '(a c f) ((a b) 1) ((a ,b . `c) c))
+ (f)
+ > (define b 'd)
+ > (%try-syntax-error (list-match '(a c f) ((a b) 1) ((a ,b . `c) c)))
+ #(source-error "no match")
+ )
