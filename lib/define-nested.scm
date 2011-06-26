@@ -11,11 +11,9 @@
 (define-macro* (define-nested bind expr)
   (let ((bind* (source-code bind)))
     (if (pair? bind*)
-       (let-pair
-	((a r) bind*)
-	`(define-nested ,a
-	   (lambda ,r
-	     ,expr)))
+	`(define-nested ,(car bind*)
+	   (lambda ,(cdr bind*)
+	     ,expr))
        `(define ,bind ,expr))))
 
 (TEST
