@@ -67,6 +67,25 @@
  (2 3 4 . end)
  )
 
+;; improper-fold-right that also tells whether the argument is the end
+;; of an improper input list:
+
+(define (improper-fold-right* fn/3 tail l)
+  (let rec ((l l))
+    (cond ((null? l)
+	   tail)
+	  ((pair? l)
+	   (fn/3 #f
+		 (car l)
+		 (rec (cdr l))))
+	  (else
+	   (fn/3 #t
+		 l
+		 tail)))))
+
+;; test see improper-fold-right/yn-cont in list-util-2.scm
+
+
 ;; destructuring syntax
 
 (define-macro* (let-pair bindform . body)

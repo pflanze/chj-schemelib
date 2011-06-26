@@ -62,3 +62,21 @@
  ((1) (2) (3 3 3) (4) (5 5) (6))
  )
 
+
+;; Maybe I'm rather going to use improper-fold-right* directly?
+
+(define-nested ((improper-fold-right/yn-cont proper improper) fn/2 tail l)
+  (letv ((improper? res) (improper-fold-right*
+			  (lambda-values (improper? v (rimproper? res))
+					 (values (or improper? rimproper?)
+						 (fn/2 v res)))
+			  (values #f tail)
+			  l))
+	((if improper? improper proper) res)))
+
+(TEST
+ > ((improper-fold-right/yn-cont list vector) inccons 'end '(1 2 3))
+ ((2 3 4 . end))
+ > ((improper-fold-right/yn-cont list vector) inccons 'end '(1 2 . 3))
+ #((2 3 4 . end))
+ )
