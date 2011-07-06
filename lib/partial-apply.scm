@@ -71,10 +71,12 @@
 	    (assert* symbol? nam
 		     (lambda (nam*)
 		       (let ((name-fn (symbol-append nam* ".")))
-			`(begin
-			   ,(partial-apply:expand name-fn args body)
-			   (define-macro* (,nam . args)
-			     `(pa* ,',name-fn ,@args))))))))
+			 (with-gensym
+			  ARGS
+			  `(begin
+			     ,(partial-apply:expand name-fn args body)
+			     (define-macro* (,nam . ,ARGS)
+			       `(pa* ,',name-fn ,@,ARGS)))))))))
 
 (TEST
  > (define/pa (f a . b) (cons a b))
