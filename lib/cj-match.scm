@@ -410,7 +410,7 @@
 	   (else
 	    (add-quote e)))))
  
- (define list-match-test->match-test
+ (define matchl-test->match-test
    (lambda (test)
      (let* ((proper
 	     (lambda (r)
@@ -453,42 +453,42 @@
  > (change-expr '`a)
  ,a
 
- > (list-match-test->match-test '(a b c))
+ > (matchl-test->match-test '(a b c))
  (list 'a 'b 'c)
- > (%try-syntax-error (list-match-test->match-test '(a b . c)))
+ > (%try-syntax-error (matchl-test->match-test '(a b . c)))
  #(source-error "impossible to create such input with list")
- > (list-match-test->match-test ',a)
+ > (matchl-test->match-test ',a)
  (apply list a)
- > (list-match-test->match-test '(a ,b . `c))
+ > (matchl-test->match-test '(a ,b . `c))
  (apply list 'a b ,c)
  )
 
-(define-macro* (list-match input . clauses)
+(define-macro* (matchl input . clauses)
   `(match
     ,input
     ,@(map (lambda (clause)
 	     (match clause
 		    ((apply list ,test ,body)
-		     `(,(list-match-test->match-test test)
+		     `(,(matchl-test->match-test test)
 		       ,@body))))
 	   clauses)))
 
 (TEST
- > (list-match '(a b)
+ > (matchl '(a b)
 	       ((a b) 1))
  1
- > (list-match '(a c)
+ > (matchl '(a c)
 	       ((a b) 1)
 	       ((a `b) b))
  c
- > (list-match '(a c) ((a b) 1) ((a `b . `c) (vector b c)))
+ > (matchl '(a c) ((a b) 1) ((a `b . `c) (vector b c)))
  #(c ())
- > (list-match '(a c f) ((a b) 1) ((a `b . `c) (vector b c)))
+ > (matchl '(a c f) ((a b) 1) ((a `b . `c) (vector b c)))
  #(c (f))
  > (define b 'c)
- > (list-match '(a c f) ((a b) 1) ((a ,b . `c) c))
+ > (matchl '(a c f) ((a b) 1) ((a ,b . `c) c))
  (f)
  > (define b 'd)
- > (%try-syntax-error (list-match '(a c f) ((a b) 1) ((a ,b . `c) c)))
+ > (%try-syntax-error (matchl '(a c f) ((a b) 1) ((a ,b . `c) c)))
  #(source-error "no match")
  )
