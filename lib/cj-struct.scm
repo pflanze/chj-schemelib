@@ -59,6 +59,9 @@
 	 (genericsetter-name
 	  ;; (XX: even more risk for name conflicts, thus uppercase it, k?)
 	  (symbol-append prefix name "-GENERIC-SET"))
+	 (genericupdater-name
+	  ;; (XX: even more risk for name conflicts, thus uppercase it, k?)
+	  (symbol-append prefix name "-GENERIC-UPDATE"))
 	 ;; other stuff
 	 (numfields (length fields))
 	 (offset 1) ;; Change to 0 if no type head is used (future unsafe mode) !
@@ -76,6 +79,10 @@
 	  (lambda (field)
 	    ;; always just "-set"?
 	    (symbol-append (safe-accessor-for-field field) "-set")))
+	 (safe-updater-for-field
+	  (lambda (field)
+	    ;; always just "-update"?
+	    (symbol-append (safe-accessor-for-field field) "-update")))
 	 )
     `(begin
        (define ,constructor-name
@@ -101,6 +108,14 @@
 		 (vector-set! v* offset val)
 		 v*)
 	       (,error-name v))))
+       (define ,genericupdater-name
+	 (lambda (v offset fn)
+	   (if (,predicate-name v)
+	       (let ((v* (##vector-copy v)))
+		 (##vector-set! v* offset
+				(fn (##vector-ref v offset)))
+		 v*)
+	       (,error-name v))))
        ,@(map (lambda (field i)
 		`(begin
 		   (define ,(safe-accessor-for-field field)
@@ -120,7 +135,12 @@
 		   (define ,(safe-setter-for-field field)
 		     (lambda (v val)
 		       ;; use shared code
-		       (,genericsetter-name v ,(add-offset i) val)))))
+		       (,genericsetter-name v ,(add-offset i) val)))
+		   ;; functional updater:
+		   (define ,(safe-updater-for-field field)
+		     (lambda (v fn)
+		       ;; use shared code
+		       (,genericupdater-name v ,(add-offset i) fn)))))
 	      fields
 	      (iota numfields))
        (define-macro* (,let*-name vars+inp-s . body)
@@ -208,4 +228,14 @@
  #t
  > (foo? #)
  #f
+ ;; updaters
+ > (define-struct foo a b)
+ > (make-foo 1 2)
+ #(foo 1 2)
+ > (foo-b-update # inc)
+ #(foo 1 3)
+ > (foo-b-update # inc)
+ #(foo 1 4)
+ > (foo-a-update # inc)
+ #(foo 2 4)
  )
