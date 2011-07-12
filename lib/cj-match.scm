@@ -558,9 +558,18 @@
 
 (define-macro*d (mcase expr . clauses)
   (let* ((sepclauses (mcase-separate-clauses clauses)))
-    (with-gensym
-     V
-     `(let ((,V ,expr))
+    (with-gensyms
+     (V V*)
+     `(let* ((,V ,expr)
+	     ,@(if (not (null? (mcaseclauses-other sepclauses)))
+		   `((,V* (source-code ,V)))
+		   ;; XX: warning: predicates will get the data with
+		   ;; source annotation removed from only the top
+		   ;; level! Deep removal would be costly and
+		   ;; *usually* not necessary, better solution would be
+		   ;; to encode this knowledge in source-aware
+		   ;; predicates
+		   `()))
 	(cond
 	 ;; XX: ordering of list vs other (vs else) is thrown away here, bad?
 
@@ -568,7 +577,7 @@
 	 ,@(map (lambda (clause)
 		  (matchl clause
 			  ((`pred . `body)
-			   `((,pred ,V)
+			   `((,pred ,V*)
 			     ,@body))))
 		(mcaseclauses-other sepclauses))
 
