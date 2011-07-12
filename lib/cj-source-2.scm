@@ -65,3 +65,25 @@
 (define-macro* (qq form)
   `(u8vector->object ',(object->u8vector form)))
 
+(TEST
+ > (source-equal? 'a (qq a))
+ #t
+ > (source-equal? 'a (qq b))
+ #f
+ > (source-equal? '#(a b) (qq #(a b)))
+ #t
+ > (source-equal? '#(a b) (qq #(a c)))
+ #f
+ > (source-equal? '(a . b) (qq (a . b)))
+ #t
+ > (source-equal? '(a . b) (qq (a b)))
+ #f
+ > (source-equal? '(a . #(b)) (qq (a . #(b))))
+ #t
+ > (source-equal? '(a . #(b)) (qq (a . #())))
+ #f
+ > (source-equal? '(a . #("a")) (qq (a . #("a"))))
+ #t
+ > (equal? '(a . #("a")) (qq (a . #("a"))))
+ #f
+ )
