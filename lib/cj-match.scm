@@ -574,7 +574,8 @@
 
 	 ;; list
 	 ,@(if (not (null? (mcaseclauses-list sepclauses)))
-	       `(((natural0? (improper-length ,V))
+	       `(((natural0? (improper-length (source-code ,V)))
+		  ;;^ XX assumes that there are no annotated pairs further behind
 		  (matchl ,V
 			  ,@(map (lambda (clause)
 				   (matchl clause
