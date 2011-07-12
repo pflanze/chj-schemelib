@@ -61,3 +61,7 @@
  > (source-equal? '(a . #("a")) '(a . #(#f)))
  #f
  )
+
+(define-macro* (qq form)
+  `(u8vector->object ',(object->u8vector form)))
+
