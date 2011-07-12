@@ -117,6 +117,8 @@
 
 (compile-time
  
+ (define cj-match:equal? source-equal?)
+
  (define clause->check
    (lambda (clause V remainder)
      (let*-values (((constructor apply? rest) (clause:test-parse clause))
@@ -139,18 +141,19 @@
 	    ;; (of course, potential for optimizing accesses
 	    ;; (constructions) here too, especially the pos'ed
 	    ;; fields)
-	    (if (equal? ,(cj-possibly-sourcify-deep
-			  `(,@(if apply? '(apply) '())
-			    ,constructor
-			    ,@clause-code-rest)
-			  (clause:test clause)) ,V)
+	    (if (cj-match:equal? ,(cj-possibly-sourcify-deep
+				   `(,@(if apply? '(apply) '())
+				     ,constructor
+				     ,@clause-code-rest)
+				   (clause:test clause)) ,V)
 		(begin
 		  ,@(clause:body clause))
 		,remainder)))))))
 
 (TEST
  > (clause->check '((list a ,b c) (run b)) 'MYV 'REM)
- (let ((b (list-ref MYV 1))) (if (equal? (list a b c) MYV) (begin (run b)) REM))
+ (let ((b (list-ref MYV 1)))
+   (if (cj-match:equal? (list a b c) MYV) (begin (run b)) REM))
  )
 
 (compile-time
@@ -289,7 +292,7 @@
 	 (source-error constructor
 		       "only list matching is implemented")))))))
 
-(define-macro* (match input . clauses)
+(define-macro*d (match input . clauses)
   ;; group according to type of datum
   (let* ((clausegroups
 	  (list-group-by clauses
@@ -356,7 +359,7 @@
  ;; can't use improper-fold-right* since (unquote x) and (quasiquote x) can
  ;; be in tail position.
 
- (define (maybe-quasiquote-or-unquote e*)
+ (define (maybe-quasiquote-or-unquote e* #!optional quasiquote-match?)
    (let ((e (source-code e*)))
      ;; (use and shortcutting, thanks to *-less mixmatching of those)
      (and (pair? e)
@@ -367,22 +370,33 @@
 		  (or (eq? a 'quasiquote)
 		      (eq? a 'unquote))
 		  (null? (cdr r))
+		  (or (not (eq? a 'quasiquote))
+		      (not quasiquote-match?)
+		      (quasiquote-match? (source-code (car r))))
 		  (values a
 			  (car r))))))))
 
- ;; > (maybe-quasiquote-or-unquote '`a)
- ;; quasiquote
- ;; a
- ;; > (maybe-quasiquote-or-unquote ',b)
- ;; unquote
- ;; b
- ;; > (maybe-quasiquote-or-unquote ''b)
- ;; #f
- ;; > (maybe-quasiquote-or-unquote '(unquote b c))
- ;; #f
- ;; > (maybe-quasiquote-or-unquote '(unquote b . c))
- ;; #f
-
+ (TEST
+  > (values->vector (maybe-quasiquote-or-unquote '`a))
+  #(quasiquote a)
+  > (values->vector (maybe-quasiquote-or-unquote '``a))
+  #(quasiquote `a) ;; correct, even though it's not a quasiquoted variable
+  > (values->vector (maybe-quasiquote-or-unquote '`a symbol?))
+  #(quasiquote a)
+  > (maybe-quasiquote-or-unquote '`a string?)
+  #f
+  > (maybe-quasiquote-or-unquote '``a symbol?)
+  #f
+  > (values->vector (maybe-quasiquote-or-unquote ',b))
+  #(unquote b)
+  > (maybe-quasiquote-or-unquote ''b)
+  #f
+  > (maybe-quasiquote-or-unquote '(unquote b c))
+  #f
+  > (maybe-quasiquote-or-unquote '(unquote b . c))
+  #f
+  )
+ 
  (define add-quote
    (lambda (e*)
      (list 'quote e*)))
@@ -398,14 +412,15 @@
 		  ;; hm just double quote it, I guess?
 		  (add-quote var))
 		 ((quasiquote)
-		  ;; bind to variable 
+		  ;; var is already checked to be a symbol.  bind to
+		  ;; variable
 		  (list 'unquote var))
 		 (else
 		  (add-quote var)))))
 
  (define change-expr
    (lambda (e)
-     (cond ((maybe-quasiquote-or-unquote e)
+     (cond ((maybe-quasiquote-or-unquote e symbol?)
 	    => changequote)
 	   (else
 	    (add-quote e)))))
@@ -421,7 +436,7 @@
 	    )
        (letv ((improper? test*)
 	      (let rec ((cl test))
-		(cond ((maybe-quasiquote-or-unquote cl)
+		(cond ((maybe-quasiquote-or-unquote cl symbol?)
 		       => (compose (lambda (r)
 				     (values #t
 					     (list r)))
@@ -461,9 +476,12 @@
  (apply list a)
  > (matchl-test->match-test '(a ,b . `c))
  (apply list 'a b ,c)
+
+ > (matchl-test->match-test '``a)
+ (list 'quasiquote ,a)
  )
 
-(define-macro* (matchl input . clauses)
+(define-macro*d (matchl input . clauses)
   `(match
     ,input
     ,@(map (lambda (clause)
@@ -491,4 +509,111 @@
  > (define b 'd)
  > (%try-syntax-error (matchl '(a c f) ((a b) 1) ((a ,b . `c) c)))
  #(source-error "no match")
+ )
+
+
+;; also check and dispatch for other types than lists:
+
+(compile-time
+ (define-struct mcaseclauses
+   list
+   other
+   else ;; always last ? need ?
+   )
+ (define mcase-no-clauses (make-mcaseclauses '()
+					      '()
+					      '()))
+ (define (mcase-separate-clauses clauses)
+   (if (pair? clauses)
+       (let-pair ((clause clauses*) clauses)
+		 (define (rec)
+		   (mcase-separate-clauses clauses*))
+		 (let ()
+		   (define (cont updater)
+		     (updater (rec)
+			      (cut cons clause <>)))
+		   (matchl clause
+			   ((else . `body)
+			    (cont mcaseclauses-else-update))
+			   ((`expr . `body)
+			    (if (pair? (source-code expr))
+				(matchl expr
+					((quasiquote `expr)
+					 (cont mcaseclauses-list-update))
+					(`_
+					 (cont mcaseclauses-other-update)))
+				(cont mcaseclauses-other-update)))
+			   (`_
+			    (source-error clause
+					  "invalid mcase form")))))
+       mcase-no-clauses))
+
+ (TEST
+  > (mcase-separate-clauses '((else 1) ((identity symbol?) 2) (`(`x) 3) (else 4) (symbol? 5)))
+  #(mcaseclauses
+    ((`(`x) 3))
+    (((identity symbol?) 2) (symbol? 5))
+    ((else 1) (else 4)))
+  ))
+
+(define-macro*d (mcase expr . clauses)
+  (let* ((sepclauses (mcase-separate-clauses clauses)))
+    (with-gensym
+     V
+     `(let ((,V ,expr))
+	(cond
+	 ;; XX: ordering of list vs other (vs else) is thrown away here, bad?
+
+	 ;; other (first, because thought to be more efficient?)
+	 ,@(map (lambda (clause)
+		  (matchl clause
+			  ((`pred . `body)
+			   `((,pred ,V)
+			     ,@body))))
+		(mcaseclauses-other sepclauses))
+
+	 ;; list
+	 ,@(if (not (null? (mcaseclauses-list sepclauses)))
+	       `(((natural0? (improper-length ,V))
+		  (matchl ,V
+			  ,@(map (lambda (clause)
+				   (matchl clause
+					   ((`quotedform . `body)
+					    (matchl quotedform
+						    ((quasiquote `form)
+						     (cons form body))))))
+				 (mcaseclauses-list sepclauses)))))
+	       '())
+
+	 ;; else
+	 (else
+	  ,(matchl (mcaseclauses-else sepclauses)
+		   ((`elseclause)
+		    (matchl elseclause
+			    ((else `what)
+			     what)))
+		   (()
+		    `(source-error ,V "no match"))
+		   (`_
+		    (source-error stx "more than one else clause")))))))))
+
+(TEST
+ > (%try-syntax-error (mcase 1))
+ #(source-error "no match")
+ > (mcase 1 (even? 'even) (odd? 'odd))
+ odd
+ > (mcase 2 (even? 'even) (odd? 'odd))
+ even
+ ;; > (mcase '(a) (even? 'even) (odd? 'odd) (else 'nomatch))
+ ;; *** ERROR IN (console)@62.1 -- (Argument 1) INTEGER expected
+ ;; (even? '(a))
+ ;; ah hm
+ > (mcase '(a) (number? 'num) (else 'nomatch))
+ nomatch
+ > (mcase '(a) (number? 'num) (`(a) 'lis) (else 'nomatch))
+ lis
+ > (%try-syntax-error (mcase '(b) (number? 'num) (`(a) 'lis) (else 'nomatch)))
+ #(source-error "no match")
+ > (mcase '(a) (number? 'num) (`(`a) 'lis) (else 'nomatch))
+ lis
  )
