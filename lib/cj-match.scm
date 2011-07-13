@@ -630,3 +630,12 @@
  > (mcase '(a) (number? 'num) (`(`a) 'lis) (else 'nomatch))
  lis
  )
+
+;; like match-lambda (?):
+(define-macro* (mcase-lambda . clauses)
+  (with-gensyms
+   (V)
+   `(lambda (,V)
+      (mcase ,V
+	     ,@clauses))))
+
