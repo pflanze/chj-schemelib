@@ -13,6 +13,9 @@
 
 ;; can handle source code
 
+;; XXX: inefficiencies:
+;; - improper-length walks even in rest arg match cases
+;; ...
 
 ;; clause 'data type':
 
