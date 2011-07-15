@@ -19,10 +19,16 @@
     (f (apply g x))))
 
 ;; name?
-(define (or-apply f g)
-  (lambda x
-    (or (apply f x)
-	(apply g x))))
+(define (or-apply . fs)
+  (if (null? fs)
+      (lambda x
+	#f)
+      (let-pair ((f fs*) fs)
+		((lambda (r)
+		   (lambda x
+		     (or (apply f x)
+			 (apply r x))))
+		 (apply or-apply fs*)))))
 (TEST
  > ((or-apply symbol? string?) "foo")
  #t
@@ -30,6 +36,9 @@
  #t
  > ((or-apply symbol? string?) 0)
  #f
+ > ((or-apply symbol? number? string?) 0)
+ #t
+ ;; test shortcutting?
  )
 
 ;; n-ary:
