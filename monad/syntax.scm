@@ -11,13 +11,21 @@
 
 ;; general, but depending on the following in the user's scope: >> >>=
 
+(define (m:begin-expand-for maybe-monadprefix)
+  (define >> (if maybe-monadprefix
+		 (symbol-append maybe-monadprefix ":>>")
+		 '>>))
+  (named self
+	 (lambda exprs
+	   (match-list*
+	    exprs
+	    ((e1 e2 . exprs*)
+	     `(,>> ,e1 ,(apply self e2 exprs*)))
+	    ((e1)
+	     e1)))))
+
 (define-macro* (m:begin . exprs)
-  (match-list*
-   exprs
-   ((e1 e2 . exprs*)
-    `(>> ,e1 (m:begin ,e2 ,@exprs*)))
-   ((e1)
-    e1)))
+  (apply (m:begin-expand-for #f) exprs))
 
 (define-macro* (letm bind expr)
   (match-list*
