@@ -273,3 +273,24 @@
  (1 2 3)
  )
 
+
+
+;; for-each that returns the value(s) of the last call
+
+(define (for-each*/2 proc l)
+  (let lp ((v (void))
+	   (l l))
+    (if (null? l)
+	v
+	(let-pair ((v l*) l)
+		  (lp (proc v) l*)))))
+
+;; well for now just:
+(define for-each* for-each*/2)
+
+(TEST
+ > (for-each* values '(a b c))
+ c
+ > (for-each* values '())
+ #!void
+ )
