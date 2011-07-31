@@ -26,11 +26,13 @@
 (both-times
  (define (scm:object->string v)
    (parameterize ((current-readtable
-		   (readtable-max-write-length-set
-		    (readtable-sharing-allowed?-set
-		     (current-readtable)
-		     'serialize)
-		    100)))
+		   (readtable-max-write-level-set
+		    (readtable-max-write-length-set
+		     (readtable-sharing-allowed?-set
+		      (current-readtable)
+		      'serialize)
+		     100)
+		    10)))
 		 (object->string v))))
 
 (define (scm:objects->string objs
