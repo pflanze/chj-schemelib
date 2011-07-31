@@ -135,10 +135,21 @@
      ,name))
 
 
+(both-times
+ (define (scm:object->string v)
+   (parameterize ((current-readtable
+		   (readtable-max-write-length-set
+		    (readtable-sharing-allowed?-set
+		     (current-readtable)
+		     'serialize)
+		    100)))
+		 (object->string v))))
+
+
 (define-macro* (assert expr)
   `(if (not ,expr)
        (error ,(string-append "assertment failure: "
-			      (object->string (cj-desourcify expr))))))
+			      (scm:object->string (cj-desourcify expr))))))
 
 
 (both-times
