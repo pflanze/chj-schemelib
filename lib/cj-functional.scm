@@ -19,7 +19,7 @@
     (f (apply g x))))
 
 ;; name?
-(define (or-apply . fs)
+(define (either . fs)
   (if (null? fs)
       (lambda x
 	#f)
@@ -28,15 +28,15 @@
 		   (lambda x
 		     (or (apply f x)
 			 (apply r x))))
-		 (apply or-apply fs*)))))
+		 (apply either fs*)))))
 (TEST
- > ((or-apply symbol? string?) "foo")
+ > ((either symbol? string?) "foo")
  #t
- > ((or-apply symbol? string?) 'bar)
+ > ((either symbol? string?) 'bar)
  #t
- > ((or-apply symbol? string?) 0)
+ > ((either symbol? string?) 0)
  #f
- > ((or-apply symbol? number? string?) 0)
+ > ((either symbol? number? string?) 0)
  #t
  ;; test shortcutting?
  )

@@ -141,7 +141,7 @@
 
 
 (define-macro* (define-module name-or-name+params export-form . body)
-  (assert* (or-apply pair? symbol?) name-or-name+params
+  (assert* (either pair? symbol?) name-or-name+params
 	   (lambda (name-or-name+params*)
 	     ((lambda (name)
 		(match*
