@@ -23,6 +23,16 @@
 			'()
 			(cdr lis)))))
 
+(both-times
+ (define (scm:object->string v)
+   (parameterize ((current-readtable
+		   (readtable-max-write-length-set
+		    (readtable-sharing-allowed?-set
+		     (current-readtable)
+		     'serialize)
+		    100)))
+		 (object->string v))))
+
 (define (scm:objects->string objs
 			     #!key
 			     (prepend #f) ;; maybe type, *or* boolean
@@ -35,4 +45,3 @@
 	   (if (and prepend (pair? objs))
 	       (cons (if (string? prepend) prepend separator) m)
 	       m))))
-
