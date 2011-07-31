@@ -18,7 +18,7 @@
 	   (begin
 	     ,@body)
 	   (error ,(string-append "does not match "
-				  (object->string
+				  (scm:object->string
 				   (cj-desourcify predicate))
 				  ":")
 		  ,V)))))

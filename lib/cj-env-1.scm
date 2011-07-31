@@ -23,13 +23,13 @@
 			'()
 			(cdr lis)))))
 
-(define (objects->string objs
-			 #!key
-			 (prepend #f) ;; maybe type, *or* boolean
-			 (separator " "))
+(define (scm:objects->string objs
+			     #!key
+			     (prepend #f) ;; maybe type, *or* boolean
+			     (separator " "))
   (apply string-append
 	 (let ((m (list-join
-		   (map object->string
+		   (map scm:object->string
 			objs)
 		   separator)))
 	   (if (and prepend (pair? objs))

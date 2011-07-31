@@ -15,6 +15,6 @@
 	     (newline port))
 	    ((pair? objs)
 	     (display separator port)
-	     (display (object->string (car objs)) port)
+	     (display (scm:object->string (car objs)) port)
 	     (lp (cdr objs)))
 	    (else (error "improper list:" objs))))))

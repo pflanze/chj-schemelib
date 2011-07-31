@@ -38,14 +38,14 @@
 		  (lambda (line col)
 		    (display (string-append
 			      errstr
-			      (object->string c)
+			      (scm:object->string c)
 			      "@"
-			      (object->string line)
+			      (scm:object->string line)
 			      "."
-			      (object->string col)
+			      (scm:object->string col)
 			      " -- "
 			      msg
-			      (objects->string args prepend: ": ")
+			      (scm:objects->string args prepend: ": ")
 			      "\n")))))
 	     (if maybe-p
 		 (let ((p maybe-p))
@@ -153,7 +153,7 @@
 	   ,(let rec ((clauses clauses*))
 	      (cond ((null? clauses)
 		     `(source-error ,V*
-				    ,(let ((str (objects->string
+				    ,(let ((str (scm:objects->string
 						 (map car (map cj-desourcify clauses*))
 						 separator: " | ")))
 				       (string-append
@@ -236,7 +236,7 @@
 	       no-cont
 	       `(source-error ,V*
 			      ,(string-append "does not match "
-					      (object->string
+					      (scm:object->string
 					       (cj-desourcify pred))
 					      " predicate")
 			      ,(gen-full-desourcify/1 V* V)))))))
