@@ -87,3 +87,14 @@
  > (equal? '(a . #("a")) (qq (a . #("a"))))
  #f
  )
+
+(define-macro* (force-source-code vars . body)
+  `(let ,(map (lambda (v)
+		`(,v (source-code ,v)))
+	      (source-code vars))
+     ,@body))
+
+(TEST
+ > (expansion#force-source-code (x y) foo)
+ (let ((x (source-code x)) (y (source-code y))) foo)
+ )
