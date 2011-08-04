@@ -562,7 +562,7 @@
 (define-macro*d (mcase expr . clauses)
   (let* ((sepclauses (mcase-separate-clauses clauses)))
     (with-gensyms
-     (V V*)
+     (V V* ELSE _)
      `(let* ((,V ,expr)
 	     ,@(if (not (null? (mcaseclauses-other sepclauses)))
 		   `((,V* (source-code ,V)))
@@ -572,7 +572,18 @@
 		   ;; *usually* not necessary, better solution would be
 		   ;; to encode this knowledge in source-aware
 		   ;; predicates
-		   `()))
+		   `())
+	     (,ELSE
+	      (lambda ()
+		,(matchl (mcaseclauses-else sepclauses)
+			 ((`elseclause)
+			  (matchl elseclause
+				  ((else `what)
+				   what)))
+			 (()
+			  `(source-error ,V "no match"))
+			 (`_
+			  (source-error stx "more than one else clause"))))))
 	(cond
 	 ;; XX: ordering of list vs other (vs else) is thrown away here, bad?
 
@@ -595,20 +606,18 @@
 					    (matchl quotedform
 						    ((quasiquote `form)
 						     (cons form body))))))
-				 (mcaseclauses-list sepclauses)))))
+				 (mcaseclauses-list sepclauses))
+			  ,@(if* (mcaseclauses-else sepclauses)
+				 ;; `(`,,'_ (,ELSE))
+				 (list
+				  (list (list 'quasiquote _)
+					(list ELSE)))
+				 '()))))
 	       '())
 
 	 ;; else
 	 (else
-	  ,(matchl (mcaseclauses-else sepclauses)
-		   ((`elseclause)
-		    (matchl elseclause
-			    ((else `what)
-			     what)))
-		   (()
-		    `(source-error ,V "no match"))
-		   (`_
-		    (source-error stx "more than one else clause")))))))))
+	  (,ELSE)))))))
 
 (TEST
  > (%try-syntax-error (mcase 1))
@@ -629,6 +638,22 @@
  #(source-error "no match")
  > (mcase '(a) (number? 'num) (`(`a) 'lis) (else 'nomatch))
  lis
+
+ ;; else handling:
+ > (expansion#mcase 'a (`(a b) 1) (foo? 3) (else 2))
+ (let* ((GEN:V1903 'a)
+	(GEN:V*1904 (source-code GEN:V1903))
+	(GEN:ELSE1905 (lambda () 2)))
+   (cond ((foo? GEN:V*1904) 3)
+	 ((natural0? (improper-length (source-code GEN:V1903)))
+	  (matchl GEN:V1903 ((a b) 1) (`GEN:_1906 (GEN:ELSE1905))))
+	 (else (GEN:ELSE1905))))
+ > (mcase 'a (`(a b) 1) (symbol? 3) (else 2))
+ 3
+ > (mcase '"a" (`(a b) 1) (symbol? 3) (else 2))
+ 2
+ > (mcase '() (`(a b) 1) (symbol? 3) (else 2))
+ 2
  )
 
 ;; like match-lambda (?):
