@@ -21,13 +21,28 @@
 		 let*-name
 		 let-name
 		 tag
-		 #!rest fields*)
+		 #!rest args*)
   (let* ((name (source-code name*))
 	 (tag (if (source-code tag) tag name*))
+	 (fields* (filter (lambda (v*)
+			    (let ((v (source-code v*)))
+			      (cond ((symbol? v)
+				     #t)
+				    ((meta-object? v)
+				     #f)
+				    (else
+				     (source-error
+				      v*
+				      "expecting symbol or meta-object")))))
+			  args*))
 	 (fields (map source-code fields*))
-	 (vars (map (lambda (n)
-		      (symbol-append "var-" n))
-		    fields))
+	 (varsargs (map (lambda (v)
+			  (let ((v (source-code v)))
+			    (if (symbol? v)
+				(symbol-append "var-" v)
+				v)))
+			args*))
+	 (vars (filter symbol? varsargs))
 	 ;; keyed arguments:
 	 (prefix (source-code prefix))
 	 (accessor-prefix (source-code accessor-prefix))
@@ -86,7 +101,7 @@
 	 )
     `(begin
        (define ,constructor-name
-	 (lambda ,vars
+	 (lambda ,varsargs
 	   (vector ',tag
 		   ,@vars)))
        (define ,predicate-name
