@@ -94,7 +94,7 @@
 	    forms))
 	  (let ((convertedforms (reverse revconvertedforms))
 		(movedout (reverse revmovedout)))
-	    (if (set-compiler:compiled?)
+	    (if (mod:compiled?)
 		`(begin
 		   ,@movedout
 		   (letrec ,convertedforms
@@ -121,7 +121,7 @@
      (vector
       (convert-module-body forms body)
       (parameterize
-       ((set-compiler:compiled? #t))
+       ((mod:compiled? #t))
        (convert-module-body forms body))))
  > (conv '((define a 1) (define b (a 2))) '(mybody))
  #((let ((a 'define-module-unbound) (b 'define-module-unbound))
