@@ -40,7 +40,7 @@
 	(else
 	 (load+set))))
 
-(define set-compiler:compiled?
+(define mod:compiled?
    (make-parameter #f))
 
 (define (i/load name)
@@ -64,7 +64,7 @@
 		   ((c) ;; compile
 		    (println (list "compiling: " name))
 		    (parameterize
-		     ((set-compiler:compiled? #f))
+		     ((mod:compiled? #f))
 		     (apply compile-file sourcefile compile-options))
 		    ;; gives #f on failure; but, we want to go to the debugger
 		    ;; maybe?, or at least stop the process, so:
