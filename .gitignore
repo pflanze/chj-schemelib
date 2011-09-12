@@ -8,3 +8,4 @@
 ;; files from TEST infrastructure (Utilities/test.scm)
 .test-*
 
+/mod/config.scm
