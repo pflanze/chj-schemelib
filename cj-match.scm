@@ -656,6 +656,51 @@
  2
  )
 
+;; quasiquote and unquote (and quote) matching:
+
+(TEST
+ ;; quote
+ 
+ > (mcase '(quote x) (`(quote `y) y))
+ x
+ > (mcase '(quote x) (`(quote x) 'yes) (else 'no))
+ yes
+ > (mcase '(quote x) (`(quote y) x) (else 'no))
+ no
+ ;; verbatim match because not var inside:
+ > (mcase '(quote x) (`(quote `'y) y) (else 'no))
+ no
+ > (mcase '(quote `'y) (`(quote `'y) 'y) (else 'no))
+ y
+
+ ;; quasiquote
+ 
+ > (mcase '(quasiquote x) (`(quasiquote `y) y))
+ x
+ ;; top level (improper list) quasiquote match
+ > (mcase '(quasiquote x) (`(quasiquote y) y))
+ `x
+ ;; dito improper list
+ > (mcase '(foo quasiquote x) (`(foo quasiquote y) y))
+ `x
+ ;; first quasiquote is verbatim
+ > (mcase '(foo quasiquote x) (`(foo quasiquote `y) y))
+ x
+ > (%try-syntax-error (mcase '(foo quasiquotee x) (`(foo quasiquote `y) y)))
+ #(source-error "no match")
+
+ ;; unquote
+
+ > (mcase '(unquote* x) (`(unquote* `y) y))
+ x
+ ;; > (mcase '(unquote x) (`(unquote `y) y))
+ ;; *** ERROR IN #<procedure #8>, (console)@64.1 -- (Argument 2) LIST expected
+ ;; (apply '#<procedure #2 list> 'y)
+ ;;XXX fix
+ ;; gmb turns `y into 'y, right? btw why list ?
+ 
+ )
+
 ;; like match-lambda (?):
 (define-macro* (mcase-lambda . clauses)
   (with-gensyms
