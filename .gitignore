@@ -1,0 +1,10 @@
+*~
+
+/PATCHES/
+
+*.c
+*.o*
+
+;; files from TEST infrastructure (Utilities/test.scm)
+.test-*
+
