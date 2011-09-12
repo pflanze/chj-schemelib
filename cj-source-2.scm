@@ -62,29 +62,29 @@
  #f
  )
 
-(define-macro* (qq form)
+(define-macro* (template:quote form)
   `(u8vector->object ',(object->u8vector form)))
 
 (TEST
- > (source-equal? 'a (qq a))
+ > (source-equal? 'a (template:quote a))
  #t
- > (source-equal? 'a (qq b))
+ > (source-equal? 'a (template:quote b))
  #f
- > (source-equal? '#(a b) (qq #(a b)))
+ > (source-equal? '#(a b) (template:quote #(a b)))
  #t
- > (source-equal? '#(a b) (qq #(a c)))
+ > (source-equal? '#(a b) (template:quote #(a c)))
  #f
- > (source-equal? '(a . b) (qq (a . b)))
+ > (source-equal? '(a . b) (template:quote (a . b)))
  #t
- > (source-equal? '(a . b) (qq (a b)))
+ > (source-equal? '(a . b) (template:quote (a b)))
  #f
- > (source-equal? '(a . #(b)) (qq (a . #(b))))
+ > (source-equal? '(a . #(b)) (template:quote (a . #(b))))
  #t
- > (source-equal? '(a . #(b)) (qq (a . #())))
+ > (source-equal? '(a . #(b)) (template:quote (a . #())))
  #f
- > (source-equal? '(a . #("a")) (qq (a . #("a"))))
+ > (source-equal? '(a . #("a")) (template:quote (a . #("a"))))
  #t
- > (equal? '(a . #("a")) (qq (a . #("a"))))
+ > (equal? '(a . #("a")) (template:quote (a . #("a"))))
  #f
  )
 
