@@ -362,22 +362,33 @@
  ;; can't use improper-fold-right* since (unquote x) and (quasiquote x) can
  ;; be in tail position.
 
- (define (maybe-quasiquote-or-unquote e* #!optional quasiquote-match?)
+ (define (maybe-quasiquote-or-unquote e*
+				      #!optional
+				      quasiquote-match?
+				      unquote-match?)
    (let ((e (source-code e*)))
      ;; (use and shortcutting, thanks to *-less mixmatching of those)
      (and (pair? e)
 	  (let-pair
-	   ((a* r) e)
-	   (let ((a (source-code a*)))
+	   ((a* r*) e)
+	   (let* ((a (source-code a*))
+		  (r (source-code r*))
+		  (test (lambda (maybe-match?)
+			  (and
+			   (or (not maybe-match?)
+			       (maybe-match? (source-code (car r))))
+			   (values a
+				   (car r))))))
 	     (and (symbol? a)
-		  (or (eq? a 'quasiquote)
-		      (eq? a 'unquote))
+		  (pair? r)
 		  (null? (cdr r))
-		  (or (not (eq? a 'quasiquote))
-		      (not quasiquote-match?)
-		      (quasiquote-match? (source-code (car r))))
-		  (values a
-			  (car r))))))))
+		  (case a
+		    ((quasiquote)
+		     (test quasiquote-match?))
+		    ((unquote)
+		     (test unquote-match?))
+		    (else
+		     #f))))))))
 
  (TEST
   > (values->vector (maybe-quasiquote-or-unquote '`a))
@@ -400,9 +411,12 @@
   #f
   > (values->vector (maybe-quasiquote-or-unquote ',`b))
   #(unquote `b)
-  > (maybe-quasiquote-or-unquote ',`b symbol?)
+  > (values->vector (maybe-quasiquote-or-unquote ',`b symbol?))
+  #(unquote `b)
+  ;; I actually decided to give the unquote checker separately.
+  > (maybe-quasiquote-or-unquote ',`b #f symbol?)
   #f
-  > (values->vector (maybe-quasiquote-or-unquote ',b symbol?))
+  > (values->vector (maybe-quasiquote-or-unquote ',b #f symbol?))
   #(unquote b)
   )
  
