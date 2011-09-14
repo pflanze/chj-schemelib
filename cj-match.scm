@@ -398,6 +398,12 @@
   #f
   > (maybe-quasiquote-or-unquote '(unquote b . c))
   #f
+  > (values->vector (maybe-quasiquote-or-unquote ',`b))
+  #(unquote `b)
+  > (maybe-quasiquote-or-unquote ',`b symbol?)
+  #f
+  > (values->vector (maybe-quasiquote-or-unquote ',b symbol?))
+  #(unquote b)
   )
  
  (define add-quote
