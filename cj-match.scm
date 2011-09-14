@@ -648,6 +648,7 @@
  lis
 
  ;; else handling:
+ > (define TEST:equal? syntax-equal?)
  > (expansion#mcase 'a (`(a b) 1) (foo? 3) (else 2))
  (let* ((GEN:V1903 'a)
 	(GEN:V*1904 (source-code GEN:V1903))
