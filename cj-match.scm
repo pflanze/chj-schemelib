@@ -640,8 +640,10 @@
  nomatch
  > (mcase '(a) (number? 'num) (`(a) 'lis) (else 'nomatch))
  lis
- > (%try-syntax-error (mcase '(b) (number? 'num) (`(a) 'lis) (else 'nomatch)))
+ > (%try-syntax-error (mcase '(b) (number? 'num) (`(a) 'lis)))
  #(source-error "no match")
+ > (%try-syntax-error (mcase '(b) (number? 'num) (`(a) 'lis) (else 'nomatch)))
+ nomatch
  > (mcase '(a) (number? 'num) (`(`a) 'lis) (else 'nomatch))
  lis
 
