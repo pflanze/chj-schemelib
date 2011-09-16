@@ -294,3 +294,24 @@
  > (for-each* values '())
  #!void
  )
+
+
+;; a split-at that doesn't die when requesting a split behind the end
+;; of the list
+
+(define (split-at* x k)
+  (let recur ((lis x) (k k))
+    (if (or (zero? k) (null? lis))
+	(values '() lis)
+	(receive (prefix suffix)
+		 (recur (cdr lis) (- k 1))
+		 (values (cons (car lis) prefix) suffix)))))
+
+(TEST
+ > (values->vector (split-at* '(a b c d) 3))
+ #((a b c) (d))
+ > (values->vector (split-at* '(a b c d) 4))
+ #((a b c d) ())
+ > (values->vector (split-at* '(a b c d) 5))
+ #((a b c d) ())
+ )
