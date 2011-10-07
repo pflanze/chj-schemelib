@@ -514,6 +514,62 @@
  ;; )
  )
 
+(define-strict-and-lazy
+  list-uniq
+  stream-uniq
+  (lambda (equal? s #!optional (tail '()))
+    (DELAY
+     (FV (s)
+	 (if (null? s)
+	     tail
+	     (let-pair
+	      ((a r) s)
+	      (cons
+	       a
+	       (let rec ((prev a)
+			 (s r))
+		 (DELAY
+		  (let lp ((s s))
+		    (FV (s)
+			(if (null? s)
+			    tail
+			    (let-pair ((a r) s)
+				      (if (equal? prev a)
+					  (lp r)
+					  (cons a
+						(rec a r))))))))))))))))
+
+(TEST
+ > (list-uniq = '(1 1 2 3 4 4.0 4 5 7 1))
+ (1 2 3 4 5 7 1)
+ > (list-uniq = '(1))
+ (1)
+ > (list-uniq = '(1 1))
+ (1)
+ > (list-uniq = '(1 2))
+ (1 2)
+ > (list-uniq = '())
+ ()
+ > (list-uniq eq? '() 'c)
+ c
+ > (list-uniq eq? '(a a b) 'c)
+ (a b . c)
+ > (define s (stream-uniq eq? '(a) (delay (cons 'a '()))))
+ > (promise? s)
+ #t
+ > (car (force s))
+ a
+ > (promise? (cdr (force s)))
+ #t
+ > (force (cdr (force s)))
+ (a)
+ > (define s (stream-uniq eq? '(a a) (delay (cons 'b '()))))
+ > (force (cdr (force s)))
+ (b)
+ > (promise? (cdr (force s)))
+ #t
+ )
+
 ;; move to future cmp module?
 (define (ltfn->cmpfn f)
   (lambda (cmp . args)
