@@ -592,6 +592,20 @@
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 99)
  )
 
+(define (equalfn->cmpfn f)
+  (lambda (cmp . args)
+    (apply f (cmp->equal? cmp) args)))
+
+(define cmp-list-uniq (equalfn->cmpfn list-uniq))
+(define cmp-stream-uniq (equalfn->cmpfn stream-uniq))
+
+(TEST
+ > (cmp-list-uniq number-cmp '(1 1 2 3 4 4.0 4 5 7 1))
+ (1 2 3 4 5 7 1)
+ > (cmp-list-uniq number-cmp '(1))
+ (1)
+ )
+
 (define (stream-unfold p f g seed #!optional maybe-tail-gen)
   (let recur ((seed seed))
     (if (p seed)
