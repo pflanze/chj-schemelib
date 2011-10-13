@@ -606,6 +606,47 @@
  (1)
  )
 
+(define-strict-and-lazy
+  list-group
+  stream-group
+  ;; each group is built eagerly and contains the items in reverse order
+  (lambda (equal? s #!optional (tail '()))
+    (DELAY
+     (FV (s)
+	 (if (null? s)
+	     tail
+	     (let-pair
+	      ((a r) s)
+	      (let rec ((prev a)
+			(s r))
+		(DELAY
+		 (let lp ((s s)
+			  (group (cons prev '())))
+		   (FV (s)
+		       (if (null? s)
+			   (cons group tail) ;;end?ç
+			   (let-pair ((a r) s)
+				     (if (equal? prev a)
+					 (lp r
+					     (cons a group))
+					 (cons group
+					       (rec a r)))))))))))))))
+
+(TEST
+ > (list-group equal? '(1 2 2 3 4 5))
+ ((1) (2 2) (3) (4) (5))
+ > (list-group equal? '(2 2))
+ ((2 2))
+ > (list-group equal? '(2))
+ ((2))
+ > (list-group equal? '())
+ ()
+ )
+
+(define cmp-list-group (equalfn->cmpfn list-group))
+(define cmp-stream-group (equalfn->cmpfn stream-group))
+
+
 (define (stream-unfold p f g seed #!optional maybe-tail-gen)
   (let recur ((seed seed))
     (if (p seed)
