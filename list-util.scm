@@ -86,6 +86,18 @@
 ;; test see improper-fold-right/yn-cont in list-util-2.scm
 
 
+(define (improper-append a b)
+  (improper-fold-right cons b a))
+
+(TEST
+ > (improper-append 'a '(b c d))
+ (a b c d)
+ > (improper-append '() '(b c d))
+ (b c d)
+ > (improper-append '(X Y) '(b c d))
+ (X Y b c d))
+
+
 ;; destructuring syntax
 
 (define-macro* (let-pair bindform . body)
@@ -315,3 +327,5 @@
  > (values->vector (split-at* '(a b c d) 5))
  #((a b c d) ())
  )
+
+
