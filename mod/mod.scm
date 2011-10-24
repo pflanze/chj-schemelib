@@ -18,14 +18,14 @@
 ;; system from source, neither freshly compiled. strange. Only time
 ;; this happened was with Serialization-Deserialization.scm
 
-(define-macro (define-if-not-defined name expr)
+(define-macro (compile-time-define-if-not-defined name expr)
   (with-exception-catcher
    (lambda (e)
      (eval `(define ,name ,expr)))
    (lambda ()
      (eval name) ;; if it doesn't exist, will define it
      '(begin))))
-(define-if-not-defined objects-loaded (make-table)) ;; name to [file mtime,no,] index
+(compile-time-define-if-not-defined objects-loaded (make-table)) ;; name to [file mtime,no,] index
 (define (object-load-if-changed name i)
   (define (load+set)
     (load name)
