@@ -98,6 +98,28 @@
  (X Y b c d))
 
 
+(define (improper-last v)
+  (if (pair? v)
+      (let ((v* (cdr v)))
+	(if (null? v*)
+	    (car v)
+	    (improper-last v*)))
+      v))
+
+(TEST
+ > (improper-last 'a)
+ a
+ > (improper-last '(a))
+ a
+ > (improper-last '(a b))
+ b
+ > (improper-last '(a . b))
+ b
+ > (improper-last '())
+ ()
+ )
+
+
 ;; destructuring syntax
 
 (define-macro* (let-pair bindform . body)
