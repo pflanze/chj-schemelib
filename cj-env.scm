@@ -324,3 +324,31 @@
 (define (identity x)
   x)
 
+
+(define (symbol-value-or sym thunk)
+  (with-exception-catcher
+   (lambda (e)
+     (if (unbound-global-exception? e)
+	 (thunk)
+	 (raise e)))
+   (lambda ()
+     (eval sym))))
+
+(define-macro* (define-if-not-defined name expr)
+  (assert* symbol? name
+	   (lambda (name)
+	     (let ((calc-name (symbol-append '_calc- name)))
+	       `(begin
+		  (define (,calc-name) ,expr)
+		  (define ,name
+		    (symbol-value-or ',name ,calc-name)))))))
+
+(TEST
+ > (define-if-not-defined abczxfwef 10)
+ > abczxfwef
+ 10
+ > (define-if-not-defined abczxfwef 11)
+ > abczxfwef
+ 10
+ )
+
