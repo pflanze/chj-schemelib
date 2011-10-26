@@ -351,3 +351,50 @@
  )
 
 
+;; |every| is also in srfi-1; some is called |any| in srfi-1. Testing
+;; short-cutting behaviour:
+
+(TEST
+ > (define *count 0)
+ > (define (*even? v)
+     (set! *count (inc *count))
+     (even? v))
+ > (every *even? '(1 3))
+ #f
+ > (every *even? '(1 2))
+ #f
+ > (every *even? '(2 1))
+ #f
+ > (every *even? '(2 4))
+ #t
+ > (every *even? '(2))
+ #t
+ > (every *even? '(1))
+ #f
+ > (every *even? '())
+ #t
+ > *count
+ 8
+ )
+
+(TEST
+ > (set! *count 0)
+ > (any *even? '(1 3))
+ #f
+ > (any *even? '(1 2))
+ #t
+ > (any *even? '(2 1))
+ #t
+ > (any *even? '(2 4))
+ #t
+ > (any *even? '(2))
+ #t
+ > (any *even? '(1))
+ #f
+ > (any *even? '())
+ #f
+ > *count
+ 8
+ )
+
+
