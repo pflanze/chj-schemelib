@@ -120,6 +120,30 @@
  )
 
 
+(define (improper-for-each proc v)
+  (let lp ((v v))
+    (cond ((pair? v)
+	   (proc (car v))
+	   (lp (cdr v)))
+	  ((null? v)
+	   (void))
+	  (else
+	   (proc v)
+	   (void)))))
+
+(TEST
+ > (define z 0)
+ > (define (a n)
+     (set! z (+ z n)))
+ > (improper-for-each a '(1 2 . 3))
+ > z
+ 6
+ > (improper-for-each a 4)
+ > z
+ 10
+ )
+
+
 ;; destructuring syntax
 
 (define-macro* (let-pair bindform . body)
