@@ -240,7 +240,11 @@
   constructor-name: stream-difference-at
   n s1 s2)
 
-(define (show-stream-difference maybe-d #!optional (takelen 2))
+(define-struct stream-no-difference
+  constructor-name: stream-no-difference
+  n)
+
+(define (show-stream-*-difference d #!optional (takelen 2))
   (let* ((sublist+rest
 	  (lambda (v)
 	    (let* ((start (stream-sublist v 0 takelen))
@@ -252,14 +256,16 @@
 		  (if (null? (force rest))
 		      start
 		      (append start '(...)))))))
-    (and maybe-d
-	 (let-stream-difference-at
-	  ((n s1 s2) maybe-d)
-	  (list n: n
-		s1: (show s1)
-		s2: (show s2))))))
+    (cond ((stream-no-difference? d)
+	   d)
+	  (else
+	   (let-stream-difference-at
+	    ((n s1 s2) maybe-d)
+	    (list n: n
+		  s1: (show s1)
+		  s2: (show s2)))))))
 
-(define (stream-difference? s1 s2 #!optional (equal? equal?))
+(define (stream-difference s1 s2 #!optional (equal? equal?))
   (let lp ((n 0)
 	   (s1 s1)
 	   (s2 s2))
@@ -268,7 +274,7 @@
 	  (stream-difference-at n s1 s2))
 	(if (null? s1)
 	    (if (null? s2)
-		#f
+		(stream-no-difference n)
 		(differs))
 	    (if (null? s2)
 		(differs)
@@ -276,8 +282,17 @@
 		    (lp (inc n) (cdr s1) (cdr s2))
 		    (differs)))))))
 
+(define (show-stream-difference s1 s2
+				#!key
+				(equal? equal?)
+				(n 2))
+  (show-stream-*-difference
+   (stream-difference s1 s2 equal?)
+   n))
+
+
 (define (stream-equal? s1 s2 #!optional (equal? equal?))
-  (not (stream-difference? s1 s2 equal?)))
+  (stream-no-difference? (stream-difference s1 s2 equal?)))
 
 (TEST
  > (stream-equal? '() '())
