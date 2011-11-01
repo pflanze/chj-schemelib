@@ -240,6 +240,25 @@
   constructor-name: stream-difference-at
   n s1 s2)
 
+(define (show-stream-difference maybe-d #!optional (takelen 2))
+  (let* ((sublist+rest
+	  (lambda (v)
+	    (let* ((start (stream-sublist v 0 takelen))
+		   (rest (stream-drop v (length start))))
+	      (values start rest))))
+	 (show
+	  (lambda (v)
+	    (letv ((start rest) (sublist+rest v))
+		  (if (null? (force rest))
+		      start
+		      (append start '(...)))))))
+    (and maybe-d
+	 (let-stream-difference-at
+	  ((n s1 s2) maybe-d)
+	  (list n: n
+		s1: (show s1)
+		s2: (show s2))))))
+
 (define (stream-difference? s1 s2 #!optional (equal? equal?))
   (let lp ((n 0)
 	   (s1 s1)
