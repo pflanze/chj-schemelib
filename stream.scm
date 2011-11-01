@@ -236,16 +236,29 @@
 	     (error "stream->list: improper stream, ending in:" p))))))
 
 
-(define (stream-equal? s1 s2 #!optional (equal? equal?))
-  (let lp ((s1 s1)
+(define-struct stream-difference-at
+  constructor-name: stream-difference-at
+  n s1 s2)
+
+(define (stream-difference? s1 s2 #!optional (equal? equal?))
+  (let lp ((n 0)
+	   (s1 s1)
 	   (s2 s2))
     (FV (s1 s2)
+	(define (differs)
+	  (stream-difference-at n s1 s2))
 	(if (null? s1)
-	    (null? s2)
 	    (if (null? s2)
 		#f
-		(and (equal? (car s1) (car s2))
-		     (lp (cdr s1) (cdr s2))))))))
+		(differs))
+	    (if (null? s2)
+		(differs)
+		(if (equal? (car s1) (car s2))
+		    (lp (inc n) (cdr s1) (cdr s2))
+		    (differs)))))))
+
+(define (stream-equal? s1 s2 #!optional (equal? equal?))
+  (not (stream-difference? s1 s2 equal?)))
 
 (TEST
  > (stream-equal? '() '())
