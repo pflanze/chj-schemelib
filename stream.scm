@@ -260,7 +260,7 @@
 	   d)
 	  (else
 	   (let-stream-difference-at
-	    ((n s1 s2) maybe-d)
+	    ((n s1 s2) d)
 	    (list n: n
 		  s1: (show s1)
 		  s2: (show s2)))))))
