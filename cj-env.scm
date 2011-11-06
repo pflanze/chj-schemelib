@@ -8,6 +8,7 @@
 
 (require (lib.define-macro-star)
 	 (lib.cj-phasing)
+	 (lib.cj-inline)
 	 (lib.test))
 
 ;; various small bits that I don't know where to put

@@ -6,13 +6,14 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.srfi-1))
+
+
 (define (inc n)
   (+ n 1))
 
 (define (dec n)
   (- n 1))
-
-; requires srfi-1 fold-right
 
 (define (list-join lis val)
   (if (null? lis)
