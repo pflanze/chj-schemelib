@@ -92,5 +92,90 @@
 		(evtl-compile+load 1))))))))
 
 
-(include "cj-source.scm")
+(include "../cj-source.scm")
 
+
+(define (mod->mod-path sym)
+  (list->string
+   (map (lambda (c)
+	  (if (char=? c #\.)
+	      #\/
+	      c))
+	(string->list
+	 (symbol->string sym)))))
+
+;; load interpreted if in list of to-be interpreted modules, otherwise
+;; compiled, and do it only once per reload request (see |R| below)
+
+(define mod-loaded #f)
+(define (init-mod-loaded!)
+  (set! mod-loaded (make-table test: eq?)))
+(init-mod-loaded!)
+(define (mod-loaded? sym)
+  (table-ref mod-loaded sym #f))
+(define (mod-load sym)
+  (if (not (mod-loaded? sym))
+      (begin
+	;; set it first, to avoid cycles during loading
+	(table-set! mod-loaded sym #t)
+	((if (memq sym interpreted-modules)
+	     i/load
+	     c/load)
+	 (mod->mod-path sym)))))
+
+(define (require-import->mod import)
+  (let* ((import* (source-code import))
+	 (mod (if (pair? import*)
+		  (if (null? (cdr import*))
+		      (car import*)
+		      ;; XXX source-error
+		      (error "invalid syntax" import))
+		  import*))
+	 (mod* (source-code mod)))
+    (if (symbol? mod*)
+	mod*
+	(error "expecting symbol" mod))))
+
+(define (require-expand stx)
+  ;; would like to have access to improper-* functions. well
+  (cj-sourcify-deep
+   (let* ((stx* (source-code stx))
+	  (a (car stx*))
+	  (imports (cdr stx*)))
+     (cons 'begin
+	   (map (lambda (import)
+		  `(mod-load ',(require-import->mod import)))
+		imports)))
+   stx))
+
+;; |require| runtime macro
+(##top-cte-add-macro!
+ ##interaction-cte
+ 'require
+ (##make-macro-descr
+  #t
+  -1
+  (lambda (stx)
+    (let ((code (require-expand stx)))
+      (eval code)
+      code))
+  #f))
+
+;; |RQ|, a require for user interaction that deletes the loaded table
+;; first
+(##top-cte-add-macro!
+ ##interaction-cte
+ 'RQ
+ (##make-macro-descr
+  #t
+  -1
+  (lambda (stx)
+    (init-mod-loaded!)
+    (require-expand stx))
+  #f))
+
+
+;; load config
+;; XX: just as in the require form, assumes that this repo is
+;; accessible at lib/
+(load "lib/mod/config")
