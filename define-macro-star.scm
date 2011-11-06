@@ -35,44 +35,6 @@
 ; (compile-time
 ;  (include "../../lib/cj-warn.scm"))
 
-;; requires cj-source at compile-time (well, both-times if runtime
-;; macro aspect is really to be used, but compile-time already does
-;; this for this reason)
-
-
-;; bootstrapping...:
-;; ALMOST-COPY BELOW!
-(##define-syntax
- include-and-compiletimeload1
- (lambda (stx)
-   (##sourcify-deep
-    (apply
-     (lambda (_name relpath)
-       (let* ((loc (##source-locat relpath))
-	      (container (##locat-container loc))
-	      (container-path
-	       (if ##container->path-hook
-		   (##container->path-hook container)
-		   container))
-	      (relpath (##source-code relpath)))
-	 (or (string? container-path)
-	     (error "only works in files, not:" container container-path))
-	 (let ((path (path-normalize relpath
-				     #f
-				     (path-directory container-path))))
-	   (eval `(begin
-		    ;; HACK: drop TEST (no easy way to do it in another place)
-		    (define-macro (TEST . x)
-		      `(begin))
-		    (include ,path)))
-	   `(include ,path))))
-     (##source-code stx))
-    stx)))
-
-;; does not use assq or similar, so should be fine with the ##sourcify-deep from above
-(include-and-compiletimeload1 "cj-source.scm")
-
-;; ALMOST-COPY ABOVE!
 (##define-syntax
  include-and-compiletimeload
  (lambda (stx)

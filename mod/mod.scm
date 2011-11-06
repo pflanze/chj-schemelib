@@ -91,3 +91,6 @@
 		;; no binary
 		(evtl-compile+load 1))))))))
 
+
+(include "cj-source.scm")
+
