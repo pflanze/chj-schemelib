@@ -49,12 +49,11 @@
 
 (define (c/load name)
   ;; possibly compile and load:
-  (let ((sourcefile (string-append name ".scm")))
-    (case compile-mode
-      ((s) ;; always source
-       ;;XXX shouldn't this be i/load ?:
-       (load sourcefile))
-      (else
+  (case compile-mode
+    ((s) ;; always source
+     (i/load name))
+    (else
+     (let ((sourcefile (string-append name ".scm")))
        (let* ((sourceinf (file-info sourcefile))
 	      (evtl-compile+load
 	       (lambda (i)
