@@ -156,9 +156,10 @@
   #t
   -1
   (lambda (stx)
-    (let ((code (require-expand stx)))
-      (eval code)
-      code))
+    ;; do not eval at expansion time, because Gambit crashes when
+    ;; doing nested compilation; instead usually require forms are
+    ;; translated separately
+    (require-expand stx))
   #f))
 
 ;; |RQ|, a require for user interaction that deletes the loaded table
