@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-;; (requires lib.lazy)
+(require (lib.lazy))
+
 
 (define (F s)
   (let F ((s s))

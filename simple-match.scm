@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.cj-phasing)
+	 (lib.test))
+
+
 (both-times
  
 (define-type source-error

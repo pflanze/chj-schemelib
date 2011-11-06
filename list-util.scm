@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.cj-env))
+
+
 ;;; a map accepting improper lists (i.e. including non-pairs as l)
 
 (define (improper-map fn l #!optional (tail '()))

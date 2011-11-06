@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.cj-struct)
+	 (lib.stream))
+
 ;; A library of helper functions for writing tests
 
 ;; pseudorandom sources

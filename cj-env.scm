@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.cj-phasing)
+	 (lib.test))
+
 ;; various small bits that I don't know where to put
 
 ;; (include "cj-env-1.scm") already in test.scm

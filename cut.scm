@@ -1,3 +1,8 @@
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.simple-match))
+
+
 ; REFERENCE IMPLEMENTATION FOR SRFI-26 "CUT"
 ; ==========================================
 ;

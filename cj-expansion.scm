@@ -1,4 +1,8 @@
 
+
+(require (lib.define-macro-star))
+
+
 (define-macro* (expansion expr . exprs)
   (define CONT 'cont) ;; |...| looks nice, but may be confusing
   (let ((expr (if (pair? exprs)

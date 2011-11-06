@@ -6,6 +6,12 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.cj-phasing)
+	 (lib.test)
+	 (lib.cj-env))
+
+
 (define-macro* (let*-values bindforms* . body)
   (match-list*
    bindforms*

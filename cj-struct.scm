@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.simple-match))
+
+
 (define-macro* (define-struct
 		 name*
 		 #!key

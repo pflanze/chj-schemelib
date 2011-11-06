@@ -1,3 +1,7 @@
+(require (lib.define-macro-star)
+	 (lib.test))
+
+
 (define (vector-equal? equal? a b)
   (let ((la (vector-length a))
 	(lb (vector-length b)))

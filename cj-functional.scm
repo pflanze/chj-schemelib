@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.cj-env))
+
+
 (define (flip f)
   (lambda (x y)
     (f y x)))

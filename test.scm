@@ -55,6 +55,9 @@
 ;; (delete-repl-history!).
 
 
+(require (lib.define-macro-star)
+	 (lib.cj-phasing))
+
 ;; This is the *only* binding that has to be available to make loading
 ;; of code compiled with TESTs work.
 ;; Solve this?

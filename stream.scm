@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.test)
+	 ;;(lazy) ?
+	 (lib.define-strict-and-lazy))
+
+
 (define (stream-filter/tail pred s tail)
   (let rec ((s s))
     (delay

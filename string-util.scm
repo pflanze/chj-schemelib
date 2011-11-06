@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.test))
+
+
 (define (r-list-split l separator)
   (let lp ((l l)
 	   (cum '())

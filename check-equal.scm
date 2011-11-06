@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.test))
+
+
 ;; check for equal? with cache
 
 (define check-equal-f:cache-size 8)

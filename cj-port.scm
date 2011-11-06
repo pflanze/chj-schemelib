@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test))
+
+
 (define (with-output-to-string thunk)
   (call-with-output-string
    ""

@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.test))
+
+
 ;; Library for association lists of various key types
 
 (define (symbol-equal? a b)

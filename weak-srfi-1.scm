@@ -5,6 +5,11 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
+
+(require (lib.test)
+	 (lib.lazy))
+
+
 ;;;
 ;;;; variants of srfi-1 functions that don't complain if the list ends
 ;;;; too early

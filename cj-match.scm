@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.cj-phasing))
+
+
 ;; destructuring bind
 
 ;; (list 1 2 x ,x) matches `(1 2 ,x ,X) with anything in X, binding x

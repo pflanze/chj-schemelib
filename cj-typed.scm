@@ -6,6 +6,12 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.cj-env)
+	 (lib.srfi-11))
+
+
 ;;;
 ;;;; simple explicit type checking
 ;;;

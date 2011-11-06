@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.cj-env))
+
+
 ;; not sure this is the end of ideas, but, giving it a try
 ;; (This is an alternative to |cut| from the srfis)
 

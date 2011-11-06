@@ -6,6 +6,12 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.simple-match)
+	 (lib.cj-inline))
+
+
 ;; A comparison operation working for all types in question
 
 ;; I'm choosing this sort order for mixed-type comparisons:

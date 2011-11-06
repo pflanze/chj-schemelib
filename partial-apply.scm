@@ -6,7 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-;; requires cj-source-util
+(require (lib.define-macro-star)
+	 (lib.test)
+	 (lib.cj-source-util))
+
 
 (compile-time
  (define (partial-apply:expand nam args body)

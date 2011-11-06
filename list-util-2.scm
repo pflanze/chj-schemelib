@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.test)
+	 (lib.cj-env))
+
+
 (define list-util-nothing (gensym 'nothing))
 
 (define (sortedlist-group-by lis equal? #!optional (tail '()))

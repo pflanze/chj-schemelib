@@ -1,3 +1,7 @@
+(require (lib.define-macro-star)
+	 (lib.simple-match))
+
+
 (define-macro* (define-strict-and-lazy
 		 strict-name
 		 stream-name

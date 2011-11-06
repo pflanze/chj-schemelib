@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.test))
+
+
 ;; utility:
 
 (define-macro* (define-nested bind expr)

@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.define-macro-star)
+	 (lib.simple-match))
+
+
 ;; provide delay force promise? no-delay force1
 
 (define promise? ##promise?)

@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.test))
+
+
 ;;;
 ;;;; string quoting
 ;;;
