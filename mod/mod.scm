@@ -116,7 +116,7 @@
 		(rcode (cdr depends+rcode)))
 	    (cond ((mod:form->maybe-requires-imports form)
 		   => (lambda (imports)
-			(cons (map/tail require-import->mod imports
+			(cons (map/tail mod:require-import->mod imports
 				   depends)
 			      rcode)))
 		  (else
@@ -163,7 +163,7 @@
 	     c/load)
 	 (mod->mod-path sym)))))
 
-(define (require-import->mod import)
+(define (mod:require-import->mod import)
   (let* ((import* (source-code import))
 	 (mod (if (pair? import*)
 		  (if (null? (cdr import*))
@@ -176,7 +176,7 @@
 	mod*
 	(error "expecting symbol" mod))))
 
-(define (require-expand stx)
+(define (mod:require-expand stx)
   ;; would like to have access to improper-* functions. well
   (cj-sourcify-deep
    (cond ((mod:form->maybe-requires-imports stx)
@@ -184,7 +184,7 @@
 	  (lambda (imports)
 	    (cons 'begin
 		  (map (lambda (import)
-			 `(mod-load ',(require-import->mod import)))
+			 `(mod-load ',(mod:require-import->mod import)))
 		       imports))))
 	 (else
 	  (error "not a require form")))
@@ -201,7 +201,7 @@
     ;; do not eval at expansion time, because Gambit crashes when
     ;; doing nested compilation; instead usually require forms are
     ;; translated separately
-    (require-expand stx))
+    (mod:require-expand stx))
   #f))
 
 ;; |RQ|, a require for user interaction that deletes the loaded table
@@ -214,7 +214,7 @@
   -1
   (lambda (stx)
     (init-mod-loaded!)
-    (require-expand stx))
+    (mod:require-expand stx))
   #f))
 
 
