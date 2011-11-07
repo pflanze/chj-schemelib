@@ -8,6 +8,7 @@
 
 (require (lib.define-macro-star)
 	 (lib.test)
+	 (lib.srfi-1)
 	 (lib.cj-env))
 
 
