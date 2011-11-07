@@ -9,20 +9,13 @@
 (require (lib.define-macro-star)
 	 (lib.test)
 	 (lib.srfi-1)
-	 (lib.cj-env))
+	 (lib.cj-env)
+	 (lib.list-util-1))
 
 
 ;;; a map accepting improper lists (i.e. including non-pairs as l)
 
-(define (improper-map fn l #!optional (tail '()))
-  (let rec ((l l))
-    (cond ((null? l)
-	   tail)
-	  ((pair? l)
-	   (cons (fn (car l))
-		 (rec (cdr l))))
-	  (else
-	   (fn l)))))
+;; implementation see list-util-1.scm
 
 (TEST
  > (improper-map inc '(1 2 3))

@@ -6,7 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.cj-env))
+(require (lib.cj-env) ;; inc dec
+	 (lib.cj-env-vector-map)
+	 (lib.list-util-1) ;; improper-map
+	 )
 
 
 (define (source? o)
@@ -133,31 +136,6 @@
    src))
 
 (define (cj-sourcify-deep s master)
-  ;; COPIES (bootstrapping issue):
-  (define (improper-map fn l #!optional (tail '()))
-    (let rec ((l l))
-      (cond ((null? l)
-	     tail)
-	    ((pair? l)
-	     (cons (fn (car l))
-		   (rec (cdr l))))
-	    (else
-	     (fn l)))))
-  (define (vector-map fn vec)
-    ;; COPY
-    (define (inc n)
-      (+ n 1))
-    ;; /COPY
-    ;;(list->vector (map fn (vector->list vec)))
-    (let* ((len (vector-length vec))
-	   (res (make-vector len)))
-      (let lp ((i 0))
-	(if (= i len)
-	    res
-	    (begin
-	      (vector-set! res i (fn (vector-ref vec i)))
-	      (lp (inc i)))))))
-  ;; /COPIES
   (let ((master-loc (source-location master)))
     (let rec ((s s))
       ((lambda (process)

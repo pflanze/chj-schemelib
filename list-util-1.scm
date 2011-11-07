@@ -18,3 +18,18 @@
 		      tail))
 	      tail
 	      l))
+
+
+(define (improper-map fn l #!optional (tail '()))
+  (let rec ((l l))
+    (cond ((null? l)
+	   tail)
+	  ((pair? l)
+	   (cons (fn (car l))
+		 (rec (cdr l))))
+	  (else
+	   (fn l)))))
+
+;; TEST see list-util.scm
+
+
