@@ -43,8 +43,11 @@
 (define mod:compiled?
    (make-parameter #f))
 
+(define (mod:name->path name)
+  (string-append name ".scm"))
+
 (define (i/load name)
-  (let ((sourcefile (string-append name ".scm")))
+  (let ((sourcefile (mod:name->path name)))
     (load sourcefile)))
 
 (define (c/load name)
@@ -53,7 +56,7 @@
     ((s) ;; always source
      (i/load name))
     (else
-     (let ((sourcefile (string-append name ".scm")))
+     (let ((sourcefile (mod:name->path name)))
        (let* ((sourceinf (file-info sourcefile))
 	      (evtl-compile+load
 	       (lambda (i)
@@ -91,8 +94,36 @@
 		(evtl-compile+load 1))))))))
 
 
-(include "../cj-source.scm")
+;; for manually included files (bootstrapping), ignore require forms
+(define-macro (require . args)
+  '(begin))
 
+(include "../cj-source.scm")
+(include "../srfi-1.scm")
+(include "../list-util-1.scm")
+
+
+(define (file->depends+rcode name)
+  (fold (lambda (form depends+rcode)
+	  (let ((depends (car depends+rcode))
+		(rcode (cdr depends+rcode)))
+	    (cond ((mod:form->maybe-requires-imports form)
+		   => (lambda (imports)
+			(cons (map/tail require-import->mod imports
+				   depends)
+			      rcode)))
+		  (else
+		   (cons depends
+			 (cons form rcode))))))
+	(cons '() '())
+	(call-with-input-file (mod:name->path name) read-all-source)))
+
+
+(define (mod:form->maybe-requires-imports stx)
+  (let* ((stx* (source-code stx)))
+    (and (pair? stx*)
+	 (eq? (source-code (car stx*)) 'require)
+	 (cdr stx*))))
 
 (define (mod->mod-path sym)
   (list->string
@@ -138,13 +169,15 @@
 (define (require-expand stx)
   ;; would like to have access to improper-* functions. well
   (cj-sourcify-deep
-   (let* ((stx* (source-code stx))
-	  (a (car stx*))
-	  (imports (cdr stx*)))
-     (cons 'begin
-	   (map (lambda (import)
-		  `(mod-load ',(require-import->mod import)))
-		imports)))
+   (cond ((mod:form->maybe-requires-imports stx)
+	  =>
+	  (lambda (imports)
+	    (cons 'begin
+		  (map (lambda (import)
+			 `(mod-load ',(require-import->mod import)))
+		       imports))))
+	 (else
+	  (error "not a require form")))
    stx))
 
 ;; |require| runtime macro
