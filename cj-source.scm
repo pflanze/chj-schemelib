@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.cj-env))
+
+
 (define (source? o)
   (##source? o))
 
