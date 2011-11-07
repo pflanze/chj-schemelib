@@ -198,3 +198,11 @@
 	  (else
 	   x))))
 
+
+(define (read-all-source #!optional (port (current-input-port)))
+  ;; NOTE: does NOT return an expr. It returns a *list* of expr's.
+  (let recur ()
+    (let ((expr (##read-expr-from-port port)))
+      (if (eof-object? expr) '()
+	  (cons expr (recur))))))
+
