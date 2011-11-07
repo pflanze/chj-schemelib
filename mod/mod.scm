@@ -103,9 +103,14 @@
 (include "../vector-util-1.scm")
 (include "../list-util-1.scm")
 (include "../cj-source.scm")
+(define mod:statically-loaded ;; keep in sync with the above!
+  '(lib.srfi-1
+    lib.cj-env-1
+    lib.vector-util-1
+    lib.list-util-1
+    lib.cj-source))
 
-
-(define (file->depends+rcode name)
+(define (mod:file->depends+rcode name)
   (fold (lambda (form depends+rcode)
 	  (let ((depends (car depends+rcode))
 		(rcode (cdr depends+rcode)))
@@ -141,7 +146,10 @@
 
 (define mod-loaded #f)
 (define (init-mod-loaded!)
-  (set! mod-loaded (make-table test: eq?)))
+  (set! mod-loaded (make-table test: eq?))
+  (for-each (lambda (sym)
+	      (table-set! mod-loaded sym 'statically))
+	    mod:statically-loaded))
 (init-mod-loaded!)
 (define (mod-loaded? sym)
   (table-ref mod-loaded sym #f))
