@@ -24,15 +24,14 @@
 			'()
 			(cdr lis)))))
 
-(both-times
- (define (scm:object->string v)
-   (parameterize ((current-readtable
-		   (readtable-max-write-level-set
-		    (readtable-max-write-length-set
-		     (current-readtable)
-		     12)
-		    6)))
-		 (object->string v))))
+(define (scm:object->string v)
+  (parameterize ((current-readtable
+		  (readtable-max-write-level-set
+		   (readtable-max-write-length-set
+		    (current-readtable)
+		    12)
+		   6)))
+		(object->string v)))
 
 (define (scm:objects->string objs
 			     #!key

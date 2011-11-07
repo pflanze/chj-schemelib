@@ -98,9 +98,11 @@
 (define-macro (require . args)
   '(begin))
 
-(include "../cj-source.scm")
 (include "../srfi-1.scm")
+(include "../cj-env-1.scm")
+(include "../vector-util-1.scm")
 (include "../list-util-1.scm")
+(include "../cj-source.scm")
 
 
 (define (file->depends+rcode name)

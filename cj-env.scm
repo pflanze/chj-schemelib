@@ -9,7 +9,9 @@
 (require (lib.define-macro-star)
 	 (lib.cj-phasing)
 	 (lib.cj-inline)
-	 (lib.test))
+	 (lib.test)
+	 ;; require this?: (understand it as part of bundle?)
+	 (lib.cj-env-1))
 
 ;; various small bits that I don't know where to put
 

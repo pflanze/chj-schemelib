@@ -6,8 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.cj-env) ;; inc dec
-	 (lib.cj-env-vector-map)
+(require (lib.cj-env-1) ;; inc dec
+	 (lib.vector-util-1)
 	 (lib.list-util-1) ;; improper-map
 	 )
 
@@ -150,7 +150,7 @@
 		(improper-map rec c))
 	       ((vector? c)
 		;; quoted vectors (syntax for constants)
-		(vector-map rec c))
+		(vector-map-1 rec c))
 	       ((box? c)
 		(box (rec (unbox c))))
 	       ((or (##structure? c)
@@ -174,7 +174,7 @@
 	   (cons (cj-desourcify (car x))
 		 (cj-desourcify (cdr x))))
 	  ((vector? x)
-	   (vector-map cj-desourcify x))
+	   (vector-map-1 cj-desourcify x))
 	  ;; XXX boxes? and more?
 	  (else
 	   x))))
