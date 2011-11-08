@@ -7,7 +7,7 @@
 
 
 (require (lib.test)
-	 ;;(lazy) ?
+	 (lib.lazy)
 	 (lib.define-strict-and-lazy))
 
 

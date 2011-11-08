@@ -350,7 +350,9 @@
 (define 3rd (lambda (<>) (values-ref <> 2)))
 
 (TEST
- > (require (lib.test-lib))
+ > (require (lib.test-lib)))
+
+(TEST
  > (fst (values 'a))
  a
  > (fst 'A)
