@@ -81,6 +81,8 @@
 
 
 (TEST
+ > (require (lib.cj-env)))
+(TEST
  > (check-equal-f:cache-clear!)
  > (check-equal-f 'a 'a)
  a

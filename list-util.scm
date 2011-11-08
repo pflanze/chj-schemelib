@@ -297,6 +297,8 @@
 	       (error "improper list ending in:" l))))
       (error "need non-empty list, got:" lis)))
 (TEST
+ > (require (lib.srfi-11)))
+(TEST
  > (values->vector (split-preferred '(1) <))
  #(1 (1) ())
  > (values->vector (split-preferred '(1 2) <))

@@ -8,7 +8,12 @@
 
 (require (lib.test)
 	 (lib.lazy)
-	 (lib.define-strict-and-lazy))
+	 (lib.define-strict-and-lazy)
+	 (lib.cj-struct)
+	 (lib.list-util)
+	 (lib.cj-cmp)
+	 (lib.srfi-11)
+	 )
 
 
 (define (stream-filter/tail pred s tail)
@@ -27,6 +32,8 @@
 	       (error "improper stream:" s)))))))
 
 
+(TEST
+ > (require (lib.lazy-debug)))
 (TEST
  > (F (stream-filter/tail even? (list 1 2 3 4 5) '(a b c)))
  (2 4 a b c)

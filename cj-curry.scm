@@ -8,7 +8,8 @@
 
 (require (lib.define-macro-star)
 	 (lib.test)
-	 (lib.cj-env))
+	 (lib.cj-env)
+	 (lib.cj-symbol))
 
 
 ;; not sure this is the end of ideas, but, giving it a try
