@@ -119,8 +119,8 @@
   `(srfi-26-internal-cute () () () ,@slots-or-exprs))
 
 (TEST
- > (require (lib.cj-expansion)))
-
+ > (require (lib.cj-expansion)
+	    (lib.cj-symbol)))
 (TEST
  > (define TEST:equal? syntax-equal?)
  > (expansion cut a b c)

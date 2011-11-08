@@ -11,6 +11,7 @@
 	 (lib.test)
 	 (lib.cj-env)
 	 (lib.list-util) ;; let-pair
+	 (lib.cj-functional)
 	 )
 
 
@@ -120,6 +121,8 @@
      (body varmap)))))
 
 
+(TEST
+ > (require (lib.cj-symbol)))
 (TEST
  > (let-values (((a . b) (values 1 2))) a)
  1

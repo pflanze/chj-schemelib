@@ -9,7 +9,8 @@
 (require (lib.define-macro-star)
 	 (lib.cj-phasing)
 	 (lib.test)
-	 (lib.simple-match))
+	 (lib.simple-match)
+	 (lib.srfi-11))
 
 
 ;;;
@@ -121,6 +122,9 @@
 			  convertedforms)
 		   ,@bodytail)))))))
 
+
+(TEST
+ > (require (lib.cj-symbol)))
 (TEST
  > (define TEST:equal? syntax-equal?)
  > (define (conv forms body)

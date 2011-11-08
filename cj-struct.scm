@@ -8,7 +8,9 @@
 
 (require (lib.define-macro-star)
 	 (lib.test)
-	 (lib.simple-match))
+	 (lib.simple-match)
+	 (lib.cj-env);; symbol-append
+	 )
 
 
 (define-macro* (define-struct

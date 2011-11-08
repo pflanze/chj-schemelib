@@ -96,6 +96,9 @@
      `(define ,name (typed-lambda ,args ,@body)))))
 
 (TEST
+ > (require (lib.cj-symbol)
+	    (lib.cj-expansion)))
+(TEST
  > (define TEST:equal? syntax-equal?)
  > (expansion define-typed (f #(integer? x) #(symbol? a)) (vector x a))
  (letrec ((f (lambda (x a)

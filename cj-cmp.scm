@@ -9,7 +9,8 @@
 (require (lib.define-macro-star)
 	 (lib.test)
 	 (lib.simple-match)
-	 (lib.cj-inline))
+	 (lib.cj-inline)
+	 (lib.cj-symbol))
 
 
 ;; A comparison operation working for all types in question
