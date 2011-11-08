@@ -9,7 +9,9 @@
 (require (lib.define-macro-star)
 	 (lib.cj-phasing)
 	 (lib.test)
-	 (lib.cj-env))
+	 (lib.cj-env)
+	 (lib.list-util) ;; let-pair
+	 )
 
 
 (define-macro* (let*-values bindforms* . body)

@@ -8,7 +8,10 @@
 
 (require (lib.define-macro-star)
 	 (lib.test)
-	 (lib.cj-phasing))
+	 (lib.cj-phasing)
+	 (lib.cj-functional)
+	 (lib.srfi-11) ;; fst, snd
+	 )
 
 
 ;; destructuring bind

@@ -6,7 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.test))
+(require (lib.test)
+	 (lib.list-util) ;; let-pair
+	 )
 
 
 (define (r-list-split l separator)

@@ -10,7 +10,9 @@
 	 (lib.test)
 	 (lib.srfi-1)
 	 (lib.cj-env)
-	 (lib.list-util-1))
+	 (lib.list-util-1)
+	 (lib.string-util) ;; string-split
+	 )
 
 
 ;;; a map accepting improper lists (i.e. including non-pairs as l)
