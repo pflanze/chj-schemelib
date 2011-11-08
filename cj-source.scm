@@ -291,4 +291,10 @@
 			display: values))
 
 
+(define (source-quote v)
+  (object->u8vector v))
+
+(define (source-dequote v)
+  (u8vector->object v))
+
 
