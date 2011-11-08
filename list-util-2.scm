@@ -7,7 +7,9 @@
 
 
 (require (lib.test)
-	 (lib.cj-env))
+	 (lib.cj-env)
+	 (lib.define-nested)
+	 (lib.slib-sort))
 
 
 (define list-util-nothing (gensym 'nothing))

@@ -8,7 +8,8 @@
 
 (require (lib.define-macro-star)
 	 (lib.test)
-	 (lib.cj-env))
+	 (lib.cj-env)
+	 (lib.cj-symbol))
 
 
 (define (flip f)

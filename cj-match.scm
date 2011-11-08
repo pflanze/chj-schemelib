@@ -11,6 +11,12 @@
 	 (lib.cj-phasing)
 	 (lib.cj-functional)
 	 (lib.srfi-11) ;; fst, snd
+	 (lib.cj-source)
+	 (lib.cj-source-2)
+	 (lib.cj-symbol)
+	 (lib.list-util-2)
+	 (lib.cj-alist)
+	 (lib.cj-struct)
 	 )
 
 
