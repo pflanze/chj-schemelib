@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.define-macro-star))
+(require (lib.define-macro-star)
+	 (lib.simple-match))
 
 ;; XXX looses location information (during the pass through
 ;; define-macro[*] definition, probably)
