@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.monad.syntax)
+	 (lib.srfi-11))
+
+
 ;; particular monad for use in transactions:
 
 ;; each monad (?ç) takes the commit (state), and passes on (returns)

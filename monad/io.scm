@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.monad.syntax))
+
+
 ;; IO monad
 
 (define (io:>> a b)

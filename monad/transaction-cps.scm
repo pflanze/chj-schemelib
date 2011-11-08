@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (lib.monad.syntax))
+
+
 ;; particular monad for use in transactions:
 
 ;; each monad (?ç) takes the commit (state) and a continuation, and
