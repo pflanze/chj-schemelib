@@ -9,7 +9,9 @@
 (require (lib.define-macro-star)
 	 (lib.test)
 	 (lib.cj-env)
-	 (lib.cj-symbol))
+	 (lib.cj-symbol)
+	 (lib.list-util) ;; let-pair
+	 )
 
 
 (define (flip f)
