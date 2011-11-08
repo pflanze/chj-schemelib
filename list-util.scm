@@ -223,12 +223,7 @@
  )
 
 
-(define (map/tail fn tail . liss)
-  (apply fold-right
-	 (lambda (x tail)
-	   (cons (fn x) tail))
-	 tail
-	 liss))
+;; definition see list-util-1
 
 (TEST
  > (map/tail inc 'mytail '(1 2))

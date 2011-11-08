@@ -12,12 +12,15 @@
 ;; This is separate from list-util (and list-util-2) to enable use in
 ;; mod.scm (bootstrapping)
 
-(define (map/tail func l tail)
-  (fold-right (lambda (val tail)
-		(cons (func val)
-		      tail))
-	      tail
-	      l))
+
+(define (map/tail fn tail . liss)
+  (apply fold-right
+	 (lambda (x tail)
+	   (cons (fn x) tail))
+	 tail
+	 liss))
+
+;; TEST see list-util.scm
 
 
 (define (improper-map fn l #!optional (tail '()))
