@@ -7,12 +7,9 @@
 
 
 (require (lib.test)
-	 (lib.list-util-1) ;; list-split
+	 (lib.list-util) ;; let-pair
 	 )
 
-
-(define (string-split str char)
-  (map list->string (list-split (string->list str) char)))
 
 (define (lists-join ls seplis #!optional (tail '()))
   (let rec ((ls ls))

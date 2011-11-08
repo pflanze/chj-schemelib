@@ -11,7 +11,7 @@
 	 (lib.srfi-1)
 	 (lib.cj-env)
 	 (lib.list-util-1)
-	 (lib.string-util) ;; string-split
+	 (lib.string-util-1) ;; string-split
 	 )
 
 
