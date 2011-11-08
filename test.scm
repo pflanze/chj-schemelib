@@ -56,7 +56,9 @@
 
 
 (require (lib.define-macro-star)
-	 (lib.cj-phasing))
+	 (lib.cj-phasing)
+	 (lib.cj-env-1)
+	 (lib.simple-match-1))
 
 ;; This is the *only* binding that has to be available to make loading
 ;; of code compiled with TESTs work.
@@ -73,12 +75,6 @@
 
 
 (compile-time
- ;; work around circular dependency
- (define-macro (TEST . body)
-   '(begin))
- (compile-time
-  (include "cj-env-1.scm"))
- (include "simple-match.scm")
 
  (define TEST:outports (make-table))
  ;; to suppress double outputs:
