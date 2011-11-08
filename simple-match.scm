@@ -8,92 +8,9 @@
 
 (require (lib.define-macro-star)
 	 (lib.cj-phasing)
-	 (lib.test))
+	 (lib.test)
+	 (lib.improper-length))
 
-
-(both-times
- 
-(define-type source-error
-  id: e7f33085-18d1-4220-b542-0e4500f7f001
-  ;;invisible:
-  source  ;;_location
-  message
-  args)
-
-(define (source-error source message . args)
-  ;; how to make Gambit display it? just wrap for now
-  (raise (make-source-error source message args)))
-
-(define (pos:line pos)
-  (+ 1 (bitwise-and pos 65535)))
-(define (pos:col pos)
-  (+ 1 (quotient pos 65536)))
-
-;; yes, kinda lame name (historic). Show the location that a location object points to.
-(define (show-location-location
-	 l
-	 #!key
-	 (errstr "*** ERROR IN (just showing location) ")
-	 (msg "")
-	 (args '())
-	 (display display))
-  (let ((cont
-	 (lambda (c maybe-p)
-	   (let ((cont
-		  (lambda (line col)
-		    (display (string-append
-			      errstr
-			      (scm:object->string c)
-			      "@"
-			      (scm:object->string line)
-			      "."
-			      (scm:object->string col)
-			      " -- "
-			      msg
-			      (scm:objects->string args prepend: ": ")
-			      "\n")))))
-	     (if maybe-p
-		 (let ((p maybe-p))
-		   (cont (pos:line p)
-			 (pos:col p)))
-		 (cont "?"
-		       "?"))))))
-    (if l
-	(if (location? l)
-	    (cont (location-container l)
-		  (location-position l))
-	    (error "not a location object:" l))
-	(cont '(no-location-information)
-	      #f))))
-
-(define (show-source-location
-	 s
-	 #!key
-	 (errstr "*** ERROR IN (just showing location) ")
-	 (msg "")
-	 (args '())
-	 (display display))
-  (show-location-location (if (##source? s)
-			      (##source-locat s)
-			      #f)
-			  errstr: errstr
-			  msg: msg
-			  args: args
-			  display: display))
-
-
-;; analog to source-error:
-;;(define (source-warn source )) or rather,
-;; for locations since locations can be quoted easily, unlike source code:
-(define (_location-warn display)
-  (lambda (location message . args)
-    (show-location-location location
-			    errstr: "*** WARNING IN "
-			    msg: message
-			    args: args
-			    display: display)))
-(define location-warn (_location-warn display))
-(define location-warn-to-string (_location-warn values))
 
 (TEST
  > (location-warn-to-string '#((console) 3) "hallo" 1)
@@ -111,23 +28,7 @@
 		    ,message
 		    ,@args)))
  
-(define (show-source-error e)
-  (show-source-location (source-error-source e)
-			errstr: "*** ERROR IN syntax, "
-			msg: (source-error-message e)
-			args: (source-error-args e)))
 
-(define (source-error->string e)
-  (show-source-location (source-error-source e)
-			errstr: "*** ERROR IN syntax, "
-			msg: (source-error-message e)
-			args: (source-error-args e)
-			display: values))
-
-
-;; rely on improper-length having been loaded by define-macro*.scm
-
-)
 
 (TEST
  > (match* '(1 2 3 4) ((a b . c) c) (s s))
