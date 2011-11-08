@@ -29,20 +29,6 @@
 		    ,@args)))
  
 
-
-(TEST
- > (match* '(1 2 3 4) ((a b . c) c) (s s))
- (3 4)
- > (match* '(1 2 3 4) ((a b . c) (vector a b c)) (s s))
- #(1 2 (3 4))
- > (match* '(1 2 3) ((a b . c) (vector a b c)) (s s))
- #(1 2 (3))
- > (match* '(1 2) ((a b . c) (vector a b c)) (s s))
- #(1 2 ())
- > (match* '(1) ((a b . c) (vector a b c)) (s s))
- (1)
-)
-
 (define-macro* (match* input* . clauses*)
   ;; only supports flat list matching for now
   ;; although including improper lists
@@ -109,6 +95,19 @@
 ;; currently just an alias for match*, but I might change match* some time.
 (define-macro* (match-list* input* . clauses)
   `(match* ,input* ,@clauses))
+
+(TEST
+ > (match* '(1 2 3 4) ((a b . c) c) (s s))
+ (3 4)
+ > (match* '(1 2 3 4) ((a b . c) (vector a b c)) (s s))
+ #(1 2 (3 4))
+ > (match* '(1 2 3) ((a b . c) (vector a b c)) (s s))
+ #(1 2 (3))
+ > (match* '(1 2) ((a b . c) (vector a b c)) (s s))
+ #(1 2 ())
+ > (match* '(1) ((a b . c) (vector a b c)) (s s))
+ (1)
+)
 
 (TEST
 > (match* '() (() (list "one item" )))
