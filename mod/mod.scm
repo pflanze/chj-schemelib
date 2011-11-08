@@ -47,8 +47,12 @@
   (string-append name ".scm"))
 
 (define (i/load name)
-  (let ((sourcefile (mod:name->path name)))
-    (load sourcefile)))
+  (let ((depends+code (mod:file->depends+code name)))
+    (for-each (lambda (depend)
+		(mod-load (car depend) (cdr depend)))
+	      (car depends+code))
+    (println "- evalling code of " name);;ç
+    (eval (cdr depends+code))))
 
 (define (c/load name)
   ;; possibly compile and load:
@@ -94,7 +98,8 @@
 		(evtl-compile+load 1))))))))
 
 
-;; for manually included files (bootstrapping), ignore require forms
+;; in the (for bootstrapping) manually included files, ignore require
+;; forms
 (define-macro (require . args)
   '(begin))
 
@@ -116,8 +121,11 @@
 		(rcode (cdr depends+rcode)))
 	    (cond ((mod:form->maybe-requires-imports form)
 		   => (lambda (imports)
-			(cons (map/tail mod:require-import->mod imports
-				   depends)
+			(cons (map/tail (lambda (import)
+					  (cons (mod:require-import->mod import)
+						import))
+					depends
+					imports)
 			      rcode)))
 		  (else
 		   (cons depends
@@ -125,11 +133,22 @@
 	(cons '() '())
 	(call-with-input-file (mod:name->path name) read-all-source)))
 
+(define (mod:file->depends+code name)
+  (let* ((depends+rcode (mod:file->depends+rcode name))
+	 (depends (car depends+rcode))
+	 (exprs (reverse (cdr depends+rcode))))
+    (cons depends
+	  ;; XX: only the cons and 'begin need source info here, could
+	  ;; save the deep
+	  (cj-sourcify-deep (cons 'begin exprs)
+			    (car exprs)))))
 
-(define (mod:form->maybe-requires-imports stx)
+
+(define (mod:form->maybe-requires-imports stx #!optional ignore-head?)
   (let* ((stx* (source-code stx)))
     (and (pair? stx*)
-	 (eq? (source-code (car stx*)) 'require)
+	 (or ignore-head?
+	     (eq? (source-code (car stx*)) 'require))
 	 (cdr stx*))))
 
 (define (mod->mod-path sym)
@@ -141,56 +160,86 @@
 	(string->list
 	 (symbol->string sym)))))
 
+
+;;; mod-load
 ;; load interpreted if in list of to-be interpreted modules, otherwise
 ;; compiled, and do it only once per reload request (see |R| below)
 
-(define mod-loaded #f)
+(define mod-loaded #f) ;; sym -> statically|loading|loaded
+
 (define (init-mod-loaded!)
   (set! mod-loaded (make-table test: eq?))
   (for-each (lambda (sym)
 	      (table-set! mod-loaded sym 'statically))
 	    mod:statically-loaded))
+
 (init-mod-loaded!)
-(define (mod-loaded? sym)
-  (table-ref mod-loaded sym #f))
-(define (mod-load sym)
-  (if (not (mod-loaded? sym))
+
+(define (mod-loaded? sym stx)
+  (cond ((table-ref mod-loaded sym #f)
+	 => (lambda (v)
+	      (case v
+		((loaded)
+		 #t)
+		((loading)
+		 (source-error stx "circular dependency on" sym)))))
+	(else
+	 #f)))
+
+(define (mod-load sym stx)
+  (if (not (mod-loaded? sym stx))
       (begin
-	;; set it first, to avoid cycles during loading
-	(table-set! mod-loaded sym #t)
-	((if (memq sym interpreted-modules)
-	     i/load
-	     c/load)
-	 (mod->mod-path sym)))))
+	(println "- loading " sym)
+	(dynamic-wind
+	    ;;ç sollte ins c/load usw moved werden !  wenn jene user accsblrg
+	    (lambda ()
+	      ;; set to true value already, to avoid cycles during loading
+	      (table-set! mod-loaded sym 'loading))
+	    (lambda ()
+	      ((if (memq sym interpreted-modules)
+		   i/load
+		   ;;ç c:
+		   i/load)
+	       (mod->mod-path sym))
+	      (table-set! mod-loaded sym 'loaded))
+	    (lambda ()
+	      (if (eq? (table-ref mod-loaded sym #f) 'loading)
+		  (table-set! mod-loaded sym)
+		  ;; or set as 'error ? But intention is to let user
+		  ;; retry from repl.
+		  ))))))
 
 (define (mod:require-import->mod import)
   (let* ((import* (source-code import))
 	 (mod (if (pair? import*)
 		  (if (null? (cdr import*))
 		      (car import*)
-		      ;; XXX source-error
-		      (error "invalid syntax" import))
+		      (source-error import "invalid require syntax"))
 		  import*))
 	 (mod* (source-code mod)))
     (if (symbol? mod*)
 	mod*
 	(error "expecting symbol" mod))))
 
+
 (define (mod:require-expand stx)
   ;; would like to have access to improper-* functions. well
   (cj-sourcify-deep
-   (cond ((mod:form->maybe-requires-imports stx)
+   (cond ((mod:form->maybe-requires-imports stx #t)
 	  =>
 	  (lambda (imports)
 	    (cons 'begin
 		  (map (lambda (import)
-			 `(mod-load ',(mod:require-import->mod import)))
+			 `(mod-load ',(mod:require-import->mod import)
+				    (source-dequote ',(source-quote import))))
 		       imports))))
 	 (else
 	  (error "not a require form")))
    stx))
 
-;; |require| runtime macro
+
+;;; |require| runtime macro
+
 (##top-cte-add-macro!
  ##interaction-cte
  'require
@@ -201,11 +250,16 @@
     ;; do not eval at expansion time, because Gambit crashes when
     ;; doing nested compilation; instead usually require forms are
     ;; translated separately
+    (location-warn
+     (source-location stx)
+     "fall back to macro definition of require form, no compile-time definitions are supported")
     (mod:require-expand stx))
   #f))
 
-;; |RQ|, a require for user interaction that deletes the loaded table
-;; first
+
+;;; |RQ|
+;; a require for user interaction that first clears what has been loaded
+
 (##top-cte-add-macro!
  ##interaction-cte
  'RQ
