@@ -36,3 +36,25 @@
 ;; TEST see list-util.scm
 
 
+(define (r-list-split l separator)
+  (let lp ((l l)
+	   (cum '())
+	   (res '()))
+    (if (null? l)
+	(cons cum res)
+	(let ((a (car l))
+	      (r (cdr l)))
+	  (if (equal? a separator)
+	      (lp r
+		  '()
+		  (cons cum res))
+	      (lp r
+		  (cons a cum)
+		  res))))))
+
+(define (list-split l separator)
+  (reverse (map reverse (r-list-split l separator))))
+
+;; TEST see list-util.scm
+
+

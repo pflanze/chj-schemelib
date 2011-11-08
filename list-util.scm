@@ -418,3 +418,19 @@
  )
 
 
+;; implementation of list-split see list-util-1
+
+(TEST
+ > (list-split '(a b c d e) 'c)
+ ((a b) (d e))
+ > (list-split '(a b c d e) 'x)
+ ((a b c d e))
+ > (list-split '(a b x c d x e) 'x)
+ ((a b) (c d) (e))
+ > (list-split '(a b x c d x e x) 'x)
+ ((a b) (c d) (e) ())
+ > (list-split '(x a b x c d x e x) 'x)
+ (() (a b) (c d) (e) ())
+ )
+
+
