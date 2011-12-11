@@ -191,20 +191,46 @@
     (force-output p)
 
     ;; Drop Gambit welcome message
-    ;; read lines till start is seen? XX issue with u8vector buffering  ornot?
     (let lp ()
       (let ((line (read-line p #\newline #f)))
-	(println (list "line:" line))
 	(if (string=? line "compiler-running")
 	    (void)
 	    (lp))))
-    
-    (rem:send p `(ok?))
-    (let ((reply (rem:recv p)))
-      (or (eq? reply 'ok)
-	  (error "invalid reply:" reply)))
+
+    (rem:check-ok p)
     p))
 
+(define (stop-compiler p)
+  (rem:send p `(exit))
+  (close-port p)
+  (process-status p))
+
+(define (make-rem-command format cont)
+  (lambda (p . args)
+    (rem:send p (apply format args))
+    (let ((res (rem:recv p)))
+      (case (and (pair? res)
+		 (car res))
+	((value)
+	 (cont (cadr res)))
+	((exception)
+	 (raise (cadr res)))
+	(else
+	 (error "invalid reply:" res))))))
+
+(define rem:check-ok
+  (make-rem-command
+   (lambda ()
+     `(ok?))
+   (lambda (reply)
+     (or (eq? reply 'ok)
+	 (error "invalid reply:" reply)))))
+
+(define rem:compile-expr
+  (make-rem-command
+   (lambda (path expr)
+     `(compile-expr ,path ,expr))
+   values))
 
 (define (natural0->u8vector n len)
   (let ((v (make-u8vector len)))
@@ -308,19 +334,61 @@
 	(out (current-output-port)))
     (let lp ()
       (rem:send out
-		(let ((msg (rem:recv in)))
-		  (case (car msg)
-		    ((ok?) 'ok)
-		    ((compile)
-		     (let ((path (cadr msg))
-			   (expr (caddr msg)))
-		       (remote:compiler-compile path expr)))
-		    (else
-		     'error))))
+		(with-exception-catcher
+		 (lambda (e)
+		   `(exception ,e))
+		 (lambda ()
+		   (let ((msg (rem:recv in)))
+		     `(value ,(case (car msg)
+				((ok?) 'ok)
+				((load)
+				 (let ((path (cadr msg)))
+				   ;;XX or a dependency or what loading?
+				   (load path)))
+				((compile-expr)
+				 (let ((path (cadr msg))
+				       (expr (caddr msg)))
+				   (compile-expr path expr)))
+				((exit)
+				 (exit 0))
+				(else
+				 (raise `(unknown-message ,(car msg))))))))))
       (lp))))
 
-(define (remote:compiler-compile path expr)
-  `(hello-world ,path))
+(define-macro (local var+exprs . body)
+  (let* ((var->kept_ (map (lambda (var+expr)
+			    (cons (car var+expr)
+				  (gensym)))
+			  var+exprs))
+	 (var->kept (lambda (var)
+		      (cdr (assq var var->kept_)))))
+    `(let ,(map (lambda (var+expr)
+		  `(,(var->kept (car var+expr)) #f))
+		var+exprs)
+       (dynamic-wind (lambda ()
+		       ,@(map (lambda (var+expr)
+				(define var (car var+expr))
+				(define expr (cadr var+expr))
+				`(begin
+				   (set! ,(var->kept var) ,var)
+				   (set! ,var ,expr)))
+			      var+exprs))
+	   (lambda ()
+	     ,@body)
+	   (lambda ()
+	     ,@(map (lambda (var+expr)
+		      (define var (car var+expr))
+		      (define expr (cadr var+expr))
+		      `(begin
+			 ;; simply drop value of var (and recalculate from expr)?
+			 (set! ,var ,(var->kept var))))
+		    var+exprs))))))
+
+(define (compile-expr path expr)
+  ;; reuses global compile-options
+  (local ((c#expand-source (lambda (_expr)
+			     expr)))
+	 (compile-file path compile-options)))
 
 
 ;; -----------------------
