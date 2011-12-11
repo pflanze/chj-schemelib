@@ -225,20 +225,20 @@
 ;; run aynchronically (but sends normal messages back to 'synchronous'
 ;; thread)
 (define (commport-dispatcher remcomm)
-  (let ((commport (remcomm:remote-port remcomm))
-	(synchandler (remcomm:vector-port remcomm)))
+  (let ((rp (remcomm:remote-port remcomm))
+	(vp (remcomm:vector-port remcomm)))
     (lambda ()
       (let lp ()
-	(let ((msg (remcomm:recv commport)))
+	(let ((msg (remcomm:recv rp)))
 	  (case (and (pair? msg)
 		     (car msg))
 	    ((port)
 	     ;; heh and here it's *not* a separate thread
-	     (println (cadr msg) ": " (object->string (caddr msg)))
-	     (redo))
+	     (println (cadr msg) ": " (caddr msg)))
 	    (else
 	     ;; send  ?  why write?
-	     (write msg synchandler))))))))
+	     (write msg vp))))
+	(lp)))))
 
 (define (make-dorem-command format cont)
   (lambda (p . args)
@@ -255,10 +255,6 @@
 	     (cont (cadr msg)))
 	    ((exception)
 	     (raise (cadr msg)))
-	    ((port)
-	     ;; heh and here it's *not* a separate thread
-	     (println (cadr msg) ": " (object->string (caddr msg)))
-	     (redo))
 	    (else
 	     (error "invalid reply:" msg))))))))
 
@@ -398,8 +394,8 @@
   (let ((in (current-input-port))
 	(out (current-output-port)))
     (parameterize
-     ((current-output-port (remcomm:virtual-port 'output out))
-      (current-error-port (remcomm:virtual-port 'error out)))
+     ((current-output-port (remcomm:virtual-port 'output-port out))
+      (current-error-port (remcomm:virtual-port 'error-port out)))
      (let lp ()
        (let ((msg (remcomm:recv in))) ;; catch exceptions?
 	 (remcomm:send out
