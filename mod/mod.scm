@@ -228,17 +228,28 @@
   (let ((rp (remcomm:remote-port remcomm))
 	(vp (remcomm:vector-port remcomm)))
     (lambda ()
-      (let lp ()
-	(let ((msg (remcomm:recv rp)))
-	  (case (and (pair? msg)
-		     (car msg))
-	    ((port)
-	     ;; heh and here it's *not* a separate thread
-	     (println (cadr msg) ": " (caddr msg)))
-	    (else
-	     ;; send  ?  why write?
-	     (write msg vp))))
-	(lp)))))
+      (call/cc
+       (lambda (exit-lp)
+	 (let lp ()
+	   (let ((msg (remcomm:recv rp
+				    ;; on eof:
+				    (lambda ()
+				      (println "process exited with status: "
+					       (process-status rp))
+				      ;;^ unnecessary?
+				      (write `(exception
+					       process-exited)
+					     vp)
+				      (exit-lp)))))
+	     (case (and (pair? msg)
+			(car msg))
+	       ((port)
+		;; heh and here it's *not* a separate thread
+		(println (cadr msg) ": " (caddr msg)))
+	       (else
+		;; send  ?  why write?
+		(write msg vp))))
+	   (lp)))))))
 
 (define (make-dorem-command format cont)
   (lambda (p . args)
@@ -337,7 +348,7 @@
 ;; always reuse
 (define remcomm:len-len-buf (make-u8vector remcomm:len-len))
 
-(define (read-u8vector-tmp! p len)
+(define (read-u8vector-tmp! p len on-eof)
   ;; returned buf is only valid up to next call
   (let ((buf
 	 (if (= len remcomm:len-len)
@@ -356,12 +367,15 @@
 		   (set! remcomm:buf-len len)
 		   remcomm:buf)))))
     (let ((rdlen (read-subu8vector buf 0 len p len)))
-      (or (= rdlen len)
-	  (error "only read:" rdlen))
-      buf)))
+      (cond ((= rdlen len)
+	     buf)
+	    ((zero? rdlen)
+	     (on-eof))
+	    (else
+	     (error "only read:" rdlen))))))
 
-(define (remcomm:recv p)
-  (let* ((lenv (read-u8vector-tmp! p remcomm:len-len))
+(define (remcomm:recv p on-eof)
+  (let* ((lenv (read-u8vector-tmp! p remcomm:len-len on-eof))
 	 (len (u8vector->natural0 lenv remcomm:len-len))
 	 (_
 	  ;; HACK
@@ -369,7 +383,7 @@
 		(let lp ()
 		  (println (read-line p))
 		  (lp))))
-	 (v (read-u8vector-tmp! p len))
+	 (v (read-u8vector-tmp! p len on-eof))
 	 (res (u8vector->object v)))
     res))
 
@@ -397,7 +411,10 @@
      ((current-output-port (remcomm:virtual-port 'output-port out))
       (current-error-port (remcomm:virtual-port 'error-port out)))
      (let lp ()
-       (let ((msg (remcomm:recv in))) ;; catch exceptions?
+       (let ((msg (remcomm:recv in
+				;; on eof:
+				(lambda ()
+				  (exit 0))))) ;; catch exceptions?
 	 (remcomm:send out
 		       (remote:dispatch msg)))
        (lp)))))
