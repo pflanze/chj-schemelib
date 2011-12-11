@@ -174,6 +174,15 @@
     '())
    mod))
 
+;; data types:
+;;  commport  just the open-process port
+;;  remcomm   bundled with local vector port for receiving (commport only send)
+
+(define make-remcomm cons)
+(define (remcomm:remote-port rc)
+  (car rc))
+(define (remcomm:vector-port rc)
+  (cdr rc))
 
 (define (start-compiler)
   (let ((p (open-process
@@ -197,37 +206,78 @@
 	    (void)
 	    (lp))))
 
-    (rem:check-ok p)
-    p))
+    (let ((remcomm (make-remcomm p (open-vector (list buffering: #f)))))
+      ;; start proxy thread
+      (thread-start!
+       (make-thread
+	(commport-dispatcher remcomm)))
+
+      (dorem:check-ok remcomm)
+
+      remcomm)))
 
 (define (stop-compiler p)
-  (rem:send p `(exit))
+  (remcomm:send p `(exit))
   (close-port p)
   (process-status p))
 
-(define (make-rem-command format cont)
-  (lambda (p . args)
-    (rem:send p (apply format args))
-    (let ((res (rem:recv p)))
-      (case (and (pair? res)
-		 (car res))
-	((value)
-	 (cont (cadr res)))
-	((exception)
-	 (raise (cadr res)))
-	(else
-	 (error "invalid reply:" res))))))
 
-(define rem:check-ok
-  (make-rem-command
+;; run aynchronically (but sends normal messages back to 'synchronous'
+;; thread)
+(define (commport-dispatcher remcomm)
+  (let ((commport (remcomm:remote-port remcomm))
+	(synchandler (remcomm:vector-port remcomm)))
+    (lambda ()
+      (let lp ()
+	(let ((msg (remcomm:recv commport)))
+	  (case (and (pair? msg)
+		     (car msg))
+	    ((port)
+	     ;; heh and here it's *not* a separate thread
+	     (println (cadr msg) ": " (object->string (caddr msg)))
+	     (redo))
+	    (else
+	     ;; send  ?  why write?
+	     (write msg synchandler))))))))
+
+(define (make-dorem-command format cont)
+  (lambda (p . args)
+    (let ((rp (remcomm:remote-port p))
+	  (vp (remcomm:vector-port p)))
+      ;; v--XX ach wll wrong name for remcomm:send then. sgh
+      (remcomm:send rp (apply format args))
+      (let redo ()
+	;; (why read and not a recv)
+	(let ((msg (read vp)))
+	  (case (and (pair? msg)
+		     (car msg))
+	    ((value)
+	     (cont (cadr msg)))
+	    ((exception)
+	     (raise (cadr msg)))
+	    ((port)
+	     ;; heh and here it's *not* a separate thread
+	     (println (cadr msg) ": " (object->string (caddr msg)))
+	     (redo))
+	    (else
+	     (error "invalid reply:" msg))))))))
+
+(define dorem:check-ok
+  (make-dorem-command
    (lambda ()
      `(ok?))
    (lambda (reply)
      (or (eq? reply 'ok)
-	 (error "invalid reply:" reply)))))
+	 (error "unexpected reply:" reply)))))
 
-(define rem:compile-expr
-  (make-rem-command
+(define dorem:check-ok-error
+  (make-dorem-command
+   (lambda ()
+     `(ok-error))
+   values))
+
+(define dorem:compile-expr
+  (make-dorem-command
    (lambda (path expr)
      `(compile-expr ,path ,expr))
    values))
@@ -273,50 +323,50 @@
 ;; > (u8vector->natural0  '#u8(15 97 233 175 28) 5)
 ;; 123210391823
 
-(define rem:len-len 8) ;; bytes
+(define remcomm:len-len 8) ;; bytes
 
 ;; cmd is a sexpr, or actually anything
-(define (rem:send p cmd)
+(define (remcomm:send p cmd)
   (let* ((v (object->u8vector cmd))
 	 (len (u8vector-length v)))
-    (write-subu8vector (natural0->u8vector len rem:len-len)
-		       0 rem:len-len p)
+    (write-subu8vector (natural0->u8vector len remcomm:len-len)
+		       0 remcomm:len-len p)
     (write-subu8vector v 0 len p)
     (force-output p)))
 
 ;; resized as needed. XXX: ever downsize?
-(define rem:buf-len 8) ;; follows shrinking tho
-(define rem:buf (make-u8vector rem:buf-len))
+(define remcomm:buf-len 8) ;; follows shrinking tho
+(define remcomm:buf (make-u8vector remcomm:buf-len))
 
 ;; always reuse
-(define rem:len-len-buf (make-u8vector rem:len-len))
+(define remcomm:len-len-buf (make-u8vector remcomm:len-len))
 
 (define (read-u8vector-tmp! p len)
   ;; returned buf is only valid up to next call
   (let ((buf
-	 (if (= len rem:len-len)
-	     rem:len-len-buf
-	     (if (< rem:buf-len len)
+	 (if (= len remcomm:len-len)
+	     remcomm:len-len-buf
+	     (if (< remcomm:buf-len len)
 		 (let ((newbuf (make-u8vector len)))
-		   (set! rem:buf newbuf)
-		   (set! rem:buf-len len)
+		   (set! remcomm:buf newbuf)
+		   (set! remcomm:buf-len len)
 		   newbuf)
 		 (begin
 		   ;; u8vector->object requires the len set correctly
-		   (##u8vector-shrink! rem:buf len)
+		   (##u8vector-shrink! remcomm:buf len)
 		   ;; also have to adapt acceptable len, because the
 		   ;; buf will be actually reduced in size once gc
 		   ;; runs, right?
-		   (set! rem:buf-len len)
-		   rem:buf)))))
+		   (set! remcomm:buf-len len)
+		   remcomm:buf)))))
     (let ((rdlen (read-subu8vector buf 0 len p len)))
       (or (= rdlen len)
 	  (error "only read:" rdlen))
       buf)))
 
-(define (rem:recv p)
-  (let* ((lenv (read-u8vector-tmp! p rem:len-len))
-	 (len (u8vector->natural0 lenv rem:len-len))
+(define (remcomm:recv p)
+  (let* ((lenv (read-u8vector-tmp! p remcomm:len-len))
+	 (len (u8vector->natural0 lenv remcomm:len-len))
 	 (_
 	  ;; HACK
 	  (if (>= len 4428738507345651052)
@@ -327,33 +377,56 @@
 	 (res (u8vector->object v)))
     res))
 
+(define (remcomm:virtual-port kind commport)
+  (let* ((p (open-string (list buffering: 'line)))
+	 ;; well does the buffering setting have an effect?
+	 (th (make-thread
+	      (lambda ()
+		(let lp ()
+		  ;; never eof? in-process.
+		  (let ((line (read-line p)))
+		    ;; or read-line ? ?
+		    ;;v- XX does this need a mutex (internally)?
+		    (remcomm:send commport `(port ,kind ,line)))
+		  (lp))))))
+    (thread-start! th)
+    p))
+
 (define (remote:start-compiler)
   (display "\ncompiler-running\n")
   (force-output)
   (let ((in (current-input-port))
 	(out (current-output-port)))
-    (let lp ()
-      (rem:send out
-		(with-exception-catcher
-		 (lambda (e)
-		   `(exception ,e))
-		 (lambda ()
-		   (let ((msg (rem:recv in)))
-		     `(value ,(case (car msg)
-				((ok?) 'ok)
-				((load)
-				 (let ((path (cadr msg)))
-				   ;;XX or a dependency or what loading?
-				   (load path)))
-				((compile-expr)
-				 (let ((path (cadr msg))
-				       (expr (caddr msg)))
-				   (compile-expr path expr)))
-				((exit)
-				 (exit 0))
-				(else
-				 (raise `(unknown-message ,(car msg))))))))))
-      (lp))))
+    (parameterize
+     ((current-output-port (remcomm:virtual-port 'output out))
+      (current-error-port (remcomm:virtual-port 'error out)))
+     (let lp ()
+       (let ((msg (remcomm:recv in))) ;; catch exceptions?
+	 (remcomm:send out
+		       (remote:dispatch msg)))
+       (lp)))))
+
+(define (remote:dispatch msg)
+  (with-exception-catcher
+   (lambda (e)
+     `(exception ,e))
+   (lambda ()
+     `(value ,(case (car msg)
+		((ok?) 'ok)
+		((ok-error)
+		 (error 'ok))
+		((load)
+		 (let ((path (cadr msg)))
+		   ;;XX or a dependency or what loading?
+		   (load path)))
+		((compile-expr)
+		 (let ((path (cadr msg))
+		       (expr (caddr msg)))
+		   (compile-expr path expr)))
+		((exit)
+		 (exit 0))
+		(else
+		 (raise `(unknown-message ,(car msg)))))))))
 
 (define-macro (local var+exprs . body)
   (let* ((var->kept_ (map (lambda (var+expr)
