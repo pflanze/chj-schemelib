@@ -1,0 +1,9 @@
+Design:
+
+* have multiple subprocesses running, as a pool?,
+  dispatch jobs to them
+
+* jobs can be 'load', or 'compile'. loads are necessary to satisfy
+  build dependencies; only loads that do not compile are issued to
+  keep hierarchy flat?
+
