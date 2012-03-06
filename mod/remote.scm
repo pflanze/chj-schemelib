@@ -4,6 +4,7 @@
 ;;  remcomm   bundled with local vector port for receiving (commport only send)
 
 (define-type remcomm
+  id: a270a48a-a0e8-4adb-9aee-bed0981be2a2
   remote-port
   vector-port)
 
@@ -39,10 +40,11 @@
 
       remcomm)))
 
-(define (stop-compiler p)
-  (remcomm:send p `(exit))
-  (close-port p)
-  (process-status p))
+(define (stop-compiler remcomm)
+  (let ((p (remcomm-remote-port remcomm)))
+    (remcomm:send p `(exit))
+    (close-port p)
+    (process-status p)))
 
 
 ;; run aynchronically (but sends normal messages back to 'synchronous'
