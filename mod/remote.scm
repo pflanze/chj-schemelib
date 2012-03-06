@@ -3,11 +3,9 @@
 ;;  commport  just the open-process port
 ;;  remcomm   bundled with local vector port for receiving (commport only send)
 
-(define make-remcomm cons)
-(define (remcomm:remote-port rc)
-  (car rc))
-(define (remcomm:vector-port rc)
-  (cdr rc))
+(define-type remcomm
+  remote-port
+  vector-port)
 
 (define (start-compiler)
   (let ((p (open-process
@@ -50,8 +48,8 @@
 ;; run aynchronically (but sends normal messages back to 'synchronous'
 ;; thread)
 (define (commport-dispatcher remcomm)
-  (let ((rp (remcomm:remote-port remcomm))
-	(vp (remcomm:vector-port remcomm)))
+  (let ((rp (remcomm-remote-port remcomm))
+	(vp (remcomm-vector-port remcomm)))
     (lambda ()
       (call/cc
        (lambda (exit-lp)
@@ -78,8 +76,8 @@
 
 (define (make-dorem-command format cont)
   (lambda (p . args)
-    (let ((rp (remcomm:remote-port p))
-	  (vp (remcomm:vector-port p)))
+    (let ((rp (remcomm-remote-port p))
+	  (vp (remcomm-vector-port p)))
       ;; v--XX ach wll wrong name for remcomm:send then. sgh
       (remcomm:send rp (apply format args))
       (let redo ()
