@@ -8,6 +8,8 @@
   remote-port
   vector-port)
 
+;; === Interface to user ===
+
 (define (start-compiler)
   (let ((p (open-process
 	    (list path: "gsc"
@@ -44,6 +46,9 @@
   (let ((p (remcomm-remote-port remcomm)))
     (close-port p)
     (process-status p)))
+
+
+;; === Internal, on client side ===
 
 ;; Using a proxy thread to transparently channel output- and error
 ;; character ports to the terminal.
@@ -95,6 +100,9 @@
 	    (else
 	     (error "invalid reply:" msg))))))))
 
+
+;; === Interface to user, cont. ===
+
 (define dorem:check-ok
   (make-dorem-command
    (lambda ()
@@ -114,6 +122,9 @@
    (lambda (path expr)
      `(compile-expr ,path ,expr))
    values))
+
+
+;; === Internal ===
 
 (define (natural0->u8vector n len)
   (let ((v (make-u8vector len)))
