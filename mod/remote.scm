@@ -46,9 +46,11 @@
     (close-port p)
     (process-status p)))
 
+;; Using a proxy thread to transparently channel output- and error
+;; character ports to the terminal.
 
-;; run aynchronically (but sends normal messages back to 'synchronous'
-;; thread)
+;; This is run aynchronically (but sends normal messages back to
+;; 'synchronous' thread)
 (define (commport-dispatcher remcomm)
   (let ((rp (remcomm-remote-port remcomm))
 	(vp (remcomm-vector-port remcomm)))
