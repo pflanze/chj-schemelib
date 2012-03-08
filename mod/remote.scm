@@ -264,7 +264,12 @@
 		       (expr (caddr msg)))
 		   (compile-expr path expr)))
 		((exit)
-		 (exit 0))
+		 (println "Hello world?")
+		 (force-output)
+		 ;;(error 'wldone)
+		 ;;(exit 0)
+		 `(value something)
+		 )
 		(else
 		 (raise `(unknown-message ,(car msg)))))))))
 
