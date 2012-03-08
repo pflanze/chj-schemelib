@@ -78,6 +78,9 @@
 	       ((port)
 		;; heh and here it's *not* a separate thread
 		(println (cadr msg) ": " (caddr msg)))
+	       ((exiting)
+		;;(println "process exiting normally")
+		(exit-lp))
 	       (else
 		;; send  ?  why write?
 		(write msg vp))))
@@ -245,19 +248,24 @@
   (force-output)
   (let ((in (current-input-port))
 	(out (current-output-port)))
-    (parameterize
-     ((current-output-port (remcomm:virtual-port 'output-port out))
-      (current-error-port (remcomm:virtual-port 'error-port out)))
-     (let lp ()
-       (let ((msg (remcomm:recv in
-				;; on eof:
-				(lambda ()
-				  (exit 0))))) ;; catch exceptions?
-	 (remcomm:send out
-		       (remote:dispatch msg)))
-       (lp)))))
+    (call/cc
+     (lambda (exit-lp)
+       (parameterize
+	((current-output-port (remcomm:virtual-port 'output-port out))
+	 (current-error-port (remcomm:virtual-port 'error-port out)))
+	(let lp ()
+	  (let ((msg (remcomm:recv in
+				   ;; on eof:
+				   (lambda ()
+				     (exit 0))))) ;; catch exceptions?
+	    (remcomm:send out
+			  (remote:dispatch msg
+					   (lambda ()
+					     (remcomm:send out `(exiting))
+					     (exit-lp)))))
+	  (lp)))))))
 
-(define (remote:dispatch msg)
+(define (remote:dispatch msg exit)
   (with-exception-catcher
    (lambda (e)
      `(exception ,e))
@@ -275,12 +283,7 @@
 		       (expr (caddr msg)))
 		   (compile-expr path expr)))
 		((exit)
-		 (println "Hello world?")
-		 (force-output)
-		 ;;(error 'wldone)
-		 ;;(exit 0)
-		 `(value something)
-		 )
+		 (exit))
 		(else
 		 (raise `(unknown-message ,(car msg)))))))))
 
