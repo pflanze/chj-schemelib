@@ -44,7 +44,7 @@
 
 (define (stop-compiler remcomm)
   (let ((p (remcomm-remote-port remcomm)))
-    (close-port p)
+    (close-output-port p)
     (process-status p)))
 
 
