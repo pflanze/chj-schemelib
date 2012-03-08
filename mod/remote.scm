@@ -44,6 +44,7 @@
 
 (define (stop-compiler remcomm)
   (let ((p (remcomm-remote-port remcomm)))
+    (remcomm:send p `(exit))
     (close-output-port p)
     (process-status p)))
 
@@ -273,6 +274,13 @@
 		 (let ((path (cadr msg))
 		       (expr (caddr msg)))
 		   (compile-expr path expr)))
+		((exit)
+		 (println "Hello world?")
+		 (force-output)
+		 ;;(error 'wldone)
+		 ;;(exit 0)
+		 `(value something)
+		 )
 		(else
 		 (raise `(unknown-message ,(car msg)))))))))
 
