@@ -63,16 +63,19 @@
       (call/cc
        (lambda (exit-lp)
 	 (let lp ()
-	   (let ((msg (remcomm:recv rp
-				    ;; on eof:
-				    (lambda ()
-				      (println "process exited with status: "
-					       (process-status rp))
-				      ;;^ unnecessary?
-				      (write `(exception
-					       process-exited)
-					     vp)
-				      (exit-lp)))))
+	   (let ((msg (remcomm:recv
+		       rp
+		       ;; on eof:
+		       (lambda ()
+			 (let ((st (process-status rp)))
+			   (println "process exited with status: "
+				    st)
+			   ;;^ unnecessary?
+			   (write `(exception
+				    (process-exited-with-status
+				     ,st))
+				  vp))
+			 (exit-lp)))))
 	     (case (and (pair? msg)
 			(car msg))
 	       ((port)
@@ -92,18 +95,19 @@
 	  (vp (remcomm-vector-port p)))
       ;; v--XX ach wll wrong name for remcomm:send then. sgh
       (remcomm:send rp (apply format args))
-      (let redo ()
-	;; (why read and not a recv)
-	(let ((msg (read vp)))
-	  (case (and (pair? msg)
-		     (car msg))
-	    ((value)
-	     (cont (cadr msg)))
-	    ((exception)
-	     (raise (cadr msg)))
-	    (else
-	     (error "invalid reply:" msg))))))))
+      (dorem-read vp cont))))
 
+(define (dorem-read vp cont)
+  ;; (why read and not a recv)
+  (let ((msg (read vp)))
+    (case (and (pair? msg)
+	       (car msg))
+      ((value)
+       (cont (cadr msg)))
+      ((exception)
+       (raise (cadr msg)))
+      (else
+       (error "invalid reply:" msg)))))
 
 ;; === Interface to user, cont. ===
 
