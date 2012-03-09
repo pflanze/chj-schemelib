@@ -24,13 +24,13 @@
   maybe-from)
 
 (define (mod-name mod)
-  (modsym->modname (mod-sym mod)))
+  (modsym:modname (mod-sym mod)))
 
 
-(define (modname->path name)
+(define (modname:path name)
   (string-append name ".scm"))
 
-(define (modsym->modname sym)
+(define (modsym:modname sym)
   (list->string
    (map (lambda (c)
 	  (if (char=? c #\.)
@@ -110,7 +110,7 @@
     ((s) ;; always source
      (i/load name))
     (else
-     (let ((sourcefile (modname->path name)))
+     (let ((sourcefile (modname:path name)))
        (let* ((sourceinf (file-info sourcefile))
 	      (evtl-compile+load
 	       (lambda (i)
@@ -180,7 +180,7 @@
 		   (cons depends
 			 (cons form rcode))))))
 	(cons '() '())
-	(call-with-input-file (modname->path name) read-all-source)))
+	(call-with-input-file (modname:path name) read-all-source)))
 
 (define (modname:depends+code name)
   (let* ((depends+rcode (modname:depends+rcode name))
@@ -272,7 +272,7 @@
 		   i/load
 		   ;;ç c:
 		   i/load)
-	       (modsym->modname sym))
+	       (modsym:modname sym))
 	      (table-set! mod-loaded sym 'loaded))
 	    (lambda ()
 	      (if (eq? (table-ref mod-loaded sym #f) 'loading)
