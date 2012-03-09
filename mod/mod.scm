@@ -114,8 +114,8 @@
 			     (cons obinf (- i 1))))))
 		=>
 		(lambda (obinf+i)
-		  (if (> (time->seconds (file-info-last-modification-time sourceinf))
-			 (time->seconds (file-info-last-modification-time (car obinf+i))))
+		  (if (> (file-mtime sourceinf)
+			 (file-mtime (car obinf+i)))
 		      (evtl-compile+load (cdr obinf+i))
 		      ;; assuming macros haven't changed
 		      (object-load-if-changed name (cdr obinf+i)))))
@@ -123,6 +123,8 @@
 		;; no binary
 		(evtl-compile+load 1))))))))
 
+(define (file-mtime path)
+  (time->seconds (file-info-last-modification-time path)))
 
 ;; in the (for bootstrapping) manually included files, ignore require
 ;; forms
