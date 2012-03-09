@@ -24,17 +24,17 @@
   maybe-from)
 
 ;; forgot how to specify for these directly?
-(define mod:sym mod-sym)
-(define mod:maybe-from mod-maybe-from)
+(define mod.sym mod-sym)
+(define mod.maybe-from mod-maybe-from)
 
-(define (mod:name mod)
-  (modsym:modname (mod:sym mod)))
+(define (mod.name mod)
+  (modsym.modname (mod.sym mod)))
 
 
-(define (modname:path name)
+(define (modname.path name)
   (string-append name ".scm"))
 
-(define (modsym:modname sym)
+(define (modsym.modname sym)
   (list->string
    (map (lambda (c)
 	  (if (char=? c #\.)
@@ -101,7 +101,7 @@
 ;; -----------------------
 
 (define (i/load name)
-  (let ((depends+code (mod:file->depends+code name)))
+  (let ((depends+code (mod.depends+code name)))
     (for-each (lambda (depend)
 		(mod-load (car depend) (cdr depend)))
 	      (car depends+code))
@@ -114,7 +114,7 @@
     ((s) ;; always source
      (i/load name))
     (else
-     (let ((sourcefile (modname:path name)))
+     (let ((sourcefile (modname.path name)))
        (let* ((sourceinf (file-info sourcefile))
 	      (evtl-compile+load
 	       (lambda (i)
@@ -168,7 +168,7 @@
     lib.list-util-1
     lib.cj-source))
 
-(define (modname:depends+rcode name)
+(define (modname.depends+rcode name)
   (fold (lambda (form depends+rcode)
 	  (let ((depends (car depends+rcode))
 		(rcode (cdr depends+rcode)))
@@ -184,10 +184,10 @@
 		   (cons depends
 			 (cons form rcode))))))
 	(cons '() '())
-	(call-with-input-file (modname:path name) read-all-source)))
+	(call-with-input-file (modname.path name) read-all-source)))
 
-(define (modname:depends+code name)
-  (let* ((depends+rcode (modname:depends+rcode name))
+(define (modname.depends+code name)
+  (let* ((depends+rcode (modname.depends+rcode name))
 	 (depends (car depends+rcode))
 	 (exprs (reverse (cdr depends+rcode))))
     (cons depends
@@ -198,8 +198,8 @@
 
 
 ;; XXX inefficient, cache somehow
-(define (modname:depends name)
-  (car (modname:depends+code name)))
+(define (modname.depends name)
+  (car (modname.depends+code name)))
 
 
 ;; STATI:
@@ -210,21 +210,21 @@
 ;; - not loaded: obj file doesn't match source file -> process deps, then loadorcompile
 
 
-(define (mod:maybe-load mod)
+(define (mod.maybe-load mod)
   ;; returns true if mod was [re]loaded
-  (let* ((d (modname:depends (mod:name mod)))
+  (let* ((d (modname.depends (mod.name mod)))
 	 (dep-changed? (fold (lambda (mod dep-changed?)
-			       (or (mod:maybe-load mod)
+			       (or (mod.maybe-load mod)
 				   dep-changed?))
 			     #f
 			     d)))
-    (if (or (not (mod:loaded? mod))
-	    (mod:changed? mod)
+    (if (or (not (mod.loaded? mod))
+	    (mod.changed? mod)
 	    dep-changed?)
-	(mod:load mod))))
+	(mod.load mod))))
 
-(define (maybe-load name)
-  (mod:maybe-load (make-mod name #f)))
+(define (modsym.maybe-load sym)
+  (mod.maybe-load (make-mod sym #f)))
 
 
 
@@ -276,7 +276,7 @@
 		   i/load
 		   ;;ç c:
 		   i/load)
-	       (modsym:modname sym))
+	       (modsym.modname sym))
 	      (table-set! mod-loaded sym 'loaded))
 	    (lambda ()
 	      (if (eq? (table-ref mod-loaded sym #f) 'loading)
