@@ -6,19 +6,47 @@
 ;;;    (at your option) any later version.
 
 
+(include "lib.scm")
+(include "gambit.scm")
+
 ;; Data types:
 
-;; sym:   a symbol with dots for the namespace hierarchy:  lib.match
-;; name:  a string with slash instead of the dots:  "lib/match"
-;; mod:   module possibly including source code where it 'comes from':
+;; modsym:   a symbol with dots for the namespace hierarchy:  lib.match
+;; modname:  a string with slash instead of the dots:  "lib/match"
+;; mod:      modsym and possibly source code where it 'came from':
 ;;                  (lib.match . #(source1 .....))
+;; path:     path string to .scm file
+
 
 (define-type mod
   id: 81947a55-3550-455d-951e-59b1195596fa
-  name
+  sym
   maybe-from)
 
-(include "lib.scm")
+(define (mod-name mod)
+  (modsym->modname (mod-sym mod)))
+
+
+(define (modname->path name)
+  (string-append name ".scm"))
+
+(define (modsym->modname sym)
+  (list->string
+   (map (lambda (c)
+	  (if (char=? c #\.)
+	      #\/
+	      c))
+	(string->list
+	 (symbol->string sym)))))
+
+
+
+;; Allow macros to inspect whether expansion is happening for
+;; compilation through C
+
+(define mod:compiled?
+   (make-parameter #f))
+
 
 ;; possibly-compile and load
 
@@ -33,7 +61,9 @@
 ;; system from source, neither freshly compiled. strange. Only time
 ;; this happened was with Serialization-Deserialization.scm
 
-(compile-time-define-if-not-defined objects-loaded (make-table)) ;; name to [file mtime,no,] index
+(compile-time-define-if-not-defined objects-loaded (make-table))
+;; name to [file mtime,no,] index
+
 (define (object-load-if-changed name i)
   (define (load+set)
     (load name)
@@ -47,12 +77,6 @@
 		  #f)))
 	(else
 	 (load+set))))
-
-(define mod:compiled?
-   (make-parameter #f))
-
-(define (mod:name->path name)
-  (string-append name ".scm"))
 
 
 (define (F v)
@@ -68,13 +92,6 @@
 ;; (include "imperative-load-tree.scm")
 (include "remote.scm")
 
-
-
-(define (compile-expr path expr)
-  ;; reuses global compile-options
-  (local ((c#expand-source (lambda (_expr)
-			     expr)))
-	 (compile-file path compile-options)))
 
 
 ;; -----------------------
@@ -93,7 +110,7 @@
     ((s) ;; always source
      (i/load name))
     (else
-     (let ((sourcefile (mod:name->path name)))
+     (let ((sourcefile (modname->path name)))
        (let* ((sourceinf (file-info sourcefile))
 	      (evtl-compile+load
 	       (lambda (i)
@@ -130,9 +147,6 @@
 		;; no binary
 		(evtl-compile+load 1))))))))
 
-(define (file-mtime path)
-  (time->seconds (file-info-last-modification-time path)))
-
 ;; in the (for bootstrapping) manually included files, ignore require
 ;; forms
 (define-macro (require . args)
@@ -150,7 +164,7 @@
     lib.list-util-1
     lib.cj-source))
 
-(define (modname:file->depends+rcode name)
+(define (modname:depends+rcode name)
   (fold (lambda (form depends+rcode)
 	  (let ((depends (car depends+rcode))
 		(rcode (cdr depends+rcode)))
@@ -166,10 +180,10 @@
 		   (cons depends
 			 (cons form rcode))))))
 	(cons '() '())
-	(call-with-input-file (mod:name->path name) read-all-source)))
+	(call-with-input-file (modname->path name) read-all-source)))
 
-(define (modname:file->depends+code name)
-  (let* ((depends+rcode (modname:file->depends+rcode name))
+(define (modname:depends+code name)
+  (let* ((depends+rcode (modname:depends+rcode name))
 	 (depends (car depends+rcode))
 	 (exprs (reverse (cdr depends+rcode))))
     (cons depends
@@ -181,7 +195,7 @@
 
 ;; XXX inefficient, cache somehow
 (define (modname:depends name)
-  (car (modname:file->depends+code name)))
+  (car (modname:depends+code name)))
 
 
 ;; STATI:
@@ -217,14 +231,6 @@
 	     (eq? (source-code (car stx*)) 'require))
 	 (cdr stx*))))
 
-(define (mod->mod-path sym)
-  (list->string
-   (map (lambda (c)
-	  (if (char=? c #\.)
-	      #\/
-	      c))
-	(string->list
-	 (symbol->string sym)))))
 
 
 ;;; mod-load
@@ -266,7 +272,7 @@
 		   i/load
 		   ;;ç c:
 		   i/load)
-	       (mod->mod-path sym))
+	       (modsym->modname sym))
 	      (table-set! mod-loaded sym 'loaded))
 	    (lambda ()
 	      (if (eq? (table-ref mod-loaded sym #f) 'loading)
