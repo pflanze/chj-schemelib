@@ -23,8 +23,12 @@
   sym
   maybe-from)
 
-(define (mod-name mod)
-  (modsym:modname (mod-sym mod)))
+;; forgot how to specify for these directly?
+(define mod:sym mod-sym)
+(define mod:maybe-from mod-maybe-from)
+
+(define (mod:name mod)
+  (modsym:modname (mod:sym mod)))
 
 
 (define (modname:path name)
@@ -208,7 +212,7 @@
 
 (define (mod:maybe-load mod)
   ;; returns true if mod was [re]loaded
-  (let* ((d (modname:depends (mod-name mod)))
+  (let* ((d (modname:depends (mod:name mod)))
 	 (dep-changed? (fold (lambda (mod dep-changed?)
 			       (or (mod:maybe-load mod)
 				   dep-changed?))
