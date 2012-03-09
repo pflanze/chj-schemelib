@@ -18,6 +18,7 @@
   name
   maybe-from)
 
+(include "lib.scm")
 
 ;; possibly-compile and load
 
@@ -32,13 +33,6 @@
 ;; system from source, neither freshly compiled. strange. Only time
 ;; this happened was with Serialization-Deserialization.scm
 
-(define-macro (compile-time-define-if-not-defined name expr)
-  (with-exception-catcher
-   (lambda (e)
-     (eval `(define ,name ,expr)))
-   (lambda ()
-     (eval name) ;; if it doesn't exist, will define it
-     '(begin))))
 (compile-time-define-if-not-defined objects-loaded (make-table)) ;; name to [file mtime,no,] index
 (define (object-load-if-changed name i)
   (define (load+set)
@@ -75,7 +69,6 @@
 (include "remote.scm")
 
 
-(include "local.scm")
 
 (define (compile-expr path expr)
   ;; reuses global compile-options

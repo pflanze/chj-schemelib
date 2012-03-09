@@ -1,3 +1,13 @@
+
+(define-macro (compile-time-define-if-not-defined name expr)
+  (with-exception-catcher
+   (lambda (e)
+     (eval `(define ,name ,expr)))
+   (lambda ()
+     (eval name) ;; if it doesn't exist, will define it
+     '(begin))))
+
+
 (define-macro (local var+exprs . body)
   (let* ((var->kept_ (map (lambda (var+expr)
 			    (cons (car var+expr)
