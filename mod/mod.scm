@@ -5,6 +5,15 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
+
+;; Data types:
+
+;; sym:   a symbol with dots for the namespace hierarchy:  lib.match
+;; name:  a string with slash instead of the dots:  "lib/match"
+;; mod:   module possibly including source code where it 'comes from':
+;;                  (lib.match . #(source1 .....))
+
+
 ;; possibly-compile and load
 
 ;; BUGS:
@@ -170,6 +179,22 @@
 	  ;; save the deep
 	  (cj-sourcify-deep (cons 'begin exprs)
 			    (car exprs)))))
+
+
+;; XXX inefficient, cache somehow
+(define (mod:depends name)
+  (map car (car (mod:file->depends+code name))))
+
+
+;; STATI:
+;; - already loaded, no change  neither in the file nor its dependencies
+;; - already loaded, no change  except some dependencies changed -> reloadorcompile
+;; - already loaded, file changed -> reloadorcompile
+;; - not loaded: obj file matches source file -> process deps, then load obj file
+;; - not loaded: obj file doesn't match source file -> process deps, then loadorcompile
+
+
+
 
 
 (define (mod:form->maybe-requires-imports stx #!optional ignore-head?)

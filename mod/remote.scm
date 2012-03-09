@@ -131,6 +131,12 @@
      `(compile-expr ,path ,expr))
    values))
 
+(define dorem:load
+  (make-dorem-command
+   (lambda (path)
+     `(load ,path))
+   values))
+
 
 ;; === Internal ===
 
