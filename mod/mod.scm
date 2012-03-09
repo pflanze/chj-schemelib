@@ -175,8 +175,9 @@
 	    (cond ((mod:form->maybe-requires-imports form)
 		   => (lambda (imports)
 			(cons (map/tail (lambda (import)
-					  (cons (mod:require-import->mod import)
-						import))
+					  (make-mod
+					   (mod:require-import->mod import)
+					   import))
 					depends
 					imports)
 			      rcode)))
