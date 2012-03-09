@@ -114,8 +114,8 @@
 			     (cons obinf (- i 1))))))
 		=>
 		(lambda (obinf+i)
-		  (if (> (file-mtime sourceinf)
-			 (file-mtime (car obinf+i)))
+		  (if (>= (file-mtime sourceinf)
+			  (file-mtime (car obinf+i)))
 		      (evtl-compile+load (cdr obinf+i))
 		      ;; assuming macros haven't changed
 		      (object-load-if-changed name (cdr obinf+i)))))
