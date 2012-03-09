@@ -13,6 +13,11 @@
 ;; mod:   module possibly including source code where it 'comes from':
 ;;                  (lib.match . #(source1 .....))
 
+(define-type mod
+  id: 81947a55-3550-455d-951e-59b1195596fa
+  name
+  maybe-from)
+
 
 ;; possibly-compile and load
 
@@ -152,7 +157,7 @@
     lib.list-util-1
     lib.cj-source))
 
-(define (mod:file->depends+rcode name)
+(define (modname:file->depends+rcode name)
   (fold (lambda (form depends+rcode)
 	  (let ((depends (car depends+rcode))
 		(rcode (cdr depends+rcode)))
@@ -170,8 +175,8 @@
 	(cons '() '())
 	(call-with-input-file (mod:name->path name) read-all-source)))
 
-(define (mod:file->depends+code name)
-  (let* ((depends+rcode (mod:file->depends+rcode name))
+(define (modname:file->depends+code name)
+  (let* ((depends+rcode (modname:file->depends+rcode name))
 	 (depends (car depends+rcode))
 	 (exprs (reverse (cdr depends+rcode))))
     (cons depends
@@ -182,8 +187,8 @@
 
 
 ;; XXX inefficient, cache somehow
-(define (mod:depends name)
-  (map car (car (mod:file->depends+code name))))
+(define (modname:depends name)
+  (car (modname:file->depends+code name)))
 
 
 ;; STATI:
@@ -194,6 +199,21 @@
 ;; - not loaded: obj file doesn't match source file -> process deps, then loadorcompile
 
 
+(define (mod:maybe-load mod)
+  ;; returns true if mod was [re]loaded
+  (let* ((d (modname:depends (mod-name mod)))
+	 (dep-changed? (fold (lambda (mod dep-changed?)
+			       (or (mod:maybe-load mod)
+				   dep-changed?))
+			     #f
+			     d)))
+    (if (or (not (mod:loaded? mod))
+	    (mod:changed? mod)
+	    dep-changed?)
+	(mod:load mod))))
+
+(define (maybe-load name)
+  (mod:maybe-load (make-mod name #f)))
 
 
 
