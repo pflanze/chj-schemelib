@@ -168,6 +168,101 @@
     lib.list-util-1
     lib.cj-source))
 
+
+
+;; STATI:
+;; - already loaded, no change  neither in the file nor its dependencies
+;; - already loaded, no change  except some dependencies changed -> reloadorcompile
+;; - already loaded, file changed -> reloadorcompile
+;; - not loaded: obj file matches source file -> process deps, then load obj file
+;; - not loaded: obj file doesn't match source file -> process deps, then loadorcompile
+
+
+;; 'cload' means, get the current code into the address space of the
+;; process, and if necessary first compile it.
+
+(define (mod.maybe-cload mod)
+  ;; returns true if mod was [re]loaded
+  (let* ((dep-changed? (fold (lambda (mod dep-changed?)
+			       (or (mod.maybe-cload mod)
+				   dep-changed?))
+			     #f
+			     (modname.depends (mod.name mod)))))
+    (if (or (not (mod.loaded? mod))
+	    (mod.changed? mod)
+	    dep-changed?)
+	(mod.cload mod))))
+
+(define (modsym.maybe-load sym)
+  (mod.maybe-load (make-mod sym #f)))
+
+(define (mod.cload mod)
+  (if (mod.want-compilation? mod)
+      (cond ((mod.maybe-last-objectfile mod)
+	     =>
+	     (lambda (objectfile)
+	       (if (>= (file-mtime (mod.sourcefile mod)
+				   (file-mtime objectfile)))
+		   (load (mod.compile mod))
+		   ;;çXX hm schon gecheckt oben ob neuer bei maybe-cload.halb.
+		   (load objectfile))))
+	    (else
+	     (load (mod.compile mod))))
+      (load (mod.sourcefile mod))))
+
+
+
+;;; mod-load
+;; load interpreted if in list of to-be interpreted modules, otherwise
+;; compiled, and do it only once per reload request (see |R| below)
+
+(define mod-loaded #f) ;; sym -> statically|loading|loaded
+
+(define (init-mod-loaded!)
+  (set! mod-loaded (make-table test: eq?))
+  (for-each (lambda (sym)
+	      (table-set! mod-loaded sym 'statically))
+	    mod:statically-loaded))
+
+(init-mod-loaded!)
+
+(define (mod-loaded? sym stx)
+  (cond ((table-ref mod-loaded sym #f)
+	 => (lambda (v)
+	      (case v
+		((loaded)
+		 #t)
+		((loading)
+		 (source-error stx "circular dependency on" sym)))))
+	(else
+	 #f)))
+
+;;çç OLD:
+(define (mod-load sym stx)
+  (if (not (mod-loaded? sym stx))
+      (begin
+	(println "- loading " sym)
+	(dynamic-wind
+	    ;;ç sollte ins c/load usw moved werden !  wenn jene user accsblrg
+	    (lambda ()
+	      ;; set to true value already, to avoid cycles during loading
+	      (table-set! mod-loaded sym 'loading))
+	    (lambda ()
+	      ((if (memq sym interpreted-modules)
+		   i/load
+		   ;;ç c:
+		   i/load)
+	       (modsym.modname sym))
+	      (table-set! mod-loaded sym 'loaded))
+	    (lambda ()
+	      (if (eq? (table-ref mod-loaded sym #f) 'loading)
+		  (table-set! mod-loaded sym)
+		  ;; or set as 'error ? But intention is to let user
+		  ;; retry from repl.
+		  ))))))
+
+;; --- file parsing -----
+
 (define (modname.depends+rcode name)
   (fold (lambda (form depends+rcode)
 	  (let ((depends (car depends+rcode))
@@ -203,32 +298,6 @@
   (car (modname.depends+code name)))
 
 
-;; STATI:
-;; - already loaded, no change  neither in the file nor its dependencies
-;; - already loaded, no change  except some dependencies changed -> reloadorcompile
-;; - already loaded, file changed -> reloadorcompile
-;; - not loaded: obj file matches source file -> process deps, then load obj file
-;; - not loaded: obj file doesn't match source file -> process deps, then loadorcompile
-
-
-(define (mod.maybe-load mod)
-  ;; returns true if mod was [re]loaded
-  (let* ((d (modname.depends (mod.name mod)))
-	 (dep-changed? (fold (lambda (mod dep-changed?)
-			       (or (mod.maybe-load mod)
-				   dep-changed?))
-			     #f
-			     d)))
-    (if (or (not (mod.loaded? mod))
-	    (mod.changed? mod)
-	    dep-changed?)
-	(mod.load mod))))
-
-(define (modsym.maybe-load sym)
-  (mod.maybe-load (make-mod sym #f)))
-
-
-
 (define (mod:form->maybe-requires-imports stx #!optional ignore-head?)
   (let* ((stx* (source-code stx)))
     (and (pair? stx*)
@@ -236,55 +305,6 @@
 	     (eq? (source-code (car stx*)) 'require))
 	 (cdr stx*))))
 
-
-
-;;; mod-load
-;; load interpreted if in list of to-be interpreted modules, otherwise
-;; compiled, and do it only once per reload request (see |R| below)
-
-(define mod-loaded #f) ;; sym -> statically|loading|loaded
-
-(define (init-mod-loaded!)
-  (set! mod-loaded (make-table test: eq?))
-  (for-each (lambda (sym)
-	      (table-set! mod-loaded sym 'statically))
-	    mod:statically-loaded))
-
-(init-mod-loaded!)
-
-(define (mod-loaded? sym stx)
-  (cond ((table-ref mod-loaded sym #f)
-	 => (lambda (v)
-	      (case v
-		((loaded)
-		 #t)
-		((loading)
-		 (source-error stx "circular dependency on" sym)))))
-	(else
-	 #f)))
-
-(define (mod-load sym stx)
-  (if (not (mod-loaded? sym stx))
-      (begin
-	(println "- loading " sym)
-	(dynamic-wind
-	    ;;ç sollte ins c/load usw moved werden !  wenn jene user accsblrg
-	    (lambda ()
-	      ;; set to true value already, to avoid cycles during loading
-	      (table-set! mod-loaded sym 'loading))
-	    (lambda ()
-	      ((if (memq sym interpreted-modules)
-		   i/load
-		   ;;ç c:
-		   i/load)
-	       (modsym.modname sym))
-	      (table-set! mod-loaded sym 'loaded))
-	    (lambda ()
-	      (if (eq? (table-ref mod-loaded sym #f) 'loading)
-		  (table-set! mod-loaded sym)
-		  ;; or set as 'error ? But intention is to let user
-		  ;; retry from repl.
-		  ))))))
 
 (define (mod:require-import->mod import)
   (let* ((import* (source-code import))
@@ -315,7 +335,7 @@
    stx))
 
 
-;;; ~'main' -
+;; --- ~'main' -----
 
 (include "usersyntax.scm")
 
