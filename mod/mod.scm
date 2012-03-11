@@ -193,8 +193,11 @@
 	    dep-changed?)
 	(mod.cload mod))))
 
-(define (modsym.maybe-load sym)
-  (mod.maybe-load (make-mod sym #f)))
+(define (modsym.maybe-cload sym)
+  (mod.maybe-cload (make-mod sym #f)))
+
+(define (mod.want-compilation? mod)
+  (not (symbol-memq (mod.sym mod) interpreted-modules)))
 
 (define (mod.cload mod)
   (if (mod.want-compilation? mod)
@@ -226,16 +229,18 @@
 
 (init-mod-loaded!)
 
-(define (mod-loaded? sym stx)
-  (cond ((table-ref mod-loaded sym #f)
-	 => (lambda (v)
-	      (case v
-		((loaded)
-		 #t)
-		((loading)
-		 (source-error stx "circular dependency on" sym)))))
-	(else
-	 #f)))
+(define (mod.loaded? mod)
+  (let ((sym (mod.sym mod)))
+    (cond ((table-ref mod-loaded sym #f)
+	   => (lambda (v)
+		(case v
+		  ((loaded)
+		   #t)
+		  ((loading)
+		   (source-error (mod.maybe-from mod)
+				 "circular dependency on" sym)))))
+	  (else
+	   #f))))
 
 ;;çç OLD:
 (define (mod-load sym stx)
@@ -248,7 +253,7 @@
 	      ;; set to true value already, to avoid cycles during loading
 	      (table-set! mod-loaded sym 'loading))
 	    (lambda ()
-	      ((if (memq sym interpreted-modules)
+	      ((if ç
 		   i/load
 		   ;;ç c:
 		   i/load)

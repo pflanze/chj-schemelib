@@ -36,3 +36,27 @@
 			 ;; simply drop value of var (and recalculate from expr)?
 			 (set! ,var ,(var->kept var))))
 		    var+exprs))))))
+
+(define (symbol-memq sym lis)
+  (if (symbol? sym)
+      (let lp ((lis lis))
+	(if (null? lis)
+	    #f
+	    (let ((a (car lis)))
+	      (if (symbol? a)
+		  (if (eq? a sym)
+		      lis
+		      (lp (cdr lis)))
+		  (error "symbol-memq: lis contains non-symbol: " a)))))
+      (error "symbol-memq: not a symbol:" sym)))
+
+;; > (symbol-memq 'foo '())
+;; #f
+;; > (symbol-memq 'foo '(foo))
+;; (foo)
+;; > (symbol-memq 'bar '(foo 'bar))
+;; *** ERROR IN lp, "../lib/mod/mod.scm"@209.5 -- symbol-memq: lis contains non-symbol:  'bar
+;; > (symbol-memq ''bar '(foo 'bar))
+;; *** ERROR IN symbol-memq, "../lib/mod/mod.scm"@210.7 -- symbol-memq: not a symbol: 'bar
+;; > (symbol-memq 'barr '(foo bar))
+;; #f
