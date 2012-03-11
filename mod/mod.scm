@@ -100,6 +100,17 @@
 
 ;; -----------------------
 
+
+(define (mod.maybe-last-objectfile mod)
+  (let ((name (mod.name mod)))
+    (let lp ((i 1)
+	     (prev-p #f))
+      (let ((p (string-append name ".o"
+			      (number->string i))))
+	(if (file-exists? p)
+	    (lp (+ i 1) p)
+	    prev-p)))))
+
 (define (i/load name)
   (let ((depends+code (mod.depends+code name)))
     (for-each (lambda (depend)
@@ -131,15 +142,7 @@
 		    (object-load-if-changed name i))
 		   (else
 		    (error "invalid compile-mode value:" compile-mode))))))
-	 (cond ((let lp ((i 1)
-			 (obinf #f))
-		  (let ((obp (string-append name ".o"
-					    (number->string i))))
-		    (if (file-exists? obp)
-			(lp (+ i 1)
-			    (file-info obp))
-			(and obinf
-			     (cons obinf (- i 1))))))
+	 (cond (ç mod.maybe-last-objectfile well +i
 		=>
 		(lambda (obinf+i)
 		  (if (>= (file-mtime sourceinf)
@@ -193,9 +196,6 @@
 	    dep-changed?)
 	(mod.cload mod))))
 
-(define (modsym.maybe-cload sym)
-  (mod.maybe-cload (make-mod sym #f)))
-
 (define (mod.want-compilation? mod)
   (not (symbol-memq (mod.sym mod) interpreted-modules)))
 
@@ -206,8 +206,8 @@
       (cond ((mod.maybe-last-objectfile mod)
 	     =>
 	     (lambda (objectfile)
-	       (if (>= (file-mtime (mod.sourcefile mod)
-				   (file-mtime objectfile)))
+	       (if (>= (file-mtime (mod.sourcefile mod))
+		       (file-mtime objectfile))
 		   (load (mod.compile mod))
 		   ;;çXX hm schon gecheckt oben ob neuer bei maybe-cload.halb.
 		   (load objectfile))))
@@ -215,6 +215,9 @@
 	     (load (mod.compile mod))))
       (load (mod.sourcefile mod))))
 
+
+;; (define (modsym.maybe-cload sym)
+;;   (mod.maybe-cload (make-mod sym #f)))
 
 
 ;;; mod-load
