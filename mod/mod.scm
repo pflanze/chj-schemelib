@@ -199,8 +199,10 @@
 (define (mod.want-compilation? mod)
   (not (symbol-memq (mod.sym mod) interpreted-modules)))
 
+;; only call once it's decided that a module needs to be reloaded
+;; (incl. perhaps recompiled)
 (define (mod.cload mod)
-  (if (mod.want-compilation? mod)
+  (if (mod.wants-compilation? mod)
       (cond ((mod.maybe-last-objectfile mod)
 	     =>
 	     (lambda (objectfile)
