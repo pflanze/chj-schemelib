@@ -22,7 +22,7 @@ where that program is spending its time.
 This particular statistical profiler works by using Gambit-C's
 interrupt handler to identify where the code was interrupted.
 
-It generate an HTML version of the source code with colors added to
+It generates an HTML version of the source code with colors added to
 indicate how often the code was interrupted in particular places,
 giving an idea of where time is spent in the code.
 
