@@ -180,56 +180,14 @@
 ;; - not loaded: obj file matches source file -> process deps, then load obj file
 ;; - not loaded: obj file doesn't match source file -> process deps, then loadorcompile
 
-
-;; 'cload' means, get the current code into the address space of the
-;; process, and if necessary first compile it.
-
-(define (mod.maybe-cload mod)
-  ;; returns true if mod was [re]loaded
-  (let* ((dep-changed? (fold (lambda (mod dep-changed?)
-			       (or (mod.maybe-cload mod)
-				   dep-changed?))
-			     #f
-			     (modname.depends (mod.name mod)))))
-    (if (or (not (mod.loaded? mod))
-	    (mod.changed? mod)
-	    dep-changed?)
-	(mod.cload mod))))
-
-(define (mod.want-compilation? mod)
-  (not (symbol-memq (mod.sym mod) interpreted-modules)))
-
-;; only call once it's decided that a module needs to be reloaded
-;; (incl. perhaps recompiled)
-(define (mod.cload mod)
-  (if (mod.wants-compilation? mod)
-      (cond ((mod.maybe-last-objectfile mod)
-	     =>
-	     (lambda (objectfile)
-	       (if (>= (file-mtime (mod.sourcefile mod))
-		       (file-mtime objectfile))
-		   (load (mod.compile mod))
-		   ;;çXX hm schon gecheckt oben ob neuer bei maybe-cload.halb.
-		   (load objectfile))))
-	    (else
-	     (load (mod.compile mod))))
-      (load (mod.sourcefile mod))))
-
-
-;; (define (modsym.maybe-cload sym)
-;;   (mod.maybe-cload (make-mod sym #f)))
-
-
-;;; mod-load
-;; load interpreted if in list of to-be interpreted modules, otherwise
-;; compiled, and do it only once per reload request (see |R| below)
+;; --- load state ----
 
 (define mod-loaded #f) ;; sym -> statically|loading|loaded
 
 (define (init-mod-loaded!)
   (set! mod-loaded (make-table test: eq?))
   (for-each (lambda (sym)
-	      (table-set! mod-loaded sym 'statically))
+	      (table-set! mod-loaded sym (make-parameter 'statically)))
 	    mod:statically-loaded))
 
 (init-mod-loaded!)
@@ -238,14 +196,116 @@
   (let ((sym (mod.sym mod)))
     (cond ((table-ref mod-loaded sym #f)
 	   => (lambda (v)
-		(case v
-		  ((loaded)
+		(case (v)
+		  ((loaded statically)
 		   #t)
 		  ((loading)
 		   (source-error (mod.maybe-from mod)
-				 "circular dependency on" sym)))))
+				 "circular dependency on" sym))
+		  ((#f)
+		   ;; left-over parameter object
+		   #f)
+		  (else
+		   (error "bug")))))
 	  (else
 	   #f))))
+
+(define (mod.loaded mod)
+  ;; always returns parameter object, creating it as a side effect if
+  ;; not already existing
+  (let ((sym (mod.sym mod)))
+    (or (table-ref mod-loaded sym #f)
+	(let ((p (make-parameter #f)))
+	  (table-set! mod-loaded sym p)
+	  p))))
+
+(define (call-with-mod-loading mod thunk)
+  (parameterize (((mod.loaded mod) 'loading))
+		(thunk)))
+
+
+;; --- loading & compilation -----
+
+;; 'cload' means, get the current code into the address space of the
+;; process, and if necessary first compile it.
+
+(define (mod.maybe-cload/deps mod)
+  ;; returns true if mod was [re]loaded
+  (call-with-mod-loading
+   mod
+   (lambda ()
+     ;; returns a continuation to be called after exiting the
+     ;; 'loading' scope
+     (let* ((dep-changed? (fold (lambda (mod dep-changed?)
+				  (or (mod.maybe-cload/deps mod)
+				      dep-changed?))
+				#f
+				(modname.depends (mod.name mod)))))
+       (if (or (not (mod.loaded? mod))
+	       (mod.changed? mod)
+	       dep-changed?)
+	   (mod.cload mod))))))
+
+(define (mod.want-compilation? mod)
+  (not (symbol-memq (mod.sym mod) interpreted-modules)))
+
+;; only call once it's decided that a module needs to be reloaded
+;; (incl. perhaps recompiled)
+(define (mod.cload mod)
+  (fourmi-run cload-thread 'cload mod))
+
+
+;; To be run as singleton instance in a separate thread: Run 'load'
+;; and dispatch of compilation requests from a single thread only.
+(define cload-thread
+  (fourmi-server
+   (lambda (cmd)
+     (case cmd
+       ((cload)
+	(lambda (return mod)
+	  (let* ((load*
+		  ;; Careful: don't use this from directly within the
+		  ;; cload-thread itself
+		  (lambda (path)
+		    (fourmi-run cload-thread 'load path)))
+		 (compile-and-load
+		  (thunk
+		   (future
+		    (return (load* (mod.compile mod)))))))
+	    ;; 'business logic':
+	    (if (mod.wants-compilation? mod)
+		(cond ((mod.maybe-last-objectfile mod)
+		       => (lambda (objectfile)
+			    (if (>= (file-mtime (mod.sourcefile mod))
+				    (file-mtime objectfile))
+				;;çXX hm schon gecheckt oben ob neuer bei maybe-cload.halb.
+				(compile-and-load)
+				(return (load objectfile)))))
+		      (else
+		       (compile-and-load)))
+		(return (load (mod.sourcefile mod)))))))
+       ((load)
+	(lambda (return path)
+	  (return (load path))))
+       ((quit)
+	(lambda _
+	  (return 'OK)
+	  (quit)))
+       (else
+	(lambda _
+	  (error "invalid command:" cmd)))))))
+
+
+;; once it's decided that mod needs compilation, send compilation
+;; request to compilation dispatcher and wait for the result.
+(define (mod.compile mod)
+  )
+
+
+
+;; (define (modsym.maybe-cload sym)
+;;   (mod.maybe-cload/deps (make-mod sym #f)))
+
 
 ;;çç OLD:
 (define (mod-load sym stx)

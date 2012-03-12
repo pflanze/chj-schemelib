@@ -60,3 +60,60 @@
 ;; *** ERROR IN symbol-memq, "../lib/mod/mod.scm"@210.7 -- symbol-memq: not a symbol: 'bar
 ;; > (symbol-memq 'barr '(foo bar))
 ;; #f
+
+(define-macro (future expr)
+  `(thread-start!
+    (make-thread
+     (lambda ()
+       ,expr))))
+
+(define-macro (thunk . body)
+  `(lambda ()
+     ,@body))
+
+
+;; Simple thread messaging framework, in-process only.
+
+;; Strictly client-server: clients can only receive responses from
+;; servers.
+
+;; make a server:
+
+;; dispatch receives cmd (e.g. a symbol), and should return a
+;; procedure that will receive a return procedure and the arguments.
+
+(define (fourmi-server dispatch)
+  (thread-start!
+   (make-thread
+    (lambda ()
+      (call/cc
+       (lambda (quit)
+	 (let loop ()
+	   (let* ((msg (thread-receive))
+		  (id (vector-ref msg 0))
+		  (cmd (vector-ref msg 1))
+		  (return-thread (vector-ref msg 2))
+		  (args (vector-ref msg 3)))
+	     (apply
+	      (dispatch cmd)
+	      ;; the return procedure:
+	      (lambda (v)
+		(thread-send return-thread
+			     (cons id v)))
+	      args))
+	   (loop))))))))
+
+;; call server from clients:
+
+(define (fourmi-run th cmd . args)
+  (let ((id (box 'id)))
+    (thread-send th
+		 (vector id
+			 cmd
+			 (current-thread)
+			 args))
+    (let ((res (thread-receive)))
+      (if (eq? (car res) id)
+	  (cdr res)
+	  (error "got something else than expected response:" res)))))
+
