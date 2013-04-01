@@ -75,6 +75,7 @@
 
 
 (compile-time
+ (define-macro (TEST . args) `(begin));; why do I have to (re?)add these? did I clean that up and now readding I guess
 
  (define TEST:outports (make-table))
  ;; to suppress double outputs:

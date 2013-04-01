@@ -6,11 +6,14 @@
 ;;;    (at your option) any later version.
 
 
-(require)
+;;(require)
 
 
 (define (vector-map-1 fn vec)
   ;;(list->vector (map fn (vector->list vec)))
+  ;;COPY
+  (define (inc x) (+ x 1))
+  ;; /COPY
   (let* ((len (vector-length vec))
 	 (res (make-vector len)))
     (let lp ((i 0))

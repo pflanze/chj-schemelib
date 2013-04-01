@@ -6,10 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.cj-env-1) ;; inc dec
-	 (lib.vector-util-1)
-	 (lib.list-util-1) ;; improper-map
-	 )
+;; (require (lib.cj-env-1) ;; inc dec
+;; 	 (lib.vector-util-1)
+;; 	 (lib.list-util-1) ;; improper-map
+;; 	 )
 
 
 (define (source? o)
@@ -136,6 +136,18 @@
    src))
 
 (define (cj-sourcify-deep s master)
+    ;; need a copy of improper-map (~bootstrapping issue):
+    (define (improper-map fn l #!optional (tail '()))
+      (let rec ((l l))
+	(cond ((null? l)
+	       tail)
+	      ((pair? l)
+	       (cons (fn (car l))
+		     (rec (cdr l))))
+	      (else
+	       (fn l)))))
+    ;; /copy
+    (##include "vector-util-1.scm")
   (let ((master-loc (source-location master)))
     (let rec ((s s))
       ((lambda (process)
@@ -169,6 +181,7 @@
       s))
 
 (define (cj-desourcify x)
+    (##include "vector-util-1.scm")
   (let ((x (if (##source? x) (##source-code x) x)))
     (cond ((pair? x)
 	   (cons (cj-desourcify (car x))
