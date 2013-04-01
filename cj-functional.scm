@@ -49,6 +49,25 @@
  ;; test shortcutting?
  )
 
+;; name ok?
+(define (both f0 f1)
+  (lambda x
+    (and (apply f0 x)
+	 (apply f1 x))))
+
+(TEST
+ > ((both even? odd?) 1)
+ #f
+ > ((both even? odd?) 2)
+ #f
+ > ((both even? negative?) 2)
+ #f
+ > ((both even? negative?) -2)
+ #t
+ > ((both even? negative?) -1)
+ #f
+ )
+
 ;; n-ary:
 
 (define (right-associate fn lis error)
