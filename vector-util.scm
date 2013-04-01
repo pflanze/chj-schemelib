@@ -81,3 +81,9 @@
  #(1 #(2 #(3 null)))
  )
 
+(define (vector-for-each proc vec)
+  (vector-fold (lambda (v _)
+		 (proc v))
+	       #f
+	       vec))
+
