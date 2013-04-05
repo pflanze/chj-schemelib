@@ -261,3 +261,7 @@
  > (foo-a-update # inc)
  #(foo 2 4)
  )
+
+(define-macro* (define-struct* name . defs)
+  `(define-struct ,name constructor-name: ,name ,@defs))
+
