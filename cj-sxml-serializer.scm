@@ -2,40 +2,17 @@
 ;; Published unter the same terms as Gambit: dual LGPL
 ;; version 2.1 or Apache version 2.0 license
 
-(##namespace (""))
-
 
 ;; ** NOTE: this version just includes all dependencies so that it
 ;; does not require chjmodule **.  It's not such a good idea modifying
 ;; code here. But if you need to do anyway, still feed the changes
 ;; upstream to Christian please.
 
-(declare
- (block)
- (standard-bindings)
- (extended-bindings)
-)
 
-(define-macro (thunk first . rest)
-  `(lambda() ,first ,@rest))
 (define-macro (& first . rest)
   `(lambda() ,first ,@rest))
 
 (define unbound #!unbound)
-
-(define (warn . l) ;; made it so that it acts the same as gambit's error
-  (if (##pair? l)
-      (let ((p (##current-error-port)))
-        (##display (##car l) p)
-        (let loop ((l (##cdr l)))
-          (if (pair? l)
-              (begin
-                (##write-char #\space p)
-                (##write (##car l) p)
-                (loop (##cdr l)))
-              (##newline p))))
-      (error "cj-env#warn called without arguments")))
-
 
 (define (with-sxml-element/else elt cont-name-attrs-body
 				#!optional
@@ -124,19 +101,6 @@
       (cons nam (cons newattrs body)))))
 
 
-(define (stream-for-each proc strm)
-  (let loop ((strm strm))
-    (let ((strm (force strm)))
-      (if (##pair? strm)
-	  (begin (proc (##car strm))
-		 (loop (##cdr strm)))
-	  (if (##not (##null? strm))
-	      (error "stream-for-each: improper stream:" strm))))))
-
-(define-macro (TEST . body)
-  (void))
-
-
 (define (last-pair lis)
   ;;(check-arg pair? lis last-pair)
   (let lp ((lis lis))
@@ -187,7 +151,6 @@
 (define @car ##car)
 (define @cdr ##cdr)
 (define @cddr ##cddr)
-(define promise? ##promise?) ;; promise? does not exist
 
 (define (@attrlist>> attrlist port xml?)
   (cond ((pair? attrlist)
