@@ -12,7 +12,7 @@
 (define-macro (& first . rest)
   `(lambda() ,first ,@rest))
 
-(define unbound #!unbound)
+(define unbound 'unbound)
 
 (define (with-sxml-element/else elt cont-name-attrs-body
 				#!optional
@@ -482,6 +482,13 @@
 
 (define (sxml>>xml item #!optional (port (current-output-port)))
   ((make-sxml>> sxml>>xml* #t) item port))
+
+
+(define (sxml>>xml-file item path)
+  (call-with-output-file path (cut sxml>>xml item <>)))
+
+(define (sxml>>xhtml-file item path)
+  (call-with-output-file path (cut sxml>>xhtml item <>)))
 
 
 (define (pretty-filer serialize)
