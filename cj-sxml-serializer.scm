@@ -614,3 +614,6 @@
 	    (set! pos 0))
 	(vector-ref vec pos))))
 
+
+(define nbsp #\xa0)
+
