@@ -490,6 +490,9 @@
 (define (sxml>>xhtml-file item path)
   (call-with-output-file path (cut sxml>>xhtml item <>)))
 
+(define (sxml>>html-file item path)
+  (call-with-output-file path (cut sxml>>html item <>)))
+
 
 (define (pretty-filer serialize)
   (lambda (item outpath #!optional noblanks)
