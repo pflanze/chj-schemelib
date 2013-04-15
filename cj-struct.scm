@@ -265,3 +265,9 @@
 (define-macro* (define-struct* name . defs)
   `(define-struct ,name constructor-name: ,name ,@defs))
 
+(define-macro* (define-struct. name . defs)
+  `(define-struct ,name
+     constructor-name: ,name
+     separator: "."
+     ,@defs))
+
