@@ -262,12 +262,19 @@
  #(foo 2 4)
  )
 
+;; omit the |make-| prefix for the constructor name
 (define-macro* (define-struct* name . defs)
   `(define-struct ,name constructor-name: ,name ,@defs))
 
+
+;; omit the |make-| prefix for the constructor name; use "." as
+;; separator.
 (define-macro* (define-struct. name . defs)
   `(define-struct ,name
-     constructor-name: ,name
+     ;; don't override constructor-name if provided by user
+     ,@(if (memq constructor-name: (map source-code defs))
+	   `()
+	   `(constructor-name: ,name))
      separator: "."
      ,@defs))
 
