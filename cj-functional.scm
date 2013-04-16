@@ -206,3 +206,8 @@
  > (or/ 'false 'false 'false)
  #f
  )
+
+(define (list-of pred)
+  (lambda (x)
+    (and (list? x)
+	 (every pred x))))
