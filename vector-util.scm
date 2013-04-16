@@ -87,3 +87,22 @@
 	       #f
 	       vec))
 
+
+;; (define (vector-unfold end? fmap fnext start)
+;;   )
+;; has the problem of not knowing how many elements it will contain in advance.
+;; hence rather: vector-generate
+
+(define (vector-generate size fn/i)
+  (let ((res (make-vector size)))
+    (let lp ((i 0))
+      (if (< i size)
+	  (begin
+	    (vector-set! res i (fn/i i))
+	    (lp (inc i)))))
+    res))
+
+(TEST
+ > (vector-generate 10 square)
+ #(0 1 4 9 16 25 36 49 64 81)
+ )
