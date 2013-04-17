@@ -26,18 +26,20 @@
  )
 
 (define-macro* (define-symbol-replace-_-with nam cvar)
-  ;; XX hm dangerously handling cvar: assumes that cvar isn't shadowed
-  ;; between use of define-symbol-replace-_-with and its effected
-  ;; definition.
-  (with-gensym V
-	       `(define-macro (,nam ,V)
-		  ,(list 'quasiquote
-			 `((symbol-replace-_-with/ ,(list 'unquote cvar))
-			   ',(list 'unquote V))))))
+  (with-gensyms
+   (CVAR V)
+   `(begin
+      (define ,CVAR ,cvar)
+      (define-macro (,nam ,V)
+	,(list 'quasiquote
+	       `((symbol-replace-_-with/ ,(list 'unquote CVAR))
+		 ',(list 'unquote V)))))))
 
 (TEST
- > (define-symbol-replace-_-with R foo)
- > (define foo #\x)
- > (R blu_)
+ > ((lambda (foo)
+      (define-symbol-replace-_-with R foo)
+      (define somehtingwhateverelse #f)
+      (R blu_))
+    #\x)
  blux
  )
