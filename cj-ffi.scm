@@ -32,13 +32,13 @@
       (define ,CVAR ,cvar)
       (define-macro (,nam ,V)
 	,(list 'quasiquote
-	       `((symbol-replace-_-with/ ,(list 'unquote CVAR))
+	       `((symbol-replace-_-with/ ,CVAR)
 		 ',(list 'unquote V)))))))
 
 (TEST
  > ((lambda (foo)
       (define-symbol-replace-_-with R foo)
-      (define somehtingwhateverelse #f)
+      (define somethingwhateverelse #f)
       (R blu_))
     #\x)
  blux
