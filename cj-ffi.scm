@@ -43,3 +43,8 @@
     #\x)
  blux
  )
+
+
+(define symbol->string*
+  (compose symbol->string source-code))
+
