@@ -25,7 +25,7 @@
  Mc-bar
  )
 
-(define-macro* (define-symbol-replace-_-with nam cvar)
+(define-macro* (define-macro-symbol-replace-_-with nam cvar)
   (with-gensyms
    (CVAR V)
    `(begin
@@ -37,7 +37,7 @@
 
 (TEST
  > ((lambda (foo)
-      (define-symbol-replace-_-with R foo)
+      (define-macro-symbol-replace-_-with R foo)
       (define somethingwhateverelse #f)
       (R blu_))
     #\x)
