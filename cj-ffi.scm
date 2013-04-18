@@ -48,3 +48,6 @@
 (define symbol->string*
   (compose symbol->string source-code))
 
+(define string*
+  (compose string source-code))
+
