@@ -75,3 +75,34 @@
  > (perl-quote "hel\\o")
  "'hel\\\\o'"
  )
+
+
+;; (define (scheme-quote str)
+;;   ;; unlike |write| or |object->string|, this doesn't turn non-ascii
+;;   ;; characters into unicode escape sequences.
+;;   )
+
+;; unlike |write|, this doesn't turn non-ascii characters into unicode
+;; escape sequences.
+(define (write-string v p)
+  (let ((len (string-length v)))
+    (display "\"" p)
+    (let lp ((i 0))
+      (if (< i len)
+	  (let ((c (string-ref v i)))
+	    (case c
+	      ((#\" #\\)
+	       (display #\\ p)
+	       (display c p))
+	      ((#\newline)
+	       (display "\n" p))
+	      ((#\return)
+	       (display "\r" p))
+	      ((#\tab)
+	       (display "\t" p))
+	      (else
+	       ;; XX well, probably not even faster than doing a list
+	       ;; based scheme-quote huh. locking and all. Stupid.
+	       (display c p)))
+	    (lp (inc i)))))
+    (display "\"" p)))
