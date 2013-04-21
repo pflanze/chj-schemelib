@@ -53,6 +53,10 @@
   (_-alist-ref number? =
 	       cj-alist:error-not-found))
 
+(define string-alist-ref
+  (_-alist-ref string? string=?
+	       cj-alist:error-not-found))
+
 (define eq-alist-ref
   (_-alist-ref any-type? eq?
 	       cj-alist:error-not-found))
@@ -63,6 +67,10 @@
 
 (define number-alist-maybe-ref
   (_-alist-ref number? =
+	       false/2))
+
+(define string-alist-maybe-ref
+  (_-alist-ref string? string=?
 	       false/2))
 
 (define eq-alist-maybe-ref
