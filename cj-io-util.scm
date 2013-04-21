@@ -2,13 +2,18 @@
   (write obj)
   (newline))
 
-(define (hostname)
-  (let* ((p (open-process (list path: "hostname"
-			       stdout-redirection: #t)))
-	 (output (read-line p)))
+
+(define (backtick cmd . args)
+  (let* ((p (open-process (list path: cmd
+				arguments: args
+				stdout-redirection: #t)))
+	 (output (read-line p #f)))
     (close-port p)
     (assert (zero? (process-status p)))
-    output))
+    (chomp output)))
+
+(define (hostname)
+  (backtick "hostname"))
 
 ;; where should that be moved to?
 (define file-info->mtime
