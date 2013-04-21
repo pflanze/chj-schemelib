@@ -167,6 +167,11 @@
   #f)
 
 
+;; move to lib pure booleans?
+(define (just? v)
+  (and v #t))
+
+
 ;; n-ary "on"
 ;; for binary |on| see cj-env
 
@@ -211,3 +216,4 @@
   (lambda (x)
     (and (list? x)
 	 (every pred x))))
+

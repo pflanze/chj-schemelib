@@ -39,6 +39,12 @@
  "'he'\\''llo'"
  > (shell-quote "'")
  "''\\'''"
+ > (shell-quote "ab")
+ "'ab'"
+ > (shell-quote "a b")
+ "'a b'"
+ > (shell-quote "a 'b")
+ "'a '\\''b'"
  )
 
 (define (perl-quote str)

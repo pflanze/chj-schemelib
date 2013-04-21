@@ -436,3 +436,15 @@
  )
 
 
+
+(define (rxtake-while pred lis) ;; dies if it reaches end of lis; output reversed
+  (let lp ((res '())
+	   (lis lis))
+    (if (null? lis)
+	(error "reached end of lis before finding pred")
+	(let ((a (car lis)))
+	  (if (pred a)
+	      (lp (cons a res)
+		  (cdr lis))
+	      res)))))
+
