@@ -171,6 +171,14 @@
 (define (just? v)
   (and v #t))
 
+;; and to a lib for maybe handling?
+(define (_-maybe fn)
+  (lambda (v)
+    (and v
+	 (fn v))))
+
+
+
 
 ;; n-ary "on"
 ;; for binary |on| see cj-env

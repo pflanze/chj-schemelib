@@ -79,3 +79,27 @@
  "a\r"
  )
 
+;; ok?
+(define trim string-trim-right)
+
+(define trim-maybe (_-maybe trim))
+
+(define char-newline?
+  (cut char=? <> #\newline))
+
+(define trimlines
+  (compose* (cut strings-join <> "\n")
+	    (cut map trim <>)
+	    (cut string-split <> char-newline?)))
+
+(define trimlines-maybe (_-maybe trimlines))
+
+(TEST
+ > (trimlines " Hello \nWorld. \n")
+ " Hello\nWorld.\n"
+ > (trimlines " Hello \nWorld.\n")
+ " Hello\nWorld.\n"
+ > (trimlines " Hello \nWorld.\n ")
+ " Hello\nWorld.\n"
+ )
+
