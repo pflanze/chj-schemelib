@@ -30,3 +30,44 @@
   (compose time->seconds
 	   file-info-last-modification-time))
 
+
+
+;; -- for a different libary?  not full path lib but simple path manipul
+
+;; a basename that behaves like the shell util, not like
+;; name->basename+maybe-suffix . One-argument form only, though, for
+;; now.
+
+(define (file-basename path)
+  (last (string-split path #\/)))
+
+(TEST
+ > (file-basename "/foo/bar.scm")
+ "bar.scm"
+ > (file-basename "bar.scm")
+ "bar.scm"
+ > (file-basename "/foo/")
+ ""
+ )
+
+(define basename
+  (compose* file-basename
+	    list->string
+	    (cut list-trim-right <> (cut char=? <> #\/))
+	    string->list))
+
+(TEST
+ > (basename "/foo/bar.scm")
+ "bar.scm"
+ > (basename "bar.scm")
+ "bar.scm"
+ > (basename "/foo/")
+ "foo"
+ > (basename "\\foo\\")
+ "\\foo\\" ;; just like the shell util
+ > (basename "/foo/..")
+ ".."
+ > (basename "/foo/.")
+ "."
+ )
+
