@@ -10,7 +10,6 @@
 	 )
 
 
-(define (string-split str char)
-  (map list->string (list-split (string->list str) char)))
-
+(define (string-split str char-or-pred)
+  (map list->string (list-split (string->list str) char-or-pred)))
 
