@@ -103,3 +103,26 @@
  " Hello\nWorld.\n"
  )
 
+(define (nonempty? v)
+  (and v
+       (not (string-empty? (trim v)))))
+
+;; bad name? but:
+;; - maybe handling
+;; - string empty handling
+;; - but *also* trimming.
+;; Too much for web stuff? dunno
+
+(TEST
+ > (nonempty? #f)
+ #f
+ > (nonempty? "")
+ #f
+ > (nonempty? " ")
+ #f
+ > (nonempty? "\n")
+ #f
+ > (nonempty? "f\n")
+ #t
+ )
+
