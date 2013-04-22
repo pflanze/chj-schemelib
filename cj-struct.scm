@@ -13,7 +13,9 @@
 	 )
 
 
-(define-macro* (define-struct
+(define-macro* (define-struct_
+		 DEFINE ;; what definition forms to use
+		 ;; then the actual user-servicable parts:
 		 name*
 		 #!key
 		 ;; leaving away the star at those (because it'd be "uservisible")
@@ -140,7 +142,7 @@
 	       (,error-name v))))
        ,@(map (lambda (field i)
 		`(begin
-		   (define ,(safe-accessor-for-field field)
+		   (,DEFINE ,(safe-accessor-for-field field)
 		     (lambda (v)
 		       (if (,predicate-name v)
 			   (vector-ref v ,(add-offset i))
@@ -154,12 +156,12 @@
 		     (lambda (v)
 		       (vector-ref v ,(add-offset i))))
 		   ;; functional setter:
-		   (define ,(safe-setter-for-field field)
+		   (,DEFINE ,(safe-setter-for-field field)
 		     (lambda (v val)
 		       ;; use shared code
 		       (,genericsetter-name v ,(add-offset i) val)))
 		   ;; functional updater:
-		   (define ,(safe-updater-for-field field)
+		   (,DEFINE ,(safe-updater-for-field field)
 		     (lambda (v fn)
 		       ;; use shared code
 		       (,genericupdater-name v ,(add-offset i) fn)))))
@@ -224,6 +226,9 @@
        (define-macro* (,let-name vars+inp . body)
 	 `(,',let*-name (,vars+inp) ,@body)))))
 
+(define-macro* (define-struct . args)
+  `(define-struct_ define ,@args))
+
 (TEST
  > (define-struct foo a b )
  > (make-foo 10 11)
@@ -267,14 +272,5 @@
   `(define-struct ,name constructor-name: ,name ,@defs))
 
 
-;; omit the |make-| prefix for the constructor name; use "." as
-;; separator.
-(define-macro* (define-struct. name . defs)
-  `(define-struct ,name
-     ;; don't override constructor-name if provided by user
-     ,@(if (memq constructor-name: (map source-code defs))
-	   `()
-	   `(constructor-name: ,name))
-     separator: "."
-     ,@defs))
+;; see also |define-struct.| in dot-oo
 

@@ -74,3 +74,17 @@
  b
  )
 
+
+
+;; omit the |make-| prefix for the constructor name; use "." as
+;; separator, and use |define.| to define all methods so that they
+;; become part of generic super functions
+(define-macro* (define-struct. name . defs)
+  `(define-struct_ define. ,name
+     ;; don't override constructor-name if provided by user
+     ,@(if (memq constructor-name: (map source-code defs))
+	   `()
+	   `(constructor-name: ,name))
+     separator: "."
+     ,@defs))
+
