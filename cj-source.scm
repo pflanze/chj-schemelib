@@ -175,6 +175,12 @@
 		;; doesn't contain anything, so:
 		c)))))))
 
+
+(define (possibly-sourcify s master)
+  (if (source? master)
+      (sourcify s master)
+      s))
+
 (define (cj-possibly-sourcify-deep s master)
   (if (source? master)
       (cj-sourcify-deep s master)
