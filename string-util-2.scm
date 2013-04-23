@@ -126,3 +126,37 @@
  #t
  )
 
+
+(define (string-multiply str n)
+  (let* ((len (string-length str))
+	 (out (##make-string (* len n))))
+    (for..< (i 0 n)
+	    (for..< (j 0 len)
+		    (string-set! out
+				 (+ (* i len) j)
+				 (string-ref str j))))
+    out))
+
+(TEST
+ > (string-multiply "ab" 3)
+ "ababab"
+ )
+
+(define-typed (number->padded-string #(natural? width)
+				     #(natural0? x))
+  (let* ((s (number->string x))
+	 (len (string-length s)))
+    (string-append (string-multiply "0" (max 0 (- width len)))
+		   s)))
+
+(TEST
+ > (number->padded-string 3 7)
+ "007"
+ > (number->padded-string 3 713)
+ "713"
+ > (number->padded-string 3 7132)
+ "7132"
+ > (number->padded-string 3 0)
+ "000"
+ )
+
