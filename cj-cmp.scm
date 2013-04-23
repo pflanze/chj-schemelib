@@ -279,4 +279,15 @@
 (define (cmp-sort l cmp)
   (sort l (cmp->lt? cmp)))
 
+
+(define (cmp-not v)
+  (match-cmp v
+	     ((eq) 'eq)
+	     ((lt) 'gt)
+	     ((gt) 'lt)))
+
+(define (cmp-complement cmp)
+  (lambda (a b)
+    (cmp-not (cmp a b))))
+
 ;; / move?
