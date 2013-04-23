@@ -160,3 +160,44 @@
  "000"
  )
 
+
+(define (string-contains? str substr)
+  (let ((strlen (string-length str))
+	(sublen (string-length substr)))
+    (let lp ((stri 0))
+      (let sublp ((subi 0))
+	(if (< subi sublen)
+	    (let ((stri* (+ stri subi)))
+	      (if (< stri* strlen)
+		  (if (char=? (string-ref str stri*)
+			      (string-ref substr subi))
+		      (sublp (inc subi))
+		      (lp (inc stri)))
+		  #f))
+	    #t)))))
+
+(TEST
+ > (string-contains? "" "")
+ #t
+ > (string-contains? "foo" "")
+ #t
+ > (string-contains? "foo" "bar")
+ #f
+ > (string-contains? "foo" "far")
+ #f
+ > (string-contains? "foo" "fa")
+ #f
+ > (string-contains? "foo" "f")
+ #t
+ > (string-contains? "foo" "for")
+ #f
+ > (string-contains? "foo" "fo")
+ #t
+ > (string-contains? "foo" "foo")
+ #t
+ > (string-contains? "foo" "oo")
+ #t
+ > (string-contains? "foo" "oox")
+ #f
+ )
+
