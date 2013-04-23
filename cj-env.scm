@@ -277,3 +277,15 @@
  10
  )
 
+
+;; stop hand-rolling these 0..n-1 loops
+(define-macro* (for..< var-from-to . body)
+  (mcase var-from-to
+         (`(`var `from `to)
+          (with-gensym LP
+                       `(let ,LP ((,var ,from))
+                             (if (< ,var ,to)
+                                 (begin
+                                   ,@body
+                                   (,LP (inc ,var)))))))))
+
