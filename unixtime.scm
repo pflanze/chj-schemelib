@@ -257,3 +257,5 @@
  "Mon, 22 Apr 2013 21:50:42 -0400"
  )
 
+(define unixtime->rfc-2822 (compose tm->rfc-2822 localtime))
+
