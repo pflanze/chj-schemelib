@@ -376,27 +376,24 @@
 			       r))))))))))
     (if (pair? files)
 	;; first check if they are loaded
-	(let* ((loaded (list->table
-			(map (lambda (f)
-			       (cons f #t))
-			     TEST#loaded)))
+	(let* ((loaded* (list->table
+			 (map (lambda (f)
+				(cons f #t))
+			      TEST#loaded)))
 	       ;;^ loaded are normalized
-	       (unloaded (let rec ((files files))
-			   (if (null? files) '()
-			       (let ((file (test:path-normalize (car files))))
-				 ;;(^ heh I'm going to lenghts to
-				 ;;throw the loaded-check error in
-				 ;;tail position, then wrong paths
-				 ;;will throw exceptions from the
-				 ;;middle of the code anyway..)
-				 (if (table-ref loaded file #f)
-				     (rec (cdr files))
-				     (cons
-				      (car files) ;; original user input, not file
-				      (rec (cdr files)))))))))
-	  (if (null? unloaded)
-	      (for-each test-file files)
-	      (error "run-tests: these files are not loaded or don't contain TEST forms:" unloaded)))
+	       (loaded? (lambda (file)
+			  ;;(re test:path-normalize: heh I'm going to
+			  ;;lenghts to throw the loaded-check error in
+			  ;;tail position, then wrong paths will throw
+			  ;;exceptions from the middle of the code
+			  ;;anyway..)
+			  (table-ref loaded* (test:path-normalize file) #f)))
+	       (loaded (filter loaded? files))
+	       (not-loaded (filter (complement loaded?) files)))
+	  (if (pair? not-loaded)
+	      (warn "These files are not loaded or don't contain TEST forms:\n"
+		    not-loaded))
+	  (for-each test-file loaded))
 	;; otherwise run all loaded:
 	(for-each test-file (all-tests))))
   (print (list TEST:count-success " success(es), "
