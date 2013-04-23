@@ -448,3 +448,12 @@
 		  (cdr lis))
 	      res)))))
 
+
+
+(define (xone x #!optional (fail (lambda_ #f)))
+  (if (pair? x)
+      (if (null? (cdr x))
+	  (car x)
+	  (fail 'found-too-many))
+      (fail 'not-found)))
+

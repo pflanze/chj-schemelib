@@ -1,7 +1,3 @@
-(define (xone x)
-  (and (pair? x)
-       (null? (cdr x))
-       (car x)))
 
 (define (body x)
   (cdr x)) ;; ignoring attributes krck
