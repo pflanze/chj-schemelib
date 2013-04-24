@@ -103,6 +103,32 @@
  " Hello\nWorld.\n"
  )
 
+
+;; hm stupid, basically same thing. With (back to) full names, which
+;; is good, and trimming the end too, which may be good too.
+(define (string-trimlines-right str)
+  (strings-join (map string-trim-right
+		     (string-split (string-trim-right str)
+				   #\newline))
+		"\n"))
+
+(TEST
+ > (string-trimlines-right " ")
+ ""
+ > (string-trimlines-right "")
+ ""
+ > (string-trimlines-right "foo \nbar ")
+ "foo\nbar"
+ > (string-trimlines-right "foo \nbar \n \n\n")
+ "foo\nbar"
+ > (string-trimlines-right "foo \nbar \n \n\nbaz")
+ "foo\nbar\n\n\nbaz"
+ > (string-trimlines-right " foo \nbar \n \n\nbaz")
+ " foo\nbar\n\n\nbaz"
+ )
+
+
+
 (define (nonempty? v)
   (and v
        (not (string-empty? (trim v)))))
