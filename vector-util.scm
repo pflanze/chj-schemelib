@@ -106,3 +106,19 @@
  > (vector-generate 10 square)
  #(0 1 4 9 16 25 36 49 64 81)
  )
+
+
+;; (define (vector/list.for-each proc/i+V+L starti endi v l)
+;;   ;; (for..< (i starti endi)
+;;   ;; 	  )
+;;   (let lp ((i starti)
+;; 	   (l l))
+;;     (if (< i endi)
+;; 	(begin
+;; 	  (proc/V+L i
+;; 		    (vector-ref v i)
+;; 		    (car l))
+;; 	  (lp (inc i)
+;; 	      (cdr l))))))
+
+
