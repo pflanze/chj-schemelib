@@ -125,16 +125,22 @@
 ;; association vectors: vectors of some kind of tuple; access is the
 ;; analogon of a car of an alist (could be car, of course; but structs
 ;; more 'common'?)
-(define (maybe-avector-ref vec starti maybe-endi access equal? val)
+
+(define (if-avector-ref vec starti maybe-endi access equal? val
+			then else)
   (let ((endi (or maybe-endi (vector-length vec))))
     ;; can't use for..< here because of not having a 'return'.
     (let lp ((i starti))
       (if (< i endi)
 	  (let ((tupl (vector-ref vec i)))
 	    (if (equal? (access tupl) val)
-		tupl
+		(then tupl)
 		(lp (inc i))))
-	  #f))))
+	  (else/0)))))
+
+(define (maybe-avector-ref vec starti maybe-endi access equal? val)
+  (if-avector-ref vec starti maybe-endi access equal? val
+		  identity false/0))
 
 (TEST
  > (maybe-avector-ref '#(foo (a 1) (c 2) (b 10)) 1 #f car eq? 'c)
