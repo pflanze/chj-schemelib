@@ -29,3 +29,8 @@
  #(0 1 4 9 16)
  )
 
+
+;; move to where?
+(define (current-unixtime)
+  (inexact->exact (floor (time->seconds (current-time)))))
+
