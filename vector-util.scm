@@ -127,20 +127,21 @@
 ;; more 'common'?)
 
 (define (if-avector-ref vec starti maybe-endi access equal? val
-			then else)
+			then/i+tuple else/0)
   (let ((endi (or maybe-endi (vector-length vec))))
     ;; can't use for..< here because of not having a 'return'.
     (let lp ((i starti))
       (if (< i endi)
 	  (let ((tupl (vector-ref vec i)))
 	    (if (equal? (access tupl) val)
-		(then tupl)
+		(then/i+tuple i tupl)
 		(lp (inc i))))
 	  (else/0)))))
 
 (define (maybe-avector-ref vec starti maybe-endi access equal? val)
   (if-avector-ref vec starti maybe-endi access equal? val
-		  identity false/0))
+		  (lambda (i tuple)
+		    tuple) false/0))
 
 (TEST
  > (maybe-avector-ref '#(foo (a 1) (c 2) (b 10)) 1 #f car eq? 'c)
