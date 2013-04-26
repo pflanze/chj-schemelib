@@ -282,9 +282,9 @@
 	  (values str "")))))
 
 (TEST
- > (string-split-1 "ab  c d" char-whitespace?)
+ > (values->vector (string-split-1 "ab  c d" char-whitespace?))
  #("ab" "  c d")
- > (string-split-1 "foo?q=1" #\?)
+ > (values->vector (string-split-1 "foo?q=1" #\?))
  #("foo" "?q=1")
  > (values->vector (string-split-1 "foo?" #\?))
  #("foo" "?")
@@ -292,3 +292,34 @@
  #("foo" "")
  )
 
+(define string-reverse
+  ;;XX bah
+  (compose* list->string reverse string->list))
+
+;; dirname that gives empty string for root. yeah, remembering now
+(define (dirname* str)
+  ;;XX woah super efficiency and anything
+  (chain str
+	 (string->list)
+	 (list-trim-right (cut char=? <> #\/))
+	 (reverse)
+	 (list->string)
+	 (string-split-1 #\/)
+	 (snd)
+	 (string->list)
+	 (reverse)
+	 (list-trim-right (cut char=? <> #\/))
+	 (list->string)))
+
+(TEST
+ > (dirname* "/foo")
+ ""
+ > (dirname* "/foo/bar")
+ "/foo"
+ > (dirname* "/foo/bar/")
+ "/foo/bar" ;;  XXX for the web. not otherwise?
+ > (dirname* "//foo")
+ ""
+ > (dirname* "//foo//bar")
+ "//foo"
+ )
