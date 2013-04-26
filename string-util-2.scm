@@ -265,3 +265,30 @@
  #t
  )
 
+
+;; 1 like 'only split once'
+(define-typed (string-split-1 str #((either char? procedure?) val-or-pred))
+  (let ((len (string-length str))
+	(pred (if (procedure? val-or-pred)
+		  val-or-pred
+		  (lambda (c)
+		    (eq? c val-or-pred)))))
+    (let lp ((i 0))
+      (if (< i len)
+	  (if (pred (string-ref str i))
+	      (values (substring str 0 i)
+		      (substring str i len))
+	      (lp (inc i)))
+	  (values str "")))))
+
+(TEST
+ > (string-split-1 "ab  c d" char-whitespace?)
+ #("ab" "  c d")
+ > (string-split-1 "foo?q=1" #\?)
+ #("foo" "?q=1")
+ > (values->vector (string-split-1 "foo?" #\?))
+ #("foo" "?")
+ > (values->vector (string-split-1 "foo" #\?))
+ #("foo" "")
+ )
+
