@@ -71,3 +71,46 @@
  "."
  )
 
+(define dirname-slow
+  (cut backtick "dirname" <>))
+
+;; (define dirname-fast
+;;   ;; (strings-join (reverse (cdr (reverse (string-split path #\/)))))
+;;   ;; well no.
+;;   ;;..sigh
+;;   )
+
+(define dirname dirname-slow)
+
+
+(TEST
+ ;; it seems to be s|/+[^/]+/*$|| except for using / when it gets "" ?
+ ;; or the first char rather?
+ > (dirname "/foo/bar")
+ "/foo"
+ > (dirname "/foo/bar/")
+ "/foo"
+ > (dirname "/foo//bar/fi.scm")
+ "/foo//bar"
+ > (dirname "/foo//bar/fi.scm/..")
+ "/foo//bar/fi.scm"
+ > (dirname "/foo//bar/fi.scm/../..")
+ "/foo//bar/fi.scm/.."
+ > (dirname "/")
+ "/"
+ > (dirname "/foo")
+ "/"
+ > (dirname "//")
+ "/"
+ > (dirname "///")
+ "/"
+ > (dirname ".//")
+ "."
+ > (dirname ".//a")
+ "."
+ > (dirname "foo//a")
+ "foo"
+ > (dirname "foo")
+ "."
+ )
+
