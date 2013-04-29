@@ -457,3 +457,18 @@
 	  (fail 'found-too-many))
       (fail 'not-found)))
 
+(define (if-one x then/1 toomany/1 none/0)
+  (if (pair? x)
+      (if (null? (cdr x))
+	  (then/1 (car x))
+	  (toomany/1 x))
+      (none/0)))
+
+(TEST
+ > (%try-error (if-one '(a . b) identity (cut error "too many:" <>) (cut error "none")))
+ #(error "too many:" (a . b))
+ > (%try-error (if-one '(a) identity (cut error "too many:" <>) (cut error "none")))
+ a
+ > (%try-error (if-one '() identity (cut error "too many:" <>) (cut error "none")))
+ #(error "none")
+ )
