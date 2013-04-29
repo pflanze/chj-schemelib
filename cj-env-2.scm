@@ -34,3 +34,20 @@
 (define (current-unixtime)
   (inexact->exact (floor (time->seconds (current-time)))))
 
+
+(define-macro* (xcase expr . cases)
+  (with-gensym
+   V
+   `(let ((,V ,expr))
+      (case ,V
+	,@cases
+	(else ;; #t doesn't work for case, only for cond
+	 (error "no match for:" ,V))))))
+
+(TEST
+ > (xcase 2 ((3) 'gut) ((2) 'guttoo))
+ guttoo
+ > (%try-error (xcase 1 ((3) 'gut) ((2) 'guttoo)))
+ #(error "no match for:" 1)
+ )
+
