@@ -472,3 +472,8 @@
  > (%try-error (if-one '() identity (cut error "too many:" <>) (cut error "none")))
  #(error "none")
  )
+
+(define (if-one/ fn)
+  (lambda (x then/1 toomany/1 none/0)
+    (if-one (fn x) then/1 toomany/1 none/0)))
+
