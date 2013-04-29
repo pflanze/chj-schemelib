@@ -457,7 +457,7 @@
 	  (fail 'found-too-many))
       (fail 'not-found)))
 
-(define (if3-one x then/1 toomany/1 none/0)
+(define (trif-one x then/1 toomany/1 none/0)
   (if (pair? x)
       (if (null? (cdr x))
 	  (then/1 (car x))
@@ -466,17 +466,17 @@
 
 (TEST
  > (%try-error
-    (if3-one '(a . b) identity (cut error "too many:" <>) (cut error "none")))
+    (trif-one '(a . b) identity (cut error "too many:" <>) (cut error "none")))
  #(error "too many:" (a . b))
  > (%try-error
-    (if3-one '(a) identity (cut error "too many:" <>) (cut error "none")))
+    (trif-one '(a) identity (cut error "too many:" <>) (cut error "none")))
  a
  > (%try-error
-    (if3-one '() identity (cut error "too many:" <>) (cut error "none")))
+    (trif-one '() identity (cut error "too many:" <>) (cut error "none")))
  #(error "none")
  )
 
-(define (if3-one/ fn)
+(define (trif-one/ fn)
   (lambda (x then/1 toomany/1 none/0)
-    (if3-one (fn x) then/1 toomany/1 none/0)))
+    (trif-one (fn x) then/1 toomany/1 none/0)))
 
