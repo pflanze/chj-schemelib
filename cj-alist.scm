@@ -108,6 +108,9 @@
 (define eq-alist-replace
   (_-alist-replace any-type? eq?))
 
+(define string-alist-replace
+  (_-alist-replace string? string=?))
+
 (TEST
  > (symbol-alist-replace '((b c) (d e) (a z) (x f)) '(a b c))
  ((b c) (d e) (a b c) (x f))
