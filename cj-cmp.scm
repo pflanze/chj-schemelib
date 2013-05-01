@@ -290,4 +290,25 @@
   (lambda (a b)
     (cmp-not (cmp a b))))
 
+
+(define (cmp-either cmp1 cmp2)
+  ;; run cmp2 if cmp1 gave eq (i.e. treat eq as |either| would #f)
+  (lambda (a b)
+    (match-cmp (cmp1 a b)
+	       ((eq)
+		(cmp2 a b))
+	       ((lt) 'lt)
+	       ((gt) 'gt))))
+
+(TEST
+ > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("a" 10) '("a" -2))
+ gt
+ > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("a" -10) '("a" -2))
+ lt
+ > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("b" -10) '("a" -2))
+ gt
+ > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("b" -10) '("a" 2))
+ gt
+ )
+
 ;; / move?
