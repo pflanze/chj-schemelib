@@ -312,3 +312,98 @@
  )
 
 ;; / move?
+
+
+(define-macro* (cmp-or . exprs)
+  (if (null? exprs)
+      `'eq
+      `(match-cmp ,(car exprs)
+		  ((eq) (cmp-or ,@(cdr exprs)))
+		  ((lt) 'lt)
+		  ((gt) 'gt))))
+
+;; case-insensitive and umlaut sensitive comparison
+
+(define (german-char-downcase c) ;; german-to-lower
+  (define upper "ÄÖÜÇÉÈÀ")
+  (define lower "äöüçéèà")
+  (let ((len (string-length lower)))
+    (let lp ((i 0))
+      (if (< i len)
+	  (if (char=? (string-ref upper i) c)
+	      (string-ref lower i)
+	      (lp (inc i)))
+	  (char-downcase c)))))
+
+(define (char-cmp a b)
+  (if (char=? a b)
+      'eq
+      (if (char>? a b)
+	  'gt
+	  'lt)))
+
+;; these only work for lower case (use german-char-downcase)
+(define (lc_perhaps-compound-1st c)
+  (case c
+    ((#\ä) #\a)
+    ((#\ö) #\o)
+    ((#\ü) #\u)
+    ((#\ç) #\c)
+    ((#\é) #\e)
+    ((#\è) #\e)
+    ((#\à) #\a)
+    (else
+     c)))
+
+;; XX ah and then not even bother to look at the second? for now?
+;; anyway:
+(define (lc_umlaut? c)
+  (case c
+    ((#\ä #\ö #\ü) #t)
+    (else
+     #f)))
+
+;; fix up the strings on the fly (instead of building index containing
+;; massaged strings); or, compare them on the fly? [is there any
+;; difference?]
+(define (german-string-cmp a b)
+  (if (and (string? a)
+	   (string? b))
+      (let ((lena (string-length a))
+	    (lenb (string-length b)))
+	(let lp ((ia 0)
+		 (ib 0))
+	  (if (< ia lena)
+	      (if (< ib lenb)
+		  ;; XX ignore ö vs oe for now; treat ö same as o
+		  (let ((ca (lc_perhaps-compound-1st;; for now
+			     (german-char-downcase (string-ref a ia))))
+			(cb (lc_perhaps-compound-1st;; for now
+			     (german-char-downcase (string-ref b ib)))))
+		    (cmp-or (char-cmp ca cb)
+			    (lp (inc ia)
+				(inc ib))))
+		  'gt)
+	      (if (< ib lenb)
+		  'lt
+		  'eq))))))
+
+(TEST
+ > (german-string-cmp "Hallo" "hallo")
+ eq
+ > (german-string-cmp "Hallo" "hallochen")
+ lt
+ > (german-string-cmp "Öchsel" "öchsel")
+ eq
+ > (german-string-cmp "Öchsel" "Ochsel")
+ eq ;; hmm yeh hmm
+ > (german-string-cmp "Öchsel" "Oechsel")
+ lt ;; XX should not be. or?
+ )
+
+;; only 'german' for strings [for now?]
+(define (german-generic-cmp a b)
+  (if (and (string? a)
+	   (string? b))
+      (german-string-cmp a b)
+      (generic-cmp a b)))
