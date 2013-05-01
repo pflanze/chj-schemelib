@@ -78,7 +78,8 @@
 	       false/2))
 
 
-(define (_-alist-replace key-type? equal? key-not-found/1)
+(define (_-alist-replace key-type? equal?
+			 key-found/2 key-not-found/1)
   (lambda (alis key+val)
     ;; die if not found.ok?
     (let ((key (car key+val)))
@@ -88,8 +89,8 @@
 		   (let* ((ali (car alis))
 			  (a (car ali)))
 		     (if (equal? a key)
-			 (cons key+val
-			       (cdr alis))
+			 (key-found/2 key+val
+				      (cdr alis))
 			 (cons ali
 			       (rec (cdr alis))))))
 		  ((null? alis)
@@ -103,19 +104,19 @@
 
 (define symbol-alist-replace
   (_-alist-replace symbol? symbol-equal?
-		   _alist-replace-key-not-found))
+		   cons _alist-replace-key-not-found))
 
 (define number-alist-replace
   (_-alist-replace number? =
-		   _alist-replace-key-not-found))
+		   cons _alist-replace-key-not-found))
 
 (define eq-alist-replace
   (_-alist-replace any-type? eq?
-		   _alist-replace-key-not-found))
+		   cons _alist-replace-key-not-found))
 
 (define string-alist-replace
   (_-alist-replace string? string=?
-		   _alist-replace-key-not-found))
+		   cons _alist-replace-key-not-found))
 
 (TEST
  > (symbol-alist-replace '((b c) (d e) (a z) (x f)) '(a b c))
@@ -130,6 +131,33 @@
  ;; *** ERROR IN rec, ... -- alist-replace: key not found: a
  ;; 1>
  )
+
+;; return alis if it doesn't contain key
+(define (string-alist-eliminate alis key)
+  (continuation-capture
+   (lambda (return)
+     ((_-alist-replace string? string=?
+		       (lambda (_key+val rest)
+			 rest)
+		       (lambda (_)
+			 (continuation-return return alis)))
+      alis (cons key #f)))))
+
+(TEST
+ > (define ali '(("a" 1) ("b" 2) ("c" 3)))
+ > (string-alist-eliminate ali "b")
+ (("a" 1) ("c" 3))
+ > (string-alist-eliminate ali "c")
+ (("a" 1) ("b" 2))
+ > (string-alist-eliminate ali "d")
+ (("a" 1) ("b" 2) ("c" 3))
+ > (eq? # ali)
+ #t
+ > (string-alist-eliminate '() "d")
+ ()
+ )
+
+
 
 (define (_-alist-add key-type? equal?)
   (lambda (alis key+val)
