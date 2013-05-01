@@ -78,7 +78,7 @@
 	       false/2))
 
 
-(define (_-alist-replace key-type? equal?)
+(define (_-alist-replace key-type? equal? key-not-found/1)
   (lambda (alis key+val)
     ;; die if not found.ok?
     (let ((key (car key+val)))
@@ -94,22 +94,28 @@
 			       (rec (cdr alis))))))
 		  ((null? alis)
 		   ;; show key, show key and alis, show nothing?..
-		   (error "key not found:" key))
+		   (key-not-found/1 key))
 		  (else
 		   (error "improper alis ending in:" alis))))
 	  (error "wrong type of key:" key)))))
 
+(define _alist-replace-key-not-found (cut error "key not found:" <>))
+
 (define symbol-alist-replace
-  (_-alist-replace symbol? symbol-equal?))
+  (_-alist-replace symbol? symbol-equal?
+		   _alist-replace-key-not-found))
 
 (define number-alist-replace
-  (_-alist-replace number? =))
+  (_-alist-replace number? =
+		   _alist-replace-key-not-found))
 
 (define eq-alist-replace
-  (_-alist-replace any-type? eq?))
+  (_-alist-replace any-type? eq?
+		   _alist-replace-key-not-found))
 
 (define string-alist-replace
-  (_-alist-replace string? string=?))
+  (_-alist-replace string? string=?
+		   _alist-replace-key-not-found))
 
 (TEST
  > (symbol-alist-replace '((b c) (d e) (a z) (x f)) '(a b c))
