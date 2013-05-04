@@ -114,3 +114,20 @@
  "."
  )
 
+
+
+(define (port->stream p read close-port)
+  (let rec ()
+    (delay
+      (let ((item (read p)))
+	(if (eof-object? item)
+	    (begin
+	      (close-port p)
+	      '())
+	    (cons item (rec)))))))
+
+(define (directory-item-stream dir)
+  (port->stream (open-directory dir)
+		read
+		close-port))
+
