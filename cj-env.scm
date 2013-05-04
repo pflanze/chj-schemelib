@@ -262,11 +262,9 @@
 (define-macro* (define-if-not-defined name expr)
   (assert* symbol? name
 	   (lambda (name)
-	     (let ((calc-name (symbol-append '_calc- name)))
-	       `(begin
-		  (define (,calc-name) ,expr)
-		  (define ,name
-		    (symbol-value-or ',name ,calc-name)))))))
+	     `(define ,name
+		(symbol-value-or ',name (lambda ()
+					  ,expr))))))
 
 (TEST
  > (define-if-not-defined abczxfwef 10)
