@@ -34,13 +34,14 @@
 ;; directory as the source files, with .test- prepended to the file
 ;; name. This is done so that the test cases don't occupy any space in
 ;; the program binary (and don't slow down compilation). The test
-;; cases are run by calling |run-tests| with the source file paths for
-;; which you want to run tests, or without argument if all tests
-;; should be run. The tests are run in the interpreter. Test failures
-;; don't stop execution of |run-tests|, they just output failure
-;; warnings (with source location information). Passing verbose: #t to
-;; |run-tests| (this is actually the default now) will give some
-;; information about which tests are being run.
+;; cases are run by calling |run-tests| with the source file paths (or
+;; the paths without the suffix) for which you want to run tests, or
+;; without argument if all tests should be run. The tests are run in
+;; the interpreter. Test failures don't stop execution of |run-tests|,
+;; they just output failure warnings (with source location
+;; information). Passing verbose: #t to |run-tests| (this is actually
+;; the default now) will give some information about which tests are
+;; being run.
 
 ;; NOTE: to handle reloading of modules with TEST forms into the
 ;; running system, |load| is being redefined. There might still be
@@ -75,7 +76,7 @@
 
 
 (compile-time
- (define-macro (TEST . args) `(begin));; why do I have to (re?)add these? did I clean that up and now readding I guess
+ (define-macro (TEST . args) `(begin)) ;; why do I have to (re?)add these? did I clean that up and now readding I guess
 
  (define TEST:outports (make-table))
  ;; to suppress double outputs:
@@ -140,7 +141,8 @@
 		     (list->string suffix?))
 	       (lp r
 		   (cons a suffix?)))))))
- ;; Note: the definition of TEST in this scope (above) prevents these from being run:
+ ;; Note: the definition of TEST in this scope (above) prevents these
+ ;; from being run:
  (TEST 
   > (name->basename+maybe-suffix "hello" cons) 
   ("hello" . #f)
@@ -152,7 +154,34 @@
   ("" . "scm")
   > (name->basename+maybe-suffix "" cons) 
   ("" . #f)
+  > (name->basename+maybe-suffix "/bar.x/foo" cons)
+  ("/bar" . "x/foo") ;; nope, that was perhaps bad,
+  ;; ("/bar.x/foo" . #f) or let it be. name. not path.
   )
+
+ (define (path-maybe-suffix path)
+   (name->basename+maybe-suffix (path-strip-directory path)
+				(lambda (a b)
+				  b)))
+
+ ;; (define (path-ends-in-.scm? str)
+ ;;   (cond ((path-maybe-suffix str)
+ ;; 	  => (lambda (suff)
+ ;; 	       (string=? suff "scm")))
+ ;; 	 (else #f)))
+ 
+ (define (perhaps-add-.scm str)
+   ;; in fact if-not-already has .scm
+   (cond ((path-maybe-suffix str)
+	  => (lambda (suff)
+	       (if (string=? suff "scm")
+		   ;; already has .scm
+		   str
+		   ;; has some other suffix; hm, shouldn't happen but
+		   ;; pass along, too
+		   str)))
+	 (else
+	  (string-append str ".scm"))))
 
  
  (define (TEST:conv forms stx)
@@ -188,8 +217,8 @@
 			    (cons (cj-sourcify-deep
 				   `(TEST:check (let ((repl-result-history-ref TEST:repl-result-history-ref))
 						  ,@(if maybe-namespace-form
-						       (list maybe-namespace-form)
-						       (list))
+							(list maybe-namespace-form)
+							(list))
 						  ,expr)
 						',result
 						',(source-location expr)
@@ -376,7 +405,8 @@
 			       r))))))))))
     (if (pair? files)
 	;; first check if they are loaded
-	(let* ((loaded* (list->table
+	(let* ((files* (map perhaps-add-.scm files))
+	       (loaded* (list->table
 			 (map (lambda (f)
 				(cons f #t))
 			      TEST#loaded)))
@@ -388,8 +418,8 @@
 			  ;;exceptions from the middle of the code
 			  ;;anyway..)
 			  (table-ref loaded* (test:path-normalize file) #f)))
-	       (loaded (filter loaded? files))
-	       (not-loaded (filter (complement loaded?) files)))
+	       (loaded (filter loaded? files*))
+	       (not-loaded (filter (complement loaded?) files*)))
 	  (if (pair? not-loaded)
 	      (warn "These files are not loaded or don't contain TEST forms:\n"
 		    not-loaded))
