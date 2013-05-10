@@ -43,3 +43,25 @@
  #t
  )
 
+(define (assert-replace-expand e)
+  (mcase e
+	 (pair?
+	  (let ((e* (source-code e)))
+	    `(##cons ,(assert-replace-expand (car e*))
+		     ,(assert-replace-expand (cdr e*)))))
+	 (symbol?
+	  e)
+	 (else
+	  `(quote ,e))))
+
+(TEST
+ > (assert-replace-expand '(= e1 e2))
+ (##cons = (##cons e1 (##cons e2 '())))
+ )
+
+(define-macro* (assert expr)
+  `(if (not ,expr)
+       (error ,(string-append "assertment failure: "
+			      (scm:object->string (cj-desourcify expr)))
+	      ,(assert-replace-expand expr))))
+
