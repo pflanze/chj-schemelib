@@ -60,12 +60,6 @@
      ,name))
 
 
-(define-macro* (assert expr)
-  `(if (not ,expr)
-       (error ,(string-append "assertment failure: "
-			      (scm:object->string (cj-desourcify expr))))))
-
-
 (both-times
  (define (natural? x)
    (and (integer? x)

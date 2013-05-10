@@ -9,34 +9,8 @@
 (require cj-source
 	 cj-match
 	 define-macro-star
-	 ;; etc..
+	 cj-source-util-2
 	 )
-
-
-(define (form-unquote? v)
-  (and (pair? v)
-       (pair? (cdr v))
-       (null? (cddr v))
-       (eq? (source-code (car v)) 'unquote)))
-
-(define (form-unquote-splicing? v)
-  (and (pair? v)
-       (pair? (cdr v))
-       (null? (cddr v))
-       (eq? (source-code (car v)) 'unquote-splicing)))
-
-(TEST
- > (form-unquote? '())
- #f
- > (form-unquote? '(unquote a))
- #t
- > (form-unquote? '(unquote))
- #f
- > (form-unquote? '(unquote a . b))
- #f
- > (form-unquote-splicing? ',@a)
- #t
- )
 
 
 (define (source-quasiquote-run u8vec alis)
