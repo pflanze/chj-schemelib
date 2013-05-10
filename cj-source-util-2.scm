@@ -43,16 +43,32 @@
  #t
  )
 
-(define (assert-replace-expand e)
-  (mcase e
-	 (pair?
-	  (let ((e* (source-code e)))
-	    `(##cons ,(assert-replace-expand (car e*))
-		     ,(assert-replace-expand (cdr e*)))))
-	 (symbol?
-	  e)
-	 (else
-	  `(quote ,e))))
+(define assert:possibly-symbolize-procedures
+  (map (lambda (sym)
+	 (cons (eval sym)
+	       sym))
+       '(= > < >= <= != cons car cdr vector vector-ref list list-ref)))
+
+(define (assert:possibly-symbolize v)
+  (let ((v* (source-code v)))
+    (if (procedure? v*)
+	(cond ((assq v* assert:possibly-symbolize-procedures)
+	       => cdr)
+	      (else
+	       v))
+	v)))
+
+(compile-time
+ (define (assert-replace-expand e)
+   (mcase e
+	  (pair?
+	   (let ((e* (source-code e)))
+	     `(##cons ,(assert-replace-expand (car e*))
+		      ,(assert-replace-expand (cdr e*)))))
+	  (symbol?
+	   `(assert:possibly-symbolize e))
+	  (else
+	   `(quote ,e)))))
 
 (TEST
  > (assert-replace-expand '(= e1 e2))
