@@ -44,18 +44,18 @@
  )
 
 (define assert:possibly-symbolize-procedures
-  (map (lambda (sym)
-	 (cons (eval sym)
-	       sym))
-       '(= > < >= <= != cons car cdr vector vector-ref list list-ref)))
+  '(= > < >= <= != cons car cdr vector vector-ref list list-ref))
 
 (define (assert:possibly-symbolize v)
   (let ((v* (source-code v)))
     (if (procedure? v*)
-	(cond ((assq v* assert:possibly-symbolize-procedures)
-	       => cdr)
-	      (else
-	       v))
+	(let lp ((ss assert:possibly-symbolize-procedures))
+	  (if (null? ss)
+	      v
+	      (let ((sym (car ss)))
+		(if (eq? v* (eval sym))
+		    sym
+		    (lp (cdr ss))))))
 	v)))
 
 (compile-time
@@ -66,7 +66,7 @@
 	     `(##cons ,(assert-replace-expand (car e*))
 		      ,(assert-replace-expand (cdr e*)))))
 	  (symbol?
-	   `(assert:possibly-symbolize e))
+	   `(assert:possibly-symbolize ,e))
 	  (else
 	   `(quote ,e)))))
 
