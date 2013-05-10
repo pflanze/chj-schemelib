@@ -48,10 +48,8 @@
 		=> cdr)
 	       (else
 		(cons #f src)))
-	 (if (pair? (source-code src))
-	     (cons #f
-		   (possibly-sourcify
-		    (improper-fold-right*
+	 (let ((run-list
+		(cut improper-fold-right*
 		     (lambda (improper? src rest)
 		       (let-pair
 			((splice? val) (rec src))
@@ -63,10 +61,16 @@
 				(append val rest)
 				(cons val rest)))))
 		     '()
-		     (source-code src))
-		    src))
-	     ;; XX support for arrays!
-	     (cons #f src))))))
+		     <>))
+	       (src* (source-code src)))
+	   (cond ((pair? src*)
+		  (cons #f (possibly-sourcify (run-list src*) src)))
+		 ((vector? src*)
+		  (cons #f (possibly-sourcify (list->vector
+					       (run-list (vector->list src*)))
+					      src)))
+		 (else
+		  (cons #f src))))))))
 
 (TEST
  > (source-quasiquote-run (object->u8vector '(a b c . d)) '((b #f . B)
@@ -106,7 +110,9 @@
 		     (possibly-sourcify (cons (rec (car src*))
 					      (rec (cdr src*)))
 					src)))
-		  ;; XX handle arrays
+		  (vector?
+		   (possibly-sourcify (vector-map rec (source-code src))
+				      src))
 		  (else
 		   src))))
       (##list ,@(reverse forms)))))
@@ -135,11 +141,12 @@
   (source-quasiquote-expand src))
 
 (TEST
- > (quasiquote-source (a b ,(inc 10)))
- #(#(source2)
-    (#(#(source1) a (console) 1310891) #(#(source1) b (console) 1441963) 11)
-    (console)
-    1245355)
+ ;; > (quasiquote-source (a b ,(inc 10)))
+ ;; #(#(source2)
+ ;;    (#(#(source1) a (console) 1310891) #(#(source1) b (console) 1441963) 11)
+ ;;    (console)
+ ;;    1245355)
+ ;; with changing positions of course.
  > (eval (quasiquote-source (inc ,(inc 10))))
  12
  > (eval (quasiquote-source (inc ,(let ((code `(inc 10))) code))))
