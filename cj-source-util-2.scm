@@ -50,8 +50,9 @@
     = > < >= <= cons car cdr vector vector-ref list list-ref
     length vector-length f64vector-length u8vector-length f32vector-length
     pair? null? zero? negative?
-    ;; own
-    !=
+    ;; own -- ah btw must exist by the time assert needs to symbolize
+    ;; procedures for the first time!
+    != inc dec quotient + - * / arithmetic-shift square sqrt log expt
     ))
 
 (define (assert:possibly-symbolize v)
