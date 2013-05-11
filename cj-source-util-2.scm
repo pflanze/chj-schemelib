@@ -44,7 +44,15 @@
  )
 
 (define assert:possibly-symbolize-procedures
-  '(= > < >= <= != cons car cdr vector vector-ref list list-ref))
+  ;; XX basically just want to know if it's a toplevel procedure. sgh.
+  '(
+    ;; R5RS hmm
+    = > < >= <= cons car cdr vector vector-ref list list-ref
+    length vector-length f64vector-length u8vector-length f32vector-length
+    pair? null? zero? negative?
+    ;; own
+    !=
+    ))
 
 (define (assert:possibly-symbolize v)
   (let ((v* (source-code v)))
