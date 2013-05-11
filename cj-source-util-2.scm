@@ -87,13 +87,27 @@
 	     `(##cons ,(assert-replace-expand (car e*))
 		      ,(assert-replace-expand (cdr e*)))))
 	  (symbol?
-	   `(assert:possibly-symbolize ,e))
+	   (if (define-macro-star-maybe-ref (source-code e))
+	       ;; even though it might be shadowed by a local
+	       ;; definition, since we don't have (thanks expander) a
+	       ;; way to check for that, we have to be conservative to
+	       ;; avoid referencing errors at runtime.
+	       `',e
+	       `(assert:possibly-symbolize ,e)))
 	  (else
 	   `(quote ,e)))))
 
 (TEST
  > (assert-replace-expand '(= e1 e2))
- (##cons = (##cons e1 (##cons e2 '())))
+ (##cons (assert:possibly-symbolize =)
+        (##cons (assert:possibly-symbolize e1)
+                (##cons (assert:possibly-symbolize e2) '())))
+ > (assert-replace-expand '((on foo bar) e1 e2))
+(##cons (##cons 'on
+                (##cons (assert:possibly-symbolize foo)
+                        (##cons (assert:possibly-symbolize bar) '())))
+        (##cons (assert:possibly-symbolize e1)
+                (##cons (assert:possibly-symbolize e2) '())))
  )
 
 (define-macro* (assert expr)
