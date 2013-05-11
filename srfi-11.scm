@@ -65,6 +65,9 @@
       (##vector-copy v)
       (error "values->vector: not a values tuple:" v)))
 
+(define (values->list v)
+  (vector->list (values->vector v)))
+
 (define (list->values l)
   (apply values l))
 
