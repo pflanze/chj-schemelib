@@ -50,9 +50,11 @@
     = > < >= <= cons car cdr vector vector-ref list list-ref
     length vector-length f64vector-length u8vector-length f32vector-length
     pair? null? zero? negative?
-    ;; own -- ah btw must exist by the time assert needs to symbolize
-    ;; procedures for the first time!
+    eq? eqv? equal?
+    ;; own
     != inc dec quotient + - * / arithmetic-shift square sqrt log expt
+    eql?
+    .type .info
     ))
 
 (define (assert:possibly-symbolize v)
@@ -61,10 +63,20 @@
 	(let lp ((ss assert:possibly-symbolize-procedures))
 	  (if (null? ss)
 	      v
-	      (let ((sym (car ss)))
-		(if (eq? v* (eval sym))
-		    sym
-		    (lp (cdr ss))))))
+	      (let ((sym (car ss))
+		    (_else (lambda () (lp (cdr ss)))))
+		(cond ((with-exception-catcher
+			(lambda (e)
+			  (if (unbound-global-exception? e)
+			      #f
+			      (raise e)))
+			(lambda ()
+			  (eval sym)))
+		       => (lambda (symv)
+			    (if (eq? v* symv)
+				sym
+				(_else))))
+		      (else (_else))))))
 	v)))
 
 (compile-time
