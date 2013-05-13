@@ -186,20 +186,34 @@
  "000"
  )
 
+
+;; XX move to some math lib?
+(define-typed (inexact.round-at x #(integer? digit-after-comma))
+  (let ((factor (expt 10 digit-after-comma)))
+    (/ (round (* x factor)) factor)))
+
+(TEST
+ > (inexact.round-at 5.456 2)
+ 5.46
+ > (inexact.round-at 5.456 3)
+ 5.456
+ > (inexact.round-at 5.456 1)
+ 5.5
+ > (inexact.round-at 5.456 0)
+ 5.
+ )
+
 (define-typed (inexact.number-format x #(natural0? left) #(natural0? right))
-  (let* ((str (number->string x))
+  (let* ((str (number->string (inexact.round-at x right)))
 	 (len (string-length str)))
     (letv ((before after) (string-split-1 str #\.))
 	  ;; after contains the dot, too
 	  (let* ((lenbefore (string-length before))
-		 (lenafter (string-length after))
-		 (after* (substring after 0 (inc (min (dec lenafter) right))))
-		 ;; ^  OH should do rounding XXX
-		 (lenafter* (string-length after*)))
+		 (lenafter (string-length after)))
 	    (string-append (string-multiply " " (max 0 (- left lenbefore)))
 			   before
-			   after*
-			   (string-multiply " " (- right (dec lenafter*))))))))
+			   after
+			   (string-multiply " " (- right (dec lenafter))))))))
 
 (TEST
  > (inexact.number-format 3.456 3 3)
@@ -207,13 +221,13 @@
  > (inexact.number-format 3.456 3 4)
  "  3.456 "
  > (inexact.number-format 3.456 3 2)
- "  3.45"
+ "  3.46"
  > (inexact.number-format 3.456 2 2)
- " 3.45"
+ " 3.46"
  > (inexact.number-format 3.456 1 2)
- "3.45"
+ "3.46"
  > (inexact.number-format 3.456 0 2)
- "3.45"
+ "3.46"
  )
 
 
