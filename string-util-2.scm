@@ -186,6 +186,36 @@
  "000"
  )
 
+(define-typed (inexact.number-format x #(natural0? left) #(natural0? right))
+  (let* ((str (number->string x))
+	 (len (string-length str)))
+    (letv ((before after) (string-split-1 str #\.))
+	  ;; after contains the dot, too
+	  (let* ((lenbefore (string-length before))
+		 (lenafter (string-length after))
+		 (after* (substring after 0 (inc (min (dec lenafter) right))))
+		 ;; ^  OH should do rounding XXX
+		 (lenafter* (string-length after*)))
+	    (string-append (string-multiply " " (max 0 (- left lenbefore)))
+			   before
+			   after*
+			   (string-multiply " " (- right (dec lenafter*))))))))
+
+(TEST
+ > (inexact.number-format 3.456 3 3)
+ "  3.456"
+ > (inexact.number-format 3.456 3 4)
+ "  3.456 "
+ > (inexact.number-format 3.456 3 2)
+ "  3.45"
+ > (inexact.number-format 3.456 2 2)
+ " 3.45"
+ > (inexact.number-format 3.456 1 2)
+ "3.45"
+ > (inexact.number-format 3.456 0 2)
+ "3.45"
+ )
+
 
 (define (string-_-starts? char=?)
   (lambda (str substr)
