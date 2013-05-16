@@ -216,13 +216,13 @@
 		(string-append (string-multiply " " (max 0 (- left lenbefore)))
 			       before
 			       after
-			       (string-multiply " " (- right (dec lenafter)))))))))
+			       (string-multiply "0" (- right (dec lenafter)))))))))
 
 (TEST
  > (inexact.number-format 3.456 3 3)
  "  3.456"
  > (inexact.number-format 3.456 3 4)
- "  3.456 "
+ "  3.4560"
  > (inexact.number-format 3.456 3 2)
  "  3.46"
  > (inexact.number-format 3.456 2 2)
