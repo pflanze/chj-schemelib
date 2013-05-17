@@ -18,3 +18,30 @@
  #f
  )
 
+
+(define (on-char fn)
+  (lambda (c)
+    (fn (char->integer c))))
+
+(define char-digit?
+  (on-char (cut <= (char->integer #\0) <> (char->integer #\9))))
+
+(define char-alpha-lc?
+  (on-char (cut <= (char->integer #\a) <> (char->integer #\z))))
+
+(define char-alpha-uc?
+  (on-char (cut <= (char->integer #\A) <> (char->integer #\Z))))
+
+(define char-alpha?
+  (either char-alpha-lc? char-alpha-uc?))
+
+(define char-alphanumeric?
+  (either char-digit? char-alpha? (char=?/ #\_)))
+
+(TEST
+ > (every char-alphanumeric? (string->list "abc "))
+ #f
+ > (every char-alphanumeric? (string->list "abc_123_A"))
+ #t
+ )
+
