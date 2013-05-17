@@ -10,20 +10,29 @@
 ;; Like part of mcase, but simpler and not doing the overhead of
 ;; calling source-code: 'predicate case'
 (define-macro* (pcase expr . cases)
-  (with-gensym
-   V
-   `(let ((,V ,expr))
-      (cond ,@(map
-	       ;; heh now falling back to mcase interesting..
-	       (mcase-lambda
-		(`(`pred `body)
-		 `((,pred ,V)
-		   ,body)))
-	       cases)
-	    ;; ah yep and also don't permit nonmatches; XX hm, check
-	    ;; whether the last case is 'else'?
-	    (else
-	     (pcase-error ,V))))))
+  ;; hard coded optional 'else' syntax in last case (why not just bind
+  ;; else to #t? dunno. Isn't that an optimization? Evil?)
+  (let ((rcases (reverse cases)))
+    (letv ((cases* maybe-else-body)
+	   (mcase (car rcases)
+		  (`(else . `body)
+		   (values (reverse (cdr rcases)) body))
+		  (else
+		   (values cases #f))))
+	  (with-gensym
+	   V
+	   `(let ((,V ,expr))
+	      (cond ,@(map
+		       ;; heh now falling back to mcase interesting..
+		       (mcase-lambda
+			(`(`pred . `body)
+			 `((,pred ,V)
+			   ,@body)))
+		       cases*)
+		    ;; don't permit nonmatches by default
+		    (else
+		     ,@(or maybe-else-body
+			   `((pcase-error ,V))))))))))
 
 (define (pcase-error val)
   (error "no match for:" val))
@@ -33,5 +42,7 @@
  yes
  > (%try-error (pcase 'foo (string? 'yes)))
  #(error "no match for:" foo)
+ > (pcase 'foo (string? 'yes) (else 'no))
+ no
  )
 
