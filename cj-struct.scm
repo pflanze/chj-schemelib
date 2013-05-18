@@ -13,37 +13,41 @@
 	 )
 
 
-(define-macro* (define-struct_
-		 DEFINE ;; what definition forms to use
-		 ;; then the actual user-servicable parts:
-		 name*
-		 #!key
-		 ;; leaving away the star at those (because it'd be "uservisible")
-		 (prefix "")
-		 (accessor-prefix "")
-		 (unsafe-accessor-prefix "@")
-		 (separator "-")
-		 ;; the prefix for the accessors when falling back to generic access:
-		 generic-accessor-prefix ;; including name if wished, and even the separator !
-		 constructor-name
-		 predicate-name
-		 let*-name
-		 let-name
-		 tag
-		 #!rest args*)
+(define define-struct:arg->maybe-fieldname
+  (lambda (v*)
+    (let ((v (source-code v*)))
+      (cond ((symbol? v)
+	     v*)
+	    ((meta-object? v)
+	     #f)
+	    (else
+	     (source-error
+	      v*
+	      "expecting symbol or meta-object"))))))
+
+(define (define-struct-expand
+	  DEFINE	;; what definition forms to use
+	  LAMBDA ;; what lambda form to use; useful for typed-lambda
+	  arg->maybe-fieldname ;; fn to extract the field name symbols
+	  ;; then the actual user-servicable parts:
+	  name*
+	  #!key
+	  ;; leaving away the star at those (because it'd be "uservisible")
+	  (prefix "")
+	  (accessor-prefix "")
+	  (unsafe-accessor-prefix "@")
+	  (separator "-")
+	  ;; the prefix for the accessors when falling back to generic access:
+	  generic-accessor-prefix ;; including name if wished, and even the separator !
+	  constructor-name
+	  predicate-name
+	  let*-name
+	  let-name
+	  tag
+	  #!rest args*)
   (let* ((name (source-code name*))
 	 (tag (if (source-code tag) tag name*))
-	 (fields* (filter (lambda (v*)
-			    (let ((v (source-code v*)))
-			      (cond ((symbol? v)
-				     #t)
-				    ((meta-object? v)
-				     #f)
-				    (else
-				     (source-error
-				      v*
-				      "expecting symbol or meta-object")))))
-			  args*))
+	 (fields* (filter identity (map arg->maybe-fieldname args*)))
 	 (fields (map source-code fields*))
 	 ;; keyed arguments:
 	 (prefix (source-code prefix))
@@ -103,9 +107,9 @@
 	 )
     `(begin
        (define ,constructor-name
-	 (lambda ,args*
-	   (##vector (##quote ,tag)
-		     ,@fields*)))
+	 (,LAMBDA ,args*
+		  (##vector (##quote ,tag)
+			    ,@fields*)))
        (define ,predicate-name
 	 (lambda (v)
 	   (and (vector? v)
@@ -150,12 +154,12 @@
 		       (vector-ref v ,(add-offset i))))
 		   ;; functional setter:
 		   (,DEFINE ,(safe-setter-for-field field)
-		     (lambda (v val)
+		     (lambda (v val) ;; ç LAMBDA + typed var; just select the field code please?
 		       ;; use shared code
 		       (,genericsetter-name v ,(add-offset i) val)))
 		   ;; functional updater:
 		   (,DEFINE ,(safe-updater-for-field field)
-		     (lambda (v fn)
+		     (lambda (v fn) ;; ç LAMBDA hm no, how ..?. restriction on fn 'sortof'
 		       ;; use shared code
 		       (,genericupdater-name v ,(add-offset i) fn)))))
 	      fields
@@ -220,7 +224,12 @@
 	 `(,',let*-name (,vars+inp) ,@body)))))
 
 (define-macro* (define-struct . args)
-  `(define-struct_ define ,@args))
+  ;; (sigh, had safer-apply right? What for again?)
+  (apply define-struct-expand
+	 'define
+	 'lambda
+	 define-struct:arg->maybe-fieldname
+	 args))
 
 (TEST
  > (define-struct foo a b )

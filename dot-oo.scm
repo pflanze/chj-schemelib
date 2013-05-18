@@ -1,3 +1,6 @@
+(require cj-typed ;; heh indirectly through define-struct. expansion
+	 )
+
 
 ;; Principle is to shadow previous definitions of the generic, and the
 ;; last one falls back on previous definitions. Which at the end will
@@ -110,13 +113,41 @@
 
 ;; omit the |make-| prefix for the constructor name; use "." as
 ;; separator, and use |define.| to define all methods so that they
-;; become part of generic super functions
+;; become part of generic super functions. Also, allow field typing.
+
+(define define-struct/types:arg->maybe-fieldname
+  (lambda (v*)
+    (let ((v (source-code v*)))
+      (cond ((symbol? v)
+	     v*)
+	    ((typed? v)
+	     (typed.var v))
+	    ((meta-object? v)
+	     #f)
+	    (else
+	     (source-error
+	      v*
+	      "expecting symbol or typed symbol or meta-object"))))))
+
 (define-macro* (define-struct. name . defs)
-  `(define-struct_ define. ,name
-     ;; don't override constructor-name if provided by user
-     ,@(if (memq constructor-name: (map source-code defs))
-	   `()
-	   `(constructor-name: ,name))
-     separator: "."
-     ,@defs))
+  (apply define-struct-expand
+	 'define.
+	 'typed-lambda
+	 define-struct/types:arg->maybe-fieldname
+	 name
+	 separator: "."
+	 ;; don't override constructor-name if provided by user
+	 (if (memq constructor-name: (map source-code defs))
+	     defs
+	     `(constructor-name: ,name ,@defs))))
+
+(TEST
+ > (define-struct. foo #(fixnum? x))
+ > (%try-error (foo 'a))
+ #(error "does not match fixnum?:" a)
+ > (foo 10)
+ #(foo 10)
+ > (.x #)
+ 10
+ )
 

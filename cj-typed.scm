@@ -53,6 +53,22 @@
 	   (else
 	    (err))))))
 
+;; for use by other code
+(define (perhaps-typed.var x)
+  (car (handle-arg x (values '() '()))))
+
+(define (typed? x)
+  ;; stupid ~COPY
+  (let ((x* (source-code x)))
+    (and (vector? x*)
+	 (= (vector-length x*) 2)
+	 (symbol? (source-code (vector-ref x* 1))))))
+
+(define (typed.var x)
+  ;; again stupid ~COPY
+  (vector-ref (source-code x) 1))
+
+
 (define-macro* (typed-lambda args . body)
   (letv ((vars body)
 	 (let rem ((args args))
