@@ -29,7 +29,7 @@
 (define (gensym #!optional maybe-name)
   (let* ((name (or maybe-name ""))
 	 (cnt (number->string (gensym-count-next))))
-    (symbol-append gensym-prefix name cnt)))
+    (symbol-append gensym-prefix name "-" cnt)))
 
 
 (define (interned-symbol? v)
