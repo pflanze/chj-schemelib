@@ -209,6 +209,12 @@
 (define. (nothing.typecheck! x)
   (void))
 
+;; hmm. inefficiency worries except doesn't matter for typecheck; but
+;; also ugly? (But wouldn't special-casing list-of in
+;; define-struct. be ugler?)
+(define. (list.typecheck! l)
+  (for-each .typecheck! l))
+
 (TEST
  > (define-struct. foo #(fixnum? x))
  > (%try-error (foo 'a))
