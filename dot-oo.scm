@@ -215,6 +215,14 @@
 (define. (list.typecheck! l)
   (for-each .typecheck! l))
 
+;; hm even special-casing doesn't help in all cases, thus:
+(define (void/1 x) (void))
+(define. boolean.typecheck! void/1)
+(define. number.typecheck! void/1) ;; heh includes fixnum etc. of course
+(define. symbol.typecheck! void/1)
+(define. string.typecheck! void/1)
+
+
 (TEST
  > (define-struct. foo #(fixnum? x))
  > (%try-error (foo 'a))
