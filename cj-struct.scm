@@ -105,7 +105,7 @@
        (define ,constructor-name
 	 (lambda ,args*
 	   (##vector (##quote ,tag)
-		     ,@(filter (lambda (v) (symbol? (source-code v))) args*))))
+		     ,@fields*)))
        (define ,predicate-name
 	 (lambda (v)
 	   (and (vector? v)
