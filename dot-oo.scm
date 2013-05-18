@@ -16,26 +16,27 @@
 ;; (XX lost the string-split that allowed to give me limits on the
 ;; number of result values. Working around using strings-join.)
 
-(define (dot-oo:split-typename.methodname str)
-  (let ((parts (string-split (source-code str) #\.)))
-    (mcase (possibly-sourcify parts str)
-	   (`(`typename . `rest)
-	    (values typename
-		    ;; really prepend the dot? I'm still confused, torn.
-		    (string-append "." (strings-join rest ".")))))))
-
-(define (dot-oo:split-prefix:typename.methodname str)
-  (define (cont prefix remainder)
-    (letv ((typename methodname) (dot-oo:split-typename.methodname remainder))
-	  (values prefix
-		  typename
-		  methodname)))
-  (let* ((parts (string-split (source-code str) #\:)))
-    (if (= (length parts) 1)
-	(cont "" str)
-	(cont (string-append (car parts) ":")
-	      (possibly-sourcify
-	       (strings-join (cdr parts) ":") str)))))
+(both-times
+ (define (dot-oo:split-typename.methodname str)
+   (let ((parts (string-split (source-code str) #\.)))
+     (mcase (possibly-sourcify parts str)
+	    (`(`typename . `rest)
+	     (values typename
+		     ;; really prepend the dot? I'm still confused, torn.
+		     (string-append "." (strings-join rest ".")))))))
+ 
+ (define (dot-oo:split-prefix:typename.methodname str)
+   (define (cont prefix remainder)
+     (letv ((typename methodname) (dot-oo:split-typename.methodname remainder))
+	   (values prefix
+		   typename
+		   methodname)))
+   (let* ((parts (string-split (source-code str) #\:)))
+     (if (= (length parts) 1)
+	 (cont "" str)
+	 (cont (string-append (car parts) ":")
+	       (possibly-sourcify
+		(strings-join (cdr parts) ":") str))))))
 
 (TEST
  > (values->vector (dot-oo:split-typename.methodname "foo.bar"))
@@ -59,24 +60,25 @@
 	(apply then first rest)
 	(apply else first rest))))
 
-(define define.-template
-  (lambda (name expr)
-    (let ((namestr (possibly-sourcify (symbol->string (source-code name))
-				      name)))
-      (letv ((prefixstr typenamestr genericnamestr)
-	     (dot-oo:split-prefix:typename.methodname namestr))
-	    (let ((genericname (string->symbol (string-append prefixstr
-							      genericnamestr)))
-		  (typename (string->symbol typenamestr)))
-	      `(begin
-		 (define ,name ,expr)
-		 (define-if-not-defined ,genericname
-		   (dot-oo:no-method-found-for-generic ',genericname))
-		 (set! ,genericname
-		       (dot-oo:if-type-then-run-else-run
-			,(source.symbol-append typename '?)
-			,name
-			,genericname))))))))
+(both-times
+ (define define.-template
+   (lambda (name expr)
+     (let ((namestr (possibly-sourcify (symbol->string (source-code name))
+				       name)))
+       (letv ((prefixstr typenamestr genericnamestr)
+	      (dot-oo:split-prefix:typename.methodname namestr))
+	     (let ((genericname (string->symbol (string-append prefixstr
+							       genericnamestr)))
+		   (typename (string->symbol typenamestr)))
+	       `(begin
+		  (define ,name ,expr)
+		  (define-if-not-defined ,genericname
+		    (dot-oo:no-method-found-for-generic ',genericname))
+		  (set! ,genericname
+			(dot-oo:if-type-then-run-else-run
+			 ,(source.symbol-append typename '?)
+			 ,name
+			 ,genericname)))))))))
 
 (define-macro* (define. first . rest)
   (mcase first
@@ -129,39 +131,83 @@
 	      v*
 	      "expecting symbol or typed symbol or meta-object"))))))
 
+
+(both-times
+ (define dot.oo:have-no-typecheck
+   '(symbol? fixnum? string? boolean? number? integer? complex?)))
+
 (define-macro* (define-struct. name . defs)
-  (apply define-struct-expand
-	 'define.
-	 'typed-lambda
-	 define-struct/types:arg->maybe-fieldname
-	 (lambda (var field+)
-	   (let ((field+* (source-code field+)))
-	     (if (typed? field+*)
-		 (begin
-		   (assert (= (vector-length field+*) 2))
-		   (vector (vector-ref field+* 0)
-			   var))
-		 var)))
-	 (lambda (FN field+)
-	   (let ((field+* (source-code field+)))
-	     (if (typed? field+*)
-		 (begin
-		   (assert (= (vector-length field+*) 2))
-		   (with-gensyms
-		    (V V*)
-		    `(lambda (,V)
-		       (let ((,V* (,FN ,V)))
-			 ;; (XX btw much code duplication? (of the
-			 ;; type check code, in case it is big))
-			 (type-check ,(vector-ref field+* 0) ,V*
-				     ,V*)))))
-		 FN)))
-	 name
-	 separator: "."
-	 ;; don't override constructor-name if provided by user
-	 (if (memq constructor-name: (map source-code defs))
-	     defs
-	     `(constructor-name: ,name ,@defs))))
+  (with-gensyms
+   (V V*)
+   `(begin
+      ,(apply define-struct-expand
+	      'define.
+	      'typed-lambda
+	      define-struct/types:arg->maybe-fieldname
+	      (lambda (var field+)
+		(let ((field+* (source-code field+)))
+		  (if (typed? field+*)
+		      (begin
+			(assert (= (vector-length field+*) 2))
+			(vector (vector-ref field+* 0)
+				var))
+		      var)))
+	      (lambda (FN field+)
+		(let ((field+* (source-code field+)))
+		  (if (typed? field+*)
+		      (begin
+			(assert (= (vector-length field+*) 2))
+			(with-gensyms
+			 (V V*)
+			 `(lambda (,V)
+			    (let ((,V* (,FN ,V)))
+			      ;; (XX btw much code duplication? (of the
+			      ;; type check code, in case it is big))
+			      (type-check ,(vector-ref field+* 0) ,V*
+					  ,V*)))))
+		      FN)))
+	      name
+	      separator: "."
+	      ;; don't override constructor-name if provided by user
+	      (if (memq constructor-name: (map source-code defs))
+		  defs
+		  `(constructor-name: ,name ,@defs)))
+      ;; reserve name for just this purpose?
+      (define. (,(source.symbol-append name ".typecheck!") ,V)
+	,@(filter values
+		  (map (lambda (def)
+			 (let ((def* (source-code def)))
+			   (if (typed? def*)
+			       `(let ((,V*
+				       ;; use accessors, or direct vector-ref? :
+				       (,(source.symbol-append name "." (vector-ref def* 1)) ,V)))
+				  (type-check ,(vector-ref def* 0)
+					      ,V*
+					      ;; stupid (begin) in if not allowed:
+					      (void))
+				  ;; recursion
+				  ,@(if (memq (source-code (vector-ref def* 0))
+					      dot.oo:have-no-typecheck)
+					`()
+					`((.typecheck! ,V*))))
+			       ;; NOTE: doen't recurse for fields
+			       ;; without type
+			       ;; declaration. Hm. (Because I would
+			       ;; still need typecheck! methods for
+			       ;; basic types then; and more over,
+			       ;; maybe some vector in those fields
+			       ;; with symbol head is just a vector
+			       ;; with symbol head?)
+			       #f)))
+		       defs))
+	;; and stupid (begin) analogon not allowed again:
+	(void)))))
+
+
+;; need this often enough I guess:
+(define nothing? not)
+(define. (nothing.typecheck! x)
+  (void))
 
 (TEST
  > (define-struct. foo #(fixnum? x))
@@ -188,5 +234,17 @@
  #(error "does not match boolean?:" 11)
  ;; > (define-struct. foo #(integer? x) #!optional (b #t))
  ;; "expecting symbol or typed symbol or meta-object" XX hmm, still not complete.
+
+ ;; typecheck feature
+ > (define-struct. foo #!key x #(boolean? b))
+ > (.typecheck! '#(foo #(foo 10 #f) #f))
+ > (%try-error (.typecheck! '#(foo #(foo 10 #f) 12)))
+ #(error "does not match boolean?:" 12)
+ ;; > (%try-error (.typecheck! '#(foo #(foo 10 11) #f)))
+ ;; was hoping for an error here. But, see NOTE in the source.
+ > (define-struct. foo #!key #((either foo? nothing?) x) #(boolean? b))
+ > (.typecheck! '#(foo #(foo #f #f) #f))
+ > (%try-error (.typecheck! '#(foo #(foo #f 11) #f)))
+ #(error "does not match boolean?:" 11)
  )
 
