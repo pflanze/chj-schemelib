@@ -149,5 +149,14 @@
  #(foo 10)
  > (.x #)
  10
+ > (define-struct. foo #!key #(integer? x) #(boolean? b))
+ > (foo x: 10 b: #t)
+ #(foo 10 #t)
+ > (foo b: #t x: 10)
+ #(foo 10 #t)
+ > (%try-error (foo b: 11 x: 10))
+ #(error "does not match boolean?:" 11)
+ ;; > (define-struct. foo #(integer? x) #!optional (b #t))
+ ;; "expecting symbol or typed symbol or meta-object" XX hmm, still not complete.
  )
 
