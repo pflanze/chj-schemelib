@@ -26,9 +26,11 @@
 	      "expecting symbol or meta-object"))))))
 
 (define (define-struct-expand
-	  DEFINE	;; what definition forms to use
+	  DEFINE ;; what definition forms to use
 	  LAMBDA ;; what lambda form to use; useful for typed-lambda
 	  arg->maybe-fieldname ;; fn to extract the field name symbols
+	  wrap-var ;; (var, field+) -> e.g. field+ with variable replaced by var
+	  wrap-fn-for ;; (fn, field+) -> e.g. fn that uses check from field+ to type check
 	  ;; then the actual user-servicable parts:
 	  name*
 	  #!key
@@ -48,6 +50,10 @@
   (let* ((name (source-code name*))
 	 (tag (if (source-code tag) tag name*))
 	 (fields* (filter identity (map arg->maybe-fieldname args*)))
+	 (fields+ (filter (lambda (arg) (not (meta-object? (source-code arg))))
+			  ;; ^ assuming that DEFINE/LAMBDA won't ever need anything else
+			  args*))
+	 (_ (or (= (length fields*) (length fields+)) (error "assertion failure")))
 	 (fields (map source-code fields*))
 	 ;; keyed arguments:
 	 (prefix (source-code prefix))
@@ -137,32 +143,35 @@
 				(fn (##vector-ref v offset)))
 		 v*)
 	       (,error-name v))))
-       ,@(map (lambda (field i)
-		`(begin
-		   (,DEFINE ,(safe-accessor-for-field field)
-		     (lambda (v)
-		       (if (,predicate-name v)
-			   (vector-ref v ,(add-offset i))
-			   (,error-name v))))
-		   ;; unsafe version:
-		   (define ,(symbol-append prefix
-					   unsafe-accessor-prefix
-					   name
-					   separator
-					   field)
-		     (lambda (v)
-		       (vector-ref v ,(add-offset i))))
-		   ;; functional setter:
-		   (,DEFINE ,(safe-setter-for-field field)
-		     (lambda (v val) ;; ç LAMBDA + typed var; just select the field code please?
-		       ;; use shared code
-		       (,genericsetter-name v ,(add-offset i) val)))
-		   ;; functional updater:
-		   (,DEFINE ,(safe-updater-for-field field)
-		     (lambda (v fn) ;; ç LAMBDA hm no, how ..?. restriction on fn 'sortof'
-		       ;; use shared code
-		       (,genericupdater-name v ,(add-offset i) fn)))))
+       ,@(map (lambda (field field+ i)
+		(with-gensyms
+		 (FN)
+		 `(begin
+		    (,DEFINE ,(safe-accessor-for-field field)
+		      (lambda (v)
+			(if (,predicate-name v)
+			    (vector-ref v ,(add-offset i))
+			    (,error-name v))))
+		    ;; unsafe version:
+		    (define ,(symbol-append prefix
+					    unsafe-accessor-prefix
+					    name
+					    separator
+					    field)
+		      (lambda (v)
+			(vector-ref v ,(add-offset i))))
+		    ;; functional setter:
+		    (,DEFINE ,(safe-setter-for-field field)
+		      (,LAMBDA (v ,(wrap-var 'val field+))
+			       ;; use shared code
+			       (,genericsetter-name v ,(add-offset i) val)))
+		    ;; functional updater:
+		    (,DEFINE ,(safe-updater-for-field field)
+		      (lambda (v ,FN)
+			;; use shared code
+			(,genericupdater-name v ,(add-offset i) ,(wrap-fn-for FN field+)))))))
 	      fields
+	      fields+
 	      (iota numfields))
        (define-macro* (,let*-name vars+inp-s . body)
 	 (let* (
@@ -229,6 +238,8 @@
 	 'define
 	 'lambda
 	 define-struct:arg->maybe-fieldname
+	 (lambda (var field+) var)
+	 (lambda (fn field+) fn)
 	 args))
 
 (TEST

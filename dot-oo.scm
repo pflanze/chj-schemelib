@@ -134,6 +134,28 @@
 	 'define.
 	 'typed-lambda
 	 define-struct/types:arg->maybe-fieldname
+	 (lambda (var field+)
+	   (let ((field+* (source-code field+)))
+	     (if (typed? field+*)
+		 (begin
+		   (assert (= (vector-length field+*) 2))
+		   (vector (vector-ref field+* 0)
+			   var))
+		 var)))
+	 (lambda (FN field+)
+	   (let ((field+* (source-code field+)))
+	     (if (typed? field+*)
+		 (begin
+		   (assert (= (vector-length field+*) 2))
+		   (with-gensyms
+		    (V V*)
+		    `(lambda (,V)
+		       (let ((,V* (,FN ,V)))
+			 ;; (XX btw much code duplication? (of the
+			 ;; type check code, in case it is big))
+			 (type-check ,(vector-ref field+* 0) ,V*
+				     ,V*)))))
+		 FN)))
 	 name
 	 separator: "."
 	 ;; don't override constructor-name if provided by user
@@ -154,6 +176,14 @@
  #(foo 10 #t)
  > (foo b: #t x: 10)
  #(foo 10 #t)
+ > (.x-set # 12)
+ #(foo 12 #t)
+ > (%try-error (.x-set # 'n))
+ #(error "does not match integer?:" n)
+ > (.x-update '#(foo 10 #t) inc)
+ #(foo 11 #t)
+ > (%try-error (.x-update '#(foo 10 #t) true/1))
+ #(error "does not match integer?:" #t)
  > (%try-error (foo b: 11 x: 10))
  #(error "does not match boolean?:" 11)
  ;; > (define-struct. foo #(integer? x) #!optional (b #t))
