@@ -200,27 +200,26 @@
 			       ;; with symbol head?)
 			       #f)))
 		       defs))
-	;; and stupid (begin) analogon not allowed again:
-	(void)))))
+	,V))))
 
 
 ;; need this often enough I guess:
 (define nothing? not)
-(define. (nothing.typecheck! x)
-  (void))
+(define. nothing.typecheck! identity)
 
 ;; hmm. inefficiency worries except doesn't matter for typecheck; but
 ;; also ugly? (But wouldn't special-casing list-of in
 ;; define-struct. be ugler?)
 (define. (list.typecheck! l)
-  (for-each .typecheck! l))
+  (for-each .typecheck! l)
+  l)
 
 ;; hm even special-casing doesn't help in all cases, thus:
 (define (void/1 x) (void))
-(define. boolean.typecheck! void/1)
-(define. number.typecheck! void/1) ;; heh includes fixnum etc. of course
-(define. symbol.typecheck! void/1)
-(define. string.typecheck! void/1)
+(define. boolean.typecheck! identity)
+(define. number.typecheck! identity) ;; heh includes fixnum etc. of course
+(define. symbol.typecheck! identity)
+(define. string.typecheck! identity)
 
 
 (TEST
