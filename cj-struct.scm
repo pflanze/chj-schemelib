@@ -45,13 +45,6 @@
 				      "expecting symbol or meta-object")))))
 			  args*))
 	 (fields (map source-code fields*))
-	 (varsargs (map (lambda (v)
-			  (let ((v (source-code v)))
-			    (if (symbol? v)
-				(symbol-append "var-" v)
-				v)))
-			args*))
-	 (vars (filter symbol? varsargs))
 	 ;; keyed arguments:
 	 (prefix (source-code prefix))
 	 (accessor-prefix (source-code accessor-prefix))
@@ -110,9 +103,9 @@
 	 )
     `(begin
        (define ,constructor-name
-	 (lambda ,varsargs
-	   (vector ',tag
-		   ,@vars)))
+	 (lambda ,args*
+	   (##vector (##quote ,tag)
+		     ,@(filter (lambda (v) (symbol? (source-code v))) args*))))
        (define ,predicate-name
 	 (lambda (v)
 	   (and (vector? v)
@@ -265,6 +258,9 @@
  #(foo 1 4)
  > (foo-a-update # inc)
  #(foo 2 4)
+ > (define-struct foo #!key quote x y z)
+ > (make-foo quote: 10)
+ #(foo 10 #f #f #f)
  )
 
 ;; omit the |make-| prefix for the constructor name
