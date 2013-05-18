@@ -50,6 +50,8 @@
 				     `(type-check ,pred ,var
 						  ,$2)))))
 		(err)))
+	   ((meta-object? arg_)
+	    (values (cons arg_ $1) $2))
 	   (else
 	    (err))))))
 
@@ -102,6 +104,15 @@
  (lambda (a b . c)
    (type-check pair? b
 	       (begin 'hello 'world)))
+ > (expansion#typed-lambda (a #(pair? b) #!rest c) 'hello 'world)
+ (lambda (a b #!rest c) (type-check pair? b (begin 'hello 'world)))
+ > (expansion#typed-lambda (a #(pair? b) . #(number? c)) 'hello 'world)
+ (lambda (a b . c)
+   (type-check pair? b (type-check number? c (begin 'hello 'world))))
+ ;;^ XX wrong? make it list-of ? (this would be a redo, sigh)
+ > (expansion#typed-lambda (a #!key #(pair? b) #!rest #(number? c)) 'hello 'world)
+ (lambda (a #!key b #!rest c)
+   (type-check pair? b (type-check number? c (begin 'hello 'world))))
  )
 
 
