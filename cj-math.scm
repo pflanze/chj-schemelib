@@ -8,3 +8,7 @@
 (define (!= a b)
   (not (= a b)))
 
+
+(define (integer x)
+  (inexact->exact (floor x)))
+
