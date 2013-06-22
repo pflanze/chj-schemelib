@@ -5,7 +5,7 @@
 	  (modulo x y)))
 
 
-(define (!= a b)
+(define (/= a b)
   (not (= a b)))
 
 

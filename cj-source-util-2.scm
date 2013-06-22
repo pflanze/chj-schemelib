@@ -52,7 +52,7 @@
     pair? null? zero? negative?
     eq? eqv? equal?
     ;; own
-    != inc dec quotient + - * / arithmetic-shift square sqrt log expt
+    /= inc dec quotient + - * / arithmetic-shift square sqrt log expt
     eql?
     .type .info
     ))
