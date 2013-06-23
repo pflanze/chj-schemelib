@@ -4,6 +4,14 @@
   (values (quotient x y)
 	  (modulo x y)))
 
+;; > (quotient+modulo 14 12)
+;; 1
+;; 2
+;; Uh?:
+;; > (quotient+modulo -14 12)
+;; -1
+;; 10
+
 
 (define (/= a b)
   (not (= a b)))
