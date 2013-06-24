@@ -57,6 +57,11 @@
     .type .info
     ))
 
+(define assert:syntax-forms
+  '(
+    quote quasiquote
+    ))
+
 (define (assert:possibly-symbolize v)
   (let ((v* (source-code v)))
     (if (procedure? v*)
@@ -87,7 +92,8 @@
 	     `(##cons ,(assert-replace-expand (car e*))
 		      ,(assert-replace-expand (cdr e*)))))
 	  (symbol?
-	   (if (define-macro-star-maybe-ref (source-code e))
+	   (if (or (define-macro-star-maybe-ref (source-code e))
+		   (memq (source-code e) assert:syntax-forms))
 	       ;; even though it might be shadowed by a local
 	       ;; definition, since we don't have (thanks expander) a
 	       ;; way to check for that, we have to be conservative to
