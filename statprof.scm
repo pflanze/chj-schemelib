@@ -8,6 +8,7 @@
 ;;  (profile-start!)
 ;;  (profile-stop!)
 ;;  (write-profile-report string:subdirectory)
+;;  (run-with-profile thunk #!optional (profile-name "profile"))
 
 ;; ----------------------------------------------------------------------------
 ;; Profiling & interruption handling
@@ -234,6 +235,13 @@
   (/ (round
       (* 10000 n))
      100.))
+
+
+(define (run-with-profile thunk #!optional (profile-name "profile"))
+  (profile-start!)
+  (thunk)
+  (profile-stop!)
+  (write-profile-report profile-name))
 
 
 ;; ----------------------------------------------------------------------------
