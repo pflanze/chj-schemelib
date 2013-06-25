@@ -153,7 +153,7 @@
 			    (vector-ref v ,(add-offset i))
 			    (,error-name v))))
 		    ;; unsafe version:
-		    (define ,(symbol-append prefix
+		    (define-inline ,(symbol-append prefix
 					    unsafe-accessor-prefix
 					    name
 					    separator
