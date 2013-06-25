@@ -50,3 +50,5 @@ WRITE-PROFILE-REPORT <profile-name>
 
 
 See the file 'example.scm' for an example of use.
+
+statprof does not work when (generate-proper-tail-calls #f) is used.
