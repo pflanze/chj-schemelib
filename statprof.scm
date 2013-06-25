@@ -42,6 +42,7 @@
         'unknown)))
 
 (define (statprof:profile-heartbeat!)
+  (declare (proper-tail-calls))
   (##continuation-capture
    (lambda (cont)
      (##thread-heartbeat!)
