@@ -256,9 +256,9 @@
 
 
 (define (statprof:stringify x)
-  (with-output-to-string ""
-    (lambda ()
-      (print x))))
+  (call-with-output-string ""
+    (lambda (p)
+      (print port: p x))))
 
 (define (statprof:to-escaped-string x)
   (statprof:stringify
@@ -343,6 +343,4 @@
       (error "strange content..."))))
 
   ;; we rely on Gambit's flattening of list when printed with DISPLAY
-  (with-output-to-string ""
-                         (lambda ()
-                           (print (open-tag exp)))))
+  (statprof:stringify (open-tag exp)))
