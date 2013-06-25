@@ -145,7 +145,7 @@
                           (vector->list data)))
                  (map cdr statprof:*buckets*)))))
 
-    (map
+    (for-each
      (lambda (bucket)
        (let ((file (car bucket))
              (data (cdr bucket)))
