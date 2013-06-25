@@ -153,13 +153,13 @@
 			    (vector-ref v ,(add-offset i))
 			    (,error-name v))))
 		    ;; unsafe version:
-		    (define-inline ,(symbol-append prefix
-					    unsafe-accessor-prefix
-					    name
-					    separator
-					    field)
-		      (lambda (v)
-			(##vector-ref v ,(add-offset i))))
+		    (define-macro* (,(symbol-append prefix
+						    unsafe-accessor-prefix
+						    name
+						    separator
+						    field) v)
+		      ,(list 'quasiquote
+			     `(##vector-ref ,(list 'unquote 'v) ,(add-offset i))))
 		    ;; functional setter:
 		    (,DEFINE ,(safe-setter-for-field field)
 		      (,LAMBDA (v ,(wrap-var 'val field+))
