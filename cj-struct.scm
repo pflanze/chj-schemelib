@@ -159,7 +159,7 @@
 					    separator
 					    field)
 		      (lambda (v)
-			(vector-ref v ,(add-offset i))))
+			(##vector-ref v ,(add-offset i))))
 		    ;; functional setter:
 		    (,DEFINE ,(safe-setter-for-field field)
 		      (,LAMBDA (v ,(wrap-var 'val field+))
