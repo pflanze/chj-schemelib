@@ -137,80 +137,81 @@
      (create-directory (list path: directory-name
                              permissions: #o755))))
 
-  (let ((max-intensity
-         (apply max
-                (map
-                 (lambda (data)
-                   (apply max
-                          (vector->list data)))
-                 (map cdr statprof:*buckets*)))))
+  (if (pair? statprof:*buckets*)
+      (let ((max-intensity
+	     (apply max
+		    (map
+		     (lambda (data)
+		       (apply max
+			      (vector->list data)))
+		     (map cdr statprof:*buckets*)))))
 
-    (for-each
-     (lambda (bucket)
-       (let ((file (car bucket))
-             (data (cdr bucket)))
+	(for-each
+	 (lambda (bucket)
+	   (let ((file (car bucket))
+		 (data (cdr bucket)))
 
-         (define (get-color n)
-           (let ((i (vector-ref data n)))
-             (if (= i 0)
-                 (statprof:as-rgb (vector-ref statprof:palette 0))
-                 (let ((x (* (/ (log (+ 1. i))
-                                (ceiling (log max-intensity)))
-                             (- (vector-length statprof:palette) 1))))
-                   (statprof:as-rgb (vector-ref statprof:palette
-                                       (inexact->exact (ceiling x))))))))
+	     (define (get-color n)
+	       (let ((i (vector-ref data n)))
+		 (if (= i 0)
+		     (statprof:as-rgb (vector-ref statprof:palette 0))
+		     (let ((x (* (/ (log (+ 1. i))
+				    (ceiling (log max-intensity)))
+				 (- (vector-length statprof:palette) 1))))
+		       (statprof:as-rgb (vector-ref statprof:palette
+						    (inexact->exact (ceiling x))))))))
 
-         (with-output-to-file (string-append
-                               directory-name
-                               (path-strip-directory file)
-                               ".html")
-           (let ((lines (call-with-input-file file
-                          (lambda (p) (read-all p read-line)))))
-             (lambda ()
-               (print
-                (statprof:sexp->html
-                 `(html
-                   (body
-                    (table
-                     cellspacing: 0
-                     cellpadding: 0
-                     border: 0
-                     style: "font-size: 12px;"
-                     ,@(map
-                        (lambda (line line#)
-                          `(tr
-                            (td ,(string-append
-                                  (number->string line#)
-                                  ": "))
-                            ;; (td
-                            ;;  align: center
-                            ;;  ,(let ((n (vector-ref data line#)))
-                            ;;     (if (= n 0)
-                            ;;         ""
-                            ;;         (string-append "["
-                            ;;                        (number->string n)
-                            ;;                        "/"
-                            ;;                        (number->string statprof:*total*)
-                            ;;                        "]"))))
+	     (with-output-to-file (string-append
+				   directory-name
+				   (path-strip-directory file)
+				   ".html")
+	       (let ((lines (call-with-input-file file
+			      (lambda (p) (read-all p read-line)))))
+		 (lambda ()
+		   (print
+		    (statprof:sexp->html
+		     `(html
+		       (body
+			(table
+			 cellspacing: 0
+			 cellpadding: 0
+			 border: 0
+			 style: "font-size: 12px;"
+			 ,@(map
+			    (lambda (line line#)
+			      `(tr
+				(td ,(string-append
+				      (number->string line#)
+				      ": "))
+				;; (td
+				;;  align: center
+				;;  ,(let ((n (vector-ref data line#)))
+				;;     (if (= n 0)
+				;;         ""
+				;;         (string-append "["
+				;;                        (number->string n)
+				;;                        "/"
+				;;                        (number->string statprof:*total*)
+				;;                        "]"))))
 
-                            (td
-                             align: center
-                             ,(let ((n (vector-ref data line#)))
-                                (if (= n 0)
-                                    ""
-                                    (string-append
-                                     (number->string
-                                      (statprof:round% (/ n statprof:*total*)))
-                                     "% "))))
+				(td
+				 align: center
+				 ,(let ((n (vector-ref data line#)))
+				    (if (= n 0)
+					""
+					(string-append
+					 (number->string
+					  (statprof:round% (/ n statprof:*total*)))
+					 "% "))))
 
-                            (td (pre style: ,(string-append
-                                              "background-color:#"
-                                              (get-color line#))
-                                     ,line))))
-                        lines
-                        (iota1 (length lines)))))))))))))
+				(td (pre style: ,(string-append
+						  "background-color:#"
+						  (get-color line#))
+					 ,line))))
+			    lines
+			    (iota1 (length lines)))))))))))))
 
-     statprof:*buckets*))
+	 statprof:*buckets*)))
 
   (with-output-to-file (string-append directory-name "index.html")
     (lambda ()
