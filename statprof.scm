@@ -4,17 +4,21 @@
 
 ;; $Id: statprof.scm,v 1.9 2005/03/14 07:35:49 guillaume Exp $
 
+;; public:
+;;  (profile-start!)
+;;  (profile-stop!)
+;;  (write-profile-report string:subdirectory)
 
 ;; ----------------------------------------------------------------------------
 ;; Profiling & interruption handling
 
-(define *buckets* #f)
-(define *total* 0)
+(define statprof:*buckets* #f)
+(define statprof:*total* 0)
 
 (define (profile-start!)
-  (set! *buckets* '())
-  (set! *total* 0)
-  (##interrupt-vector-set! 1 profile-heartbeat!))
+  (set! statprof:*buckets* '())
+  (set! statprof:*total* 0)
+  (##interrupt-vector-set! 1 statprof:profile-heartbeat!))
 
 (define (profile-stop!)
   (##interrupt-vector-set! 1 ##thread-heartbeat!))
@@ -23,7 +27,7 @@
 ;;   (or (##continuation-creator cont)
 ;;       'unknown))
 
-(define (identify-continuation cont) ; second version
+(define (statprof:identify-continuation cont) ; second version
   (let ((locat (##continuation-locat cont)))
     (if locat
         (let* ((container (##locat-container locat))
@@ -36,24 +40,25 @@
               'unknown))
         'unknown)))
 
-(define (profile-heartbeat!)
+(define (statprof:profile-heartbeat!)
   (##continuation-capture
    (lambda (cont)
      (##thread-heartbeat!)
-     (let ((id (identify-continuation cont)))
+     (let ((id (statprof:identify-continuation cont)))
        (if (not (eq? id 'unknown))
-           (let ((bucket (assoc (car id) *buckets*)))
-             (set! *total* (+ *total* 1))
+           (let ((bucket (assoc (car id) statprof:*buckets*)))
+             (set! statprof:*total* (+ statprof:*total* 1))
              (if (not bucket)
                  (begin
-                   (set! *buckets* (cons
-                                    (cons (car id)
-                                          ;; fixme: arbitrary hard limit
-                                          ;; on the length of source
-                                          ;; files
-                                          (make-vector 5000 0))
-                                    *buckets*))
-                   (set! bucket (car *buckets*))))
+                   (set! statprof:*buckets*
+			 (cons
+			  (cons (car id)
+				;; fixme: arbitrary hard limit
+				;; on the length of source
+				;; files
+				(make-vector 5000 0))
+			  statprof:*buckets*))
+                   (set! bucket (car statprof:*buckets*))))
 
              (vector-set! (cdr bucket)
                           (cadr id)
@@ -65,7 +70,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Text formatting
 
-(define (pad-left s l c)
+(define (statprof:pad-left s l c)
   (let loop ((s (string->list s)))
     (if (< (length s) l)
         (loop (cons c s))
@@ -75,7 +80,7 @@
 ;; ----------------------------------------------------------------------------
 ;; Palette generation & color formatting
 
-(define (gradient from to step)
+(define (statprof:gradient from to step)
   (let ((inc (map (lambda (x) (/ x step))
                   (map - to from))))
 
@@ -91,17 +96,17 @@
                        inc)
                       acc))))))
 
-(define (as-rgb col)
+(define (statprof:as-rgb col)
   (apply string-append
          (map
           (lambda (x)
-            (pad-left (number->string x 16) 2 #\0))
+            (statprof:pad-left (number->string x 16) 2 #\0))
           col)))
 
-(define palette
+(define statprof:palette
   (list->vector
    (cons '(255 255 255)
-         (gradient '(127 127 255)
+         (statprof:gradient '(127 127 255)
                    '(255 127 127)
                    16))))
 
@@ -137,7 +142,7 @@
                  (lambda (data)
                    (apply max
                           (vector->list data)))
-                 (map cdr *buckets*)))))
+                 (map cdr statprof:*buckets*)))))
 
     (map
      (lambda (bucket)
@@ -147,11 +152,11 @@
          (define (get-color n)
            (let ((i (vector-ref data n)))
              (if (= i 0)
-                 (as-rgb (vector-ref palette 0))
+                 (statprof:as-rgb (vector-ref statprof:palette 0))
                  (let ((x (* (/ (log (+ 1. i))
                                 (ceiling (log max-intensity)))
-                             (- (vector-length palette) 1))))
-                   (as-rgb (vector-ref palette
+                             (- (vector-length statprof:palette) 1))))
+                   (statprof:as-rgb (vector-ref statprof:palette
                                        (inexact->exact (ceiling x))))))))
 
          (with-output-to-file (string-append
@@ -162,7 +167,7 @@
                           (lambda (p) (read-all p read-line)))))
              (lambda ()
                (print
-                (sexp->html
+                (statprof:sexp->html
                  `(html
                    (body
                     (table
@@ -184,7 +189,7 @@
                             ;;         (string-append "["
                             ;;                        (number->string n)
                             ;;                        "/"
-                            ;;                        (number->string *total*)
+                            ;;                        (number->string statprof:*total*)
                             ;;                        "]"))))
 
                             (td
@@ -194,7 +199,7 @@
                                     ""
                                     (string-append
                                      (number->string
-                                      (round% (/ n *total*)))
+                                      (statprof:round% (/ n statprof:*total*)))
                                      "% "))))
 
                             (td (pre style: ,(string-append
@@ -204,12 +209,12 @@
                         lines
                         (iota1 (length lines)))))))))))))
 
-     *buckets*))
+     statprof:*buckets*))
 
   (with-output-to-file (string-append directory-name "index.html")
     (lambda ()
       (print
-       (sexp->html
+       (statprof:sexp->html
         `(html
           (body
            ,@(map (lambda (bucket)
@@ -219,13 +224,13 @@
                                       ".html")))
                       `(p (a href: ,file-path ,file-path)
                           " ["
-                          ,(round%
+                          ,(statprof:round%
                             (/ (apply + (vector->list (cdr bucket)))
-                               *total*))
+                               statprof:*total*))
                           " %]")))
-                  *buckets*))))))))
+                  statprof:*buckets*))))))))
 
-(define (round% n)
+(define (statprof:round% n)
   (/ (round
       (* 10000 n))
      100.))
@@ -241,13 +246,13 @@
 ;; This code is released in the public domain.
 
 
-(define (stringify x)
+(define (statprof:stringify x)
   (with-output-to-string ""
     (lambda ()
       (print x))))
 
-(define (to-escaped-string x)
-  (stringify
+(define (statprof:to-escaped-string x)
+  (statprof:stringify
    (map (lambda (c)
           (case c
             ((#\<) "&lt;")
@@ -255,10 +260,10 @@
             ((#\&) "&amp;")
             (else c)))
         (string->list
-         (stringify x)))))
+         (statprof:stringify x)))))
 
 ;; Quick and dirty conversion of s-expressions to html
-(define (sexp->html exp)
+(define (statprof:sexp->html exp)
 
   ;; write the opening tag
   (define (open-tag exp)
@@ -318,7 +323,7 @@
             (map (lambda (e)
                    (if (pair? e)
                        (open-tag e)
-                       (to-escaped-string e)))
+                       (statprof:to-escaped-string e)))
                  exp)
             "</"
             tag
