@@ -20,3 +20,6 @@
 (define (integer x)
   (inexact->exact (floor x)))
 
+(define (square x)
+  (* x x))
+
