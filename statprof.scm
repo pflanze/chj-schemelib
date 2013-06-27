@@ -241,9 +241,10 @@
 
 (define (run-with-profile thunk #!optional (profile-name "profile"))
   (profile-start!)
-  (thunk)
-  (profile-stop!)
-  (write-profile-report profile-name))
+  (let ((res (thunk)))
+    (profile-stop!)
+    (write-profile-report profile-name)
+    res))
 
 
 ;; ----------------------------------------------------------------------------
