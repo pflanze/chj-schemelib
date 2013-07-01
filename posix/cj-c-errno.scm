@@ -178,32 +178,34 @@
       ;;XX don't have source-warn yet, but that would probably be?:
       (source-warn c-name "not consistent" name1 name2))
 
-  (case (source-code returntype)
-    ((int uid_t gid_t
-	  ssize_t ;; OK?todo.
-	  )
-     (let ((argnames (map cadr type-argname-alist))
-	   (argtypes (map car type-argname-alist)))
-       ;;(newline)
-       ;;(pp-through
-       `(define/check ,name1 ,name2 ,argnames
-	  (error-to-posix-exception
-	   ((c-lambda ,argtypes
-		      ,returntype
-		      ,(string-append "___result= "
-				      (source-code c-name)
-				      "("
-				      (apply string-append
-					     (list-join
-					      (map (lambda (i)
-						     (string-append
-						      "___arg"
-						      (number->string i)))
-						   (iota (length argnames)
-							 1))
-					      ", "))
-				      "); "
-				      "if(___result<0) ___result=-errno;"))
-	    ,@argnames)))))
-    (else
-     (source-error returntype "unknown return type"))))
+  (let ((type-argname-alist* (cj-desourcify type-argname-alist)))
+    
+    (case (source-code returntype)
+      ((int uid_t gid_t
+	    ssize_t ;; OK?todo.
+	    )
+       (let ((argnames (map cadr type-argname-alist*))
+	     (argtypes (map car type-argname-alist*)))
+	 ;;(newline)
+	 ;;(pp-through
+	 `(define/check ,name1 ,name2 ,argnames
+	    (error-to-posix-exception
+	     ((c-lambda ,argtypes
+			,returntype
+			,(string-append "___result= "
+					(source-code c-name)
+					"("
+					(apply string-append
+					       (list-join
+						(map (lambda (i)
+						       (string-append
+							"___arg"
+							(number->string i)))
+						     (iota (length argnames)
+							   1))
+						", "))
+					"); "
+					"if(___result<0) ___result=-errno;"))
+	      ,@argnames)))))
+      (else
+       (source-error returntype "unknown return type")))))
