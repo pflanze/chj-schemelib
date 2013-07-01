@@ -714,7 +714,7 @@ ___result=___FIX(-1000); /*shouldn't happen*/
 
 (c-define-type size_t int);;; OK? todo
 (c-define-type ssize_t int);;; OK? todo
-(include "cj-c-types.scm");; for void* and const_void*
+(include "../cj-c-types.scm");; for void* and const_void*
 
 (define/check->integer "read" posix:_read posix:read
   ((int fd) (void* buf) (size_t count))
