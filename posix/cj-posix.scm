@@ -626,11 +626,9 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 
 
 (define/check->integer "execv" _execv execv
-  ((ISO-8859-1-string path) ;;;WELLL?
-   ;;ISO-8859-1-string-list  HM gibts nicht aber habe glaub eigen gemacht wo? AH nein dumm, nonnull meint die einzelnen strings und diese wären ja abschluss.
+  ((ISO-8859-1-string path) ;; XX?
    (nonnull-ISO-8859-1-string-list argv))
   int)
-;;what to do about this?: /home/chris/schemedevelopment/gambit/mod/cj-posix.c:32486: Warnung: Verarbeiten des Argumentes 2 von »execv« von inkompatiblem Zeigertyp
 
 (define/check->integer "execvp" _execvp execvp
   ((ISO-8859-1-string path)
