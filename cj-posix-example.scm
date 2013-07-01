@@ -1,3 +1,11 @@
+(require
+ cj-env
+ cj-posix
+ cj-string-util
+ interrupts
+ (cj-test TEST)
+ )
+
 ;; cj Thu, 21 Dec 2006 01:41:15 +0100
 
 (define BUFSIZ 10)
