@@ -44,7 +44,7 @@ ___RESULT= ___FIX(" namestr ");
 ;; define the constant to be either false, if it doesn't exist in C
 ;; space, or the integer value if it does:
 
-(define-macro (maybe-define-constant-from-C name)
+(define-macro* (maybe-define-constant-from-C name)
   (let ((namestr (symbol->string name)))
     `(define ,name
        (##c-code ,(string-append "
@@ -60,7 +60,7 @@ ___RESULT= ___FAL;
 ;; (but I really wrote it since I couldn't figure out how to get at
 ;; the O_DIRECTORY definition in C)
 
-(define-macro (HACK_maybe-define-constant-from-C name)
+(define-macro* (HACK_maybe-define-constant-from-C name)
   (let* ((namestr (symbol->string name))
 	 (p (open-process (list path: "perl"
 				arguments:
@@ -114,11 +114,11 @@ ___RESULT= ___FAL;
 			       (list c-field-prefix: c-field-prefix))))
 	      fielddefs))))
 
-(define-macro (define-struct-field-accessors . args)
+(define-macro* (define-struct-field-accessors . args)
   (step)
   (apply code:define-struct-field-accessors args))
 
-(define-macro (define-struct-accessors . args)
+(define-macro* (define-struct-accessors . args)
   ;; really difficult dsssl stufff
   (apply (lambda (structname #!key c-field-prefix )
 	   (code:define-struct-accessors structname: structname
@@ -199,7 +199,7 @@ structname: structname
 fielddefs: fielddefs)))))
 
 
-(define-macro (define-struct-from-c . args)
+(define-macro* (define-struct-from-c . args)
   (pp-through
    (apply code:define-struct-from-c args))) ;;; SHOULD i   put args into macro defs for different macro apply errors? todo
 
