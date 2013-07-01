@@ -1,10 +1,30 @@
+(require
+ cj-env ;;  symbol-append
+ (cj-gambit-sys max-fixnum min-fixnum)
+ cj-list-util ;; map-with-iota
+ (srfi-1 cons*)
+ (cj-string-flatten flat-append-strings)
+ cj-env
+ )
+
+;; (compile #f);; since it's only a macro.
+
+;; (exports-macros
+;;  define-constant-from-c
+;;  maybe-define-constant-from-c
+;;  HACK_maybe-define-constant-from-c
+;;  define-struct-field-accessors
+;;  define-struct-accessors
+;;  define-struct-from-c
+;;  )
+
+
 ;; cj Fri, 29 Dec 2006 07:02:24 +0100
 ;; utilities for interfacing C code.
 ;; See also cj-c-types, for types helping interfacing C code,
 ;; and cj-c-errno for dealing with errno.
 
-(##include "gambit-default-namespace.scm")
-(include "cj-standarddeclares.scm")
+(cj-declare)
 
 ; (define-macro (define-constant-from-c name)
 ;   `(define ,name
