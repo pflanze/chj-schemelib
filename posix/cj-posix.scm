@@ -384,7 +384,7 @@ ___result=___FIX(-1000); /*shouldn't happen*/
 		    (error-to-posix-exception
 		     ((c-lambda (scheme-object)
 				pid_t
-				"___result= wait(___BODY(___arg1));
+				"___result= wait(___CAST(int*,___BODY(___arg1)));
                                  if(___result<0) ___result=-errno;")
 		      &status))))
 
@@ -394,7 +394,8 @@ ___result=___FIX(-1000); /*shouldn't happen*/
 		    (error-to-posix-exception
 		     ((c-lambda (pid_t scheme-object int)
 				pid_t
-				"___result= waitpid(___arg1,___BODY(___arg2),___arg3);
+				"
+___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
                                  if(___result<0) ___result=-errno;")
 		      pid &status options))))
 
@@ -463,7 +464,7 @@ ___result=___FIX(-1000); /*shouldn't happen*/
    (let ((v (##make-s32vector 2))) ;; (same worries as above, todo)
      (let ((r ((c-lambda (scheme-object)
 			 int
-			 "___result= pipe(___BODY(___arg1));
+			 "___result= pipe(___CAST(int*,___BODY(___arg1)));
                             if(___result<0) ___result=-errno;")
 	       v)))
        (if (= r 0)
@@ -517,7 +518,8 @@ ___result=___FIX(-1000); /*shouldn't happen*/
    (let ((v (##make-s32vector 2))) ;; (dito, see above)
      (let ((r ((c-lambda (int scheme-object)
 			 int
-			 "___result= socketpair(AF_UNIX, ___arg1, 0, ___BODY(___arg2));
+			 "
+___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
                            if(___result<0) ___result=-errno;")
 	       type v)))
        (if (= r 0)
