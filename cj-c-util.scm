@@ -45,15 +45,17 @@ ___RESULT= ___FIX(" namestr ");
 ;; space, or the integer value if it does:
 
 (define-macro* (maybe-define-constant-from-C name)
-  (let ((namestr (symbol->string name)))
-    `(define ,name
-       (##c-code ,(string-append "
+  (assert* symbol? name
+	   (lambda (name)
+	     (let ((namestr (symbol->string name)))
+	       `(define ,name
+		  (##c-code ,(string-append "
 #ifdef " namestr "
 " (code:constant-from-C namestr) "
 #else
 ___RESULT= ___FAL;
 #endif
-")))))
+")))))))
 
 
 ;; hehe this one does not even need the client modul to be compiled :)
@@ -61,21 +63,24 @@ ___RESULT= ___FAL;
 ;; the O_DIRECTORY definition in C)
 
 (define-macro* (HACK_maybe-define-constant-from-C name)
-  (let* ((namestr (symbol->string name))
-	 (p (open-process (list path: "perl"
-				arguments:
-				(list "-w"
-				      (string-append "-MFcntl=" namestr)
-				      "-e"
-				      (string-append "print " namestr)))))
-	 (num (read p))
-	 (status (process-status p)))
-    (close-port p)
-    (if (= status 0)
-	(if (integer? num)
-	    `(define ,name ,num)
-	    (error "HACK_maybe-define-constant-from-C: perl returned non-integer value:" num))
-	(error "HACK_maybe-define-constant-from-C: perl exited with status:" status))))
+  (assert*
+   symbol? name
+   (lambda (name)
+     (let* ((namestr (symbol->string name))
+	    (p (open-process (list path: "perl"
+				   arguments:
+				   (list "-w"
+					 (string-append "-MFcntl=" namestr)
+					 "-e"
+					 (string-append "print " namestr)))))
+	    (num (read p))
+	    (status (process-status p)))
+       (close-port p)
+       (if (= status 0)
+	   (if (integer? num)
+	       `(define ,name ,num)
+	       (error "HACK_maybe-define-constant-from-C: perl returned non-integer value:" num))
+	   (error "HACK_maybe-define-constant-from-C: perl exited with status:" status))))))
 
 (define code:define-struct-field-accessors
   ;; assumes that structname is also it's typename
