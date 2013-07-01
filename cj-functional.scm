@@ -177,7 +177,17 @@
     (and v
 	 (fn v))))
 
+(define (maybe pred)
+  (either not pred))
 
+(TEST
+ > ((maybe number?) 1)
+ #t
+ > ((maybe number?) #f)
+ #t
+ > ((maybe number?) #t)
+ #f
+ )
 
 
 ;; n-ary "on"
