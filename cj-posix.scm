@@ -13,6 +13,7 @@
  cj-env
  cj-gambit-sys
  (cj-test TEST)
+ cj-env-2
  )
 
 ;; it also does (include "cj-c-types.scm")

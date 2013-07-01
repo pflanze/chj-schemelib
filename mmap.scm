@@ -7,11 +7,10 @@
 
 
 (require cj-functional
-	 cj-ffi)
+	 cj-ffi
+	 cj-env-2)
 
-(declare (block)
-	 (standard-bindings)
-	 (extended-bindings))
+(cj-declare)
 
 (c-declare "
 #include <sys/mman.h>
