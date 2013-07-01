@@ -20,54 +20,8 @@
 ;;  )
 
 
-;; cj Fri, 29 Dec 2006 07:02:24 +0100
-;; utilities for interfacing C code.
-;; See also cj-c-types, for types helping interfacing C code,
-;; and cj-c-errno for dealing with errno.
 
 (declare (block)(standard-bindings)(extended-bindings))
-
-; (define-macro (define-constant-from-c name)
-;   `(define ,name
-;      ((c-lambda ()
-;                 int
-;                 ,(string-append "___result="
-;                                 (symbol->string name)
-;                                 ";")))))
-
-;; replacing the above implementation with the below made the size of
-;; the cj-posix.oX object file drop by 12.3%. 
-
-; (define-macro (define-constant-from-c name)
-;   `(define ,name
-;      (##c-code ,(string-append "___RESULT= ___FIX("
-; 			       (symbol->string name)
-; 			       ");"))))
-
-;; now also make it safe by checking if the constant is really in
-;; fixnum range:
-
-; (define-macro (define-constant-from-c name)
-;   (let ((namestr (symbol->string name)))
-;     `(define ,name
-;        (##c-code ,(string-append "
-; #define ___MAX_FLIX 32343
-; #define ___MIN_FLIX -20
-; {
-;  int subar= ___MIN_FIX;
-; }
-; #if ((" namestr " > ___MAX_FLIX) || (" namestr " < (___MIN_FLIX)))
-; #error \"define-constant-from-c: C constant '" namestr
-; "' is out of fixnum range. (Improve macro implementation in cj-c-util.scm)\"
-; #else
-; ___RESULT= ___FIX(" namestr ");
-; #endif
-; #undef ___MAX_FLIX
-; #undef ___MIN_FLIX
-; ")))))
-;sigh, you can't use __MIN_FIX since it expands to (for me): (-(((int)(1))<<((32 -2)-1)))
-;which is over cpp's head, gcc says: missing binary operator before token "("
-;so we're going to use definitions from cj-gambit-sys instead.
 
 (define (code:constant-from-c namestr)
   (let ((maxstr (number->string max-fixnum))
