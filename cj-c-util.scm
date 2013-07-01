@@ -25,7 +25,7 @@
 ;; See also cj-c-types, for types helping interfacing C code,
 ;; and cj-c-errno for dealing with errno.
 
-(cj-declare)
+(declare (block)(standard-bindings)(extended-bindings))
 
 ; (define-macro (define-constant-from-c name)
 ;   `(define ,name

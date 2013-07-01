@@ -50,7 +50,8 @@
 ;; calls, and use a special type to differentiate safely and
 ;; comfortably. (We cache the values to minimize gc overhead.)
 
-(cj-declare)
+(declare (block)(standard-bindings)(extended-bindings))
+
 
 ; (declare (fixnum)
 ; 	 (not safe))

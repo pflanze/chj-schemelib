@@ -2,7 +2,6 @@
  cj-test
  cj-env;;XX update what exactly?
 
- cj-env-2 ;; cj-declare
  )
 
 ;; (compile #t)
@@ -50,7 +49,7 @@
 
 ;; (I once started in chicken-sys; but seems/iirc didn't finish)
 
-(cj-declare)
+(declare (block)(standard-bindings)(extended-bindings))
 ;; do NOT declare fixnum and not safe; this would break number
 ;; calculations overflowing fixnums.
 

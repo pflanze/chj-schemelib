@@ -151,7 +151,7 @@
 
 ;; (compile #t)
 
-(cj-declare)
+(declare (block)(standard-bindings)(extended-bindings))
 
 ;; Syntax used in this module:
 ;; - from cj-c-errno:

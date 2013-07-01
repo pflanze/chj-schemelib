@@ -16,10 +16,9 @@
 
 ;; that which cj-standarddeclares.scm was.
 ;; no args yet, perhaps later..
-(define-macro* (cj-declare)
-  `(declare (block)
-	    (standard-bindings)
-	    (extended-bindings)))
+;; (define-macro* (cj-declare)
+;;  `(declare (block)(standard-bindings)(extended-bindings)))
+;;stupid, doesn't work (macro output not looked at in right phase by compiler?)
 
 
 ;; stop hand-rolling these 0..n-1 loops
