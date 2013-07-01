@@ -54,9 +54,10 @@
 ;; do NOT declare fixnum and not safe; this would break number
 ;; calculations overflowing fixnums.
 
-(define (mem-allocated? obj)
-  (##c-code "___RESULT= ___BOOLEAN(___MEM_ALLOCATED(___ARG1));" obj))
-;; yes, ___BOOLEAN is required!
+;; (define (mem-allocated? obj)
+;;   (##c-code "___RESULT= ___BOOLEAN(___MEM_ALLOCATED(___ARG1));" obj))
+
+(define mem-allocated? ##mem-allocated?)
 
 (define (check-mem-allocated obj thunk)
   (if (mem-allocated? obj)
