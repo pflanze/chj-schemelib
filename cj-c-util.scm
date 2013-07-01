@@ -11,9 +11,9 @@
 ;; (compile #f);; since it's only a macro.
 
 ;; (exports-macros
-;;  define-constant-from-c
-;;  maybe-define-constant-from-c
-;;  HACK_maybe-define-constant-from-c
+;;  define-constant-from-C
+;;  maybe-define-constant-from-C
+;;  HACK_maybe-define-constant-from-C
 ;;  define-struct-field-accessors
 ;;  define-struct-accessors
 ;;  define-struct-from-c
@@ -23,32 +23,33 @@
 
 (declare (block)(standard-bindings)(extended-bindings))
 
-(define (code:constant-from-c namestr)
+(define (code:constant-from-C namestr)
   (let ((maxstr (number->string max-fixnum))
 	(minstr (number->string min-fixnum)))
     (string-append "
 #if ((" namestr " > " maxstr ") || (" namestr " < " minstr "))
-#error \"define-constant-from-c: C constant '" namestr "' is out of fixnum range. (Improve macro implementation in cj-c-util.scm to handle bignums.)\"
+#error \"define-constant-from-C: C constant '" namestr "' is out of fixnum range. (Improve macro implementation in cj-c-util.scm to handle bignums.)\"
 #else
 ___RESULT= ___FIX(" namestr ");
 #endif
 ")))
 
-(define-macro (define-constant-from-c name)
-  (let ((namestr (symbol->string name)))
-    `(define ,name
-       (##c-code ,(code:constant-from-c namestr)))))
+(define-macro* (define-constant-from-C name)
+  (assert* symbol? name
+	   (lambda (name)
+	     `(define ,name
+		(##c-code ,(code:constant-from-C (symbol->string name)))))))
 
 
 ;; define the constant to be either false, if it doesn't exist in C
 ;; space, or the integer value if it does:
 
-(define-macro (maybe-define-constant-from-c name)
+(define-macro (maybe-define-constant-from-C name)
   (let ((namestr (symbol->string name)))
     `(define ,name
        (##c-code ,(string-append "
 #ifdef " namestr "
-" (code:constant-from-c namestr) "
+" (code:constant-from-C namestr) "
 #else
 ___RESULT= ___FAL;
 #endif
@@ -59,7 +60,7 @@ ___RESULT= ___FAL;
 ;; (but I really wrote it since I couldn't figure out how to get at
 ;; the O_DIRECTORY definition in C)
 
-(define-macro (HACK_maybe-define-constant-from-c name)
+(define-macro (HACK_maybe-define-constant-from-C name)
   (let* ((namestr (symbol->string name))
 	 (p (open-process (list path: "perl"
 				arguments:
@@ -73,8 +74,8 @@ ___RESULT= ___FAL;
     (if (= status 0)
 	(if (integer? num)
 	    `(define ,name ,num)
-	    (error "HACK_maybe-define-constant-from-c: perl returned non-integer value:" num))
-	(error "HACK_maybe-define-constant-from-c: perl exited with status:" status))))
+	    (error "HACK_maybe-define-constant-from-C: perl returned non-integer value:" num))
+	(error "HACK_maybe-define-constant-from-C: perl exited with status:" status))))
 
 (define code:define-struct-field-accessors
   ;; assumes that structname is also it's typename

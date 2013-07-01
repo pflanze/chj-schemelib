@@ -2,7 +2,7 @@
  gambit-interpreter-env
  (cj-env warn)
  ;;(interrupts interrupt-install-handler! SIGCHLD)
- cj-c-util	     ;; {maybe-,}define-constant-from-c
+ cj-c-util	     ;; {maybe-,}define-constant-from-C
  cj-c-errno ;; including define/check and define/check->integer
  (cj-c-errno throw-posix-exception
 	     posix-exception) ;;(or should I make cj-c-errno export those by default?)
@@ -262,8 +262,8 @@ if (pid<0) {
   (and (s32vector? obj)
        (>= (##s32vector-length obj) 1)))
 
-(define-constant-from-c WNOHANG)
-(define-constant-from-c WUNTRACED)
+(define-constant-from-C WNOHANG)
+(define-constant-from-C WUNTRACED)
 
 (define-macro (typecheck-status arg body)
   `(if (status? ,arg)
@@ -486,30 +486,30 @@ ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
 ")
 
 ;; communication domains:
-(define-constant-from-c PF_UNIX)
-(define-constant-from-c PF_INET)
-(define-constant-from-c PF_INET6);;doesthiswork?...
-(define-constant-from-c PF_IPX)
-(define-constant-from-c PF_NETLINK)
-(define-constant-from-c PF_X25)
-(define-constant-from-c PF_AX25)
-(define-constant-from-c PF_ATMPVC)
-(define-constant-from-c PF_APPLETALK)
-(define-constant-from-c PF_PACKET);; Low level packet interface
+(define-constant-from-C PF_UNIX)
+(define-constant-from-C PF_INET)
+(define-constant-from-C PF_INET6);;doesthiswork?...
+(define-constant-from-C PF_IPX)
+(define-constant-from-C PF_NETLINK)
+(define-constant-from-C PF_X25)
+(define-constant-from-C PF_AX25)
+(define-constant-from-C PF_ATMPVC)
+(define-constant-from-C PF_APPLETALK)
+(define-constant-from-C PF_PACKET);; Low level packet interface
 
 ;;;huh difference from PF_UNIX to AF_UNIX ?? (which man socketpair uses, see c-lambda below)
-;(define-constant-from-c AF_UNIX)
+;(define-constant-from-C AF_UNIX)
 ;;both are 1
 
 ;; socket types:
-(define-constant-from-c SOCK_STREAM)
-(define-constant-from-c SOCK_DGRAM)
-(define-constant-from-c SOCK_SEQPACKET)
-(define-constant-from-c SOCK_RAW)
-(define-constant-from-c SOCK_RDM)
+(define-constant-from-C SOCK_STREAM)
+(define-constant-from-C SOCK_DGRAM)
+(define-constant-from-C SOCK_SEQPACKET)
+(define-constant-from-C SOCK_RAW)
+(define-constant-from-C SOCK_RDM)
 
 ;; protocols:  hum?
-; (define-constant-from-c )
+; (define-constant-from-C )
 ;...
 
 ;;  int socketpair(int d, int type, int protocol, int sv[2]);
@@ -528,76 +528,76 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 
 
 ;; seeking:
-(define-constant-from-c SEEK_SET)
-(define-constant-from-c SEEK_CUR)
-(define-constant-from-c SEEK_END)
+(define-constant-from-C SEEK_SET)
+(define-constant-from-C SEEK_CUR)
+(define-constant-from-C SEEK_END)
 
 ;; file open flags:
-(define-constant-from-c O_APPEND)
-(define-constant-from-c O_NONBLOCK)
-(define-constant-from-c O_ASYNC)
-; (define-constant-from-c O_DIRECT)
+(define-constant-from-C O_APPEND)
+(define-constant-from-C O_NONBLOCK)
+(define-constant-from-C O_ASYNC)
+; (define-constant-from-C O_DIRECT)
 
-(define-constant-from-c O_RDONLY)
-(define-constant-from-c O_WRONLY)
-(define-constant-from-c O_RDWR)
-(define-constant-from-c O_CREAT)
-(define-constant-from-c O_EXCL)
-(define-constant-from-c O_NOCTTY)
-(define-constant-from-c O_TRUNC)
-(define-constant-from-c O_NDELAY)
-(define-constant-from-c O_SYNC)
+(define-constant-from-C O_RDONLY)
+(define-constant-from-C O_WRONLY)
+(define-constant-from-C O_RDWR)
+(define-constant-from-C O_CREAT)
+(define-constant-from-C O_EXCL)
+(define-constant-from-C O_NOCTTY)
+(define-constant-from-C O_TRUNC)
+(define-constant-from-C O_NDELAY)
+(define-constant-from-C O_SYNC)
 
 ;;Linux-specific:
-(HACK_maybe-define-constant-from-c O_NOFOLLOW)
-(HACK_maybe-define-constant-from-c O_DIRECTORY)
+(HACK_maybe-define-constant-from-C O_NOFOLLOW)
+(HACK_maybe-define-constant-from-C O_DIRECTORY)
 
-(define-constant-from-c O_ASYNC)
-(maybe-define-constant-from-c O_LARGEFILE)
+(define-constant-from-C O_ASYNC)
+(maybe-define-constant-from-C O_LARGEFILE)
 
 ;; Handling close-on-exec
-(define-constant-from-c F_DUPFD)
-(define-constant-from-c F_GETFD)
-(define-constant-from-c F_SETFD)
+(define-constant-from-C F_DUPFD)
+(define-constant-from-C F_GETFD)
+(define-constant-from-C F_SETFD)
 
 ;; The file status flags
-(define-constant-from-c F_GETFL)
-(define-constant-from-c F_SETFL)
+(define-constant-from-C F_GETFL)
+(define-constant-from-C F_SETFL)
 
 ;; Advisory locking
-(define-constant-from-c F_GETLK)
-(define-constant-from-c F_SETLK)
-(define-constant-from-c F_SETLKW)
+(define-constant-from-C F_GETLK)
+(define-constant-from-C F_SETLK)
+(define-constant-from-C F_SETLKW)
 
-(define-constant-from-c F_RDLCK)
-(define-constant-from-c F_WRLCK)
-(define-constant-from-c F_UNLCK)
+(define-constant-from-C F_RDLCK)
+(define-constant-from-C F_WRLCK)
+(define-constant-from-C F_UNLCK)
 
 ;; Managing signals
-(define-constant-from-c F_GETOWN)
-(define-constant-from-c F_SETOWN)
+(define-constant-from-C F_GETOWN)
+(define-constant-from-C F_SETOWN)
 ;; Linux-specific:
-(maybe-define-constant-from-c F_GETSIG)
-(maybe-define-constant-from-c F_SETSIG)
+(maybe-define-constant-from-C F_GETSIG)
+(maybe-define-constant-from-C F_SETSIG)
 
 ;; specific to BSD and Linux:
-(define-constant-from-c F_GETOWN)
-(define-constant-from-c F_SETOWN)
+(define-constant-from-C F_GETOWN)
+(define-constant-from-C F_SETOWN)
 
 
 ;; Leases:
-; (define-constant-from-c F_SETLEASE)
-; (define-constant-from-c F_GETLEASE)
+; (define-constant-from-C F_SETLEASE)
+; (define-constant-from-C F_GETLEASE)
 
 ;; File and directory change notification  (Linux):
-; (define-constant-from-c F_NOTIFY)
-; (define-constant-from-c DN_ACCESS)
-; (define-constant-from-c DN_MODIFY)
-; (define-constant-from-c DN_CREATE)
-; (define-constant-from-c DN_DELETE)
-; (define-constant-from-c DN_RENAME)
-; (define-constant-from-c DN_ATTRIB)
-; (define-constant-from-c DN_MULTISHOT)
+; (define-constant-from-C F_NOTIFY)
+; (define-constant-from-C DN_ACCESS)
+; (define-constant-from-C DN_MODIFY)
+; (define-constant-from-C DN_CREATE)
+; (define-constant-from-C DN_DELETE)
+; (define-constant-from-C DN_RENAME)
+; (define-constant-from-C DN_ATTRIB)
+; (define-constant-from-C DN_MULTISHOT)
 
 
 (define/check _fcntl fcntl (fd cmd #!optional (arg-or-lock no-value))
@@ -916,10 +916,10 @@ if (___result<0) {
 }
 "))
 
-(define-constant-from-c PR_SET_PDEATHSIG)
-(define-constant-from-c PR_GET_PDEATHSIG)
-(define-constant-from-c PR_SET_DUMPABLE)
-(define-constant-from-c PR_GET_DUMPABLE)
-(define-constant-from-c PR_SET_KEEPCAPS)
-(define-constant-from-c PR_GET_KEEPCAPS)
+(define-constant-from-C PR_SET_PDEATHSIG)
+(define-constant-from-C PR_GET_PDEATHSIG)
+(define-constant-from-C PR_SET_DUMPABLE)
+(define-constant-from-C PR_GET_DUMPABLE)
+(define-constant-from-C PR_SET_KEEPCAPS)
+(define-constant-from-C PR_GET_KEEPCAPS)
 
