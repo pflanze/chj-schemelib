@@ -1,3 +1,12 @@
+;; imports for dev/testing purposes only--usually the cj-c-types.scm file is meant to be include'd.
+(require
+ ;; the user including cj-c-types.scm must add these manually to his own module requirements!
+ cj-env
+ cj-gambit-sys
+ )
+;; (compile #t)
+
+
 ;; cj Sun, 05 Nov 2006 16:15:13 +0100
 ;; Some types I'm going to use frequently, for inclu'sion into user modules.
 
