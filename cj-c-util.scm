@@ -1,3 +1,4 @@
+;;;XXX sort out what I still want/need
 (require
  cj-env ;;  symbol-append
  (cj-gambit-sys max-fixnum min-fixnum)
