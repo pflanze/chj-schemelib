@@ -13,6 +13,15 @@
 	 ;; ?
 	 (lib.cj-env-1))
 
+
+;; that which cj-standarddeclares.scm was.
+;; no args yet, perhaps later..
+(define-macro* (cj-declare)
+  `(declare (block)
+	    (standard-bindings)
+	    (extended-bindings)))
+
+
 ;; stop hand-rolling these 0..n-1 loops
 (define-macro* (for..< var-from-to . body)
   (mcase var-from-to

@@ -150,7 +150,7 @@
 
 ;; (compile #t)
 
-(include "cj-standarddeclares.scm")
+(cj-declare)
 
 ;; Syntax used in this module:
 ;; - from cj-c-errno:
