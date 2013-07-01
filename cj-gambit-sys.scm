@@ -149,7 +149,7 @@ ___RESULT=___VOID;"
 (define (subtype obj) ;; is in the header
   (check-mem-allocated
    obj
-   (&
+   (thunk
     (##subtype obj))))
 
 
@@ -162,13 +162,13 @@ ___RESULT=___VOID;"
 (define (head-tag obj) ;; 3-bit tag, is in the header.
   (check-mem-allocated
    obj
-   (&
+   (thunk
     (##c-code "___RESULT= ___FIX(___HD_TYP(___HEADER(___ARG1)));" obj))))
 
 
 ; (define (deep-still-copy obj)
 ;   (let recur ((obj obj)
-; 	      (cancel (& obj)))
+; 	      (cancel (thunk obj)))
 ;     (define (scancont)
 ;       )
 ;     (define (binarycont)
@@ -191,7 +191,7 @@ ___RESULT=___VOID;"
 ; 	   (cancel
 ; 	    (call/cc    ;; HMM immer noch falsch:   wo welche cancelpunkte isch relevant
 ; 	     (lambda (newcancel)
-; 	       (scan obj (&
+; 	       (scan obj (thunk
 ; 			  (newcancel obj)))))))
 ; 	  ((3) ;; forw
 ; 	   (error "never seen, what to do with forwarded obj?"))
@@ -212,7 +212,7 @@ ___RESULT=___VOID;"
 ; (define (movable0? obj)
 ;   (check-mem-allocated
 ;    obj
-;    (&
+;    (thunk
 ;     (##c-code "___RESULT= "))))
 
 
@@ -235,13 +235,13 @@ ___RESULT=___VOID;"
 (define (still-object? obj)
   (check-mem-allocated
    obj
-   (&
+   (thunk
     (##c-code "___RESULT=___BOOLEAN(stillp(___ARG1));" obj))))
 
 ; (define (mem-bytes obj)
 ;   (check-mem-allocated
 ;    obj
-;    (&
+;    (thunk
 ;     (##c-code "___RESULT= ___FIX(___HD_BYTES(___HEADER(___ARG1)));" obj))))
 ;;what if it doesn't fit fixnums?real problem.
 
@@ -282,7 +282,7 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
 (define (mem-bytes obj) ;; how many bytes is the object's body long?
   (check-vector-like
    obj
-   (&
+   (thunk
     ((c-lambda (scheme-object)
 	       int
 	       "___result= ___HD_BYTES(___HEADER(___arg1));")
