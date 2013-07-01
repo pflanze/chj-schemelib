@@ -6,6 +6,12 @@
 						      (symbol->string name)
 						      ");"))))))
 
+(define-macro* (define-constants-from-C . names)
+  `(begin
+     ,@(map (lambda (name)
+	      `(define-constant-from-C ,name))
+	    names)))
+
 ;; helper function to replace _ in identifiers:
 (define (symbol-replace-_-with/ c)
   (let ((cont (lambda (chars)
