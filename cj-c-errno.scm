@@ -5,6 +5,7 @@
  cj-inline
  ;; checks only:
  (cj-string-util string-strip-until-last-chars)
+ cj-env-2
  )
 
 ;; (compile #t)
@@ -46,9 +47,7 @@
 ;; calls, and use a special type to differentiate safely and
 ;; comfortably. (We cache the values to minimize gc overhead.)
 
-
-(##include "gambit-default-namespace.scm")
-(include "cj-standarddeclares.scm")
+(cj-declare)
 
 ; (declare (fixnum)
 ; 	 (not safe))
