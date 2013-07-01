@@ -1,6 +1,6 @@
 (require
  (cj-env warn pp-through &)
- (cj-list-util map-iota list-join)
+ (cj-env-1 list-join)
  (srfi-1 filter-map)
  cj-inline
 
@@ -179,7 +179,7 @@
 
   (case (source-code returntype)
     ((int uid_t gid_t
-	  ssize_t;; OK?todo.
+	  ssize_t ;; OK?todo.
 	  )
      (let ((argnames (map cadr type-argname-alist))
 	   (argtypes (map car type-argname-alist)))
@@ -190,17 +190,16 @@
 	   ((c-lambda ,argtypes
 		      ,returntype
 		      ,(string-append "___result= "
-				      c-name
+				      (source-code c-name)
 				      "("
 				      (apply string-append
 					     (list-join
-					      (map-iota
-					       (lambda (i)
-						 (string-append
-						  "___arg"
-						  (number->string i)))
-					       (length argnames)
-					       1)
+					      (map (lambda (i)
+						     (string-append
+						      "___arg"
+						      (number->string i)))
+						   (iota (length argnames)
+							 1))
 					      ", "))
 				      "); "
 				      "if(___result<0) ___result=-errno;"))
