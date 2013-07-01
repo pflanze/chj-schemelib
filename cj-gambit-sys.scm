@@ -1,10 +1,58 @@
+(require
+ cj-test
+ cj-env;;XX update what exactly?
+
+ cj-env-2 ;; cj-declare
+ )
+
+;; (compile #t)
+
+;; (exports
+;;  addressword-peek
+;;  body-address
+;;  body-addressword
+;;  ;;check-mem-allocated
+;;  max-fixnum
+;;  min-fixnum
+;;  mem-address
+;;  mem-addressword
+;;  mem-allocated?
+;;  ;;mk-addressword->address
+;;  subtype
+;;  word-size
+;;  word-width
+;;  head-tag
+
+;;  still-object?
+;;  vector-like?
+;;  mem-bytes
+
+;;  ;; utilities:
+;;  vectorlike-bytecopy!
+;;  vectorlike-byteequal?
+;;  vectorlike-byteref
+;;  vectorlike-byteset!
+;;  vectorlike-bytefill!
+;;  )
+
+;; (exports-on-request
+;;  check-mem-allocated
+;;  check-vector-like
+;;  @vectorlike-bytecopy!
+;;  @vectorlike-byteequal?
+;;  @vectorlike-byteref
+;;  @vectorlike-byteset!
+;;  @vectorlike-bytefill!
+;;  )
+
+
 ;; cj Sun, 01 Oct 2006 01:04:23 +0200
 
 ;; (I once started in chicken-sys; but seems/iirc didn't finish)
 
-(##include "gambit-default-namespace.scm")
-(include "cj-standarddeclares.scm") ;; don't forget block mode or ##c-code doesn't act as it should
-;; do NOT declare fixnum and not safe; this would break number calculations overflowing fixnums.
+(cj-declare)
+;; do NOT declare fixnum and not safe; this would break number
+;; calculations overflowing fixnums.
 
 (define (mem-allocated? obj)
   (##c-code "___RESULT= ___BOOLEAN(___MEM_ALLOCATED(___ARG1));" obj))
