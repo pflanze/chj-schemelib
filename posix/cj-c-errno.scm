@@ -1,5 +1,5 @@
 (require
- (cj-env warn pp-through &)
+ (cj-env warn pp-through thunk)
  (cj-env-1 list-join)
  (srfi-1 filter-map)
  cj-inline
@@ -119,7 +119,8 @@
 ; *** ERROR IN (stdin)@3.1 -- (pthread-attr-detachstate-set! #<pthread-attr* #2 0x82be300> 13): "Invalid argument"
 
 
-(define-inline (check-not-posix-exception v name argnames argvals&) ;; argvals& is a thunk returning a list of the arg vals
+(define-inline (check-not-posix-exception v name argnames argvals&)
+  ;; argvals& is a thunk returning a list of the arg vals
   (if (posix-exception? v)
       (throw-posix-exception v name argnames (argvals&))
       v))
@@ -143,8 +144,7 @@
 	 (check-not-posix-exception (,name ,@args*)
 				    ',name/check
 				    ',args*
-				    (cj-c-errno#& (list ,@args*)))))))
-;; (& is the only non-normal case not to be expected in target namespace)
+				    (lambda () (list ,@args*)))))))
 
 ;; 'wrapper function' to convert -errno values into posix-exception
 ;; values (but not throwing them):
