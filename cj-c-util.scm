@@ -23,16 +23,13 @@
 
 (declare (block)(standard-bindings)(extended-bindings))
 
+;; Note: it seems CPP doesn't support number constants exceeding 32
+;; bits, hence can't check for fixnum range using something like '#if
+;; (" namestr " > " max-fixnum-str ")'? And instead can just be
+;; 'trusted'? (Or what? See commit msg.)
 (define (code:constant-from-C namestr)
-  (let ((maxstr (number->string max-fixnum))
-	(minstr (number->string min-fixnum)))
-    (string-append "
-#if ((" namestr " > " maxstr ") || (" namestr " < " minstr "))
-#error \"define-constant-from-C: C constant '" namestr "' is out of fixnum range. (Improve macro implementation in cj-c-util.scm to handle bignums.)\"
-#else
-___RESULT= ___FIX(" namestr ");
-#endif
-")))
+  (string-append "___RESULT= ___FIX(" namestr ");"))
+
 
 (define-macro* (define-constant-from-C name)
   (assert* symbol? name
