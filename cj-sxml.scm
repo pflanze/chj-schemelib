@@ -1,9 +1,6 @@
 ; cj Mon, 02 Jan 2006 22:09:52 +0100
 ; die "eigentlichen" utils... weil nie irgend wo richtig da ?.
 
-(##namespace (""))
-(##include "~~lib/gambit#.scm")
-(include "cj-standarddeclares.scm")
 ;(set! *stream-strict* #t)
 ;(declare (not safe) (fixnum))
 
@@ -317,6 +314,7 @@
 ;; oder für xtract oder so. hehe "
 
 
+;;XX merge with |xone|
 (define (x-list-one-value lis)
   (let ((lis (force lis)))
     (if (pair? lis)
@@ -338,12 +336,6 @@
 	    (error "x-list-maybe-one-value: not a list:" lis)))))
 
 ;; --  string related routines, todo move parts to cj-string-util --------                      
-
-(define (char-whitespace? char)
-  (case char
-    ((#\space #\newline #\tab #\page #\return)
-     #t)
-    (else #f)))
 
 (define (string-all-whitespace? str)
   (let ((len (string-length str)))
