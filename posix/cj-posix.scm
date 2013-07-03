@@ -179,7 +179,7 @@
 ;; todo, are these always correct?
 (c-define-type pid_t int)
 
-(define getpid
+(define posix:getpid
   (c-lambda ()
 	    pid_t
 	    "getpid"))
@@ -190,14 +190,14 @@
 ; "))
 ;about 90 cycles less than getpid.
 
-(define getppid
+(define posix:getppid
   (c-lambda ()
 	    pid_t
 	    "getppid"))
 
 
 ;; "should I return #f in the child or should I not?" (Reading scsh manual) Yes, I should.
-(define/check _fork fork () 
+(define/check posix:_fork posix:fork () 
   (error-to-posix-exception
    ;; I still let c-lambda convert to an integer, since using ___FIX
    ;; might not provide a range big enough.
@@ -215,7 +215,7 @@
 	    (declare (not interrupts-enabled))
 	    (##thread-startup!)))
 
-(define (fork* #!optional thunk continue-threads?)
+(define (posix:fork* #!optional thunk continue-threads?)
   (declare (not interrupts-enabled))
   (if thunk
       ;; to make sure other Gambit threads cannot run before being
@@ -250,14 +250,14 @@ if (pid<0) {
 	       ;; _exit here:
 	       (let ((code (thunk)))
 		 (if (##fixnum? code)
-		     (_exit code)
+		     (posix:_exit code)
 		     (begin
 		       (warn "non-fixnum exit-code given:" code)
-		       (_exit 1)))))
+		       (posix:_exit 1)))))
 	      (else pid)))
-      (fork)))
+      (posix:fork)))
 
-
+;;XX prefix?
 (define (status? obj)
   (and (s32vector? obj)
        (>= (##s32vector-length obj) 1)))
@@ -279,7 +279,7 @@ if (pid<0) {
 ;; than 2 c-lambdas. it makes more sense than the intermediate bigint,
 ;; since usually we do have the vector already)
 
-(define (?status->status obj fn)
+(define (posix:?status->status obj fn)
   (if (status? obj)
       (fn obj)
       (if (##fixnum? obj)
@@ -291,57 +291,64 @@ if (pid<0) {
 ;; since they already carry IF in their name, I don't. Better create
 ;; aliases.
 
+;;XX posix:-prefix these as well?
 (define (WIFEXITED ?status)
-  (?status->status ?status
-		   (c-lambda (scheme-object)
-			     scheme-object
-			     "___result=WIFEXITED(*(___BODY(___arg1))) ? ___TRU : ___FAL;")))
+  (posix:?status->status
+   ?status
+   (c-lambda (scheme-object)
+	     scheme-object
+	     "___result=WIFEXITED(*(___BODY(___arg1))) ? ___TRU : ___FAL;")))
 
 
-(define (W-errorchecked name fn-1ary)
+(define (posix:W-errorchecked name fn-1ary)
   (lambda (status)
     (cond ((fn-1ary status) => (lambda (v) v))
 	  (else (error "status value is not suited for this operation:" status name)))))
 
 (define (WEXITSTATUS ?status) ;; "This macro can only be evaluated if WIFEXITED returned true."
-  (?status->status ?status
-		   (W-errorchecked
-		    'WEXITSTATUS
-		    (c-lambda (scheme-object)
-			      scheme-object
-			      "___result= WIFEXITED(*(___BODY(___arg1))) ?
+  (posix:?status->status
+   ?status
+   (posix:W-errorchecked
+    'WEXITSTATUS
+    (c-lambda (scheme-object)
+	      scheme-object
+	      "___result= WIFEXITED(*(___BODY(___arg1))) ?
                                           ___FIX(WEXITSTATUS(*(___BODY(___arg1))))
                                           : ___FAL;"))))
 
 (define (WIFSIGNALED ?status)
-  (?status->status ?status
-		   (c-lambda (scheme-object)
-			     scheme-object
-			     "___result=WIFSIGNALED(*(___BODY(___arg1))) ? ___TRU : ___FAL;")))
+  (posix:?status->status
+   ?status
+   (c-lambda (scheme-object)
+	     scheme-object
+	     "___result=WIFSIGNALED(*(___BODY(___arg1))) ? ___TRU : ___FAL;")))
 
 (define (WTERMSIG ?status) ;; "This macro can only be evaluated if WIFSIGNALED returned non-zero."
-  (?status->status ?status
-		   (W-errorchecked
-		    'WTERMSIG
-		    (c-lambda (scheme-object)
-			      scheme-object
-			      "___result= WIFSIGNALED(*(___BODY(___arg1))) ?
+  (posix:?status->status
+   ?status
+   (posix:W-errorchecked
+    'WTERMSIG
+    (c-lambda (scheme-object)
+	      scheme-object
+	      "___result= WIFSIGNALED(*(___BODY(___arg1))) ?
                                           ___FIX(WTERMSIG(*(___BODY(___arg1))))
                                           : ___FAL;"))))
 
 (define (WIFSTOPPED ?status)
-  (?status->status ?status
-		   (c-lambda (scheme-object)
-			     scheme-object
-			     "___result=WIFSTOPPED(*(___BODY(___arg1))) ? ___TRU : ___FAL;")))
+  (posix:?status->status
+   ?status
+   (c-lambda (scheme-object)
+	     scheme-object
+	     "___result=WIFSTOPPED(*(___BODY(___arg1))) ? ___TRU : ___FAL;")))
 
 (define (WSTOPSIG ?status) ;; "This macro can only be evaluated if WIFSTOPPED returned non-zero."
-  (?status->status ?status
-		   (W-errorchecked
-		    'WSTOPSIG
-		    (c-lambda (scheme-object)
-			      scheme-object
-			      "___result= WIFSTOPPED(*(___BODY(___arg1))) ?
+  (posix:?status->status
+   ?status
+   (posix:W-errorchecked
+    'WSTOPSIG
+    (c-lambda (scheme-object)
+	      scheme-object
+	      "___result= WIFSTOPPED(*(___BODY(___arg1))) ?
                                           ___FIX(WSTOPSIG(*(___BODY(___arg1))))
                                           : ___FAL;"))))
 
@@ -363,10 +370,11 @@ ___result= ___FAL;
 (define WCOREDUMP
   (if (WCOREDUMP-exists?)
       (lambda (?status)
-	(?status->status ?status
-			 (c-lambda (scheme-object)
-				   scheme-object
-				   "
+	(posix:?status->status
+	 ?status
+	 (c-lambda (scheme-object)
+		   scheme-object
+		   "
 #ifdef WCOREDUMP
 ___result=WCOREDUMP(___BODY(___arg1)) ? ___TRU : ___FAL;
 #else
@@ -379,50 +387,52 @@ ___result=___FIX(-1000); /*shouldn't happen*/
 
 ;; Is it correct to use s32 values for int on 64bit machines?  /todo write automatic test
 
-(define/check _wait wait (&status)
-  (typecheck-status &status
-		    (error-to-posix-exception
-		     ((c-lambda (scheme-object)
-				pid_t
-				"___result= wait(___CAST(int*,___BODY(___arg1)));
+(define/check posix:_wait posix:wait (&status)
+  (typecheck-status
+   &status
+   (error-to-posix-exception
+    ((c-lambda (scheme-object)
+	       pid_t
+	       "___result= wait(___CAST(int*,___BODY(___arg1)));
                                  if(___result<0) ___result=-errno;")
-		      &status))))
+     &status))))
 
 
-(define/check _waitpid waitpid (pid &status options)
-  (typecheck-status &status
-		    (error-to-posix-exception
-		     ((c-lambda (pid_t scheme-object int)
-				pid_t
-				"
+(define/check posix:_waitpid posix:waitpid (pid &status options)
+  (typecheck-status
+   &status
+   (error-to-posix-exception
+    ((c-lambda (pid_t scheme-object int)
+	       pid_t
+	       "
 ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
                                  if(___result<0) ___result=-errno;")
-		      pid &status options))))
+     pid &status options))))
 
 ;; ATTENTION: set a signal handler for SIGCHLD (using the interrupts
 ;; module), otherwise zombies will be reaped w/o getting a chance to
 ;; get at them unless wait is called before the child exits.
 
-(define (wait*)
+(define (posix:wait*)
   (let* ((&status (##make-s32vector 1))
-	 (pid (wait &status))) ;;TODO tailposition.
+	 (pid (posix:wait &status))) ;;TODO tailposition.
     (cons pid (s32vector-ref &status 0))))
 
-(define (waitpid* pid #!optional (options 0))
+(define (posix:waitpid* pid #!optional (options 0))
   (let* ((&status (##make-s32vector 1))
-	 (pid (waitpid pid &status options)))
+	 (pid (posix:waitpid pid &status options)))
     (cons pid (s32vector-ref &status 0))))
 
 
-(define (wait**)
+(define (posix:wait**)
   (let* ((&status (##make-s32vector 2))
-	 (pid (wait &status)))
+	 (pid (posix:wait &status)))
     (s32vector-set! &status 1 pid)
     &status))
 
-(define (waitpid** pid #!optional (options 0))
+(define (posix:waitpid** pid #!optional (options 0))
   (let* ((&status (##make-s32vector 2))
-	 (pid (waitpid pid &status options)))
+	 (pid (posix:waitpid pid &status options)))
     (s32vector-set! &status 1 pid)
     &status))
 
@@ -432,6 +442,7 @@ ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
 ;; value from errors through type checking):
 
 ;; the fds type:
+;;XX posix:-prefix as well?
 (define (filedescriptors? obj)
   (and (s32vector? obj)
        (eq? (s32vector-length obj) 2)))
@@ -459,7 +470,7 @@ ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
 (define filedescriptors-second filedescriptors-write)
 
 
-(define/check _pipe pipe ()
+(define/check posix:_pipe posix:pipe ()
   (error-to-posix-exception
    (let ((v (##make-s32vector 2))) ;; (same worries as above, todo)
      (let ((r ((c-lambda (scheme-object)
@@ -472,7 +483,7 @@ ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
 	   r)))))
 
 
-(define/check _close close (fd)
+(define/check posix:_close posix:close (fd)
   (error-to-posix-exception
    ((c-lambda (int)
 	      int
@@ -513,7 +524,7 @@ ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
 ;...
 
 ;;  int socketpair(int d, int type, int protocol, int sv[2]);
-(define/check _socketpair socketpair (#!optional (type SOCK_STREAM))
+(define/check posix:_socketpair posix:socketpair (#!optional (type SOCK_STREAM))
   (error-to-posix-exception
    (let ((v (##make-s32vector 2))) ;; (dito, see above)
      (let ((r ((c-lambda (int scheme-object)
@@ -600,7 +611,7 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 ; (define-constant-from-C DN_MULTISHOT)
 
 
-(define/check _fcntl fcntl (fd cmd #!optional (arg-or-lock no-value))
+(define/check posix:_fcntl posix:fcntl (fd cmd #!optional (arg-or-lock no-value))
   (cond ((eq? arg-or-lock no-value)
 	 (error-to-posix-exception
 	  ((c-lambda (int int)
@@ -619,35 +630,35 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 	 (error "struct flock *lock argument currently not supported:" arg-or-lock))))
 
 
-(define _exit
+(define posix:_exit
   (c-lambda (int)
 	    void
 	    "_exit"))
 
 
-(define/check->integer "execv" _execv execv
+(define/check->integer "execv" posix:_execv posix:execv
   ((ISO-8859-1-string path) ;; XX?
    (nonnull-ISO-8859-1-string-list argv))
   int)
 
-(define/check->integer "execvp" _execvp execvp
+(define/check->integer "execvp" posix:_execvp posix:execvp
   ((ISO-8859-1-string path)
    (nonnull-ISO-8859-1-string-list argv))
   int)
 
-(define (exec cmd . args)
-  (execvp cmd (cons cmd args)))
+(define (posix:exec cmd . args)
+  (posix:execvp cmd (cons cmd args)))
 
 
-(define/check->integer "dup" _dup dup ((int oldfd)) int)
-(define/check->integer "dup2" _dup2 dup2 ((int oldfd) (int newfd)) int)
+(define/check->integer "dup" posix:_dup posix:dup ((int oldfd)) int)
+(define/check->integer "dup2" posix:_dup2 posix:dup2 ((int oldfd) (int newfd)) int)
 
-
+;;XX posix:-prefix these?
 (define (fd-nonblock-set! fd)
-  (fcntl fd F_SETFL (bitwise-ior (fcntl fd F_GETFL) O_NONBLOCK)))
+  (posix:fcntl fd F_SETFL (bitwise-ior (posix:fcntl fd F_GETFL) O_NONBLOCK)))
 
 (define (fd-nonblock? fd)
-  (any-bits-set? (fcntl fd F_GETFL) O_NONBLOCK))
+  (any-bits-set? (posix:fcntl fd F_GETFL) O_NONBLOCK))
 
 (define gambit-port-direction-in 1)
 (define gambit-port-direction-out 2)
@@ -678,25 +689,25 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 
 
 
-(define/check->integer "setuid" _setuid setuid ((uid_t uid)) int)
-(define/check->integer "setgid" _setgid setgid ((gid_t gid)) int)
+(define/check->integer "setuid" posix:_setuid posix:setuid ((uid_t uid)) int)
+(define/check->integer "setgid" posix:_setgid posix:setgid ((gid_t gid)) int)
 
-(define/check->integer "seteuid" _seteuid seteuid ((uid_t euid)) int)
-(define/check->integer "setegid" _setegid setegid ((gid_t egid)) int)
+(define/check->integer "seteuid" posix:_seteuid posix:seteuid ((uid_t euid)) int)
+(define/check->integer "setegid" posix:_setegid posix:setegid ((gid_t egid)) int)
 
-(define/check->integer "setreuid" _setreuid setreuid ((uid_t ruid) (uid_t euid)) int)
-(define/check->integer "setregid" _setregid setregid ((gid_t rgid) (gid_t egid)) int)
+(define/check->integer "setreuid" posix:_setreuid posix:setreuid ((uid_t ruid) (uid_t euid)) int)
+(define/check->integer "setregid" posix:_setregid posix:setregid ((gid_t rgid) (gid_t egid)) int)
 
 ;; "This call is nonstandard. ..was first introduced in HP-UX."
 ;; The problem is, we should #define_GNU_SOURCE  but how to find out whether it is supported?
 ; (define/check->integer _setresuid setresuid ((uid_t ruid) (uid_t euid) (uid_t suid)) int)
 ; (define/check->integer _setresgid setresgid ((gid_t rgid) (gid_t egid) (gid_t sgid)) int)
 
-(define/check->integer "getuid" _getuid getuid () uid_t)
-(define/check->integer "getgid" _getgid getgid () gid_t)
+(define/check->integer "getuid" posix:_getuid posix:getuid () uid_t)
+(define/check->integer "getgid" posix:_getgid posix:getgid () gid_t)
 
-(define/check->integer "geteuid" _geteuid geteuid () uid_t)
-(define/check->integer "getegid" _getegid getegid () gid_t)
+(define/check->integer "geteuid" posix:_geteuid posix:geteuid () uid_t)
+(define/check->integer "getegid" posix:_getegid posix:getegid () gid_t)
 
 ;those would require boxes or simliar, but Linux-specific anyway:
 ;(define/check->int _getresuid getresuid ...)
@@ -793,7 +804,7 @@ void (**p) (void) = (void*) ___BODY(___ARG1);
 (c-define-type mode_t int)
 
 
-(define/check _open open (pathname flags #!optional mode)
+(define/check posix:_open posix:open (pathname flags #!optional mode)
   (error-to-posix-exception
    (if mode
        ((c-lambda (ISO-8859-1-string
@@ -816,24 +827,24 @@ void (**p) (void) = (void*) ___BODY(___ARG1);
 ;; through, check it and if it's not false convert it to a mode_t --
 ;; all including an error mechanism if conversion fails..
 
-(define/check->integer "chroot" _chroot chroot
+(define/check->integer "chroot" posix:_chroot posix:chroot
   ((ISO-8859-1-string path)) ;;;;TODO WELLL
   int)
 
-(define/check->integer "chdir" _chdir chdir
+(define/check->integer "chdir" posix:_chdir posix:chdir
   ((ISO-8859-1-string path)) ;; dito
   int)
 
-(define/check->integer "fchdir" _fchdir fchdir
+(define/check->integer "fchdir" posix:_fchdir posix:fchdir
   ((int fd))
   int)
 
-(define/check->integer "mkdir" _mkdir mkdir
+(define/check->integer "mkdir" posix:_mkdir posix:mkdir
   ((ISO-8859-1-string path) ;;dito. (and const here)
    (mode_t mode))
   int)
 
-(define/check->integer "rmdir" _rmdir rmdir
+(define/check->integer "rmdir" posix:_rmdir posix:rmdir
   ((ISO-8859-1-string path)) ;;dito. (and const here)
   int)
 
@@ -867,7 +878,7 @@ void (**p) (void) = (void*) ___BODY(___ARG1);
  "Hall\366chen\nabc\n"
  )
 
-(define/check _getcwd getcwd ()
+(define/check posix:_getcwd posix:getcwd ()
   (let lp ((size 128))
     (let* ((buf (##make-u8vector size))
 	   (res (##c-code "
@@ -900,7 +911,7 @@ if (res) {
 #include <errno.h>
 ")
 
-(define prctl
+(define posix:prctl
   (c-lambda (int ;; option
 	     unsigned-long ;; arg2
 	     unsigned-long ;; arg3
