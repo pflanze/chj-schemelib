@@ -178,6 +178,7 @@
 
 ;; todo, are these always correct?
 (c-define-type pid_t int)
+(c-define-type off_t int)
 
 (define posix:getpid
   (c-lambda ()
@@ -933,4 +934,22 @@ if (___result<0) {
 (define-constant-from-C PR_GET_DUMPABLE)
 (define-constant-from-C PR_SET_KEEPCAPS)
 (define-constant-from-C PR_GET_KEEPCAPS)
+
+
+
+(define/check posix:_truncate posix:truncate (pathname length)
+  (error-to-posix-exception
+   ((c-lambda (ISO-8859-1-string ;;XXX BAH!
+	       off_t)
+	      int
+	      "___result= truncate(___arg1,___arg2);
+               if(___result<0) ___result=-errno;") pathname length)))
+
+(define/check posix:_ftruncate posix:ftruncate (fd length)
+  (error-to-posix-exception
+   ((c-lambda (int
+	       off_t)
+	      int
+	      "___result= ftruncate(___arg1,___arg2);
+               if(___result<0) ___result=-errno;") fd length)))
 
