@@ -28,13 +28,14 @@ int mmap_errno=0;
 
 (define void*? fixnum?)
 
-(define-typed (_mmap #((maybe void*?) addr) ;; addr not yet implemented
-		     #(size? length)
-		     #(size0? prot) ;; int
-		     #(size0? flags) ;; int
-		     #(size0? fd)    ;; int
-		     ;; XX what is off_t?:
-		     #(size0? offset))
+(define-typed (posix:_mmap
+	       #((maybe void*?) addr) ;; addr not yet implemented
+	       #(size? length)
+	       #(size0? prot)	     ;; int
+	       #(size0? flags)	     ;; int
+	       #(size0? fd)	     ;; int
+	       ;; XX what is off_t?:
+	       #(size0? offset))
   ;; returns 0 instead of -1 on errors
   (##c-code "
 void* addr= FIX2VOID(___ARG1);
@@ -54,8 +55,8 @@ ___RESULT= (___CAST(___WORD,res) == -1) ? ___FIX(0) : VOID2FIX(res);
 	    char-string
 	    "___result= strerror(mmap_errno);"))
 
-(define (mmap maybe-addr length prot flags fd offset)
-  (let ((res (_mmap maybe-addr length prot flags fd offset)))
+(define (posix:mmap maybe-addr length prot flags fd offset)
+  (let ((res (posix:_mmap maybe-addr length prot flags fd offset)))
     (if (zero? res)
 	(error "mmap:" (mmap:error))
 	res)))
@@ -65,7 +66,7 @@ ___RESULT= (___CAST(___WORD,res) == -1) ? ___FIX(0) : VOID2FIX(res);
 
 (define-constants-from-C MAP_SHARED MAP_PRIVATE)
 
-(define-typed (_munmap #(void*? addr)
+(define-typed (posix:_munmap #(void*? addr)
 		       #(size? length))
   (##c-code "
 void* addr= FIX2VOID(___ARG1);
@@ -75,7 +76,7 @@ ___RESULT= ___FIX(munmap(addr,length));
 mmap_errno= errno;"
 	    addr length))
 
-(define (munmap addr length)
-  (or (zero? (_munmap addr length))
+(define (posix:munmap addr length)
+  (or (zero? (posix:_munmap addr length))
       (error "unmap:" (mmap:error))))
 
