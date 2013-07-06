@@ -59,6 +59,7 @@
 
 (define assert:syntax-forms
   '(
+    and or
     quote quasiquote
     ))
 
