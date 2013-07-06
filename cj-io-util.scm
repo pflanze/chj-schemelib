@@ -13,6 +13,15 @@
     output))
 
 
+(define (xxsystem cmd . args)
+  (let* ((p (open-process (list path: cmd
+				arguments: args
+				stdin-redirection: #f
+				stdout-redirection: #f))))
+    (close-port p)
+    (assert (zero? (process-status p)))))
+
+
 (define (backtick cmd . args)
   (let* ((p (open-process (list path: cmd
 				arguments: args
