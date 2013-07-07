@@ -66,6 +66,7 @@
 (define-constant-from-C SIGCHLD)
 (define-constant-from-C SIGINT)
 (define-constant-from-C SIGHUP)
+(define-constant-from-C SIGPOLL)
 ;;XX and more...
 
 
@@ -214,10 +215,10 @@
 
 (define-if-not-defined SIGIO SIGPOLL)
 
-(define (signal-number->name num); returns symbol. [should we take err+success continuations?...]
-  (alist-ref %signal-number->name% num
-	     (lambda ()
-	       (error "signal-number->name: unknown signal number:" num))))
+(define (signal-number->name num) ; returns symbol. [should we take err+success continuations?...]
+  (number-alist-ref %signal-number->name% num
+		    (lambda ()
+		      (error "signal-number->name: unknown signal number:" num))))
 
 
 ;; ------- interfacing scheme with handler setup functions: ------
@@ -238,9 +239,9 @@
 	    '("install_signal" "uninstall_signal"))))
 
 
-(define-if-not-defined handlers '())
-(define (handlers-set! v)
-  (set! handlers v))
+(define-if-not-defined interrupts:handlers
+  ;; signal to handler
+  (make-table))
 
 (define (interrupt-install-handler! signal-number handler) ;; signal-number may also be a list of numbers
   (if (and (##fixnum? signal-number)
@@ -249,7 +250,7 @@
       (if (= signal-number SIGINT)
 	  (current-user-interrupt-handler handler)
 	  (begin
-	    (alist-set! handlers signal-number handler handlers-set!)
+	    (table-set! interrupts:handlers signal-number handler)
 	    (install_signal signal-number)))
       (if (list? signal-number)
 	  (for-each interrupt-install-handler! signal-number)
@@ -266,10 +267,10 @@
 					    ))
 	  (begin
 	    (uninstall_signal signal-number)
-	    (alist-remove! handlers signal-number
-			   (lambda ()
-			     (error "interrupt-remove-handler!: no handler installed for signal:" signal-number))
-			   handlers-set!)))
+	    (or (table-ref interrupts:handlers signal-number #f)
+		(error "interrupt-remove-handler!: no handler installed for signal:"
+		       signal-number))
+	    (table-set! interrupts:handlers signal-number)))
       (if (list? signal-number)
 	  (for-each interrupt-remove-handler! signal-number)
 	  (error "interrupt-remove-handler!: signal-number argument is not an ordinal number:" signal-number))))
@@ -301,13 +302,11 @@
 			 (warn "Warning: signal queue has been overflown!")
 			 (sigqueue-overflow-reset! global_queue)))
 		   (sigqueue-take! global_queue)))))
-    (alist-ref handlers signum
-	       (lambda ()
-		 (warn "no scheme signal handler installed anymore for signal:" signum)
-		 (exit 123);;;?todo
-		 )
-	       (lambda (handler)
-		 (handler)))))
+    (or (table-ref interrupts:handlers signum #f)
+	(begin
+	  (warn "no scheme signal handler installed anymore for signal:" signum)
+	  (exit 123) ;;;?todo
+	  ))))
 
 
 (define (init)
