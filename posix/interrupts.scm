@@ -63,6 +63,11 @@
 
 
 
+(define-constant-from-C SIGCHLD)
+(define-constant-from-C SIGINT)
+(define-constant-from-C SIGHUP)
+;;XX and more...
+
 
 ;; cj Fri, 27 Jan 2006 12:25:15 +0100
 ;; based on code sent by Marc Feeley on 4 Jan 2006
@@ -90,7 +95,7 @@
 ;; -- compilation infrastructure
 
 ;;simplified COPY from gperl-lowlevel.scm
-(##define-macro (define-constant-from-c name)
+(##define-macro (define-constant-from-C name)
   `(define ,name
      ((c-lambda ()
 		int
@@ -134,9 +139,9 @@
 ;; hey and even stuff like latin1-string do not have stars.
 
 
-(define-constant-from-c SIGQUEUE_SUCCESS)
-(define-constant-from-c SIGQUEUE_ERROR)
-(define-constant-from-c SIGQUEUE_ERROR2)
+(define-constant-from-C SIGQUEUE_SUCCESS)
+(define-constant-from-C SIGQUEUE_ERROR)
+(define-constant-from-C SIGQUEUE_ERROR2)
 
 (define make-sigqueue (c-lambda () sigqueue "make_sigqueue"))
 
