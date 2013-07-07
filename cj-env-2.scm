@@ -25,12 +25,14 @@
 (define-macro* (for..< var-from-to . body)
   (mcase var-from-to
          (`(`var `from `to)
-          (with-gensym LP
-                       `(let ,LP ((,var ,from))
-                             (if (< ,var ,to)
-                                 (begin
-                                   ,@body
-                                   (,LP (inc ,var)))))))))
+          (with-gensyms
+	   (LP TO)
+	   `(let ((,TO ,to))
+	      (let ,LP ((,var ,from))
+		   (if (fx< ,var ,TO)
+		       (begin
+			 ,@body
+			 (,LP (inc ,var))))))))))
 
 (TEST
  > (let ((v (make-vector 5))) (for..< (i 0 5) (vector-set! v i (* i i))) v)
