@@ -2,7 +2,8 @@
 	 ;;cj-queue
 	 cj-alist
 	 cj-env
-	 ;;(cj-list-util map-iota))
+	 ;;(cj-list-util map-iota)
+	 )
 
 ;; (compile #t)
 
@@ -98,20 +99,21 @@
 				";")))))
 ;;/COPY
 
-(define-compiletime (make-gen-code check-code return-code)
-  (lambda (name/args c-name argtypes returntype error-message #!optional error-message2)
-    (let ((name (car name/args))
-	  (args (cdr name/args)))
-      `(define ,name/args
-	 (let ((res ((c-lambda ,argtypes ,returntype ,c-name) ,@args)))
-	   (if ,check-code
-	       (error (string-append
-		       ,(string-append (symbol->string name) ": ")
-		       ,(if error-message2
-			    `(if (= res SIGQUEUE_ERROR2)
-				 ,error-message2
-				 ,error-message))))
-	       ,return-code))))))
+(compile-time
+ (define (make-gen-code check-code return-code)
+   (lambda (name/args c-name argtypes returntype error-message #!optional error-message2)
+     (let ((name (car name/args))
+	   (args (cdr name/args)))
+       `(define ,name/args
+	  (let ((res ((c-lambda ,argtypes ,returntype ,c-name) ,@args)))
+	    (if ,check-code
+		(error (string-append
+			,(string-append (symbol->string name) ": ")
+			,(if error-message2
+			     `(if (= res SIGQUEUE_ERROR2)
+				  ,error-message2
+				  ,error-message))))
+		,return-code)))))))
 
 (##define-macro (define-c/int_or_error . args)
   (apply (make-gen-code '(= res SIGQUEUE_ERROR) 'res) args))
@@ -215,7 +217,10 @@
 
 ;; ------- interfacing scheme with handler setup functions: ------
 
-(define sig-errstr (c-lambda () latin1-string "sig_errstr"))
+(define sig-errstr (c-lambda ()
+			     ;; latin1-string  hm not available anymore? wl fair
+			     char-string
+			     "sig_errstr"))
 
 (insert-result-of
  (cons 'begin
