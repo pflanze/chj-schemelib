@@ -28,11 +28,12 @@
           (with-gensyms
 	   (LP TO)
 	   `(let ((,TO ,to))
+	      (assert (fixnum? ,TO))
 	      (let ,LP ((,var ,from))
-		   (if (fx< ,var ,TO)
+		   (if (##fixnum.< ,var ,TO)
 		       (begin
 			 ,@body
-			 (,LP (inc ,var))))))))))
+			 (,LP (##fixnum.+ ,var 1))))))))))
 
 (TEST
  > (let ((v (make-vector 5))) (for..< (i 0 5) (vector-set! v i (* i i))) v)
