@@ -216,14 +216,18 @@
 	    (declare (not interrupts-enabled))
 	    (##thread-startup!)))
 
-(define (posix:fork* #!optional thunk continue-threads?)
-  (declare (not interrupts-enabled))
-  (if thunk
-      ;; to make sure other Gambit threads cannot run before being
-      ;; shut down, do everything in C:
-      (let ((pid ((c-lambda (scheme-object)
-			    pid_t
-			    "
+(define-typed (posix:fork*
+	       #!optional
+	       #((maybe procedure?) thunk)
+	       continue-threads?)
+  (let ()
+    (declare (not interrupts-enabled))
+    (if thunk
+	;; to make sure other Gambit threads cannot run before being
+	;; shut down, do everything in C:
+	(let ((pid ((c-lambda (scheme-object)
+			      pid_t
+			      "
 pid_t pid=fork();
 if (pid<0) {
     ___result= -errno;
@@ -239,24 +243,24 @@ if (pid<0) {
     }
 }
 ") continue-threads?)))
-	(cond ((< pid 0)
-	       (throw-posix-exception
-		(posix-exception (- pid))
-		'fork*
-		'()
-		'()))
-	      ((= pid 0)
-	       ;; Gambit's exit will set all fd's to blocking, which
-	       ;; makes the parent block if threading is used. So we use
-	       ;; _exit here:
-	       (let ((code (thunk)))
-		 (if (##fixnum? code)
-		     (posix:_exit code)
-		     (begin
-		       (warn "non-fixnum exit-code given:" code)
-		       (posix:_exit 1)))))
-	      (else pid)))
-      (posix:fork)))
+	  (cond ((< pid 0)
+		 (throw-posix-exception
+		  (posix-exception (- pid))
+		  'fork*
+		  '()
+		  '()))
+		((= pid 0)
+		 ;; Gambit's exit will set all fd's to blocking, which
+		 ;; makes the parent block if threading is used. So we use
+		 ;; _exit here:
+		 (let ((code (thunk)))
+		   (if (##fixnum? code)
+		       (posix:_exit code)
+		       (begin
+			 (warn "non-fixnum exit-code given:" code)
+			 (posix:_exit 1)))))
+		(else pid)))
+	(posix:fork))))
 
 ;;XX prefix?
 (define (status? obj)
