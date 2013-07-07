@@ -53,6 +53,26 @@
   (letv ((rlis len c) (read-u8-until p (cut = <> 10)
 				     on-eof: premature-eof))
 	(u8-rlist->string rlis len)))
+
+
+(define (u8-whitespace? v)
+  (or (fx= v 32)
+      (fx= v 10)
+      (fx= v 9)))
+
+(TEST
+ > (u8-whitespace? (.integer #\tab))
+ #t
+ > (u8-whitespace? (.integer #\a))
+ #f
+ )
+
+
+(define (read-u8-word p)
+  (letv ((rlis len c) (read-u8-until p u8-whitespace?
+				     on-eof: premature-eof))
+	(u8-rlist->string rlis len)))
+
 (define (read-u8-u8line p)
   (letv ((rlis len c) (read-u8-until p (cut = <> 10)
 				     on-eof: premature-eof))
@@ -71,6 +91,13 @@
 					     tail: (list c)))
 		  (string->number (u8-rlist->string r (inc len)))))))
 
+
+(TEST
+ > (call-with-input-u8vector (.u8vector "foo bar\n") read-u8-line)
+ "foo bar"
+ > (call-with-input-u8vector (.u8vector "foo bar\n") read-u8-word)
+ "foo"
+ )
 
 (define (mk-read-all read)
   (lambda (p)
