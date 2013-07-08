@@ -14,11 +14,18 @@
   (match-list*
    name+vars
    ((name . vars)
-    (let ((templatecode
-	   `((lambda ,vars
-	       ,body0 ,@body)
-	     ,@(map (lambda (v)
-		      (list 'unquote v)) vars))))
-      (list 'define-macro* name+vars
-	    (list 'quasiquote-source templatecode))))))
+    (let* ((lambdacode
+	    `(lambda ,vars
+	       ,body0 ,@body))
+	   (templatecode
+	    `(,lambdacode
+	      ,@(map (lambda (v)
+		       (list 'unquote v))
+		     vars))))
+      (quasiquote-source
+       (begin
+	 (define-macro* (,(symbol-append (source-code name) '-lambda))
+	   ,(list 'quasiquote-source lambdacode))
+	 (define-macro* ,name+vars
+	   ,(list 'quasiquote-source templatecode))))))))
 
