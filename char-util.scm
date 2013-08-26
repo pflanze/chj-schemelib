@@ -45,3 +45,25 @@
  #t
  )
 
+(define (char-in-range? fromchar tochar)
+  (let ((from (char->integer fromchar))
+	(to (char->integer tochar)))
+    (lambda (v)
+      (<= from (char->integer v) to))))
+
+(define char-hexdigit?
+  (either char-digit?
+	  (char-in-range? #\a #\f)
+	  (char-in-range? #\A #\F)))
+
+(TEST
+ > (char-hexdigit? #\x)
+ #f
+ > (char-hexdigit? #\f)
+ #t
+ > (char-hexdigit? #\F)
+ #t
+ > (char-hexdigit? #\9)
+ #t
+ )
+
