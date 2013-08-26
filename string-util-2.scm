@@ -370,3 +370,26 @@
  > (dirname* "//foo//bar")
  "//foo"
  )
+
+
+;; finally, hu?
+(define (string-map fn str)
+  (let* ((len (string-length str))
+	 (res (##make-string len)))
+    (for..< (i 0 len)
+	    (string-set! res i (fn (string-ref str i))))
+    res))
+
+;; odd why does this not exist?:
+
+(define string-downcase
+  (cut string-map char-downcase <>))
+
+;; some other langs call it lc, add alias?
+(define string-lc string-downcase)
+
+(TEST
+ > (string-downcase "Hello")
+ "hello"
+ )
+
