@@ -68,3 +68,54 @@
 (define. symbol.symbol-append source-symbol-append)
 (define. string.symbol-append source-symbol-append)
 
+
+;; ------------------------------------------
+;; Check values for truthness the Perl way:
+
+(define. (anything.perl-true? x)
+  #t)
+
+(define number-zero? (both number? zero?))
+
+(define. (number-zero.perl-true? x)
+  #f)
+
+(define. (false.perl-true? x)
+  #f)
+
+(define. (string.perl-true? str)
+  (cond ((string-empty? str) #f)
+	;; calc> :l if ("0 ") { "ja" } else { "nein" }
+	;; ja
+	;; calc> :l if ("00") { "ja" } else { "nein" }
+	;; ja
+	;; calc> :l if ("0") { "ja" } else { "nein" }
+	;; nein
+	((string=? str "0") #f)
+	(else
+	 #t)))
+
+
+(TEST
+ > (.perl-true? "")
+ #f
+ > (.perl-true? "0")
+ #f
+ > (.perl-true? "1")
+ #t
+ > (.perl-true? "0E0")
+ #t
+ > (.perl-true? "0 but true")
+ #t
+ > (.perl-true? '||)
+ #t
+ > (.perl-true? 3)
+ #t
+ > (.perl-true? 0)
+ #f
+ > (.perl-true? 0.)
+ #f
+ )
+
+;; ------------------------------------------
+
