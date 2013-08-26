@@ -1,3 +1,6 @@
+(define false? not) ;; so as to be able to use "false." as OO prefix
+
+
 (define. number.string number->string)
 (define. symbol.string symbol->string)
 (define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
