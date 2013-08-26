@@ -75,6 +75,10 @@
  #(error "no match for:" 1)
  )
 
+(define-macro* (xcond . cases)
+  `(cond ,@cases
+	 (else (error "no match"))))
+
 
 ;; does that really warrant a persistent name?
 ;; [could almost just use for..<,too?]
