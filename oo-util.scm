@@ -51,3 +51,16 @@
 ;;.append name globally with that; no issue when wanting to use it in
 ;;future again for sth different.
 
+
+;; hm wrappers hm. (lost)
+
+
+(define (source-symbol-append . vals)
+  (apply symbol-append (map source-code vals)))
+
+(define. source.symbol-append source-symbol-append)
+;; well, really a case where I'd want it to de-source on *any*
+;; argument. lol, wrappers
+(define. symbol.symbol-append source-symbol-append)
+(define. string.symbol-append source-symbol-append)
+
