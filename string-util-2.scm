@@ -417,3 +417,30 @@
  "hello"
  )
 
+
+;; (XX where everywhere do I have format pieces lying around?)
+
+(define (string-pad-left s pad-char to-len)
+  (let ((len (string-length s)))
+    (if (<= to-len len)
+	s
+	(let ((res (##make-string to-len))
+	      (diff (- to-len len)))
+	  (for..< (i 0 diff)
+		  (string-set! res i pad-char))
+	  (for..< (i diff to-len)
+		  (string-set! res i
+			       (string-ref s (- i diff))))
+	  res))))
+
+(TEST
+ > (string-pad-left "3" #\0 4)
+ "0003"
+ > (string-pad-left "123" #\0 4)
+ "0123"
+ > (string-pad-left "123" #\0 3)
+ "123"
+ > (string-pad-left "123" #\0 2)
+ "123"
+ )
+
