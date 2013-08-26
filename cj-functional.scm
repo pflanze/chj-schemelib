@@ -68,6 +68,33 @@
  #f
  )
 
+;; name?
+(define (all-of . preds)
+  (lambda x
+    (every (lambda (pred)
+	     (apply pred x))
+	   preds)))
+
+(TEST
+ > ((all-of even? odd?) 1)
+ #f
+ > ((all-of even? odd?) 2)
+ #f
+ > ((all-of even? negative?) 2)
+ #f
+ > ((all-of even? negative?) -2)
+ #t
+ > ((all-of even? negative?) -1)
+ #f
+
+ > ((all-of odd?) 1)
+ #t
+ > ((all-of) 1)
+ #t
+ )
+
+
+
 ;; n-ary:
 
 (define (right-associate fn lis error)
