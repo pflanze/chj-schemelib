@@ -380,6 +380,30 @@
 	    (string-set! res i (fn (string-ref str i))))
     res))
 
+(define (string-every fn str)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (if (< i len)
+	  (if (fn (string-ref str i))
+	      (lp (inc i))
+	      #f)
+	  #t))))
+
+(TEST
+ > (string-every (lambda (x) (char=? x #\x)) "")
+ #t
+ > (string-every (lambda (x) (char=? x #\x)) "x")
+ #t
+ > (string-every (lambda (x) (char=? x #\x)) "f")
+ #f
+ > (string-every (lambda (x) (char=? x #\x)) "xxxf")
+ #f
+ > (string-every (lambda (x) (char=? x #\x)) "xxx")
+ #t
+ )
+;; > (string-every (lambda (x) (warn ".") (char=? x #\x)) "xxfxxxxxxxxxxxxxxxxxxxf")
+;; ok
+
 ;; odd why does this not exist?:
 
 (define string-downcase
