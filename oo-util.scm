@@ -1,4 +1,5 @@
 (define false? not) ;; so as to be able to use "false." as OO prefix
+(define (anything? x) #t)
 
 
 (define. number.string number->string)
