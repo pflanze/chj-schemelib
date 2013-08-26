@@ -480,3 +480,17 @@
   (lambda (x then/1 toomany/1 none/0)
     (trif-one (fn x) then/1 toomany/1 none/0)))
 
+
+(define (make-list/tail n item tail)
+  (let lp ((n n)
+	   (res tail))
+    (if (positive? n)
+	(lp (dec n)
+	    (cons item res))
+	res)))
+
+(TEST
+ > (make-list/tail 3 "foo" '("bar"))
+ ("foo" "foo" "foo" "bar")
+ )
+
