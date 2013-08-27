@@ -975,3 +975,12 @@ if (___result<0) {
 	      "___result= unlink(___arg1);
                if(___result<0) ___result=-errno;") path)))
 
+(define/check posix:_chown posix:chown (path owner group)
+  (error-to-posix-exception
+   ((c-lambda (ISO-8859-1-string ;; dito
+	       uid_t
+	       gid_t)
+	      int
+	      "___result= chown(___arg1,___arg2,___arg3);
+               if(___result<0) ___result=-errno;") path owner group)))
+
