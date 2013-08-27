@@ -140,3 +140,32 @@
 		read
 		close-port))
 
+
+(define (_-name-or-id->id get access msg)
+  (lambda (v)
+    (cond ((string? v)
+	   (cond ((get v)
+		  => (lambda (p)
+		       (access p)))
+		 (else
+		  (error msg v))))
+	  ((natural0? v) v)
+	  (else (error "invalid type:" v)))))
+
+(define user-name-or-id->id
+  (_-name-or-id->id posix:getpwnam .uid "unknown user name:"))
+
+(define group-name-or-id->id
+  (_-name-or-id->id posix:getgrnam .gid "unknown group name:"))
+
+(define (chown path maybe-username-or-id maybe-groupname-or-id)
+  ;; XX is this different from other cases (which?) where in case of
+  ;; #f it might keep what owner/group the file has?
+  (let ((uid (if maybe-username-or-id
+		 (user-name-or-id->id maybe-username-or-id)
+		 (posix:getuid)))
+	(gid (if maybe-groupname-or-id
+		 (group-name-or-id->id maybe-groupname-or-id)
+		 (posix:getgid))))
+    (posix:chown path uid gid)))
+
