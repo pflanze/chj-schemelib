@@ -957,3 +957,21 @@ if (___result<0) {
 	      "___result= ftruncate(___arg1,___arg2);
                if(___result<0) ___result=-errno;") fd length)))
 
+
+(define/check posix:_symlink posix:symlink (oldpath newpath)
+  (error-to-posix-exception
+   ((c-lambda (ISO-8859-1-string ;;XXX "Bah"?
+	       ISO-8859-1-string)
+	      int
+	      "___result= symlink(___arg1,___arg2);
+               if(___result<0) ___result=-errno;") oldpath newpath)))
+
+
+(define/check posix:_unlink posix:unlink (path)
+  (error-to-posix-exception
+   ((c-lambda (ISO-8859-1-string ;; dito
+	       )
+	      int
+	      "___result= unlink(___arg1);
+               if(___result<0) ___result=-errno;") path)))
+
