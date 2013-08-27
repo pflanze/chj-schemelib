@@ -14,6 +14,8 @@
  cj-gambit-sys
  (cj-test TEST)
  cj-env-2
+ ;;cj-struct
+ dot-oo
  )
 
 ;; it also does (include "cj-c-types.scm")
@@ -170,6 +172,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 /* #include <sys/stat.h>  for constants like O_DIRECT? no doesn't help */
+#include <pwd.h>
+#include <grp.h>
 ")
 
 
@@ -983,4 +987,111 @@ if (___result<0) {
 	      int
 	      "___result= chown(___arg1,___arg2,___arg3);
                if(___result<0) ___result=-errno;") path owner group)))
+
+
+;; userspace posix stuff: XX separate section or file?
+
+(define-struct. posix-passwd
+  name
+  passwd
+  uid
+  gid
+  gecos
+  dir
+  shell)
+
+(c-define (posix_passwd n p u g ge d sh)
+	  (ISO-8859-1-string
+	   ISO-8859-1-string
+	   uid_t
+	   gid_t
+	   ISO-8859-1-string
+	   ISO-8859-1-string
+	   ISO-8859-1-string)
+	  scheme-object
+	  "posix_passwd" ""
+	  (posix-passwd n p u g ge d sh))
+
+
+;;(define/check posix:_getpwnam posix:getpwnam (name)
+;; XX how does that work again. anyway, what use would posix:_getpwnam be. thus:
+
+(define (posix:getpwnam name)
+  ;; returns maybe value
+  (let* ((res ((c-lambda (ISO-8859-1-string ;; dito
+			  )
+			 scheme-object
+			 "
+struct passwd* p;
+errno=0;
+p= getpwnam(___arg1);
+if (p) {
+    ___result= posix_passwd(
+           p->pw_name,
+           p->pw_passwd,
+           p->pw_uid,
+           p->pw_gid,
+           p->pw_gecos,
+           p->pw_dir,
+           p->pw_shell);
+    // XX how does it propagate exceptions during or entering or exiting the scheme call within the posix_passwd call?
+} else {
+    if (errno) {
+        ___result= ___FIX(-errno);
+    } else {
+        ___result= ___FAL;
+    }
+}
+")
+		  name)))
+    (if (fixnum? res)
+	(raise (posix-exception (- res)))
+	res)))
+
+
+;; much of the same as above, sigh, but also many changes. XX abstract how?
+
+(define-struct. posix-group
+  name
+  passwd
+  gid
+  mem)
+
+(c-define (posix_group n p g m)
+	  (ISO-8859-1-string
+	   ISO-8859-1-string
+	   gid_t
+	   nonnull-UTF-8-string-list)
+	  scheme-object
+	  "posix_group" ""
+	  (posix-group n p g m))
+
+(define (posix:getgrnam name)
+  ;; returns maybe value
+  (let* ((res ((c-lambda (ISO-8859-1-string ;; dito
+			  )
+			 scheme-object
+			 "
+struct group* p;
+errno=0;
+p= getgrnam(___arg1);
+if (p) {
+    ___result= posix_group(
+           p->gr_name,
+           p->gr_passwd,
+           p->gr_gid,
+           p->gr_mem);
+    // XX how does it propagate exceptions during or entering or exiting the scheme call within the posix_passwd call?
+} else {
+    if (errno) {
+        ___result= ___FIX(-errno);
+    } else {
+        ___result= ___FAL;
+    }
+}
+")
+		  name)))
+    (if (fixnum? res)
+	(raise (posix-exception (- res)))
+	res)))
 
