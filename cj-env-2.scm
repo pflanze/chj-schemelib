@@ -95,3 +95,5 @@
   `(if (not ,test)
        ,form))
 
+(define -e file-exists?)
+
