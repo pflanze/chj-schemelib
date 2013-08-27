@@ -91,3 +91,7 @@
 	       ,@body
 	       (,LP (dec ,C)))))))
 
+(define-macro* (unless test form)
+  `(if (not ,test)
+       ,form))
+
