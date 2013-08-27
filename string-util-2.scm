@@ -444,3 +444,26 @@
  "123"
  )
 
+
+(define (string-ends-with? str substr)
+  ((on string-length
+       (lambda (len0 len1)
+	 (let ((offset (- len0 len1)))
+	   (and (not (negative? offset))
+		(string=? (substring str offset len0)
+			  substr)))))
+   str substr))
+
+(TEST
+ > (string-ends-with? "" "")
+ #t
+ > (string-ends-with? "" "x")
+ #f
+ > (string-ends-with? "x" "x")
+ #t
+ > (string-ends-with? "ax" "x")
+ #t
+ > (string-ends-with? "xa" "x")
+ #f
+ )
+
