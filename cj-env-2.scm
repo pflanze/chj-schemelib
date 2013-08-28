@@ -97,3 +97,6 @@
 
 (define -e file-exists?)
 
+(define (append-newline str)
+  (string-append str "\n"))
+
