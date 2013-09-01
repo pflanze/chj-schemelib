@@ -100,3 +100,8 @@
 (define (append-newline str)
   (string-append str "\n"))
 
+(define-macro* (future expr)
+  `(thread-start!
+    (make-thread
+     (lambda ()
+       ,expr))))
