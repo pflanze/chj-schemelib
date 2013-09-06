@@ -14,7 +14,8 @@
 
 (define list-util-nothing (gensym 'nothing))
 
-(define (sortedlist-group-by lis equal? #!optional (tail '()))
+;; formerly called |sortedlist-group-by|
+(define (group-by lis equal? #!optional (tail '()))
   ;; return list of lists of the items that are equal according to
   ;; equal?; requires lis to be sorted according to equal?.
 
@@ -41,30 +42,31 @@
 				(rec lisR e))))))))
 
 (TEST
- > (sortedlist-group-by '() =)
+ > (group-by '() =)
  ()
- > (sortedlist-group-by '(1) =)
+ > (group-by '(1) =)
  ((1))
- > (sortedlist-group-by '(1 2 3 3 4 5 6) =)
+ > (group-by '(1 2 3 3 4 5 6) =)
  ((1) (2) (3 3) (4) (5) (6))
- > (sortedlist-group-by '(1 2 3 3 4 5 5 5 6) =)
+ > (group-by '(1 2 3 3 4 5 5 5 6) =)
  ((1) (2) (3 3) (4) (5 5 5) (6))
- > (sortedlist-group-by '(1 2 3 3 4 5 5 5 6 6) =)
+ > (group-by '(1 2 3 3 4 5 5 5 6 6) =)
  ((1) (2) (3 3) (4) (5 5 5) (6 6))
  )
 
-(define (list-group-by lis less? #!optional (tail '()))
+;; formerly called |list-group-by|
+(define (segregate lis less? #!optional (tail '()))
   (define (equal? a b)
     (and (not (less? a b))
 	 (not (less? b a))))
-  (sortedlist-group-by (sort lis less?)
-		       equal?
-		       tail))
+  (group-by (sort lis less?)
+	    equal?
+	    tail))
 
 (TEST
- > (list-group-by '() <)
+ > (segregate '() <)
  ()
- > (list-group-by '(3 1 2 5 6 3 4 3 5) <)
+ > (segregate '(3 1 2 5 6 3 4 3 5) <)
  ((1) (2) (3 3 3) (4) (5 5) (6))
  )
 

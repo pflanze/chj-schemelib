@@ -222,7 +222,7 @@
 	((list)
 	 ;; XX later: reuse the same code for 'apply list'
 	 (let* ((grouped-by-nargs
-		 (list-group-by opgroup (on clause:test-nargs <))))
+		 (segregate opgroup (on clause:test-nargs <))))
 	   ;; split into n-ary and fixed arity cases:
 	   (letv ((groups-nary groups-fixed)
 		  (partition (compose* negative?
@@ -313,9 +313,9 @@
 (define-macro*d (match input . clauses)
   ;; group according to type of datum
   (let* ((clausegroups
-	  (list-group-by clauses
-			 (on clause:constructor-xsym
-			     symbol<?))))
+	  (segregate clauses
+		     (on clause:constructor-xsym
+			 symbol<?))))
     (case (length clausegroups)
       ((1)
        (handle-op-group input (car clausegroups)))
