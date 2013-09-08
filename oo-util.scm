@@ -6,6 +6,7 @@
   ;; any kind of true; identity
   (not (not x)))
 
+(define. values.vector values->vector)
 
 (define. number.string number->string)
 (define. symbol.string symbol->string)
