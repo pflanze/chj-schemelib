@@ -91,3 +91,32 @@
  > ((improper-fold-right/yn-cont list vector) inccons 'end '(1 2 . 3))
  #((2 3 4 . end))
  )
+
+
+(define (lists-common-prefix-length ls equal?)
+  (let lp ((ls ls)
+	   (len 0))
+    (if (any null? ls)
+	len
+	(let ((v (car (car ls))))
+	  (if (every (lambda (l)
+		       (equal? (car l) v))
+		     (cdr ls))
+	      (lp (map cdr ls) (inc len))
+	      len)))))
+
+(TEST
+ > (lists-common-prefix-length '(() ()) equal?)
+ 0
+ > (lists-common-prefix-length '((a) ()) equal?)
+ 0
+ > (lists-common-prefix-length '((a) (b)) equal?)
+ 0
+ > (lists-common-prefix-length '((a) (a b)) equal?)
+ 1
+ > (lists-common-prefix-length '((a c) (a b)) equal?)
+ 1
+ > (lists-common-prefix-length '((a c) (a c b)) equal?)
+ 2
+ )
+
