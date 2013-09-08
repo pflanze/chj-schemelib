@@ -811,3 +811,16 @@
  ((a 0) (b 1))
  )
 
+(define (stream-drop-while pred l)
+  (let lp ((l l))
+    (FV (l)
+	(if (null? l) '()
+	    (if (pred (car l))
+		(lp (cdr l))
+		l)))))
+
+(TEST
+ > (F (stream-take (stream-drop-while (cut < <> 10) (stream-iota)) 3))
+ (10 11 12)
+ )
+
