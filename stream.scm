@@ -783,3 +783,31 @@
  ((12 . c))
  )
 
+
+;; (define (stream-any fn ss)
+;;   ( ))
+
+;; srfi-1: (define (zip list1 . more-lists) (apply map list list1 more-lists))
+;; hm gives error unless all are of the same length.
+;; usually not what we want right? e.g. when zipping in an infinite iota.
+;; thus..
+
+(define (stream-zip . ss)
+  (let rec ((ss ss))
+    (delay
+      (if (any (compose null? force) ss)
+	  '()
+	  (cons (map (lambda (s)
+		       (car (force s)))
+		     ss)
+		(rec (map (lambda (s)
+			    (cdr (force s)))
+			  ss)))))))
+
+(TEST
+ > (stream->list (stream-zip '(a b c) '(1 2)))
+ ((a 1) (b 2))
+ > (stream->list (stream-zip '(a b) (stream-iota)))
+ ((a 0) (b 1))
+ )
+
