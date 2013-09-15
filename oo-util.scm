@@ -25,6 +25,8 @@
 
 (define. string.append string-append)
 
+(define. string.length string-length)
+
 (define. string.number string->number)
 
 (TEST
