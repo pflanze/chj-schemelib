@@ -22,6 +22,7 @@
 (define. string.list string->list)
 
 (define. char.integer char->integer)
+(define. integer.char integer->char)
 
 (define. string.append string-append)
 
