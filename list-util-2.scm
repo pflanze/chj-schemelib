@@ -120,3 +120,42 @@
  2
  )
 
+(define (cross2 a orig-b)
+  (let rec ((a a)
+	    (b orig-b))
+    (cond ((null? a)
+	   '())
+	  ((null? b)
+	   (rec (cdr a)
+		orig-b))
+	  (else
+	   (cons (cons (car a)
+		       (car b))
+		 (rec a
+		      (cdr b)))))))
+
+(TEST
+ > (cross2 '(E F) (cross2 '(C D) '((A) (B))))
+ ((E C A) (E C B) (E D A) (E D B) (F C A) (F C B) (F D A) (F D B))
+ )
+
+(define (cross-product . lists)
+  (cond ((null? lists)
+	 (error "?XXX"))
+	((null? (cdr lists))
+	 (map list (car lists)))
+	(else
+	 (cross2 (car lists)
+		 (apply cross-product (cdr lists))))))
+
+(TEST
+ > (cross-product '(A B) '(C D) '(E F))
+ ((A C E) (A C F) (A D E) (A D F) (B C E) (B C F) (B D E) (B D F))
+ > (cross-product '(A B) '(C D) '(E))
+ ((A C E) (A D E) (B C E) (B D E))
+ > (cross-product '(A B) '(C D))
+ ((A C) (A D) (B C) (B D))
+ > (cross-product '(A B))
+ ((A) (B))
+ )
+
