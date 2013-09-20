@@ -145,8 +145,8 @@
       (cons nam (cons newattrs body)))))
 
 
-;; frage: wann der else continuation das datum geben, wann nicht? nie? kann es elt hier schon aus argument list lesen?
-(define (with-sxml-element/else elt cont-name-attrs-body
+(define (with-sxml-element/else elt
+				cont-name-attrs-body
 				#!optional
 				(cont-else (lambda ()
 					     (error "not an sxml element:" elt))))
