@@ -57,11 +57,13 @@
     .type .info
     ))
 
+(define assert:stopping-syntax-forms
+  ;; forms that stop from recursing inside
+  '(quote quasiquote))
+
 (define assert:syntax-forms
-  '(
-    and or
-    quote quasiquote
-    ))
+  (append '(and or)
+	  assert:stopping-syntax-forms))
 
 (define (assert:possibly-symbolize v)
   (let ((v* (source-code v)))
@@ -89,9 +91,11 @@
  (define (assert-replace-expand e)
    (mcase e
 	  (pair?
-	   (let ((e* (source-code e)))
-	     `(##cons ,(assert-replace-expand (car e*))
-		      ,(assert-replace-expand (cdr e*)))))
+	   (let* ((e* (source-code e)))
+	     (if (memq (source-code (car e*)) assert:stopping-syntax-forms)
+		 `(quote ,e)
+		 `(##cons ,(assert-replace-expand (car e*))
+			  ,(assert-replace-expand (cdr e*))))))
 	  (symbol?
 	   (if (or (define-macro-star-maybe-ref (source-code e))
 		   (memq (source-code e) assert:syntax-forms))
@@ -107,14 +111,20 @@
 (TEST
  > (assert-replace-expand '(= e1 e2))
  (##cons (assert:possibly-symbolize =)
-        (##cons (assert:possibly-symbolize e1)
-                (##cons (assert:possibly-symbolize e2) '())))
+	 (##cons (assert:possibly-symbolize e1)
+		 (##cons (assert:possibly-symbolize e2) '())))
  > (assert-replace-expand '((on foo bar) e1 e2))
-(##cons (##cons 'on
-                (##cons (assert:possibly-symbolize foo)
-                        (##cons (assert:possibly-symbolize bar) '())))
-        (##cons (assert:possibly-symbolize e1)
-                (##cons (assert:possibly-symbolize e2) '())))
+ (##cons (##cons 'on
+		 (##cons (assert:possibly-symbolize foo)
+			 (##cons (assert:possibly-symbolize bar) '())))
+	 (##cons (assert:possibly-symbolize e1)
+		 (##cons (assert:possibly-symbolize e2) '())))
+ > (assert-replace-expand ''e1)
+ ''e1
+ > (assert-replace-expand '(eq? 'a 'b))
+ (##cons (assert:possibly-symbolize eq?) (##cons ''a (##cons ''b '())))
+ > (eval #)
+ (eq? 'a 'b)
  )
 
 (define-macro* (assert expr)
