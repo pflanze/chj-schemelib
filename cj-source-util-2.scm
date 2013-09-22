@@ -65,6 +65,10 @@
   (append '(and or)
 	  assert:stopping-syntax-forms))
 
+(both-times
+ (define self-quoting?
+   (either string? char? number? boolean?)))
+
 (define (assert:possibly-symbolize v)
   (let ((v* (source-code v)))
     (if (procedure? v*)
@@ -85,7 +89,9 @@
 				sym
 				(_else))))
 		      (else (_else))))))
-	v)))
+	(if (self-quoting? v)
+	    v
+	    `(quote ,v)))))
 
 (compile-time
  (define (assert-replace-expand e)
@@ -105,8 +111,12 @@
 	       ;; avoid referencing errors at runtime.
 	       `',e
 	       `(assert:possibly-symbolize ,e)))
+	  (null?
+	   ''())
+	  (self-quoting?
+	   e)
 	  (else
-	   `(quote ,e)))))
+	   `(quote (quote ,e))))))
 
 (TEST
  > (assert-replace-expand '(= e1 e2))
@@ -125,6 +135,9 @@
  (##cons (assert:possibly-symbolize eq?) (##cons ''a (##cons ''b '())))
  > (eval #)
  (eq? 'a 'b)
+ > (define a 'x)
+ > (eval (assert-replace-expand '(eq? "0" a)))
+ (eq? "0" 'x)
  )
 
 (define-macro* (assert expr)
@@ -133,6 +146,9 @@
 			      (scm:object->string (cj-desourcify expr)))
 	      ,(assert-replace-expand expr))))
 
+;; > (define a 'a)
+;; > (assert (eq? a 'b))
+;; *** ERROR IN (console)@5.1 -- assertment failure: (eq? a 'b) (eq? 'x 'b)
 
 (define-macro* (V . rest)
   (with-gensym V
