@@ -840,3 +840,12 @@
  b
  )
 
+;; adapted version of |xone|
+(define (stream-xone x #!optional (fail (lambda_ #f)))
+  (FV (x)
+      (if (pair? x)
+	  (if (null? (force (cdr x)))
+	      (car x)
+	      (fail 'found-too-many))
+	  (fail 'not-found))))
+
