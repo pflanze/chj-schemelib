@@ -133,3 +133,20 @@
 			      (scm:object->string (cj-desourcify expr)))
 	      ,(assert-replace-expand expr))))
 
+
+(define-macro* (V . rest)
+  (with-gensym V
+	       `(let ((,V ,rest))
+		  (warn "V"
+			',rest
+			'|:|
+			,(assert-replace-expand rest)
+			'=
+			,V)
+		  ,V)))
+
+;; > (define i 3)
+;; > (V + 2 i)
+;; V (+ 2 i) : (+ 2 3) = 5
+;; 5
+
