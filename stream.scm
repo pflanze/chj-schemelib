@@ -13,6 +13,7 @@
 	 (lib.list-util)
 	 (lib.cj-cmp)
 	 (lib.srfi-11)
+	 (lib.cj-typed)
 	 )
 
 
@@ -822,5 +823,20 @@
 (TEST
  > (F (stream-take (stream-drop-while (cut < <> 10) (stream-iota)) 3))
  (10 11 12)
+ )
+
+
+(define-typed (stream-ref s #(natural0? i))
+  (let rec ((s s) (i i))
+    (FV (s)
+	(if (zero? i)
+	    (car s)
+	    (rec (cdr s) (dec i))))))
+
+(TEST
+ > (stream-ref '(a b) 0)
+ a
+ > (stream-ref '(a b) 1)
+ b
  )
 
