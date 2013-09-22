@@ -10,92 +10,95 @@
 
 ;; "./foo/bar[0]" == '(foo bar 0)
 ;; "./foo/bar[0]/baz" == '(foo bar 0 baz)
-;; "./foo/*/[0]/baz" == '(foo * 0 baz)
+;; "./foo/*[0]/baz" == '(foo * 0 baz)
 
-;; also, @ for attribute matches, (* @ *) returns all attribute values
+;; / for getting the contents of the elements that matched on the
+;; previous level (implicit if the path has more entries)
+
+;; also, @ for attribute matches, (* @ * /) returns all attribute values
 ;; of all tags in the current context.
 
-;; NOTE: returns the *appended bodies* of the elements (or their
-;; attributes) that match the complete path, not the whole elements
-;; (and drops the attributes unless in intermediate steps when they
-;; are needed in the next matching level).
+;; Does need a list or stream to be given, individual sxml-elements
+;; are not ok.
 
-(define (ssxpath-match path v)
-  (let* ((l (if (or (null? v)
-		    (and (pair? v)
-			 (not (sxml-element? v))))
-		v
-		(list v))))
-    (if (null? path)
-	l
-	(let-pair
-	 ((pathhead path*) path)
+(define (ssxpath-match path l #!optional (context '()))
+  (if (null? path)
+      l
+      (let-pair
+       ((pathhead path*) path)
 
-	 (let ((perhaps-cons (if (and (pair? path*)
-				      (eq? (car path*) '@))
-				 cons
-				 (lambda (a b) b))))
-	   (cond ((eq? pathhead '*)
-		  ;; *almost* same as handling of (symbol?
-		  ;; pathhead), just not testing for element
-		  ;; name equivalence
-		  (ssxpath-match
-		   path*
-		   (fold-right
-		    (lambda (v rest)
-		      (with-sxml-element/else
-		       v
-		       (lambda (name attrs body)
-			 (append (perhaps-cons attrs body)
-				 rest))
-		       (thunk rest)))
-		    '()
-		    l)))
-		 ((symbol? pathhead)
-		  (ssxpath-match
-		   path*
-		   (fold-right
-		    (lambda (v rest)
-		      (with-sxml-element/else
-		       v
-		       (lambda (name attrs body)
-			 (if (eq? name pathhead)
-			     (append (perhaps-cons attrs body)
-				     rest)
-			     rest))
-		       (thunk rest)))
-		    '()
-		    l)))
-		 ((natural0? pathhead)
-		  (ssxpath-match path*
-				 ;; XX don't error on overrun?
-				 (sxml-element-body (list-ref l pathhead))))
-		 (else
-		  (error "invalid element in path:" pathhead))))))))
+       (let* ((bodies (stream-fold-right
+		       (lambda (e res)
+			 ;; need a body-append (or at least use
+			 ;; stream-append) for cases where bodies are
+			 ;; lazy.
+			 (append (sxml-element-body e) res))
+		       '()
+		       l))
+	      (lbodies (if (pair? context)
+			   bodies
+			   l))
+	      (rec (lambda (l*)
+		     (ssxpath-match path*
+				    l*
+				    (cons pathhead context)))))
+	 (cond ((eq? pathhead '/)
+		(rec bodies))
+	       ((eq? pathhead '*)
+		(rec (stream-filter sxml-element? lbodies)))
+	       ((eq? pathhead '@)
+		(rec (stream-map sxml-element-attributes l)))
+	       ((symbol? pathhead)
+		(rec (stream-fold-right
+		      (lambda (v rest)
+			(with-sxml-element/else
+			 v
+			 (lambda (name attrs body)
+			   (if (eq? name pathhead)
+			       (cons v rest)
+			       rest))
+			 (thunk rest)))
+		      '()
+		      lbodies)))
+	       ((natural0? pathhead)
+		;; XX don't error on overrun?
+		(rec (list (stream-ref l pathhead))))
+	       (else
+		(error "invalid element in path:" pathhead)))))))
 
 (TEST
- > (ssxpath-match '() '(a (b)))
+ > (define sm (compose stream->list ssxpath-match))
+ > (sm '() '((a (b))))
  ((a (b)))
- > (ssxpath-match '(b) '(a (b)))
+ > (sm '(b) '((a (b))))
  ()
- > (ssxpath-match '(a) '(a (b)))
- ((b))
- > (ssxpath-match '(a b) '((a (b "world")) (a (b (c)))))
+ > (sm '(a) '((a (b)) (d (e)) (a (c))))
+ ((a (b)) (a (c)))
+ > (sm '(a /) '((a (b)) (d (e)) (a (c))))
+ ((b) (c))
+ > (sm '(a b /) '((a (b "world")) (a (b (c)))))
  ("world" (c))
- > (ssxpath-match '(a * *) '((a (b "world")) (a (b (c "here")))))
+ > (sm '(a * /) '((a (b "world")) (a (b (c "here")))))
+ ("world" (c "here"))
+ > (sm '(a * * /) '((a (b "world")) (a (b (c "here")))))
  ("here")
- > (ssxpath-match '(body * a @ href) '(body (p "hm " (a (@ (href "hah"))) ".")))
+ > (sm '(body * a @ href /)
+       '((body (p "hm " (a (@ (href "hah"))) "."))))
  ("hah")
- > (ssxpath-match '(body 0 a @ href) '(body (p "hm " (a (@ (href "hah"))) ".")
-					    (p "hm " (a (@ (href "hah2"))) ".")))
+ > (sm '(body p 0 a @ href /)
+       '((body (p "hm " (a (@ (href "hah"))) ".")
+	       (p "hm " (a (@ (href "hah2"))) "."))))
  ("hah")
- > (ssxpath-match '(body 1 a @ href) '(body (p "hm " (a (@ (href "hah"))) ".")
-					    (p "hm " (a (@ (href "hah2"))) ".")))
+ > (sm '(body * 1 a @ href /)
+       '((body (p "hm " (a (@ (href "hah"))) ".")
+	       (p "hm " (a (@ (href "hah2"))) "."))))
  ("hah2")
  ;; (interesting, even attribute bodies are lists. Of course, when
  ;; treating them that way..: )
- > (ssxpath-match '(* @ *) '(a (@ (b "hello") (c "world"))))
+ > (sm '(* @ * /) '((a (@ (b "hello") (c "world")))))
  ("hello" "world")
+ > (sm '(p 0 /) '((p "hello" " world") (p "etc.")))
+ ("hello" " world")
  )
 
 (define (ssxpath path)
