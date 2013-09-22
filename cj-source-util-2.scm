@@ -59,7 +59,7 @@
 
 (define assert:stopping-syntax-forms
   ;; forms that stop from recursing inside
-  '(quote quasiquote))
+  '(quote quasiquote lambda))
 
 (define assert:syntax-forms
   (append '(and or)
@@ -74,7 +74,8 @@
     (if (procedure? v*)
 	(let lp ((ss assert:possibly-symbolize-procedures))
 	  (if (null? ss)
-	      v
+	      (or (##procedure-name v) ;; could use that from the start...? well.
+		  v)
 	      (let ((sym (car ss))
 		    (_else (lambda () (lp (cdr ss)))))
 		(cond ((with-exception-catcher
@@ -165,4 +166,7 @@
 ;; > (V + 2 i)
 ;; V (+ 2 i) : (+ 2 3) = 5
 ;; 5
-
+;; > (V (lambda (x) .append) i)
+;; V ((lambda (x) .append) i) : ((lambda (x) .append) 3) = #<procedure #2 .append>
+;; #<procedure #2 .append>
+;;(hm why does the lambda appear decompiled?)
