@@ -15,8 +15,11 @@
 ;; / for getting the contents of the elements that matched on the
 ;; previous level (implicit if the path has more entries)
 
-;; also, @ for attribute matches, (* @ * /) returns all attribute values
-;; of all tags in the current context.
+;; @ for attribute matches, (* @ * /) returns all attribute values of
+;; all tags in the current context.
+
+;; sublists for "where" (or rather termed "having"?) matches on the
+;; context before the sublist.
 
 ;; Does need a list or stream to be given, individual sxml-elements
 ;; are not ok.
@@ -63,6 +66,23 @@
 	       ((natural0? pathhead)
 		;; XX don't error on overrun?
 		(rec (list (stream-ref l pathhead))))
+	       ((string? pathhead)
+		;; compare and return a boolean instead of a list of values
+		;; XX hm hacky?
+		(let* ((bodies (stream->list bodies)))
+		  (and (every string? bodies) ;; XX too narrow?
+		       (equal? (apply string-append bodies)
+			       pathhead))))
+	       ((pair? pathhead)
+		;; filtering
+		(rec (stream-filter
+		      (lambda (v)
+			(let ((res (ssxpath-match pathhead
+						  (list v)
+						  (cons pathhead context))))
+			  (assert (boolean? res))
+			  res))
+		      l)))
 	       (else
 		(error "invalid element in path:" pathhead)))))))
 
@@ -99,6 +119,29 @@
  ("hello" "world")
  > (sm '(p 0 /) '((p "hello" " world") (p "etc.")))
  ("hello" " world")
+
+ ;; boolean hack feature
+ > (ssxpath-match '(p 0 "hello world") '((p "hello" " world") (p "etc.")))
+ #t
+ > (ssxpath-match '(p 1 "hello world") '((p "hello" " world") (p "etc.")))
+ #f
+ > (ssxpath-match '(p 1 "etc.") '((p "hello" " world") (p "etc.")))
+ #t
+ ;; sub-match feature
+ > (sm '(body * (a @ href "hah"))
+       '((body (p "hm " (a (@ (href "hah"))) ".")
+ 	       (p "hm " (a (@ (href "hah2"))) "."))))
+ ((p "hm " (a (@ (href "hah"))) "."))
+ > (sm '(body * * (@ href "hah"))
+       '((body (p "hm " (a (@ (href "hah"))) ".")
+	       (p "hm " (a (@ (href "hah2"))) "."))))
+ ((a (@ (href "hah"))))
+ > (sm '(body * a (@ href "hah") /)
+       '((body (p "hm "
+		  (a (@ (href "hah")) "one")
+		  (a (@ (href "hah2")) "two")
+		  "."))))
+ ("one")
  )
 
 (define (ssxpath path)
