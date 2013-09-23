@@ -9,7 +9,11 @@
 (define. values.vector values->vector)
 
 (define. number.string number->string)
+(define. string.number string->number)
+
 (define. symbol.string symbol->string)
+(define. string.symbol string->symbol)
+
 (define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
 (define. list.u8vector list->u8vector)
 
@@ -27,8 +31,6 @@
 (define. string.append string-append)
 
 (define. string.length string-length)
-
-(define. string.number string->number)
 
 (TEST
  > (.string 234)
