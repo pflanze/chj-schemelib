@@ -191,7 +191,8 @@
  )
 
 
-;;(define ip-string? (either ipv4-string? ipv6-string? ipv6-hex-string?))
+(define ip-string? (either ipv4-string? ipv6-string?))
+;; but not ipv6-hex-string?, ok?
 
 
 ;; conversion/canonical format
