@@ -105,3 +105,19 @@
     (make-thread
      (lambda ()
        ,expr))))
+
+
+;; cut, Curry, using |_| as placeholder, without depending on the cut
+;; srfi
+(define-macro* (C . args)
+  (let ((maybe-p-s (map (lambda (v)
+			  (if (eq? (source-code v) '_)
+			      (gensym)
+			      #f))
+			args)))
+    `(lambda ,(filter identity maybe-p-s)
+       ,(map (lambda (v maybe-p)
+	       (or maybe-p v))
+	     args
+	     maybe-p-s))))
+
