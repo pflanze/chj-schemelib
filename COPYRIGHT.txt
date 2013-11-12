@@ -1,0 +1,9 @@
+The files in this repository, unless carrying a copyright notice
+inside the file that says otherwise, are copyright by Christian Jaeger
+<ch@christianjaeger.ch> and are licensed according to the GNU General
+Public License as published by the Free Software Foundation, version 2.
+
+A copy of that license is provided in gpl-2.0.txt.
+
+Please contact me if you're interested in me changing it to something
+more permissible.
