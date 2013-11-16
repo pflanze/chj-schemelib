@@ -15,6 +15,7 @@
 (define list-util-nothing (gensym 'nothing))
 
 ;; formerly called |sortedlist-group-by|
+;; XX oh: see also list-group (and stream-group) in stream.scm
 (define (group-by lis equal? #!optional (tail '()))
   ;; return list of lists of the items that are equal according to
   ;; equal?; requires lis to be sorted according to equal?.
