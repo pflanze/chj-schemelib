@@ -31,6 +31,11 @@
     (assert (zero? (process-status p)))
     (chomp output)))
 
+(define (backtick-bash code)
+  (backtick "bash" "-c" code))
+
+(define bash backtick-bash) ;; ok?
+
 (define (hostname)
   (backtick "hostname"))
 
