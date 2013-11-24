@@ -849,3 +849,7 @@
 	      (fail 'found-too-many))
 	  (fail 'not-found))))
 
+;; dito
+(define (stream-xxone x)
+  (stream-xone x (lambda (e)
+		   (error "expected one item, but got:" e x))))
