@@ -459,7 +459,7 @@
 
 (define (xxone x)
   (xone x (lambda (e)
-	   (error "expected one item, but got:" e x))))
+	   (error "expected list of one item, but got:" e x))))
 
 (define (trif-one x then/1 toomany/1 none/0)
   (if (pair? x)
