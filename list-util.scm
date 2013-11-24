@@ -457,6 +457,10 @@
 	  (fail 'found-too-many))
       (fail 'not-found)))
 
+(define (xxone x)
+  (xone x (lambda (e)
+	   (error "expected one item, but got:" e x))))
+
 (define (trif-one x then/1 toomany/1 none/0)
   (if (pair? x)
       (if (null? (cdr x))
