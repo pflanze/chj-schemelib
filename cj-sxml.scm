@@ -1,4 +1,18 @@
 
+(define (sxml-element name atts body)
+  (cons name (if (and atts (not (null? atts)))
+		 (cons (cons '@ atts) body)
+		 body)))
+
+(TEST
+ > (sxml-element 'foo #f (list "foo"))
+ (foo "foo")
+ > (sxml-element 'foo '() (list "foo"))
+ (foo "foo")
+ > (sxml-element 'foo '((baz "ha")) (list "foo"))
+ (foo (@ (baz "ha")) "foo")
+ )
+
 (define (sxml-element? l)
   (and (##pair? l)
        (##symbol? (##car l))))
@@ -13,6 +27,12 @@
   (with-sxml-element element
 		     (lambda (name attrs body)
 		       body)))
+
+(define (sxml-element-body-fold fn tail e)
+  (with-sxml-element e
+		     (lambda (name atts body)
+		       ;; flatten body?
+		       (sxml-element name atts (fold fn tail body)))))
 
 (define (@with-sxml-element-attributes/else element yes no)
   (let ((2ndpair (cdr element)))
@@ -115,6 +135,10 @@
 (define (with-sxml-element elt cont-name-attrs-body)
   (with-sxml-element/else elt cont-name-attrs-body))
 
+(TEST
+ > (with-sxml-element '(foo (@ (baz "ha")) "foo") vector)
+ #(foo (@ (baz "ha")) ("foo"))
+ )
 
 (define unbound (gensym))
 
