@@ -87,7 +87,7 @@
 	 (pair?
 	  (let ((first* (source-code first)))
 	    (define.-template (car first*)
-	      `(lambda ,(cdr first*)
+	      `(typed-lambda ,(cdr first*)
 		 ,@rest))))))
 
 ;; Note: this resolves the type predicate at loading time. Later
