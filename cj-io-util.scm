@@ -1,3 +1,11 @@
+(define (read-lines #!optional (p (current-input-port)) (tail '()))
+  (let rec ()
+    (let ((line (read-line p)))
+      (if (eof-object? line)
+	  tail
+	  (cons line (rec))))))
+
+
 (define (writeln obj)
   (write obj)
   (newline))
