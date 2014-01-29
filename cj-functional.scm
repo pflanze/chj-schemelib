@@ -152,20 +152,20 @@
  ("got no element, need two" "got no element, need two")
  )
 
-(define-macro* (Ra op . exprs)
+(define-macro* (RA op . exprs)
   (syntax:right-associate op exprs
 			  (lambda (msg)
 			    (source-error stx msg))))
 
-(define-macro* (La op . exprs)
+(define-macro* (LA op . exprs)
   (syntax:left-associate op exprs
 			 (lambda (msg)
 			   (source-error stx msg))))
 
 (TEST
- > (expansion#Ra compose half x*y inc2values)
+ > (expansion#RA compose half x*y inc2values)
  (compose half (compose x*y inc2values))
- > (expansion#La compose half x*y inc2values)
+ > (expansion#LA compose half x*y inc2values)
  (compose (compose half x*y) inc2values)
  )
 
@@ -178,7 +178,7 @@
 
 (IF #t
     (define-macro* (compose* . f-exprs)
-      `(Ra compose ,@f-exprs))
+      `(RA compose ,@f-exprs))
     ;; or, manually inlining the compose rule:
     (define-macro* (compose* . f-exprs)
       (define X (gensym 'x))
