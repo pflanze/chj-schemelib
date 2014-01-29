@@ -111,21 +111,45 @@
 		  (fn (car lis)
 		      (rec lis*))))))))
 
-(define (syntax:right-associate op lis error)
+(define (left-associate fn lis error)
   (right-associate (lambda (a b)
-		     (list op a b))
-		   lis
+		     (fn b a))
+		   (reverse lis)
 		   error))
+
+(define (syntax:_-associate _-associate)
+  (lambda (op lis error)
+    (_-associate (lambda (a b)
+		   (list op a b))
+		 lis
+		 error)))
+
+(define syntax:right-associate (syntax:_-associate right-associate))
+(define syntax:left-associate (syntax:_-associate left-associate))
 
 (TEST
  > (syntax:right-associate 'comp (list 'a 'b 'c) error)
  (comp a (comp b c))
  > (syntax:right-associate 'comp (list 'b 'c) error)
  (comp b c)
- > (with-exception-catcher error-exception-message (lambda () (syntax:right-associate 'comp (list 'c) error)))
- "got only one element, need two"
- > (with-exception-catcher error-exception-message (lambda () (syntax:right-associate 'comp (list) error)))
- "got no element, need two"
+
+ ;; and left...
+ > (syntax:left-associate 'comp (list 'a 'b 'c) error)
+ (comp (comp a b) c)
+ > (syntax:left-associate 'comp (list 'b 'c) error)
+ (comp b c)
+
+ ;; and errors:
+ > (map (lambda (_)
+	  (with-exception-catcher error-exception-message
+				  (lambda () (_ 'comp (list 'c) error))))
+	(list syntax:right-associate syntax:left-associate))
+ ("got only one element, need two" "got only one element, need two")
+ > (map (lambda (_)
+	  (with-exception-catcher error-exception-message
+				  (lambda () (_ 'comp (list) error))))
+	(list syntax:right-associate syntax:left-associate))
+ ("got no element, need two" "got no element, need two")
  )
 
 (define-macro* (Ra op . exprs)
@@ -133,9 +157,16 @@
 			  (lambda (msg)
 			    (source-error stx msg))))
 
+(define-macro* (La op . exprs)
+  (syntax:left-associate op exprs
+			 (lambda (msg)
+			   (source-error stx msg))))
+
 (TEST
  > (expansion#Ra compose half x*y inc2values)
  (compose half (compose x*y inc2values))
+ > (expansion#La compose half x*y inc2values)
+ (compose (compose half x*y) inc2values)
  )
 
 ;; as a function:
