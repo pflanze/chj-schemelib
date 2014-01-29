@@ -106,12 +106,10 @@
 	    (let* ((lis* (cdr lis))
 		   (lis** (cdr lis*)))
 	      (if (null? lis**)
-		  (fn
-			(car lis)
-			(car lis*))
-		  (fn
-			(car lis)
-			(rec lis*))))))))
+		  (fn (car lis)
+		      (car lis*))
+		  (fn (car lis)
+		      (rec lis*))))))))
 
 (define (syntax:right-associate op lis error)
   (right-associate (lambda (a b)
