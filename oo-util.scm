@@ -14,6 +14,9 @@
 (define. symbol.string symbol->string)
 (define. string.symbol string->symbol)
 
+(define. keyword.string keyword->string)
+(define. string.keyword string->keyword)
+
 (define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
 (define. list.u8vector list->u8vector)
 
