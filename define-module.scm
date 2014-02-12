@@ -301,3 +301,9 @@
  4
  )
 
+
+;; *Can't* write a |module:import-all/prefix| because the module
+;; initialization expression is evaluated at runtime (thus it's not
+;; even known what module it will be). Those are runtime modules
+;; really, after all...
+
