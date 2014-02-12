@@ -160,22 +160,26 @@
 		  (if (eq? (source-code _export) 'export)
 		      (with-gensyms
 		       (VARNAME)
-		       `(define ,name-or-name+params
-			  ,(convert-module-body
-			    body
-			    `((lambda (,VARNAME)
-				(if ,VARNAME
-				    (case ,VARNAME
-				      ,@(map/tail
-					 (lambda_
-					  `((,_) ,_))
-					 `((else
-					    (error
-					     "in module, name not exported:"
-					     ',name
-					     ,VARNAME)))
-					 (source-code exports)))
-				    ',exports))))))
+		       (let ((exports-name (symbol-append name '-exports)))
+			 `(begin
+			    (define ,exports-name
+			      ',exports)
+			    (define ,name-or-name+params
+			      ,(convert-module-body
+				body
+				`((lambda (,VARNAME)
+				    (if ,VARNAME
+					(case ,VARNAME
+					  ,@(map/tail
+					     (lambda_
+					      `((,_) ,_))
+					     `((else
+						(error
+						 "in module, name not exported:"
+						 ',name
+						 ,VARNAME)))
+					     (source-code exports)))
+					,exports-name))))))))
 		      (source-error
 		       export-form
 		       "expecting (export . VAR*) form")))))
@@ -306,4 +310,26 @@
 ;; initialization expression is evaluated at runtime (thus it's not
 ;; even known what module it will be). Those are runtime modules
 ;; really, after all...
+
+;; But can write a macro that builds up the initialization expression
+;; itself:
+
+(define-macro* (module-import/prefix prefix name . args)
+  (assert* symbol? name
+	   (lambda (name)
+	     `(module:import/prefix (,name ,@args)
+				    ,prefix
+				    ,@(eval (symbol-append name '-exports))))))
+
+(TEST
+ > (compile-time ;; necessary since TEST evaluates all subtests in one go
+    (define-module (foo x) (export a b)
+      (define a 4)
+      (define b (* x a))))
+ > (module-import/prefix foo5: foo 5)
+ > foo5:a
+ 4
+ > foo5:b
+ 20
+ )
 
