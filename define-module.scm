@@ -164,16 +164,18 @@
 			  ,(convert-module-body
 			    body
 			    `((lambda (,VARNAME)
-				(case ,VARNAME
-				  ,@(map/tail
-				     (lambda_
-				      `((,_) ,_))
-				     `((else
-					(error
-					 "in module, name not exported:"
-					 ',name
-					 ,VARNAME)))
-				     (source-code exports))))))))
+				(if ,VARNAME
+				    (case ,VARNAME
+				      ,@(map/tail
+					 (lambda_
+					  `((,_) ,_))
+					 `((else
+					    (error
+					     "in module, name not exported:"
+					     ',name
+					     ,VARNAME)))
+					 (source-code exports)))
+				    ',exports))))))
 		      (source-error
 		       export-form
 		       "expecting (export . VAR*) form")))))
@@ -185,6 +187,8 @@
  > (define-module (foo x) (export f) (define (f n) (/ n x)))
  > (((foo 10) 'f) 5)
  1/2
+ > ((foo 10) #f)
+ (f)
  )
 
 
