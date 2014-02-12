@@ -266,3 +266,30 @@
  (A2)
  )
 
+
+(define-macro* (module:import/prefix expr prefix . vars)
+  (if (null? vars)
+      (source-error ctx "missing bindings to import")
+      (let ((cont (lambda (prefix)
+		    `(module:import
+		      ,expr
+		      ,@(map (lambda (var)
+			       (assert* symbol? var
+					(lambda (var)
+					  `(,(symbol-append prefix var) ,var))))
+			     vars)))))
+	(let ((prefix* (source-code prefix)))
+	  (cond ((symbol? prefix*)
+		 (cont prefix*))
+		((keyword? prefix*)
+		 (cont (symbol-append (keyword->string prefix*) ":")))
+		(else
+		 (source-error prefix "expecting string or symbol")))))))
+
+(TEST
+ > (define-module (foo x) (export a b c) (define a 4))
+ > (module:import/prefix (foo 4) foo: a b)
+ > foo:a
+ 4
+ )
+
