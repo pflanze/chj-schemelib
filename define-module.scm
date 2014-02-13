@@ -314,7 +314,7 @@
 ;; But can write a macro that builds up the initialization expression
 ;; itself:
 
-(define-macro* (module-import/prefix prefix name . args)
+(define-macro* (module-import prefix name . args)
   (assert* symbol? name
 	   (lambda (name)
 	     `(module:import/prefix (,name ,@args)
@@ -326,7 +326,7 @@
     (define-module (foo x) (export a b)
       (define a 4)
       (define b (* x a))))
- > (module-import/prefix foo5: foo 5)
+ > (module-import foo5: foo 5)
  > foo5:a
  4
  > foo5:b
