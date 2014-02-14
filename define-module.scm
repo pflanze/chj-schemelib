@@ -21,6 +21,11 @@
 ;; module parameters are runtime only (macro expander code can't
 ;; access them)
 
+;; XXX does not handle lexical scope, e.g. macro bindings are never
+;; shadowed, neither is other syntax, like in (let ((let 'a)) let)
+;; which should return a
+
+
 (both-times ;; runtime mostly just for the tests
 
  (define (convert-module-body forms bodytail)
