@@ -319,16 +319,19 @@
 ;; But can write a macro that builds up the initialization expression
 ;; itself:
 
+;; NOTE: use of module-import implies that the module accepts the
+;; prefix as its first argument!
+
 (define-macro* (module-import prefix name . args)
   (assert* symbol? name
 	   (lambda (name)
-	     `(module:import/prefix (,name ,@args)
+	     `(module:import/prefix (,name ',prefix ,@args)
 				    ,prefix
 				    ,@(eval (symbol-append name '-exports))))))
 
 (TEST
  > (compile-time ;; necessary since TEST evaluates all subtests in one go
-    (define-module (foo x) (export a b)
+    (define-module (foo prefix x) (export a b)
       (define a 4)
       (define b (* x a))))
  > (module-import foo5: foo 5)
