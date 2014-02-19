@@ -28,8 +28,8 @@
 (define (define-struct-expand
 	  DEFINE ;; what definition forms to use
 	  LAMBDA ;; what lambda form to use; useful for typed-lambda
-	  UNSAFE-LAMBDA ;; what lambda form to use when
-			;; unsafe-constructor-name is given
+	  UNSAFE-LAMBDA	       ;; what lambda form to use when
+	  ;; unsafe-constructor-name is given
 	  arg->maybe-fieldname ;; fn to extract the field name symbols
 	  wrap-var ;; (var, field+) -> e.g. field+ with variable replaced by var
 	  wrap-fn-for ;; (fn, field+) -> e.g. fn that uses check from field+ to type check
@@ -52,10 +52,14 @@
 	  tag-prefix
 	  #!rest args*)
   (let* ((name (source-code name*))
-	 (tag (let ((tag (if (source-code tag) tag name*)))
-		(if (source-code tag-prefix)
-		    (source.symbol-append tag-prefix tag)
-		    tag)))
+	 (tag-code
+	  (if tag
+	      (if tag-prefix
+		  `(symbol-append ,tag-prefix ,tag)
+		  tag)
+	      (if tag-prefix
+		  `(symbol-append ,tag-prefix (##quote ,name*))
+		  `(##quote ,name*))))
 	 (fields* (filter identity (map arg->maybe-fieldname args*)))
 	 (fields+ (filter (lambda (arg) (not (meta-object? (source-code arg))))
 			  ;; ^ assuming that DEFINE/LAMBDA won't ever need anything else
@@ -121,7 +125,7 @@
 		(lambda (LAMBDA constructor-name)
 		  `(define ,constructor-name
 		     (,LAMBDA ,args*
-			      (##vector (##quote ,tag)
+			      (##vector ,tag-code
 					,@fields*))))))
 	   `(,(construct LAMBDA
 			 constructor-name)
@@ -135,7 +139,7 @@
 	   (and (vector? v)
 		(= (vector-length v) ,(add-offset numfields))
 		(eq? (vector-ref v 0)
-		     ',tag))))
+		     ,tag-code))))
        (define ,error-name
 	 (lambda (v)
 	   (error ,(string-append "expecting a "
@@ -193,7 +197,7 @@
 		(offset ',offset)
 		(prefix ',prefix)
 		(accessor-prefix ',accessor-prefix)
-		(name ',tag)
+		(name ,tag-code)
 		(generic-accessor-prefix ',generic-accessor-prefix)
 		;; copies of procedures from the outer expander
 		(add-offset
@@ -276,7 +280,7 @@
  > (let-foo ((a b) x) a)
  10
  ;; tag feature:
- > (define-struct foo tag: myvery:foo a b)
+ > (define-struct foo tag: 'myvery:foo a b)
  > (make-foo 10 11)
  #(myvery:foo 10 11)
  > (foo? #)
