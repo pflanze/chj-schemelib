@@ -149,3 +149,41 @@
  > (maybe-avector-ref '#(foo (a 1) (c 2) (b 10)) 1 #f car eq? 'd)
  #f)
 
+
+;; functional vector modification
+
+(define (vector.set v i val)
+  ;; (check whether val changes?)
+  (if (eq? (vector-ref v i) val)
+      v
+      (let ((v* (vector-copy v)))
+	(##vector-set! v* i val)
+	v*)))
+
+(define (vector.insert v i val)
+  (let* ((len (vector-length v))
+	 (len* (inc len))
+	 (v* (make-vector len*)))
+    (for..< (j 0 i)
+	    (vector-set! v* j (vector-ref v j)))
+    (vector-set! v* i val)
+    (for..< (j (inc i) len*)
+	    (vector-set! v* j (vector-ref v (dec j))))
+    v*))
+
+(TEST
+ > (vector.insert (vector) 0 'a)
+ #(a)
+ > (vector.insert (vector 1 2) 0 'a)
+ #(a 1 2)
+ > (vector.insert (vector 1 2) 1 'a)
+ #(1 a 2)
+ > (vector.insert (vector 1 2) 2 'a)
+ #(1 2 a))
+
+
+(define (vector-of t?)
+  (lambda (v)
+    (and (vector? v)
+	(vector-every t? v))))
+
