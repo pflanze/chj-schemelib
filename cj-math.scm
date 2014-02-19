@@ -23,3 +23,6 @@
 (define (square x)
   (* x x))
 
+;;(define integer:double (cut arithmetic-shift <> 1))
+(define integer:half (cut arithmetic-shift <> -1))
+
