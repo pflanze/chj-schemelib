@@ -49,9 +49,13 @@
 	  let*-name
 	  let-name
 	  tag
+	  tag-prefix
 	  #!rest args*)
   (let* ((name (source-code name*))
-	 (tag (if (source-code tag) tag name*))
+	 (tag (let ((tag (if (source-code tag) tag name*)))
+		(if (source-code tag-prefix)
+		    (source.symbol-append tag-prefix tag)
+		    tag)))
 	 (fields* (filter identity (map arg->maybe-fieldname args*)))
 	 (fields+ (filter (lambda (arg) (not (meta-object? (source-code arg))))
 			  ;; ^ assuming that DEFINE/LAMBDA won't ever need anything else
