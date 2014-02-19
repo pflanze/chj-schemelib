@@ -143,6 +143,7 @@
       ,(apply define-struct-expand
 	      'define.
 	      'typed-lambda
+	      'detyped-lambda
 	      define-struct/types:arg->maybe-fieldname
 	      (lambda (var field+)
 		(let ((field+* (source-code field+)))
@@ -168,10 +169,19 @@
 		      FN)))
 	      name
 	      separator: "."
-	      ;; don't override constructor-name if provided by user
-	      (if (memq constructor-name: (map source-code defs))
-		  defs
-		  `(constructor-name: ,name ,@defs)))
+
+	      ;; don't override constructor-name or
+	      ;; unsafe-constructor-name if provided by user
+	      (let ((defs* (map source-code defs)))
+		`(,@(if (memq constructor-name: defs*)
+			`()
+			`(constructor-name: ,name))
+		  ,@(if (memq unsafe-constructor-name: defs*)
+			`()
+			`(unsafe-constructor-name:
+			  ,(source.symbol-append name '@)))
+		  ,@defs)))
+      
       ;; reserve name for just this purpose?
       (define. (,(source.symbol-append name ".typecheck!") ,V)
 	,@(filter values

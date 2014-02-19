@@ -71,6 +71,25 @@
   (vector-ref (source-code x) 1))
 
 
+(define (args-detype args)
+  (improper-fold-right* (lambda (tail? arg args*)
+			  ;; uh ugly code; change handle-arg some time!
+			  (let ((a* (fst (handle-arg arg (values args* #f)))))
+			    (if tail?
+				(car a*)
+				a*)))
+			'()
+			(source-code args)))
+
+(TEST
+ > (args-detype '(a b . c))
+ (a b . c)
+ > (args-detype '(a b #!optional c))
+ (a b #!optional c)
+ > (args-detype '(#(pair? a) b #!optional #(number? c)))
+ (a b #!optional c))
+
+
 (define-macro* (typed-lambda args . body)
   (letv ((vars body)
 	 (let rem ((args args))
@@ -115,6 +134,14 @@
    (type-check pair? b (type-check number? c (begin 'hello 'world))))
  )
 
+(define-macro* (detyped-lambda args . body)
+  `(lambda ,(args-detype args)
+     ,@body))
+
+(TEST
+ > (expansion#detyped-lambda (a #(pair? b) . c) 'hello 'world)
+ (lambda (a b . c)
+   'hello 'world))
 
 (define-macro* (define-typed name+args . body)
   (let ((name+args_ (source-code name+args)))

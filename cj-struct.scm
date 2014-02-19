@@ -28,6 +28,8 @@
 (define (define-struct-expand
 	  DEFINE ;; what definition forms to use
 	  LAMBDA ;; what lambda form to use; useful for typed-lambda
+	  UNSAFE-LAMBDA ;; what lambda form to use when
+			;; unsafe-constructor-name is given
 	  arg->maybe-fieldname ;; fn to extract the field name symbols
 	  wrap-var ;; (var, field+) -> e.g. field+ with variable replaced by var
 	  wrap-fn-for ;; (fn, field+) -> e.g. fn that uses check from field+ to type check
@@ -42,6 +44,7 @@
 	  ;; the prefix for the accessors when falling back to generic access:
 	  generic-accessor-prefix ;; including name if wished, and even the separator !
 	  constructor-name
+	  unsafe-constructor-name
 	  predicate-name
 	  let*-name
 	  let-name
@@ -60,10 +63,8 @@
 	 (accessor-prefix (source-code accessor-prefix))
 	 (unsafe-accessor-prefix (source-code unsafe-accessor-prefix))
 	 (separator (source-code separator))
-	 (constructor-name
-	  (if constructor-name
-	      (source-code constructor-name)
-	      (symbol-append prefix "make-" name)))
+	 (constructor-name (or constructor-name
+			       (symbol-append prefix "make-" name)))
 	 (predicate-name
 	  (if predicate-name
 	      (source-code predicate-name)
@@ -112,10 +113,19 @@
 	    (symbol-append (safe-accessor-for-field field) "-update")))
 	 )
     `(begin
-       (define ,constructor-name
-	 (,LAMBDA ,args*
-		  (##vector (##quote ,tag)
-			    ,@fields*)))
+       ,@(let ((construct
+		(lambda (LAMBDA constructor-name)
+		  `(define ,constructor-name
+		     (,LAMBDA ,args*
+			      (##vector (##quote ,tag)
+					,@fields*))))))
+	   `(,(construct LAMBDA
+			 constructor-name)
+	     ,@(if unsafe-constructor-name
+		   `(,(construct UNSAFE-LAMBDA
+				 unsafe-constructor-name))
+		   '())))
+       
        (define ,predicate-name
 	 (lambda (v)
 	   (and (vector? v)
@@ -236,6 +246,7 @@
   ;; (sigh, had safer-apply right? What for again?)
   (apply define-struct-expand
 	 'define
+	 'lambda
 	 'lambda
 	 define-struct:arg->maybe-fieldname
 	 (lambda (var field+) var)
