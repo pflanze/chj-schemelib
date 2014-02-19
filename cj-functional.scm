@@ -330,8 +330,9 @@
  #t)
 
 
-(define (<to<= <) ;; <-><= would be a fun name, wouldn't it?
-  (complement (flip <)))
+(define <to<=
+  ;; <-><= would be a fun name, wouldn't it?
+  (compose complement flip))
 
 (define (sorted-list-of el? <)
   (strictly-monotonic-list-of el? (<to<= <)))
