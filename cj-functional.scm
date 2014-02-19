@@ -292,3 +292,65 @@
 	 (every pred x))))
 
 
+(define (pair-of t1? t2?)
+  (lambda (v)
+    (and (pair? v)
+	 (t1? (car v))
+	 (t2? (cdr v)))))
+
+(define (strictly-monotonic-list-of el? <)
+  (lambda (v)
+    (or (null? v)
+	(and (pair? v)
+	     (let next ((v (cdr v))
+			(last-a (car v)))
+	       (or (null? v)
+		   (and (pair? v)
+			(let-pair ((a v*) v)
+				  (and (el? a)
+				       (< last-a a)
+				       (next v* a))))))))))
+
+(TEST
+ > ((strictly-monotonic-list-of number? <) '(1 2 3))
+ #t
+ > ((strictly-monotonic-list-of number? <) '(3 2 1))
+ #f
+ > ((strictly-monotonic-list-of number? >) '(3 2 1))
+ #t
+ > ((strictly-monotonic-list-of number? >) '(3 2 2))
+ #f
+ > ((strictly-monotonic-list-of number? >=) '(3 2 2))
+ #t
+ > ((strictly-monotonic-list-of number? <) '(1 2 2))
+ #f
+ > ((strictly-monotonic-list-of number? <=) '(1 2 2))
+ #t
+ > ((strictly-monotonic-list-of number? >=) '())
+ #t)
+
+
+(define (<to<= <) ;; <-><= would be a fun name, wouldn't it?
+  (complement (flip <)))
+
+(define (sorted-list-of el? <)
+  (strictly-monotonic-list-of el? (<to<= <)))
+
+(TEST
+ > ((sorted-list-of number? <) '(1 2 3))
+ #t
+ > ((sorted-list-of number? <) '(3 2 1))
+ #f
+ > ((sorted-list-of number? >) '(3 2 1))
+ #t
+ > ((sorted-list-of number? >) '(3 2 2))
+ #t
+ > ((sorted-list-of number? >=) '(3 2 2))
+ #f ;; hehe kinda nonsensical now ok?
+ > ((sorted-list-of number? <) '(1 2 2))
+ #t
+ > ((sorted-list-of number? <=) '(1 2 2))
+ #f ;; dito
+ > ((sorted-list-of number? >) '())
+ #t)
+
