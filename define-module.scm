@@ -329,6 +329,15 @@
 				    ,prefix
 				    ,@(eval (symbol-append name '-exports))))))
 
+;; module-import* does not implicitly pass the prefix
+
+(define-macro* (module-import* prefix name . args)
+  (assert* symbol? name
+	   (lambda (name)
+	     `(module:import/prefix (,name ,@args)
+				    ,prefix
+				    ,@(eval (symbol-append name '-exports))))))
+
 (TEST
  > (compile-time ;; necessary since TEST evaluates all subtests in one go
     (define-module (foo prefix x) (export a b)
@@ -339,5 +348,8 @@
  4
  > foo5:b
  20
+ > (module-import* foo6: foo #f 6)
+ > foo6:b
+ 24
  )
 
