@@ -236,6 +236,7 @@
 (define-macro* (push! var val)
   `(set! ,var (cons ,val ,var)))
 
+;; pop! see list-util-2
 
 
 (define (list-preferred lis prefer?)

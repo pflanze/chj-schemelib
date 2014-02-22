@@ -9,8 +9,29 @@
 (require (lib.test)
 	 (lib.cj-env)
 	 (lib.define-nested)
-	 (lib.slib-sort))
+	 (lib.slib-sort)
+	 (lib.cj-symbol))
 
+
+(define-macro* (pop! var)
+  (with-gensym
+   V
+   `(let ((,V ,var))
+      (set! ,var (cdr ,V))
+      (car ,V))))
+
+(TEST
+ > (define l '())
+ > (push! l 1)
+ > (push! l 2)
+ > l
+ (2 1)
+ > (pop! l)
+ 2
+ > (pop! l)
+ 1
+ ;; > (pop! l) non-error exception
+ )
 
 (define list-util-nothing (gensym 'nothing))
 
