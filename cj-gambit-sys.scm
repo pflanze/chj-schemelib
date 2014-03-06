@@ -407,14 +407,10 @@ memset(obj+offset,value,numbytes);
  > (define b "Lechz ächz so oder so")
  > (begin (vectorlike-bytecopy! b 0 a 0 (* 4 (string-length a))) b)
  "Hallo Welt so oder so"
- > (%try (vectorlike-bytecopy! b 0 a 0 (+ (* 4 (string-length a)) 1)))
- (exception
-  text:
-  "out of bounds access: \"Hallo Welt so oder so\" 0 \"Hallo Welt\" 0 41\n")
- > (%try (vectorlike-bytecopy! a 0 b 45 (+ (* 4 (string-length a)) 0)))
- (exception
-  text:
-  "out of bounds access: \"Hallo Welt\" 0 \"Hallo Welt so oder so\" 45 40\n")
+ > (%try-error (vectorlike-bytecopy! b 0 a 0 (+ (* 4 (string-length a)) 1)))
+ #(error "out of bounds access:" "Hallo Welt so oder so" 0 "Hallo Welt" 0 41)
+ > (%try-error (vectorlike-bytecopy! a 0 b 45 (+ (* 4 (string-length a)) 0)))
+ #(error "out of bounds access:" "Hallo Welt" 0 "Hallo Welt so oder so" 45 40)
  > (begin (vectorlike-bytecopy! a 0 b 44 (- (* 4 (string-length a)) 4)) a)
  "so oder st"
  )
@@ -429,8 +425,10 @@ memset(obj+offset,value,numbytes);
  #t
  > (vectorlike-byteequal? a 0 b 0 0)
  #t
- > (%try (vectorlike-byteequal? a 25 b 0 20))
- (exception
-  text:
-  "out of bounds access: \"Hallo Welt\" 25 \"Lechz \\344chz so oder so\" 0 20\n")
+ > (%try-error (vectorlike-byteequal? a 25 b 0 20))
+ #(error "out of bounds access:" "so oder st" 25 "Hallo Welt so oder so" 0 20)
+ ;;XXX vs originally with %try:
+ ;; (exception
+ ;;  text:
+ ;;  "out of bounds access: \"Hallo Welt\" 25 \"Lechz \\344chz so oder so\" 0 20\n")
  )
