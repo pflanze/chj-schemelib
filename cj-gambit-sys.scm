@@ -416,7 +416,8 @@ memset(obj+offset,value,numbytes);
  )
 
 (TEST
- ;; a b see above
+ > (define a "Hallo Welt")
+ > (define b "Lechz ächz so oder so")
  > (vectorlike-byteequal? a 0 b 0 4)
  #f
  > (vectorlike-byteequal? a (* 4 7) b 4 1)
@@ -426,9 +427,5 @@ memset(obj+offset,value,numbytes);
  > (vectorlike-byteequal? a 0 b 0 0)
  #t
  > (%try-error (vectorlike-byteequal? a 25 b 0 20))
- #(error "out of bounds access:" "so oder st" 25 "Hallo Welt so oder so" 0 20)
- ;;XXX vs originally with %try:
- ;; (exception
- ;;  text:
- ;;  "out of bounds access: \"Hallo Welt\" 25 \"Lechz \\344chz so oder so\" 0 20\n")
- )
+ #(error "out of bounds access:" "Hallo Welt" 25 "Lechz ächz so oder so" 0 20))
+
