@@ -22,16 +22,16 @@
 	   (+ ,step 1))))
 
 (IF #t
-    (begin ;; use wbtree
-      (define (make-empty-tree)
-	empty-tree))
+    (begin ;; use wbwbtree
+      (define (make-empty-wbtree)
+	empty-wbtree))
     (begin ;; use hash tables
-      (define (tree:add t n)
+      (define (wbtree:add t n)
 	(table-set! t n #t)
 	t)
-      (define (tree:member? t k)
+      (define (wbtree:member? t k)
 	(table-ref t k #f))
-      (define (make-empty-tree)
+      (define (make-empty-wbtree)
 	(make-table
 	 ;;test: =
 	 ))))
@@ -39,7 +39,7 @@
       
 
 (define (create n)
-  (let lp ((t (make-empty-tree))
+  (let lp ((t (make-empty-wbtree))
 	   (i n)
 	   (n 0)
 	   (step 1))
@@ -47,7 +47,7 @@
 	t
 	(next n step
 	      (lambda (n step)
-		(lp (tree:add* t n treeparameter-number)
+		(lp (wbtree:add* t n wbtreeparameter-number)
 		    (dec i)
 		    n
 		    step))))))
@@ -61,7 +61,7 @@
 	tot
 	(next n step
 	      (lambda (n step)
-		(lp (if (tree:member?* t n treeparameter-number)
+		(lp (if (wbtree:member?* t n wbtreeparameter-number)
 			(inc tot)
 			tot)
 		    (dec i)
@@ -70,36 +70,36 @@
 
 
 (define-macro* ($ . body)
-  `(let (($param treeparameter-number))
+  `(let (($param wbtreeparameter-number))
      ,@body))
 
 (define-macro* ($define var body)
   `(define ,var
-     (let (($param treeparameter-number))
+     (let (($param wbtreeparameter-number))
        ,body)))
 
 (TEST
  > (set! top 100000)
- > ($(car (reverse (tree:members(create 2000)))))
+ > ($(car (reverse (wbtree:members(create 2000)))))
  99925
- > ($(car (reverse (tree:members(create 1000)))))
+ > ($(car (reverse (wbtree:members(create 1000)))))
  99925
  ;;heh ?
-> ($(tree:max (create 401)))
+> ($(wbtree:max (create 401)))
 80601
-> ($(tree:max (create 501)))
+> ($(wbtree:max (create 501)))
 99681
-> ($(tree:max (create 601)))
+> ($(wbtree:max (create 601)))
 99681
-> ($(tree:max (create 701)))
+> ($(wbtree:max (create 701)))
 99681
-> ($(tree:max (create 801)))
+> ($(wbtree:max (create 801)))
 99925
-> ($(tree:size (create 801)))
+> ($(wbtree:size (create 801)))
 798
-> ($(tree:size (create 1000)))
+> ($(wbtree:size (create 1000)))
 994
-> ($(tree:size (create 2000)))
+> ($(wbtree:size (create 2000)))
 1961
 > ($define t (create 4000))
 > ($(fetch t 4000 0))
@@ -147,7 +147,7 @@
 ;     30716320 bytes allocated
 ;     1010 minor faults
 ;     no major faults
-> ($(tree:size t))
+> ($(wbtree:size t))
 16103
 > ($(time (fetch t 20000 0)))
 ; (time (fetch t 20000 0))
@@ -244,7 +244,7 @@
 ;     32513696 bytes allocated
 ;     3664 minor faults
 ;     no major faults
-; > (tree:size t)
+; > (wbtree:size t)
 ; 19964
 ; > (define t (time (create 1000000)))
 ; (time (create 1000000))
@@ -254,7 +254,7 @@
 ;     2055686944 bytes allocated
 ;     38030 minor faults
 ;     no major faults
-; > (tree:size t)
+; > (wbtree:size t)
 ; 886793
 ; > (time (fetch t 1000000 0))
 ; (time (fetch t 1000000 0))
@@ -323,7 +323,7 @@
 ; nun:
 ;   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
 ;  4547 chrisjaz  20   0  232m 186m 6164 S    0  4.8   0:58.86 gsc
-; > (tree:size t)
+; > (wbtree:size t)
 ; 41696
 ; uh
 ; ehr. ä 1mio und nur e grr.
@@ -353,7 +353,7 @@
 ;     1914129472 bytes allocated
 ;     22444 minor faults
 ;     no major faults
-; > (tree:size t)
+; > (wbtree:size t)
 ; 886793
 ; > (time (fetch t 1000000 0))
 ; (time (fetch t 1000000 0))
@@ -433,7 +433,7 @@
 ; 76029
 ; gopf liegts auch nid. thus no cross mod reason.
 
-;; with the let-tree accessors. safe compilation, optim  mode:
+;; with the let-wbtree accessors. safe compilation, optim  mode:
 ; > (define t (time (create 1000000)))
 ; (time (create 1000000))
 ;     10359 ms real time
@@ -629,7 +629,7 @@
 ;     no major faults
 ; 76029
 
-;; hm, did wbtree get faster thanks to more usage of let*-tree ? !:
+;; hm, did wbwbtree get faster thanks to more usage of let*-wbtree ? !:
 ; > (define t (time (create 1000000)))
 ; (time (create 1000000))
 ;     10602 ms real time
@@ -647,7 +647,7 @@
 ;     1151 minor faults
 ;     no major faults
 ; 76029
-;; and the same with wbtree compiled (not safe):
+;; and the same with wbwbtree compiled (not safe):
 ; > (define t (time (create 1000000)))
 ; (time (create 1000000))
 ;     9838 ms real time
@@ -738,11 +738,11 @@
 ;     no major faults
 ; 76029
 ;strange still faster than it was. like the create above.
-;introduce named let into tree:member?:
-; > (compile-file "wbtree" options: '(debug))
-; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/wbtree.o20"
-; > (load "wbtree")
-; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/wbtree.o20"
+;introduce named let into wbtree:member?:
+; > (compile-file "wbwbtree" options: '(debug))
+; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/wbwbtree.o20"
+; > (load "wbwbtree")
+; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/wbwbtree.o20"
 ; > (time (fetch t 1000000 1))
 ; (time (fetch t 1000000 1))
 ;     5456 ms real time

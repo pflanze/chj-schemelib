@@ -6,188 +6,188 @@
 ;;;    (at your option) any later version.
 
 
-(define treeparameter-string
-  (make-treeparameter string-cmp
+(define wbtreeparameter-string
+  (make-wbtreeparameter string-cmp
 		      string?))
 
-(define treeparameter-number
-  (make-treeparameter number-cmp
+(define wbtreeparameter-number
+  (make-wbtreeparameter number-cmp
 		      number? ;; ##fixnum? but well not inlined anyway anymore
 		      ))
 
 (define-macro* ($s . body)
-  `(let (($treeparameter treeparameter-string))
+  `(let (($wbtreeparameter wbtreeparameter-string))
      ,@body))
 
 (define-macro* ($sdefine var body)
   `(define ,var
-     (let (($treeparameter treeparameter-string))
+     (let (($wbtreeparameter wbtreeparameter-string))
        ,body)))
 
 (TEST
- > ($s(tree:members (tree:gt (list->tree '("a" "b" "f" "z" "e" "g")) "f")))
+ > ($s(wbtree:members (wbtree:gt (list->wbtree '("a" "b" "f" "z" "e" "g")) "f")))
  ("g" "z")
- > ($s(tree:members (tree:gt (list->tree '("a" "b" "f" "z" "e" "g" "r" "c")) "f")))
+ > ($s(wbtree:members (wbtree:gt (list->wbtree '("a" "b" "f" "z" "e" "g" "r" "c")) "f")))
  ("g" "r" "z")
- > ($s(tree:members (tree:gt (list->tree '("a" "b" "f" "z" "e" "g" "r" "c" "n")) "f")))
+ > ($s(wbtree:members (wbtree:gt (list->wbtree '("a" "b" "f" "z" "e" "g" "r" "c" "n")) "f")))
  ("g" "n" "r" "z")
- > ($s(tree:members (tree:gt (list->tree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n")) "f")))
+ > ($s(wbtree:members (wbtree:gt (list->wbtree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n")) "f")))
  ("g" "h" "n" "r" "z")
- > ($s(tree:members (tree:gt (list->tree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o")) "f")))
+ > ($s(wbtree:members (wbtree:gt (list->wbtree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o")) "f")))
  ("g" "h" "n" "o" "r" "z")
- > ($s(tree:members (tree:lt (list->tree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o")) "l")))
+ > ($s(wbtree:members (wbtree:lt (list->wbtree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o")) "l")))
  ("a" "b" "c" "e" "f" "g" "h")
- > ($s(tree:members (tree:gt (list->tree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o")) "l")))
+ > ($s(wbtree:members (wbtree:gt (list->wbtree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o")) "l")))
  ("n" "o" "r" "z")
- > ($sdefine t (tree:add empty-tree "a"))
- > ($sdefine t (tree:add t "b")))
+ > ($sdefine t (wbtree:add empty-wbtree "a"))
+ > ($sdefine t (wbtree:add t "b")))
 
-(IF use-trees-as-leafs?
+(IF use-wbtrees-as-leafs?
     (TEST
      > t
-     #(tree "a" 2 empty-tree #(tree "b" 1 empty-tree empty-tree)))
+     #(wbtree "a" 2 empty-wbtree #(wbtree "b" 1 empty-wbtree empty-wbtree)))
     (TEST
      > t
-     #(tree "a" 2 empty-tree "b")))
+     #(wbtree "a" 2 empty-wbtree "b")))
 
 (TEST
  > ($sdefine t1 t)
- > ($sdefine t (tree:add t "b"))
+ > ($sdefine t (wbtree:add t "b"))
  > (equal? t1 t)
  #t
- > ($sdefine t (tree:add t "c"))
- > ($sdefine t (tree:add t "d"))
- > ($sdefine t (tree:add t "c")))
+ > ($sdefine t (wbtree:add t "c"))
+ > ($sdefine t (wbtree:add t "d"))
+ > ($sdefine t (wbtree:add t "c")))
 
-(IF use-trees-as-leafs?
+(IF use-wbtrees-as-leafs?
     (TEST
      > t
-     #(tree
+     #(wbtree
        "b"
        4
-       #(tree "a" 1 empty-tree empty-tree)
-       #(tree "c" 2 empty-tree #(tree "d" 1 empty-tree empty-tree)))
-     > ($sdefine t (tree:add t "d"))
+       #(wbtree "a" 1 empty-wbtree empty-wbtree)
+       #(wbtree "c" 2 empty-wbtree #(wbtree "d" 1 empty-wbtree empty-wbtree)))
+     > ($sdefine t (wbtree:add t "d"))
      > t
-     #(tree
+     #(wbtree
        "b"
        4
-       #(tree "a" 1 empty-tree empty-tree)
-       #(tree "c" 2 empty-tree #(tree "d" 1 empty-tree empty-tree)))
-     > ($sdefine t (tree:add t "e"))
+       #(wbtree "a" 1 empty-wbtree empty-wbtree)
+       #(wbtree "c" 2 empty-wbtree #(wbtree "d" 1 empty-wbtree empty-wbtree)))
+     > ($sdefine t (wbtree:add t "e"))
      > t
-     #(tree
+     #(wbtree
        "c"
        5
-       #(tree "b" 2 #(tree "a" 1 empty-tree empty-tree) empty-tree)
-       #(tree "d" 2 empty-tree #(tree "e" 1 empty-tree empty-tree))))
+       #(wbtree "b" 2 #(wbtree "a" 1 empty-wbtree empty-wbtree) empty-wbtree)
+       #(wbtree "d" 2 empty-wbtree #(wbtree "e" 1 empty-wbtree empty-wbtree))))
     (TEST
      > t
-     #(tree
+     #(wbtree
        "b"
        4
        "a"
-       #(tree "c" 2 empty-tree "d"))
-     > ($sdefine t (tree:add t "d"))
+       #(wbtree "c" 2 empty-wbtree "d"))
+     > ($sdefine t (wbtree:add t "d"))
      > t
-     #(tree
+     #(wbtree
        "b"
        4
        "a"
-       #(tree "c" 2 empty-tree "d"))
-     > ($sdefine t (tree:add t "e"))
+       #(wbtree "c" 2 empty-wbtree "d"))
+     > ($sdefine t (wbtree:add t "e"))
      > t
-     #(tree
+     #(wbtree
        "c"
        5
-       #(tree "b" 2 "a" empty-tree)
-       #(tree "d" 2 empty-tree "e"))))
+       #(wbtree "b" 2 "a" empty-wbtree)
+       #(wbtree "d" 2 empty-wbtree "e"))))
 
 
 (TEST
- > ($s(tree:member? t "u"))
+ > ($s(wbtree:member? t "u"))
  #f
- > ($s(tree:member? t "a"))
+ > ($s(wbtree:member? t "a"))
  #t
- > ($s(tree:member? t "b"))
+ > ($s(wbtree:member? t "b"))
  #t
- > ($s(tree:member? t "e"))
+ > ($s(wbtree:member? t "e"))
  #t
- > ($s(tree:member? t "f"))
+ > ($s(wbtree:member? t "f"))
  #f
- > ($s(tree:members t))
+ > ($s(wbtree:members t))
  ("a" "b" "c" "d" "e")
- > ($sdefine t (tree:add t "da"))
- > ($s(tree:members t))
+ > ($sdefine t (wbtree:add t "da"))
+ > ($s(wbtree:members t))
  ("a" "b" "c" "d" "da" "e")
  ;; aha ye: uniq:
- > ($s(treesort '("def" "abc" "a" "a" "f")))
+ > ($s(wbtreesort '("def" "abc" "a" "a" "f")))
  ("a" "abc" "def" "f")
  > (define t-input '("def" "abc" "a" "a" "f" "n" "abe" "abba" "berta" "zwerg" "Zwerg"))
- > ($sdefine t (list->tree t-input))
+ > ($sdefine t (list->wbtree t-input))
 )
 
-(IF use-trees-as-leafs?
+(IF use-wbtrees-as-leafs?
     (TEST
      > t
-     #(tree
+     #(wbtree
        "abe"
        10
-       #(tree
+       #(wbtree
 	 "abba"
 	 4
-	 #(tree "a" 2 #(tree "Zwerg" 1 empty-tree empty-tree) empty-tree)
-	 #(tree "abc" 1 empty-tree empty-tree))
-       #(tree
+	 #(wbtree "a" 2 #(wbtree "Zwerg" 1 empty-wbtree empty-wbtree) empty-wbtree)
+	 #(wbtree "abc" 1 empty-wbtree empty-wbtree))
+       #(wbtree
 	 "f"
 	 5
-	 #(tree "def" 2 #(tree "berta" 1 empty-tree empty-tree) empty-tree)
-	 #(tree "n" 2 empty-tree #(tree "zwerg" 1 empty-tree empty-tree)))))
+	 #(wbtree "def" 2 #(wbtree "berta" 1 empty-wbtree empty-wbtree) empty-wbtree)
+	 #(wbtree "n" 2 empty-wbtree #(wbtree "zwerg" 1 empty-wbtree empty-wbtree)))))
     (TEST
      > t
-     #(tree
+     #(wbtree
        "abe"
        10
-       #(tree
+       #(wbtree
 	 "abba"
 	 4
-	 #(tree "a" 2 "Zwerg" empty-tree)
+	 #(wbtree "a" 2 "Zwerg" empty-wbtree)
 	 "abc")
-       #(tree
+       #(wbtree
 	 "f"
 	 5
-	 #(tree "def" 2 "berta" empty-tree)
-	 #(tree "n" 2 empty-tree "zwerg")))))
+	 #(wbtree "def" 2 "berta" empty-wbtree)
+	 #(wbtree "n" 2 empty-wbtree "zwerg")))))
 
 (TEST
  ;; > (define t-input-sorted (sort t-input string<?))  but it contains a double. so instead:
  > (define t-input-sorted '("Zwerg" "a" "abba" "abc" "abe" "berta" "def" "f" "n" "zwerg"))
- > (equal? ($s (tree:members t)) t-input-sorted)
+ > (equal? ($s (wbtree:members t)) t-input-sorted)
  #t
- > ($s(tree:rank t "a"))
+ > ($s(wbtree:rank t "a"))
  1
- > ($s (tree:maybe-ref&rank t "a"))
+ > ($s (wbtree:maybe-ref&rank t "a"))
  ("a" . 1)
- > ($s(tree:index t 0))
+ > ($s(wbtree:index t 0))
  "Zwerg"
- > ($s(tree:index t 1))
+ > ($s(wbtree:index t 1))
  "a"
- ;; > (tree:rank t "b")
- ;; *** ERROR IN #<procedure #5>, "wbtree.scm"@436.10 -- This object was raised: not-found
+ ;; > (wbtree:rank t "b")
+ ;; *** ERROR IN #<procedure #5>, "wbwbtree.scm"@436.10 -- This object was raised: not-found
  ;; 1> 
- > ($s(tree:max t))
+ > ($s(wbtree:max t))
  "zwerg"
- > ($s(tree:size t))
+ > ($s(wbtree:size t))
  10
- > ($s(tree:index t 9))
+ > ($s(wbtree:index t 9))
  "zwerg"
- ;; > (tree:index t 10)
+ ;; > (wbtree:index t 10)
  ;; *** ERROR IN (console)@27.1 -- This object was raised: not-found
  ;; 1> 
  > ($s (map (lambda (v)
-	      (let ((p (tree:maybe-ref&rank t v)))
-		(let ((a (tree:index t (cdr p)))
-		      (b (tree:rank t (car p))))
+	      (let ((p (wbtree:maybe-ref&rank t v)))
+		(let ((a (wbtree:index t (cdr p)))
+		      (b (wbtree:rank t (car p))))
 		  (or (equal? v a)
 		      (warn* "bug" v a))
 		  (or (equal? (cdr p) b)
@@ -206,78 +206,78 @@
   ("zwerg" . 9))
 
  ;; set operations:
- > ($s(tree:members (tree:union (list->tree '("a" "b" "f"))(list->tree '("a" "z" "e" "g")))))
+ > ($s(wbtree:members (wbtree:union (list->wbtree '("a" "b" "f"))(list->wbtree '("a" "z" "e" "g")))))
  ("a" "b" "e" "f" "g" "z")
- > ($s(tree:members (tree:difference (list->tree '("a" "b" "f"))(list->tree '("a" "z" "e" "g")))))
+ > ($s(wbtree:members (wbtree:difference (list->wbtree '("a" "b" "f"))(list->wbtree '("a" "z" "e" "g")))))
  ("b" "f")
- > ($s(tree:members (tree:difference (list->tree '("a" "b" "f"))(list->tree '("a" "b" "z" "e" "g")))))
+ > ($s(wbtree:members (wbtree:difference (list->wbtree '("a" "b" "f"))(list->wbtree '("a" "b" "z" "e" "g")))))
  ("f")
- > ($s(tree:members (tree:difference (list->tree '("a" "b" "f"))(list->tree '("a" "b" "z" "e" "f" "g")))))
+ > ($s(wbtree:members (wbtree:difference (list->wbtree '("a" "b" "f"))(list->wbtree '("a" "b" "z" "e" "f" "g")))))
  ()
- > ($s(tree:members (tree:difference (list->tree '("a" "z" "e" "g"))(list->tree '("a" "b" "f")))))
+ > ($s(wbtree:members (wbtree:difference (list->wbtree '("a" "z" "e" "g"))(list->wbtree '("a" "b" "f")))))
  ("e" "g" "z")
- > ($s(tree:members (tree:intersection (list->tree '("a" "z" "e" "g"))(list->tree '("a" "b" "f")))))
+ > ($s(wbtree:members (wbtree:intersection (list->wbtree '("a" "z" "e" "g"))(list->wbtree '("a" "b" "f")))))
  ("a")
- > ($s(tree:members (tree:intersection (list->tree '("z" "e" "g"))(list->tree '("a" "b" "f")))))
+ > ($s(wbtree:members (wbtree:intersection (list->wbtree '("z" "e" "g"))(list->wbtree '("a" "b" "f")))))
  ()
- > ($s(tree:members (tree:intersection (list->tree '("a" "z" "e" "g"))(list->tree '("a" "g" "n" "b" "f")))))
+ > ($s(wbtree:members (wbtree:intersection (list->wbtree '("a" "z" "e" "g"))(list->wbtree '("a" "g" "n" "b" "f")))))
  ("a" "g")
- > ($s(tree:members (tree:intersection (list->tree '("a" "z" "e" "f" "g"))(list->tree '("a" "g" "n" "b" "f")))))
+ > ($s(wbtree:members (wbtree:intersection (list->wbtree '("a" "z" "e" "f" "g"))(list->wbtree '("a" "g" "n" "b" "f")))))
  ("a" "f" "g")
- > ($s (tree:members (tree:delete (list->tree '("a" "z" "e" "f" "g")) "f")))
+ > ($s (wbtree:members (wbtree:delete (list->wbtree '("a" "z" "e" "f" "g")) "f")))
  ("a" "e" "g" "z")
- > ($s (tree:members (tree:delete (list->tree '("a" "z" "e" "f" "g")) "ff")))
+ > ($s (wbtree:members (wbtree:delete (list->wbtree '("a" "z" "e" "f" "g")) "ff")))
  ("a" "e" "f" "g" "z")
  )
 
 
 
-(define treeparameter-pair-string
-  (make-treeparameter (on car string-cmp)
+(define wbtreeparameter-pair-string
+  (make-wbtreeparameter (on car string-cmp)
 		      pair?))
 
 
 (define-macro* ($ . body)
-  `(let (($treeparameter treeparameter-pair-string))
+  `(let (($wbtreeparameter wbtreeparameter-pair-string))
      ,@body))
 
 (define-macro* ($define var body)
   `(define ,var
-     (let (($treeparameter treeparameter-pair-string))
+     (let (($wbtreeparameter wbtreeparameter-pair-string))
        ,body)))
 
 (TEST
- > ($define t2 (list->tree '(("a". 1) ("z". 2) ("e". 3) ("f". 4) ("g". 5))))
+ > ($define t2 (list->wbtree '(("a". 1) ("z". 2) ("e". 3) ("f". 4) ("g". 5))))
  > t2
- #(tree
+ #(wbtree
    ("f" . 4)
    5
-   #(tree ("e" . 3) 2 ("a" . 1) empty-tree)
-   #(tree ("g" . 5) 2 empty-tree ("z" . 2)))
- > ($ (tree:member? t2 '("a" . x)))
+   #(wbtree ("e" . 3) 2 ("a" . 1) empty-wbtree)
+   #(wbtree ("g" . 5) 2 empty-wbtree ("z" . 2)))
+ > ($ (wbtree:member? t2 '("a" . x)))
  #t
- > ($ (tree:member? t2 '("aa" . x)))
+ > ($ (wbtree:member? t2 '("aa" . x)))
  #f
- > ($ (tree:maybe-ref t2 '("a" . x)))
+ > ($ (wbtree:maybe-ref t2 '("a" . x)))
  ("a" . 1)
- > ($ (tree:maybe-ref t2 '("aa" . x)))
+ > ($ (wbtree:maybe-ref t2 '("aa" . x)))
  #f
 
- > ($ (tree:between t2 '("aa") '("x")))
- #(tree ("f" . 4) 3 ("e" . 3) ("g" . 5))
- > ($ (tree:between t2 '("a") '("x")))
- #(tree ("f" . 4) 3 ("e" . 3) ("g" . 5))
- > ($ (tree:between t2 '("") '("x")))
- #(tree ("f" . 4) 4 #(tree ("a" . 1) 2 empty-tree ("e" . 3)) ("g" . 5))
- > ($ (tree:between t2 '("a") '("g")))
- #(tree ("f" . 4) 2 ("e" . 3) empty-tree)
- > ($ (tree:members (tree:between t2 '("a") '("g"))))
+ > ($ (wbtree:between t2 '("aa") '("x")))
+ #(wbtree ("f" . 4) 3 ("e" . 3) ("g" . 5))
+ > ($ (wbtree:between t2 '("a") '("x")))
+ #(wbtree ("f" . 4) 3 ("e" . 3) ("g" . 5))
+ > ($ (wbtree:between t2 '("") '("x")))
+ #(wbtree ("f" . 4) 4 #(wbtree ("a" . 1) 2 empty-wbtree ("e" . 3)) ("g" . 5))
+ > ($ (wbtree:between t2 '("a") '("g")))
+ #(wbtree ("f" . 4) 2 ("e" . 3) empty-wbtree)
+ > ($ (wbtree:members (wbtree:between t2 '("a") '("g"))))
  (("e" . 3) ("f" . 4))
- > ($ (tree:members (tree:between t2 '("") '("g"))))
+ > ($ (wbtree:members (wbtree:between t2 '("") '("g"))))
  (("a" . 1) ("e" . 3) ("f" . 4))
- > ($ (tree:members (tree:between t2 '("") '("zz"))))
+ > ($ (wbtree:members (wbtree:between t2 '("") '("zz"))))
  (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5) ("z" . 2))
- > ($ (tree:members (tree:between t2 '("") '("z"))))
+ > ($ (wbtree:members (wbtree:between t2 '("") '("z"))))
  (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5))
  
  )
@@ -291,25 +291,25 @@
 				(make-pseudorandomsource 121290 119072)
 				(make-pseudorandomsource 32349 25288)
 				(make-range 3 15))))
- > (define* (prandomtree *s n)
+ > (define* (prandomwbtree *s n)
      (letv ((l rest) (stream-rtake+rest (unbox *s) n))
 	   (set-box! *s rest)
-	   (list->tree l)))
- > ($sdefine t1 (prandomtree *stringstream1 10000))
- > ($sdefine t2 (prandomtree *stringstream1 10000))
- > ($sdefine t3 (prandomtree *stringstream1 10000))
+	   (list->wbtree l)))
+ > ($sdefine t1 (prandomwbtree *stringstream1 10000))
+ > ($sdefine t2 (prandomwbtree *stringstream1 10000))
+ > ($sdefine t3 (prandomwbtree *stringstream1 10000))
  ;; and one with different (more spaced when watched from the above perspective?) keys:
  ;; Use less elements to initialize it to attain about the same size (fewer duplicates)
- > ($sdefine t4 (prandomtree *stringstream2 5100))
+ > ($sdefine t4 (prandomwbtree *stringstream2 5100))
 
- > ($s (equal? (F (trees:intersection-stream (list t1 t2 t3)))
-	       (tree:members (RA tree:intersection t1 t2 t3))))
+ > ($s (equal? (F (wbtrees:intersection-stream (list t1 t2 t3)))
+	       (wbtree:members (RA wbtree:intersection t1 t2 t3))))
  #t
- > ($s (equal? (F (trees:intersection-stream (list t1 t2 t4)))
-	       (tree:members (RA tree:intersection t1 t2 t4))))
+ > ($s (equal? (F (wbtrees:intersection-stream (list t1 t2 t4)))
+	       (wbtree:members (RA wbtree:intersection t1 t2 t4))))
  #t
- > (define* (tree3:intersection-list t1 t2 t3) (tree:members (RA tree:intersection t1 t2 t3)))
- > ($s (equal?* (tree3:intersection-list t1 t2 t3) (tree3:intersection-list t2 t1 t3) (tree3:intersection-list t3 t2 t1)))
+ > (define* (wbtree3:intersection-list t1 t2 t3) (wbtree:members (RA wbtree:intersection t1 t2 t3)))
+ > ($s (equal?* (wbtree3:intersection-list t1 t2 t3) (wbtree3:intersection-list t2 t1 t3) (wbtree3:intersection-list t3 t2 t1)))
  #t
  )
 
