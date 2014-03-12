@@ -167,3 +167,17 @@
  ;; well, or so
  )
 
+
+(define-macro* (-> pred expr)
+  (with-gensym V
+	       `(let ((,V ,expr))
+		  (if (,pred ,V) ,V
+		      (error "value fails to meet predicate:" ,V)))))
+
+(TEST
+ > (-> number? 5)
+ 5
+ > (%try-error (-> number? "5"))
+ #(error "value fails to meet predicate:" "5")
+ )
+
