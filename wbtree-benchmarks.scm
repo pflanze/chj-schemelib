@@ -22,7 +22,7 @@
 	   (+ ,step 1))))
 
 (IF #t
-    (begin ;; use Set2
+    (begin ;; use wbtree
       (define (make-empty-tree)
 	empty-tree))
     (begin ;; use hash tables
@@ -629,7 +629,7 @@
 ;     no major faults
 ; 76029
 
-;; hm, did Set2 get faster thanks to more usage of let*-tree ? !:
+;; hm, did wbtree get faster thanks to more usage of let*-tree ? !:
 ; > (define t (time (create 1000000)))
 ; (time (create 1000000))
 ;     10602 ms real time
@@ -647,7 +647,7 @@
 ;     1151 minor faults
 ;     no major faults
 ; 76029
-;; and the same with Set2 compiled (not safe):
+;; and the same with wbtree compiled (not safe):
 ; > (define t (time (create 1000000)))
 ; (time (create 1000000))
 ;     9838 ms real time
@@ -739,10 +739,10 @@
 ; 76029
 ;strange still faster than it was. like the create above.
 ;introduce named let into tree:member?:
-; > (compile-file "Set2" options: '(debug))
-; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/Set2.o20"
-; > (load "Set2")
-; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/Set2.o20"
+; > (compile-file "wbtree" options: '(debug))
+; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/wbtree.o20"
+; > (load "wbtree")
+; "/mnt/rootextend/chrisjazz/GIT-Repo-CDS/Utilities/wbtree.o20"
 ; > (time (fetch t 1000000 1))
 ; (time (fetch t 1000000 1))
 ;     5456 ms real time

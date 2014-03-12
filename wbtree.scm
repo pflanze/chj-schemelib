@@ -451,7 +451,7 @@
 	     r))
 
 (IF #f
-    (begin ;; C variant, see Set2-C
+    (begin ;; C variant, see wbtree-C
       )
     (begin ;; Scheme variant
       (define* (tree:member? t x)

@@ -173,7 +173,7 @@
  > ($s(tree:index t 1))
  "a"
  ;; > (tree:rank t "b")
- ;; *** ERROR IN #<procedure #5>, "Set2.scm"@436.10 -- This object was raised: not-found
+ ;; *** ERROR IN #<procedure #5>, "wbtree.scm"@436.10 -- This object was raised: not-found
  ;; 1> 
  > ($s(tree:max t))
  "zwerg"
