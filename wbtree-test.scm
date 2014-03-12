@@ -303,12 +303,12 @@
  > ($sdefine t4 (prandomtree *stringstream2 5100))
 
  > ($s (equal? (F (trees:intersection-stream (list t1 t2 t3)))
-	       (tree:members (R tree:intersection t1 t2 t3))))
+	       (tree:members (RA tree:intersection t1 t2 t3))))
  #t
  > ($s (equal? (F (trees:intersection-stream (list t1 t2 t4)))
-	       (tree:members (R tree:intersection t1 t2 t4))))
+	       (tree:members (RA tree:intersection t1 t2 t4))))
  #t
- > (define* (tree3:intersection-list t1 t2 t3) (tree:members (R tree:intersection t1 t2 t3)))
+ > (define* (tree3:intersection-list t1 t2 t3) (tree:members (RA tree:intersection t1 t2 t3)))
  > ($s (equal?* (tree3:intersection-list t1 t2 t3) (tree3:intersection-list t2 t1 t3) (tree3:intersection-list t3 t2 t1)))
  #t
  )
