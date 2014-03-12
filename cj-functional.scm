@@ -355,3 +355,34 @@
  > ((sorted-list-of number? >) '())
  #t)
 
+
+(define (values-of . preds)
+  (let ((len (length preds)))
+    (if (= len 1)
+	(car preds)
+	(lambda (v)
+	  (and (values? v)
+	       (let ((vals (values->list v)))
+		 (and (= (length vals) len)
+		      (every (lambda (val pred)
+			       (pred val))
+			     vals
+			     preds))))))))
+
+(TEST
+ > ((values-of boolean? string?) (values #f ""))
+ #t
+ > ((values-of boolean? string?) (values #f))
+ #f
+ > ((values-of boolean?) (values #f))
+ #t
+ > ((values-of) (values))
+ #t
+ > ((values-of) (values 1 2))
+ #f
+ > ((values-of integer? number?) (values 1.4 2))
+ #f
+ > ((values-of integer? number?) (values 2 1.4))
+ #t
+ )
+
