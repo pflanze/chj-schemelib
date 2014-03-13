@@ -110,22 +110,23 @@
  (define use-wbtrees-as-leafs? #f))
 
 (IF use-wbtrees-as-leafs?
+
     (begin ;; original variant
       (define-struct wbtree
 	;; constructor-name: _make-wbtree
-	;; hm ne eben alle umdeffen muss hei. wl so sei.
 	element	;; element
 	size ;; int
 	left ;; wbtree
 	right ;; wbtree
 	))
+
     (begin ;; optimized variant
       (define-struct wbtree
 	;; constructor-name: _make-wbtree
-	;; hm ne eben alle umdeffen muss hei. wl so sei.
 	prefix: "_"
 	generic-accessor-prefix: "wbtree-"
 	let*-name: let*-wbtree
+
 	element	;; element
 	size ;; int
 	left ;; wbtree
