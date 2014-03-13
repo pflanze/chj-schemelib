@@ -30,13 +30,13 @@
 		  ,V)))))
 
 
-(define (transform-arg arg binds body)
-  ;; -> (values binds* body*)
+(define (transform-arg arg args body)
+  ;; -> (values args* body*)
   (let ((arg* (source-code arg)))
     (define (err)
       (source-error arg "expecting symbol or #(predicate var)"))
     (cond ((symbol? arg*)
-	   (values (cons arg binds)
+	   (values (cons arg args)
 		   body))
 	  ((vector? arg*)
 	   (if (= (vector-length arg*) 2)
@@ -44,13 +44,25 @@
 		     (var (vector-ref arg* 1)))
 		 (assert* symbol? var
 			  (lambda (_)
-			    (values (cons var binds)
+			    (values (cons var args)
 				    `(type-check ,pred ,var
 						 ,body)))))
 	       (err)))
 	  ((meta-object? arg*)
-	   (values (cons arg* binds)
+	   (values (cons arg* args)
 		   body))
+	  ((pair? arg*)
+	   ;; should be after an #!optional; XX verify? or leave that
+	   ;; up to the next language layer?
+	   (if (= (improper-length arg*) 2)
+	       (let ((arg** (car arg*))
+		     (default (cadr arg*)))
+		 (letv ((subargs body*) (transform-arg arg** args body))
+		       (let-pair ((subarg _) subargs)
+				 (values (cons `(,subarg ,default) args)
+					 body*))))
+	       ;; XX could give better error message, though
+	       (err)))
 	  (else
 	   (err)))))
 
@@ -85,7 +97,12 @@
  > (args-detype '(a b #!optional c))
  (a b #!optional c)
  > (args-detype '(#(pair? a) b #!optional #(number? c)))
- (a b #!optional c))
+ (a b #!optional c)
+ > (args-detype '(#(pair? a) b #!optional (c 10)))
+ (a b #!optional (c 10))
+ > (args-detype '(#(pair? a) b #!optional (#(number? c) 10)))
+ (a b #!optional (c 10))
+ )
 
 
 (define-macro* (typed-lambda args . body)
@@ -132,7 +149,11 @@
  > (expansion#typed-lambda (a #!key #(pair? b) #!rest #(number? c)) 'hello 'world)
  (lambda (a #!key b #!rest c)
    (type-check pair? b (type-check number? c (begin 'hello 'world))))
- )
+ > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10)) hello)
+ (lambda (a b #!optional (c 10))
+   (type-check pair? a
+	       (type-check number? c (begin hello)))))
+
 
 (define-macro* (detyped-lambda args . body)
   `(lambda ,(args-detype args)
