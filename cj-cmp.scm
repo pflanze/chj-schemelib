@@ -311,8 +311,32 @@
  gt
  )
 
-;; / move?
+;; --- keep this?
+;; turn multiple cmps into a new cmp, that compares by the cmps in
+;; order of the list until one not returning eq is found
+(define (2cmp cmp1 cmp2)
+  (lambda (a b)
+    (match-cmp (cmp1 a b)
+	       ((lt) 'lt)
+	       ((gt) 'gt)
+	       ((eq) (cmp2 a b)))))
 
+(define cmp-always-eq
+  (lambda (a b)
+    'eq))
+
+(define (list-cmps->cmp cmps)
+  (fold-right 2cmp
+	      cmp-always-eq
+	      cmps))
+
+(define (cmps->cmp . cmps)
+  (list-cmps->cmp cmps))
+
+;; (TEST
+;;  )
+
+;; --- /keep this?
 
 (define-macro* (cmp-or . exprs)
   (if (null? exprs)
