@@ -30,31 +30,33 @@
 		  ,V)))))
 
 
-(define (handle-arg arg $1 $2)
+(define (transform-arg arg binds body)
+  ;; -> (values binds* body*)
   (let ((arg* (source-code arg)))
     (define (err)
       (source-error arg "expecting symbol or #(predicate var)"))
     (cond ((symbol? arg*)
-	   (values (cons arg $1)
-		   $2))
+	   (values (cons arg binds)
+		   body))
 	  ((vector? arg*)
 	   (if (= (vector-length arg*) 2)
 	       (let ((pred (vector-ref arg* 0))
 		     (var (vector-ref arg* 1)))
 		 (assert* symbol? var
 			  (lambda (_)
-			    (values (cons var $1)
+			    (values (cons var binds)
 				    `(type-check ,pred ,var
-						 ,$2)))))
+						 ,body)))))
 	       (err)))
 	  ((meta-object? arg*)
-	   (values (cons arg* $1) $2))
+	   (values (cons arg* binds)
+		   body))
 	  (else
 	   (err)))))
 
 ;; for use by other code
 (define (perhaps-typed.var x)
-  (car (handle-arg x '() '())))
+  (car (transform-arg x '() '())))
 
 (define (typed? x)
   ;; stupid ~COPY
@@ -70,8 +72,7 @@
 
 (define (args-detype args)
   (improper-fold-right* (lambda (tail? arg args*)
-			  ;; uh ugly code; change handle-arg some time!
-			  (let ((a* (fst (handle-arg arg args* #f))))
+			  (let ((a* (fst (transform-arg arg args* #f))))
 			    (if tail?
 				(car a*)
 				a*)))
@@ -97,12 +98,12 @@
 		   ((pair? args_)
 		    (let-pair ((arg args*) args_)
 			      (letv (($1 $2) (rem args*))
-				    (handle-arg arg $1 $2))))
+				    (transform-arg arg $1 $2))))
 		   (else
 		    ;; rest arg, artificially pick out the single var
 		    (letv ((vars body)
 			   (letv (($1 $2) (rem '()))
-				 (handle-arg args $1 $2)))
+				 (transform-arg args $1 $2)))
 			  (assert (= (length vars) 1))
 			  (values (car vars)
 				  body)))))))
