@@ -31,33 +31,31 @@
 
 
 (define handle-arg
-  (lambda-values
-   (arg ($1 $2))
-   (let ((arg_ (source-code arg)))
-     (define (err)
-       (source-error arg
-		     "expecting symbol or #(predicate var)"))
-     (cond ((symbol? arg_)
-	    (values (cons arg $1)
-		    $2))
-	   ((vector? arg_)
-	    (if (= (vector-length arg_) 2)
-		(let ((pred (vector-ref arg_ 0))
-		      (var (vector-ref arg_ 1)))
-		  (assert* symbol? var
-			   (lambda (_)
-			     (values (cons var $1)
-				     `(type-check ,pred ,var
-						  ,$2)))))
-		(err)))
-	   ((meta-object? arg_)
-	    (values (cons arg_ $1) $2))
-	   (else
-	    (err))))))
+  (lambda (arg $1 $2)
+    (let ((arg_ (source-code arg)))
+      (define (err)
+	(source-error arg "expecting symbol or #(predicate var)"))
+      (cond ((symbol? arg_)
+	     (values (cons arg $1)
+		     $2))
+	    ((vector? arg_)
+	     (if (= (vector-length arg_) 2)
+		 (let ((pred (vector-ref arg_ 0))
+		       (var (vector-ref arg_ 1)))
+		   (assert* symbol? var
+			    (lambda (_)
+			      (values (cons var $1)
+				      `(type-check ,pred ,var
+						   ,$2)))))
+		 (err)))
+	    ((meta-object? arg_)
+	     (values (cons arg_ $1) $2))
+	    (else
+	     (err))))))
 
 ;; for use by other code
 (define (perhaps-typed.var x)
-  (car (handle-arg x (values '() '()))))
+  (car (handle-arg x '() '())))
 
 (define (typed? x)
   ;; stupid ~COPY
@@ -74,7 +72,7 @@
 (define (args-detype args)
   (improper-fold-right* (lambda (tail? arg args*)
 			  ;; uh ugly code; change handle-arg some time!
-			  (let ((a* (fst (handle-arg arg (values args* #f)))))
+			  (let ((a* (fst (handle-arg arg args* #f))))
 			    (if tail?
 				(car a*)
 				a*)))
@@ -99,11 +97,13 @@
 			    `(begin ,@body)))
 		   ((pair? args_)
 		    (let-pair ((arg args*) args_)
-			      (handle-arg arg (rem args*))))
+			      (letv (($1 $2) (rem args*))
+				    (handle-arg arg $1 $2))))
 		   (else
 		    ;; rest arg, artificially pick out the single var
 		    (letv ((vars body)
-			   (handle-arg args (rem '())))
+			   (letv (($1 $2) (rem '()))
+				 (handle-arg args $1 $2)))
 			  (assert (= (length vars) 1))
 			  (values (car vars)
 				  body)))))))
