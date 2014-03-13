@@ -30,28 +30,27 @@
 		  ,V)))))
 
 
-(define handle-arg
-  (lambda (arg $1 $2)
-    (let ((arg_ (source-code arg)))
-      (define (err)
-	(source-error arg "expecting symbol or #(predicate var)"))
-      (cond ((symbol? arg_)
-	     (values (cons arg $1)
-		     $2))
-	    ((vector? arg_)
-	     (if (= (vector-length arg_) 2)
-		 (let ((pred (vector-ref arg_ 0))
-		       (var (vector-ref arg_ 1)))
-		   (assert* symbol? var
-			    (lambda (_)
-			      (values (cons var $1)
-				      `(type-check ,pred ,var
-						   ,$2)))))
-		 (err)))
-	    ((meta-object? arg_)
-	     (values (cons arg_ $1) $2))
-	    (else
-	     (err))))))
+(define (handle-arg arg $1 $2)
+  (let ((arg* (source-code arg)))
+    (define (err)
+      (source-error arg "expecting symbol or #(predicate var)"))
+    (cond ((symbol? arg*)
+	   (values (cons arg $1)
+		   $2))
+	  ((vector? arg*)
+	   (if (= (vector-length arg*) 2)
+	       (let ((pred (vector-ref arg* 0))
+		     (var (vector-ref arg* 1)))
+		 (assert* symbol? var
+			  (lambda (_)
+			    (values (cons var $1)
+				    `(type-check ,pred ,var
+						 ,$2)))))
+	       (err)))
+	  ((meta-object? arg*)
+	   (values (cons arg* $1) $2))
+	  (else
+	   (err)))))
 
 ;; for use by other code
 (define (perhaps-typed.var x)
