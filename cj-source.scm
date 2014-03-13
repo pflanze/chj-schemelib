@@ -223,6 +223,10 @@
   ;; how to make Gambit display it? just wrap for now
   (raise (make-source-error source message args)))
 
+;; (define (location-error location message . args)
+;;   (raise (make-source-error source message args)))
+;; todo finish (lost-on-tie?)
+
 (define (pos:line pos)
   (+ 1 (bitwise-and pos 65535)))
 (define (pos:col pos)
