@@ -501,3 +501,10 @@
  ("foo" "foo" "foo" "bar")
  )
 
+
+(define (map-apply fn listoflists)
+  (map (lambda (l)
+	 (apply fn l))
+       listoflists))
+
+
