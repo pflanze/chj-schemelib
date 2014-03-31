@@ -6,7 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require define-macro* cut)
+(require define-macro*
+	 cut
+	 cj-typed)
 
 
 (define (symbols.predicate syms)
@@ -21,9 +23,10 @@
    (lambda (name)
      (with-gensyms
       (V SUCCESS FAIL)
-      (let ((IF-PARSE (symbol-append "string.if->" name)))
+      (let ((IF-PARSE (symbol-append "string.if->" name))
+	    (name? (symbol-append name "?")))
 	`(begin
-	   (define ,(symbol-append name "?")
+	   (define ,name?
 	     (symbols.predicate ',syms))
 	   (define (,IF-PARSE ,V ,SUCCESS ,FAIL)
 	     (cond ,@(map (lambda (sym)
@@ -44,5 +47,8 @@
 			(thunk
 			 (error "string does not map to any enum element of:"
 				',name
-				,V))))))))))
+				,V))))
+	   ;; type safe comparison:
+	   (define-typed (,(symbol-append name '-eq?) #(,name? a) #(,name? b))
+	     (eq? a b))))))))
 
