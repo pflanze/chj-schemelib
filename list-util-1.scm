@@ -22,6 +22,15 @@
 
 ;; TEST see list-util.scm
 
+(define (map/iota fn lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (if (null? lis) lis
+	(cons (fn (car lis) i)
+	      (rec (cdr lis) (inc i))))))
+
+;; TEST see list-util.scm
+
 
 (define (improper-map fn l #!optional (tail '()))
   (let rec ((l l))

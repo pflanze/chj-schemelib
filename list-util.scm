@@ -508,3 +508,6 @@
        listoflists))
 
 
+(TEST
+ > (map/iota cons '(a b))
+ ((a . 0) (b . 1)))
