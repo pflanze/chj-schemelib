@@ -28,6 +28,14 @@
  6
  > (improper-map inc '())
  ()
+ > (mapS inc '(1 2 . 3))
+ (2 3 4)
+ > (mapS inc '5)
+ (6)
+ > (mapS inc '())
+ ()
+ > (mapS inc 5 'tail)
+ (6 . tail)
  )
 
 (define (improper-fold fn tail l)

@@ -44,6 +44,18 @@
 
 ;; TEST see list-util.scm
 
+(define (mapS fn vS #!optional (tail '()))
+  (let rec ((l vS))
+    (cond ((null? l)
+	   tail)
+	  ((pair? l)
+	   (cons (fn (car l))
+		 (rec (cdr l))))
+	  (else
+	   (cons (fn l) tail)))))
+
+;; TEST see list-util.scm
+
 
 (define (r-list-split l separator)
   (let ((separator? (if (procedure? separator)
