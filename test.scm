@@ -368,11 +368,13 @@
 
 (define TEST:count-success #f)
 (define TEST:count-fail #f)
+(define TEST:running #f)
 
 (define (run-tests #!key (verbose #t)
 		   #!rest files)
   (set! TEST:count-success 0)
   (set! TEST:count-fail 0)
+  (set! TEST:running #t)
   (let ((test-file
 	 (lambda (file) ;; file is not normalized in case of manual input
 	   (if verbose
@@ -427,7 +429,8 @@
 	;; otherwise run all loaded:
 	(for-each test-file (all-tests))))
   (print (list TEST:count-success " success(es), "
-	       TEST:count-fail " failure(s)" "\n")))
+	       TEST:count-fail " failure(s)" "\n"))
+  (set! TEST:running #f))
 
 
 ;; testing TEST:
