@@ -26,6 +26,9 @@
       (let ((IF-PARSE (symbol-append "string.if->" name))
 	    (name? (symbol-append name "?")))
 	`(begin
+	   ,@(map (lambda (sym)
+		    `(define-if-not-defined ,sym ',sym))
+		  syms)
 	   (define ,name?
 	     (symbols.predicate ',syms))
 	   (define (,IF-PARSE ,V ,SUCCESS ,FAIL)
