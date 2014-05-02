@@ -73,6 +73,55 @@
   (and (real? x)
        (positive? x)))
 
+
+;; move to some other lib?
+
+;; 'Machine' integer types (predicates)
+
+(define (uint_? bits)
+  (let ((ma (dec (arithmetic-shift 1 bits))))
+    (lambda (x)
+      (and (integer? x)
+	   (<= 0 x ma)))))
+
+(define uint8? (uint_? 8))
+(define uint16? (uint_? 16))
+(define uint32? (uint_? 32))
+(define uint64? (uint_? 64))
+(define uint128? (uint_? 128))
+
+(define (int_? bits)
+  (let ((ma (dec (arithmetic-shift 1 (dec bits))))
+	(mi (- (arithmetic-shift 1 (dec bits)))))
+    (lambda (x)
+      (and (integer? x)
+	   (<= mi x ma)))))
+
+(define int8? (int_? 8))
+(define int16? (int_? 16))
+(define int32? (int_? 32))
+(define int64? (int_? 64))
+(define int128? (int_? 128))
+
+(TEST
+ > (def t (C map _
+	     (list 0 1 -1 127 128 -127 -128 -129
+		   255 256 -255 -256
+		   18446744073709551615
+		   18446744073709551616
+		   -9223372036854775808
+		   -9223372036854775809)))
+ > (t uint8?)
+ (#t #t #f #t #t #f #f #f #t #f #f #f #f #f #f #f)
+ > (t int8?)
+ (#t #t #t #t #f #t #t #f #f #f #f #f #f #f #f #f)
+ > (t uint64?)
+ (#t #t #f #t #t #f #f #f #t #t #f #f #t #f #f #f)
+ > (t int64?)
+ (#t #t #t #t #t #t #t #t #t #t #t #t #f #f #t #f))
+
+;; /move
+
 (both-times
  (define (make-list n v)
    (let lp ((n n)
