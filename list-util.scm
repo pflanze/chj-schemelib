@@ -519,3 +519,15 @@
 (TEST
  > (map/iota cons '(a b))
  ((a . 0) (b . 1)))
+
+
+(define (butlast l)
+  (drop-right l 1))
+
+(TEST
+ > (butlast '(a b c))
+ (a b)
+ > (with-exception-catcher (lambda (e) #t) (lambda () (butlast '())))
+ #t
+ )
+
