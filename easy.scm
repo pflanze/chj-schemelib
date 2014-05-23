@@ -21,3 +21,8 @@
 (define-macro* (defmacro . args)
   `(define-macro* ,@args))
 
+
+(def comp compose)
+(defmacro (comp* . args)
+  `(compose* ,@args))
+
