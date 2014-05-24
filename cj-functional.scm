@@ -386,3 +386,12 @@
  #t
  )
 
+
+;; name?
+(define (applying fn)
+  (lambda (args)
+    (apply fn args)))
+
+;; should it take optional args to insert before |args|? Or leave that
+;; to usage of cut?
+
