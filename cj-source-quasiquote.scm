@@ -130,3 +130,7 @@
  12
  )
 
+
+(define-macro* (quote-source src)
+  `(u8vector->object ',(object->u8vector src)))
+
