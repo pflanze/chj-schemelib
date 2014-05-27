@@ -39,12 +39,40 @@
  #f
  )
 
+;; XX: "Hostnames impose restrictions on the characters allowed in the
+;; corresponding domain name. A valid hostname is also a valid domain
+;; name, but a valid domain name may not necessarily be valid as a
+;; hostname."
+
+;; Note (https://en.wikipedia.org/wiki/Hostname): "While a hostname
+;; may not contain other characters, such as the underscore character
+;; (_), other DNS names may contain the underscore.[3] Systems such as
+;; DomainKeys and service records use the underscore as a means to
+;; assure that their special character is not confused with
+;; hostnames."
+
+
+;; XX NOTE: name should perhaps be changed, as:
+;; - this is using restrictions for host names, not domain names.
+;; - this excludes IPv4 addresses (perhaps those should be accepted as
+;;   valid domains or host names?)
 (define (fqdn-string? x)
   (and (string? x)
+       ;; "The full domain name may not exceed a total length of 253
+       ;; ASCII characters in its textual representation."
+       (<= (string-length x) 253)
+       ;; ^ check for ASCII happens through dnchar? later.
+       ;; XX: vs. https://en.wikipedia.org/wiki/Hostname : "the entire
+       ;; hostname (including the delimiting dots) has a maximum of
+       ;; 255 characters"
        (let ((ss (string-split x #\.)))
 	 (and (<= 2 (length ss) 127)
 	      ;; XX allow "" at the end? But *only* at the end.
-	      (every nonnulldnlabel? ss)))))
+	      ;; "The empty label is reserved for the root node."
+	      (every nonnulldnlabel? ss)
+	      ;; Don't treat IP addresses as fqdn-string?, ok ?
+	      (not (every char-digit?
+			  (string.list (last ss))))))))
 
 (TEST
  > (fqdn-string? "")
@@ -59,6 +87,8 @@
  #f
  > (fqdn-string? "a.b.c")
  #t
+ > (fqdn-string? "127.0.0.1")
+ #f ;; ok?
  )
 
 
