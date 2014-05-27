@@ -125,11 +125,44 @@
  #f
  )
 
+;; XX merge with uint8 in cj-env*
+(define. (u8-string.u8-number str)
+  ;;(assert (u8-string? str)) ;; XX sgh, should really make this part of define. ?
+  (-> uint8? (string.number str)))
+
+(TEST
+ ;; > (.u8-number "")
+ ;; *** ERROR IN (console)@4.1 -- no method found for generic .u8-number for value: ""
+ > (.u8-number "1")
+ 1
+ > (.u8-number "255")
+ 255
+ ;; > (.u8-number "256")
+ ;; *** ERROR IN (console)@8.1 -- no method found for generic .u8-number for value: "256"
+ )
+
+
 (define (ipv4-string? x)
   (and (string? x)
        (let ((ss (string-split x #\.)))
 	 (and (= (length ss) 4)
 	      (every u8-string? ss)))))
+
+
+(define. (ipv4-string.ipv4-number x)
+  (-> natural0?
+      (let ((ss (string-split x #\.)))
+	(and (= (length ss) 4)
+	     (fold (lambda (x res)
+		     (+ (u8-string.u8-number x)
+			(* res 256)))
+		   0
+		   ss)))))
+
+(TEST
+ > (number->string (.ipv4-number "127.0.0.1") 16)
+ "7f000001"
+ )
 
 
 (define (ipv6-segment-string? x)
@@ -179,6 +212,15 @@
  > (ipv6-hex-string? "2001:0db8:85a3:0000:0000:8a2e:0370:7334")
  #f
  )
+
+
+;; don't use the .number method name, as that would be ambiguous
+;; e.g. for strings that only contain decimal characters; well
+;; actually the Scheme string.number method requires a second argument
+;; for this reason; we've got a different api here.
+(define. (ipv6-hex-string.ipv6-number x)
+  (-> natural0? (string->number x 16)))
+
 
 (define (bare-ipv6-string? x)
   (and (string? x)
@@ -272,4 +314,27 @@
   (compose bare-ipv6-string.ipv6-hex-string
 	   ipv6-string.bare-ipv6-string))
 
+
+;; .ipv6-number
+
+(define. bare-ipv6-string.ipv6-number
+  (compose ipv6-hex-string.ipv6-number
+	   bare-ipv6-string.ipv6-hex-string))
+
+
+(define. ipv6-string.ipv6-number
+  (compose bare-ipv6-string.ipv6-number
+	   ipv6-string.bare-ipv6-string))
+
+
+(TEST
+ > (.ipv6-number "20010db885a3000000008a2e03707334")
+ 42540766452641154071740215577757643572
+ > (.ipv6-number "2001:0db8:85a3::8a2e:0370:7334")
+ 42540766452641154071740215577757643572
+ > (.ipv6-number "[2001:0db8:85a3:0000::8a2e:0370:7334]")
+ 42540766452641154071740215577757643572
+ > (number->string 42540766452641154071740215577757643572 16)
+ "20010db885a3000000008a2e03707334"
+ )
 
