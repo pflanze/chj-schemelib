@@ -149,6 +149,11 @@
 	      (every u8-string? ss)))))
 
 
+(define (ipv4-number? x)
+  (and (natural0? x)
+       (< x (expt 2 32))))
+
+
 (define. (ipv4-string.ipv4-number x)
   (-> natural0?
       (let ((ss (string-split x #\.)))
@@ -162,6 +167,14 @@
 (TEST
  > (number->string (.ipv4-number "127.0.0.1") 16)
  "7f000001"
+ > (ipv4-number? (.ipv4-number "255.255.255.255"))
+ #t
+ > (ipv4-number? (inc (.ipv4-number "255.255.255.255")))
+ #f
+ > (ipv4-number? (.ipv4-number "0.0.0.0"))
+ #t
+ > (ipv4-number? (dec (.ipv4-number "0.0.0.0")))
+ #f
  )
 
 
@@ -337,4 +350,10 @@
  > (number->string 42540766452641154071740215577757643572 16)
  "20010db885a3000000008a2e03707334"
  )
+
+(define (ipv6-number? x)
+  (and (natural0? x)
+       (< x (expt 2 128))))
+;; tests?
+
 
