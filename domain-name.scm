@@ -357,3 +357,98 @@
 ;; tests?
 
 
+;; --- Networks -----
+
+(define (network-number? x bits)
+  ;; number of zero-bits on the right being equal to the number of
+  ;; bits used by the inversion means that the bits to the left are
+  ;; all ones
+  (= (first-bit-set x)
+     (integer-length (bitwise-xor x (dec (arithmetic-shift 2 (dec bits)))))))
+
+(TEST
+ > (network-number? 1 8)
+ #f
+ > (network-number? 127 8)
+ #f
+ > (network-number? 128 8)
+ #t
+ > (network-number? #b11000000 8)
+ #t
+ > (network-number? #b01000000 8)
+ #f
+ > (network-number? #b11000001 8)
+ #f
+ > (network-number? #b11010000 8)
+ #f
+ ;; possibly useful detail:
+ > (network-number? #b111100000 8)
+ #f)
+
+
+
+(define (ipv4-network-number? x)
+  (and (ipv4-number? x)
+       (network-number? x 32)))
+
+(define (ipv6-network-number? x)
+  (and (ipv6-number? x)
+       (network-number? x 128)))
+
+
+(define ipv4-network-string?
+  (both ipv4-string?
+	(compose ipv4-network-number? ipv4-string.ipv4-number)))
+
+(TEST
+ > (ipv4-network-string? "1")
+ #f
+ > (ipv4-network-string? "1.0.0.0")
+ #f
+ > (ipv4-network-string? "128.0.0.0")
+ #t
+ > (ipv4-network-string? "255.0.0.0")
+ #t
+ > (ipv4-network-string? "255.255.255.128")
+ #t
+ > (ipv4-network-string? "255.255.255.64")
+ #f
+ > (ipv4-network-string? "255.255.255.255")
+ #t ;; XX ok?
+ )
+
+
+;; really stupid that all the methods need to be tripled; XX use a
+;; module?
+
+(define ipv6-network-string?
+  (both ipv6-string?
+	(compose ipv6-network-number? ipv6-string.ipv6-number)))
+
+(define bare-ipv6-network-string?
+  (both bare-ipv6-string?
+	(compose ipv6-network-number? bare-ipv6-string.ipv6-number)))
+
+;; XX and should I move the 'hex' to the front as with the 'bare'?
+(define ipv6-network-hex-string?
+  (both ipv6-hex-string?
+	(compose ipv6-network-number? ipv6-hex-string.ipv6-number)))
+
+(TEST
+ > (ipv6-network-hex-string? "F0000000000000000000000000000000")
+ #t
+ > (bare-ipv6-network-string? "2001:0db8:85a3::8a2e:0370:7334")
+ #f
+ > (bare-ipv6-network-string? "FF00::00")
+ #t
+ > (bare-ipv6-network-string? "FF00::0")
+ #t
+ > (bare-ipv6-network-string? "FF00::1")
+ #f
+ > (bare-ipv6-network-string? "FF::00")
+ #f ;; XX is this correct?
+ ;; > (bare-ipv6-network-string? "FF00::")
+ ;; #f  XXX really should parse this now, right?
+ )
+
+
