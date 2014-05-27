@@ -153,7 +153,11 @@
  #f
  > (ipv6-segment-string? "-2432")
  #f
+ > (ipv6-segment-string? "-24321")
+ #f
  > (ipv6-segment-string? "2abf")
+ #t
+ > (ipv6-segment-string? "2ABF")
  #t
  > (ipv6-segment-string? "2abg")
  #f
