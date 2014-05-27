@@ -364,7 +364,7 @@
  > (dirname* "/foo/bar")
  "/foo"
  > (dirname* "/foo/bar/")
- "/foo/bar" ;;  XXX for the web. not otherwise?
+ "/foo" ;;  XXX should be "/foo/bar" for the web
  > (dirname* "//foo")
  ""
  > (dirname* "//foo//bar")
