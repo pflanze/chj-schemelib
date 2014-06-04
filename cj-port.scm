@@ -24,3 +24,20 @@
 (TEST
  > (*with-output-to-string (begin (display "Hello ") (display "World")))
  "Hello World")
+
+
+(define (with-output-to-string* thunk)
+  (let* ((result #f) ;; XX does this always work (with call/cc)?
+	 (str (call-with-output-string
+	       ""
+	       (lambda (port)
+		 (set! result (parameterize ((current-output-port port))
+					    (thunk)))))))
+    ;; (which result order?)
+    (values result
+	    str)))
+
+(TEST
+ > (values->vector (with-output-to-string* (& (print "hello") 1)))
+ #(1 "hello"))
+
