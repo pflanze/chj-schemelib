@@ -92,10 +92,10 @@
       (##list ,@(reverse forms)))))
 
 (TEST
- > (source-quasiquote-expand '(a b c))
- (source-quasiquote-run '#u8(100 1 97 0 100 1 98 1 100 1 99 1 114) (##list))
+ > (source-quasiquote-expand '("a" "b"))
+ (source-quasiquote-run '#u8(100 17 97 100 17 98 114) (##list))
  > (eval #)
- (a b c)
+ ("a" "b")
  > (eval (source-quasiquote-expand '(a b ,(inc 9))))
  (a b 10)
  > (eval (source-quasiquote-expand '(a b ,@(list 9 10))))
