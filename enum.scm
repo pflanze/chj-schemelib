@@ -17,41 +17,42 @@
 	 (any (cut eq? <> v)
 	      syms))))
 
-(define-macro* (define-enum name . syms)
-  (assert*
-   symbol? name
-   (lambda (name)
-     (with-gensyms
-      (V SUCCESS FAIL)
-      (let ((IF-PARSE (symbol-append "string.if->" name))
-	    (name? (symbol-append name "?")))
-	`(begin
-	   ,@(map (lambda (sym)
-		    `(define-if-not-defined ,sym ',sym))
-		  syms)
-	   (define ,name?
-	     (symbols.predicate ',syms))
-	   (define (,IF-PARSE ,V ,SUCCESS ,FAIL)
-	     (cond ,@(map (lambda (sym)
-			    (assert* symbol? sym
-				     (lambda (sym)
-				       `((string=? ,V ,(symbol.string sym))
-					 (,SUCCESS ',sym)))))
-			  syms)
-		   (else
-		    (,FAIL))))
-	   (define (,(symbol-append "string.maybe-" name) ,V)
-	     (,IF-PARSE ,V
-			identity
-			false/0))
-	   (define (,(symbol-append "string." name) ,V)
-	     (,IF-PARSE ,V
-			identity
-			(thunk
-			 (error "string does not map to any enum element of:"
-				',name
-				,V))))
-	   ;; type safe comparison:
-	   (define-typed (,(symbol-append name '-eq?) #(,name? a) #(,name? b))
-	     (eq? a b))))))))
+(define-macro* (define-enum name sym . syms)
+  (let ((syms (cons sym syms)))
+    (assert*
+     symbol? name
+     (lambda (name)
+       (with-gensyms
+	(V SUCCESS FAIL)
+	(let ((IF-PARSE (symbol-append "string.if->" name))
+	      (name? (symbol-append name "?")))
+	  `(begin
+	     ,@(map (lambda (sym)
+		      `(define-if-not-defined ,sym ',sym))
+		    syms)
+	     (define ,name?
+	       (symbols.predicate ',syms))
+	     (define (,IF-PARSE ,V ,SUCCESS ,FAIL)
+	       (cond ,@(map (lambda (sym)
+			      (assert* symbol? sym
+				       (lambda (sym)
+					 `((string=? ,V ,(symbol.string sym))
+					   (,SUCCESS ',sym)))))
+			    syms)
+		     (else
+		      (,FAIL))))
+	     (define (,(symbol-append "string.maybe-" name) ,V)
+	       (,IF-PARSE ,V
+			  identity
+			  false/0))
+	     (define (,(symbol-append "string." name) ,V)
+	       (,IF-PARSE ,V
+			  identity
+			  (thunk
+			   (error "string does not map to any enum element of:"
+				  ',name
+				  ,V))))
+	     ;; type safe comparison:
+	     (define-typed (,(symbol-append name '-eq?) #(,name? a) #(,name? b))
+	       (eq? a b)))))))))
 
