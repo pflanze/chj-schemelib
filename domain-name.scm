@@ -359,6 +359,9 @@
 
 ;; --- Networks -----
 
+;; XX hmmm, should these be named differently? These are for
+;; network-*masks*.
+
 (define (network-number? x bits)
   ;; number of zero-bits on the right being equal to the number of
   ;; bits used by the inversion means that the bits to the left are
@@ -451,4 +454,90 @@
  ;; #f  XXX really should parse this now, right?
  )
 
+
+;; Networks with prefixes:
+
+
+(def ipv4-bits 32)
+(def ipv6-bits 128)
+
+(def (string-of-integer/range lo hi)
+     ;; ^ require lo hi to be integers or not? heh, leave it open.
+     (lambda (s)
+       (and (string? s)
+	    (cond ((string->number s)
+		   => (lambda (x)
+			(and (integer? x)
+			     (exact? x)
+			     ;; XXX hmmm, does make naming
+			     ;; inconsistent? Why does Scheme accept
+			     ;; 2.0 as integer?
+			     (<= lo x hi))))
+		  (else #f)))))
+
+(TEST
+ > (map (string-of-integer/range -2 2) '("-2" "2.1" "2.0" "2 " "2" "3" "-3"))
+ (#t #f #f #f #t #f #f))
+
+
+
+(def (ip_-network/prefix-string? ip_-string? ip_-network-string? ip_-bits)
+ (lambda (v)
+   (and (string? v)
+	(let ((ss (string-split v #\/)))
+	  (and (= (length ss) 2)
+	       ;; forever use exceptions instead? then I can tell
+	       ;; why 'it fails' (or, make this part of the
+	       ;; language? automatic?)
+	       (ip_-string? (car ss))
+	       (or (ip_-network-string? (cadr ss))
+		   ;; XX incl or excl. 0 ?:
+		   ((string-of-integer/range 1 ip_-bits) (cadr ss))))))))
+
+(def ipv4-network/prefix-string?
+     (ip_-network/prefix-string? ipv4-string?
+				 ipv4-network-string?
+				 ipv4-bits))
+
+(TEST
+ > (ipv4-network/prefix-string? "127.0.0.1")
+ #f
+ > (ipv4-network/prefix-string? "127.0.0.1/0")
+ #f ;; ok?
+ > (ipv4-network/prefix-string? "127.0.0.1/8")
+ #t
+ > (ipv4-network/prefix-string? "127.0.0.1/8.0")
+ #f ;; be strict, ok? Makes sense here, but is stricter than Scheme
+    ;; integer number predicate.
+ > (ipv4-network/prefix-string? "127.0.0.1/8 ")
+ #f
+ > (ipv4-network/prefix-string? "127.0.0.1/9")
+ #t
+ > (ipv4-network/prefix-string? "127.0.0.1/32")
+ #t ;; ok?
+ > (ipv4-network/prefix-string? "127.0.0.1/33")
+ #f
+ > (ipv4-network/prefix-string? "127.0.0.1/255.255.0.0")
+ #t
+ )
+
+(def bare-ipv6-network/prefix-string?
+     (ip_-network/prefix-string? bare-ipv6-string?
+				 bare-ipv6-network-string?
+				 ipv6-bits))
+
+(def ipv6-network/prefix-string?
+     ;; ok? or expect [ ] around the whole thing?
+     bare-ipv6-network/prefix-string?)
+
+(TEST
+ > (ipv6-network-string? "1080::8:800:200C:417A/96")
+ #f
+ > (ipv6-network/prefix-string? "1080::8:800:200C:417A/96")
+ #t
+ > (ipv6-network/prefix-string? "1080::8:800:200C:417A/FFFF:FFFF::0")
+ #t
+ ;; > (ipv6-network/prefix-string? "1080::8:800:200C:417A/FFFF:FFFF::")
+ ;; #t -- XX enable once :: parsing is finished
+ )
 
