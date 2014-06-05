@@ -458,10 +458,10 @@
 ;; Networks with prefixes:
 
 
-(def ipv4-bits 32)
-(def ipv6-bits 128)
+(define ipv4-bits 32)
+(define ipv6-bits 128)
 
-(def (string-of-integer/range lo hi)
+(define (string-of-integer/range lo hi)
      ;; ^ require lo hi to be integers or not? heh, leave it open.
      (lambda (s)
        (and (string? s)
@@ -481,7 +481,7 @@
 
 
 
-(def (ip_-network/prefix-string? ip_-string? ip_-network-string? ip_-bits)
+(define (ip_-network/prefix-string? ip_-string? ip_-network-string? ip_-bits)
  (lambda (v)
    (and (string? v)
 	(let ((ss (string-split v #\/)))
@@ -494,7 +494,7 @@
 		   ;; XX incl or excl. 0 ?:
 		   ((string-of-integer/range 1 ip_-bits) (cadr ss))))))))
 
-(def ipv4-network/prefix-string?
+(define ipv4-network/prefix-string?
      (ip_-network/prefix-string? ipv4-string?
 				 ipv4-network-string?
 				 ipv4-bits))
@@ -521,12 +521,12 @@
  #t
  )
 
-(def bare-ipv6-network/prefix-string?
+(define bare-ipv6-network/prefix-string?
      (ip_-network/prefix-string? bare-ipv6-string?
 				 bare-ipv6-network-string?
 				 ipv6-bits))
 
-(def ipv6-network/prefix-string?
+(define ipv6-network/prefix-string?
      ;; ok? or expect [ ] around the whole thing?
      bare-ipv6-network/prefix-string?)
 
