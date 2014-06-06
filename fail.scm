@@ -7,27 +7,41 @@
 ;; propagate from Scheme #f to optional 'failures'
 
 ;; current-fail is called in the context of the failure (hence could
-;; continue or capture the continuation), with the serialized source
-;; code of the form that failed and its value as the arguments.
+;; continue or capture the continuation), with either the serialized
+;; source code of the form (serialized-source) or the actual value
+;; that failed as the first argument and the failure value as the
+;; second. The idea is to collect all layers in the failure value
+;; while leaving the predicate.
 
 (define current-fail (make-parameter false/2))
 
 (define (with-fail-handler handler thunk)
-  (parameterize ((current-fail (lambda (vec rest)
-				 (handler (u8vector->object vec) rest))))
+  (parameterize ((current-fail handler))
 		(thunk)))
 
 (define (with-fail-catcher handler thunk)
   (continuation-capture
    (lambda (return)
      (parameterize ((current-fail
-		     (lambda (vec rest)
+		     (lambda (x rest)
 		       (continuation-graft
 			return
 			handler
-			(u8vector->object vec)
+			x
 			rest))))
 		   (thunk)))))
+
+
+(define-struct. serialized-source
+  val)
+
+(define. serialized-source.object
+  (compose u8vector->object serialized-source.val))
+
+(define-struct. value
+  val)
+
+(define. value.object value.val)
 
 
 (define (fail:and-expand If Or forms)
@@ -38,14 +52,17 @@
       `(##let ((,V ,form))
 	      (,If ,V
 		   ,tail
-		   ((current-fail) ',(object->u8vector form) ,V)))))
+		   ((current-fail)
+		    ',(serialized-source (object->u8vector form))
+		    ,V)))))
    (lambda (form tail)
      (assert (null? tail))
      (with-gensym
       V
       `(##let ((,V ,form))
 	      ,(Or V
-		   `((current-fail) ',(object->u8vector form) ,V)))))
+		   `((current-fail)
+		     ',(serialized-source (object->u8vector form)) ,V)))))
    '()
    forms))
 
@@ -58,13 +75,27 @@
  (##let ((GEN:V-2236 "a"))
 	(if GEN:V-2236
 	    (##let ((GEN:V-2258 "b"))
-		   (or GEN:V-2258 ((current-fail) '#u8(17 98) GEN:V-2258)))
-	    ((current-fail) '#u8(17 97) GEN:V-2236))))
+		   (or GEN:V-2258
+		       ((current-fail)
+			'#(serialized-source #u8(17 98))
+			GEN:V-2258)))
+	    ((current-fail)
+	     '#(serialized-source #u8(17 97))
+	     GEN:V-2236))))
 
 
 
-(define-struct* failure
+(define-struct. failure
   stack)
+
+(define. (failure.deserialize v)
+  (failure.stack-update v
+			(lambda (l)
+			  (map (lambda (v)
+				 (if (serialized-source? v)
+				     (serialized-source.object v)
+				     v))
+			       l))))
 
 (define-macro* (fail:if t a b)
   `(##if (##or (##not ,t) (failure? ,t))
@@ -81,7 +112,7 @@
 (define (with-failures thunk)
   (with-fail-handler (lambda (v rest)
 		       (if rest
-			   (failure-stack-update
+			   (failure.stack-update
 			    rest (lambda (vs)
 				   (cons v vs)))
 			   (failure (cons v '()))))
@@ -101,7 +132,12 @@
 			       (odd? 0)))))
  > (tests)
  (2 #f #f #f #f #f #t #f)
- > (cj-desourcify (with-failures tests))
+ > (cj-desourcify
+    (map (lambda (v)
+	   (if (failure? v)
+	       (failure.deserialize v)
+	       v))
+	 (with-failures tests)))
  (2
   #(failure (#f))
   #(failure (#f))
@@ -200,7 +236,19 @@
 		  (let ((v (pred a)))
 		    (fail:if v
 			     (lp r)
-			     ;; XXX hm return a? since, what source
-			     ;; could I show here? !
-			     ((current-fail) a v)))))))
+			     ;; no source to show, but a value: (XX
+			     ;; although, iff v is a failure already,
+			     ;; it probably already has the value?)
+			     ((current-fail) (value a) v)))))))
+
+;; XX (fail:and (fail:every )) etc.: should every fail:-'function' be
+;; a macro and maintain its own reporting? including fail:and
+;; reporting on the whole expression?
+
+(TEST
+ > (cj-desourcify
+    (map .object
+	 (failure.stack
+	  (with-failures (& (fail:and (fail:every even? '(2 3 4))))))))
+ ((fail:every even? '(2 3 4)) 3))
 
