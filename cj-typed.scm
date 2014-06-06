@@ -200,23 +200,15 @@
      ((name args) name+args_)
      `(define ,name (typed-lambda ,args ,@body)))))
 
-(TEST
- > (require (lib.cj-symbol)
-	    (lib.cj-expansion)))
-(TEST
- > (define TEST:equal? syntax-equal?)
- > (expansion define-typed (f #(integer? x) #(symbol? a)) (vector x a))
- (letrec ((f (lambda (x a)
-	       (let ((GEN:233 x))
-		 (if (integer? GEN:233)
-		     (let ((GEN:234 a))
-		       (if (symbol? GEN:234)
-			   (vector x a)
-			   (error "does not match symbol?:" GEN:234)))
-		     (error "does not match integer?:" GEN:233))))))
-   cont)
- ;; well, or so
- )
+;; (TEST
+;;  > (require (lib.cj-symbol)
+;; 	    (lib.cj-expansion)))
+;; (TEST
+;;  > (define TEST:equal? syntax-equal?)
+;;  > (expansion define-typed (f #(integer? x) #(symbol? a)) (vector x a))
+;;  ...
+;;  )
+;; (XX provide actual tests instead.)
 
 
 (define-macro* (-> pred expr)
