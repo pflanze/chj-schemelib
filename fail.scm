@@ -121,15 +121,21 @@
 		     `(fail:if ,t ,t ,f))
 		   forms))
 
+(define active-fail-handler
+  (lambda (v rest)
+    (if rest
+	(failure.stack-update
+	 rest (lambda (vs)
+		(cons v vs)))
+	(failure (cons v '())))))
 
 (define (with-failures thunk)
-  (with-fail-handler (lambda (v rest)
-		       (if rest
-			   (failure.stack-update
-			    rest (lambda (vs)
-				   (cons v vs)))
-			   (failure (cons v '()))))
+  (with-fail-handler active-fail-handler
 		     thunk))
+
+(define-typed (activate-failures! #(boolean? y))
+  (current-fail (if y active-fail-handler
+		    false/2)))
 
 (define-macro* (%with-failures . body)
   `(with-failures (##lambda ()
