@@ -626,9 +626,42 @@
 					  (cons a
 						(rec a r))))))))))))))))
 
+(define-strict-and-lazy
+  list-uniq-count
+  stream-uniq-count
+  (lambda (equal? s #!optional (tail '()))
+    (DELAY
+     (FV (s)
+	 (if (null? s)
+	     tail
+	     (let-pair
+	      ((a r) s)
+	      (let rec ((element a)
+			(s r))
+		(DELAY
+		 (let lp ((s s)
+			  (count 1))
+		   (FV (s)
+		       (if (null? s)
+			   (cons (cons count element)
+				 tail)
+			   (let-pair ((a r) s)
+				     (if (equal? element a)
+					 (lp r (inc count))
+					 (cons (cons count element)
+					       (rec a r)))))))))))))))
+
+;; ^ this algorithm even seems cleaner than the above, XX merge with
+;; *-uniq
+
+
 (TEST
+ > (list-uniq-count = '(1 2 3 3 4 5))
+ ((1 . 1) (1 . 2) (2 . 3) (1 . 4) (1 . 5))
  > (list-uniq = '(1 1 2 3 4 4.0 4 5 7 1))
  (1 2 3 4 5 7 1)
+ > (list-uniq-count = '(1 1 2 3 4 4.0 4 5 7 1 1))
+ ((2 . 1) (1 . 2) (1 . 3) (3 . 4) (1 . 5) (1 . 7) (2 . 1))
  > (list-uniq = '(1))
  (1)
  > (list-uniq = '(1 1))
