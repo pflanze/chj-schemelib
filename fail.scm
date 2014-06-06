@@ -1,3 +1,10 @@
+(require cj-functional
+	 define-macro-star
+	 dot-oo
+	 test
+	 )
+
+
 ;;lib
 (define (1st/2 f)
   (lambda (a _b);;  . _rest ?
