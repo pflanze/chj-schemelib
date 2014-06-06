@@ -104,6 +104,12 @@
 				     v))
 			       l))))
 
+(define. (failure.string v)
+  (object->string (map (lambda (f)
+			 (cj-desourcify (.object f)))
+		       (failure.stack v))))
+
+
 (define-macro* (fail:if t a b)
   `(##if (##or (##not ,t) (failure? ,t))
 	 ,b
