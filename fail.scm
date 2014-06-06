@@ -125,6 +125,10 @@
 			   (failure (cons v '()))))
 		     thunk))
 
+(define-macro* (%with-failures . body)
+  `(with-failures (##lambda ()
+			    ,@body)))
+
 (TEST
  > (define (tests)
      (list (fail:and 1 2)
@@ -256,6 +260,6 @@
  > (cj-desourcify
     (map .object
 	 (failure.stack
-	  (with-failures (& (fail:and (fail:every even? '(2 3 4))))))))
+	  (%with-failures (fail:and (fail:every even? '(2 3 4)))))))
  ((fail:every even? '(2 3 4)) 3))
 
