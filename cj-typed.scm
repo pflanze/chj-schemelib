@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2010-2014 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -17,17 +17,47 @@
 ;;;
 
 
+(define (cj-typed#type-check-error predstr w v)
+  ;; v = value
+  ;; w = result of predicate
+  (cond ((eq? w #f)
+	 (error (string-append "does not match "
+			       predstr
+			       ":")
+		v))
+	;; HACK: hand-coded predicate for |failure?| to avoid circular
+	;; dependency between fail.scm and cj-typed.scm
+	((and (vector? w)
+	      (> (vector-length w) 1)
+	      (eq? (vector-ref w 0) 'failure))
+	 ;; although the joke is that we need to rely on circular
+	 ;; dynamic linking for |failure.string| anyway... (but at
+	 ;; least reducing to just this one will allow type-check to
+	 ;; work without test.scm loaded).
+	 (error (string-append "does not match "
+			       predstr
+			       " "
+			       (failure.string w)
+			       ":")
+		v))
+	(else
+	 (error "predicate "
+		predstr
+		" returned invalid non-boolean value:"
+		w))))
+
+
 (define-macro* (type-check predicate expr . body)
-  (let ((V (gensym)))
-    `(let ((,V ,expr))
-       (if (,predicate ,V)
-	   (begin
-	     ,@body)
-	   (error ,(string-append "does not match "
-				  (scm:object->string
-				   (cj-desourcify predicate))
-				  ":")
-		  ,V)))))
+  (let ((V (gensym))
+	(W (gensym)))
+    `(##let* ((,V ,expr)
+	      (,W (,predicate ,V)))
+	     (##if (##eq? ,W #t)
+		   (##begin ,@body)
+		   (cj-typed#type-check-error
+		    ,(scm:object->string (cj-desourcify predicate))
+		    ,W
+		    ,V)))))
 
 
 (define (transform-arg arg args body)
