@@ -40,7 +40,7 @@
 
 
 (define-struct. serialized-source
-  val)
+  #(u8vector? val))
 
 (define. serialized-source.object
   (compose u8vector->object serialized-source.val))
@@ -104,10 +104,20 @@
 				     v))
 			       l))))
 
-(define. (failure.string v)
-  (object->string (map (lambda (f)
-			 (cj-desourcify (.object f)))
-		       (failure.stack v))))
+
+(define. (value.show v)
+  v)
+
+(define. (serialized-source.show v)
+  ;; HACK? Should really have proper source type?
+  (vector 'source (cj-desourcify (serialized-source.object v))))
+
+(define. (failure.show v)
+  (map .show
+       (failure.stack v)))
+
+(define. failure.string
+  (compose object->string failure.show))
 
 
 (define-macro* (fail:if t a b)
