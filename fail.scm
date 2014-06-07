@@ -143,6 +143,10 @@
   (with-fail-handler active-fail-handler
 		     thunk))
 
+(define (without-failures thunk)
+  (with-fail-handler false/2
+		     thunk))
+
 (define-typed (activate-failures! #(boolean? y))
   (current-fail (if y active-fail-handler
 		    false/2)))
@@ -150,6 +154,10 @@
 (define-macro* (%with-failures . body)
   `(with-failures (##lambda ()
 			    ,@body)))
+
+(define-macro* (%without-failures . body)
+  `(without-failures (##lambda ()
+			       ,@body)))
 
 (TEST
  > (define (tests)
@@ -163,7 +171,7 @@
 	   (fail:and (even? -2)
 		     (fail:and (even? 0)
 			       (odd? 0)))))
- > (tests)
+ > (without-failures tests)
  (2 #f #f #f #f #f #t #f)
  > (cj-desourcify
     (map (lambda (v)
