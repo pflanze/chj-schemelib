@@ -13,18 +13,21 @@
 (def (T v)
      (continuation-capture
       (lambda (c)
-	(table-set! *tracks* v c)
+	(table-update! *tracks* v
+		       (C cons c _)
+		       (C list c))
 	;;(vector-set! *tracks-keepalive* *tracks-keepalive-i*  ) not so simple. need key, too, remove explicitely from table. ah and vector shouldn't keep alive. rather wills
 	v)))
 
-(def (visit v)
+(def (visit v #!optional (i 0))
      (cond ((table-ref *tracks* v #f)
-	    => (lambda (c)
+	    => (lambda (cs)
 		 ;; XX my wrappers where?
-		 (##repl-within c "" "")))
+		 (##repl-within (list-ref cs i) "" "")))
 	   (else
 	    (error "no continuation stored for object:" v))))
 
 (def (noT v)
      v)
+;; hmm don't confuse with naming convention of |iF|
 
