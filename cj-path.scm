@@ -1,10 +1,31 @@
-;; hm again
+;;; Copyright 2013-2014 by Christian Jaeger, ch at christianjaeger ch
 
-(define (path-append a b)
-  (string-append a "/" b))
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
+(require test
+	 cut
+	 string-util-2
+	 string-util-3)
+
+
+(define (path-string? v)
+  (and (string? v)
+       ;; and the only(?) restriction:
+       (not (string-contains-char? v (cut char=? <> #\nul)))))
+
+(TEST
+ > (path-string? "foo")
+ #t
+ > (path-string? "foo\0")
+ #f)
+
 
 (define (filename-or-.-..-string? v)
-  (and (string? v)
+  (and (path-string? v)
        ;; max length is (a) filesystem dependent, and (b) encoding
        ;; dependent. More than 255 characters shouldn't be there,
        ;; though, 'usually'.
@@ -39,7 +60,36 @@
  > (filename-string? "./a")
  #f
  > (filename-string? "")
+ #f
+ > (filename-string? "foo\0")
  #f)
+
+
+
+
+;; (define (path-append a b)
+;;   (string-append a "/" b))
+
+
+(define path-separator "/")
+
+(define string-ends-with-path-separator?
+  (cut string-ends-with? <> path-separator))
+
+(define path-absolute?
+  (cut string-starts-with? <> path-separator))
+
+(define (path-append basepath subpath)
+  (if (path-absolute? subpath)
+      subpath
+      (string-append basepath
+		     (if (string-ends-with-path-separator? basepath)
+			 ""
+			 path-separator)
+		     subpath)))
+
+
+
 
 
 ;; XX should this be in an IO library, not path.
