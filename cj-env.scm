@@ -318,3 +318,28 @@
  10
  )
 
+
+(define table-update!:noval (box 'noval))
+(define (table-update! t k fn
+		       #!optional
+		       ;; *not* called in tail pos!
+		       (notexist (lambda ()
+				   (error "key not found"))))
+  (let ((v (table-ref t k table-update!:noval)))
+    (table-set! t k
+		(if (eq? v table-update!:noval)
+		    (notexist)
+		    (fn v)))))
+
+(TEST
+ > (define t (make-table))
+ > (%try-error (table-update! t 'a inc))
+ #(error "key not found")
+ > (table-set! t 'a 1)
+ > (table-update! t 'a inc)
+ > (table-ref t 'a)
+ 2
+ > (table-update! t 'b inc (lambda () 10))
+ > (table-ref t 'b)
+ 10)
+
