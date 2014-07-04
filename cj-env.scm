@@ -199,6 +199,12 @@
        (set! ,v ,V)
        ,V)))
 
+(define-macro* (dec! v)
+  (let ((V (gensym)))
+    `(let ((,V (dec ,v)))
+       (set! ,v ,V)
+       ,V)))
+
 
 ;; treating null as false:
 
