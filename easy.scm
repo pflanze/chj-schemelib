@@ -29,3 +29,5 @@
 (defmacro (comp* . args)
   `(compose* ,@args))
 
+(def id identity)
+
