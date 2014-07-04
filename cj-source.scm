@@ -194,7 +194,9 @@
 		 (cj-desourcify (cdr x))))
 	  ((vector? x)
 	   (vector-map-1 cj-desourcify x))
-	  ;; XXX boxes? and more?
+	  ((box? x)
+	   (box (cj-desourcify (unbox x))))
+	  ;; XX more?
 	  (else
 	   x))))
 
