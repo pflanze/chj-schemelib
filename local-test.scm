@@ -18,6 +18,18 @@
 ;; See TEST:conv for what else would be needed (currently
 ;; maybe-namespace-form).
 
+;; Example:
+;; (TEST
+;;  > (define (t-foo f)
+;;      (local-TEST
+;;       > (f 10)
+;;       1234
+;;       > (f 11)
+;;       12355))
+;;  > (%test (t-foo foo))
+;;  > (%test (t-foo foo*)))
+
+
 (define (TEST-expand test-check)
   (named self
 	 (lambda (l)
