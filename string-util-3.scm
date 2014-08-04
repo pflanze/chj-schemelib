@@ -26,35 +26,48 @@
 ;; The name string-replace is already used in srfi-13;
 ;; string-substitute doesn't sound right.
 
-(define (make-replace-substring string-contains)
-  (named
-   rec
-   (lambda (s substr withstr all?)
-     (if (string-empty? substr)
-	 s ;; XX throw error instead?
-	 (cond ((string-contains s substr)
-		=> (lambda (pos)
-		     ;; XXX not so efficient, O(n^2)! Work on lists instead?...
-		     (string-append (substring s 0 pos)
-				    withstr
-				    (let ((s* (substring s
-							 (+ pos (string-length substr))
-							 (string-length s))))
-				      (if all?
-					  (rec s* substr withstr all?)
-					  s*)))))
-	       (else
-		s))))))
+(define (make-replace-substring string-contains invalid)
+  (named rec
+	 (lambda (nomatch)
+	   (lambda (s substr withstr all?)
+	     (if (string-empty? substr)
+		 (invalid s)
+		 (cond ((string-contains s substr)
+			=> (lambda (pos)
+			     ;; XXX not so efficient, O(n^2)! Work on lists instead?...
+			     (string-append
+			      (substring s 0 pos)
+			      withstr
+			      (let ((s* (substring s
+						   (+ pos (string-length substr))
+						   (string-length s))))
+				(if all?
+				    ((rec identity) s* substr withstr all?)
+				    s*)))))
+		       (else
+			(nomatch s))))))))
 
-(define. string.replace-substring (make-replace-substring string-contains))
-(define. string.replace-substring-ci (make-replace-substring string-contains-ci))
-  
+(define (replace-substring-error v)
+  (error "can't replace empty substrings"))
+
+(define. string.replace-substring
+  ((make-replace-substring string-contains replace-substring-error) identity))
+(define. string.replace-substring-ci
+  ((make-replace-substring string-contains-ci replace-substring-error) identity))
+
+(define. string.maybe-replace-substring
+  ((make-replace-substring string-contains replace-substring-error) false/1))
+(define. string.maybe-replace-substring-ci
+  ((make-replace-substring string-contains-ci replace-substring-error) false/1))
+
 
 (TEST
- > (string.replace-substring "FooBar" "" "a" #t)
- "FooBar"
+ > (%try-error (string.replace-substring "FooBar" "" "a" #t))
+ #(error "can't replace empty substrings")
  > (string.replace-substring "FooBar" "abc" "00" #t)
  "FooBar"
+ > (string.maybe-replace-substring "FooBar" "abc" "00" #t)
+ #f
  > (string.replace-substring "FooBar" "oo" "" #t)
  "FBar"
  > (string.replace-substring "FooBar" "oo" "00" #f)
