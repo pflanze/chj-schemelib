@@ -7,3 +7,5 @@
   ;; any kind of true; identity
   (not (not x)))
 
+(define inexact-real? (both real? inexact?))
+
