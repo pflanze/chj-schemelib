@@ -55,7 +55,26 @@
        (for..< (i 0 len)
 	       (VECTOR-set! res i (fn (VECTOR-ref v i))))
        res))
-   
+
+   ;; Non-dot-oo versions of these are already in vector-util!
+
+   (def. (VECTOR.fold-right vec fn tail)
+     (let ((len (VECTOR.length vec)))
+       (let rec ((i 0))
+	 (if (= i len)
+	     tail
+	     (fn (VECTOR-ref vec i)
+		 (rec (inc i)))))))
+
+   (def. (VECTOR.fold vec fn tail)
+     (let ((len (VECTOR.length vec)))
+       (let lp ((res tail)
+		(i 0))
+	 (if (= i len)
+	     res
+	     (lp (fn (VECTOR-ref vec i)
+		     res)
+		 (inc i))))))
    ))
 
 (TEST
@@ -68,3 +87,11 @@
  > (.append '#u8(1 2) '#u8(3 4))
  #u8(1 2 3 4)
  )
+
+(TEST
+ > (.fold '#(1 2 3) vector 'null)
+ #(3 #(2 #(1 null)))
+ > (.fold-right '#(1 2 3) vector 'null)
+ #(1 #(2 #(3 null)))
+ )
+

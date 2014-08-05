@@ -52,6 +52,8 @@
  #(4 6)
  )
 
+
+;; NOTE: dot-oo versions of these are now also in oo-vector-lib
 (define (vector-fold-right fn tail vec)
   (let ((len (vector-length vec)))
     (let rec ((i 0))
@@ -86,6 +88,8 @@
 		 (proc v))
 	       #f
 	       vec))
+
+;; /oo-vector-lib
 
 
 ;; (define (vector-unfold end? fmap fnext start)
