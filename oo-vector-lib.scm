@@ -2,7 +2,7 @@
 
 (code-symbol-substring-map
  ((VECTOR '(
-	    vector ;; XXX have some of these already in oo-util, todo remove them!
+	    vector
 	    f32vector
 	    f64vector
 	    u8vector s8vector
@@ -14,6 +14,7 @@
    (def. VECTOR.ref VECTOR-ref)
    (def. VECTOR.set! VECTOR-set!)
    (def. VECTOR.length VECTOR-length)
+   (def. VECTOR.append VECTOR-append)
    (def. VECTOR.list VECTOR->list)
    (def. list.VECTOR list->VECTOR)
 
@@ -43,13 +44,6 @@
    (def. (VECTOR.chop-both-ends v)
      (subVECTOR v 1 (dec (VECTOR.length v))))
 
-   (IF (eq? 'VECTOR 'u32vector)
-       (TEST
-	> (.chop-both-ends (u32vector 0 7 0))
-	#u32(7)
-	> (.chop-both-ends (u32vector 0 7))
-	#u32()))
-
    (def. (VECTOR.for-each v proc)
      (let ((len (VECTOR.length v)))
        (for..< (i 0 len)
@@ -64,3 +58,13 @@
    
    ))
 
+(TEST
+ > (.chop-both-ends (u32vector 0 7 0))
+ #u32(7)
+ > (.chop-both-ends (u32vector 0 7))
+ #u32()
+ > (.u8vector (map .integer (.list "foo")))
+ #u8(102 111 111)
+ > (.append '#u8(1 2) '#u8(3 4))
+ #u8(1 2 3 4)
+ )

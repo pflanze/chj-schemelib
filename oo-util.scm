@@ -12,7 +12,6 @@
 (define. string.keyword string->keyword)
 
 (define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
-(define. list.u8vector list->u8vector)
 
 ;;XX better place in a lib [odd, why not have already?]
 (define string->u8vector (compose* list->u8vector
@@ -54,10 +53,7 @@
 
 (TEST
  > (.append "a" "b")
- "ab"
- > (.u8vector (map .integer (.list "foo")))
- #u8(102 111 111)
- )
+ "ab")
 
 ;;a way to avoid conflicts in any case, yeah: I mean, just use the
 ;;.append name globally with that; no issue when wanting to use it in
