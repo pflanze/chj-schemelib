@@ -49,51 +49,57 @@
    ;; Could abstract most code into a separate routine that takes a
    ;; make-vector argument, and uses object ops for the rest, but
    ;; those are not optimized at all yet.
+   (def (VECTOR-map/iota f v)
+	(let* ((len (VECTOR-length v))
+	       (out (make-VECTOR len)))
+	  (for..< (i 0 len)
+		  (VECTOR-set! out i
+			       (f (VECTOR-ref v i) i)))
+	  out))
    (def. (VECTOR.map/iota v f)
-     (let* ((len (VECTOR.length v))
-	    (out (make-VECTOR len)))
-       (for..< (i 0 len)
-	       (VECTOR-set! out i
-			    (f (VECTOR-ref v i) i)))
-       out))
+     (VECTOR-map/iota f v))
 
    (def. (VECTOR.chop-both-ends v)
      (subVECTOR v 1 (dec (VECTOR.length v))))
 
+   (def (VECTOR-for-each proc v)
+	(let ((len (VECTOR-length v)))
+	  (for..< (i 0 len)
+		  (proc (VECTOR-ref v i)))))
    (def. (VECTOR.for-each v proc)
-     (let ((len (VECTOR.length v)))
-       (for..< (i 0 len)
-	       (proc (VECTOR-ref v i)))))
+     (VECTOR-for-each proc v))
 
+   (def (VECTOR-map fn v)
+	(let* ((len (VECTOR-length v))
+	       (res (make-VECTOR len)))
+	  (for..< (i 0 len)
+		  (VECTOR-set! res i (fn (VECTOR-ref v i))))
+	  res))
    (def. (VECTOR.map v fn)
-     (let* ((len (VECTOR.length v))
-	    (res (make-VECTOR len)))
-       (for..< (i 0 len)
-	       (VECTOR-set! res i (fn (VECTOR-ref v i))))
-       res))
+     (VECTOR-map fn v))
 
    ;; *Some* non-dot-oo versions of these are already in vector-util!
    ;; Not removing them right now for fear of dependencies.
 
    (def (VECTOR-fold-right fn tail vec)
-     (let ((len (VECTOR-length vec)))
-       (let rec ((i 0))
-	 (if (= i len)
-	     tail
-	     (fn (VECTOR-ref vec i)
-		 (rec (inc i)))))))
+	(let ((len (VECTOR-length vec)))
+	  (let rec ((i 0))
+	    (if (= i len)
+		tail
+		(fn (VECTOR-ref vec i)
+		    (rec (inc i)))))))
    (def. (VECTOR.fold-right vec fn tail)
      (VECTOR-fold-right fn tail vec))
 
    (def (VECTOR-fold fn tail vec)
-     (let ((len (VECTOR-length vec)))
-       (let lp ((res tail)
-		(i 0))
-	 (if (= i len)
-	     res
-	     (lp (fn (VECTOR-ref vec i)
-		     res)
-		 (inc i))))))
+	(let ((len (VECTOR-length vec)))
+	  (let lp ((res tail)
+		   (i 0))
+	    (if (= i len)
+		res
+		(lp (fn (VECTOR-ref vec i)
+			res)
+		    (inc i))))))
    (def. (VECTOR.fold vec fn tail)
      (VECTOR-fold fn tail vec))
 
