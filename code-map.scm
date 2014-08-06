@@ -19,7 +19,7 @@
        (let ((code* (source-code code))
 	     (S (C sourcify _ code)))
 	 (mcase code
-		(symbol?
+		((either symbol? string?)
 		 (S (fold (lambda (replacement code*)
 			    (let-pair ((subsymbol newsubsymbol) replacement)
 				      (.replace-substrings code*
@@ -35,7 +35,7 @@
 		 code)))))
 
 
-(defmacro (code-symbol-substring-lambda subsymbols code)
+(defmacro (code-substrings-lambda subsymbols code)
   (assert*
    list? subsymbols
    (lambda (subsymbols*)
@@ -52,17 +52,17 @@
 (TEST
  > (insert-result-of
     (cons `begin
-	  (map (code-symbol-substring-lambda
+	  (map (code-substrings-lambda
 		(<X>)
 		(def. (<X>vector.code-symbol-substring-map-test x)
-		  (cons "hello" '<X>)))
+		  (cons "hello <X> <X>" '<X>)))
 	       '(u32 u8))))
  > (.code-symbol-substring-map-test (u8vector 1))
- ("hello" . u8)
+ ("hello u8 u8" . u8)
  > (.code-symbol-substring-map-test (u32vector 1))
- ("hello" . u32))
+ ("hello u32 u32" . u32))
 
-(defmacro (code-symbol-substring-map binds code)
+(defmacro (code-map-substrings binds code)
   (assert*
    list? binds
    (lambda (binds)
@@ -77,12 +77,12 @@
 	    (vals-codes (map (bind-> (lambda (key vals-code) vals-code)) binds)))
        `(insert-result-of
 	 (cons `begin
-	       (map (code-symbol-substring-lambda ,keys
-						  ,code)
+	       (map (code-substrings-lambda ,keys
+					    ,code)
 		    ,@vals-codes)))))))
 
 (TEST
- > (code-symbol-substring-map
+ > (code-map-substrings
     ((<X> '(s32 s8))
      (<Y> '(signed-32 signed-8)))
     (def. (<X>vector.doit x) (cons "hello" '<Y>)))

@@ -1,6 +1,6 @@
 (require test easy)
 
-(code-symbol-substring-map
+(code-map-substrings
  ((VECTOR '(
 	    vector
 	    f32vector
