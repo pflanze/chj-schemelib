@@ -69,17 +69,50 @@
    (def. (VECTOR.for-each v proc)
      (VECTOR-for-each proc v))
 
-   (def (VECTOR-map fn v)
-	(let* ((len (VECTOR-length v))
-	       (res (make-VECTOR len)))
-	  (for..< (i 0 len)
-		  (VECTOR-set! res i (fn (VECTOR-ref v i))))
-	  res))
+   ;; directly define dot-oo version as non-dot-oo version will be
+   ;; n-ary:
    (def. (VECTOR.map v fn)
-     (VECTOR-map fn v))
+     (let* ((len (VECTOR-length v))
+	    (res (make-VECTOR len)))
+       (for..< (i 0 len)
+	       (VECTOR-set! res i (fn (VECTOR-ref v i))))
+       res))
 
-   ;; *Some* non-dot-oo versions of these are already in vector-util!
-   ;; Not removing them right now for fear of dependencies.
+   ;; n-ary, non-oo version:
+
+   ;; These are already in vector-util!  Not removing them right now
+   ;; for fear of dependencies.
+   (define (VECTORs-map fn vecs accept-uneven-lengths?)
+     (let* ((lens (map VECTOR-length vecs))
+	    (len (apply min lens))
+	    (cont (lambda ()
+		    (let* ((res (##make-VECTOR len)))
+		      (let lp ((i 0))
+			(if (= i len)
+			    res
+			    (begin
+			      (VECTOR-set! res
+					   i
+					   (apply fn
+						  (map (lambda (vec)
+							 (VECTOR-ref vec i))
+						       vecs)))
+			      (lp (inc i)))))))))
+       (if accept-uneven-lengths?
+	   (cont)
+	   (let ((lenmax (apply max lens)))
+	     (if (= len lenmax)
+		 (cont)
+		 (error "uneven lengths of input VECTORs (min max):"
+			len lenmax))))))
+   ;; ^XX really getting wasteful with duplication through code-map-substrings
+
+   (define (VECTOR-map fn . vecs)
+     (VECTORs-map fn vecs #f))
+
+   (define (VECTOR-map* fn . vecs)
+     (VECTORs-map fn vecs #t))
+
 
    (def (VECTOR-fold-right fn tail vec)
 	(let ((len (VECTOR-length vec)))
