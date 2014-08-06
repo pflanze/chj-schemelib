@@ -187,3 +187,22 @@
 ;; V ((lambda (x) .append) i) : ((lambda (x) .append) 3) = #<procedure #2 .append>
 ;; #<procedure #2 .append>
 ;;(hm why does the lambda appear decompiled?)
+
+
+;; adapted COPY from cj-env:
+(define (pp-through-source a . r)
+  (let* ((port (current-error-port))
+	 (pretty (lambda (v)
+		   (pretty-print (cj-desourcify v) port)
+		   v)))
+    (if (pair? r)
+	(if (null? (cdr r))
+	    (begin
+	      (display a port)
+	      (display ":" port)
+	      (newline port)
+	      (pretty (car r)))
+	    (error "too many arguments"))
+	(begin
+	  (pretty a)))))
+
