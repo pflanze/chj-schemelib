@@ -22,17 +22,24 @@
    (def. VECTOR.list VECTOR->list)
    (def. list.VECTOR list->VECTOR)
 
-   ;; Heh these are still using the R5RS number operations
-   ;; generics. Rely on the host system to optimize these.
-   (def. (VECTOR-inc! v i)
-     (VECTOR-set! v i
-		  (+ (VECTOR-ref v i) 1)))
-   (def VECTOR.inc! VECTOR-inc!)
+   (IF (not (eq? 'VECTOR 'string))
+       (begin
+	 ;; Heh these are still using the R5RS number operations
+	 ;; generics. Rely on the host system to optimize these.
+	 (def (VECTOR-inc! v i)
+	      (VECTOR-set! v i
+			   (+ (VECTOR-ref v i) 1)))
+	 (def. VECTOR.inc! VECTOR-inc!)
 
-   (def. (VECTOR-dec! v i)
-     (VECTOR-set! v i
-		  (- (VECTOR-ref v i) 1)))
-   (def VECTOR.dec! VECTOR-dec!)
+	 (def (VECTOR-dec! v i)
+	      (VECTOR-set! v i
+			   (- (VECTOR-ref v i) 1)))
+	 (def. VECTOR.dec! VECTOR-dec!)
+
+	 ;; could also write (def .sum (C .fold _ + 0)) but then it wouldn't
+	 ;; be properly extensible?
+	 (def. (VECTOR.sum v)
+	   (VECTOR.fold v + 0))))
    
    ;; Could abstract most code into a separate routine that takes a
    ;; make-vector argument, and uses object ops for the rest, but
@@ -97,6 +104,7 @@
    (def. pair-with-car-VECTOR.append VECTORs-append)))
 
 
+
 (TEST
  > (.chop-both-ends (u32vector 0 7 0))
  #u32(7)
@@ -135,5 +143,7 @@
  "bar"
  > (.append (map .u8vector '("FOO" "BAR")))
  #u8(70 79 79 66 65 82)
+ > (.sum (.u8vector "AB"))
+ 131
  )
 
