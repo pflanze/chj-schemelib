@@ -72,18 +72,21 @@
 	       (VECTOR-set! res i (fn (VECTOR-ref v i))))
        res))
 
-   ;; Non-dot-oo versions of these are already in vector-util!
+   ;; *Some* non-dot-oo versions of these are already in vector-util!
+   ;; Not removing them right now for fear of dependencies.
 
-   (def. (VECTOR.fold-right vec fn tail)
-     (let ((len (VECTOR.length vec)))
+   (def (VECTOR-fold-right fn tail vec)
+     (let ((len (VECTOR-length vec)))
        (let rec ((i 0))
 	 (if (= i len)
 	     tail
 	     (fn (VECTOR-ref vec i)
 		 (rec (inc i)))))))
+   (def. (VECTOR.fold-right vec fn tail)
+     (VECTOR-fold-right fn tail vec))
 
-   (def. (VECTOR.fold vec fn tail)
-     (let ((len (VECTOR.length vec)))
+   (def (VECTOR-fold fn tail vec)
+     (let ((len (VECTOR-length vec)))
        (let lp ((res tail)
 		(i 0))
 	 (if (= i len)
@@ -91,6 +94,8 @@
 	     (lp (fn (VECTOR-ref vec i)
 		     res)
 		 (inc i))))))
+   (def. (VECTOR.fold vec fn tail)
+     (VECTOR-fold fn tail vec))
 
    ;; Ok this one isn't an OO function; but still fits nicely.
    (def (VECTORs-append strs)
