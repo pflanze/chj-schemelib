@@ -9,3 +9,10 @@
 
 (define inexact-real? (both real? inexact?))
 
+(define (pair-with-car pred)
+  (lambda (v)
+    (and (pair? v)
+	 (pred (car v)))))
+
+;; btw should probably move predicates stuff from cj-functional here
+

@@ -1,7 +1,11 @@
 (require test easy)
 
+(def (sum nums)
+     (fold + 0 nums))
+
 (code-map-substrings
  ((VECTOR '(
+	    string
 	    vector
 	    f32vector
 	    f64vector
@@ -75,7 +79,23 @@
 	     (lp (fn (VECTOR-ref vec i)
 		     res)
 		 (inc i))))))
-   ))
+
+   ;; Ok this one isn't an OO function; but still fits nicely.
+   (def (VECTORs-append strs)
+	(let* ((out (##make-VECTOR (sum (map VECTOR-length strs)))))
+	  (let lp ((strs strs)
+		   (pos 0))
+	    (if (null? strs)
+		out
+		(let-pair ((str strs*) strs)
+			  (let ((len (VECTOR-length str)))
+			    (for..< (i 0 len)
+				    (VECTOR-set! out (+ pos i) (VECTOR-ref str i)))
+			    (lp strs* (+ pos len))))))))
+   ;; OO-version would be difficult, do what with the empty list? Well can do this:
+   (def pair-with-car-VECTOR? (pair-with-car VECTOR?))
+   (def. pair-with-car-VECTOR.append VECTORs-append)))
+
 
 (TEST
  > (.chop-both-ends (u32vector 0 7 0))
@@ -93,5 +113,27 @@
  #(3 #(2 #(1 null)))
  > (.fold-right '#(1 2 3) vector 'null)
  #(1 #(2 #(3 null)))
+ )
+
+
+(TEST
+ > (strings-append '())
+ ""
+ > (strings-append '("foo"))
+ "foo"
+ > (strings-append '("foo" "bar"))
+ "foobar"
+ > (strings-append '("" "bar"))
+ "bar"
+ ;;  > (%try-error (strings-append "foo"))
+ ;; *** ERROR IN (console)@7.1 -- (Argument 2) LIST expected
+ ;; (map '#<procedure #2 string-length> "foo")
+ ;; > (strings-append '("" 1))
+ ;; *** ERROR IN map -- (Argument 1) STRING expected
+ ;; (string-length 1)
+ > (.append '("" "bar"))
+ "bar"
+ > (.append (map .u8vector '("FOO" "BAR")))
+ #u8(70 79 79 66 65 82)
  )
 
