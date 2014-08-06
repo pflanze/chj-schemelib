@@ -18,7 +18,12 @@
    (def. VECTOR.ref VECTOR-ref)
    (def. VECTOR.set! VECTOR-set!)
    (def. VECTOR.length VECTOR-length)
-   (def. VECTOR.append VECTOR-append)
+   (IF (not (eq? 'VECTOR 'vector))
+       ;; Don't generate vector.append method as long as structs are
+       ;; vectors and there's no hierarchy for dot-oo methods!  XX
+       ;; well, same problem for any of the methods if the same name
+       ;; is to be used with a struct.
+       (def. VECTOR.append VECTOR-append))
    (def. VECTOR.list VECTOR->list)
    (def. list.VECTOR list->VECTOR)
 
