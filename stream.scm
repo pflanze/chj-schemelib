@@ -886,3 +886,58 @@
 (define (stream-xxone x)
   (stream-xone x (lambda (e)
 		   (error "expected one item, but got:" e x))))
+
+
+;; adapted from srfi-1: (copyright: see srfi-1.scm)
+
+(define (stream-%cars+cdrs lists)
+  (call-with-current-continuation
+   (lambda (abort)
+     (let recur ((lists lists))
+       (if (pair? lists)
+	   (receive
+	    (list other-lists) (car+cdr lists)
+	    (FV (list)
+		(if (null-list? list) (abort '() '()) ; LIST is empty -- bail out
+		    (receive (a d) (car+cdr list)
+			     (receive (cars cdrs) (recur other-lists)
+				      (values (cons a cars) (cons d cdrs)))))))
+	   (values '() '()))))))
+
+(define (stream-every pred lis1 . lists)
+  ;;(check-arg procedure? pred every)
+  (if (pair? lists)
+
+      ;; N-ary case
+      (receive (heads tails) (stream-%cars+cdrs (cons lis1 lists))
+	       (or (not (pair? heads))
+		   (let lp ((heads heads) (tails tails))
+		     (receive (next-heads next-tails) (stream-%cars+cdrs tails)
+			      (if (pair? next-heads)
+				  (and (apply pred heads)
+				       (lp next-heads next-tails))
+				  (apply pred heads)))))) ; Last PRED app is tail call.
+
+      ;; Fast path
+      (FV (lis1)
+	  (or (null-list? lis1)
+	      (let lp ((head (car lis1))
+		       (tail (cdr lis1)))
+		(FV (tail)
+		    (if (null-list? tail)
+			(pred head)	; Last PRED app is tail call.
+			(and (pred head) (lp (car tail) (cdr tail))))))))))
+
+(TEST
+ > (stream-every (lambda (a b) (a b)) (list even?) '(0 2))
+ #t
+ > (stream-every (lambda (a b) (a b)) (list even? odd?) '(0 2))
+ #f
+ > (stream-every (lambda (a b) (a b)) (list even? odd?) '(0 3))
+ #t
+ > (stream-every (lambda (a b) (a b)) (list even? odd?) (stream-iota))
+ #t
+ > (stream-every (lambda (a b) (a b)) (list even? even?) (stream-iota))
+ #f)
+
+
