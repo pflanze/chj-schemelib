@@ -98,7 +98,7 @@
 
 ;; for use by other code
 (define (perhaps-typed.var x)
-  (car (transform-arg x '() '())))
+  (car (fst (transform-arg x '() '()))))
 
 (define (typed? x)
   ;; stupid ~COPY
@@ -107,9 +107,23 @@
 	 (= (vector-length x*) 2)
 	 (symbol? (source-code (vector-ref x* 1))))))
 
-(define (typed.var x)
+(define (typed.var x) ;; careful, unsafe!
   ;; again stupid ~COPY
   (vector-ref (source-code x) 1))
+
+
+(TEST
+ > (perhaps-typed.var '#(foo? x))
+ x
+ > (perhaps-typed.var 'y)
+ y
+ > (typed? 'y)
+ #f
+ > (typed? '#(foo? x))
+ #t
+ > (typed.var '#(foo? x))
+ x)
+
 
 
 (define (args-detype args)
