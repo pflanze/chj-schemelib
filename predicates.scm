@@ -64,3 +64,7 @@
 (define char-one-of char-one-of?/)
 
 
+(define (perhaps-source-of pred)
+  (lambda (v)
+    (pred (source-code v))))
+
