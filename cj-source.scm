@@ -66,6 +66,12 @@
 
 (define source-location (source-check ##source-locat))
 
+(define (maybe-source-location v)
+  (if (source? v)
+      (##source-locat v)
+      #f))
+
+
 (define (location? o)
   ;; well.
   (and (vector? o)
