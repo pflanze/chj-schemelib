@@ -252,6 +252,13 @@
 	(pretty-print a port)
 	a)))
 
+(define (no-pp-through a . r)
+  (if (pair? r)
+      (if (null? (cdr r))
+	  (car r)
+	  (error "too many arguments"))
+      a))
+
 
 ;; (define number->integer ;; any better name?
 ;;   (compose inexact->exact floor))
