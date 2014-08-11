@@ -215,7 +215,8 @@
 (define-macro* (if* test yes #!optional no)
   `(if (##not (not* ,test))
        ,yes
-       ,@(if (source-code no)
+       ,@(if no ;; careful; relying on source code wrapping so that
+		;; the code `#f will be true here
 	     (list no)
 	     '())))
 
@@ -226,6 +227,8 @@
  2
  > (if* '() 1 2)
  2
+ > (if* #f 1 #f)
+ #f
  )
 
 ;; Simpler than named-lambda and combinable with other (special) forms:
