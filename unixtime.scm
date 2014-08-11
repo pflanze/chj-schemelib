@@ -166,7 +166,7 @@
   min
   hour
   mday
-  mon-1
+  month-1
   year-1900
   integer-wday
   integer-yday
@@ -174,8 +174,8 @@
   integer-timezone
   )
 
-(def. localtime.mon
-  (compose inc localtime.mon-1))
+(def. localtime.month
+  (compose inc localtime.month-1))
 (def. (localtime.year v)
   (+ (localtime.year-1900 v) 1900))
 
@@ -217,7 +217,7 @@
   '#("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
 (def. (localtime.month-shortstring v)
-  (vector-ref rfc-2822:months (.mon-1 v)))
+  (vector-ref rfc-2822:months (.month-1 v)))
 
 
 ;; seconds
