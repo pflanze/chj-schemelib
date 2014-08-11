@@ -96,12 +96,12 @@
 ;; 'extern long timezone' value, "seconds West of UTC" (man tzset),
 ;; actually 0 for gmtime.
 
-(def (gmtime #(time_t? t))
-     (let ((in (s64vector t))
-	   ;; XX still output localtime objects? Since they contain
-	   ;; the time zone, all should be ok?
-	   (out (make-vector 11 'localtime)))
-       (##c-code "{
+(def. (unixtime.gmtime #(time_t? t))
+  (let ((in (s64vector t))
+	;; XX still output localtime objects? Since they contain
+	;; the time zone, all should be ok?
+	(out (make-vector 11 'localtime)))
+    (##c-code "{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
     ___SCMOBJ *out = ___BODY(___ARG2);
@@ -121,7 +121,7 @@
     LTSET(9,0); /* ok? */
 #undef LTSET
 }" in out)
-       out))
+    out))
 
 ;; http://pic.dhe.ibm.com/infocenter/aix/v6r1/topic/com.ibm.aix.basetechref/doc/basetrf1/ctime.htm
 ;; The localtime subroutine converts the long integer pointed to by
@@ -204,6 +204,9 @@
 (def current-localtime
      (compose unixtime.localtime current-unixtime))
 
+(def current-gmtime
+     (compose unixtime.gmtime current-unixtime))
+
 
 ;; date -R format
 
@@ -281,9 +284,9 @@
  > (set-TZ! "Europe/London")
  > (ctime 1366681842)
  "Tue Apr 23 02:50:42 2013"
- > (gmtime 1366681842)
+ > (.gmtime 1366681842)
  #(localtime 42 50 1 23 3 113 2 112 0 0)
- > (.rfc-2822 (gmtime 1366681842))
+ > (.rfc-2822 (.gmtime 1366681842))
  "Tue, 23 Apr 2013 01:50:42 +0000"
  > (.localtime 1366681842)
  #(localtime 42 50 2 23 3 113 2 112 1 0)
