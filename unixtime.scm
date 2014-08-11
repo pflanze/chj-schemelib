@@ -1,4 +1,4 @@
-;;; Copyright 2013 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2013-2014 by Christian Jaeger <chrjae@gmail.com>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,26 +6,28 @@
 ;;;    (at your option) any later version.
 
 
+(require test
+	 easy)
 
 (c-declare "
        #include <time.h>
        #include <stdlib.h>
 ")
 
-(define sizeof-time_t (##c-code "___RESULT= ___FIX(sizeof(time_t));"))
+(def sizeof-time_t (##c-code "___RESULT= ___FIX(sizeof(time_t));"))
 
 (assert (<= sizeof-time_t 8))
 ;; ah wow we are on 64 bits already?!
 
-(define bitsof-time_t (* sizeof-time_t 8))
+(def bitsof-time_t (* sizeof-time_t 8))
 
-(define (in-signed-range? wordsize-bits v)
+(def (in-signed-range? wordsize-bits v)
   (let ((half (expt 2 (dec wordsize-bits))))
     (and (<= (- half) v)
 	 (< v half))))
 
 (TEST
- > (define (test basenum v)
+ > (def (test basenum v)
      (list (in-signed-range? 8 v)
 	   (number->string (+ basenum v) 2)))
  > (test (expt 2 16) -1)
@@ -48,40 +50,40 @@
  ;;   1234567812345678
  )
 
-(define (time_t? v)
+(def (time_t? v)
   (and (number? v)
        (exact? v)
        (in-signed-range? bitsof-time_t v)))
 
-(define max-ctime-bytes 26) ;; according to man page
+(def max-ctime-bytes 26) ;; according to man page
 
 
 ;; http://pic.dhe.ibm.com/infocenter/aix/v6r1/topic/com.ibm.aix.basetechref/doc/basetrf1/ctime.htm
 ;; The ctime subroutine adjusts for the time zone and daylight saving
 ;; time, if it is in effect.
 
-(define-typed (ctime #(time_t? t))
-  (let ((in (##make-s64vector 1))
-	;; give it a little extra safety margin:
-	(out (##make-u8vector (+ max-ctime-bytes 30))))
-    (s64vector-set! in 0 t)
-    (##c-code "{
+(def (ctime #(time_t? t))
+     (let ((in (##make-s64vector 1))
+	   ;; give it a little extra safety margin:
+	   (out (##make-u8vector (+ max-ctime-bytes 30))))
+       (s64vector-set! in 0 t)
+       (##c-code "{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
     char *out = ___CAST(char*, ___BODY(___ARG2));
     ctime_r(&t, out);
 }" in out)
-    ;; XXX not supporting unicode here. Any locales that need it?
-    (let* ((len (dec ;; ignore the trailing newline
-		 (let lp ((i 0))
-		   (if (zero? (u8vector-ref out i))
-		       i
-		       (lp (inc i))))))
-	   (res (##make-string len)))
-      (for..< (i 0 len)
-	      (string-set! res i
-			   (integer->char (u8vector-ref out i))))
-      res)))
+       ;; XXX not supporting unicode here. Any locales that need it?
+       (let* ((len (dec ;; ignore the trailing newline
+		    (let lp ((i 0))
+		      (if (zero? (u8vector-ref out i))
+			  i
+			  (lp (inc i))))))
+	      (res (##make-string len)))
+	 (for..< (i 0 len)
+		 (string-set! res i
+			      (integer->char (u8vector-ref out i))))
+	 res)))
 
 ;; http://pic.dhe.ibm.com/infocenter/aix/v6r1/topic/com.ibm.aix.basetechref/doc/basetrf1/ctime.htm
 ;; The gmtime subroutine converts the long integer pointed to by the
@@ -93,11 +95,11 @@
 ;; 'extern long timezone' value, "seconds West of UTC" (man tzset),
 ;; actually 0 for gmtime.
 
-(define-typed (gmtime #(time_t? t))
-  (let ((in (##make-s64vector 1))
-	(out (##make-s32vector 10)))
-    (s64vector-set! in 0 t)
-    (##c-code "{
+(def (gmtime #(time_t? t))
+     (let ((in (##make-s64vector 1))
+	   (out (##make-s32vector 10)))
+       (s64vector-set! in 0 t)
+       (##c-code "{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
     int *out = ___CAST(int*, ___BODY(___ARG2));
@@ -115,7 +117,7 @@
                              with tz data, unlike localtime. ? */
     out[9]= 0; /* ok? */
 }" in out)
-    out))
+       out))
 
 ;; http://pic.dhe.ibm.com/infocenter/aix/v6r1/topic/com.ibm.aix.basetechref/doc/basetrf1/ctime.htm
 ;; The localtime subroutine converts the long integer pointed to by
@@ -128,11 +130,11 @@
 ;; I'm returning a vector with an additional field containing the
 ;; 'extern long timezone' value, "seconds West of UTC" (man tzset).
 
-(define-typed (localtime #(time_t? t))
-  (let ((in (##make-s64vector 1))
-	(out (##make-s32vector 10)))
-    (s64vector-set! in 0 t)
-    (##c-code "{
+(def (localtime #(time_t? t))
+     (let ((in (##make-s64vector 1))
+	   (out (##make-s32vector 10)))
+       (s64vector-set! in 0 t)
+       (##c-code "{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
     int *out = ___CAST(int*, ___BODY(___ARG2));
@@ -149,22 +151,22 @@
     out[8]= res.tm_isdst;
     out[9]= timezone;
 }" in out)
-    out))
+       out))
 
 
 ;; date -R format
 
-(define rfc-2822:days
+(def rfc-2822:days
   '#("Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"))
-(define rfc-2822:months
+(def rfc-2822:months
   '#("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
 ;; seconds
-(define (tm.tzoffset tm) 
+(def (tm.tzoffset tm) 
   (- (* (s32vector-ref tm 8) 3600)
      (s32vector-ref tm 9)))
 
-(define (tm->rfc-2822 tm)
+(def (tm->rfc-2822 tm)
   (let* ((tzoffset  (tm.tzoffset tm))
 	 ;; ^ is this really correct?
 	 (tzoffsetm (abs tzoffset))
@@ -190,7 +192,7 @@
 		   (number->padded-string 2 tzoffset-minutes))))
 
 
-(define (string->u8vector/0 str)
+(def (string->u8vector/0 str)
   (let* ((len (string-length str))
 	 (res (##make-u8vector (inc len))))
     (for..< (i 0 len)
@@ -199,18 +201,18 @@
     (u8vector-set! res len 0)
     res))
 
-(define (setenv! key val) ;; does |setenv| do the same really?
+(def (setenv! key val) ;; does |setenv| do the same really?
   (##c-code "___RESULT=
        ___FIX(setenv( ___CAST(char*,___BODY(___ARG1)),
                       ___CAST(char*,___BODY(___ARG2)), 1));"
 	    (string->u8vector/0 key)
 	    (string->u8vector/0 val)))
 
-(define (tzset)
+(def (tzset)
   (##c-code "tzset();")
   (void))
 
-(define (set-TZ! str)
+(def (set-TZ! str)
   (setenv! "TZ" str)
   ;; *and*, essential!:
   (tzset))
@@ -257,5 +259,5 @@
  "Mon, 22 Apr 2013 21:50:42 -0400"
  )
 
-(define unixtime->rfc-2822 (compose tm->rfc-2822 localtime))
+(def unixtime->rfc-2822 (compose tm->rfc-2822 localtime))
 
