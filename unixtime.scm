@@ -55,6 +55,8 @@
        (exact? v)
        (in-signed-range? bitsof-time_t v)))
 
+(def unixtime? time_t?)
+
 (def max-ctime-bytes 26) ;; according to man page
 
 
@@ -63,10 +65,9 @@
 ;; time, if it is in effect.
 
 (def (ctime #(time_t? t))
-     (let ((in (##make-s64vector 1))
+     (let ((in (s64vector t))
 	   ;; give it a little extra safety margin:
 	   (out (##make-u8vector (+ max-ctime-bytes 30))))
-       (s64vector-set! in 0 t)
        (##c-code "{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
@@ -96,26 +97,29 @@
 ;; actually 0 for gmtime.
 
 (def (gmtime #(time_t? t))
-     (let ((in (##make-s64vector 1))
-	   (out (##make-s32vector 10)))
-       (s64vector-set! in 0 t)
+     (let ((in (s64vector t))
+	   ;; XX still output localtime objects? Since they contain
+	   ;; the time zone, all should be ok?
+	   (out (make-vector 11 'localtime)))
        (##c-code "{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
-    int *out = ___CAST(int*, ___BODY(___ARG2));
+    ___SCMOBJ *out = ___BODY(___ARG2);
     struct tm res;
     gmtime_r(&t,&res);
-    out[0]= res.tm_sec;
-    out[1]= res.tm_min;
-    out[2]= res.tm_hour;
-    out[3]= res.tm_mday;
-    out[4]= res.tm_mon;
-    out[5]= res.tm_year;
-    out[6]= res.tm_wday;
-    out[7]= res.tm_yday;
-    out[8]= res.tm_isdst; /* always 0 for gmtime, because it doesn't deal
+#define LTSET(i,e) out[i+1]= ___FIX(e)
+    LTSET(0,res.tm_sec);
+    LTSET(1,res.tm_min);
+    LTSET(2,res.tm_hour);
+    LTSET(3,res.tm_mday);
+    LTSET(4,res.tm_mon);
+    LTSET(5,res.tm_year);
+    LTSET(6,res.tm_wday);
+    LTSET(7,res.tm_yday);
+    LTSET(8,res.tm_isdst); /* always 0 for gmtime, because it doesn't deal
                              with tz data, unlike localtime. ? */
-    out[9]= 0; /* ok? */
+    LTSET(9,0); /* ok? */
+#undef LTSET
 }" in out)
        out))
 
@@ -130,66 +134,113 @@
 ;; I'm returning a vector with an additional field containing the
 ;; 'extern long timezone' value, "seconds West of UTC" (man tzset).
 
-(def (localtime #(time_t? t))
-     (let ((in (##make-s64vector 1))
-	   (out (##make-s32vector 10)))
-       (s64vector-set! in 0 t)
-       (##c-code "{
+(def. (unixtime.localtime #(time_t? t))
+  (let ((in (s64vector t))
+	(out (make-vector 11 'localtime)))
+    (##c-code "
+{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
-    int *out = ___CAST(int*, ___BODY(___ARG2));
+    ___SCMOBJ *out = ___BODY(___ARG2);
     struct tm res;
     localtime_r(&t,&res);
-    out[0]= res.tm_sec;
-    out[1]= res.tm_min;
-    out[2]= res.tm_hour;
-    out[3]= res.tm_mday;
-    out[4]= res.tm_mon;
-    out[5]= res.tm_year;
-    out[6]= res.tm_wday;
-    out[7]= res.tm_yday;
-    out[8]= res.tm_isdst;
-    out[9]= timezone;
-}" in out)
-       out))
+#define LTSET(i,e) out[i+1]= ___FIX(e)
+    LTSET(0, res.tm_sec);
+    LTSET(1, res.tm_min);
+    LTSET(2, res.tm_hour);
+    LTSET(3, res.tm_mday);
+    LTSET(4, res.tm_mon);
+    LTSET(5, res.tm_year);
+    LTSET(6, res.tm_wday);
+    LTSET(7, res.tm_yday);
+    LTSET(8, res.tm_isdst);
+    LTSET(9, timezone);
+#undef LTSET
+}
+" in out)
+    out))
+
+
+(defstruct localtime
+  sec
+  min
+  hour
+  mday
+  mon-1
+  year-1900
+  integer-wday
+  integer-yday
+  integer-isdst
+  integer-timezone
+  )
+
+(def. localtime.mon
+  (compose inc localtime.mon-1))
+(def. (localtime.year v)
+  (+ (localtime.year-1900 v) 1900))
+
+(def. localtime.year-string
+  (compose number->string localtime.year))
+(def. localtime.mday-string
+  (compose number->string localtime.mday))
+
+(def. (localtime.hour-paddedstring v)
+  (number->padded-string 2 (localtime.hour v)))
+(def. (localtime.min-paddedstring v)
+  (number->padded-string 2 (localtime.min v)))
+(def. (localtime.sec-paddedstring v)
+  (number->padded-string 2 (localtime.sec v)))
+
+(def. (localtime.tzoffset-string v)
+  (let* ((tzoffset  (localtime.tzoffset v))
+	 ;; ^ is this really correct?
+	 (tzoffsetm (abs tzoffset))
+	 (tzoffset-hours (quotient tzoffsetm 3600))
+	 (tzoffset-minutes (quotient (modulo tzoffsetm 3600) 60)))
+    (string-append (if (negative? tzoffset) "-" "+")
+		   (number->padded-string 2 tzoffset-hours)
+		   (number->padded-string 2 tzoffset-minutes))))
+
+(def current-localtime
+     (compose unixtime.localtime current-unixtime))
 
 
 ;; date -R format
 
 (def rfc-2822:days
   '#("Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"))
+
+(def. (localtime.wday-shortstring v)
+  (vector-ref rfc-2822:days (.integer-wday v)))
+
 (def rfc-2822:months
   '#("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
-;; seconds
-(def (tm.tzoffset tm) 
-  (- (* (s32vector-ref tm 8) 3600)
-     (s32vector-ref tm 9)))
+(def. (localtime.month-shortstring v)
+  (vector-ref rfc-2822:months (.mon-1 v)))
 
-(def (tm->rfc-2822 tm)
-  (let* ((tzoffset  (tm.tzoffset tm))
-	 ;; ^ is this really correct?
-	 (tzoffsetm (abs tzoffset))
-	 (tzoffset-hours (quotient tzoffsetm 3600))
-	 (tzoffset-minutes (quotient (modulo tzoffsetm 3600) 60)))
-    
-    (string-append (vector-ref rfc-2822:days (s32vector-ref tm 6))
-		   ", "
-		   (number->string (s32vector-ref tm 3))
-		   " "
-		   (vector-ref rfc-2822:months (s32vector-ref tm 4))
-		   " "
-		   (number->string (+ 1900 (s32vector-ref tm 5)))
-		   " "
-		   (number->padded-string 2 (s32vector-ref tm 2))
-		   ":"
-		   (number->padded-string 2 (s32vector-ref tm 1))
-		   ":"
-		   (number->padded-string 2 (s32vector-ref tm 0))
-		   " "
-		   (if (negative? tzoffset) "-" "+")
-		   (number->padded-string 2 tzoffset-hours)
-		   (number->padded-string 2 tzoffset-minutes))))
+
+;; seconds
+(def. (localtime.tzoffset tm) 
+  (- (* (localtime.integer-isdst tm) 3600)
+     (localtime.integer-timezone tm)))
+
+(def. (localtime.rfc-2822 v)
+  (string-append (localtime.wday-shortstring v)
+		 ", "
+		 (localtime.mday-string v)
+		 " "
+		 (localtime.month-shortstring v)
+		 " "
+		 (localtime.year-string v)
+		 " "
+		 (localtime.hour-paddedstring v)
+		 ":"
+		 (localtime.min-paddedstring v)
+		 ":"
+		 (localtime.sec-paddedstring v)
+		 " "
+		 (localtime.tzoffset-string v)))
 
 
 (def (string->u8vector/0 str)
@@ -231,33 +282,33 @@
  > (ctime 1366681842)
  "Tue Apr 23 02:50:42 2013"
  > (gmtime 1366681842)
- #s32(42 50 1 23 3 113 2 112 0 0)
- > (tm->rfc-2822 (gmtime 1366681842))
+ #(localtime 42 50 1 23 3 113 2 112 0 0)
+ > (.rfc-2822 (gmtime 1366681842))
  "Tue, 23 Apr 2013 01:50:42 +0000"
- > (localtime 1366681842)
- #s32(42 50 2 23 3 113 2 112 1 0)
- > (tm->rfc-2822 (localtime 1366681842))
+ > (.localtime 1366681842)
+ #(localtime 42 50 2 23 3 113 2 112 1 0)
+ > (.rfc-2822 (.localtime 1366681842))
  "Tue, 23 Apr 2013 02:50:42 +0100"
 
  > (set-TZ! "Europe/Zurich")
  > (ctime 1366681842)
  "Tue Apr 23 03:50:42 2013"
- > (tm->rfc-2822 (localtime 1366681842))
+ > (.rfc-2822 (.localtime 1366681842))
  "Tue, 23 Apr 2013 03:50:42 +0200"
 
- > (localtime 1356209442)
- #s32(42 50 21 22 11 112 6 356 0 -3600)
+ > (.localtime 1356209442)
+ #(localtime 42 50 21 22 11 112 6 356 0 -3600)
  > (ctime 1356209442)
  "Sat Dec 22 21:50:42 2012"
- > (tm->rfc-2822 (localtime 1356209442))
+ > (.rfc-2822 (.localtime 1356209442))
  "Sat, 22 Dec 2012 21:50:42 +0100"
  
  > (set-TZ! "America/La_Paz")
  > (ctime 1366681842)
  "Mon Apr 22 21:50:42 2013"
- > (tm->rfc-2822 (localtime 1366681842))
+ > (.rfc-2822 (.localtime 1366681842))
  "Mon, 22 Apr 2013 21:50:42 -0400"
  )
 
-(def unixtime->rfc-2822 (compose tm->rfc-2822 localtime))
+(def. unixtime.rfc-2822 (compose localtime.rfc-2822 unixtime.localtime))
 
