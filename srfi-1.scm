@@ -1203,9 +1203,8 @@
 ;;; assoc key lis [=]		Search alist by key comparison
 ;;; alist-delete key alist [=]	Alist-delete by key comparison
 
-; Conflict with Table-Storage delete!
-;(define (delete x lis #!optional (= equal?)) 
-;  (filter (lambda (y) (not (= x y))) lis))
+(define (delete x lis #!optional (= equal?)) 
+ (filter (lambda (y) (not (= x y))) lis))
 
 (define (delete! x lis #!optional (= equal?))
   (filter! (lambda (y) (not (= x y))) lis))
