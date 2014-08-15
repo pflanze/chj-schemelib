@@ -260,7 +260,7 @@
  > (.x-update '#(foo 10 #t) inc)
  #(foo 11 #t)
  > (%try-error (.x-update '#(foo 10 #t) true/1))
- #(error "does not match integer?:" #t)
+ #(error "gensym '\"V*\" does not match integer?:" #t)
  > (%try-error (foo b: 11 x: 10))
  #(error "b does not match boolean?:" 11)
  ;; > (define-struct. foo #(integer? x) #!optional (b #t))
@@ -270,12 +270,12 @@
  > (define-struct. foo #!key x #(boolean? b))
  > (.typecheck! '#(foo #(foo 10 #f) #f))
  > (%try-error (.typecheck! '#(foo #(foo 10 #f) 12)))
- #(error "does not match boolean?:" 12)
+ #(error "gensym '\"V*\" does not match boolean?:" 12)
  ;; > (%try-error (.typecheck! '#(foo #(foo 10 11) #f)))
  ;; was hoping for an error here. But, see NOTE in the source.
  > (define-struct. foo #!key #((either foo? nothing?) x) #(boolean? b))
  > (.typecheck! '#(foo #(foo #f #f) #f))
  > (%try-error (.typecheck! '#(foo #(foo #f 11) #f)))
- #(error "does not match boolean?:" 11)
+ #(error "gensym '\"V*\" does not match boolean?:" 11)
  )
 
