@@ -17,11 +17,12 @@
 ;;;
 
 
-(define (cj-typed#type-check-error predstr w v)
+(define (cj-typed#type-check-error exprstr predstr w v)
   ;; v = value
   ;; w = result of predicate
   (cond ((eq? w #f)
-	 (error (string-append "does not match "
+	 (error (string-append exprstr
+			       " does not match "
 			       predstr
 			       ":")
 		v))
@@ -55,6 +56,7 @@
 	     (##if (##eq? ,W #t)
 		   (##let () ,@body)
 		   (cj-typed#type-check-error
+		    ,(scm:object->string (cj-desourcify expr))
 		    ,(scm:object->string (cj-desourcify predicate))
 		    ,W
 		    ,V)))))
