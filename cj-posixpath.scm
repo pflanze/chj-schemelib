@@ -105,7 +105,7 @@
  > (.string (.posixpath '("foo" "bar")))
  "foo/bar"
  > (%try-error (.string (.posixpath '("foo/f" "bar"))))
- #(error "does not match list-of-posixpath-segment?:" ("foo/f" "bar"))
+ #(error "segments does not match list-of-posixpath-segment?:" ("foo/f" "bar"))
  )
 
 (define. (posixpath.string p)
