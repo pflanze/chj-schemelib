@@ -53,11 +53,24 @@
     `(##let* ((,V ,expr)
 	      (,W (,predicate ,V)))
 	     (##if (##eq? ,W #t)
-		   (##begin ,@body)
+		   (##let () ,@body)
 		   (cj-typed#type-check-error
 		    ,(scm:object->string (cj-desourcify predicate))
 		    ,W
 		    ,V)))))
+
+(TEST
+ ;; test that there's no "Ill-placed 'define'" compile-time error
+ > (let ((foo "foo"))
+     (type-check string? foo
+		 (##begin (define bar "bar") (string-append foo bar))))
+ "foobar"
+ > (let ((foo "foo"))
+     (type-check string? foo
+		 (define bar "bar")
+		 (string-append foo bar)))
+ "foobar")
+
 
 
 (define (transform-arg arg args body)
