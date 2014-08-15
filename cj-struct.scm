@@ -148,6 +148,9 @@
 		  v)))
        (define ,genericsetter-name
 	 (lambda (v offset value)
+	   ;; ^ it's safe to use static variable names here as
+	   ;; predicate-name can't conflict with them, *correct*? (at
+	   ;; least if a "-" or "." separator is used)
 	   (if (,predicate-name v)
 	       (let ((v* (##vector-copy v)))
 		 (vector-set! v* offset value)
