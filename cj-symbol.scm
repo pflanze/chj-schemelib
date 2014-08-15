@@ -45,6 +45,29 @@
 	      (string=? (substring s 0 plen)
 			gensym-prefix)))))
 
+(define (cj-gensym-maybe-name v)
+  (if (cj-gensym? v)
+      ;; XX what string libraries do we have available at this
+      ;; point? assume that none?
+      (let* ((str (symbol->string v))
+	     (len (string-length str))
+	     (startpos (string-length gensym-prefix))
+	     (endpos (let lp ((i startpos))
+		       (if (eq? (string-ref str i) #\-)
+			   i
+			   (lp (inc i))))))
+	(if (= startpos endpos)
+	    #f
+	    (substring str startpos endpos)))
+      (error "not a cj-gensym:" v)))
+
+(TEST
+ > (cj-gensym-maybe-name 'GEN:abc-3349)
+ "abc"
+ > (cj-gensym-maybe-name 'GEN:-3349)
+ #f)
+
+
 (define (any-gensym? v)
   (or (uninterned-symbol? v)
       (cj-gensym? v)))
