@@ -147,10 +147,10 @@
 				  ", got:")
 		  v)))
        (define ,genericsetter-name
-	 (lambda (v offset val)
+	 (lambda (v offset value)
 	   (if (,predicate-name v)
 	       (let ((v* (##vector-copy v)))
-		 (vector-set! v* offset val)
+		 (vector-set! v* offset value)
 		 v*)
 	       (,error-name v))))
        (define ,genericupdater-name
@@ -180,9 +180,9 @@
 			     `(##vector-ref ,(list 'unquote 'v) ,(add-offset i))))
 		    ;; functional setter:
 		    (,DEFINE ,(safe-setter-for-field field)
-		      (,LAMBDA (v ,(wrap-var 'val field+))
+		      (,LAMBDA (v ,(wrap-var 'value field+))
 			       ;; use shared code
-			       (,genericsetter-name v ,(add-offset i) val)))
+			       (,genericsetter-name v ,(add-offset i) value)))
 		    ;; functional updater:
 		    (,DEFINE ,(safe-updater-for-field field)
 		      (lambda (v ,FN)

@@ -243,7 +243,7 @@
 (TEST
  > (define-struct. foo #(fixnum? x))
  > (%try-error (foo 'a))
- #(error "does not match fixnum?:" a)
+ #(error "x does not match fixnum?:" a)
  > (foo 10)
  #(foo 10)
  > (.x #)
@@ -256,13 +256,13 @@
  > (.x-set # 12)
  #(foo 12 #t)
  > (%try-error (.x-set # 'n))
- #(error "does not match integer?:" n)
+ #(error "value does not match integer?:" n)
  > (.x-update '#(foo 10 #t) inc)
  #(foo 11 #t)
  > (%try-error (.x-update '#(foo 10 #t) true/1))
  #(error "does not match integer?:" #t)
  > (%try-error (foo b: 11 x: 10))
- #(error "does not match boolean?:" 11)
+ #(error "b does not match boolean?:" 11)
  ;; > (define-struct. foo #(integer? x) #!optional (b #t))
  ;; "expecting symbol or typed symbol or meta-object" XX hmm, still not complete.
 
