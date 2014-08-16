@@ -174,6 +174,12 @@
   integer-timezone
   )
 
+(def (gmtime? v)
+     (and (localtime? v)
+	  (zero? (localtime.integer-timezone v))
+	  (zero? (localtime.integer-isdst v))))
+
+
 (def. localtime.month
   (compose inc localtime.month-1))
 (def. (localtime.year v)
