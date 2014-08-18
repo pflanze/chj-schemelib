@@ -68,3 +68,16 @@
   (lambda (v)
     (pred (source-code v))))
 
+(define (source-of pred)
+  (lambda (v)
+    (and (source? v)
+	 (pred (source-code v)))))
+
+(define (perhaps-source*-of pred)
+  (lambda (v)
+    (pred (cj-desourcify v))))
+
+(define (source*-of pred)
+  (lambda (v)
+    (and (source? v)
+	 (pred (cj-desourcify v)))))
