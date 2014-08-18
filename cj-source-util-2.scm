@@ -208,3 +208,18 @@
 
 (define no-pp-through-source no-pp-through)
 
+
+;; Are there better names for these?
+
+(define-macro* (with-source vars . body)
+  `(let ,(map (lambda (var)
+		`(,var (source-code ,var)))
+	      (source-code vars))
+     ,@body))
+
+(define-macro* (with-source* vars . body)
+  `(let ,(map (lambda (var)
+		`(,(symbol-append (source-code var) "*") (source-code ,var)))
+	      (source-code vars))
+     ,@body))
+
