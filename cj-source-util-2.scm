@@ -209,17 +209,21 @@
 (define no-pp-through-source no-pp-through)
 
 
+(define (source-map fn vs)
+  (possibly-sourcify (map fn (source-code vs)) v))
+
+
 ;; Are there better names for these?
 
 (define-macro* (with-source vars . body)
-  `(let ,(map (lambda (var)
-		`(,var (source-code ,var)))
-	      (source-code vars))
+  `(let ,(source-map (lambda (var)
+		       `(,var (source-code ,var)))
+		     vars)
      ,@body))
 
 (define-macro* (with-source* vars . body)
-  `(let ,(map (lambda (var)
-		`(,(symbol-append (source-code var) "*") (source-code ,var)))
-	      (source-code vars))
+  `(let ,(source-map (lambda (var)
+		       `(,(symbol-append (source-code var) "*") (source-code ,var)))
+		     vars)
      ,@body))
 
