@@ -130,14 +130,15 @@
  12
  )
 
-;; quote a piece of source that is a list, return it with the outmost
-;; layer being a bare list (e.g. to be used in unquote-splicing forms)
-(define-macro* (quasiquote-source-list src)
-  (source-quasiquote-expand (source-code src)))
+;; quote multiple pieces of source as a list, return it with the
+;; outmost layer being a bare list (e.g. to be used in
+;; unquote-splicing forms)
+(define-macro* (quasiquote-source-list . src)
+  (source-quasiquote-expand src))
 
 (define-macro* (quote-source src)
   `(u8vector->object ',(object->u8vector src)))
 
 ;; same as for quasiquote-source-list
-(define-macro* (quote-source-list src)
-  `(u8vector->object ',(object->u8vector (source-code src))))
+(define-macro* (quote-source-list . src)
+  `(u8vector->object ',(object->u8vector src)))
