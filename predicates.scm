@@ -81,3 +81,28 @@
   (lambda (v)
     (and (source? v)
 	 (pred (cj-desourcify v)))))
+
+
+(define (length-= l len)
+  (if (null? l)
+      (zero? len)
+      (if (zero? len)
+	  #f
+	  (length-= (cdr l) (dec len)))))
+
+(TEST
+ > (length-= '() 0)
+ #t
+ > (length-= '() 1)
+ #f
+ > (length-= '(a) 1)
+ #t
+ > (length-= '(a) 0)
+ #f
+ > (length-= '(a b) 2)
+ #t)
+
+
+(define (length-is len)
+  (lambda (l)
+    (length-= l len)))
