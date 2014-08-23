@@ -9,6 +9,17 @@
 
 (define inexact-real? (both real? inexact?))
 
+(define exact-real? (both real? exact?))
+
+(define exact-number? (both number? exact?))
+
+(TEST
+ > (exact-real? 3+2i)
+ #f
+ > (exact-number? 3+2i)
+ #t)
+
+
 (define (pair-with-car pred)
   (lambda (v)
     (and (pair? v)
