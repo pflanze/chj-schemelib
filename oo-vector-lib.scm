@@ -203,6 +203,20 @@
 
 (def. string.u8vector string->u8vector)
 
+(def. (u8vector.string v)
+  (let* ((len (u8vector.length v))
+	 (o (##make-string len)))
+    (for..< (i 0 len)
+	    (string-set!
+	     o i
+	     (integer->char (u8vector-ref v i))))
+    o))
 
-
+(TEST
+ > (.string (u8vector 65 66))
+ "AB"
+ ;; kinda pointless random tests
+ > (def (t v)
+	(assert (equal? v (string.u8vector (u8vector.string v)))))
+ > (for-each (lambda (l) (t (random-u8vector (* l 13)))) (iota 7)))
 
