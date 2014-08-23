@@ -13,12 +13,6 @@
 
 (define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
 
-;;XX better place in a lib [odd, why not have already?]
-(define string->u8vector (compose* list->u8vector
-				   (cut map char->integer <>)
-				   string->list))
-(define. string.u8vector string->u8vector)
-
 (define. string.list string->list)
 
 (define. char.integer char->integer)
