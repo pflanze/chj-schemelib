@@ -82,7 +82,8 @@
 (define location-container (location-check ##locat-container))
 
 (define (container->path container)
-  (if ##container->path-hook
+  (if (with-exception-catcher (lambda (e) #f) 
+			      (lambda () (eval '##container->path-hook)))
       (or (##container->path-hook container)
           container)
     container))

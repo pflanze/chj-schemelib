@@ -44,7 +44,8 @@
        (let* ((loc (source-location relpath))
 	      (container (location-container loc))
 	      (container-path
-	       (if ##container->path-hook
+	       (if (with-exception-catcher (lambda (e) #f) 
+					   (lambda () (eval '##container->path-hook)))
 		   (##container->path-hook container)
 		   container))
 	      (relpath (source-code relpath)))

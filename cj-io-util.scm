@@ -26,7 +26,7 @@
 				arguments: args
 				stdin-redirection: #f
 				stdout-redirection: #f))))
-    (close-port p)
+    (close-input-port p)
     (assert (zero? (process-status p)))))
 
 
@@ -35,7 +35,7 @@
 				arguments: args
 				stdout-redirection: #t)))
 	 (output (read-line p #f)))
-    (close-port p)
+    (close-input-port p)
     (assert (zero? (process-status p)))
     (chomp output)))
 
