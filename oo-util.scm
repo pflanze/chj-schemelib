@@ -1,4 +1,5 @@
 (define inexact exact->inexact)
+(define. exact.inexact exact->inexact) ;; ah, use the above?
 
 (define. values.vector values->vector)
 
