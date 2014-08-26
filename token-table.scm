@@ -29,7 +29,7 @@
   (make-list-of-symbol.token-table (comp .u8vector .string)))
 
 (both-times ;; so that module-import in the same file works
- (define-module (<token-table> prefix list-of-symbol.token-table)
+ (define-module (<token-table> prefix token? list-of-symbol.token-table)
    (export token-table token-map)
   
    (def (token-table . symbols)
@@ -37,20 +37,21 @@
 
    (def (token-map . symbols)
 	(let ((t (list-of-symbol.token-table symbols)))
-	  (lambda (str)
-	    ;; artificially restrict type? no?
-	    (table-ref t str #f))))))
+	  (typed-lambda (#(token? str))
+		   (table-ref t str #f))))))
 
-(module-import || <token-table> list-of-symbol.token-table)
-(module-import |u8vector-| <token-table> list-of-symbol.u8vector-token-table)
+(module-import || <token-table> string? list-of-symbol.token-table)
+(module-import |u8vector-| <token-table> u8vector? list-of-symbol.u8vector-token-table)
 
 (TEST
  > (def m (token-map 'a 'b 'foo))
  > (def u8m (u8vector-token-map 'a 'b 'foo))
- > (map m '("a" "c" "" foo "foo"))
- (a #f #f #f foo)
- > (map u8m '("a" "c" "" foo "foo"))
- (#f #f #f #f #f)
+ > (map m '("a" "c" "" "foo"))
+ (a #f #f foo)
+ > (%try-error (m 'foo))
+ #(error "str does not match token?:" foo) ;; XX hmm. Heh. getting interesting. 'Syntax evil'
+ > (%try-error (u8m "a"))
+ #(error "str does not match token?:" "a")
  > (map (comp u8m .u8vector) '("a" "c" "" "foo"))
  (a #f #f foo))
 
