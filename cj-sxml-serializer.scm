@@ -132,6 +132,12 @@
 (define (sxml-element? l)
   (and (pair? l)
        (symbol? (##car l))))
+;; XX and move this.
+(define (sxml-begin? l)
+  (and (pair? l)
+       (eq? (##car l) '##begin)))
+
+
 
 (define (@sxml-attributes l) ;; l must be an sxml-element; returns the *rest* of the attribute list, or #f
   (let ((2ndpair (##cdr l)))
@@ -362,12 +368,17 @@
 (define (@sxml>>fast item port xml? maybe-level)
   (let self ((item item))
     ;;(paramdata (make-paramdata 0));;UNFINISHED! not threadsafe like this.
+
+    ;; XX why is all this logic here; @sxml-element>> has it again?
+    ;; rewrite really.
     (cond 
      ((pair? item)
-      ;; is the first element a symbol?
-      (if (sxml-element? item)
-	  (@sxml-element>> item port xml? maybe-level)
-	  (for-each self item)))
+      (cond ((sxml-begin? item)
+	     (for-each self (cdr item)))
+	    ((sxml-element? item)
+	     (@sxml-element>> item port xml? maybe-level))
+	    (else
+	     (for-each self item))))
      ((promise? item) ;; IIRC this check is slow, right?, replace with own one? (or maybe fix gambit)
       (stream-for-each self item))
      ((null? item))
