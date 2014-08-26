@@ -95,13 +95,18 @@
 ;; TESTs see simple-match.scm
 
 (compile-time
- (define (assert*-expand desourcify gen-full-desourcify/1 pred val yes-cont no-cont)
+ (define (assert*-expand desourcify
+			 gen-full-desourcify/1
+			 pred
+			 val
+			 yes-cont
+			 no-cont)
    (define V* (gensym 'v*))
    (define V (gensym 'v))
    `(let* ((,V* ,val)
 	   (,V (,desourcify ,V*)))
       (if (,pred ,V)
-	  (,yes-cont ,V)
+	  ,(if yes-cont `(,yes-cont ,V) `(void))
 	  ,(if (source-code no-cont)
 	       no-cont
 	       `(source-error ,V*
@@ -111,14 +116,14 @@
 					      " predicate")
 			      ,(gen-full-desourcify/1 V* V)))))))
 
-(define-macro* (assert* pred val yes-cont #!optional no-cont)
+(define-macro* (assert* pred val #!optional yes-cont no-cont)
   (assert*-expand 'cj-desourcify
 		  (lambda (V* V)
 		    V)
 		  pred val yes-cont no-cont))
 
 ;; only remove location information 1 level (uh, better names?)
-(define-macro* (assert*1 pred val yes-cont #!optional no-cont)
+(define-macro* (assert*1 pred val #!optional yes-cont no-cont)
   (assert*-expand 'source-code
 		  (lambda (V* V)
 		    `(cj-desourcify ,V*))
@@ -127,7 +132,7 @@
 ;; different from assert* in two ways (1) pass the unwrapped result in
 ;; 'the same variable as' v instead of expecting a function, (2) evals
 ;; the input first.
-(define-macro* (assert** pred var yes-expr #!optional no-expr)
+(define-macro* (assert** pred var #!optional yes-expr no-expr)
   (assert* symbol? var
 	   (lambda (_)
 	    `(assert* ,pred (eval ,var)
