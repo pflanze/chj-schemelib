@@ -330,7 +330,9 @@
 
 
 ;; 1 like 'only split once'
-(define-typed (string-split-1 str #((either char? procedure?) val-or-pred))
+(define-typed (string-split-1 str
+			      #((either char? procedure?) val-or-pred)
+			      #!optional drop-match?)
   (let ((len (string-length str))
 	(pred (if (procedure? val-or-pred)
 		  val-or-pred
@@ -340,7 +342,9 @@
       (if (< i len)
 	  (if (pred (string-ref str i))
 	      (values (substring str 0 i)
-		      (substring str i len))
+		      (substring str (if drop-match?
+					 (inc i)
+					 i) len))
 	      (lp (inc i)))
 	  (values str "")))))
 
@@ -349,6 +353,8 @@
  #("ab" "  c d")
  > (values->vector (string-split-1 "foo?q=1" #\?))
  #("foo" "?q=1")
+ > (values->vector (string-split-1 "foo?q=1" #\? #t))
+ #("foo" "q=1")
  > (values->vector (string-split-1 "foo?" #\?))
  #("foo" "?")
  > (values->vector (string-split-1 "foo" #\?))
