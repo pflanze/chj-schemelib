@@ -53,6 +53,22 @@
 	""
 	(chomp output))))
 
+(TEST
+ > (backtick "true")
+ ""
+ > (%try-error (backtick "false"))
+ #(error
+   "assertment failure: (zero? (process-status p))")
+ > (backtick "echo" "world")
+ "world"
+ ;; check that unicode is read as such:
+ > (backtick "echo" "-e" "Mot\xc3\xb6rhead")
+ "Mot\366rhead"
+ ;; and check that it gets 'correctly' to the process, too:
+ > (backtick "echo" "Motörhead")
+ "Mot\366rhead")
+
+
 (define (backtick-bash code)
   (backtick "bash" "-c" code))
 
