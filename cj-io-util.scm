@@ -32,8 +32,7 @@
 		 s
 		 parms)))))
 
-;; XX: rewrite the following in terms of xcall-with-input-process ?
-
+;; XX: rewrite xcall-* and xxsystem to use it?
 (define (xxsystem cmd . args)
   (let* ((p (open-process (list path: cmd
 				arguments: args
@@ -43,12 +42,11 @@
     (assert (zero? (process-status p)))))
 
 (define (backtick cmd . args)
-  (let* ((p (open-process (list path: cmd
-				arguments: args
-				stdout-redirection: #t)))
-	 (output (read-line p #f)))
-    (close-input-port p)
-    (assert (zero? (process-status p)))
+  (let* ((output (xcall-with-input-process (list path: cmd
+						 arguments: args
+						 stdout-redirection: #t)
+					   (lambda (p)
+					     (read-line p #f)))))
     (if (eof-object? output) ;; stupid lib
 	""
 	(chomp output))))
@@ -57,8 +55,8 @@
  > (backtick "true")
  ""
  > (%try-error (backtick "false"))
- #(error
-   "assertment failure: (zero? (process-status p))")
+ #(error "process exited with non-zero status:"
+	 256 (path: "false" arguments: () stdout-redirection: #t))
  > (backtick "echo" "world")
  "world"
  ;; check that unicode is read as such:
