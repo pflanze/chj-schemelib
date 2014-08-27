@@ -49,7 +49,9 @@
 	 (output (read-line p #f)))
     (close-input-port p)
     (assert (zero? (process-status p)))
-    (chomp output)))
+    (if (eof-object? output) ;; stupid lib
+	""
+	(chomp output))))
 
 (define (backtick-bash code)
   (backtick "bash" "-c" code))
