@@ -21,6 +21,19 @@
     output))
 
 
+(define (xcall-with-input-process parms proc)
+  (let* ((p (open-input-process parms))
+	 (res (proc p)))
+    (close-input-port p)
+    (let ((s (process-status p)))
+      (if (zero? s)
+	  res
+	  (error "process exited with non-zero status:"
+		 s
+		 parms)))))
+
+;; XX: rewrite the following in terms of xcall-with-input-process ?
+
 (define (xxsystem cmd . args)
   (let* ((p (open-process (list path: cmd
 				arguments: args
@@ -28,7 +41,6 @@
 				stdout-redirection: #f))))
     (close-input-port p)
     (assert (zero? (process-status p)))))
-
 
 (define (backtick cmd . args)
   (let* ((p (open-process (list path: cmd
