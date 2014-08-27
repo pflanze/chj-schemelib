@@ -195,11 +195,11 @@
 	  ((natural0? v) v)
 	  (else (error "invalid type:" v)))))
 
-(define user-name-or-id->id
-  (_-name-or-id->id posix:getpwnam .uid "unknown user name:"))
+(define (user-name-or-id->id v)
+  ((_-name-or-id->id posix:getpwnam .uid "unknown user name:") v))
 
-(define group-name-or-id->id
-  (_-name-or-id->id posix:getgrnam .gid "unknown group name:"))
+(define (group-name-or-id->id v)
+  ((_-name-or-id->id posix:getgrnam .gid "unknown group name:") v))
 
 (define (chown path maybe-username-or-id maybe-groupname-or-id)
   ;; XX is this different from other cases (which?) where in case of
