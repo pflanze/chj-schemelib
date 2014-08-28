@@ -234,22 +234,29 @@
   (- (* (localtime.integer-isdst tm) 3600)
      (localtime.integer-timezone tm)))
 
+(def (rfc-2822-alike-string v maybe-zone-string)
+     (string-append (localtime.wday-shortstring v)
+		    ", "
+		    (localtime.mday-string v)
+		    " "
+		    (localtime.month-shortstring v)
+		    " "
+		    (localtime.year-string v)
+		    " "
+		    (localtime.hour-paddedstring v)
+		    ":"
+		    (localtime.min-paddedstring v)
+		    ":"
+		    (localtime.sec-paddedstring v)
+		    " "
+		    (or maybe-zone-string
+			(localtime.tzoffset-string v))))
+
 (def. (localtime.rfc-2822 v)
-  (string-append (localtime.wday-shortstring v)
-		 ", "
-		 (localtime.mday-string v)
-		 " "
-		 (localtime.month-shortstring v)
-		 " "
-		 (localtime.year-string v)
-		 " "
-		 (localtime.hour-paddedstring v)
-		 ":"
-		 (localtime.min-paddedstring v)
-		 ":"
-		 (localtime.sec-paddedstring v)
-		 " "
-		 (localtime.tzoffset-string v)))
+  (rfc-2822-alike-string v #f))
+
+(def. (unixtime.gmtime-string v)
+  (rfc-2822-alike-string (unixtime.gmtime v) "GMT"))
 
 
 (def (string->u8vector/0 str)
@@ -292,6 +299,8 @@
  "Tue Apr 23 02:50:42 2013"
  > (.gmtime 1366681842)
  #(localtime 42 50 1 23 3 113 2 112 0 0)
+ > (.gmtime-string 1366681842)
+ "Tue, 23 Apr 2013 01:50:42 GMT"
  > (.rfc-2822 (.gmtime 1366681842))
  "Tue, 23 Apr 2013 01:50:42 +0000"
  > (.localtime 1366681842)
