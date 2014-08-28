@@ -12,6 +12,30 @@
 	 (lib.cj-env);; symbol-append
 	 )
 
+;; XX move to predicates.scm ? dependency order?
+(define (list-of-length n)
+  (lambda (v)
+    (let lp ((v v)
+	     (len 0))
+      (cond ((pair? v)
+	     (if (< len n)
+		 (lp (cdr v) (inc len))
+		 #f))
+	    ((null? v)
+	     (= len n))
+	    (else
+	     ;; not a list
+	     #f)))))
+
+(TEST
+ > (def vals '(() (a) (a b) (a b c) (a b . c) a))
+ > (map (list-of-length 2) vals)
+ (#f #f #t #f #f #f)
+ > (map (list-of-length 0) vals)
+ (#t #f #f #f #f #f)
+ > (map (list-of-length 4) vals)
+ (#f #f #f #f #f #f))
+
 
 (define define-struct:arg->maybe-fieldname
   (lambda (v*)
@@ -20,6 +44,7 @@
 	     v*)
 	    ((meta-object? v)
 	     #f)
+	    ((list-of-length 2))
 	    (else
 	     (source-error
 	      v*
