@@ -12,6 +12,11 @@
 (define. keyword.string keyword->string)
 (define. string.keyword string->keyword)
 
+(define. (keyword.symbol v)
+  (string.symbol (keyword.string v)))
+(define. (symbol.keyword v)
+  (string.keyword (symbol.string v)))
+
 (define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
 
 (define. string.list string->list)
