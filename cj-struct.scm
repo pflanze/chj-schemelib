@@ -38,17 +38,20 @@
 
 
 (define define-struct:arg->maybe-fieldname
-  (lambda (v*)
-    (let ((v (source-code v*)))
-      (cond ((symbol? v)
-	     v*)
-	    ((meta-object? v)
-	     #f)
-	    ((list-of-length 2))
-	    (else
-	     (source-error
-	      v*
-	      "expecting symbol or meta-object"))))))
+  (named self
+	 (lambda (v*)
+	   (let ((v (source-code v*)))
+	     (cond ((symbol? v)
+		    v*)
+		   ((meta-object? v)
+		    #f)
+		   (((list-of-length 2) v)
+		    ;; `(`definition `default-value)
+		    (self (car v)))
+		   (else
+		    (source-error
+		     v*
+		     "expecting symbol or meta-object")))))))
 
 (define (define-struct-expand
 	  DEFINE ;; what definition forms to use

@@ -126,18 +126,23 @@
 ;; become part of generic super functions. Also, allow field typing.
 
 (define define-struct/types:arg->maybe-fieldname
-  (lambda (v*)
-    (let ((v (source-code v*)))
-      (cond ((symbol? v)
-	     v*)
-	    ((typed? v)
-	     (typed.var v))
-	    ((meta-object? v)
-	     #f)
-	    (else
-	     (source-error
-	      v*
-	      "expecting symbol or typed symbol or meta-object"))))))
+  ;; XX sigh, almost-copy-paste of define-struct:arg->maybe-fieldname
+  (named self
+	 (lambda (v*)
+	   (let ((v (source-code v*)))
+	     (cond ((symbol? v)
+		    v*)
+		   ((typed? v)
+		    (typed.var v))
+		   ((meta-object? v)
+		    #f)
+		   (((list-of-length 2) v)
+		    ;; `(`definition `default-value)
+		    (self (car v)))
+		   (else
+		    (source-error
+		     v*
+		     "expecting symbol or typed symbol or meta-object")))))))
 
 
 (both-times
