@@ -8,6 +8,8 @@
 
 (require dot-oo)
 
+;; * add class and subclass syntax
+
 (compile-time
 
  ;; lib
@@ -86,3 +88,25 @@
 		       `(def. ,(source.symbol-append class-name "." bind)
 			  ,@rest)))))))
 
+
+;; * add let.
+
+;; In the tradition of |letv|, only accept one binding form.
+
+(defmacro (let. vars+e . body)
+  ;; heh, does such a great name call for speed-optimized access?
+  (mcase vars+e
+	 (`(`vars `e)
+	  (with-gensym
+	   V
+	   `(##let ((,V ,e))
+		   (##let ,(source-map (lambda (v)
+					 (assert* symbol? v)
+					 `(,v (,(source.symbol-append "." v)
+					       ,V)))
+				       vars)
+			  ,@body))))))
+
+(TEST
+ > (let. ((string keyword) 'foo) (list string keyword))
+ ("foo" foo:))
