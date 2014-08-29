@@ -154,7 +154,6 @@
 					   (error "missing sxml-attribute:" attrname)
 					   missing))))
 
-;; (should this be called sxml-attributes:ref ?)
 (define (sxml-attribute-ref attributes attrname)
   ;; attrname must be a symbol
   (if (eq? '@ (car attributes))
@@ -174,12 +173,21 @@
   (if (and (pair? attrs)
 	   (eq? '@ (car attrs)))
       (cond ((assoc namesym (cdr attrs))
-	     => cadr) ;; (can this give exceptions? todo fix?)
+	     => (lambda (v)
+		  (let ((v* (cdr v)))
+		    (if (pair? v*)
+			(if (null? (cdr v*))
+			    (car v*)
+			    (error "more than one value in attributes for:" attrs namesym))
+			(error "missing attribute value in attributes for:" attrs namesym)))))
 	    (else
 	     (if (eq? missing unbound)
 		 (error "missing attribute named" namesym)
 		 missing)))
       (error "expected sxml-attributes, got:" attrs namesym)))
+
+(define sxml-attributes.ref sxml-attributes:ref)
+
 
 
 (define (sxml-element-bodytext element)
