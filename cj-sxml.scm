@@ -86,7 +86,7 @@
 			      (append! prepend present-alis))
 			    (let* ((p (car alis))
 				   (newkey (car p)))
-			      (if (assoc newkey present-alis)
+			      (if (assq newkey present-alis)
 				  (lp (cdr alis)
 				      prepend)
 				  (lp (cdr alis)
@@ -146,7 +146,7 @@
   ;; attrname must be a symbol
   (with-sxml-element-attributes/else element
 				     (lambda (attrs)
-				       (cond ((assoc attrname (cdr attrs))
+				       (cond ((assq attrname (cdr attrs))
 					      => cdr)
 					     (else #f)))
 				     (lambda ()
@@ -157,14 +157,14 @@
 (define (sxml-attribute-ref attributes attrname)
   ;; attrname must be a symbol
   (if (eq? '@ (car attributes))
-      (cond ((assoc attrname (cdr attributes))
+      (cond ((assq attrname (cdr attributes))
 	     => cdr)
 	    (else #f))
       (error "expected sxml-attributes, got:" attributes attrname)))
 
 (define (sxml-attribute-value-ref attributes attrname)
   ;; attrname must be a symbol
-  (cond ((assoc attrname (cdr attributes))
+  (cond ((assq attrname (cdr attributes))
 	 => cadr)
 	(else #f)))
 ;;^- hm mix max: 2 things different!.
@@ -172,7 +172,7 @@
 (define (sxml-attributes:ref attrs namesym #!optional (missing unbound))
   (if (and (pair? attrs)
 	   (eq? '@ (car attrs)))
-      (cond ((assoc namesym (cdr attrs))
+      (cond ((assq namesym (cdr attrs))
 	     => (lambda (v)
 		  (let ((v* (cdr v)))
 		    (if (pair? v*)
