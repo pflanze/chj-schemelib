@@ -169,17 +169,22 @@
 	(else #f)))
 ;;^- hm mix max: 2 things different!.
 
+
+;;XX use this in all the older functions
+(define sxml:attribute-value
+  (lambda (v)
+    (let ((v* (cdr v)))
+      (if (pair? v*)
+	  (if (null? (cdr v*))
+	      (car v*)
+	      (error "more than one value in attributes for:" (car v)))
+	  (error "missing attribute value in attributes for:" (car v))))))
+
 (define (sxml-attributes:ref attrs namesym #!optional (missing unbound))
   (if (and (pair? attrs)
 	   (eq? '@ (car attrs)))
       (cond ((assq namesym (cdr attrs))
-	     => (lambda (v)
-		  (let ((v* (cdr v)))
-		    (if (pair? v*)
-			(if (null? (cdr v*))
-			    (car v*)
-			    (error "more than one value in attributes for:" attrs namesym))
-			(error "missing attribute value in attributes for:" attrs namesym)))))
+	     => sxml:attribute-value)
 	    (else
 	     (if (eq? missing unbound)
 		 (error "missing attribute named" namesym)
@@ -192,15 +197,71 @@
  > (sxml-attributes.ref '(@ (foo 1) (bar 2)) 'bar)
  2
  > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar 2 3)) 'bar))
- #(error "more than one value in attributes for:" (@ (foo 1) (bar 2 3)) bar)
+ #(error "more than one value in attributes for:" bar)
  > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar . 2)) 'bar))
- #(error "missing attribute value in attributes for:" (@ (foo 1) (bar . 2)) bar)
+ #(error "missing attribute value in attributes for:" bar)
  > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar . 2)) 'baz))
  #(error "missing attribute named" baz)
  > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar . 2)) 'baz #f))
  #f
  > (%try-error (sxml-attributes.ref '((foo 1) (bar . 2)) 'baz #f))
  #(error "expected sxml-attributes, got:" ((foo 1) (bar . 2)) baz))
+
+(define-if-not-defined sxml:nothing (gensym 'sxml-nothing))
+;; not to be stored in SXML, just to be used in sxml library API!
+;; ah, or just use (void) ok? hmm? or not?
+;; Call it sxml:missing ?
+
+(define (sxml-attributes.update attrs namesym fn)
+  (if (and (pair? attrs)
+	   (eq? '@ (car attrs)))
+      (cons
+       '@
+       (let rec ((l (cdr attrs)))
+	 (if (null? l)
+	     ;; ok, actually add it at the end?
+	     (let ((v (fn sxml:nothing)))
+	       (if (eq? v sxml:nothing)
+		   '()
+		   (cons (list namesym v) '())))
+	     (let-pair ((a l*) l)
+		       (if (eq? (car a) namesym)
+			   (let ((v (fn (sxml:attribute-value a))))
+			     (if (eq? v sxml:nothing)
+				 l*
+				 (cons (list namesym v) l*)))
+			   (cons a (rec l*)))))))
+      (error "expected sxml-attributes, got:" attrs namesym)))
+
+(TEST
+ ;; (tests for sxml:nothing: see test forms for set and delete)
+ > (sxml-attributes.update '(@ (foo 1) (bar 2) (baz 3)) 'bar inc)
+ (@ (foo 1) (bar 3) (baz 3)))
+
+(define (sxml-attributes.set attrs namesym val)
+  (sxml-attributes.update attrs namesym (lambda (v) val)))
+
+(TEST
+ > (sxml-attributes.set '(@ (foo 1) (bar 2)) 'baz "baz")
+ (@ (foo 1) (bar 2) (baz "baz"))
+ > (sxml-attributes.set '(@ (foo 1) (bar 2)) 'bar "baz")
+ (@ (foo 1) (bar "baz"))
+ > (sxml-attributes.set '(@ (foo 1) (bar 2)) 'foo "baz")
+ (@ (foo "baz") (bar 2)))
+
+(define (sxml-attributes.delete attrs namesym)
+  (sxml-attributes.update attrs namesym (lambda (v) sxml:nothing)))
+
+(TEST
+ > (sxml-attributes.delete '(@ (foo 1) (bar 2)) 'foo)
+ (@ (bar 2))
+ > (sxml-attributes.delete '(@ (foo 1) (bar 2)) 'bar)
+ (@ (foo 1))
+ > (sxml-attributes.delete '(@ (foo 1) (bar 2) (baz 3)) 'bar)
+ (@ (foo 1) (baz 3))
+ > (sxml-attributes.delete '(@ (foo 1) (bar 2)) 'z)
+ (@ (foo 1) (bar 2)))
+
 
 
 
