@@ -188,6 +188,20 @@
 
 (define sxml-attributes.ref sxml-attributes:ref)
 
+(TEST
+ > (sxml-attributes.ref '(@ (foo 1) (bar 2)) 'bar)
+ 2
+ > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar 2 3)) 'bar))
+ #(error "more than one value in attributes for:" (@ (foo 1) (bar 2 3)) bar)
+ > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar . 2)) 'bar))
+ #(error "missing attribute value in attributes for:" (@ (foo 1) (bar . 2)) bar)
+ > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar . 2)) 'baz))
+ #(error "missing attribute named" baz)
+ > (%try-error (sxml-attributes.ref '(@ (foo 1) (bar . 2)) 'baz #f))
+ #f
+ > (%try-error (sxml-attributes.ref '((foo 1) (bar . 2)) 'baz #f))
+ #(error "expected sxml-attributes, got:" ((foo 1) (bar . 2)) baz))
+
 
 
 (define (sxml-element-bodytext element)
