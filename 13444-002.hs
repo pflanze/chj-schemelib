@@ -1,3 +1,5 @@
+-- from  http://article.gmane.org/gmane.comp.lang.haskell.libraries/13444
+
 module TestSet where
 
 import Data.Set as S
