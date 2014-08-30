@@ -503,3 +503,7 @@
 
 ;(define shy)
 
+
+(define sxml-element.body sxml-element-body)
+(define sxml-element.bodytext sxml-element-bodytext)
+;; or actually even dot-oo versions? are you crazy?
