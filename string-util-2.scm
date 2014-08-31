@@ -348,18 +348,60 @@
 	      (lp (inc i)))
 	  (values str "")))))
 
+;; XX mostly-copy-paste of string-split-1
+(define-typed (if-string-split-once
+	       str
+	       #((either char? procedure?) val-or-pred)
+	       #(boolean? drop-match?)
+	       #(procedure? then)
+	       #(procedure? els))
+  (let ((len (string-length str))
+	(pred (if (procedure? val-or-pred)
+		  val-or-pred
+		  (lambda (c)
+		    (eq? c val-or-pred)))))
+    (let lp ((i 0))
+      (if (< i len)
+	  (if (pred (string-ref str i))
+	      (then (substring str 0 i)
+		    (substring str (if drop-match?
+				       (inc i)
+				       i) len))
+	      (lp (inc i)))
+	  (els)))))
+
+;; same as string-split-1 but returns false as the second value if
+;; there's no match
+(define (string-split-once str val-or-pred drop-match?)
+  (if-string-split-once str val-or-pred drop-match?
+			values
+			(C values str #f)))
+
 (TEST
- > (values->vector (string-split-1 "ab  c d" char-whitespace?))
- #("ab" "  c d")
- > (values->vector (string-split-1 "foo?q=1" #\?))
- #("foo" "?q=1")
- > (values->vector (string-split-1 "foo?q=1" #\? #t))
- #("foo" "q=1")
- > (values->vector (string-split-1 "foo?" #\?))
- #("foo" "?")
- > (values->vector (string-split-1 "foo" #\?))
- #("foo" "")
- )
+ > (def (t spl failresult)
+	(local-TEST
+	 > (spl "ab  c d" char-whitespace?)
+	 #("ab" "  c d")
+	 > (spl "foo?q=1" #\?)
+	 #("foo" "?q=1")
+	 > (spl "foo?q=1" #\? #t)
+	 #("foo" "q=1")
+	 > (spl "foo?" #\?)
+	 #("foo" "?")
+	 > (equal? (spl "foo" #\?) failresult)
+	 #t))
+ > (%test (t (lambda (str p #!optional ?)
+	       (values->vector (string-split-1 str p ?)))
+	     '#("foo" "")))
+ > (%test (t (lambda (str p #!optional ?)
+	       (values->vector (string-split-once str p ?)))
+	     '#("foo" #f)))
+ > (%test (t (lambda (str p #!optional ?)
+	       (if-string-split-once str p ?
+				     vector
+				     false/0))
+	     #f)))
+
 
 (define string-reverse
   ;;XX bah
