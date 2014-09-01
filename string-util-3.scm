@@ -122,3 +122,20 @@
  ;; *** ERROR IN (console)@9.1 -- (Argument 2) Out of range
  )
 
+(define. (string.any str pred)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (and (< i len)
+	   (or (pred (string-ref str i))
+	       (lp (inc i)))))))
+
+(TEST
+ > (string.any "foo" char-whitespace?)
+ #f
+ > (string.any "foo " char-whitespace?)
+ #t
+ > (string.any " " char-whitespace?)
+ #t
+ > (string.any "" char-whitespace?)
+ #f)
+
