@@ -333,7 +333,6 @@
 			    (list-of-posixpath-segment.parent segments)
 			    'directory))))
 
-;; copypaste~
 (def. (collapsed-posixpath.xparent p)
   (collapsed-posixpath.if-parent
    p
