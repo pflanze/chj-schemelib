@@ -4,7 +4,18 @@
 (define. values.vector values->vector)
 
 (define. number.string number->string)
-(define. string.number string->number)
+(define. string.maybe-number string->number)
+
+(define. (string.number s)
+  (or (string->number s)
+      (error "not a number string:" s)))
+
+(TEST
+ > (%try-error (string.number "0 "))
+ #(error "not a number string:" "0 ")
+ > (string.maybe-number "0 ")
+ #f)
+
 
 (define. symbol.string symbol->string)
 (define. string.symbol string->symbol)
