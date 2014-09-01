@@ -11,33 +11,34 @@
 ;; partially following
 ;; http://hackage.haskell.org/packages/archive/system-filepath/0.4.6/doc/html/src/Filesystem-Path.html
 
-(require easy string-util-1)
+(require easy string-util-1 more-oo)
 
-(def list-of-string?
-  (list-of string?))
 (def nonempty-string?
-  (both string?
-	(complement string-empty?)))
-(def posixpath-segment?
-  (all-of nonempty-string?
-	  (complement (cut string-contains? <> "/"))))
-(def list-of-nonempty-string?
-  (list-of nonempty-string?))
-(def list-of-posixpath-segment?
-  (list-of posixpath-segment?))
-(def (posixpath-type? v)
-  (case v ((directory file) #t) (else #f)))
+     (both string?
+	   (complement string-empty?)))
+
+(def (posixpath-segment? v)
+     (and (nonempty-string? v)
+	  (not (string-contains? v "/"))))
+
+(def (collapsed-posixpath-segment? v)
+     (and (nonempty-string? v)
+	  (not (or (string.dot? v)
+		   (string-contains? v "/")))))
+
+(def list-of-string?             (list-of string?))
+(def list-of-nonempty-string?    (list-of nonempty-string?))
+(def list-of-posixpath-segment?  (list-of posixpath-segment?))
+
+(defenum posixpath-type
+  directory file)
 
 (def. (string.dot? v)
   (string=? v "."))
+
 (def. (string.dotdot? v)
   (string=? v ".."))
 
-
-(def (collapsed-posixpath-segment? v)
-  (and (nonempty-string? v)
-       (not (or (string.dot? v)
-		(string-contains? v "/")))))
 
 (defstruct posixpath
   #(boolean? absolute?)
@@ -47,8 +48,8 @@
   #(boolean? collapsed?))
 
 (def collapsed-posixpath?
-  (both posixpath?
-	posixpath.collapsed?))
+     (both posixpath?
+	   posixpath.collapsed?))
 
 
 (def. (posixpath.null? p)
@@ -308,10 +309,10 @@
 ;;   (compose* reverse cdr reverse))
 
 (def (list-of-posixpath-segment.parent l)
-  (let ((r (reverse l)))
-    (reverse (if (.dotdot? (car r))
-		 (cons ".." r)
-		 (cdr r)))))
+     (let ((r (reverse l)))
+       (reverse (if (.dotdot? (car r))
+		    (cons ".." r)
+		    (cdr r)))))
 
 (def. (collapsed-posixpath.if-parent p then els)
   (let-posixpath
@@ -379,9 +380,9 @@
 ;;; diff --------------------------------------------------
 
 (def (common-prefix-drop a b)
-  (let ((n (lists-common-prefix-length (list a b) string=?)))
-    (values (drop a n)
-	    (drop b n))))
+     (let ((n (lists-common-prefix-length (list a b) string=?)))
+       (values (drop a n)
+	       (drop b n))))
 
 (TEST
  > (.vector (common-prefix-drop '("a" "b")'("a" "c" "d")))
@@ -390,16 +391,16 @@
  )
 
 (def (cj-posixpath:ppdiff from to)
-  (letv ((froms tos) ((on .segments common-prefix-drop) from to))
-	(if (and (pair? froms)
-		 (.dotdot? (car froms)))
-	    (error "relative from path is further up than to:"
-		   (.string from)
-		   (.string to))
-	    ;; segments is all we need to change? Even stays
-	    ;; collapsed?
-	    (.segments-set to
-			   (make-list/tail (length froms) ".." tos)))))
+     (letv ((froms tos) ((on .segments common-prefix-drop) from to))
+	   (if (and (pair? froms)
+		    (.dotdot? (car froms)))
+	       (error "relative from path is further up than to:"
+		      (.string from)
+		      (.string to))
+	       ;; segments is all we need to change? Even stays
+	       ;; collapsed?
+	       (.segments-set to
+			      (make-list/tail (length froms) ".." tos)))))
 
 (def. collapsed-posixpath.diff
   (typed-lambda
