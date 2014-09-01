@@ -237,7 +237,11 @@
 			(list-of-posixpath-segment.collapse
 			 segments
 			 (lambda (l* levels-above)
-			   (make-list/tail levels-above ".." l*)))
+			   (if (or (not absolute?)
+				   (zero? levels-above))
+			       (make-list/tail levels-above ".." l*)
+			       (error "absolute path pointing outside the root:"
+				      p))))
 			maybe-type)))
 
 (def posixpath-dot (.collapse (.posixpath ".")))
@@ -248,8 +252,11 @@
  "/foo/baz"
  > (.string (.collapse (.posixpath "/foo/bar/../../baz")))
  "/baz"
- > (.string (.collapse (.posixpath "/foo/bar/../../../baz")))
- "/../baz" ;; XXX give error instead or what?
+ > (%try-error (.string (.collapse (.posixpath "/foo/bar/../../../baz"))))
+ #(error
+   "absolute path pointing outside the root:"
+   #(uncollapsed-posixpath #t ("foo" "bar" ".." ".." ".." "baz") #f))
+ ;; would get "/../baz" without the exception
  > (.string (.collapse (.posixpath "bar/./../baz/./..")))
  "./"
  > (.string (.collapse (.posixpath "/foo/..")))
