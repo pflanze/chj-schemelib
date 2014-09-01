@@ -249,7 +249,7 @@
  > (.string (.collapse (.posixpath "/foo/bar/../../baz")))
  "/baz"
  > (.string (.collapse (.posixpath "/foo/bar/../../../baz")))
- "/../baz" ;; XX give error instead or what?
+ "/../baz" ;; XXX give error instead or what?
  > (.string (.collapse (.posixpath "bar/./../baz/./..")))
  "./"
  > (.string (.collapse (.posixpath "/foo/..")))
@@ -461,6 +461,7 @@
  > (.string (.diff (.collapse (.posixpath "foo/bar/"))
 		   (.collapse (.posixpath "../baz.html"))))
  "../../../baz.html"
+
  ;; (unimportant or misplaced tests:
  > (.string (.diff (.collapse (.posixpath "foo/bar"))
 		   (.collapse (.posixpath "../baz.html"))))
