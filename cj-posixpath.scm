@@ -11,56 +11,56 @@
 ;; partially following
 ;; http://hackage.haskell.org/packages/archive/system-filepath/0.4.6/doc/html/src/Filesystem-Path.html
 
-(require dot-oo string-util-1)
+(require easy string-util-1)
 
-(define list-of-string?
+(def list-of-string?
   (list-of string?))
-(define nonempty-string?
+(def nonempty-string?
   (both string?
 	(complement string-empty?)))
-(define posixpath-segment?
+(def posixpath-segment?
   (all-of nonempty-string?
 	  (complement (cut string-contains? <> "/"))))
-(define list-of-nonempty-string?
+(def list-of-nonempty-string?
   (list-of nonempty-string?))
-(define list-of-posixpath-segment?
+(def list-of-posixpath-segment?
   (list-of posixpath-segment?))
-(define (posixpath-type? v)
+(def (posixpath-type? v)
   (case v ((directory file) #t) (else #f)))
 
-(define. (string.dot? v)
+(def. (string.dot? v)
   (string=? v "."))
-(define. (string.dotdot? v)
+(def. (string.dotdot? v)
   (string=? v ".."))
 
 
-(define (collapsed-posixpath-segment? v)
+(def (collapsed-posixpath-segment? v)
   (and (nonempty-string? v)
        (not (or (string.dot? v)
 		(string-contains? v "/")))))
 
-(define-struct. posixpath
+(defstruct posixpath
   #(boolean? absolute?)
   #(list-of-posixpath-segment? segments)
   #!optional
   #((maybe posixpath-type?) maybe-type)
   #(boolean? collapsed?))
 
-(define collapsed-posixpath?
+(def collapsed-posixpath?
   (both posixpath?
 	posixpath.collapsed?))
 
 
-(define. (posixpath.null? p)
+(def. (posixpath.null? p)
   (null? (.segments p)))
 
-(define. (posixpath.directory? p #!optional (unknown false/0))
+(def. (posixpath.directory? p #!optional (unknown false/0))
   (case (posixpath.maybe-type p)
     ((directory) #t)
     ((file) #f)
     (else (unknown))))
 
-(define. (posixpath.file? p #!optional (unknown false/0))
+(def. (posixpath.file? p #!optional (unknown false/0))
   (case (posixpath.maybe-type p)
     ((file) #t)
     ((directory) #f)
@@ -69,7 +69,7 @@
 
 ;; (do *not* expect list-of-posixpath-segment, as it is meant to be
 ;; used after string-split)--ah, but "." is still ok for that?
-(define. list-of-string.posixpath
+(def. list-of-string.posixpath
   (typed-lambda
    (l #!optional #((maybe posixpath-type?) type))
    (if (null? l)
@@ -88,7 +88,7 @@
 			;; XX instead give error when in conflict with each other?
 			(and looks-like-directory? 'directory)))))))
 
-(define. (string.posixpath s #!optional type)
+(def. (string.posixpath s #!optional type)
   (if (string-empty? s)
       (error "not accepting empty string as a posixpath")
       (list-of-string.posixpath (string-split s #\/) type)))
@@ -114,7 +114,7 @@
  #(error "segments does not match list-of-posixpath-segment?:" ("foo/f" "bar"))
  )
 
-(define. (posixpath.string p)
+(def. (posixpath.string p)
   (let* ((ss (posixpath.segments p))
 	 (s (strings-join ss "/")))
     (if (null? ss)
@@ -144,7 +144,7 @@
  "/foo/bar"
  )
 
-(define. (posixpath.append a b)
+(def. (posixpath.append a b)
   (if (posixpath.absolute? b)
       b
       (if (.file? a)
@@ -189,7 +189,7 @@
 ;; change which file the path resolves to.
 
 ;; resolve just "..", assume there are no "."
-(define. (list-of-posixpath-segment.normalize l #!optional (values values))
+(def. (list-of-posixpath-segment.normalize l #!optional (values values))
   (let lp ((l l)
 	   (res '())
 	   (levels-above 0))
@@ -216,12 +216,12 @@
  )
 
 
-(define. (list-of-posixpath-segment.collapse l values)
+(def. (list-of-posixpath-segment.collapse l values)
   (list-of-posixpath-segment.normalize
    (filter (complement string.dot?) l)
    values))
 
-(define. (posixpath.collapse p)
+(def. (posixpath.collapse p)
   (.collapsed?-set
    (.segments-update
     p
@@ -232,8 +232,8 @@
 	 (make-list/tail levels-above ".." l*)))))
    #t))
 
-(define posixpath-dot (.collapse (.posixpath ".")))
-(define posixpath-dotdot (.posixpath ".."))
+(def posixpath-dot (.collapse (.posixpath ".")))
+(def posixpath-dotdot (.posixpath ".."))
 
 (TEST
  > (.string (.collapse (.posixpath "/foo/bar/../baz")))
@@ -264,22 +264,22 @@
 ;; (well, not calling them that makes sense on non-collapsed paths; but here?)
 
 
-;; (define. collapsed-posixpath.filename
+;; (def. collapsed-posixpath.filename
 ;;   (compose last .segments))
 
-(define. (collapsed-posixpath.if-filename p then els)
+(def. (collapsed-posixpath.if-filename p then els)
   (let ((ss (.segments p)))
     (if (null? ss)
 	(els)
 	(last ss))))
 
-(define. (collapsed-posixpath.xfilename p)
+(def. (collapsed-posixpath.xfilename p)
   (collapsed-posixpath.if-filename
    p
    identity
    (cut error "can't take filename of empty path")))
 
-(define. (collapsed-posixpath.maybe-filename p)
+(def. (collapsed-posixpath.maybe-filename p)
   (collapsed-posixpath.if-filename
    p
    identity
@@ -304,16 +304,16 @@
 ;; easy to check.. would have to be represented in the type
 ;; explicitely.
 
-;; (define list-of-posixpath-segment.parent
+;; (def list-of-posixpath-segment.parent
 ;;   (compose* reverse cdr reverse))
 
-(define (list-of-posixpath-segment.parent l)
+(def (list-of-posixpath-segment.parent l)
   (let ((r (reverse l)))
     (reverse (if (.dotdot? (car r))
 		 (cons ".." r)
 		 (cdr r)))))
 
-(define. (collapsed-posixpath.if-parent p then els)
+(def. (collapsed-posixpath.if-parent p then els)
   (let-posixpath
    ((absolute? segments maybe-type collapsed?) p)
 
@@ -327,13 +327,13 @@
 		  collapsed?))))
 
 ;; copypaste~
-(define. (collapsed-posixpath.xparent p)
+(def. (collapsed-posixpath.xparent p)
   (collapsed-posixpath.if-parent
    p
    identity
    (cut error "can't take parent of root dir")))
 
-(define. (collapsed-posixpath.maybe-parent p)
+(def. (collapsed-posixpath.maybe-parent p)
   (collapsed-posixpath.if-parent
    p
    identity
@@ -362,7 +362,7 @@
 
 ;; actually no need to require them to be collapsed, here..
 
-(define. posixpath.add
+(def. posixpath.add
   (typed-lambda
    (a
     #(posixpath? b))
@@ -378,7 +378,7 @@
 
 ;;; diff --------------------------------------------------
 
-(define (common-prefix-drop a b)
+(def (common-prefix-drop a b)
   (let ((n (lists-common-prefix-length (list a b) string=?)))
     (values (drop a n)
 	    (drop b n))))
@@ -389,7 +389,7 @@
    ("c" "d"))
  )
 
-(define (cj-posixpath:ppdiff from to)
+(def (cj-posixpath:ppdiff from to)
   (letv ((froms tos) ((on .segments common-prefix-drop) from to))
 	(if (and (pair? froms)
 		 (.dotdot? (car froms)))
@@ -401,7 +401,7 @@
 	    (.segments-set to
 			   (make-list/tail (length froms) ".." tos)))))
 
-(define. collapsed-posixpath.diff
+(def. collapsed-posixpath.diff
   (typed-lambda
    (from
     #((all-of collapsed-posixpath?
@@ -426,7 +426,7 @@
  > (.string (.diff (.collapse (.posixpath "../baz.html" 'file))
 		   (.collapse (.posixpath "../bar.html"))))
  "bar.html"
- > (define (pref v) (.add (.collapse (.posixpath "a/b/c"))  v))
+ > (def (pref v) (.add (.collapse (.posixpath "a/b/c"))  v))
  > (.string (pref (.collapse (.posixpath "../../foo"))))
  "a/foo"
  > (.string (pref (.collapse (.posixpath "../bar.html"))))
@@ -434,17 +434,17 @@
  > (.string (.diff (pref (.collapse (.posixpath "../../foo")))
 		   (pref (.collapse (.posixpath "../bar.html")))))
  "../b/bar.html"
- > (define pref identity)
+ > (def pref identity)
  > (%try-error (.diff (pref (.collapse (.posixpath "../../foo")))
 		      (pref (.collapse (.posixpath "../bar.html")))))
  #(error "relative from path is further up than to:" "../../foo" "../bar.html")
 
  ;; a case where relative works
- > (define (pref v) (.add (.collapse (.posixpath "a/b/c"))  v))
+ > (def (pref v) (.add (.collapse (.posixpath "a/b/c"))  v))
  > (.string (.diff (pref (.collapse (.posixpath "../foo")))
 		   (pref (.collapse (.posixpath "../../bar.html")))))
  "../../bar.html"
- > (define pref identity)
+ > (def pref identity)
  > (.string (.diff (pref (.collapse (.posixpath "../foo")))
 		   (pref (.collapse (.posixpath "../../bar.html")))))
  "../../bar.html"
