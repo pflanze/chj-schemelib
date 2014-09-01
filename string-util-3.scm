@@ -93,3 +93,32 @@
  > (string.replace-substrings "FooBar" "o" "00")
  "F0000Bar")
 
+(define. (string.drop str #(natural0? n))
+  (let ((len (string-length str)))
+    (substring str n len)))
+
+(TEST
+ > (.drop "abc" 0)
+ "abc"
+ > (.drop "abc" 2)
+ "c"
+ > (.drop "abc" 3)
+ ""
+ ;; > (.drop "abc" 4)
+ ;; *** ERROR IN (console)@9.1 -- (Argument 2) Out of range
+ )
+
+(define. (string.take str #(natural0? n))
+  (substring str 0 n))
+
+(TEST
+ > (.take "abc" 0)
+ ""
+ > (.take "abc" 2)
+ "ab"
+ > (.take "abc" 3)
+ "abc"
+ ;; > (.take "abc" 4)
+ ;; *** ERROR IN (console)@9.1 -- (Argument 2) Out of range
+ )
+
