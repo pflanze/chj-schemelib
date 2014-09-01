@@ -249,6 +249,22 @@
  > (sxml-attributes.set '(@ (foo 1) (bar 2)) 'foo "baz")
  (@ (foo "baz") (bar 2)))
 
+(define (sxml-attributes.set-missing attrs namesym val)
+  (sxml-attributes.update
+   attrs namesym (lambda (v)
+		   (if (eq? v sxml:nothing)
+		       val
+		       v))))
+
+(TEST
+ > (sxml-attributes.set-missing '(@ (foo 1) (bar 2)) 'baz "baz")
+ (@ (foo 1) (bar 2) (baz "baz"))
+ > (sxml-attributes.set-missing '(@ (foo 1) (bar 2)) 'bar "baz")
+ (@ (foo 1) (bar 2))
+ > (sxml-attributes.set-missing '(@ (foo 1) (bar 2)) 'foo "baz")
+ (@ (foo 1) (bar 2)))
+
+
 (define (sxml-attributes.delete attrs namesym)
   (sxml-attributes.update attrs namesym (lambda (v) sxml:nothing)))
 
