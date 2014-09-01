@@ -1,6 +1,4 @@
-;; also requires |define.|
-;; Hm actually perhaps it doesn't.
-;; Well or maybe it does. |for| as macro, then .for for the underlying?
+(require cj-env dot-oo)
 
 ;; (define-macro* (for var seq . body)
 ;;   `(.for seq
