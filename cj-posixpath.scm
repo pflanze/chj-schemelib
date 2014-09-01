@@ -8,7 +8,7 @@
 
 ;; for POSIX filesystem or HTTP paths
 
-;; partially following
+;; (originally) partially following
 ;; http://hackage.haskell.org/packages/archive/system-filepath/0.4.6/doc/html/src/Filesystem-Path.html
 
 (require easy string-util-1 more-oo)
@@ -25,9 +25,9 @@
 (def list-of-string?             (list-of string?))
 (def list-of-nonempty-string?    (list-of nonempty-string?))
 (def list-of-posixpath-segment?  (list-of posixpath-segment?))
+(def list-of-collapsed-posixpath-segment?
+     (list-of collapsed-posixpath-segment?))
 
-(defenum posixpath-type
-  directory file)
 
 (def. (string.dot? v)
   (string=? v "."))
@@ -35,30 +35,37 @@
 (def. (string.dotdot? v)
   (string=? v ".."))
 
+(defenum posixpath-type
+  directory file)
 
-(defstruct posixpath
-  #(boolean? absolute?)
-  #(list-of-posixpath-segment? segments)
-  #!optional
-  #((maybe posixpath-type?) maybe-type)
-  #(boolean? collapsed?))
 
-(def collapsed-posixpath?
-     (both posixpath?
-	   posixpath.collapsed?))
+(class segmentedpath
+       (subclass posixpath
+		 (subclass uncollapsed-posixpath
+			   (struct 
+			    #(boolean? absolute?)
+			    #(list-of-posixpath-segment? segments)
+			    #!optional
+			    #((maybe posixpath-type?) maybe-type)))
 
+		 (subclass collapsed-posixpath
+			   (struct 
+			    #(boolean? absolute?)
+			    #(list-of-collapsed-posixpath-segment? segments)
+			    #!optional
+			    #((maybe posixpath-type?) maybe-type)))))
 
 (def. (posixpath.null? p)
   (null? (.segments p)))
 
 (def. (posixpath.directory? p #!optional (unknown false/0))
-  (case (posixpath.maybe-type p)
+  (case (.maybe-type p)
     ((directory) #t)
     ((file) #f)
     (else (unknown))))
 
 (def. (posixpath.file? p #!optional (unknown false/0))
-  (case (posixpath.maybe-type p)
+  (case (.maybe-type p)
     ((file) #t)
     ((directory) #f)
     (else (unknown))))
@@ -79,11 +86,12 @@
 		       .dot?
 		       .dotdot?) (last l)))
 	     (ss (filter (complement string-empty?) l)))
-	 (posixpath absolute?
-		    ss
-		    (or type
-			;; XX instead give error when in conflict with each other?
-			(and looks-like-directory? 'directory)))))))
+	 (uncollapsed-posixpath
+	  absolute?
+	  ss
+	  (or type
+	      ;; XX instead give error when in conflict with each other?
+	      (and looks-like-directory? 'directory)))))))
 
 (def. (string.posixpath s #!optional type)
   (if (string-empty? s)
@@ -94,17 +102,17 @@
  > (%try-error (.posixpath ""))
  #(error "not accepting empty string as a posixpath")
  > (.posixpath "/foo")
- #(posixpath #t ("foo") #f #f)
+ #(uncollapsed-posixpath #t ("foo") #f)
  > (.posixpath "/foo/")
- #(posixpath #t ("foo") directory #f)
+ #(uncollapsed-posixpath #t ("foo") directory)
  > (.posixpath "/")
- #(posixpath #t () directory #f)
+ #(uncollapsed-posixpath #t () directory)
  > (.string (.posixpath "/"))
  "/"
  > (.posixpath "./foo")
- #(posixpath #f ("." "foo") #f #f)
+ #(uncollapsed-posixpath #f ("." "foo") #f)
  > (.posixpath "foo")
- #(posixpath #f ("foo") #f #f)
+ #(uncollapsed-posixpath #f ("foo") #f)
  > (.string (.posixpath '("foo" "bar")))
  "foo/bar"
  > (%try-error (.string (.posixpath '("foo/f" "bar"))))
@@ -112,21 +120,21 @@
  )
 
 (def. (posixpath.string p)
-  (let* ((ss (posixpath.segments p))
+  (let* ((ss (.segments p))
 	 (s (strings-join ss "/")))
     (if (null? ss)
-	(if (posixpath.absolute? p)
+	(if (.absolute? p)
 	    "/"
 	    "./")
 	(string-append
-	 (if (posixpath.absolute? p)
+	 (if (.absolute? p)
 	     ;; (note that prepending an "" segment before strings-join
 	     ;; would not work in the case of the root dir)
 	     "/"
 	     "")
 	 s
 	 (if (and (pair? ss) ;; <- superfluous
-		  (posixpath.directory? p))
+		  (.directory? p))
 	     "/"
 	     "")))))
 
@@ -142,7 +150,7 @@
  )
 
 (def. (posixpath.append a b)
-  (if (posixpath.absolute? b)
+  (if (.absolute? b)
       b
       (if (.file? a)
 	  (error "first path is to a file:" (.string a))
@@ -150,13 +158,14 @@
 	      (.maybe-type-set a 'directory)
 	      ;;^ XX btw assert that b was one? i.e. that a null path is
 	      ;;directory if type is given
-	      (posixpath (.absolute? a)
-			 (append (.segments a) (.segments b))
-			 (.maybe-type b)
-			 ;;((on posixpath.collapsed? and) a b)
-			 (and (posixpath.collapsed? a)
-			      (posixpath.collapsed? b)
-			      (not (.dotdot? (car (.segments b))))))))))
+	      ((if (and (collapsed-posixpath? a)
+			(collapsed-posixpath? b)
+			(not (.dotdot? (car (.segments b)))))
+		   collapsed-posixpath
+		   uncollapsed-posixpath)
+	       (.absolute? a)
+	       (append (.segments a) (.segments b))
+	       (.maybe-type b))))))
 
 (TEST
  > (.string (.append (.posixpath "//foo//bar") (.posixpath "baz")))
@@ -170,13 +179,13 @@
  > (.string (.append (.posixpath "//foo//bar") (.posixpath "baz/")))
  "/foo/bar/baz/"
  > (.append (.posixpath "//foo//bar") (.collapse (.posixpath "../baz/")))
- #(posixpath #t ("foo" "bar" ".." "baz") directory #f)
+ #(uncollapsed-posixpath #t ("foo" "bar" ".." "baz") directory)
  > (.append (.collapse (.posixpath "//foo//bar"))
 	    (.collapse (.posixpath "../baz/")))
- #(posixpath #t ("foo" "bar" ".." "baz") directory #f)
+ #(uncollapsed-posixpath #t ("foo" "bar" ".." "baz") directory)
  > (.append (.collapse (.posixpath "//foo//bar"))
 	    (.collapse (.posixpath "baz/")))
- #(posixpath #t ("foo" "bar" "baz") directory #t)
+ #(collapsed-posixpath #t ("foo" "bar" "baz") directory)
  )
 
 
@@ -218,16 +227,18 @@
    (filter (complement string.dot?) l)
    values))
 
-(def. (posixpath.collapse p)
-  (.collapsed?-set
-   (.segments-update
-    p
-    (lambda (l)
-      (list-of-posixpath-segment.collapse
-       l
-       (lambda (l* levels-above)
-	 (make-list/tail levels-above ".." l*)))))
-   #t))
+(def. (collapsed-posixpath.collapse p) p)
+
+(def. (uncollapsed-posixpath.collapse p)
+  (let-uncollapsed-posixpath
+   ((absolute? segments maybe-type) p)
+
+   (collapsed-posixpath absolute?
+			(list-of-posixpath-segment.collapse
+			 segments
+			 (lambda (l* levels-above)
+			   (make-list/tail levels-above ".." l*)))
+			maybe-type)))
 
 (def posixpath-dot (.collapse (.posixpath ".")))
 (def posixpath-dotdot (.posixpath ".."))
@@ -246,7 +257,7 @@
  > (.string (.collapse (.posixpath "foo/..")))
  "./"
  > (.collapse (.posixpath "./foo/../."))
- #(posixpath #f () directory #t)
+ #(collapsed-posixpath #f () directory)
  > (.string (.collapse (.posixpath "./foo/../.")))
  "./"
  > (.string (.collapse (.posixpath "./foo/.././..")))
@@ -311,17 +322,16 @@
 		    (cdr r)))))
 
 (def. (collapsed-posixpath.if-parent p then els)
-  (let-posixpath
-   ((absolute? segments maybe-type collapsed?) p)
+  (let-collapsed-posixpath
+   ((absolute? segments maybe-type) p)
 
    (if (null? segments)
        (if absolute?
 	   (els)
 	   posixpath-dotdot)
-       (posixpath absolute?
-		  (list-of-posixpath-segment.parent segments)
-		  'directory
-		  collapsed?))))
+       (collapsed-posixpath absolute?
+			    (list-of-posixpath-segment.parent segments)
+			    'directory))))
 
 ;; copypaste~
 (def. (collapsed-posixpath.xparent p)
