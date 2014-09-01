@@ -33,6 +33,12 @@
 (define. (string.dotdot? v)
   (string=? v ".."))
 
+
+(define (collapsed-posixpath-segment? v)
+  (and (nonempty-string? v)
+       (not (or (string.dot? v)
+		(string-contains? v "/")))))
+
 (define-struct. posixpath
   #(boolean? absolute?)
   #(list-of-posixpath-segment? segments)
