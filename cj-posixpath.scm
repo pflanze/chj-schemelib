@@ -13,10 +13,6 @@
 
 (require easy string-util-1 more-oo)
 
-(def nonempty-string?
-     (both string?
-	   (complement string-empty?)))
-
 (def (posixpath-segment? v)
      (and (nonempty-string? v)
 	  (not (string-contains? v "/"))))

@@ -27,7 +27,9 @@
 
 ;; btw should probably move predicates stuff from cj-functional here
 
-;; XXX lib, together with nonempty-string? from "lib/cj-posixpath"
+(define nonempty-string?
+  (both string?
+	(complement string-empty?)))
 
 ;; improper->proper-map
 
