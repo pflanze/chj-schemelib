@@ -78,13 +78,12 @@
    (l #!optional #((maybe posixpath-type?) type))
    (if (null? l)
        (error "what's this?")
-       ;; ^ XX rootpath or ? ah doesn't happen from string-split,
+       ;; ^ rootpath or ? ah doesn't happen from string-split,
        ;; splitting "" gives ("") yeah, remember, stupid right?
        (let ((absolute? (string-empty? (car l)))
-	     (looks-like-directory?
-	      ((either string-empty?
-		       .dot?
-		       .dotdot?) (last l)))
+	     (looks-like-directory? ((either string-empty?
+					     .dot?
+					     .dotdot?) (last l)))
 	     (ss (filter (complement string-empty?) l)))
 	 (uncollapsed-posixpath
 	  absolute?
@@ -227,8 +226,6 @@
    (filter (complement string.dot?) l)
    values))
 
-(def. (collapsed-posixpath.collapse p) p)
-
 (def. (uncollapsed-posixpath.collapse p)
   (let-uncollapsed-posixpath
    ((absolute? segments maybe-type) p)
@@ -243,6 +240,8 @@
 			       (error "absolute path pointing outside the root:"
 				      p))))
 			maybe-type)))
+
+(def. (collapsed-posixpath.collapse p) p)
 
 (def posixpath-dot (.collapse (.posixpath ".")))
 (def posixpath-dotdot (.posixpath ".."))
