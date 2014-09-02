@@ -388,6 +388,41 @@
  #(error "first path is to a file:" "/foo/baz.html")
  )
 
+
+;; a is a chroot that b cannot leave; b is expected to be absolute
+(def. (posixpath.chroot-add a #(posixpath? b))
+  (let ((b* (if (collapsed-posixpath? b)
+	       b
+	       (.collapse b))))
+    (if (.absolute? b*)
+	(posixpath.add a (.absolute?-set b* #f))
+	(error ".chroot-add: path b is not absolute:" b))))
+
+(TEST
+ > (def t (compose .string (on .posixpath .chroot-add)))
+ > (%try-error (t "/foo/baz" "../bar.html"))
+ #(error
+   ".chroot-add: path b is not absolute:"
+   #(uncollapsed-posixpath #f (".." "bar.html") #f))
+ > (t "/foo/baz" "/bar.html")
+ "/foo/baz/bar.html"
+ > (t "/foo/baz/" "/bar.html")
+ "/foo/baz/bar.html"
+ > (t "/foo/baz/" "/./bar.html")
+ "/foo/baz/bar.html"
+ > (t "/foo/baz/" "/f/../bar.html")
+ "/foo/baz/bar.html"
+ > (%try-error (t "/foo/baz/" "/../bar.html"))
+ #(error
+   "absolute path pointing outside the root:"
+   #(uncollapsed-posixpath #t (".." "bar.html") #f))
+ > (t "/foo/.." "/bar.html")
+ ;; ah even a is being collapsed? XX hmm
+ "/bar.html")
+
+
+
+
 ;;; diff --------------------------------------------------
 
 (def (common-prefix-drop a b)
