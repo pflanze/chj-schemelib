@@ -453,6 +453,43 @@
  #(collapsed-posixpath #f ("foo" "bar") file))
 
 
+;; Idea: a type wrapper that makes .add do .chroot-add, so that users
+;; can enforce "safety by data (configuration)" instead (or in
+;; addition to) "safety by program". ok?
+
+(defstruct chroot-path
+  value)
+;;(heh .value is used a lot; well we want to optimize at one point..)
+
+(def. (chroot-path.chroot-add a b)
+  (let-chroot-path ((v) a)
+		   (.chroot-add v b)))
+
+;; and now the point of it:
+(def. chroot-path.add chroot-path.chroot-add)
+
+(TEST
+ > (.chroot-add (chroot-path (.posixpath "foo")) (.posixpath "/bar/"))
+ #(uncollapsed-posixpath #f ("foo" "bar") directory)
+ > (.add (chroot-path (.posixpath "foo")) (.posixpath "/bar/"))
+ #(uncollapsed-posixpath #f ("foo" "bar") directory)
+ ;; XX BUT does it make sense?: b would probably be relative in apps
+ ;; in those cases, which would make chroot-path's just give
+ ;; exceptions all the time:
+ > (.add (.posixpath "foo") (.posixpath "/bar/"))
+ #(collapsed-posixpath #t ("bar") directory)
+
+ > (%try-error (.add (chroot-path (.posixpath "foo")) (.posixpath "../")))
+ #(error
+   ".chroot-add: path b is not absolute:"
+   #(uncollapsed-posixpath #f ("..") directory))
+ ;; versus:
+ > (%try-error (.add (.posixpath "foo") (.posixpath "../")))
+ #(collapsed-posixpath #f () directory))
+
+;; /idea
+
+
 ;;; diff --------------------------------------------------
 
 (def (common-prefix-drop a b)
