@@ -395,11 +395,12 @@
 	       b
 	       (.collapse b))))
     (if (.absolute? b*)
-	(posixpath.add a (.absolute?-set b* #f))
+	(posixpath.append a (.absolute?-set b* #f))
 	(error ".chroot-add: path b is not absolute:" b))))
 
 (TEST
- > (def t (compose .string (on .posixpath .chroot-add)))
+ > (def t* (on .posixpath .chroot-add))
+ > (def t (compose .string t*))
  > (%try-error (t "/foo/baz" "../bar.html"))
  #(error
    ".chroot-add: path b is not absolute:"
@@ -417,10 +418,39 @@
    "absolute path pointing outside the root:"
    #(uncollapsed-posixpath #t (".." "bar.html") #f))
  > (t "/foo/.." "/bar.html")
- ;; ah even a is being collapsed? XX hmm
- "/bar.html")
+ ;; .chroot-add does not collapse a
+ "/foo/../bar.html"
 
-
+ ;; relative a is ok:
+ > (t "foo/.." "/bar.html")
+ "foo/../bar.html"
+ > (t ".." "/bar.html")
+ "../bar.html"
+ > (t "../." "/bar.html")
+ ".././bar.html"
+ ;; and of course, very usual case?:
+ > (t "." "/bar.html")
+ "./bar.html"
+ > (t "." "/.")
+ "./"
+ ;; correct directory vs. file handling:
+ > (t* ".." "/.")
+ #(uncollapsed-posixpath #f ("..") directory)
+ > (t* ".." "/")
+ #(uncollapsed-posixpath #f ("..") directory)
+ > (t* ".." "/foo")
+ #(uncollapsed-posixpath #f (".." "foo") #f)
+ > (%try-error (.chroot-add (.posixpath "foo") (.posixpath "/bar" 'file)))
+ #(uncollapsed-posixpath #f ("foo" "bar") file)
+ ;; superfluous since this check in .append is already tested, but...:
+ > (%try-error (.chroot-add (.posixpath "foo" 'file) (.posixpath "/bar")))
+ #(error "first path is to a file:" "foo")
+ ;; hm BTW interesting, a path ending in a slash can be a file?
+ > (.chroot-add (.posixpath "foo") (.posixpath "/bar/" 'file))
+ #(uncollapsed-posixpath #f ("foo" "bar") file)
+ ;; check collapse 'flag' maintenance
+ > (.chroot-add (.collapse (.posixpath "foo")) (.posixpath "/bar/" 'file))
+ #(collapsed-posixpath #f ("foo" "bar") file))
 
 
 ;;; diff --------------------------------------------------
