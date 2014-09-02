@@ -585,6 +585,50 @@
  )
 
 
-;; XX Hmm create a .httppath that defaults to file semantics?
-;; "foo/bar" would be a 'file'. ? Or add more types there?
+;;; Web URLs: web-add --------------------------------------------
+
+;; ATTENTION: both base and url are meant to be untrusted data. Don't
+;; give a filesystem location as base. Instead, feed the result of
+;; .web-add to .chroot-add !
+
+;; Adding of relative URLs treats the source location as a directory
+;; that can directly be taken as the base if it ends in a slash,
+;; otherwise the parent is used.
+(def. (collapsed-posixpath.web-add base #(posixpath? url))
+  (if (.directory? base)
+      (.add base url)
+      (.add (.xparent base) url)))
+
+(TEST
+ > (define (t a b)
+     (.string (.web-add (.collapse (.posixpath a))
+			(.posixpath b))))
+ > (t "/" "foo.png")
+ "/foo.png"
+ > (t "." "foo.png")
+ ;; XXX allow this? Make (.absolute? a) a requirement?
+ "foo.png"
+ > (t "/" "foo.png")
+ "/foo.png"
+ ;; > (%try-error (t "/.." "foo.png"))
+ ;; #(error
+ ;;   "absolute path pointing outside the root:"
+ ;;   #(uncollapsed-posixpath #t (".." "foo.png") #f))
+ ;; #(error
+ ;;   "absolute path pointing outside the root:"
+ ;;   #(uncollapsed-posixpath #t ("..") directory))
+ > (t "/bar" "foo.png")
+ "/foo.png"
+ > (%try-error (t "/bar" "../foo.png"))
+ ;; XX should probably use an overridable (continuable) error
+ #(error
+   "absolute path pointing outside the root:"
+   #(uncollapsed-posixpath #t (".." "foo.png") #f))
+ > (t "/bar/" "../foo.png")
+ "/foo.png"
+ > (t "/bar/baz" "../foo.png")
+ "/foo.png"
+ > (t "/bar/baz" ".")
+ "/bar/" ;; heh good
+ )
 
