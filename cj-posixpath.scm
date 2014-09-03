@@ -587,6 +587,9 @@
 
 ;;; Web URLs: web-add --------------------------------------------
 
+;; XX should this be named .url-add ? But the data types are not full
+;; URLs. Should it be named .urlpath-add ?
+
 ;; ATTENTION: both base and url are meant to be untrusted data. Don't
 ;; give a filesystem location as base. Instead, feed the result of
 ;; .web-add to .chroot-add !
