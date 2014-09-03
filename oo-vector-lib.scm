@@ -27,6 +27,10 @@
    (def. VECTOR.list VECTOR->list)
    (def. list.VECTOR list->VECTOR)
 
+   ;; XX already have |string-empty?|
+   (def. (VECTOR.null? v)
+     (zero? (VECTOR-length v)))
+
    (IF (not (eq? 'VECTOR 'string))
        (begin
 	 ;; Heh these are still using the R5RS number operations
