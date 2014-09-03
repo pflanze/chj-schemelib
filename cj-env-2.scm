@@ -121,3 +121,28 @@
 	     args
 	     maybe-p-s))))
 
+(define-macro* (CA . forms)
+  (let* ((_? (lambda (v)
+	       (eq? (source-code v) '_)))
+	 (forms* (map (lambda (form)
+			(if (_? form)
+			    (cons #t (gensym))
+			    (cons #f form)))
+		      forms))
+	 (vs (map cdr (filter car forms*))))
+    (with-gensym
+     R
+     `(lambda ,(if* vs `(,@vs . ,R) R)
+	(apply ,@(map cdr forms*) ,R)))))
+
+(TEST
+ > ((CA vector) 1 2)
+ #(1 2)
+ > ((CA vector _ '+) 1 2)
+ #(1 + 2)
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#CA vector _ '+)
+ (lambda (GEN:-5527 . GEN:R-5528) (apply vector GEN:-5527 '+ GEN:R-5528))
+ > (expansion#CA vector '+)
+ (lambda GEN:R-5529 (apply vector '+ GEN:R-5529)))
+
