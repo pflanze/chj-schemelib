@@ -515,23 +515,18 @@
 	       (.segments-set to
 			      (make-list/tail (length froms) ".." tos)))))
 
-(def. collapsed-posixpath.diff
-  (typed-lambda
-   (from
-    #((all-of collapsed-posixpath?
-	      ;; hu was wolltichhier ?both ?
-	      ) to))
-   (if (.file? from)
-       ;; really transparently do this?:
-       (.diff (.xparent from) to)
-       (if (.absolute? from)
-	   (if (.absolute? to)
-	       (cj-posixpath:ppdiff from to)
-	       (error "from is absolute, to relative"))
-	   (if (.absolute? to)
-	       to ;; (error "from is relative, to is absolute")
-	       ;; (error "diff of relative paths not yet implemented")
-	       (cj-posixpath:ppdiff from to))))))
+(def. (collapsed-posixpath.diff from #(collapsed-posixpath? to))
+  (if (.file? from)
+      ;; really transparently do this?:
+      (.diff (.xparent from) to)
+      (if (.absolute? from)
+	  (if (.absolute? to)
+	      (cj-posixpath:ppdiff from to)
+	      (error "from is absolute, to relative"))
+	  (if (.absolute? to)
+	      to ;; (error "from is relative, to is absolute")
+	      ;; (error "diff of relative paths not yet implemented")
+	      (cj-posixpath:ppdiff from to)))))
 
 (TEST
  > (define (t-diff a b)
