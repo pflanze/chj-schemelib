@@ -603,15 +603,15 @@
       (.add (.xparent base) url)))
 
 (TEST
- > (define (t a b)
+ > (define (t-add a b)
      (.string (.web-add (.collapse (.posixpath a))
 			(.posixpath b))))
- > (t "/" "foo.png")
+ > (t-add "/" "foo.png")
  "/foo.png"
- > (t "." "foo.png")
+ > (t-add "." "foo.png")
  ;; XXX allow this? Make (.absolute? a) a requirement?
  "foo.png"
- > (t "/" "foo.png")
+ > (t-add "/" "foo.png")
  "/foo.png"
  ;; > (%try-error (t "/.." "foo.png"))
  ;; #(error
@@ -620,18 +620,18 @@
  ;; #(error
  ;;   "absolute path pointing outside the root:"
  ;;   #(uncollapsed-posixpath #t ("..") directory))
- > (t "/bar" "foo.png")
+ > (t-add "/bar" "foo.png")
  "/foo.png"
- > (%try-error (t "/bar" "../foo.png"))
+ > (%try-error (t-add "/bar" "../foo.png"))
  ;; XX should probably use an overridable (continuable) error
  #(error
    "absolute path pointing outside the root:"
    #(uncollapsed-posixpath #t (".." "foo.png") #f))
- > (t "/bar/" "../foo.png")
+ > (t-add "/bar/" "../foo.png")
  "/foo.png"
- > (t "/bar/baz" "../foo.png")
+ > (t-add "/bar/baz" "../foo.png")
  "/foo.png"
- > (t "/bar/baz" ".")
+ > (t-add "/bar/baz" ".")
  "/bar/" ;; heh good
  )
 
