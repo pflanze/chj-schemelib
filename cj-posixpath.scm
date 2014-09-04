@@ -594,7 +594,7 @@
  )
 
 
-;;; Web URLs: web-add --------------------------------------------
+;;; Web URLs: web-add, web-diff ------------------------------------------
 
 ;; XX should this be named .url-add ? But the data types are not full
 ;; URLs. Should it be named .urlpath-add ?
@@ -607,9 +607,10 @@
 ;; that can directly be taken as the base if it ends in a slash,
 ;; otherwise the parent is used.
 (def. (collapsed-posixpath.web-add base #(posixpath? url))
-  (if (.directory? base)
-      (.add base url)
-      (.add (.xparent base) url)))
+  (posixpath.add (if (.directory? base)
+		     base
+		     (.xparent base))
+		 url))
 
 (TEST
  > (define (t-add a b)
@@ -642,5 +643,30 @@
  "/foo.png"
  > (t-add "/bar/baz" ".")
  "/bar/" ;; heh good
+ )
+
+(def. (collapsed-posixpath.web-diff base #(collapsed-posixpath? url))
+  (cj-posixpath:_diff (if (.directory? base)
+			  base
+			  (.xparent base))
+		      url))
+
+(TEST
+ > (define (t a b)
+     (.string (.web-diff (.collapse (.posixpath a))
+			 (.collapse (.posixpath b)))))
+ ;; I'm at /foo, want to go to /foo/bar
+ > (t "/foo" "/foo/bar")
+ "foo/bar"
+ > (t "/foo/" "/foo/bar")
+ "bar"
+ > (t "foo" "foo/bar")
+ "foo/bar"
+ > (t "foo/" "foo/bar")
+ "bar"
+ > (t "foo/bar" "foo/bar/baz")
+ "bar/baz"
+ > (t "foo/bar" "../baz")
+ "../../baz" ;; XXX should this give an exception?, unlike .diff ?
  )
 
