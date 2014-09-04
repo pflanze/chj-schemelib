@@ -512,8 +512,9 @@
 		      (.string to))
 	       ;; segments is all we need to change? Even stays
 	       ;; collapsed?
-	       (.segments-set to
-			      (make-list/tail (length froms) ".." tos)))))
+	       (chain to
+		      (.segments-set (make-list/tail (length froms) ".." tos))
+		      (.absolute?-set #f)))))
 
 (def (cj-posixpath:_diff from to)
      (if (.absolute? from)
