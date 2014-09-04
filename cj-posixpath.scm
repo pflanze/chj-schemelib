@@ -540,7 +540,16 @@
  "../bar.html"
  > (t-diff (.posixpath "../baz.html" 'file) "../bar.html")
  "bar.html"
-
+ ;; absolute paths:
+ > (t-diff "/foo" "/foo/bar")
+ "bar"
+ > (t-diff (.posixpath "/foo" file) "/foo/bar")
+ "foo/bar"
+ > (t-diff "/foo/" "/foo/bar")
+ "bar"
+ ;; (XX: really run all tests for both absolute and
+ ;; relative-from-some-imaginary root? Do more test generation?)
+ 
  > (def (pref v)
 	(.add (.collapse (.posixpath "a/b/c"))
 	      (.collapse (.posixpath v))))
