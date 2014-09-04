@@ -534,52 +534,52 @@
 	       (cj-posixpath:ppdiff from to))))))
 
 (TEST
- >  (.string (.diff (.collapse (.posixpath "../baz/"))
-		    (.collapse (.posixpath "../bar.html"))))
+ > (define (t-diff a b)
+     (.string (.diff (.collapse (if (posixpath? a) a (.posixpath a)))
+		     (.collapse (if (posixpath? b) b (.posixpath b))))))
+ > (t-diff "../baz/" "../bar.html")
  "../bar.html"
- > (.string (.diff (.collapse (.posixpath "../baz.html" 'file))
-		   (.collapse (.posixpath "../bar.html"))))
+ > (t-diff (.posixpath "../baz.html" 'file) "../bar.html")
  "bar.html"
- > (def (pref v) (.add (.collapse (.posixpath "a/b/c"))  v))
- > (.string (pref (.collapse (.posixpath "../../foo"))))
+
+ > (def (pref v)
+	(.add (.collapse (.posixpath "a/b/c"))
+	      (.collapse (.posixpath v))))
+ > (def (nopref v)
+	(.collapse (.posixpath v)))
+
+ > (.string (pref "../../foo"))
  "a/foo"
- > (.string (pref (.collapse (.posixpath "../bar.html"))))
+ > (.string (pref "../bar.html"))
  "a/b/bar.html"
- > (.string (.diff (pref (.collapse (.posixpath "../../foo")))
-		   (pref (.collapse (.posixpath "../bar.html")))))
+ > (.string (.diff (pref "../../foo")
+		   (pref "../bar.html")))
  "../b/bar.html"
- > (def pref identity)
- > (%try-error (.diff (pref (.collapse (.posixpath "../../foo")))
-		      (pref (.collapse (.posixpath "../bar.html")))))
+ 
+ > (%try-error (.diff (nopref "../../foo")
+		      (nopref "../bar.html")))
  #(error "relative from path is further up than to:" "../../foo" "../bar.html")
 
  ;; a case where relative works
- > (def (pref v) (.add (.collapse (.posixpath "a/b/c"))  v))
- > (.string (.diff (pref (.collapse (.posixpath "../foo")))
-		   (pref (.collapse (.posixpath "../../bar.html")))))
+ > (.string (.diff (pref "../foo")
+		   (pref "../../bar.html")))
  "../../bar.html"
- > (def pref identity)
- > (.string (.diff (pref (.collapse (.posixpath "../foo")))
-		   (pref (.collapse (.posixpath "../../bar.html")))))
+ > (.string (.diff (nopref "../foo")
+		   (nopref "../../bar.html")))
  "../../bar.html"
 
- > (.string (.diff (.collapse (.posixpath "../."))
-		   (.collapse (.posixpath "../bar.html"))))
+ > (t-diff "../." "../bar.html")
  "bar.html"
- > (.string (.diff (.collapse (.posixpath "foo/bar/"))
-		   (.collapse (.posixpath "../baz.html"))))
+ > (t-diff "foo/bar/" "../baz.html")
  "../../../baz.html"
 
  ;; (unimportant or misplaced tests:
- > (.string (.diff (.collapse (.posixpath "foo/bar"))
-		   (.collapse (.posixpath "../baz.html"))))
+ > (t-diff "foo/bar" "../baz.html")
  ;; yeah, currently "foo/bar" is still handled like a dir
  "../../../baz.html"
- > (.string (.diff (.collapse (.posixpath "foo/bar"))
-		   (.collapse (.posixpath "bim/baz.html"))))
+ > (t-diff "foo/bar" "bim/baz.html")
  "../../bim/baz.html"
- > (.string (.diff (.collapse (.posixpath "."))
-		   (.collapse (.posixpath "bim/baz.html"))))
+ > (t-diff "." "bim/baz.html")
  "bim/baz.html"
  ;; )
  )
