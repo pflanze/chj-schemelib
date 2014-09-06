@@ -62,6 +62,7 @@
  ;; XX I'm not testing "foo.bar.baz:boo".. what should it do then?...
  )
 
+;; should this be called |dot-oo:if-pred-then-run-else-run| ?
 (define (dot-oo:if-type-then-run-else-run type? then else)
   (lambda (first . rest)
     (if (type? first)
@@ -84,7 +85,10 @@
 		    (dot-oo:no-method-found-for-generic ',genericname))
 		  (set! ,genericname
 			(dot-oo:if-type-then-run-else-run
-			 ,(source.symbol-append typename '?)
+			 ,(with-gensym
+			   V
+			   ;; [*]
+			   `(lambda (,V) (,(source.symbol-append typename '?) ,V)))
 			 ,name
 			 ,genericname)))))))))
 
@@ -98,14 +102,17 @@
 	      `(typed-lambda ,(cdr first*)
 		 ,@rest))))))
 
-;; Note: this resolves the type predicate at loading time. Later
-;; changes to it will not be picked up anymore.
-;; Is this bad?
+;; [*] Note: this now resolves the type predicate at run time, so that
+;; later redefinitions of other modules are respected, and so that
+;; more-oo can work (without a hack that broke compilation).
 
 ;; Redefinitions of the same method by using define. in the running
-;; system will keep the previous definition chained in the generic;
-;; apart from the type checking cost this won't have any effect though
-;; (leaks anyway; ok interpreted code wouldn't).
+;; system will keep the previous definition chained in the
+;; generic. (They are now not retaining the old type predicate
+;; anymore, so they'll check for the same updated predicates as the
+;; newest method definitions.)  Apart from the type checking cost upon
+;; failures or types that aren't reloaded (and memory usage) this
+;; won't have any effect though.
 
 (TEST
  > (define. (list.ref x y) (list-ref x y))
