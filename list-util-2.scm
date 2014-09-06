@@ -183,3 +183,26 @@
  ((A) (B))
  )
 
+
+(define (shiftmap fn l)
+     (map fn
+	  l
+	  (append (cdr l) (list (car l)))))
+
+(define (all-equal? l #!optional (equal? equal?))
+  ;; XX optimize..
+  (every true?
+	 (shiftmap equal?
+		   l)))
+
+
+(TEST
+ > (shiftmap vector '(1 2 3))
+ (#(1 2) #(2 3) #(3 1))
+ > (shiftmap vector '(1))
+ (#(1 1))
+ ;; > (%try-error (shiftmap vector '()))
+ ;; *** ERROR IN (console)@9.1 -- (Argument 1) PAIR expected
+ ;; (cdr '())
+ )
+
