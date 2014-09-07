@@ -132,10 +132,13 @@
 (define (sxml-element? l)
   (and (pair? l)
        (symbol? (##car l))))
-;; XX and move this.
+
+;; XX and move these:
 (define (sxml-begin? l)
   (and (pair? l)
        (eq? (##car l) '##begin)))
+
+(define sxml-begin (lambda vals `(##begin ,@vals)))
 
 
 
