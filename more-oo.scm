@@ -35,13 +35,7 @@
 		 (box-push! (.subclasses superclass) name))))
   (push! compile-time:class-ctx
 	 (more-oo-class-ctx name (box '())))
-  ;; Indirection to be able to define the predicate after the body of
-  ;; the class but still read it at module load time for the dot-oo
-  ;; dispatchers. HACK
-  (with-gensym
-   V
-   `(def (,(source.symbol-append name "?") ,V)
-	 (,(source.symbol-append "_more-oo_" name "?") ,V))))
+  `(begin))
 
 (defmacro (compile-time#end-class!)
   (let* ((c (pop! compile-time:class-ctx))
@@ -50,9 +44,9 @@
     (no-pp-through-source
      (if (null? subclasses)
 	 `(begin)
-	 `(def ,(source.symbol-append "_more-oo_" (.class-name c) "?")
-	       (either ,@(map (C source.symbol-append _ "?")
-			      subclasses)))))))
+	 `(define ,(source.symbol-append (.class-name c) "?")
+	    (%either ,@(map (C source.symbol-append _ "?")
+			    subclasses)))))))
 
 (defmacro (class name . body)
   `(begin
