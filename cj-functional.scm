@@ -49,6 +49,29 @@
  ;; test shortcutting?
  )
 
+;; macro version of either, not (only) for performance, but for late
+;; binding:
+(define-macro* (%either . fs)
+  (with-gensym
+   V
+   `(lambda (,V)
+      (or ,@(map (lambda (f)
+		   `(,f ,V))
+		 fs)))))
+
+(TEST ;; copy of test cases above
+ > ((%either symbol? string?) "foo")
+ #t
+ > ((%either symbol? string?) 'bar)
+ #t
+ > ((%either symbol? string?) 0)
+ #f
+ > ((%either symbol? number? string?) 0)
+ #t
+ ;; test shortcutting?
+ )
+
+
 ;; name ok?
 (define (both f0 f1)
   (lambda x
