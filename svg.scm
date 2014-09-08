@@ -36,23 +36,28 @@
 	   (.svg-string (.y p))
 	   " "))
 
-(def (_svg-circularize l)
-     (list l (car l)))
+(def (_svg-circularize command0 command1 ps)
+     (let-pair ((p0 ps*) ps)
+	       (cons (_svg-point command0 p0)
+		     (map/tail (C _svg-point command1 _)
+			       (list
+				(_svg-point command1 p0))
+			       ps*))))
 
 (def. (2d-path.svg-fragment shape fit)
-  `(path
-    (@ (d ,(cons "M"
-		 (_svg-circularize
-		  (map (lambda (p)
-			 (let-2d-point ((x y) (fit p))
-				       (list " "
-					     (.svg-string x)
-					     ","
-					     (.svg-string y))))
-		       (.points shape)))))
-       (stroke "black")
-       (stroke-width 1)
-       (fill "green"))))
+  (let ((ps (map fit (.points shape))))
+    (let-pair
+     ((p0 ps*) ps)
+     `(path
+       (@ (d ,(_svg-circularize "M" "L" ps)
+
+	   ;; (cons (_svg-point "M" p0)
+	   ;; 	    (map (C _svg-point "L" _)
+	   ;; 		 ps*))
+	   )
+	  (stroke "black")
+	  (stroke-width 1)
+	  (fill "green"))))))
 
 (def. (2d-square.svg-fragment shape fit)
   `(path
