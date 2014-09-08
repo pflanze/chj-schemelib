@@ -66,6 +66,17 @@
 		 (method (start p)
 			 p))
 
+       (subclass 2d-path
+		 (struct #((list-of 2d-point?) points))
+
+		 (method (start v)
+			 (car (2d-path.points v)))
+
+		 (method (min+maxs/prev v min+max)
+			 (fold 2d-point.min+maxs/prev
+			       min+max
+			       (2d-path.points v))))
+
        (subclass 2d-square
 		 (struct #(2d-point? start)
 			 #(2d-point? vector))
