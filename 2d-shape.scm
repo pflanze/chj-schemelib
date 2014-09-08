@@ -106,7 +106,12 @@
 			    (list mi
 				  (2d-point x1 y0)
 				  ma
-				  (2d-point x0 y1)))))))
+				  (2d-point x0 y1))))))
+
+		 (method (range v)
+			 (let-2d-window
+			  ((mi ma) v)
+			  (.- ma mi))))
 
        (subclass 2d-square
 		 (struct #(2d-point? start)
