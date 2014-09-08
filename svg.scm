@@ -9,9 +9,7 @@
 (require 2d-shape)
 
 
-(def. (exact.svg-string x)
-  ;; integers are rational, too [in Scheme]
-  ;; ah duh, even inexact numbers are rationals.
+(def. (real.svg-string x)
   (number.string
    (if (integer? x)
        x

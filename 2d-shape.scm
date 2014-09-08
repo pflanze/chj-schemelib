@@ -14,8 +14,8 @@
 
 (class 2d-shape
        (subclass 2d-point
-		 (struct #(exact? x)
-			 #(exact? y))
+		 (struct #(real? x)
+			 #(real? y))
 
 		 (def (_point-op op)
 		      (lambda (a b)
