@@ -36,34 +36,23 @@
 	   (.svg-string (.y p))
 	   " "))
 
+(def (_svg-circularize l)
+     (list l (car l)))
+
 (def. (2d-path.svg-fragment shape fit)
   `(path
-    (@ (d ,(cons "m"
-		 (map (lambda (p)
-			(let-2d-point ((x y) (fit p))
-				      (list " "
-					    (.svg-string x)
-					    ","
-					    (.svg-string y))))
-		      (.points shape))))
-       (style ,(strings-join
-		(list
-		 ;; "line-height:normal"
-		 ;; "direction:ltr"
-		 ;; "block-progression:tb"
-		 ;; "writing-mode:lr-tb"
-		 ;; "color:#000000"
-		 ;; "fill:#000000"
-		 ;; "fill-opacity:1"
-		 ;; "stroke:none"
-		 ;; "stroke-width:1px"
-		 ;; "marker:none"
-		 ;; "visibility:visible"
-		 ;; "display:inline"
-		 ;; "overflow:visible"
-		 ;; "enable-background:accumulate"
-		 )
-		";")))))
+    (@ (d ,(cons "M"
+		 (_svg-circularize
+		  (map (lambda (p)
+			 (let-2d-point ((x y) (fit p))
+				       (list " "
+					     (.svg-string x)
+					     ","
+					     (.svg-string y))))
+		       (.points shape)))))
+       (stroke "black")
+       (stroke-width 1)
+       (fill "green"))))
 
 (def. (2d-square.svg-fragment shape fit)
   `(path
