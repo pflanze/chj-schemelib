@@ -21,6 +21,11 @@
 (define (integer x)
   (inexact->exact (floor x)))
 
+(define (exact x)
+  (let ((x* (inexact->exact x)))
+    (assert (= x* x))
+    x*))
+
 (define (square x)
   (* x x))
 
@@ -46,4 +51,34 @@
  -1)
 
 (define integer:average integer-average)
+
+(define pi (* (asin 1) 2))
+
+
+(define-macro* (let-complex bind . body)
+  (match* bind
+	  ((vars expr)
+	   (match* vars
+		   ((vr vi)
+		    (with-gensym
+		     V
+		     `(let ((,V ,expr))
+			(let ((,vr (real-part ,V))
+			      (,vi (imag-part ,V)))
+			  ,@body))))))))
+
+(define (conj z)
+  (let-complex ((r i) z)
+	       (make-rectangular r (- i))))
+
+(TEST
+ > (conj (sqrt -2))
+ -1.4142135623730951i
+ > (sqrt -2+0.5i)
+ .17543205637629397+1.425053124063947i
+ > (conj (sqrt -2+0.5i))
+ .17543205637629397-1.425053124063947i
+ > (conj 2)
+ 2
+ )
 
