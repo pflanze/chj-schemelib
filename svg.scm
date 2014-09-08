@@ -51,9 +51,6 @@
        (stroke-width "1"))))
 
 
-(def (xmlatt-list . lis)
-     (list-join lis " "))
-
 (def svg-width 800)
 (def svg-height 800)
 
