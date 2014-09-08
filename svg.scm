@@ -36,6 +36,15 @@
 	   (.svg-string (.y p))
 	   " "))
 
+(def. (2d-line.svg-fragment shape fit)
+  (let-2d-line
+   ((from to) shape)
+   `(path (@ (d ,(cons (_svg-point "M" (fit from))
+		       (_svg-point "L" (fit to))))
+	     (stroke "black")
+	     (stroke-width 1)
+	     (fill "none")))))
+
 (def (_svg-circularize command0 command1 ps)
      (let-pair ((p0 ps*) ps)
 	       (cons (_svg-point command0 p0)

@@ -66,6 +66,22 @@
 		 (method (start p)
 			 p))
 
+       (subclass 2d-line
+		 (struct #(2d-point? from)
+			 #(2d-point? to))
+
+		 (method (start v)
+			 (2d-line.from v))
+
+		 (method (points v)
+			 (list (2d-line.from v)
+			       (2d-line.to v)))
+
+		 (method (min+maxs/prev v min+max)
+			 (fold 2d-point.min+maxs/prev
+			       min+max
+			       (2d-line.points v))))
+
        (subclass 2d-path
 		 (struct #((list-of 2d-point?) points))
 
