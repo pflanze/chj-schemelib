@@ -8,6 +8,7 @@
 
 (require 2d-shape)
 
+
 (def. (exact.svg-string x)
   ;; integers are rational, too [in Scheme]
   ;; ah duh, even inexact numbers are rationals.
@@ -16,9 +17,16 @@
        x
        (exact->inexact x))))
 
-;; > (exact? "f")
-;; *** ERROR IN (console)@15.1 -- (Argument 1) NUMBER expected
-;;wll. how does that type system work of mine  ?
+
+(def. (2d-point.svg-fragment shape fit)
+  (let ((p (fit shape)))
+    `(circle (@ (cx ,(.svg-string (.x p)))
+		(cy ,(.svg-string (.y p)))
+		(r 1.5)
+		(stroke "blue")
+		(stroke-width 0)
+		(fill "blue")))))
+
 
 (def (_svg-point command p)
      (list command
@@ -27,6 +35,21 @@
 	   " "
 	   (.svg-string (.y p))
 	   " "))
+
+(def. (2d-square.svg-fragment shape fit)
+  `(path
+    (@ (d ,(let* ((ps (.points shape))
+		  (p0 (car ps)))
+	     (cons (_svg-point "M" (fit p0))
+		   (fold-right (lambda (p r)
+				 (cons (_svg-point "L" (fit p))
+				       r))
+			       (_svg-point "L" (fit p0))
+			       (cdr ps)))))
+       (fill "none")
+       (stroke "black")
+       (stroke-width "1"))))
+
 
 (def (xmlatt-list . lis)
      (list-join lis " "))
@@ -44,34 +67,12 @@
 		      (let-2d-point ((p0 p1) p)
 				    (..* (.- p mi) stretch)))))))
        `(svg
-	 (@
-	  (height ,svg-height)
-	  (width ,svg-width))
-	 ,( ;;stream-map
-	   map
-	   (lambda (shape)
-	     (xcond ((2d-point? shape)
-		     (let ((p (fit shape)))
-		       `(circle (@ (cx ,(.svg-string (.x p)))
-				   (cy ,(.svg-string (.y p)))
-				   (r 1.5)
-				   (stroke "blue")
-				   (stroke-width 0)
-				   (fill "blue")))))
-		    ((2d-square? shape)
-		     `(path
-		       (@ (d ,(let* ((ps (.points shape))
-				     (p0 (car ps)))
-				(cons (_svg-point "M" (fit p0))
-				      (fold-right (lambda (p r)
-						    (cons (_svg-point "L" (fit p))
-							  r))
-						  (_svg-point "L" (fit p0))
-						  (cdr ps)))))
-			  (fill "none")
-			  (stroke "black")
-			  (stroke-width "1"))))))
+	 (@ (height ,svg-height)
+	    (width ,svg-width))
+	 ,(map ;;stream-map
+	   (C .svg-fragment _ fit)
 	   shapes))))
+
 
 (def svg-path "out.svg")
 
