@@ -74,7 +74,8 @@
 	   shapes))))
 
 (def svg-path "out.svg")
-(def (viewsvg shapes)
+
+(def (showsvg shapes)
      ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
      (let* ((p0 (.start (car (force shapes)))))
        (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
