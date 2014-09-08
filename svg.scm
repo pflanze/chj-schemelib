@@ -83,4 +83,5 @@
 		 (sxml>>pretty-xml-file (svg (2d-point svg-width
 						       svg-height)
 					     mi ma shapes)
-					svg-path))))
+					svg-path)
+		 (xxsystem "display" "--" svg-path))))
