@@ -13,6 +13,12 @@
 (require easy more-oo)
 
 (class 2d-shape
+       ;; generic .min+maxs/prev 
+       (method (min+maxs/prev v min+max)
+			 (fold 2d-point.min+maxs/prev
+			       min+max
+			       (.points v)))
+       
        (subclass 2d-point
 		 (struct #(real? x)
 			 #(real? y))
@@ -75,23 +81,32 @@
 
 		 (method (points v)
 			 (list (2d-line.from v)
-			       (2d-line.to v)))
-
-		 (method (min+maxs/prev v min+max)
-			 (fold 2d-point.min+maxs/prev
-			       min+max
-			       (2d-line.points v))))
+			       (2d-line.to v))))
 
        (subclass 2d-path
 		 (struct #((list-of 2d-point?) points))
 
 		 (method (start v)
-			 (car (2d-path.points v)))
+			 (car (2d-path.points v))))
 
-		 (method (min+maxs/prev v min+max)
-			 (fold 2d-point.min+maxs/prev
-			       min+max
-			       (2d-path.points v))))
+       (subclass 2d-window ;; an untilted rectangle
+		 (struct #(2d-point? mi)
+			 #(2d-point? ma))
+
+		 (method (start v)
+			 (2d-window.mi v))
+
+		 (method (points v)
+			 (let-2d-rectangle
+			  ((mi ma) v)
+			  (let-2d-point
+			   ((x0 y0) mi)
+			   (let-2d-point
+			    ((x1 y1) ma)
+			    (list mi
+				  (2d-point x1 y0)
+				  ma
+				  (2d-point x0 y1)))))))
 
        (subclass 2d-square
 		 (struct #(2d-point? start)
@@ -131,10 +146,7 @@
 		 (method (canonical s)
 			 (let-2d-square ((s v) s)
 					;; now stupidly have to add, well
-					(canonical-2d-square s (2d-point.+ s v))))
-
-		 (method (min+maxs/prev s min+max)
-			 (2d-points-min+maxs/prev (2d-square.points s) min+max))))
+					(canonical-2d-square s (2d-point.+ s v))))))
 
 
 
@@ -148,17 +160,6 @@
  > (define d (.rot90 c))
  > (.rot90 d)
  #(2d-point 10 1))
-
-
-(def (2d-points-min+maxs/prev ps min+max)
-     (stream-fold-left 2d-point.min+maxs/prev
-		       min+max
-		       ps))
-
-(TEST
- > (2d-points-min+maxs/prev (list (2d-point 10 12) (2d-point 7 11))
-			    (cons (2d-point 10 -11)(2d-point 10 -11)))
- (#(2d-point 7 -11) . #(2d-point 10 12)))
 
 
 
