@@ -62,7 +62,7 @@
   '(quote quasiquote lambda))
 
 (define assert:syntax-forms
-  (append '(and or)
+  (append '(if unless and or)
 	  assert:stopping-syntax-forms))
 
 (both-times
