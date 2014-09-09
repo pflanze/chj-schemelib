@@ -198,12 +198,15 @@
 	  (else
 	   (raise e)))))
 
+(define error-exception->structure
+  (try-error-handler error-exception?
+		     'error
+		     error-exception-message
+		     error-exception-parameters))
+
 (define (%try-error-f thunk)
   (with-exception-catcher
-   (try-error-handler error-exception?
-		      'error
-		      error-exception-message
-		      error-exception-parameters)
+   error-exception->structure
    thunk))
 
 (define-macro* (%try-error form)
@@ -211,13 +214,16 @@
 
 ;; and for syntax exceptions:
 
+(define source-exception->structure
+  (try-error-handler source-error?
+		     'source-error
+		     source-error-message
+		     source-error-args ;; uh consistency?
+		     ))
+
 (define (%try-syntax-error-f thunk)
   (with-exception-catcher
-   (try-error-handler source-error?
-		      'source-error
-		      source-error-message
-		      source-error-args ;; uh consistency?
-		      )
+   source-exception->structure
    thunk))
 
 (define-macro* (%try-syntax-error form)
