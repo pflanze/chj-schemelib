@@ -3,5 +3,6 @@
 
 (require
  fail
- catch-throw)
+ catch-throw
+ exception-utl)
 
