@@ -15,9 +15,9 @@
 (class 2d-shape
        ;; generic .min+maxs/prev 
        (method (min+maxs/prev v min+max)
-			 (fold 2d-point.min+maxs/prev
-			       min+max
-			       (.points v)))
+	       (fold 2d-point.min+maxs/prev
+		     min+max
+		     (.points v)))
        
        (subclass 2d-point
 		 (struct #(real? x)
@@ -70,7 +70,15 @@
 					       (max p1 ma1)))))))))
 
 		 (method (start p)
-			 p))
+			 p)
+
+		 (method (distance^2 p)
+			 ;; distance from root
+			 (let-2d-point ((x y) p)
+				       (+ (square x) (square y))))
+
+		 (method (distance p)
+			 (sqrt (2d-point.distance^2 p))))
 
        (subclass 2d-line
 		 (struct #(2d-point? from)
@@ -111,7 +119,59 @@
 		 (method (range v)
 			 (let-2d-window
 			  ((mi ma) v)
-			  (.- ma mi))))
+			  (.- ma mi)))
+
+		 (method (proportions v) ;; div by zero for zero dy !
+			 (let-2d-window
+			  ((mi ma) v)
+			  (let-2d-point
+			   ((x0 y0) mi)
+			   (let-2d-point
+			    ((x1 y1) ma)
+
+			    (let* ((dx (- x1 x0))
+				   (dy (- y1 y0))
+				   (our-dx/dy (/ dx dy)))
+			      our-dx/dy)))))
+
+		 (method (fit-to-proportions v #((complement zero?) dx/dy) clip?)
+			 (let-2d-window
+			  ((mi ma) v)
+			  (let-2d-point
+			   ((x0 y0) mi)
+			   (let-2d-point
+			    ((x1 y1) ma)
+
+			    (let* ((dx (- x1 x0))
+				   (dy (- y1 y0))
+				   (our-dx/dy (/ dx dy))
+
+				   (_fit
+				    (lambda (dx dy dx/dy x0 x1 y0 y1 2d-point)
+				      (let* ((new-dx (* dy dx/dy))
+					     (x-offset (/ (- dx new-dx) 2)))
+					(2d-window
+					 (2d-point (+ x0 x-offset) y0)
+					 (2d-point (- x1 x-offset) y1)))))
+				   (fit
+				    (lambda (prop)
+				      (_fit dx dy prop x0 x1 y0 y1
+					    2d-point)))
+				   (flip-fit
+				    (lambda (prop)
+				      (_fit dy dx prop y0 y1 x0 x1
+					    (flip 2d-point)))))
+
+			      ;; use abs so that negative proportions
+			      ;; will work
+			      (let ((too-wide? (> (abs our-dx/dy) (abs dx/dy))))
+				(if too-wide?
+				    (if clip?
+					(fit dx/dy)
+					(flip-fit (/ dx/dy)))
+				    (if clip?
+					(flip-fit (/ dx/dy))
+					(fit dx/dy))))))))))
 
        (subclass 2d-square
 		 (struct #(2d-point? start)
@@ -166,6 +226,191 @@
  > (.rot90 d)
  #(2d-point 10 1))
 
+
+(defmacro (with-import-2d-aliases longnames . body)
+  `(##let ,(source-map (lambda (longname)
+			 `(,(symbol.replace-substrings
+			     (source-code longname)
+			     "2d-" "")
+			   ,longname))
+		       longnames)
+	  ,@body))
+
+(defmacro (with-import-2d* . body)
+  `(with-import-2d-aliases
+    (2d-point
+     2d-line
+     2d-path
+     2d-window
+     ;;2d-square ;;hmm. square is mine, not Scheme's. but still
+     canonical-2d-square
+     ;; aliasing the predicates would go too far?
+     )
+    ,@body))
+
+
+(TEST
+ > (def point 2d-point)
+ > (def window 2d-window)
+
+ ;; ---- a quadratic window
+ > (def w (window (point 10 11) (point 20 21)))
+ > (.range w) ;; .size ? well whatever
+ #(2d-point 10 10)
+ ;; for every w, the division of the numbers in .range equals .proportions
+ > (.proportions w)
+ 1
+ ;; -- cut
+ > (def w2 (.fit-to-proportions w 2 #t))
+ > w2
+ #(2d-window #(2d-point 10 27/2) #(2d-point 20 37/2))
+ ;; for every w and y, (comp .proportions (C .fit-to-proportions _ x
+ ;; y)) equals x
+ > (.range w2)
+ #(2d-point 10 5)
+ > (.proportions w2)
+ 2
+ ;; -- add borders
+ > (def w2 (.fit-to-proportions w 2 #f))
+ > w2
+ #(2d-window #(2d-point 5 11) #(2d-point 25 21))
+ > (.range w2)
+ #(2d-point 20 10)
+ > (.proportions w2)
+ 2
+
+ ;; ---- a window that's wider than high [and uses a negative coordinate]
+ > (def w (window (point -10 11) (point 20 21)))
+ > (.proportions w)
+ 3
+ > (def w2 (.fit-to-proportions w 2 #t))
+ > w2
+ #(2d-window #(2d-point -5 11) #(2d-point 15 21))
+ > (.range w2)
+ #(2d-point 20 10)
+ > (.proportions w2)
+ 2
+
+ > (def w2 (.fit-to-proportions w 6 #t))
+ > w2
+ #(2d-window #(2d-point -10 27/2) #(2d-point 20 37/2))
+ > (.range w2)
+ #(2d-point 30 5)
+ > (.proportions w2)
+ 6
+
+ > (def w2 (.fit-to-proportions w -6 #t))
+ > w2
+ #(2d-window #(2d-point -10 37/2) #(2d-point 20 27/2))
+ ;; yes, it's flipped over now (there are two ways to flip, though,
+ ;; why that variant?)
+ > (.range w2)
+ #(2d-point 30 -5)
+ > (.proportions w2)
+ -6
+ )
+
+;; properties based tests
+
+(TEST
+ > (compile-time (def *skip-flipped-windows* #f))
+ > (defmacro (*skip-flipped-windows*:with-exit var body)
+     (IF *skip-flipped-windows*
+	 `(call/cc (lambda (,var) ,body)) ;;`(with-exit ,var ,body)
+	 body))
+ > (def (predt x0 y0 x1 y1 prop)
+	(*skip-flipped-windows*:with-exit
+	 stop
+	 (with-import-2d*
+	  (let*
+	      ((w (window (point x0 y0) (point x1 y1)))
+	       (cont
+		(lambda ()
+		  (let ((w2 (.fit-to-proportions w prop #t))
+			(w3 (.fit-to-proportions w prop #f))
+			(w-prop (.proportions w)))
+
+		    (IF *skip-flipped-windows*
+			(let-2d-point ((w h) (.range w))
+				      (if (or (negative? w)
+					      (negative? h))
+					  (stop))))
+			  
+		    ;; w2 and w3 should usually be different
+		    (assert
+		     ((if (= w-prop prop) ;; the original is already
+			  ;; of the requested props
+			  identity
+			  not)
+		      (equal? w2 w3)))
+
+		    ;; for every w, the division of the numbers
+		    ;; in .range equals .proportions
+		    (assert (equal? (.proportions w)
+				    (let-2d-point ((x y) (.range w))
+						  (/ x y))))
+
+		    ;; for every w and y, (comp .proportions (C
+		    ;; .fit-to-proportions _ x y)) equals x
+		    (assert (equal? (.proportions w2) prop))
+		    (assert (equal? (.proportions w3) prop))
+
+		    (let ((inside-outside-prop-proportion^2
+			   (/ (.distance^2 (.range w3))
+			      (.distance^2 (.range w2)))))
+		      (assert (or (equal? inside-outside-prop-proportion^2
+					  (square (/ w-prop prop)))
+				  ;;XX hack
+				  (equal? inside-outside-prop-proportion^2
+					  (square (/ prop w-prop))))))))))
+	    (let-2d-point
+	     ((dx dy) (.range w))
+
+	     (cond ((zero? prop)
+		    (with-exceptions-to
+		     (lambda (e rethrow)
+		       (if (and (error-exception? e)
+				(equal?
+				 (error-exception-message e)
+				 "dx/dy does not match (complement zero?):"))
+			   'skip
+			   (begin
+			     (step)
+			     (rethrow e))))
+		     cont))
+
+		   ((or (zero? dy) (zero? dx))
+		    (with-exceptions-to
+		     (lambda (e rethrow)
+		       (if (divide-by-zero-exception? e)
+			   'skip
+			   (rethrow e)))
+		     cont))
+
+		   (else (cont))))))))
+
+ ;; explicit non-random cases:
+ > (predt 10 10 21 20 2/3)
+ > (predt 11 10 20 20 2/3)
+ > (predt 9 10 20 20 2/3)
+ > (predt 10 10 20 20 1)
+ > (predt 10 10 20 20 3/2)
+ > (predt 10 10 20 20 2)
+ > (predt 10 10 20 20 2/3)
+
+ ;; random:
+ > (def 2d-test-count 0)
+ > (do-iter 20
+	    (lambda (i0)
+	      (do-iter (random-natural0 (inc (square i0)))
+		       (lambda (i)
+			 (inc! 2d-test-count)
+			 (predt
+			  (random-integer.. -5 20)
+			  (random-integer.. -2 5)
+			  (random-integer.. -5 19)
+			  (random-integer.. -2 6)
+			  (random-fraction (+ (square i) 2))))))))
 
 
 (define (canonical-2d-square p1 p2)
