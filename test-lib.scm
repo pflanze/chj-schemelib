@@ -302,3 +302,46 @@
   (3k 2f 2g 2i 2j 2h 1e 1c 1b 1a 1d)
   (3k 2f 2h 2i 2g 2j 1e 1d 1b 1c 1a))
  )
+
+
+;; ------------------------------------------------------
+
+;; For side-effecting random testing (with real random inputs, not
+;; predetermined):
+
+
+(define (random-integer..< a b)
+  (+ (random-integer (- b a)) a))
+
+(define (random-integer.. a b)
+  (random-integer..< a (inc b)))
+
+(define (random-natural below)
+  (random-integer..< 1 below))
+
+(define random-natural0 random-integer)
+
+(define (random-fraction lim)
+  ;; what numbers to choose? chain number gen to get a sloped
+  ;; distribution? correct? XX
+  ;;(let ((lim (random-natural0 10000))))
+  (/ (random-integer.. (- lim) lim)
+     (random-natural lim)))
+
+;; hmm particularly interesting test series:
+;; (map random-fraction (iota 30 2))
+
+(define (do-iter n proc)
+  (let lp ((i 0))
+    (if (< i n)
+	(begin (proc i)
+	       (lp (inc i))))))
+
+;; (defmacro (%test-iter v+n e)
+;;   (mcase v+n
+;; 	 (`(`v `n)
+;; 	  (assert* symbol? v)
+;; 	  (assert* natural0? n)
+;; 	  `(do-iter ,n (lambda (,v)
+;; 			 (,e))))))
+
