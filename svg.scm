@@ -84,15 +84,15 @@
 (def svg-width 800)
 (def svg-height 800)
 
-(def (svg size mi ma shapes)
-     ;; mi,ma = min and max
-     (let* ((fit (let* ((range (.- ma mi))
-			(stretch (../ size range)))
-		   (let-2d-point
-		    ((x0 x1) mi)
-		    (lambda (p)
-		      (let-2d-point ((p0 p1) p)
-				    (..* (.- p mi) stretch)))))))
+(def (svg size	 ;; 2d-point
+	  window ;; 2d-window into the shapes data
+	  shapes)
+     (let* ((fit
+	     (let. ((mi range) window)
+		   (let* ((stretch (../ size range)))
+		     (lambda (p)
+		       (let-2d-point ((p0 p1) p)
+				     (..* (.- p mi) stretch)))))))
        `(svg
 	 (@ (height ,svg-height)
 	    (width ,svg-width))
@@ -103,7 +103,7 @@
 
 (def svg-path "out.svg")
 
-(def (showsvg shapes)
+(def (showsvg shapes #!optional keep-proportions?)
      ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
      (let* ((p0 (.start (car (force shapes)))))
        (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
@@ -111,6 +111,10 @@
 					    shapes))
 		 (sxml>>pretty-xml-file (svg (2d-point svg-width
 						       svg-height)
-					     mi ma shapes)
+					     ((if keep-proportions?
+						  (C .fit-to-proportions _ 1 #f)
+						  identity)
+					      (2d-window mi ma))
+					     shapes)
 					svg-path)
 		 (xxsystem "display" "--" svg-path))))
