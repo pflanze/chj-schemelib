@@ -117,4 +117,4 @@
 					      (2d-window mi ma))
 					     shapes)
 					svg-path)
-		 (xxsystem "display" "--" svg-path))))
+		 (future (xxsystem "display" "--" svg-path)))))
