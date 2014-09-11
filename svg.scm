@@ -51,48 +51,58 @@
 				(_svg-point command1 p0))
 			       ps*))))
 
-(def. (2d-path.svg-fragment shape fit)
+
+(def default-2d-path-colors (colors "black" "green"))
+
+(def. (2d-path.svg-fragment shape fit #!optional colors)
   (let ((ps (map fit (.points shape))))
     (let-pair
      ((p0 ps*) ps)
-     `(path
-       (@ (d ,(_svg-circularize "M" "L" ps)
+     (let-colors
+      ((stroke fill) (or colors default-2d-path-colors))
+      `(path
+	(@ (d ,(_svg-circularize "M" "L" ps)
 
-	   ;; (cons (_svg-point "M" p0)
-	   ;; 	    (map (C _svg-point "L" _)
-	   ;; 		 ps*))
-	   )
-	  (stroke "black")
-	  (stroke-width 1)
-	  (fill "green"))))))
+	      ;; (cons (_svg-point "M" p0)
+	      ;; 	    (map (C _svg-point "L" _)
+	      ;; 		 ps*))
+	      )
+	   (stroke ,(.html-colorstring stroke))
+	   (stroke-width 1)
+	   (fill ,(.html-colorstring fill))))))))
 
-(def. (2d-square.svg-fragment shape fit)
-  `(path
-    (@ (d ,(let* ((ps (.points shape))
-		  (p0 (car ps)))
-	     (cons (_svg-point "M" (fit p0))
-		   (fold-right (lambda (p r)
-				 (cons (_svg-point "L" (fit p))
-				       r))
-			       (_svg-point "L" (fit p0))
-			       (cdr ps)))))
-       (fill "none")
-       (stroke "black")
-       (stroke-width "1"))))
+
+(def default-2d-square-colors (colors "black" "none"))
+
+(def. (2d-square.svg-fragment shape fit #!optional colors)
+  (let-colors
+   ((stroke fill) (or colors default-2d-square-colors))
+   `(path
+     (@ (d ,(let* ((ps (.points shape))
+		   (p0 (car ps)))
+	      (cons (_svg-point "M" (fit p0))
+		    (fold-right (lambda (p r)
+				  (cons (_svg-point "L" (fit p))
+					r))
+				(_svg-point "L" (fit p0))
+				(cdr ps)))))
+	(stroke ,(.html-colorstring stroke))
+	(stroke-width "1")
+	(fill ,(.html-colorstring fill))))))
 
 
 (def svg-width 800)
 (def svg-height 800)
 
-(def (svg size	 ;; 2d-point
-	  window ;; 2d-window into the shapes data
-	  shapes)
+(def (svg #(2d-point? size)
+	  #(2d-window? window) ;; 2d-window into the shapes data
+	  shapes ;; flat list of shapes; no grouping supported (yet?)
+	  )
      (let* ((fit
 	     (let. ((mi range) window)
 		   (let* ((stretch (../ size range)))
 		     (lambda (p)
-		       (let-2d-point ((p0 p1) p)
-				     (..* (.- p mi) stretch)))))))
+		       (..* (.- p mi) stretch))))))
        `(svg
 	 (@ (height ,svg-height)
 	    (width ,svg-width))
