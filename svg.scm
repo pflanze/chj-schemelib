@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require 2d-shape)
+(require easy 2d-shape color)
 
 
 (def. (real.svg-string x)
@@ -16,14 +16,19 @@
        (exact->inexact x))))
 
 
-(def. (2d-point.svg-fragment shape fit)
+(def default-2d-point-colors (colors (colorstring "blue")
+				     (colorstring "blue")))
+
+(def. (2d-point.svg-fragment shape fit #!optional colors)
   (let ((p (fit shape)))
-    `(circle (@ (cx ,(.svg-string (.x p)))
-		(cy ,(.svg-string (.y p)))
-		(r 1.5)
-		(stroke "blue")
-		(stroke-width 0)
-		(fill "blue")))))
+    (let-colors
+     ((stroke fill) (or colors default-2d-point-colors))
+     `(circle (@ (cx ,(.svg-string (.x p)))
+		 (cy ,(.svg-string (.y p)))
+		 (r 1.5)
+		 (stroke ,(.html-colorstring stroke))
+		 (stroke-width 0)
+		 (fill ,(.html-colorstring fill)))))))
 
 
 (def (_svg-point command p)
@@ -34,14 +39,19 @@
 	   (.svg-string (.y p))
 	   " "))
 
-(def. (2d-line.svg-fragment shape fit)
+(def default-2d-line-colors (colors (colorstring "black")
+				    (colorstring "none")))
+
+(def. (2d-line.svg-fragment shape fit #!optional colors)
   (let-2d-line
    ((from to) shape)
-   `(path (@ (d ,(cons (_svg-point "M" (fit from))
-		       (_svg-point "L" (fit to))))
-	     (stroke "black")
-	     (stroke-width 1)
-	     (fill "none")))))
+   (let-colors
+    ((stroke fill) (or colors default-2d-line-colors))
+    `(path (@ (d ,(cons (_svg-point "M" (fit from))
+			(_svg-point "L" (fit to))))
+	      (stroke ,(.html-colorstring stroke))
+	      (stroke-width 1)
+	      (fill ,(.html-colorstring fill)))))))
 
 (def (_svg-circularize command0 command1 ps)
      (let-pair ((p0 ps*) ps)
@@ -52,7 +62,8 @@
 			       ps*))))
 
 
-(def default-2d-path-colors (colors "black" "green"))
+(def default-2d-path-colors (colors (colorstring "black")
+				    (colorstring "green")))
 
 (def. (2d-path.svg-fragment shape fit #!optional colors)
   (let ((ps (map fit (.points shape))))
@@ -72,7 +83,8 @@
 	   (fill ,(.html-colorstring fill))))))))
 
 
-(def default-2d-square-colors (colors "black" "none"))
+(def default-2d-square-colors (colors (colorstring "black")
+				      (colorstring "none")))
 
 (def. (2d-square.svg-fragment shape fit #!optional colors)
   (let-colors
@@ -107,7 +119,11 @@
 	 (@ (height ,svg-height)
 	    (width ,svg-width))
 	 ,(map ;;stream-map
-	   (C .svg-fragment _ fit)
+	   (lambda (shape)
+	     (if (colored? shape)
+		 (let-colored ((color shape) shape)
+			      (.svg-fragment shape fit color))
+		 (.svg-fragment shape fit)))
 	   shapes))))
 
 

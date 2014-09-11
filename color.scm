@@ -10,9 +10,17 @@
 	 rgb colorspaces)
 
 
-(def color? rgb?) ;; change/parametrize when other solutions abound
+(class colorstring
+       (struct #(string? value))
+       (method html-colorstring colorstring.value))
+
+;; change/parametrize when other solutions abound
+(def color? (either colorstring? rgb?))
+
+(defstruct colors
+  #(color? stroke)
+  #(color? fill))
 
 (defstruct colored
-  #(color? color)
+  #(colors? color)
   value)
-
