@@ -73,7 +73,7 @@
 				    (WARN "need to go towards l" <>)
 				    (iter l x yl y*))
 				   (else (error "???"))))))
-		 (cond ((< yl y yh)
+		 (cond ((<= yl y yh)
 			(cont <))
 		       ((> yl y yh)
 			(cont >))
