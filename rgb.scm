@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy test more-oo)
+(require easy test more-oo test-logic)
 
 ;; lib
 
