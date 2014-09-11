@@ -150,9 +150,13 @@
 
 		 (method rgb8 identity)
 
-		 (method r01 (compose uint8.01 rgb8.r8))
-		 (method g01 (compose uint8.01 rgb8.g8))
-		 (method b01 (compose uint8.01 rgb8.b8))
+		 (method r01t (compose uint8.01 rgb8.r8))
+		 (method g01t (compose uint8.01 rgb8.g8))
+		 (method b01t (compose uint8.01 rgb8.b8))
+
+		 (method r01l (comp* srgb:transfer.lum uint8.01 rgb8.r8))
+		 (method g01l (comp* srgb:transfer.lum uint8.01 rgb8.g8))
+		 (method b01l (comp* srgb:transfer.lum uint8.01 rgb8.b8))
 
 		 (method (rgb01t x)
 			 (let-rgb8 ((r g b) x)
@@ -173,34 +177,24 @@
  (-1 256))
 
 (TEST
- > (.r01 (rgb8 0 255 128))
+ > (.r01t (rgb8 0 255 128))
  0
- > (.b01 (rgb8 0 255 128))
+ > (.b01t (rgb8 0 255 128))
  128/255
  )
 
-
-
-
-
-
-
-;; XXX rgb01l.rgb01t
-
-
-
-;; XXX rgb01l.rgb8
-
+;; XX rgb01l.rgb01t
+;; XX rgb01l.rgb8
 
 (TEST
  ;; for all accessors, converted object should give the same value as
  ;; original
- > (def accessors (list .r01 .g01 .b01))
+ > (def accessors (list .r01t .g01t .b01t))
  > (def x (rgb8 13 7 255))
- > (def x* (.rgb01 x))
+ > (def x* (.rgb01t x))
  > (F (Lforall accessors (lambda_ ((on _ =) x x*))))
- ()
- )
+ ())
+
 
 
 ;; now to the actual meat:
@@ -227,19 +221,23 @@
 
 (def (rgb01:.op op)
      (typed-lambda (a #(number? b))
-	      (insert-result-of
-	       `(rgb01l ,@(map (lambda_
-				`(op (,_ a) b))
-			       '(.r01l .g01l .b01l))))))
+		   (insert-result-of
+		    `(rgb01l ,@(map (lambda_
+				     `(op (,_ a) b))
+				    '(.r01l .g01l .b01l))))))
 
 (def-rgb01 .* (rgb01:.op *))
 (def-rgb01 ./ (rgb01:.op /))
 
 (TEST
  > (..* (rgb8 100 50 0) 2)
- #(rgb01 40/51 20/51 0)
+ ;; #(rgb01 40/51 20/51 0)
+ #(rgb01l .2548754380226136 .06379206392765045 -7.790527343750001e-5)
+
  > (%try-error (..* (rgb8 100 200 0) 2))
- #(error "does not match 0..1?:" 80/51))
+ ;; #(error "does not match 0..1?:" 80/51)
+ #(error "g01l does not match 0..1?:" 1.1551609354972836)
+ )
 
 (def (iter-stream f start)
      (let rec ((x start))
@@ -247,8 +245,8 @@
 		    (rec (f x))))))
 
 (TEST
- > (F (stream-take (iter-stream (C ..* _ 0.9) (rgb01 1 1 0.5)) 3))
- (#(rgb01 1 1 .5) #(rgb01 .9 .9 .45) #(rgb01 .81 .81 .405)))
+ > (F (stream-take (iter-stream (C ..* _ 0.9) (rgb01l 1 1 0.5)) 3))
+ (#(rgb01l 1 1 .5) #(rgb01l .9 .9 .45) #(rgb01l .81 .81 .405)))
 
 
 ;; print as hex
@@ -256,9 +254,9 @@
 (TEST
  > (.string (rgb8 0 128 255))
  "#0080FF"
- > (.string (.rgb01 (rgb8 0 128 255)))
+ > (.string (.rgb01l (rgb8 0 128 255)))
  "#0080FF"
- > (.string (rgb01 1 0.5 0))
+ > (.string (rgb01t 1 0.5 0))
  "#FF8000"
  )
 
