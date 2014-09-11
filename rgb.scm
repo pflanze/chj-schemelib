@@ -81,7 +81,7 @@
 
 (class rgb
 
-       (method (string x)
+       (method (html-colorstring x)
 	       (def (conv #(uint8? x))
 		    (number->uc-hex-string/padding x 2))
 	       (insert-result-of
@@ -252,11 +252,11 @@
 ;; print as hex
 
 (TEST
- > (.string (rgb8 0 128 255))
+ > (.html-colorstring (rgb8 0 128 255))
  "#0080FF"
- > (.string (.rgb01l (rgb8 0 128 255)))
+ > (.html-colorstring (.rgb01l (rgb8 0 128 255)))
  "#0080FF"
- > (.string (rgb01t 1 0.5 0))
+ > (.html-colorstring (rgb01t 1 0.5 0))
  "#FF8000"
  )
 
