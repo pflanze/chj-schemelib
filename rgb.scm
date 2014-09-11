@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy test)
+(require easy test more-oo)
 
 ;; lib
 
@@ -69,12 +69,6 @@
 
 ;; /lib
 
-;; rgb8 is always in sRGB 'transfer' format (non-linear), ok?
-(defstruct rgb8
-  #(uint8? r8)
-  #(uint8? g8)
-  #(uint8? b8))
-
 (def uint8.01
      (C / _ 255))
 
@@ -85,45 +79,98 @@
 	    255
 	    r))))
 
+(class rgb
+
+       (method (string x)
+	       (def (conv #(uint8? x))
+		    (number->uc-hex-string/padding x 2))
+	       (insert-result-of
+		`(string-append "#"
+				,@(map (lambda_
+					`(conv (,_ x)))
+				       '(.r8 .g8 .b8)))))
+
+       (subclass rgb01t
+		 ;; RGB in 0..1 floating point range, sRGB 'transfer' format
+		 (struct #(0..1? r01t)
+			 #(0..1? g01t)
+			 #(0..1? b01t))
+
+		 (method rgb01t identity)
+
+		 (method r01l (compose srgb:transfer.lum rgb01t.r01t))
+		 (method g01l (compose srgb:transfer.lum rgb01t.g01t))
+		 (method b01l (compose srgb:transfer.lum rgb01t.b01t))
+
+		 (method r8 (compose 01.uint8 rgb01t.r01t))
+		 (method g8 (compose 01.uint8 rgb01t.g01t))
+		 (method b8 (compose 01.uint8 rgb01t.b01t))
+
+		 (method (rgb01l x)
+			 ;; XX evil, too much duplication. this is
+			 ;; optimization here
+			 ;; ah and at least  have   map functions  right? evil.
+			 (let-rgb01t ((r g b) x)
+				     (let ((conv srgb:transfer.lum))
+				       (rgb01l (conv r)
+					       (conv g)
+					       (conv b)))))
+
+		 (method (rgb8 x)
+			 (let-rgb01t ((r g b) x)
+				     (rgb8 (01.uint8 r)
+					   (01.uint8 g)
+					   (01.uint8 b)))))
+       
+
+       (subclass rgb01l
+		 ;; RGB in 0..1 floating point range, linear
+		 ;; (proportional to physical light energy, right?)
+		 ;; format
+		 (struct #(0..1? r01l)
+			 #(0..1? g01l)
+			 #(0..1? b01l))
+
+		 (method rgb01l identity)
+
+		 (method r01t (compose srgb:lum.transfer rgb01l.r01l))
+		 (method g01t (compose srgb:lum.transfer rgb01l.g01l))
+		 (method b01t (compose srgb:lum.transfer rgb01l.b01l))
+
+		 (method r8 (compose 01.uint8 rgb01l.r01t))
+		 (method g8 (compose 01.uint8 rgb01l.g01t))
+		 (method b8 (compose 01.uint8 rgb01l.b01t)))
+       
+       (subclass rgb8
+		 ;; rgb8 is always in sRGB 'transfer' format
+		 ;; (non-linear), ok?
+		 (struct #(uint8? r8)
+			 #(uint8? g8)
+			 #(uint8? b8))
+
+		 (method rgb8 identity)
+
+		 (method r01 (compose uint8.01 rgb8.r8))
+		 (method g01 (compose uint8.01 rgb8.g8))
+		 (method b01 (compose uint8.01 rgb8.b8))
+
+		 (method (rgb01t x)
+			 (let-rgb8 ((r g b) x)
+				   (rgb01t (uint8.01 r)
+					   (uint8.01 g)
+					   (uint8.01 b))))
+		 
+		 (method rgb01l (compose rgb01t.rgb01l rgb8.rgb01t))))
+
+
+
+(def rgb01? (either rgb01t? rgb01l?)) ;; class above? how again?
+
 (TEST
  > (F (Lforall '(-1 0 1 2 253 254 255 255. 256)
 	       (lambda_ (= (01.uint8 (uint8.01 _)) _))))
  ;; failures are outside of number range, "though"
  (-1 256))
-
-(def. rgb8.r01 (compose uint8.01 rgb8.r8))
-(def. rgb8.g01 (compose uint8.01 rgb8.g8))
-(def. rgb8.b01 (compose uint8.01 rgb8.b8))
-
-;; RGB in 0..1 floating point range, sRGB 'transfer' format
-(defstruct rgb01t
-  #(0..1? r01t)
-  #(0..1? g01t)
-  #(0..1? b01t))
-
-;; RGB in 0..1 floating point range, linear (proportional to physical
-;; light energy, right?) format
-(defstruct rgb01l
-  #(0..1? r01l)
-  #(0..1? g01l)
-  #(0..1? b01l))
-
-(def. rgb01t.r01l (compose srgb:transfer.lum rgb01t.r01t))
-(def. rgb01t.g01l (compose srgb:transfer.lum rgb01t.g01t))
-(def. rgb01t.b01l (compose srgb:transfer.lum rgb01t.b01t))
-
-(def. rgb01l.r01t (compose srgb:lum.transfer rgb01l.r01l))
-(def. rgb01l.g01t (compose srgb:lum.transfer rgb01l.g01l))
-(def. rgb01l.b01t (compose srgb:lum.transfer rgb01l.b01l))
-
-(def. rgb01t.r8 (compose 01.uint8 rgb01t.r01t))
-(def. rgb01t.g8 (compose 01.uint8 rgb01t.g01t))
-(def. rgb01t.b8 (compose 01.uint8 rgb01t.b01t))
-
-(def. rgb01l.r8 (compose 01.uint8 rgb01l.r01t))
-(def. rgb01l.g8 (compose 01.uint8 rgb01l.g01t))
-(def. rgb01l.b8 (compose 01.uint8 rgb01l.b01t))
-
 
 (TEST
  > (.r01 (rgb8 0 255 128))
@@ -132,37 +179,17 @@
  128/255
  )
 
-(def. (rgb8.rgb01t x)
-  (let-rgb8 ((r g b) x)
-	    (rgb01t (uint8.01 r)
-		    (uint8.01 g)
-		    (uint8.01 b))))
 
-(def. (rgb01t.rgb01l x)
-  ;; XX evil, too much duplication. this is optimization here
-  ;; ah and at least  have   map functions  right? evil.
-  (let-rgb01t ((r g b) x)
-	      (let ((conv srgb:transfer.lum))
-	       (rgb01l (conv r)
-		       (conv g)
-		       (conv b)))))
 
-(def. rgb8.rgb01l
-  (compose rgb01t.rgb01l rgb8.rgb01t))
 
-(def. rgb01t.rgb01t identity)
-(def. rgb01l.rgb01l identity)
+
+
+
 ;; XXX rgb01l.rgb01t
 
-(def. (rgb01t.rgb8 x)
-  (let-rgb01t ((r g b) x)
-	      (rgb8 (01.uint8 r)
-		    (01.uint8 g)
-		    (01.uint8 b))))
+
 
 ;; XXX rgb01l.rgb8
-
-(def. rgb8.rgb8 identity)
 
 
 (TEST
@@ -225,18 +252,6 @@
 
 
 ;; print as hex
-
-(def (rgb.string x)
-     (def (conv #(uint8? x))
-	  (number->uc-hex-string/padding x 2))
-     (insert-result-of
-      `(string-append "#"
-		      ,@(map (lambda_
-			      `(conv (,_ x)))
-			     '(.r8 .g8 .b8)))))
-
-(def. rgb8.string rgb.string)
-(def. rgb01.string rgb.string)
 
 (TEST
  > (.string (rgb8 0 128 255))
