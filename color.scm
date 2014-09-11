@@ -74,9 +74,11 @@
 ;; |linear| is proportional to amount of light energy, right?
 (def (srgb:lum.transfer #(0..1? linear))
      (-> 0..1?
-	 (if (<= linear 0.0031308)
-	     (* 12.92 linear)
-	     (- (* (+ 1 srgb:a) (expt linear (/ 2.4))) srgb:a))))
+	 (if (< linear 0)
+	     0
+	     (if (<= linear 0.0031308)
+		 (* 12.92 linear)
+		 (- (* (+ 1 srgb:a) (expt linear (/ 2.4))) srgb:a)))))
 
 ;; (plot (list srgb:lum.transfer rec709:lum.transfer (onthese-2 srgb:lum.transfer rec709:lum.transfer -)) 0 1)
 ;; srgb is more strongly curved than rec709
