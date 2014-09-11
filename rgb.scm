@@ -202,7 +202,7 @@
 (defmacro (def-rgb01 name e)
   (let ((prefixed (lambda (prefix)
 		    (source.symbol-append prefix name))))    
-    (pp-through
+    (no-pp-through
      `(begin
 	(def ,(prefixed "rgb01:") ,e)
 	(def. ,(prefixed "rgb01.") ,(prefixed "rgb01:"))
