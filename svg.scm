@@ -10,10 +10,36 @@
 
 
 (def. (real.svg-string x)
-  (number.string
-   (if (integer? x)
-       x
-       (exact->inexact x))))
+  (let* ((integertostring
+	  (lambda (x)
+	    (number.string
+	     (if (exact? x)
+		 x
+		 (inexact->exact x))))))
+    (if (integer? x)
+	(integertostring x)
+	(let ((x* (inexact.round-at (exact->inexact x) 4)))
+	  (if (integer? x*)
+	      (integertostring x*)
+	      (number.string x*))))))
+
+(TEST
+ > (real.svg-string 0)
+ "0"
+ > (real.svg-string -0.99999999999)
+ "-1"
+ > (real.svg-string 2/3)
+ ".6667"
+ ;; no need to add leading zero:
+ ;; http://dev.w3.org/SVG/profiles/1.1F2/publish/types.html#DataTypeNumber
+ > (real.svg-string -2/3)
+ "-.6667"
+ > (real.svg-string -4/3)
+ "-1.3333"
+ > (real.svg-string -4.)
+ "-4"
+ > (real.svg-string -0.)
+ "0")
 
 
 (def default-2d-point-colors (colors (colorstring "blue")
