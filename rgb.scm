@@ -212,8 +212,8 @@
 
 (def (rgb01:op/2 op)
      (lambda (a b)
-       (apply rgb01 (map (lambda_ (op (_ a) (_ b)))
-			 (list .r01 .g01 .b01)))))
+       (apply rgb01l (map (lambda_ (op (_ a) (_ b)))
+			  (list .r01l .g01l .b01l)))))
 
 (def-rgb01 + (rgb01:op/2 +))
 (def-rgb01 - (rgb01:op/2 -))
@@ -237,7 +237,9 @@
  > (%try-error (..* (rgb8 100 200 0) 2))
  ;; #(error "does not match 0..1?:" 80/51)
  #(error "g01l does not match 0..1?:" 1.1551609354972836)
- )
+ > (.mean (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8))
+ #(rgb01l 1/2 .75 .7))
+
 
 (def (iter-stream f start)
      (let rec ((x start))
