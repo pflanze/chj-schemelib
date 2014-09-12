@@ -47,8 +47,7 @@
    `(path (@ (d ,(cons (_svg-point "M" (fit from))
 		       (_svg-point "L" (fit to))))
 	     (stroke ,(.html-colorstring (or color default-2d-line-color)))
-	     (stroke-width 1)
-	     (fill "none")))))
+	     (stroke-width 1)))))
 
 (def (_svg-circularize command0 command1 ps)
      (let-pair ((p0 ps*) ps)
