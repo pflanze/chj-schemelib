@@ -39,19 +39,16 @@
 	   (.svg-string (.y p))
 	   " "))
 
-(def default-2d-line-colors (colors (colorstring "black")
-				    (colorstring "none")))
+(def default-2d-line-color (colorstring "black"))
 
-(def. (2d-line.svg-fragment shape fit #!optional colors)
+(def. (2d-line.svg-fragment shape fit #!optional color)
   (let-2d-line
    ((from to) shape)
-   (let-colors
-    ((stroke fill) (or colors default-2d-line-colors))
-    `(path (@ (d ,(cons (_svg-point "M" (fit from))
-			(_svg-point "L" (fit to))))
-	      (stroke ,(.html-colorstring stroke))
-	      (stroke-width 1)
-	      (fill ,(.html-colorstring fill)))))))
+   `(path (@ (d ,(cons (_svg-point "M" (fit from))
+		       (_svg-point "L" (fit to))))
+	     (stroke ,(.html-colorstring (or color default-2d-line-color)))
+	     (stroke-width 1)
+	     (fill "none")))))
 
 (def (_svg-circularize command0 command1 ps)
      (let-pair ((p0 ps*) ps)

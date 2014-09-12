@@ -22,5 +22,5 @@
   #(color? fill))
 
 (defstruct colored
-  #(colors? color)
+  #((either color? colors?) color)
   value)
