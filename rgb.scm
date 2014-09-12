@@ -39,6 +39,23 @@
  > (mean 1 2.)
  1.5)
 
+;; XX better name? slope, shade-towards, ?
+;; (Have 'shade_exponentially_towards' in Perl. Odd one though?)
+(def (mean-towards x0 x1 factor)
+     (+ x0 (* factor (- x1 x0))))
+
+(TEST
+ > (mean-towards 10 14 0)
+ 10
+ > (mean-towards 10 14 1)
+ 14
+ > (mean-towards 10 14 1/2)
+ 12
+ > (mean-towards 10 14 1/3)
+ 34/3
+ > (mean-towards 10 14 2)
+ 18)
+
 ;; lib, too:
 
 (def hexdigits "0123456789ABCDEF")
@@ -223,6 +240,18 @@
 (def-rgb01 + (rgb01:op/2 +))
 (def-rgb01 - (rgb01:op/2 -))
 (def-rgb01 mean (rgb01:op/2 mean))
+
+(def (rgb01:op/2+1 op)
+     (lambda (a b c)
+       (let-rgb01l
+	((r0 g0 b0) (.rgb01l a))
+	(let-rgb01l
+	 ((r1 g1 b1) (.rgb01l b))
+	 (rgb01l (op r0 r1 c)
+		 (op g0 g1 c)
+		 (op b0 b1 c))))))
+
+(def-rgb01 mean-towards (rgb01:op/2+1 mean-towards))
 
 (def (rgb01:.op op)
      (typed-lambda (a #(number? b))
