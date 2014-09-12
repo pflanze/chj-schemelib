@@ -105,6 +105,8 @@
 (def (svg #(2d-point? size)
 	  #(2d-window? window) ;; 2d-window into the shapes data
 	  shapes ;; flat list of shapes; no grouping supported (yet?)
+	  #!key
+	  #((maybe color?) background-color)
 	  )
      (let* ((fit
 	     (let. ((mi range) window)
@@ -113,7 +115,19 @@
 		       (..* (.- p mi) stretch))))))
        `(svg
 	 (@ (height ,svg-height)
-	    (width ,svg-width))
+	    (width ,svg-width)
+	    ,(and background-color
+		  `(style ,(string-append
+			    "background-color: "
+			    (.html-colorstring background-color)
+			    ";"))))
+	 ;; display from imagemagick 8:6.7.7.10-5 ignores any style
+	 ;; etc. attributes of the svg element that set the bgcolor,
+	 ;; thus:
+	 ,(and background-color
+	       `(rect (@ (width "100%")
+			 (height "100%")
+			 (fill ,(.html-colorstring background-color)))))
 	 ,(map ;;stream-map
 	   (lambda (shape)
 	     (if (colored? shape)
@@ -125,18 +139,21 @@
 
 (def svg-path "out.svg")
 
-(def (showsvg shapes #!optional keep-proportions?)
+(def (showsvg shapes #!optional keep-proportions? #!rest options)
      ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
      (let* ((p0 (.start (car (force shapes)))))
        (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
 					    (cons p0 p0)
 					    shapes))
-		 (sxml>>pretty-xml-file (svg (2d-point svg-width
-						       svg-height)
-					     ((if keep-proportions?
-						  (C .fit-to-proportions _ 1 #f)
-						  identity)
-					      (2d-window mi ma))
-					     shapes)
-					svg-path)
+		 (sxml>>pretty-xml-file
+		  (apply svg
+			 (2d-point svg-width
+				   svg-height)
+			 ((if keep-proportions?
+			      (C .fit-to-proportions _ 1 #f)
+			      identity)
+			  (2d-window mi ma))
+			 shapes
+			 options)
+		  svg-path)
 		 (future (xxsystem "display" "--" svg-path)))))
