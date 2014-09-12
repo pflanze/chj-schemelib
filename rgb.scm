@@ -212,8 +212,13 @@
 
 (def (rgb01:op/2 op)
      (lambda (a b)
-       (apply rgb01l (map (lambda_ (op (_ a) (_ b)))
-			  (list .r01l .g01l .b01l)))))
+       (let-rgb01l
+	((r0 g0 b0) (.rgb01l a))
+	(let-rgb01l
+	 ((r1 g1 b1) (.rgb01l b))
+	 (rgb01l (op r0 r1)
+		 (op g0 g1)
+		 (op b0 b1))))))
 
 (def-rgb01 + (rgb01:op/2 +))
 (def-rgb01 - (rgb01:op/2 -))
