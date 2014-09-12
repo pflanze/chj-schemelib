@@ -24,3 +24,11 @@
 (defstruct colored
   #((either color? colors?) color)
   value)
+
+;; delegates, now they're coming?..
+(def. (colored.start v)
+  (.start (colored.value v)))
+
+(def. (colored.min+maxs/prev a b)
+  (.min+maxs/prev (colored.value a) b))
+
