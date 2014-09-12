@@ -31,30 +31,30 @@
 		 (fill ,(.html-colorstring fill)))))))
 
 
-(def (_svg-point command p)
+(def (_svg-point command p last?)
      (list command
 	   " "
 	   (.svg-string (.x p))
 	   " "
 	   (.svg-string (.y p))
-	   " "))
+	   (if last? #f " ")))
 
 (def default-2d-line-color (colorstring "black"))
 
 (def. (2d-line.svg-fragment shape fit #!optional color)
   (let-2d-line
    ((from to) shape)
-   `(path (@ (d ,(cons (_svg-point "M" (fit from))
-		       (_svg-point "L" (fit to))))
+   `(path (@ (d ,(cons (_svg-point "M" (fit from) #f)
+		       (_svg-point "L" (fit to) #t)))
 	     (stroke ,(.html-colorstring (or color default-2d-line-color)))
 	     (stroke-width 1)))))
 
 (def (_svg-circularize command0 command1 ps)
      (let-pair ((p0 ps*) ps)
-	       (cons (_svg-point command0 p0)
-		     (map/tail (C _svg-point command1 _)
+	       (cons (_svg-point command0 p0 #f)
+		     (map/tail (C _svg-point command1 _ #f)
 			       (list
-				(_svg-point command1 p0))
+				(_svg-point command1 p0 #t))
 			       ps*))))
 
 
@@ -70,8 +70,8 @@
       `(path
 	(@ (d ,(_svg-circularize "M" "L" ps)
 
-	      ;; (cons (_svg-point "M" p0)
-	      ;; 	    (map (C _svg-point "L" _)
+	      ;; (cons (_svg-point "M" p0 #f)
+	      ;; 	    (map (C _svg-point "L" _ #f)
 	      ;; 		 ps*))
 	      )
 	   (stroke ,(.html-colorstring stroke))
@@ -88,11 +88,11 @@
    `(path
      (@ (d ,(let* ((ps (.points shape))
 		   (p0 (car ps)))
-	      (cons (_svg-point "M" (fit p0))
+	      (cons (_svg-point "M" (fit p0) #f)
 		    (fold-right (lambda (p r)
-				  (cons (_svg-point "L" (fit p))
+				  (cons (_svg-point "L" (fit p) #f)
 					r))
-				(_svg-point "L" (fit p0))
+				(_svg-point "L" (fit p0) #t)
 				(cdr ps)))))
 	(stroke ,(.html-colorstring stroke))
 	(stroke-width "1")
