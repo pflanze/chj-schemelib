@@ -36,13 +36,28 @@
     (let ((s (process-status p)))
       (values res s))))
 
-(define (xcall-with-input-process parms proc)
-  (letv ((res s) (_call-with-input-process parms proc))
-	(if (zero? s)
-	    res
-	    (error "process exited with non-zero status:"
-		   s
-		   parms))))
+(define (_xcall-with-input-process ok? err)
+  (lambda (parms proc)
+    (letv ((res s) (_call-with-input-process parms proc))
+	  (if (ok? s)
+	      res
+	      (err s parms)))))
+
+(define xcall-with-input-process
+  (_xcall-with-input-process
+   zero?
+   (lambda (s parms)
+     (error "process exited with non-zero status:"
+	    s
+	    parms))))
+
+;; #f on subprocess errors
+(define Xcall-with-input-process
+  (_xcall-with-input-process
+   zero?
+   (lambda (s parms)
+     #f)))
+
 
 ;; XX: rewrite xcall-* and xxsystem to use it?
 (define (xxsystem cmd . args)
@@ -53,43 +68,59 @@
     (close-input-port p)
     (assert (zero? (process-status p)))))
 
-(define (backtick cmd . args)
-  (let* ((output (xcall-with-input-process (list path: cmd
-						 arguments: args
-						 stdout-redirection: #t
-						 char-encoding: 'UTF-8)
-					   (lambda (p)
-					     (read-line p #f)))))
-    (if (eof-object? output) ;; stupid lib
-	""
-	(chomp output))))
+(define (_backtick status-ok?)
+  (let ((xcall (_xcall-with-input-process
+		status-ok?
+		(lambda (s parms)
+		  (error "process exited with error status:"
+			 s
+			 parms)))))
+    (lambda (cmd . args)
+      (let* ((output (xcall (list path: cmd
+				  arguments: args
+				  stdout-redirection: #t
+				  char-encoding: 'UTF-8)
+			    (lambda_
+			     (read-line _ #f)))))
+	(if (eof-object? output) ;; stupid lib
+	    ""
+	    (chomp output))))))
+
+(define xbacktick (_backtick zero?))
+
+;; (define one? (lambda_ (= _ 1)))
+
+;; stupid name, what else?
+(define 01backtick (_backtick (either zero? (lambda_ (= _ 256)))))
 
 (TEST
- > (backtick "true")
+ > (xbacktick "true")
  ""
- > (%try-error (backtick "false"))
- #(error "process exited with non-zero status:"
+ > (%try-error (xbacktick "false"))
+ #(error "process exited with error status:"
 	 256 (path: "false" arguments: () stdout-redirection: #t char-encoding: UTF-8))
- > (backtick "echo" "world")
+ > (01backtick "false")
+ ""
+ > (xbacktick "echo" "world")
  "world"
  ;; check that unicode is read as such:
- > (backtick "echo" "-e" "Mot\\xc3\\xb6rhead")
+ > (xbacktick "echo" "-e" "Mot\\xc3\\xb6rhead")
  "Mot\366rhead"
  ;; and check that it gets 'correctly' to the process, too:
- ;; > (backtick "echo" "Motörhead")
+ ;; > (xbacktick "echo" "Motörhead")
  ;; "Mot\366rhead"
  ;; XXX: Gambit passes the argument as latin1, *and* then silently cuts off the latin1 result to "Mot"
  )
 
 
 
-(define (backtick-bash code)
-  (backtick "bash" "-c" code))
+(define (xbacktick-bash code)
+  (xbacktick "bash" "-c" code))
 
-(define bash backtick-bash) ;; ok?
+(define bash xbacktick-bash) ;; ok?
 
 (define (hostname)
-  (backtick "hostname"))
+  (xbacktick "hostname"))
 
 ;; where should that be moved to?
 (define file-info->mtime
@@ -138,7 +169,7 @@
  )
 
 (define dirname-slow
-  (cut backtick "dirname" <>))
+  (cut xbacktick "dirname" <>))
 
 ;; (define dirname-fast
 ;;   ;; (strings-join (reverse (cdr (reverse (string-split path #\/)))))

@@ -22,27 +22,27 @@
 (def suffix->mime-type
      (let ((t (make-table)))
        (typed-lambda (#(string? suff) #(string? default))
-		(let ((v (table-ref t suff 'unset)))
-		  (case v
-		    ((unknown) default)
-		    ((unset)
-		     ;; (warn "first time querying of:" suff)
-		     (let ((v (backtick "perl"
-					"-MFile::MimeInfo"
-					"-we"
-					(string-append
-					 "my $v= mimetype("
-					 (perl-quote
-					  (string-append
-					   "/nonexisting/foo." suff))
-					 "); defined $v and do{ print $v or die $!}"))))
-		       (letv ((store ret) (if (string-empty? v)
-					      (values 'unknown default)
-					      (values v v)))
-			     (table-set! t suff store)
-			     ret)))
-		    (else
-		     v))))))
+		     (let ((v (table-ref t suff 'unset)))
+		       (case v
+			 ((unknown) default)
+			 ((unset)
+			  ;; (warn "first time querying of:" suff)
+			  (let ((v (xbacktick "perl"
+					      "-MFile::MimeInfo"
+					      "-we"
+					      (string-append
+					       "my $v= mimetype("
+					       (perl-quote
+						(string-append
+						 "/nonexisting/foo." suff))
+					       "); defined $v and do{ print $v or die $!}"))))
+			    (letv ((store ret) (if (string-empty? v)
+						   (values 'unknown default)
+						   (values v v)))
+				  (table-set! t suff store)
+				  ret)))
+			 (else
+			  v))))))
 
 ;; XX correct mime type for binary
 (def mime-type:generic-binary "appication/binary")
