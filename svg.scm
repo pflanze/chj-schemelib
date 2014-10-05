@@ -165,7 +165,8 @@
 	   shapes))))
 
 
-(def svg-path "out.svg")
+(def svg-path-generate
+     (tempfile-incremental-at "out-" ".svg"))
 
 (def svg-viewer
      (letv ((out s) (backtick "which" "eog"))
@@ -176,21 +177,24 @@
 			 out
 			 #f)))))
 
-(def (showsvg shapes #!optional keep-proportions? #!rest options)
-     ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
-     (let* ((p0 (.start (car (force shapes)))))
-       (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
-					    (cons p0 p0)
-					    shapes))
-		 (sxml>>pretty-xml-file
-		  (apply svg
-			 (2d-point svg-width
-				   svg-height)
-			 ((if keep-proportions?
-			      (C .fit-to-proportions _ 1 #f)
-			      identity)
-			  (2d-window mi ma))
-			 shapes
-			 options)
-		  svg-path)
-		 (future (xxsystem svg-viewer "--" svg-path)))))
+(def (showsvg shapes
+	      #!optional keep-proportions?
+	      #!rest options)
+     (let ((svg-path (svg-path-generate)))
+       ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
+       (let* ((p0 (.start (car (force shapes)))))
+	 (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
+					      (cons p0 p0)
+					      shapes))
+		   (sxml>>pretty-xml-file
+		    (apply svg
+			   (2d-point svg-width
+				     svg-height)
+			   ((if keep-proportions?
+				(C .fit-to-proportions _ 1 #f)
+				identity)
+			    (2d-window mi ma))
+			   shapes
+			   options)
+		    svg-path)
+		   (future (xxsystem svg-viewer "--" svg-path))))))
