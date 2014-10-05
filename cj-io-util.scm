@@ -120,28 +120,31 @@
  256)
 
 
-(define (_backtick status-ok?)
+(define (_backtick status-ok? cont)
   (let ((xcall (_xcall-with-input-process
 		status-ok?
-		(lambda (res s) res)
+		(lambda (output s)
+		  (cont (if (eof-object? output) ;; stupid lib
+			    ""
+			    (chomp output))
+			s))
 		_error-exited-with-error-status)))
     (lambda (cmd . args)
-      (let* ((output (xcall (list path: cmd
-				  arguments: args
-				  stdout-redirection: #t
-				  char-encoding: 'UTF-8)
-			    (lambda_
-			     (read-line _ #f)))))
-	(if (eof-object? output) ;; stupid lib
-	    ""
-	    (chomp output))))))
+      (xcall (list path: cmd
+		   arguments: args
+		   stdout-redirection: #t
+		   char-encoding: 'UTF-8)
+	     (lambda_
+	      (read-line _ #f))))))
 
-(define xbacktick (_backtick zero?))
+(define xbacktick (_backtick zero? (lambda (out s) out)))
 
 ;; (define one? (lambda_ (= _ 1)))
 
 ;; XX stupid name, what else?
-(define 01backtick (_backtick 01status?))
+(define 01backtick (_backtick 01status? (lambda (out s) out)))
+
+(define backtick (_backtick 01status? values))
 
 (TEST
  > (xbacktick "true")
@@ -160,6 +163,8 @@
  ;; > (xbacktick "echo" "Motörhead")
  ;; "Mot\366rhead"
  ;; XXX: Gambit passes the argument as latin1, *and* then silently cuts off the latin1 result to "Mot"
+ > (values.vector (backtick "false"))
+ #("" 256)
  )
 
 
