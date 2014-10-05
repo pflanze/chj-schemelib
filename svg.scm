@@ -167,6 +167,15 @@
 
 (def svg-path "out.svg")
 
+(def svg-viewer
+     (letv ((out s) (backtick "which" "eog"))
+	   (if (zero? s)
+	       out
+	       (letv ((out s) (backtick "which" "display"))
+		     (if (zero? s)
+			 out
+			 #f)))))
+
 (def (showsvg shapes #!optional keep-proportions? #!rest options)
      ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
      (let* ((p0 (.start (car (force shapes)))))
@@ -184,4 +193,4 @@
 			 shapes
 			 options)
 		  svg-path)
-		 (future (xxsystem "display" "--" svg-path)))))
+		 (future (xxsystem svg-viewer "--" svg-path)))))
