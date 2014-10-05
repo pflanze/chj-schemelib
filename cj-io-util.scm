@@ -37,27 +37,28 @@
       (values res s))))
 
 (define (__xcall-with-process open-input-process
-			     close-input-port
-			     ok? err)
-  (lambda (parms proc)
-    (letv ((res s) (_call-with-process open-input-process
-				       close-input-port
-				       parms
-				       proc))
-	  (if (ok? s)
-	      res
-	      (err s parms)))))
+			      close-input-port)
+  (lambda (ok? values err)
+    (lambda (parms proc)
+      (letv ((res s) (_call-with-process open-input-process
+					 close-input-port
+					 parms
+					 proc))
+	    (if (ok? s)
+		(values res s)
+		(err s parms))))))
 
-(define (_xcall-with-input-process ok? err)
-  (__xcall-with-process open-input-process close-input-port ok? err))
+(define _xcall-with-input-process
+  (__xcall-with-process open-input-process close-input-port))
 
-(define (_xcall-with-process ok? err)
-  (__xcall-with-process open-process close-port ok? err))
+(define _xcall-with-process
+  (__xcall-with-process open-process close-port))
 
 
 (define xcall-with-input-process
   (_xcall-with-input-process
    zero?
+   (lambda (res s) res)
    (lambda (s parms)
      (error "process exited with non-zero status:"
 	    s
@@ -67,6 +68,7 @@
 (define Xcall-with-input-process
   (_xcall-with-input-process
    zero?
+   (lambda (res s) res)
    (lambda (s parms)
      #f)))
 
@@ -84,6 +86,7 @@
 (define (_system status-ok?)
   (let ((xcall (_xcall-with-process
 		status-ok?
+		(lambda (res s) s)
 		_error-exited-with-error-status)))
     (lambda (cmd . args)
       (xcall (list path: cmd
@@ -102,18 +105,24 @@
 
 (TEST
  > (xxsystem "true")
+ ;; well, guaranteed result value iff returns, thus useless, but for
+ ;; consistency with xsystem still nice
+ 0
  > (%try-error (xxsystem "false"))
  #(error
    "process exited with error status:"
    256
    (path: "false" arguments: () stdin-redirection: #f stdout-redirection: #f))
  > (xsystem "true")
- > (xsystem "false"))
+ 0
+ > (xsystem "false")
+ 256)
 
 
 (define (_backtick status-ok?)
   (let ((xcall (_xcall-with-input-process
 		status-ok?
+		(lambda (res s) res)
 		_error-exited-with-error-status)))
     (lambda (cmd . args)
       (let* ((output (xcall (list path: cmd
