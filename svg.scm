@@ -197,4 +197,5 @@
 			   shapes
 			   options)
 		    svg-path)
-		   (future (xxsystem svg-viewer "--" svg-path))))))
+		   (future (xxsystem svg-viewer "--" svg-path))
+		   svg-path))))
