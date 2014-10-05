@@ -68,6 +68,14 @@
     (close-input-port p)
     (assert (zero? (process-status p)))))
 
+(TEST
+ > (xxsystem "true")
+ > (%try-error (xxsystem "false"))
+ #(error
+   "assertment failure: (zero? (process-status p))"
+   (zero? (process-status '#<input-output-port #3 (process "false")>)))
+ )
+
 (define (_backtick status-ok?)
   (let ((xcall (_xcall-with-input-process
 		status-ok?
