@@ -29,19 +29,31 @@
     output))
 
 
-(define (_call-with-input-process parms proc)
-  (let* ((p (open-input-process parms))
+(define (_call-with-process open-process close-port parms proc)
+  (let* ((p (open-process parms))
 	 (res (proc p)))
-    (close-input-port p)
+    (close-port p)
     (let ((s (process-status p)))
       (values res s))))
 
-(define (_xcall-with-input-process ok? err)
+(define (__xcall-with-process open-input-process
+			     close-input-port
+			     ok? err)
   (lambda (parms proc)
-    (letv ((res s) (_call-with-input-process parms proc))
+    (letv ((res s) (_call-with-process open-input-process
+				       close-input-port
+				       parms
+				       proc))
 	  (if (ok? s)
 	      res
 	      (err s parms)))))
+
+(define (_xcall-with-input-process ok? err)
+  (__xcall-with-process open-input-process close-input-port ok? err))
+
+(define (_xcall-with-process ok? err)
+  (__xcall-with-process open-process close-port ok? err))
+
 
 (define xcall-with-input-process
   (_xcall-with-input-process
@@ -59,30 +71,50 @@
      #f)))
 
 
-;; XX: rewrite xcall-* and xxsystem to use it?
-(define (xxsystem cmd . args)
-  (let* ((p (open-process (list path: cmd
-				arguments: args
-				stdin-redirection: #f
-				stdout-redirection: #f))))
-    (close-input-port p)
-    (assert (zero? (process-status p)))))
+(define _error-exited-with-error-status
+  (lambda (s parms)
+    (error "process exited with error status:"
+	   s
+	   parms)))
+
+
+
+;; XX make xx* vs x* vs. odd _ x variant naming consistent
+
+(define (_system status-ok?)
+  (let ((xcall (_xcall-with-process
+		status-ok?
+		_error-exited-with-error-status)))
+    (lambda (cmd . args)
+      (xcall (list path: cmd
+		   arguments: args
+		   stdin-redirection: #f
+		   stdout-redirection: #f)
+	     void/1))))
+
+(define xxsystem (_system zero?))
+
+(define 01status? (either zero? (lambda_ (= _ 256))))
+
+;; (01system would be stupid name, what else? but naming
+;; inconsistency, see above)
+(define xsystem (_system (either zero? 01status?)))
 
 (TEST
  > (xxsystem "true")
  > (%try-error (xxsystem "false"))
  #(error
-   "assertment failure: (zero? (process-status p))"
-   (zero? (process-status '#<input-output-port #3 (process "false")>)))
- )
+   "process exited with error status:"
+   256
+   (path: "false" arguments: () stdin-redirection: #f stdout-redirection: #f))
+ > (xsystem "true")
+ > (xsystem "false"))
+
 
 (define (_backtick status-ok?)
   (let ((xcall (_xcall-with-input-process
 		status-ok?
-		(lambda (s parms)
-		  (error "process exited with error status:"
-			 s
-			 parms)))))
+		_error-exited-with-error-status)))
     (lambda (cmd . args)
       (let* ((output (xcall (list path: cmd
 				  arguments: args
@@ -98,8 +130,8 @@
 
 ;; (define one? (lambda_ (= _ 1)))
 
-;; stupid name, what else?
-(define 01backtick (_backtick (either zero? (lambda_ (= _ 256)))))
+;; XX stupid name, what else?
+(define 01backtick (_backtick 01status?))
 
 (TEST
  > (xbacktick "true")
