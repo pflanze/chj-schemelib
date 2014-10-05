@@ -29,16 +29,20 @@
     output))
 
 
-(define (xcall-with-input-process parms proc)
+(define (_call-with-input-process parms proc)
   (let* ((p (open-input-process parms))
 	 (res (proc p)))
     (close-input-port p)
     (let ((s (process-status p)))
-      (if (zero? s)
-	  res
-	  (error "process exited with non-zero status:"
-		 s
-		 parms)))))
+      (values res s))))
+
+(define (xcall-with-input-process parms proc)
+  (letv ((res s) (_call-with-input-process parms proc))
+	(if (zero? s)
+	    res
+	    (error "process exited with non-zero status:"
+		   s
+		   parms))))
 
 ;; XX: rewrite xcall-* and xxsystem to use it?
 (define (xxsystem cmd . args)
