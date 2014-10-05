@@ -82,6 +82,7 @@
 
 
 ;; XX make xx* vs x* vs. odd _ x variant naming consistent
+;; Well, deviate from xperlfunc by omitting one x ?
 
 (define (_system status-ok?)
   (let ((xcall (_xcall-with-process
