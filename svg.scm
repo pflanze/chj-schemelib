@@ -65,6 +65,18 @@
 	   (.svg-string (.y p))
 	   (if last? #f " ")))
 
+(def (_svg-point* maybe-command p)
+     (let ((cont (list (.svg-string (.x p))
+		       ","
+		       (.svg-string (.y p)))))
+       (if maybe-command
+	   (cons* maybe-command
+		  " "
+		  cont)
+	   cont)))
+
+
+
 (def default-2d-line-color (colorstring "black"))
 
 (def. (2d-line.svg-fragment shape fit #!optional color)
@@ -74,14 +86,6 @@
 		       (_svg-point "L" (fit to) #t)))
 	     (stroke ,(.html-colorstring (or color default-2d-line-color)))
 	     (stroke-width 1)))))
-
-(def (_svg-circularize command0 command1 ps)
-     (let-pair ((p0 ps*) ps)
-	       (cons (_svg-point command0 p0 #f)
-		     (map/tail (C _svg-point command1 _ #f)
-			       (list
-				(_svg-point command1 p0 #t))
-			       ps*))))
 
 
 (def default-2d-path-colors (colors (colorstring "black")
@@ -94,21 +98,21 @@
      (let-colors
       ((stroke fill) (or colors default-2d-path-colors))
       `(path
-	(@ (d ,(_svg-circularize "M" "L" ps)
-
-	      ;; (cons (_svg-point "M" p0 #f)
-	      ;; 	    (map (C _svg-point "L" _ #f)
-	      ;; 		 ps*))
-	      )
+	(@ (d ,(list (_svg-point* "m" p0)
+		     " "
+		     (list-join
+		      (map (C _svg-point* #f _) ps*)
+		      " ")
+		     (if (.closed? shape)
+			 " z"
+			 "")))
 	   (stroke ,(.html-colorstring stroke))
 	   (stroke-width 1)
 	   (fill ,(.html-colorstring fill))))))))
 
 (TEST
  > (.svg-fragment (2d-path (list (2d-point 1 7) (2d-point 2 9)) #t) identity)
- (path (@ (d (("M" " " "1" " " "7" " ")
-	      ("L" " " "2" " " "9" " ")
-	      ("L" " " "1" " " "7" #f)))
+ (path (@ (d (("m" " " "1" "," "7") " " (("2" "," "9")) " z"))
 	  (stroke "black")
 	  (stroke-width 1)
 	  (fill "green"))))
