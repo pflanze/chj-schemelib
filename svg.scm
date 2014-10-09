@@ -104,6 +104,15 @@
 	   (stroke-width 1)
 	   (fill ,(.html-colorstring fill))))))))
 
+(TEST
+ > (.svg-fragment (2d-path (list (2d-point 1 7) (2d-point 2 9)) #t) identity)
+ (path (@ (d (("M" " " "1" " " "7" " ")
+	      ("L" " " "2" " " "9" " ")
+	      ("L" " " "1" " " "7" #f)))
+	  (stroke "black")
+	  (stroke-width 1)
+	  (fill "green"))))
+
 
 (def default-2d-square-colors (colors (colorstring "black")
 				      (colorstring "none")))
