@@ -92,7 +92,9 @@
 			       (2d-line.to v))))
 
        (subclass 2d-path
-		 (struct #((list-of 2d-point?) points))
+		 (struct #((list-of 2d-point?) points)
+			 #!optional
+			 #(boolean? closed?))
 
 		 (method (start v)
 			 (car (2d-path.points v))))
