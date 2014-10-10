@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy cj-alist)
+(require easy cj-alist list-util)
 
 
 (define (sequencialpairs->pairs lis key-type? value-type?)
@@ -35,6 +35,37 @@
  1
  > (dsssl-maybe-ref '(a: 1) b:)
  #f)
+
+
+(def (dsssl-ref args #(keyword? key) alternative)
+     (let lp ((vs args))
+       (if (null? vs)
+	   alternative
+	   (let-pair ((k vs*) vs)
+		     (if (null? vs)
+			 (error "uneven argument count in:" args)
+			 (let-pair ((v vs**) vs*)
+				   (if (eq? key k)
+				       v
+				       (lp vs**))))))))
+
+(TEST
+ > (def vs '(a: 1 b: 2 b: 3 c: 4))
+ > (dsssl-ref vs b: 'no)
+ 2
+ > (dsssl-ref vs x: 'no)
+ no)
+
+;; and since the above was not enough..
+(TEST
+ > (dsssl-ref '(a: #f b: #f c: #t) a: 'no)
+ #f
+ > (dsssl-ref '(a: #f b: #f c: #t) b: 'no)
+ #f
+ > (dsssl-ref '(a: #f b: #f c: #t) c: 'no)
+ #t
+ > (dsssl-ref '(a: #f b: #f c: #t) d: 'no)
+ no)
 
 
 (def (dsssl-apply fn key-args . moreargs)
