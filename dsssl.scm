@@ -68,6 +68,30 @@
  no)
 
 
+(def (dsssl-delete args #(keyword? key))
+     (let rec ((vs args))
+       (if (null? vs)
+	   vs
+	   (let-pair ((k vs*) vs)
+		     (if (null? vs)
+			 (error "uneven argument count in:" args)
+			 (let-pair ((v vs**) vs*)
+				   (if (eq? key k)
+				       (rec vs**)
+				       (cons* k v (rec vs**)))))))))
+
+(TEST
+ > (def vs '(a: 1 b: 2 b: 3 c: 4))
+ > (dsssl-delete vs x:)
+ (a: 1 b: 2 b: 3 c: 4)
+ > (dsssl-delete vs c:)
+ (a: 1 b: 2 b: 3)
+ > (dsssl-delete vs a:)
+ (b: 2 b: 3 c: 4)
+ > (dsssl-delete vs b:)
+ (a: 1 c: 4))
+
+
 (def (dsssl-apply fn key-args . moreargs)
      (apply fn (append key-args moreargs)))
 
