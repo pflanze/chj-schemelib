@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy 2d-shape color)
+(require easy 2d-shape color dsssl)
 
 
 (def. (real.svg-string x)
@@ -190,10 +190,10 @@
 			 out
 			 #f)))))
 
-(def (showsvg shapes
-	      #!optional keep-proportions?
-	      #!rest options)
-     (let ((svg-path (svg-path-generate)))
+(def (showsvg shapes . options)
+     (let ((keep-proportions? (dsssl-ref options keep-proportions?: #t))
+	   (options (dsssl-delete options keep-proportions?:))
+	   (svg-path (svg-path-generate)))
        ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
        (let* ((p0 (.start (car (force shapes)))))
 	 (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
