@@ -138,9 +138,6 @@
 	(fill ,(.html-colorstring fill))))))
 
 
-(def svg-width 800)
-(def svg-height 800)
-
 (def (svg #(2d-point? size)
 	  #(2d-window? window) ;; 2d-window into the shapes data
 	  shapes ;; flat list of shapes; no grouping supported (yet?)
@@ -155,8 +152,8 @@
        `(svg
 	 (@ (xmlns "http://www.w3.org/2000/svg")
 	    (xmlns:xlink "http://www.w3.org/1999/xlink")
-	    (height ,svg-height)
-	    (width ,svg-width)
+	    (height ,(.y size))
+	    (width ,(.x size))
 	    ,(and background-color
 		  `(style ,(string-append
 			    "background-color: "
@@ -189,6 +186,9 @@
 		     (if (zero? s)
 			 out
 			 #f)))))
+
+(def svg-width 800)
+(def svg-height 800)
 
 (def (showsvg shapes . options)
      (let ((keep-proportions? (dsssl-ref options keep-proportions?: #t))
