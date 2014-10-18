@@ -98,7 +98,7 @@
      (let-colors
       ((stroke fill) (or colors default-2d-path-colors))
       `(path
-	(@ (d ,(list (_svg-point* "m" p0)
+	(@ (d ,(list (_svg-point* "M" p0)
 		     " "
 		     (list-join
 		      (map (C _svg-point* #f _) ps*)
@@ -112,7 +112,7 @@
 
 (TEST
  > (.svg-fragment (2d-path (list (2d-point 1 7) (2d-point 2 9)) #t) identity)
- (path (@ (d (("m" " " "1" "," "7") " " (("2" "," "9")) " z"))
+ (path (@ (d (("M" " " "1" "," "7") " " (("2" "," "9")) " z"))
 	  (stroke "black")
 	  (stroke-width 1)
 	  (fill "green"))))
