@@ -89,7 +89,22 @@
 
 		 (method (points v)
 			 (list (2d-line.from v)
-			       (2d-line.to v))))
+			       (2d-line.to v)))
+
+		 (method (diff v)
+			 (let-2d-line
+			  ((from to) v)
+			  (2d-point.- to from)))
+
+		 (method (slope v)
+			 (let-2d-point
+			  ((x y) (2d-line.diff v))
+			  (if (zero? x)
+			      (if (zero? y)
+				  (error "can't calculate slope of line ending in same point as origin"
+					 v)
+				  (/ y (exact.inexact x)))
+			      (/ y x)))))
 
        (subclass 2d-path
 		 (struct #((list-of 2d-point?) points)
@@ -461,7 +476,19 @@
  (#(2d-point 9 1) #(2d-point 10 1) #(2d-point 10 2) #(2d-point 9 2))
  )
 
-
+(TEST ;; 2d-line.diff and 2d-line.slope
+ > (.diff (2d-line (2d-point 1 2) (2d-point 3 4)))
+ #(2d-point 2 2)
+ > (.slope (2d-line (2d-point 1 2) (2d-point 3 4)))
+ 1
+ > (.diff (2d-line (2d-point 1 2) (2d-point -3 4)))
+ #(2d-point -4 2)
+ > (.slope (2d-line (2d-point 1 2) (2d-point -3 4)))
+ -1/2
+ > (.slope (2d-line (2d-point 1 2) (2d-point 1 4)))
+ +inf.0
+ > (.slope (2d-line (2d-point 1 2) (2d-point 1 -4)))
+ -inf.0)
 
 
 (def 2d-squares? (list-of 2d-square?))
