@@ -178,14 +178,20 @@
 (def svg-path-generate
      (tempfile-incremental-at "out-" ".svg"))
 
+(def use-eog-if-possible? #f)
 (def svg-viewer
-     (letv ((out s) (backtick "which" "eog"))
-	   (if (zero? s)
-	       out
-	       (letv ((out s) (backtick "which" "display"))
-		     (if (zero? s)
-			 out
-			 #f)))))
+     (let ((els (lambda ()
+		  (letv ((out s) (backtick "which" "display"))
+			(if (zero? s)
+			    ;; oddly need to force output size
+			    (list out "-resize" "800x800")
+			    #f)))))
+       (if use-eog-if-possible?
+	   (letv ((out s) (backtick "which" "eog"))
+		 (if (zero? s)
+		     (list out)
+		     (els)))
+	   (els))))
 
 (def svg-width 800)
 (def svg-height 800)
@@ -210,5 +216,5 @@
 			   shapes
 			   options)
 		    svg-path)
-		   (future (xxsystem svg-viewer "--" svg-path))
+		   (future (apply xxsystem `(,@svg-viewer "--" ,svg-path)))
 		   svg-path))))
