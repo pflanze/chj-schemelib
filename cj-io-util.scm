@@ -102,7 +102,7 @@
 
 ;; (01system would be stupid name, what else? but naming
 ;; inconsistency, see above)
-(define xsystem (_system (either zero? 01status?)))
+(define xsystem (_system 01status?))
 
 (TEST
  > (xxsystem "true")
