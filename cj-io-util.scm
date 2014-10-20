@@ -138,6 +138,7 @@
 	      (read-line _ #f))))))
 
 (define xbacktick (_backtick zero? (lambda (out s) out)))
+(define Xbacktick (_backtick true/1 values))
 
 ;; (define one? (lambda_ (= _ 1)))
 
@@ -165,7 +166,8 @@
  ;; XXX: Gambit passes the argument as latin1, *and* then silently cuts off the latin1 result to "Mot"
  > (values.vector (backtick "false"))
  #("" 256)
- )
+ > (/ (snd (Xbacktick "sh" "-c" "exit 23")) 256)
+ 23)
 
 
 
