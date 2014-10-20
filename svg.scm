@@ -143,17 +143,18 @@
 	  shapes ;; flat list of shapes; no grouping supported (yet?)
 	  #!key
 	  #((maybe color?) background-color)
-	  )
-     (let* ((fit
+	  (#(real? border) 0))
+     (let* ((borderpoint (2d-point border border))
+	    (fit
 	     (let. ((mi range) window)
 		   (let* ((stretch (../ size range)))
 		     (lambda (p)
-		       (..* (.- p mi) stretch))))))
+		       (.+ (..* (.- p mi) stretch) borderpoint))))))
        `(svg
 	 (@ (xmlns "http://www.w3.org/2000/svg")
 	    (xmlns:xlink "http://www.w3.org/1999/xlink")
-	    (height ,(.y size))
-	    (width ,(.x size))
+	    (height ,(+ (.y size) (* 2 border)))
+	    (width ,(+ (.x size) (* 2 border)))
 	    ,(and background-color
 		  `(style ,(string-append
 			    "background-color: "
