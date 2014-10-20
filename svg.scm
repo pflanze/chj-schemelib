@@ -143,7 +143,7 @@
 	  shapes ;; flat list of shapes; no grouping supported (yet?)
 	  #!key
 	  #((maybe color?) background-color)
-	  (#(real? border) 0))
+	  (#(real? border) 5))
      (let* ((borderpoint (2d-point border border))
 	    (fit
 	     (let. ((mi range) window)
