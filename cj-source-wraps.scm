@@ -25,6 +25,7 @@
 (define source.pair? (source-wrap-1 pair?))
 (define source.symbol? (source-wrap-1 symbol?))
 (define source.string? (source-wrap-1 string?))
+(define source.number? (source-wrap-1 number?))
 
 ;; hm move to another lib?
 (define symbol->keyword (compose string->keyword symbol->string))
