@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+;; (Perhaps should read
+;; http://polymathprogrammer.com/2008/08/04/basic-colour-theory-for-programmers/
+;; / https://news.ycombinator.com/item?id=8574032)
+
 (require easy test math-approximate)
 
 
