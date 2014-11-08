@@ -219,3 +219,21 @@
 		    svg-path)
 		   (future (apply xxsystem `(,@svg-viewer "--" ,svg-path)))
 		   svg-path))))
+
+;; XX copy-paste
+(def (showsvg* size window shapes . options)
+     (let ((svg-path (svg-path-generate)))
+       ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
+       (let* ((p0 (.start (car (force shapes)))))
+	 (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
+					      (cons p0 p0)
+					      shapes))
+		   (sxml>>pretty-xml-file
+		    (apply svg
+			   size
+			   window
+			   shapes
+			   options)
+		    svg-path)
+		   (future (apply xxsystem `(,@svg-viewer "--" ,svg-path)))
+		   svg-path))))
