@@ -217,7 +217,7 @@
 			   shapes
 			   options)
 		    svg-path)
-		   (future (apply xxsystem `(,@svg-viewer "--" ,svg-path)))
+		   (future (apply xsystem `(,@svg-viewer "--" ,svg-path)))
 		   svg-path))))
 
 ;; XX copy-paste
@@ -235,5 +235,5 @@
 			   shapes
 			   options)
 		    svg-path)
-		   (future (apply xxsystem `(,@svg-viewer "--" ,svg-path)))
+		   (future (apply xsystem `(,@svg-viewer "--" ,svg-path)))
 		   svg-path))))
