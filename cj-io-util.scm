@@ -98,11 +98,12 @@
 
 (define xxsystem (_system zero?))
 
+(define xsystem (_system true/1))
+
 (define 01status? (either zero? (lambda_ (= _ 256))))
 
-;; (01system would be stupid name, what else? but naming
-;; inconsistency, see above)
-(define xsystem (_system 01status?))
+(define 01system (_system 01status?))
+
 
 (TEST
  > (xxsystem "true")
@@ -117,7 +118,12 @@
  > (xsystem "true")
  0
  > (xsystem "false")
- 256)
+ 256
+ > (xsystem "bash" "-c" "exit 250")
+ 64000
+ > (with-exception-catcher no-such-file-or-directory-exception?
+			   (& (xsystem "nonexistingbinary81874")))
+ #t)
 
 
 (define (_backtick status-ok? cont)
