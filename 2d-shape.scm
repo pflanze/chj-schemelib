@@ -110,7 +110,10 @@
 		 (struct #((list-of 2d-point?) points)
 			 #!optional
 			 #(boolean? closed?))
-
+		 (method (points-add v #(2d-point? p)) ;; prepend, cons. hm.
+			 (let-2d-path ((ps closed?) v)
+				      (2d-path (cons p ps)
+					       closed?)))
 		 (method (start v)
 			 (car (2d-path.points v))))
 
