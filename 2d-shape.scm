@@ -89,7 +89,23 @@
 		 (struct #((maybe real?) x)
 			 #((maybe real?) y))
 		 ;; No requirement that at least one dimension is set?
-		 )
+		 (defenum partial-2d-point-kind
+		   full
+		   x-given
+		   y-given
+		   empty)
+		 (method (partial-kind v)
+			 (let-partial-2d-point
+			  ((x y) v)
+			  (cond (x (cond (y 'full)
+					 (else 'x-given)))
+				(y 'y-given)
+				(else
+				 'empty))))
+		 (method (2d-point v)
+			 (let-partial-2d-point
+			  ((x y) v)
+			  (2d-point x y))))
 
        (subclass 2d-line
 		 (struct #(2d-point? from)
