@@ -194,12 +194,15 @@
 		     (els)))
 	   (els))))
 
-(def svg-width 800)
-(def svg-height 800)
+(def default-svg-size (2d-point 800 800))
 
+;; with auto-scaling/cropping to the given size
 (def (showsvg shapes . options)
      (let ((keep-proportions? (dsssl-ref options keep-proportions?: #t))
-	   (options (dsssl-delete options keep-proportions?:))
+	   (size (dsssl-ref options size: default-svg-size))
+	   (options (chain options
+			   (dsssl-delete keep-proportions?:)
+			   (dsssl-delete size:)))
 	   (svg-path (svg-path-generate)))
        ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
        (let* ((p0 (.start (car (force shapes)))))
@@ -208,8 +211,7 @@
 					      shapes))
 		   (sxml>>pretty-xml-file
 		    (apply svg
-			   (2d-point svg-width
-				     svg-height)
+			   size
 			   ((if keep-proportions?
 				(C .fit-to-proportions _ 1 #f)
 				identity)
@@ -220,6 +222,7 @@
 		   (future (apply xsystem `(,@svg-viewer "--" ,svg-path)))
 		   svg-path))))
 
+;; with manual scaling/cropping
 ;; XX copy-paste
 (def (showsvg* size window shapes . options)
      (let ((svg-path (svg-path-generate)))
