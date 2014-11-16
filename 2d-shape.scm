@@ -34,6 +34,10 @@
 		 (method .* (_point-op *))
 		 (method ./ (_point-op /))
 
+		 (method (x/y p)
+			 (let-2d-point ((x y) p)
+				       (/ x y)))
+
 		 (method (rot90 p)
 			 (let-2d-point ((x y) p)
 				       (2d-point (- y) x)))
