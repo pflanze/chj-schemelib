@@ -200,10 +200,12 @@
 (def (showsvg shapes . options)
      (let ((keep-proportions? (dsssl-ref options keep-proportions?: #t))
 	   (size (dsssl-ref options size: default-svg-size))
+	   (path (or (dsssl-ref options path: #f)
+		     (svg-path-generate)))
 	   (options (chain options
 			   (dsssl-delete keep-proportions?:)
-			   (dsssl-delete size:)))
-	   (svg-path (svg-path-generate)))
+			   (dsssl-delete size:)
+			   (dsssl-delete path:))))
        ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
        (let* ((p0 (.start (car (force shapes)))))
 	 (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
@@ -218,9 +220,9 @@
 			    (2d-window mi ma))
 			   shapes
 			   options)
-		    svg-path)
-		   (future (apply xsystem `(,@svg-viewer "--" ,svg-path)))
-		   svg-path))))
+		    path)
+		   (future (apply xsystem `(,@svg-viewer "--" ,path)))
+		   path))))
 
 ;; with manual scaling/cropping
 ;; XX copy-paste
