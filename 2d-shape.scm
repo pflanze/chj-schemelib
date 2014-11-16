@@ -84,6 +84,13 @@
 		 (method (distance p)
 			 (sqrt (2d-point.distance^2 p))))
 
+       ;; hmm partial COPY-PASTE from above, how to avoid?
+       (subclass partial-2d-point
+		 (struct #((maybe real?) x)
+			 #((maybe real?) y))
+		 ;; No requirement that at least one dimension is set?
+		 )
+
        (subclass 2d-line
 		 (struct #(2d-point? from)
 			 #(2d-point? to))
