@@ -196,14 +196,29 @@
 
 (def default-svg-size (2d-point 800 800))
 
+(defenum fit
+  within
+  clip
+  stretch)
+
+(def (_fit-to-props fit size)
+     (let ((targetprops (.x/y size)))
+       (xcase fit
+	      ((within)
+	       (C .fit-to-proportions _ targetprops #f))
+	      ((clip)
+	       (C .fit-to-proportions _ targetprops #t))
+	      ((stretch)
+	       identity))))
+
 ;; with auto-scaling/cropping to the given size
 (def (showsvg shapes . options)
-     (let ((keep-proportions? (dsssl-ref options keep-proportions?: #t))
+     (let ((fit (-> fit? (dsssl-ref options fit: 'inside)))
 	   (size (dsssl-ref options size: default-svg-size))
 	   (path (or (dsssl-ref options path: #f)
 		     (svg-path-generate)))
 	   (options (chain options
-			   (dsssl-delete keep-proportions?:)
+			   (dsssl-delete fit:)
 			   (dsssl-delete size:)
 			   (dsssl-delete path:))))
        ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
@@ -214,10 +229,7 @@
 		   (sxml>>pretty-xml-file
 		    (apply svg
 			   size
-			   ((if keep-proportions?
-				(C .fit-to-proportions _ 1 #f)
-				identity)
-			    (2d-window mi ma))
+			   ((_fit-to-props fit size) (2d-window mi ma))
 			   shapes
 			   options)
 		    path)
