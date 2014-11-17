@@ -168,6 +168,8 @@
 			  ((mi ma) v)
 			  (.- ma mi)))
 
+		 ;; hm, rename this to x/y like the method for
+		 ;; 2d-point, or vice versa?
 		 (method (proportions v) ;; div by zero for zero dy !
 			 (let-2d-window
 			  ((mi ma) v)
