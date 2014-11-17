@@ -182,6 +182,7 @@
 				   (dy (- y1 y0))
 				   (our-dx/dy (/ dx dy)))
 			      our-dx/dy)))))
+		 (method x/y 2d-window.proportions)
 
 		 (method (fit-to-proportions v #((complement zero?) dx/dy) clip?)
 			 (let-2d-window
