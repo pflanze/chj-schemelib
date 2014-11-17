@@ -42,19 +42,25 @@
  "0")
 
 
+(def (optionS/default optionsS default-options)
+     ;; yep optionsS, not optionS, XX naming wrong further down.
+     (lambda (f)
+       (or (and optionsS (improper-any f optionsS))
+	   (and default-options (f default-options)))))
+
+
 (def default-2d-point-colors (colors (colorstring "blue")
 				     (colorstring "blue")))
 
-(def. (2d-point.svg-fragment shape fit #!optional colors)
-  (let ((p (fit shape)))
-    (let-colors
-     ((stroke fill) (or colors default-2d-point-colors))
-     `(circle (@ (cx ,(.svg-string (.x p)))
-		 (cy ,(.svg-string (.y p)))
-		 (r 1.5)
-		 (stroke ,(.html-colorstring stroke))
-		 (stroke-width 0)
-		 (fill ,(.html-colorstring fill)))))))
+(def. (2d-point.svg-fragment shape fit #!optional optionS)
+  (let ((p (fit shape))
+	(getopt (optionS/default optionS default-2d-point-colors)))
+    `(circle (@ (cx ,(.svg-string (.x p)))
+		(cy ,(.svg-string (.y p)))
+		(r ,(or (getopt .maybe-stroke-width) 1.5))
+		(stroke ,(.html-colorstring (getopt .maybe-stroke-color)))
+		(stroke-width 0)
+		(fill ,(.html-colorstring (getopt .maybe-fill-color)))))))
 
 
 (def (_svg-point command p last?)
@@ -79,63 +85,79 @@
 
 (def default-2d-line-color (colorstring "black"))
 
-(def. (2d-line.svg-fragment shape fit #!optional color)
+(def. (2d-line.svg-fragment shape fit #!optional optionS)
   (let-2d-line
    ((from to) shape)
-   `(path (@ (d ,(cons (_svg-point "M" (fit from) #f)
-		       (_svg-point "L" (fit to) #t)))
-	     (stroke ,(.html-colorstring (or color default-2d-line-color)))
-	     (stroke-width 1)))))
+   (let ((getopt (optionS/default optionS default-2d-line-color)))
+     `(path (@ (d ,(cons (_svg-point "M" (fit from) #f)
+			 (_svg-point "L" (fit to) #t)))
+	       (stroke ,(.html-colorstring (getopt .maybe-stroke-color)))
+	       (stroke-width ,(or (getopt .maybe-stroke-width) 1)))))))
 
 
 (def default-2d-path-colors (colors (colorstring "black")
 				    (colorstring "green")))
 
-(def. (2d-path.svg-fragment shape fit #!optional colors)
-  (let ((ps (map fit (.points shape))))
+(def. (2d-path.svg-fragment shape fit #!optional optionS)
+  (let ((ps (map fit (.points shape)))
+	(getopt (optionS/default optionS default-2d-path-colors)))
     (let-pair
      ((p0 ps*) ps)
-     (let-colors
-      ((stroke fill) (or colors default-2d-path-colors))
-      `(path
-	(@ (d ,(list (_svg-point* "M" p0)
-		     " "
-		     (list-join
-		      (map (C _svg-point* #f _) ps*)
-		      " ")
-		     (if (.closed? shape)
-			 " z"
-			 "")))
-	   (stroke ,(.html-colorstring stroke))
-	   (stroke-width 1)
-	   (fill ,(.html-colorstring fill))))))))
+     `(path
+       (@ (d ,(list (_svg-point* "M" p0)
+		    " "
+		    (list-join
+		     (map (C _svg-point* #f _) ps*)
+		     " ")
+		    (if (.closed? shape)
+			" z"
+			"")))
+	  (stroke ,(.html-colorstring (getopt .maybe-stroke-color)))
+	  (stroke-width ,(or (getopt .maybe-stroke-width) 1))
+	  (fill ,(.html-colorstring (getopt .maybe-fill-color))))))))
 
 (TEST
- > (.svg-fragment (2d-path (list (2d-point 1 7) (2d-point 2 9)) #t) identity)
+ > (def p (2d-path (list (2d-point 1 7) (2d-point 2 9)) #t))
+ > (.svg-fragment p identity)
  (path (@ (d (("M" " " "1" "," "7") " " (("2" "," "9")) " z"))
 	  (stroke "black")
 	  (stroke-width 1)
-	  (fill "green"))))
+	  (fill "green")))
+ > (.svg-fragment p identity (colorstring "yellow"))
+ (path (@ (d (("M" " " "1" "," "7") " " (("2" "," "9")) " z"))
+	  (stroke "yellow")
+	  (stroke-width 1)
+	  (fill "yellow")))
+ > (.svg-fragment p identity (paint stroke-width: 5
+				    fill-color: (colorstring "white")))
+ (path (@ (d (("M" " " "1" "," "7") " " (("2" "," "9")) " z"))
+	  (stroke "black")
+	  (stroke-width 5)
+	  (fill "white")))
+ > (.svg-fragment p identity (paint fill-color: (rgb01l 0 0.5 1)))
+ (path (@ (d (("M" " " "1" "," "7") " " (("2" "," "9")) " z"))
+	  (stroke "black")
+	  (stroke-width 1)
+	  (fill "#00BCFF"))))
 
 
 (def default-2d-square-colors (colors (colorstring "black")
 				      (colorstring "none")))
 
-(def. (2d-square.svg-fragment shape fit #!optional colors)
-  (let-colors
-   ((stroke fill) (or colors default-2d-square-colors))
-   `(path
-     (@ (d ,(let* ((ps (.points shape))
-		   (p0 (car ps)))
-	      (cons (_svg-point "M" (fit p0) #f)
-		    (fold-right (lambda (p r)
-				  (cons (_svg-point "L" (fit p) #f)
-					r))
-				(_svg-point "L" (fit p0) #t)
-				(cdr ps)))))
-	(stroke ,(.html-colorstring stroke))
-	(stroke-width "1")
-	(fill ,(.html-colorstring fill))))))
+(def. (2d-square.svg-fragment shape fit #!optional optionS)
+  (let ((getopt (optionS/default optionS default-2d-square-colors)))
+    `(path
+      (@ (d ,(let* ((ps (.points shape))
+		    (p0 (car ps)))
+	       (cons (_svg-point "M" (fit p0) #f)
+		     (fold-right (lambda (p r)
+				   (cons (_svg-point "L" (fit p) #f)
+					 r))
+				 (_svg-point "L" (fit p0) #t)
+				 (cdr ps)))))
+	 (stroke ,(.html-colorstring (getopt .maybe-stroke-color)))
+	 (stroke-width ,(or (getopt .maybe-stroke-width) "1"))
+	 (fill ,(.html-colorstring (getopt .maybe-fill-color)))))))
 
 
 (def (svg #(2d-point? size)
@@ -169,9 +191,9 @@
 			 (fill ,(.html-colorstring background-color)))))
 	 ,(map ;;stream-map
 	   (lambda (shape)
-	     (if (colored? shape)
-		 (let-colored ((color shape) shape)
-			      (.svg-fragment shape fit color))
+	     (if (painted? shape)
+		 (let-painted ((optionS shape) shape)
+			      (.svg-fragment shape fit optionS))
 		 (.svg-fragment shape fit)))
 	   shapes))))
 
@@ -213,7 +235,7 @@
 
 ;; with auto-scaling/cropping to the given size
 (def (showsvg shapes . options)
-     (let ((fit (-> fit? (dsssl-ref options fit: 'inside)))
+     (let ((fit (-> fit? (dsssl-ref options fit: 'within)))
 	   (size (dsssl-ref options size: default-svg-size))
 	   (path (or (dsssl-ref options path: #f)
 		     (svg-path-generate)))
@@ -226,13 +248,48 @@
 	 (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
 					      (cons p0 p0)
 					      shapes))
-		   (sxml>>pretty-xml-file
-		    (apply svg
-			   size
-			   ((_fit-to-props fit size) (2d-window mi ma))
-			   shapes
-			   options)
-		    path)
+		   (let* ((usage-window (2d-window mi ma))
+			  (cont
+			   (lambda (size window)
+			     (sxml>>pretty-xml-file
+			      (apply svg
+				     size
+				     window
+				     shapes
+				     options)
+			      path)))
+			  (cont-size
+			   (lambda (size)
+			     (cont size usage-window)))
+			  (cont-fit
+			   (lambda (size)
+			     (cont size
+				   ((_fit-to-props fit size) usage-window)))))
+
+		     (if (partial-2d-point? size)
+			 (xcase (.partial-kind size)
+				((full)
+				 (cont-fit (.2d-point size)))
+				;; In partial cases, |fit| is ignored.
+				;; (Should the program instead require
+				;; the user to give a 'partial
+				;; ('complete-size, 'calculate-size)
+				;; fit value and save the dispatching
+				;; here?)
+				((x-given)
+				 (let. ((x) size)
+				       (cont-size
+					(2d-point x
+						  (/ x (.x/y usage-window))))))
+				((y-given)
+				 (let. ((y) size)
+				       (cont-size
+					(2d-point (* y (.x/y usage-window))
+						  y))))
+				((empty)
+				 (error "given size has neither x nor y")))
+			 (cont-fit size)))
+
 		   (future (apply xsystem `(,@svg-viewer "--" ,path)))
 		   path))))
 
