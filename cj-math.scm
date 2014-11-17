@@ -21,6 +21,9 @@
 (define (integer x)
   (inexact->exact (floor x)))
 
+(define (integer-ceiling x)
+  (inexact->exact (ceiling x)))
+
 (define (exact x)
   (let ((x* (inexact->exact x)))
     (assert (= x* x))
