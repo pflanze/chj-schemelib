@@ -175,8 +175,8 @@
        `(svg
 	 (@ (xmlns "http://www.w3.org/2000/svg")
 	    (xmlns:xlink "http://www.w3.org/1999/xlink")
-	    (height ,(+ (.y size) (* 2 border)))
-	    (width ,(+ (.x size) (* 2 border)))
+	    (height ,(integer-ceiling (+ (.y size) (* 2 border))))
+	    (width ,(integer-ceiling (+ (.x size) (* 2 border))))
 	    ,(and background-color
 		  `(style ,(string-append
 			    "background-color: "
