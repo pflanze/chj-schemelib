@@ -335,6 +335,8 @@
  10
  )
 
+(define-if-not-defined gambit:load load)
+
 
 (define table-update!:noval (box 'noval))
 (define (table-update! t k fn
