@@ -353,3 +353,7 @@
  > (table-ref t 'b)
  10)
 
+
+(define-macro* (define-parameter name default-value)
+  `(define ,name (make-parameter ,default-value)))
+
