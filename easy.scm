@@ -24,6 +24,9 @@
 (define-macro* (defvalues . args)
   `(define-values ,@args))
 
+(define-macro* (defparameter . args)
+  `(define-parameter ,@args))
+
 
 (def comp compose)
 (defmacro (comp* . args)
