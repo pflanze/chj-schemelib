@@ -18,6 +18,51 @@
  "scm"
  )
 
+(define (list-dropstop stop? fail? stop fail)
+  (named self
+	 (lambda (l)
+	   (if (null? l)
+	       (fail l)
+	       (let-pair ((a r) l)
+			 (cond ((fail? a)
+				(fail r))
+			       ((stop? a)
+				(stop r))
+			       (else
+				(self r))))))))
+
+(TEST
+ > (define t-list-dropstop
+     (compose
+      (list-dropstop (lambda (v) (eq? v #\.))
+		     (lambda (v) (eq? v #\/))
+		     (lambda (v) (vector 'stop (list->string v)))
+		     (lambda (v) (vector 'fail (list->string v))))
+      string->list))
+ > (t-list-dropstop "foo.bar/baz")
+ #(stop "bar/baz")
+ > (t-list-dropstop "foobar/baz")
+ #(fail "baz")
+ > (t-list-dropstop "foobarbaz")
+ #(fail ""))
+
+(define (strip-suffix str)
+  ((list-dropstop (lambda (v) (eq? v #\.))
+		  (lambda (v) (eq? v #\/))
+		  (lambda (v) (list->string (reverse v)))
+		  (lambda (v) str))
+   (reverse (string->list str))))
+
+(TEST
+ > (strip-suffix "/foo.scm")
+ "/foo"
+ > (strip-suffix "/foo")
+ "/foo"
+ > (strip-suffix "/foo.")
+ "/foo"
+ > (strip-suffix "bar.d/foo")
+ "bar.d/foo")
+
 
 ;; slow way. just  .
 ;; drop-while but from the end.
