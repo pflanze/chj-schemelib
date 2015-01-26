@@ -61,7 +61,9 @@
  > (strip-suffix "/foo.")
  "/foo"
  > (strip-suffix "bar.d/foo")
- "bar.d/foo")
+ "bar.d/foo"
+ > (strip-suffix "bar.d/foo.sf.scm")
+ "bar.d/foo.sf")
 
 
 ;; slow way. just  .
