@@ -2,6 +2,12 @@
 ;; Published unter the same terms as Gambit: dual LGPL
 ;; version 2.1 or Apache version 2.0 license
 
+;; BUGS: seems the pretty versions (through xmllint) lead to broken
+;; layout, e.g. when embedding html output from perltidy. The non-fast
+;; non-pretty versions (with the line-wrapping inside tags) give blank
+;; page in chromium (related to js?). Thus, use the fast versions
+;; everywhere?...
+
 
 ;; ** NOTE: this version just includes all dependencies so that it
 ;; does not require chjmodule **.  It's not such a good idea modifying
@@ -501,11 +507,20 @@
 (define (sxml>>xml-file item path)
   (call-with-output-file path (cut sxml>>xml item <>)))
 
+(define (sxml>>fast-xml-file item path)
+  (call-with-output-file path (cut sxml>>xml-fast item <>)))
+
 (define (sxml>>xhtml-file item path)
   (call-with-output-file path (cut sxml>>xhtml item <>)))
 
+(define (sxml>>fast-xhtml-file item path)
+  (call-with-output-file path (cut sxml>>xhtml-fast item <>)))
+
 (define (sxml>>html-file item path)
   (call-with-output-file path (cut sxml>>html item <>)))
+
+(define (sxml>>fast-html-file item path)
+  (call-with-output-file path (cut sxml>>html-fast item <>)))
 
 
 (define (pretty-filer serialize)
