@@ -28,6 +28,10 @@
     (close-port p)
     output))
 
+(define (string.print-file str pathspec)
+  (let* ((p (open-output-file pathspec)))
+    (display str p)
+    (close-port p)))
 
 (define (_call-with-process open-process close-port parms proc)
   (let* ((p (open-process parms))
