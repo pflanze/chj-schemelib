@@ -528,12 +528,16 @@
     (let ((tmppath (string-append outpath "~" (number->string (random-integer 100000)))))
       (let ((p (open-process `(path: "xmllint" ;;ewig why path.but~egal
 				     ;;arguments: ("--format" "-" "--output" ,tmppath)  order plays a role
-				     arguments: ("--output" ,tmppath
-						 ,@(if noblanks
-						       '()
-						       '("--format"))
-						 ;;"--noblanks"
-						 "-")
+				     arguments:
+				     ("--output" ,tmppath
+				      ,@(if noblanks
+					    '()
+					    '(
+					      ;; "--format"
+					      ;; evil, breaks embedded perltidy output, see comment at top of file
+					      ))
+				      ;;"--noblanks"
+				      "-")
 				     char-encoding: UTF-8
 				     buffering: #t))))
 	(with-exception-catcher
