@@ -36,6 +36,17 @@
   (and (symbol? v)
        (not (uninterned-symbol? v))))
 
+(define string->uninterned-symbol
+  (symbol-value-or
+   '##make-uninterned-symbol
+   (lambda ()
+     (symbol-value-or
+      '##string->uninterned-symbol
+      ;; XX that would be a problem though? signal
+      ;; error?
+      false/0))))
+
+
 (define (cj-gensym? v)
   (and (interned-symbol? v)
        (let* ((s (symbol->string v))
