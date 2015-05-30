@@ -27,6 +27,8 @@
 (define-macro* (defparameter . args)
   `(define-parameter ,@args))
 
+(define-macro* (def-once . args)
+  `(define-if-not-defined ,@args))
 
 (def comp compose)
 (defmacro (comp* . args)
