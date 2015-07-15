@@ -14,7 +14,7 @@
 
 (define dnchar?
   ;; excluding hyphen since already split on it
-  (either char-digit? char-alpha?))
+  char-alphanumeric?)
 
 (define (nonnulldnlabel? s)
   (and (string? s)
@@ -45,6 +45,8 @@
  #t ;; ok? (Internationalized domain names use this, even)
  > (nonnulldnlabel? "f/a")
  #f
+ > (nonnulldnlabel? "_domainkey")
+ #t
  )
 
 ;; XX: "Hostnames impose restrictions on the characters allowed in the
@@ -97,6 +99,8 @@
  #t
  > (fqdn-string? "127.0.0.1")
  #f ;; ok?
+ > (fqdn-string? "brisbane._domainkey.example.net")
+ #t
  )
 
 
