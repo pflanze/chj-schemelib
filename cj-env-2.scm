@@ -31,7 +31,7 @@
 		 (if (fx< ,var ,to)
 		     (begin
 		       ,@body
-		       (,LP (##fixnum.+ ,var 1)))))))))
+		       (,LP (fx+ ,var 1)))))))))
 
 (define-macro* (for..<* var-from-to . body)
   (mcase var-from-to
