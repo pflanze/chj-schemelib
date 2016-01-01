@@ -48,6 +48,14 @@
 						     (and (= a0 b0)
 							  (= a1 b1)))))
 
+		 (method (almost= a b max-abs-diff)
+			 (def (almost= x y)
+			      (or (= x y)
+				  (< (abs (- x y)) max-abs-diff)))
+			 (let-2d-point ((a0 a1) a)
+				       (let-2d-point ((b0 b1) b)
+						     (and (almost= a0 b0)
+							  (almost= a1 b1)))))
 
 		 (method (< a b)
 			 (let-2d-point ((a0 a1) a)
@@ -274,7 +282,20 @@
  > (define c (.rot90 b))
  > (define d (.rot90 c))
  > (.rot90 d)
- #(2d-point 10 1))
+ #(2d-point 10 1)
+ ;; almost= :
+ > (def a (2d-point 1 2))
+ > (map (lambda (p)
+	  (list (.= a p)
+		(.almost= a p 1e-10)))
+	(list (2d-point 1 2)
+	      (2d-point 1 2.0)
+	      (2d-point 1 2.01)
+	      (2d-point 1 2.0000000000001)))
+ ((#t #t)
+  (#t #t)
+  (#f #f)
+  (#f #t)))
 
 
 (defmacro (with-import-2d-aliases longnames . body)
