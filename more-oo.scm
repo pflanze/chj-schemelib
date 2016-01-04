@@ -12,11 +12,6 @@
 
 (compile-time
 
- ;; lib
- (define (box-push! b val)
-   (set-box! b (cons val (unbox b))))
- ;;/lib
- 
  (def compile-time:class-ctx '())
 
  ;; well, always fearing conflicts...

@@ -240,9 +240,37 @@
 
 
 
+(define (box-push! b val)
+  (set-box! b (cons val (unbox b))))
 
-(define-macro* (push! var val)
-  `(set! ,var (cons ,val ,var)))
+(define-macro* (push! var-or-form val)
+  (let ((var-or-form* (source-code var-or-form)))
+    (cond ((symbol? var-or-form*)
+	   (let ((var var-or-form))
+	     `(set! ,var (cons ,val ,var))))
+	  ((pair? var-or-form*)
+	   (let ((a (source-code (car var-or-form*))))
+	     (case a
+	       ((unbox)
+		(if (= (improper-length var-or-form*) 2)
+		    `(box-push! ,(cadr var-or-form*) ,val)
+		    (source-error var-or-form "unbox form of improper length")))
+	       (else
+		(source-error var-or-form "unknown kind of form")))))
+	  (else
+	   (source-error var-or-form "need variable name or a form")))))
+
+(TEST
+ > (define x '())
+ > (push! x 1)
+ > (push! x 2)
+ > x
+ (2 1)
+ > (define x (box '()))
+ > (push! (unbox x) 1)
+ > (push! (unbox x) 2)
+ > (unbox x)
+ (2 1))
 
 ;; pop! see list-util-2
 
