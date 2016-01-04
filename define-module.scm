@@ -28,104 +28,174 @@
 
 (both-times ;; runtime mostly just for the tests
 
+ ;; lib
+ (define source-xxone
+   (lambda (x) (xone x (lambda (e) (source-error x "expecting one item")))))
+ ;; /lib
+
+ ;; % for (mutable/)mutated-from-inside data structures?
+ (define (define-module:redo *local-expanders %seen-var)
+   (named
+    redo
+    (lambda (form movedout+res)
+      (let* ((return
+	      (lambda (val)
+		(letv ((movedout res) movedout+res)
+		      (values movedout
+			      (cons val res)))))
+
+	     (redo-with
+	      (lambda (val)
+		(redo val movedout+res)))
+
+	     (return-non-define
+	      (lambda (form)
+		(return (list (gensym)
+			      form))))
+
+	     (move-out
+	      (lambda (val)
+		(letv ((movedout res) movedout+res)
+		      (values (cons val movedout)
+			      res)))))
+
+	(let ((form* (source-code form)))
+	  (if (pair? form*)
+	      (let-pair
+	       ((head rest1) form*)
+	       (let ((head* (source-code head)))
+		 (if (symbol? head*)
+		     (case head*
+		       ((define)
+			(match* ;; is a define never a dotted list? XX
+			 form
+			 ((_define bind . rest2)
+
+			  (define (return-definition name expr)
+			    (if (table-ref %seen-var
+					   (source-code name)
+					   #f)
+				;; translate into a set!
+				(return-non-define
+				 `(set! ,name ,expr))
+				;; first occurrence,
+				;; introduce new binding
+				(begin
+				  (table-set! %seen-var
+					      (source-code name)
+					      #t)
+				  (return (list name expr)))))
+
+			  ;; what kind of define form?
+			  (let ((bind* (source-code bind)))
+			    (cond ((pair? bind*)
+				   ;; function definition
+				   (let-pair
+				    ((name vars) bind*)
+				    (return-definition
+				     name
+				     `(lambda ,vars
+					,@rest2))))
+				  ((symbol? bind*)
+				   ;; variable definition
+				   (return-definition bind (source-xxone rest2)))
+				  (else
+				   (source-error
+				    bind
+				    "expecting pair or symbol")))))))
+		       ((begin)
+			;; flatten into the outer list
+			(fold redo
+			      movedout+res
+			      rest1))
+		       ((##define-syntax)
+			(move-out form))
+		       (else
+			(cond ((or (cond ((assq head* (unbox *local-expanders))
+					  => cdr)
+					 (else #f))
+				   (define-macro-star-maybe-ref head*))
+			       => (lambda (expand)
+				    ;;(warn "found expander for" head*)
+				    (redo-with (expand form))))
+			      (else
+			       (return-non-define form)))))
+		     (return-non-define form))))
+	      (return-non-define form)))))))
+
+ (TEST
+  > (define TEST:equal? syntax-equal?)
+  > (map (lambda (form)
+	   (values->vector ((define-module:redo (box '()) (make-table))
+			    form
+			    (values '() '()))))
+	 (list '(foo x)
+	       '(set! foo x)
+	       '(define foo x)))
+  (
+   #(() ((GEN:-5888 (foo x))))
+   #(() ((GEN:-5889 (set! foo x))))
+   #(() ((foo x)))))
+
+
+ (define (define-module:convert-forms forms *local-expanders)
+   (define t (make-table))
+   ;; use left fold then reverse so that the order of the side
+   ;; effects done by the macro expanders is correct
+   (letv ((revmovedout revconvertedforms)
+	  (fold (define-module:redo *local-expanders t)
+		(values '() '())
+		forms))
+	 (values (reverse revconvertedforms)
+		 (reverse revmovedout))))
+
+ (TEST
+  > (define TEST:equal? syntax-equal?)
+  > (values->vector (define-module:convert-forms
+		      '((define a 1)
+			(set! a 2)
+			(##define-syntax X foo)
+			(define a 3))
+		      (box '())))
+  #( ;; convertedforms
+    ((a 1)
+     (GEN:1 (set! a 2))
+     (GEN:2 (set! a 3)))
+    ;; movedout
+    ((##define-syntax X foo))))
+ 
  (define (convert-module-body forms bodytail)
-   (define local-expanders '())
+
+   (define *local-expanders (box '()))
+
    (parameterize
     ((define-macro*-maybe-local-callback
        (lambda (name expander)
-	 (push! local-expanders (cons name expander)))))
-    (letv
-     ;; use left fold then reverse so that the order of the side
-     ;; effects done by the macro expanders is correct
-     ((revmovedout revconvertedforms)
-	   (fold
-	    (named
-	     redo
-	     (lambda (form movedout+res)
-	       (let* ((return
-		       (lambda (val)
-			 (letv ((movedout res) movedout+res)
-			       (values movedout
-				       (cons val res)))))
-		      (redo-with
-		       (lambda (val)
-			 (redo val movedout+res)))
-		      (return-non-define
-		       (lambda ()
-			 (return (list (gensym)
-				       form))))
-		      (move-out
-		       (lambda (val)
-			 (letv ((movedout res) movedout+res)
-			       (values (cons val movedout)
-				       res)))))
-		 (let ((form* (source-code form)))
-		   (if (pair? form*)
-		       (let-pair
-			((head rest1) form*)
-			(let ((head* (source-code head)))
-			  (if (symbol? head*)
-			      (case head*
-				((define)
-				 (match* ;; is a define never a dotted list? XX
-				  form
-				  ((define bind . rest2)
-				   (let ((bind* (source-code bind)))
-				     (cond ((pair? bind*)
-					    (let-pair
-					     ((name vars) bind*)
-					     (return (list name
-							   `(lambda ,vars
-							      ,@rest2)))))
-					   ((symbol? bind*)
-					    (return rest1))
-					   (else
-					    (source-error
-					     bind
-					     "expecting pair or symbol")))))))
-				((begin)
-				 ;; flatten into the outer list
-				 (fold redo
-				       movedout+res
-				       rest1))
-				((##define-syntax)
-				 (move-out form))
-				(else
-				 (cond ((or (cond ((assq head* local-expanders)
-						   => cdr)
-						  (else #f))
-					    (define-macro-star-maybe-ref head*))
-					=> (lambda (expand)
-					     ;;(warn "found expander for" head*)
-					     (redo-with (expand form))))
-				       (else
-					(return-non-define)))))
-			      (return-non-define))))
-		       (return-non-define))))))
-	    (values '() '())
-	    forms))
-	  (let ((convertedforms (reverse revconvertedforms))
-		(movedout (reverse revmovedout)))
-	    (if (mod:compiled?)
-		`(begin
-		   ,@movedout
-		   (letrec ,convertedforms
-		     ,@bodytail))
-		`(let ,(map (lambda (var+expr)
-			      (match* var+expr
-				      ((var expr)
-				       `(,var 'define-module-unbound))))
-			    (filter (compose* not cj-gensym? car)
-				    convertedforms))
-		   ,@movedout
-		   ,@(map (lambda (var+expr)
+	 (push! (unbox *local-expanders) (cons name expander)))))
+    
+    (letv ((convertedforms movedout)
+	   (define-module:convert-forms forms *local-expanders))
+
+	  (if (mod:compiled?)
+	      `(begin
+		 ,@movedout
+		 (letrec ,convertedforms
+		   ,@bodytail))
+	      `(let ,(map (lambda (var+expr)
 			    (match* var+expr
 				    ((var expr)
-				     (if (cj-gensym? var)
-					 expr
-					 `(set! ,var ,expr)))))
-			  convertedforms)
-		   ,@bodytail)))))))
+				     `(,var 'define-module-unbound))))
+			  (filter (compose* not cj-gensym? car)
+				  convertedforms))
+		 ,@movedout
+		 ,@(map (lambda (var+expr)
+			  (match* var+expr
+				  ((var expr)
+				   (if (cj-gensym? var)
+				       expr
+				       `(set! ,var ,expr)))))
+			convertedforms)
+		 ,@bodytail))))))
 
 
 (TEST
@@ -138,12 +208,14 @@
       (parameterize
        ((mod:compiled? #t))
        (convert-module-body forms body))))
- > (conv '((define a 1) (define b (a 2))) '(mybody))
- #((let ((a 'define-module-unbound) (b 'define-module-unbound))
+ > (conv '((define a 1) (define a 12) (define b (a 2))) '(mybody))
+ #((let ((a 'define-module-unbound)
+	 (b 'define-module-unbound))
      (set! a 1)
+     (set! a 12)
      (set! b (a 2))
      mybody)
-   (begin (letrec ((a 1) (b (a 2))) mybody)))
+   (begin (letrec ((a 1) (GEN:1 (set! a 12)) (b (a 2))) mybody)))
  > (conv '((define a 1) (set! a list) (define b (a 2))) '(b))
  #((let ((a 'define-module-unbound) (b 'define-module-unbound))
      (set! a 1) (set! a list) (set! b (a 2))
@@ -354,6 +426,7 @@
 (TEST
  > (compile-time ;; necessary since TEST evaluates all subtests in one go
     (define-module (foo prefix x) (export a b)
+      (define a -3)
       (define a 4)
       (define b (* x a))))
  > (module-import foo5: foo 5)
