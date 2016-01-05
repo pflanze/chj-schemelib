@@ -1,6 +1,6 @@
 ;; (requires
 ;;  gambit-interpreter-env
-;;  cj-math ;; quotient/ceiling
+;;  cj-math ;; quotient-ceiling
 ;;  cj-env ;; let-named*
 ;;  (cj-test TEST)
 ;;  )
@@ -80,11 +80,11 @@
 	    #\l #\m #\n #\o #\p #\q #\r #\s #\t #\u
 	    #\v #\w #\x #\y #\z #\0 #\1 #\2 #\3 #\4 #\5))
 
-;; _binary2text
+;; A base 32 encoding (not following any standard)
 (def (u8vector->alphanumeric-string #(u8vector? u8vec))
      (let* ((src-len (u8vector-length u8vec))
 	    (src-bits (* 8 src-len))
-	    (dst-len (quotient/ceiling (* 8 src-len) 5))
+	    (dst-len (quotient-ceiling (* 8 src-len) 5))
 	    (str (##make-string dst-len)))
        (let loop ((src-bitpos 0)
 		  (dst-pos 0))
@@ -105,6 +105,22 @@
 		 (loop (+ src-bitpos 5)
 		       (+ dst-pos 1))))
 	     str))))
+
+(TEST
+ > (u8vector->alphanumeric-string (u8vector))
+ ""
+ > (u8vector->alphanumeric-string (u8vector 0))
+ "aa"
+ > (u8vector->alphanumeric-string (u8vector 0 0))
+ "aaaa"
+ > (u8vector->alphanumeric-string (u8vector 0 0 0))
+ "aaaaa"
+ > (u8vector->alphanumeric-string (u8vector 0 0 1))
+ "aaaca"
+ > (u8vector->alphanumeric-string (u8vector 0 1 1))
+ "aiaca"
+ > (u8vector->alphanumeric-string (u8vector 1 1 1))
+ "biaca")
 
 
 (def (u8vector->number #(u8vector? v) #!optional big-endian?)
