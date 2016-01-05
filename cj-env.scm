@@ -310,6 +310,18 @@
    (lambda ()
      (eval sym))))
 
+(define (thunk-symbol-value-or sym-thunk or-thunk)
+  (with-exception-catcher
+   (lambda (e) (if (unbound-global-exception? e) (or-thunk) (raise e)))
+   sym-thunk))
+
+(define-macro* (macro-symbol-value-or sym thunk)
+  (if (symbol? (source-code sym))
+      `(thunk-symbol-value-or
+	(lambda () ,sym)
+	,thunk)
+      (source-error sym "not a symbol")))
+
 (define-macro* (define-if-not-defined name expr)
   (assert* symbol? name
 	   (lambda (name)
