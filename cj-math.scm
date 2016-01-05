@@ -90,9 +90,8 @@
 ;; integer instead of down. (Formerly called quotient-roundup and
 ;; quotient/ceiling.)
 (define (quotient-ceiling a b)
-  (let* ((q (quotient a b))
-         (m (modulo a b)))
-    (if (= m 0)
+  (let* ((q (quotient a b)))
+    (if (= (* q b) a)
         q
         (+ q 1))))
 
