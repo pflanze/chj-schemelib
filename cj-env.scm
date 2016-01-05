@@ -326,8 +326,8 @@
   (assert* symbol? name
 	   (lambda (name)
 	     `(define ,name
-		(symbol-value-or ',name (lambda ()
-					  ,expr))))))
+		(thunk-symbol-value-or (lambda () ,name)
+				       (lambda () ,expr))))))
 
 (TEST
  > (define-if-not-defined abczxfwef 10)
