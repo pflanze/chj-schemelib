@@ -210,7 +210,7 @@
 
 
 (define (source-map fn vs)
-  (possibly-sourcify (map fn (source-code vs)) v))
+  (possibly-sourcify (map fn (source-code vs)) vs))
 
 
 ;; Are there better names for these?
