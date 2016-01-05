@@ -82,20 +82,50 @@
 
 ;; In the tradition of |letv|, only accept one binding form.
 
-(defmacro (let. vars+e . body)
+
+(def (let-dot:var v)
+     (let ((s (symbol.string v)))
+       (if (string-contains? s ".")
+	   ;; XX what if there are multiple dots? Still don't have a spec.
+	   (string.symbol (last (string-split s #\.)))
+	   v)))
+
+(def (let-dot:accessor v)
+     (if (string-contains? (symbol.string v) ".")
+	 v
+	 (source.symbol-append "." v)))
+
+(TEST
+ > (map (lambda (v) (list (let-dot:var v) (let-dot:accessor v)))
+	'(foo
+	  .bar
+	  baz:.bar))
+ ((foo .foo)
+  (bar .bar)
+  (bar baz:.bar)))
+
+
+(defmacro (let. var-or-accessors+e . body)
   ;; heh, does such a great name call for speed-optimized access?
-  (mcase vars+e
-	 (`(`vars `e)
+  (mcase var-or-accessors+e
+	 (`(`var-or-accessors `e)
 	  (with-gensym
 	   V
 	   `(##let ((,V ,e))
-		   (##let ,(source-map (lambda (v)
-					 (assert* symbol? v)
-					 `(,v (,(source.symbol-append "." v)
-					       ,V)))
-				       vars)
+		   (##let ,(source-map
+			    (lambda (var-or-accessor)
+			      (assert*
+			       symbol? var-or-accessor
+			       (lambda (sym)
+				 `(,(let-dot:var sym)
+				   (,(let-dot:accessor sym)
+				    ,V)))))
+			    var-or-accessors)
 			  ,@body))))))
 
 (TEST
  > (let. ((string keyword) 'foo) (list string keyword))
- ("foo" foo:))
+ ("foo" foo:)
+ > (let ((foo:.bar .string))
+     (let. ((foo:.bar) 'foo) bar))
+ "foo")
