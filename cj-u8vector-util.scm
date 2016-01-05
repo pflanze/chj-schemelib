@@ -149,6 +149,7 @@
      (number->string (u8vector->number v big-endian?)))
 
 
+;; also see u8vector.string in oo-vector-lib
 (def (u8vector->string #(u8vector? v))
      (let* ((len (u8vector-length v))
 	    (str (##make-string len)))
@@ -173,6 +174,7 @@
 ; 	      (loop (##fixnum.+ i 1)))
 ; 	    out)))))
 
+;; there's also a slower definition in oo-vector-lib
 (def (string->u8vector #(string? v))
      (let* ((len (##string-length v))
 	    (out (##make-u8vector len)))

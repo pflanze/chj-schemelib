@@ -201,12 +201,14 @@
  )
 
 
+;; there's a more efficient string->u8vector in cj-u8vector-util
 (def string->u8vector (comp* list->u8vector
 			     (cut map char->integer <>)
 			     string->list))
 
 (def. string.u8vector string->u8vector)
 
+;; also see u8vector->string in cj-u8vector-util
 (def. (u8vector.string v)
   (let* ((len (u8vector.length v))
 	 (o (##make-string len)))
