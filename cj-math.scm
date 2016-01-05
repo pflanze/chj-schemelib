@@ -85,3 +85,28 @@
  2
  )
 
+
+;; Same as quotient, but rounds the result up to the next bigger
+;; integer instead of down. (Formerly called quotient-roundup and
+;; quotient/ceiling.)
+(define (quotient-ceiling a b)
+  (let* ((q (quotient a b))
+         (m (modulo a b)))
+    (if (= m 0)
+        q
+        (+ q 1))))
+
+(TEST
+ > (quotient-ceiling 32 2)
+ 16
+ > (quotient 33 2)
+ 16
+ > (quotient-ceiling 33 2)
+ 17
+ > (quotient-ceiling 32 -2)
+ -16
+ > (quotient 33 -2)
+ -16
+ > (quotient-ceiling 33 -2)
+ -15)
+
