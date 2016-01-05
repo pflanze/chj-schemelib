@@ -322,6 +322,15 @@
 			args: (source-error-args e)
 			display: values))
 
+(define (show-procedure-location p)
+  (if (procedure? p)
+      (show-location-location (##procedure-locat p)
+			      errstr: "*** DEFINED IN "
+			      msg: "as"
+			      args: (list p)
+			      display: display)
+      (error "not a procedure:" p)))
+
 
 (define (source-quote v)
   (object->u8vector v))
