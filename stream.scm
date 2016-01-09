@@ -845,6 +845,24 @@
  ((a 0) (b 1))
  )
 
+
+;; Variant that delivers values tuples
+(define (stream-zip2 l1 l2)
+  (delay
+    (FV (l1 l2)
+	(if (or (null? l1)
+		(null? l2))
+	    '()
+	    (cons (values (car l1)
+			  (car l2))
+		  (stream-zip2 (cdr l1)
+			       (cdr l2)))))))
+
+(TEST
+ > (F (stream-map values->vector (stream-zip2 (stream-iota) (list "a" "b"))))
+ (#(0 "a") #(1 "b")))
+
+
 (define (stream-drop-while pred l)
   (let lp ((l l))
     (FV (l)
