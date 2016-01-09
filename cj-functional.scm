@@ -314,6 +314,26 @@
     (and (list? x)
 	 (every pred x))))
 
+(define (list-of/length pred len)
+  (lambda (val)
+    (let lp ((n len)
+	     (v val))
+      (if (zero? n)
+	  (null? v)
+	  (and (pair? v)
+	       (pred (car v))
+	       (lp (dec n)
+		   (cdr v)))))))
+
+(TEST
+ > (map (list-of/length integer? 2)
+	'((1 2)
+	  (1.1 2)
+	  (1)
+	  ()
+	  (1 2 3)
+	  (a b)))
+ (#t #f #f #f #f #f))
 
 (define (pair-of t1? t2?)
   (lambda (v)
