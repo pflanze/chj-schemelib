@@ -243,6 +243,10 @@
 (define (box-push! b val)
   (set-box! b (cons val (unbox b))))
 
+;; (define (box-inc! b)
+;;   (set-box! b (cons val (unbox b))))
+;; inc! macro is not defined here.
+
 (define-macro* (push! var-or-form val)
   (let ((var-or-form* (source-code var-or-form)))
     (cond ((symbol? var-or-form*)
