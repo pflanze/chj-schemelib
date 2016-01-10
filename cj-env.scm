@@ -193,6 +193,22 @@
   '(begin))
 
 
+(define (box-inc! b)
+  (set-box! b (inc (unbox b))))
+(define (box-dec! b)
+  (set-box! b (dec (unbox b))))
+
+(TEST
+ > (def b (box 10))
+ > b
+ #&10
+ > (box-inc! b)
+ > b
+ #&11
+ > (box-dec! b)
+ > b
+ #&10)
+
 (define-macro* (inc! v)
   (let ((V (gensym)))
     `(let ((,V (inc ,v)))
