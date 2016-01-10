@@ -194,18 +194,24 @@
 
 
 (define (box-inc! b)
-  (set-box! b (inc (unbox b))))
+  (let ((v (inc (unbox b))))
+    (set-box! b v)
+    v))
 (define (box-dec! b)
-  (set-box! b (dec (unbox b))))
+  (let ((v (dec (unbox b))))
+    (set-box! b v)
+    v))
 
 (TEST
  > (def b (box 10))
  > b
  #&10
  > (box-inc! b)
+ 11
  > b
  #&11
  > (box-dec! b)
+ 10
  > b
  #&10)
 
