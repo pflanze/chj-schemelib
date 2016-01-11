@@ -256,12 +256,12 @@
   (with-gensym V
 	       `(let ((,V ,expr))
 		  (if (,pred ,V) ,V
-		      (error "value fails to meet predicate:" ,V)))))
+		      (error "value fails to meet predicate:" (list ',pred ,V))))))
 
 (TEST
  > (-> number? 5)
  5
  > (%try-error (-> number? "5"))
- #(error "value fails to meet predicate:" "5")
+ #(error "value fails to meet predicate:" (number? "5"))
  )
 
