@@ -336,6 +336,30 @@
 	  (a b)))
  (#t #f #f #f #f #f))
 
+(define (improper-list/length>= len)
+  (lambda (v)
+    (let lp ((n len)
+	     (v v))
+      (if (zero? n)
+	  #t
+	  (and (pair? v)
+	       (lp (dec n)
+		   (cdr v)))))))
+
+(TEST
+ > (def l '(a
+	    (a)
+	    (a . b)
+	    (a b)
+	    (a b . c)
+	    (a b c)))
+ > (map (improper-list/length>= 0) l)
+ (#t #t #t #t #t #t)
+ > (map (improper-list/length>= 1) l)
+ (#f #t #t #t #t #t)
+ > (map (improper-list/length>= 2) l)
+ (#f #f #f #t #t #t))
+
 (define (pair-of t1? t2?)
   (lambda (v)
     (and (pair? v)
