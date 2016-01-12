@@ -113,12 +113,16 @@
      (public-tempdir perms: "0770"
 		     group: "www-data"))
 
+;; this is only safe against overwriting of existing files thanks to
+;; proper long random numbers
 (def (tempfile #!optional (base (string-append tempfile-base "/")))
      (randomly-retrying base
 			get-long-random-appendix ;; hack
 			(lambda (path)
 			  (close-port (open-output-file path)))))
 
+;; this is safe against overwriting, but it's got bad scaling
+;; behaviour
 (def (tempfile-incremental-at base #!optional (suffix "") (z 0))
      (lambda ()
        (let lp ()
