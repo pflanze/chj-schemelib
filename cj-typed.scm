@@ -289,14 +289,16 @@
 ;; (XX provide actual tests instead.)
 
 
-(define-macro* (-> pred expr)
+(define-macro* (-> pred . body)
   (with-gensym V
-	       `(let ((,V ,expr))
+	       `(let ((,V (##begin ,@body)))
 		  (if (,pred ,V) ,V
 		      (error "value fails to meet predicate:" (list ',pred ,V))))))
 
 (TEST
  > (-> number? 5)
+ 5
+ > (-> number? "bla" 5)
  5
  > (%try-error (-> number? "5"))
  #(error "value fails to meet predicate:" (number? "5"))
