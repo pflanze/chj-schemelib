@@ -1,7 +1,7 @@
 ;; (requires
 ;;  gambit-interpreter-env
 ;;  cj-math ;; quotient-ceiling
-;;  cj-env ;; let-named*
+;;  cj-let-named-star ;; let-named*
 ;;  (cj-test TEST)
 ;;  )
 
