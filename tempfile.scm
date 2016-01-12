@@ -89,8 +89,7 @@
 		     (positive? tries))
 		(next (dec tries))
 		(raise e)))
-	  (& (create path)
-	     path)))))
+	  (& (create path))))))
 
 
 ;; create-public-tmp-directory ?
@@ -106,7 +105,8 @@
 			  (if perms
 			      (xxsystem "chmod" perms "--" path))
 			  (if group
-			      (xxsystem "chgrp" group "--" path)))))
+			      (xxsystem "chgrp" group "--" path))
+			  path)))
 
 (def tempfile-base
      ;; (string-append (getenv "HOME") "/.cgi-scm-tmp")
@@ -116,10 +116,25 @@
 ;; this is only safe against overwriting of existing files thanks to
 ;; proper long random numbers
 (def (tempfile #!optional (base (string-append tempfile-base "/")))
+     -> string?
      (randomly-retrying base
 			get-long-random-appendix ;; hack
 			(lambda (path)
-			  (close-port (open-output-file path)))))
+			  (close-port (open-output-file path))
+			  path)))
+
+(def. (port.name p)
+  -> string?
+  (assert (port? p))
+  (##port-name p))
+
+;; to get the path, use port.name on the result
+(def (open-tempfile #!optional (base (string-append tempfile-base "/")))
+     -> output-port?
+     (randomly-retrying base
+			get-long-random-appendix ;; hack
+			(lambda (path)
+			  (open-output-file path))))
 
 ;; this is safe against overwriting, but it's got bad scaling
 ;; behaviour
