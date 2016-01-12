@@ -176,27 +176,55 @@
  )
 
 
+(define (typed-body-parse body cont/maybe-pred+body)
+  (let ((body* (source-code body)))
+    (if (pair? body*)
+	(let ((fst* (source-code (car body*))))
+	  (if (eq? fst* '->)
+	      (if ((improper-list/length>= 3) body*)
+		  (cont/maybe-pred+body (cadr body*) (cddr body*))
+		  (source-error
+		   body
+		   "a body starting with -> needs at least 2 more forms"))
+	      (cont/maybe-pred+body #f body)))
+	(source-error body "expecting body forms"))))
+
+(TEST
+ > (typed-body-parse '(a) vector)
+ #(#f (a))
+ > (typed-body-parse '(a b c) vector)
+ #(#f (a b c))
+ > (typed-body-parse '(-> b c) vector)
+ #(b (c)))
+
+
 (define-macro* (typed-lambda args . body)
-  (letv ((vars body)
-	 (let rem ((args args))
-	   (let ((args_ (source-code args)))
-	     (cond ((null? args_)
-		    (values '()
-			    `(##begin ,@body)))
-		   ((pair? args_)
-		    (let-pair ((arg args*) args_)
-			      (letv (($1 $2) (rem args*))
-				    (transform-arg arg $1 $2))))
-		   (else
-		    ;; rest arg, artificially pick out the single var
-		    (letv ((vars body)
-			   (letv (($1 $2) (rem '()))
-				 (transform-arg args $1 $2)))
-			  (assert (= (length vars) 1))
-			  (values (car vars)
-				  body)))))))
-	`(lambda ,vars
-	   ,body)))
+  (typed-body-parse
+   body
+   (lambda (maybe-pred body)
+     (let ((body (if maybe-pred
+		     `((-> ,maybe-pred ,@body))
+		     body)))
+       (letv ((vars body)
+	      (let rem ((args args))
+		(let ((args_ (source-code args)))
+		  (cond ((null? args_)
+			 (values '()
+				 `(##begin ,@body)))
+			((pair? args_)
+			 (let-pair ((arg args*) args_)
+				   (letv (($1 $2) (rem args*))
+					 (transform-arg arg $1 $2))))
+			(else
+			 ;; rest arg, artificially pick out the single var
+			 (letv ((vars body)
+				(letv (($1 $2) (rem '()))
+				      (transform-arg args $1 $2)))
+			       (assert (= (length vars) 1))
+			       (values (car vars)
+				       body)))))))
+	     `(lambda ,vars
+		,body))))))
 
 (TEST
  > (expansion#typed-lambda (a b) 'hello 'world)
@@ -225,10 +253,19 @@
    (type-check pair? a
 	       (type-check number? c (##begin hello)))))
 
+;; and -> result checks:
+(TEST
+ > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10))
+			   -> foo?
+			   hello)
+ (lambda (a b #!optional (c 10))
+   (type-check pair? a (type-check number? c (##begin (-> foo? hello))))))
+
 
 (define-macro* (detyped-lambda args . body)
   `(lambda ,(args-detype args)
-     ,@body))
+     ,@(typed-body-parse body (lambda (pred body)
+				body))))
 
 (TEST
  > (expansion#detyped-lambda (a #(pair? b) . c) 'hello 'world)
