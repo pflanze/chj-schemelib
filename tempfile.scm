@@ -136,6 +136,13 @@
 			(lambda (path)
 			  (open-output-file path))))
 
+(def (call-with-tempfile proc/1 . args) -> string?
+     ;; hmm, no 'dynamic wind' thing at all??
+     (let ((p (apply open-tempfile args)))
+       (proc/1 p)
+       (close-port p)
+       (port.name p)))
+
 ;; this is safe against overwriting, but it's got bad scaling
 ;; behaviour
 (def (tempfile-incremental-at base #!optional (suffix "") (z 0))
