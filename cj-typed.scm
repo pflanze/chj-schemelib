@@ -176,31 +176,35 @@
  )
 
 
-(define (typed-body-parse body cont/maybe-pred+body)
-  (let ((body* (source-code body)))
-    (if (pair? body*)
-	(let ((fst* (source-code (car body*))))
+(define (typed-body-parse maybe-stx body cont/maybe-pred+body)
+  (assert (not (source? body)))
+  (let ((body+ (if maybe-stx
+		   (sourcify body maybe-stx)
+		   body)))
+    (if (pair? body)
+	(let ((fst* (source-code (car body))))
 	  (if (eq? fst* '->)
-	      (if ((improper-list/length>= 3) body*)
-		  (cont/maybe-pred+body (cadr body*) (cddr body*))
+	      (if ((improper-list/length>= 3) body)
+		  (cont/maybe-pred+body (cadr body) (cddr body))
 		  (source-error
-		   body
+		   body+
 		   "a body starting with -> needs at least 2 more forms"))
 	      (cont/maybe-pred+body #f body)))
-	(source-error body "expecting body forms"))))
+	(source-error body+
+		      "expecting body forms"))))
 
 (TEST
- > (typed-body-parse '(a) vector)
+ > (typed-body-parse #f '(a) vector)
  #(#f (a))
- > (typed-body-parse '(a b c) vector)
+ > (typed-body-parse #f '(a b c) vector)
  #(#f (a b c))
- > (typed-body-parse '(-> b c) vector)
+ > (typed-body-parse #f '(-> b c) vector)
  #(b (c)))
 
 
 (define-macro* (typed-lambda args . body)
   (typed-body-parse
-   body
+   stx body
    (lambda (maybe-pred body)
      (let ((body (if maybe-pred
 		     `((-> ,maybe-pred ,@body))
@@ -264,8 +268,9 @@
 
 (define-macro* (detyped-lambda args . body)
   `(lambda ,(args-detype args)
-     ,@(typed-body-parse body (lambda (pred body)
-				body))))
+     ,@(typed-body-parse stx body
+			 (lambda (pred body)
+			   body))))
 
 (TEST
  > (expansion#detyped-lambda (a #(pair? b) . c) 'hello 'world)
@@ -304,3 +309,17 @@
  #(error "value fails to meet predicate:" (number? "5"))
  )
 
+;; test source location propagation
+(TEST
+ > (def e (with-exception-catcher
+	   identity
+	   (&
+	    (eval
+	     (quote-source
+	      ;; missing actual body, triggering the message that we
+	      ;; want to test
+	      (typed-lambda (x) -> echz))))))
+ > (source-error-message e)
+ "a body starting with -> needs at least 2 more forms"
+ > (source? (source-error-source e))
+ #t)
