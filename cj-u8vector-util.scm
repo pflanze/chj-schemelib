@@ -230,7 +230,7 @@
        (let-named*
 	loop ((written 0)
 	      (warned #f))
-	(let ((done (write-subu8vector v written len)))
+	(let ((done (write-subu8vector v written len port)))
 	  (let ((written (+ written done)))
 	    (if (< written len)
 		(begin
