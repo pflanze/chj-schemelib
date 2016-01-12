@@ -314,6 +314,7 @@
     (and (list? x)
 	 (every pred x))))
 
+;; see also length-is
 (define (list-of/length pred len)
   (lambda (val)
     (let lp ((n len)

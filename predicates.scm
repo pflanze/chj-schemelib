@@ -138,6 +138,7 @@
  #t)
 
 
+;; see also list-of/length
 (define (length-is len)
   (lambda (l)
     (length-= l len)))
