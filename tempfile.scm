@@ -143,6 +143,18 @@
        (close-port p)
        (port.name p)))
 
+
+;; saves as utf-8
+(def. (string.tempfile-path v) -> string?
+  (call-with-tempfile (lambda (port)
+			(display v port))))
+
+(def. (u8vector.tempfile-path v) -> string?
+  (call-with-tempfile (lambda (port)
+			(write-u8vector v port))))
+
+
+
 ;; this is safe against overwriting, but it's got bad scaling
 ;; behaviour
 (def (tempfile-incremental-at base #!optional (suffix "") (z 0))
