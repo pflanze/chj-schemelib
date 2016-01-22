@@ -21,9 +21,13 @@
 (define (make-realrandom-string-stream maybe-stringlen)
   (if maybe-stringlen
       (assert (< maybe-stringlen 76))) ;; that's what base64 delivers. sick yeah but...
-  (let ((s (port->lines-stream (open-process (list path: "base64"
-						   arguments: (list "/dev/urandom")
-						   stdout-redirection: #t)))))
+  (let ((s (port->lines-stream
+	    ;; XX redirect stderr just to silence the warnings upon
+	    ;; termination; evil.
+	    (open-process
+	     (list path: "bash"
+		   arguments: (list "-c" "exec base64 /dev/urandom 2>/dev/null")
+		   stdout-redirection: #t)))))
     (if maybe-stringlen
 	(stream-map (cut substring <> 0 maybe-stringlen)
 		    s)
