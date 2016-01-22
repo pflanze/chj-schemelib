@@ -141,6 +141,10 @@
 	  (fill "#00BCFF"))))
 
 
+;; insert SVG code verbatim
+(defstruct svg-fragment #(sxml-element? svg-fragment))
+
+
 (def default-2d-square-colors (colors (colorstring "black")
 				      (colorstring "none")))
 
