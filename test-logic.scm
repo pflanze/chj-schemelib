@@ -45,6 +45,30 @@
  ;; *expected* failure
  (0))
 
+(defstruct failure
+  value
+  results)
+
+(def (Lforall* vs equal? . fs)
+     (stream-fold-right
+      (lambda (v res)
+	(let ((vs (map (lambda (f)
+			 (f v)) fs)))
+	  (if (apply equal? vs)
+	      res
+	      (cons (failure v vs)
+		    res))))
+      '()
+      vs))
+
+(def (qcheck* vs #!key (equal? equal?) #!rest fs)
+     (force (apply Lforall* vs equal? fs)))
+
+(TEST
+ > (F (qcheck* (iota 4) square identity))
+ (#(failure 2 (4 2)) #(failure 3 (9 3))))
+
+
 
 ;; -- Existential quantification ---
 ;; there exists
