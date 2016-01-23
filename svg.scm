@@ -142,7 +142,19 @@
 
 
 ;; insert SVG code verbatim
-(defstruct svg-fragment #(sxml-element? svg-fragment))
+(class svg-fragment
+       (struct #(sxml-element? value))
+
+       (method (svg-fragment shape fit #!optional optionS)
+	 ;; simply ignore the arguments?
+	 (svg-fragment.value shape))
+
+       ;; and those 2d-shape methods that are required for operation
+       ;; in svg.scm
+       (method (min+maxs/prev v min+max)
+	       ;; simply be invisible? XX totally unsafe and bad.
+	       min+max))
+
 
 
 (def default-2d-square-colors (colors (colorstring "black")
