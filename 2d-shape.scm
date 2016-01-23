@@ -95,6 +95,7 @@
 			 (let-2d-point ((x y) p)
 				       (+ (square x) (square y))))
 
+		 ;; should this be called magnitude ?
 		 (method (distance p)
 			 (sqrt (2d-point.distance^2 p)))
 
