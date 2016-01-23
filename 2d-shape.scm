@@ -12,6 +12,14 @@
 
 (require easy more-oo)
 
+
+(def (almost= x y max-abs-diff)
+     (or (= x y)
+	 (< (abs (- x y)) max-abs-diff)))
+
+(def (almost=/max-abs-diff max-abs-diff)
+     (cut almost= <> <> max-abs-diff))
+
 (class 2d-shape
        ;; generic .min+maxs/prev 
        (method (min+maxs/prev v min+max)
@@ -49,9 +57,7 @@
 							  (= a1 b1)))))
 
 		 (method (almost= a b max-abs-diff)
-			 (def (almost= x y)
-			      (or (= x y)
-				  (< (abs (- x y)) max-abs-diff)))
+			 (def almost= (almost=/max-abs-diff max-abs-diff))
 			 (let-2d-point ((a0 a1) a)
 				       (let-2d-point ((b0 b1) b)
 						     (and (almost= a0 b0)
@@ -90,7 +96,12 @@
 				       (+ (square x) (square y))))
 
 		 (method (distance p)
-			 (sqrt (2d-point.distance^2 p))))
+			 (sqrt (2d-point.distance^2 p)))
+
+		 ;; also see 2d-point.polar (2d-polar.scm)
+		 (method (angle p)
+			 (let-2d-point ((x y) p)
+				       (atan y x))))
 
        ;; hmm partial COPY-PASTE from above, how to avoid?
        (subclass partial-2d-point
@@ -295,7 +306,34 @@
  ((#t #t)
   (#t #t)
   (#f #f)
-  (#f #t)))
+  (#f #t))
+ ;; angle: be the same as R5RS's angle
+ > (qcheck* '((1. 0.0001)
+	      (0.0001 1.)
+	      (3.5 0.0001)
+	      (0.0001 4.2)
+	      (2. 1.)
+	      (-1. 2.)
+	      (-0.001 300.)
+	      (-3 -4)
+	      (4 -9))
+	    equal?: (almost=/max-abs-diff 1e-10)
+	    (applying (compose angle make-rectangular))
+	    (applying (compose .angle 2d-point)))
+ ()
+ > (def f* (compose angle make-rectangular))
+ > (def f (compose .angle 2d-point))
+ > (with-exception-catcher identity (& (f 0 0)))
+ 0
+ > (f 1 0)
+ 0
+ > (almost= (f 0 1) (/ pi 2) 1e-10)
+ #t
+ > (almost= (f -1 0) pi 1e-10)
+ #t
+ > (almost= (f 0 -1) (/ pi -2) 1e-10)
+ #t
+ )
 
 
 (defmacro (with-import-2d-aliases longnames . body)
