@@ -33,6 +33,18 @@
  (a c)
  )
 
+(def (qcheck vs pred)
+     (force (Lforall vs pred)))
+
+(TEST
+ > (qcheck (iota 5) integer?)
+ ()
+ > (promise? (cdr (qcheck (iota 5) natural?)))
+ #t
+ > (F (qcheck (iota 5) natural?))
+ ;; *expected* failure
+ (0))
+
 
 ;; -- Existential quantification ---
 ;; there exists
