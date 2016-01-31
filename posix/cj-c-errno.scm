@@ -161,8 +161,9 @@
   (or (string=? (source-code c-name)
 		(string-strip-until-last-chars (symbol->string* name1) ":_")
 		(string-strip-until-last-chars (symbol->string* name2) ":"))
-      ;;XX don't have source-warn yet, but that would probably be?:
-      (source-warn c-name "not consistent" name1 name2))
+      (source-warn c-name "names are not consistent"
+		   (cj-desourcify name1)
+		   (cj-desourcify name2)))
 
   (let ((type-argname-alist* (cj-desourcify type-argname-alist)))
     
