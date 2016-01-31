@@ -858,6 +858,26 @@ void (**p) (void) = (void*) ___BODY(___ARG1);
   int)
 
 
+
+;; man 2 sync:
+
+;; CONFORMING TO
+;;        sync(): SVr4, 4.3BSD, POSIX.1-2001.
+;;        syncfs() is Linux-specific.
+
+;;  syncfs() first appeared in Linux 2.6.39; library support was added
+;;  to glibc in version 2.14.
+
+(define/check->integer "syncfs" posix:_syncfs posix:syncfs
+  ((int fd))
+  int)
+
+(define posix:sync
+  ;; never fails, heh, huh
+  (c-lambda () void
+	    "sync"))
+
+
 (define (char*->string u8vec _charset) ;; copies "the char* in u8vec" (up to the end or to before the first \0) into a string
   ;;; todo . this is a hack only.   Why am I doing this here and not use the ffi conversion functions? because those are statically compiled. Here I'm hoping to be runtime configurable in the future.
   ;;or is there such a copy function already?
