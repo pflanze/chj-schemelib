@@ -9,6 +9,8 @@
  char-util
  
  cj-env-2
+
+ posix/cj-c-errno_Cpart
  )
 
 ;; (compile #t)
@@ -52,24 +54,8 @@
 
 (declare (block)(standard-bindings)(extended-bindings))
 
-
-; (declare (fixnum)
-; 	 (not safe))
-
-(c-declare "
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-")
-
 (define-structure posix-exception
   errno)
-
-(define strerror
-  (c-lambda (int)
-	    ISO-8859-1-string
-	    "strerror"))
-;;(^- todo: use strerror_r to be pthread-safe)
 
 (define (posix-exception-message e)
   (strerror (posix-exception-errno e)))
