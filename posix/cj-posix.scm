@@ -868,7 +868,20 @@ void (**p) (void) = (void*) ___BODY(___ARG1);
 ;;  syncfs() first appeared in Linux 2.6.39; library support was added
 ;;  to glibc in version 2.14.
 
-(define/check->integer "syncfs" posix:_syncfs posix:syncfs
+(c-declare "
+#ifdef _GNU_SOURCE
+static int wrapped_syncfs (int fd) {
+    return syncfs(fd);
+}
+#else
+static int wrapped_syncfs (int fd) {
+    ERRNO= ENOSYS;
+    return -1;
+}
+#endif
+")
+
+(define/check->integer "wrapped_syncfs" posix:_syncfs posix:syncfs
   ((int fd))
   int)
 
