@@ -295,8 +295,14 @@
 
 
 ;; analog to source-error:
-;;(define (source-warn source )) or rather,
-;; for locations since locations can be quoted easily, unlike source code:
+(define (source-warn source message . args)
+  (show-source-location source
+			errstr: "*** WARNING IN "
+			msg: message
+			args: args))
+
+;; At runtime use variant for locations instead of source-warn, since
+;; locations can be quoted easily, unlike source code:
 (define (_location-warn display)
   (lambda (location message . args)
     (show-location-location location
