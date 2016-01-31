@@ -883,7 +883,8 @@ static int wrapped_syncfs (int fd) {
 
 (define/check->integer "wrapped_syncfs" posix:_syncfs posix:syncfs
   ((int fd))
-  int)
+  int
+  nowarn: #t)
 
 (define posix:sync
   ;; never fails, heh, huh

@@ -156,9 +156,12 @@
 		 name1
 		 name2
 		 type-argname-alist
-		 returntype)
+		 returntype
+		 #!key
+		 nowarn)
 
-  (or (string=? (source-code c-name)
+  (or nowarn
+      (string=? (source-code c-name)
 		(string-strip-until-last-chars (symbol->string* name1) ":_")
 		(string-strip-until-last-chars (symbol->string* name2) ":"))
       (source-warn c-name "names are not consistent"
