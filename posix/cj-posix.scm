@@ -869,7 +869,8 @@ void (**p) (void) = (void*) ___BODY(___ARG1);
 ;;  to glibc in version 2.14.
 
 (c-declare "
-#ifdef _GNU_SOURCE
+#define CJ_HAVE_SYNCFS 0 /* introduced in glibc 2.14, how to test? */
+#if CJ_HAVE_SYNCFS
 static int wrapped_syncfs (int fd) {
     return syncfs(fd);
 }
