@@ -893,6 +893,19 @@ static int wrapped_syncfs (int fd) {
 	    "sync"))
 
 
+;; (c-declare "
+;; ")
+
+(define/check->integer "fsync" posix:_fsync posix:fsync
+  ((int fd))
+  int)
+
+(define/check->integer "fdatasync" posix:_fdatasync posix:fdatasync
+  ((int fd))
+  int)
+
+
+
 (define (char*->string u8vec _charset) ;; copies "the char* in u8vec" (up to the end or to before the first \0) into a string
   ;;; todo . this is a hack only.   Why am I doing this here and not use the ffi conversion functions? because those are statically compiled. Here I'm hoping to be runtime configurable in the future.
   ;;or is there such a copy function already?
