@@ -340,3 +340,35 @@
 
 ;; see also |define-struct.| in dot-oo
 
+
+;; Generic struct ops:
+
+(define (struct? v)
+  ;; XX also check that the length of the vector matches the
+  ;; corresponding class? or not since that would fail with
+  ;; multiversioning?
+  (and (vector? v)
+       (>= (vector-length v) 1)
+       (symbol? (vector-ref v 0))))
+
+(define (struct-of pred)
+  (lambda (v)
+    (and (struct? v)
+	 (let ((len (vector-length v)))
+	   (let lp ((i 1))
+	     (if (< i len)
+		 (and (pred (vector-ref v i))
+		      (lp (inc i)))
+		 #t))))))
+
+(TEST
+ > (map (struct-of natural0?)
+	'(foo
+	  (foo)
+	  #(foo)
+	  #(foo 1)
+	  #(1 foo)
+	  #(foo 1 2)
+	  #(foo 1 -2)
+	  #(foo 1 "-2")))
+ (#f #f #t #t #f #t #f #f))
