@@ -876,7 +876,7 @@ static int wrapped_syncfs (int fd) {
 }
 #else
 static int wrapped_syncfs (int fd) {
-    ERRNO= ENOSYS;
+    errno= ENOSYS;
     return -1;
 }
 #endif
