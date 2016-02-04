@@ -295,3 +295,17 @@
 			   "(maybe timeout?) made it not read the whole file:")
 			  path read))))))))
 
+
+;; report first occurrence of x, if any
+;; XX name? also, provide for all collections...
+(def. (u8vector.maybe-scan v x #!optional (start 0) (end (u8vector-length v)))
+  (let lp ((i start))
+    (and (< i end)
+	 (if (= (u8vector-ref v i) x)
+	     i
+	     (lp (inc i))))))
+
+(TEST
+ > (map (C .maybe-scan (u8vector 10 30 1) _) '(0 10 30 1))
+ (#f 0 1 2))
+
