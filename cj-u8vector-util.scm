@@ -10,8 +10,8 @@
 ;;  u8vector->hex-string
 ;;  u8vector->hex-string-lc
 ;;  u8vector->alphanumeric-string
-;;  u8vector->number
-;;  u8vector->number-string
+;;  u8vector->integer
+;;  u8vector->integer-string
 ;;  u8vector->string
 ;;  string->u8vector
 ;;  string->u8vector0
@@ -123,7 +123,7 @@
  "biaca")
 
 
-(def (u8vector->number #(u8vector? v) #!optional big-endian?)
+(def (u8vector->integer #(u8vector? v) #!optional big-endian?)
      (let* ((len (u8vector-length v))
 	    (len-1 (- len 1)))
        (let lp ((i 0)
@@ -140,29 +140,29 @@
 			3))))))))
 
 (TEST
-> (u8vector->number (u8vector 1 2) #t)
+> (u8vector->integer (u8vector 1 2) #t)
 258
-> (u8vector->number (u8vector 1 0) #t)
+> (u8vector->integer (u8vector 1 0) #t)
 256
-> (u8vector->number (u8vector 1 0) #f)
+> (u8vector->integer (u8vector 1 0) #f)
 1
-> (u8vector->number (u8vector 0 1) #f)
+> (u8vector->integer (u8vector 0 1) #f)
 256
-> (u8vector->number (u8vector ))
+> (u8vector->integer (u8vector ))
 0
-> (u8vector->number (u8vector 3))
+> (u8vector->integer (u8vector 3))
 3
-> (u8vector->number (u8vector 3) #t)
+> (u8vector->integer (u8vector 3) #t)
 3
-> (u8vector->number (u8vector 1 2 3 4 5 6 7 8) #t)
+> (u8vector->integer (u8vector 1 2 3 4 5 6 7 8) #t)
 72623859790382856
-> (u8vector->number (u8vector 1 2 3 4 5 6 7 8) #f)
+> (u8vector->integer (u8vector 1 2 3 4 5 6 7 8) #f)
 578437695752307201
 )
 
-(def (u8vector->number-string #(u8vector? v) #!optional big-endian?)
+(def (u8vector->integer-string #(u8vector? v) #!optional big-endian?)
      ;; "cheap" variant in sense of programmer time
-     (number->string (u8vector->number v big-endian?)))
+     (number->string (u8vector->integer v big-endian?)))
 
 
 ;; also see u8vector.string in oo-vector-lib
