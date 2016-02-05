@@ -95,3 +95,15 @@
  > (%try-error (Maybe:cond ((sqrt 4) => inc)))
  #(error "v does not match Maybe?:" 2))
 
+
+(def (Maybe pred)
+     (lambda (v)
+       (or (Nothing? v)
+	   (and (Just? v)
+		(pred (Just.value v))))))
+
+(TEST
+ > (def Maybe-integer? (Maybe integer?))
+ > (map Maybe-integer? (list (Nothing) 10 (Just 10)))
+ (#t #f #t))
+
