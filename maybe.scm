@@ -17,19 +17,26 @@
 (TEST
  > (eq? (nothing) (nothing))
  #t
- > (maybe? (nothing))
- #t
- > (maybe? (just 1))
- #t
- > (maybe? (just #f))
- #t
- > (just? (just #f))
- #t
- > (just? (nothing))
- #f
- > (just.value (just 13))
- 13
- > (just.value (just (just 13)))
- #(just 13)
- )
+ > (map (lambda (v)
+	  (map (C _ v) (list maybe? nothing? just?
+			     (lambda (v)
+			       (if (just? v)
+				   (just.value v)
+				   'n)))))
+	(list #f
+	      (values)
+	      (nothing)
+	      (just 1)
+	      (just #f)
+	      (just (nothing))
+	      (just (just 13))))
+ ((#f #f #f n)
+  (#f #f #f n)
+  (#t #t #f n)
+  (#t #f #t 1)
+  (#t #f #t #f)
+  (#t #f #t #(nothing))
+  (#t #f #t #(just 13)))
+ > (just.value (.value (just (just 13))))
+ 13)
 
