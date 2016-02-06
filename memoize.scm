@@ -6,14 +6,17 @@
 ;;;    (at your option) any later version.
 
 
-(define (memoize f #!optional (table (make-table)))
-  (let ((nothing (cons 1 2)))
-    (lambda vs
-      (let ((v? (table-ref table vs nothing)))
-	(if (eq? v? nothing)
-	    (let ((v (apply f vs)))
-	      ;; XX: make multi-threading safe
-	      (table-set! table vs v)
-	      v)
-	    v?)))))
+(define memoize:nothing (gensym 'nothing))
+
+(define (memoize f
+		 #!optional
+		 (table (make-table)))
+  (lambda vs
+    (let ((v? (table-ref table vs memoize:nothing)))
+      (if (eq? v? memoize:nothing)
+	  (let ((v (apply f vs)))
+	    ;; XX: make multi-threading safe
+	    (table-set! table vs v)
+	    v)
+	  v?))))
 
