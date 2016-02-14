@@ -206,3 +206,38 @@
  ;; (cdr '())
  )
 
+
+;; including i0, excluding i1
+(define (subsection l i0 i1)
+  (take (drop l i0)
+	(- i1 i0)))
+
+;; (BTW Haskell moves the number argument first, SRFI-1 the list
+;; argument.)
+
+(TEST
+ > (define l '(a b c d))
+ > (subsection l 0 3)
+ (a b c)
+ > (subsection l 0 4)
+ (a b c d)
+ > (subsection l 1 4)
+ (b c d)
+ > (subsection l 1 2)
+ (b)
+ > (subsection l 3 4)
+ (d)
+ > (subsection l 3 3)
+ ()
+ > (%error? (subsection l 4 3))
+ #t
+ > (%error? (subsection l 4 5))
+ #t
+ > (%error? (subsection l -1 5))
+ #t
+ > (%error? (subsection l -1 4))
+ #t
+ > (%error? (subsection l -1 1))
+ #t
+ )
+
