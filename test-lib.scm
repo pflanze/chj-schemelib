@@ -212,6 +212,16 @@
 (define-macro* (%try-error form)
   `(%try-error-f (thunk ,form)))
 
+(define (%error?-f thunk)
+  (with-exception-catcher
+   (lambda (e)
+     #t)
+   (lambda ()
+     (vector 'not-an-error (thunk)))))
+
+(define-macro* (%error? form)
+  `(%error?-f (thunk ,form)))
+
 ;; and for syntax exceptions:
 
 (define source-exception->structure
