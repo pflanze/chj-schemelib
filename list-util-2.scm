@@ -208,7 +208,7 @@
 
 
 ;; including i0, excluding i1
-(define (subsection l i0 i1)
+(define (sublist l i0 i1)
   (take (drop l i0)
 	(- i1 i0)))
 
@@ -217,27 +217,27 @@
 
 (TEST
  > (define l '(a b c d))
- > (subsection l 0 3)
+ > (sublist l 0 3)
  (a b c)
- > (subsection l 0 4)
+ > (sublist l 0 4)
  (a b c d)
- > (subsection l 1 4)
+ > (sublist l 1 4)
  (b c d)
- > (subsection l 1 2)
+ > (sublist l 1 2)
  (b)
- > (subsection l 3 4)
+ > (sublist l 3 4)
  (d)
- > (subsection l 3 3)
+ > (sublist l 3 3)
  ()
- > (%error? (subsection l 4 3))
+ > (%error? (sublist l 4 3))
  #t
- > (%error? (subsection l 4 5))
+ > (%error? (sublist l 4 5))
  #t
- > (%error? (subsection l -1 5))
+ > (%error? (sublist l -1 5))
  #t
- > (%error? (subsection l -1 4))
+ > (%error? (sublist l -1 4))
  #t
- > (%error? (subsection l -1 1))
+ > (%error? (sublist l -1 1))
  #t
  )
 
