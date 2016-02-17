@@ -113,3 +113,11 @@
  > (quotient-ceiling 33 -2)
  -15)
 
+
+(define (natural0.bitsize n)
+  (integer-ceiling (/ (log (inc n)) (log 2))))
+
+(TEST
+ > (map natural0.bitsize (iota 5))
+ (0 1 2 2 3))
+
