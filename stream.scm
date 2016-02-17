@@ -385,7 +385,7 @@
       s1
       (stream-append s1 s2)))
 
-(define (stream-append s1 s2)
+(define (stream-append/2 s1 s2)
   (let lp ((s s1))
     (delay
       (let ((p (force s)))
@@ -396,6 +396,45 @@
 		     (lp (cdr p))))
 	      (else
 	       (error "stream-append: improper stream, ending in:" p)))))))
+
+(define (stream-append . ss)
+  (delay
+   (FV (ss)
+       (cond ((null? ss)
+	      '())
+	     ((null? (cdr ss))
+	      (car ss))
+	     (else
+	      (stream-append/2 (car ss)
+			       (apply stream-append (cdr ss))))))))
+
+(TEST
+ > (F (stream-append))
+ ()
+ > (F (stream-append '(a)))
+ (a)
+ > (F (stream-append '(a) '(b)))
+ (a b)
+ > (F (stream-append '(a b) '(c) '(d e)))
+ (a b c d e)
+ ;; are non-copy optimizations correct?
+ > (let ((s (stream-iota 5)))
+     (eq? (force (stream-append s))
+	  (force s)))
+ #t
+ > (let ((s (stream-iota 5)))
+     (eq? (force (stream-drop
+		  (stream-append '(a b) s)
+		  2))
+	  (force s)))
+ #t
+ > (let ((s (stream-iota 5)))
+     (eq? (force (stream-drop
+		  (stream-append (stream-iota 2) (stream-iota 3) s)
+		  5))
+	  (force s)))
+ #t)
+
 
 (define (stream-iota #!optional maybe-n maybe-start maybe-tail)
   (let* ((start (or maybe-start 0))
