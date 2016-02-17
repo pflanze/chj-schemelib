@@ -355,3 +355,49 @@
 ;; 	  `(do-iter ,n (lambda (,v)
 ;; 			 (,e))))))
 
+
+;; name?
+(define (produce-stream thunk)
+  (delay (cons (thunk)
+	       (produce-stream thunk))))
+
+;; how skewed should it be?
+(define (random-natural0-above min)
+  (let ((x (expt min (/ (random-real)))))
+    (if (< x 1e100)
+	(integer x)
+	(random-natural0-above min))))
+
+(define (random-natural0-above-stream min)
+  (produce-stream (lambda ()
+		    (random-natural0-above min))))
+
+(define (test-natural0-exponentials
+	 #!key
+	 (min-bits 0)
+	 (len-bits 30))
+  (stream-fold-right (lambda (i rest)
+		       (let ((n (arithmetic-shift 1 i)))
+			 (cons* (dec n)
+				n
+				(inc n)
+				rest)))
+		     '()
+		     (stream-iota len-bits min-bits)))
+
+;; (define (test-natural0-specials)
+;;   )
+
+
+(define (test-natural0s #!key
+			(len-serial 105)
+			(len-random 100))
+  (stream-append
+   ;; all small numbers
+   (stream-iota len-serial)
+   ;; some bigger special ones
+   (test-natural0-exponentials min-bits: (natural0.bitsize len-serial))
+   ;; random ones
+   (stream-take (random-natural0-above-stream len-serial)
+		len-random)))
+
