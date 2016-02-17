@@ -33,6 +33,8 @@
  (a c)
  )
 
+;; shouldn't the order of arguments be reversed, both for wording (we
+;; check pred, not vs), and to make n-ary in the future?
 (def (qcheck vs pred)
      (force (Lforall vs pred)))
 
