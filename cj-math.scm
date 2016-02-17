@@ -24,6 +24,10 @@
 (define (integer-ceiling x)
   (inexact->exact (ceiling x)))
 
+(TEST
+ > (map integer-ceiling '(-2 -1.9 -1.1 -1 -0.9 -0.1 -0 0 0.1 0.9 1 1.1 1.9 2))
+ (-2 -1 -1 -1 0 0 0 0 1 1 1 2 2 2))
+
 (define (exact x)
   (let ((x* (inexact->exact x)))
     (assert (= x* x))
