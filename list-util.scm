@@ -490,6 +490,14 @@
 	      res)))))
 
 
+(define (one? v)
+  ;; require that a list is given
+  (cond ((null? v)
+	 #f)
+	((pair? v)
+	 (null? (cdr v)))
+	(else
+	 (error "not a list:" v))))
 
 (define (xone x #!optional (fail (lambda_ #f)))
   (if (pair? x)
@@ -526,6 +534,30 @@
 (define (trif-one/ fn)
   (lambda (x then/1 toomany/1 none/0)
     (trif-one (fn x) then/1 toomany/1 none/0)))
+
+
+;; (define (*if-one l *then *else)
+;;   ;; hm, don't use trif-one since don't want to pass the values?
+;;   )
+
+;; wow can then 'wrap' that as syntax, too. Perhaps should provide
+;; this functionality through some "hint"? (But then only efficient
+;; when inlining *if-one.)
+(define-macro* (if-one v then else)
+  ;; `(*if-one ,v
+  ;; 	    (lambda () ,then)
+  ;; 	    (lambda () ,else))
+  `(if (one? ,v)
+       ,then
+       ,else))
+
+(TEST
+ > (if-one (list) 'y 'n)
+ n
+ > (if-one (list 1) 'y 'n)
+ y
+ > (if-one (list 'a 'b) 'y 'n)
+ n)
 
 
 (define (make-list/tail n item tail)
