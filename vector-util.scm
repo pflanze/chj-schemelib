@@ -186,8 +186,28 @@
  #(1 2 a))
 
 
+(define (vector-every t? v)
+  (let ((len (vector-length v)))
+    (let lp ((i 0))
+      (if (< i len)
+	  (and (t? (vector-ref v i))
+	       (lp (inc i)))
+	  #t))))
+
+
 (define (vector-of t?)
   (lambda (v)
     (and (vector? v)
-	(vector-every t? v))))
+	 (vector-every t? v))))
+
+(TEST
+ > (map (vector-of integer?)
+	'(#() #(#f) #(#t) 1
+	   #(a)
+	   #(1 2 3)
+	   #(1 2 a)
+	   #(a 2 3)
+	   #(1 a 3)))
+ (#t #f #f #f
+     #f #t #f #f #f))
 
