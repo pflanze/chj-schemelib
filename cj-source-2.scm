@@ -31,6 +31,8 @@
 	      ((vector? a*)
 	       (and (vector? b*)
 		    (vector-equal? source-equal? a* b*)))
+	      ((null? a*)
+	       (null? b*))
 	      ;; XXX boxes? and more?
 	      ((symbol? a*)
 	       #f)
@@ -64,7 +66,10 @@
  #f
  > (source-equal? '(a . #("a")) '(a . #(#f)))
  #f
- )
+ > (source-equal? '(a b) '(a))
+ #f
+ > (source-equal? '(a) '(a b))
+ #f)
 
 (define-macro* (template:quote form)
   `(u8vector->object ',(object->u8vector form)))
