@@ -362,6 +362,42 @@
 
 (define-if-not-defined gambit:load load)
 
+;; a cleaner interface?:
+
+;; (Others would just use a Maybe type and no contortions with
+;; continuations would be needed.)
+
+(define (*if-symbol-value sym *then *else)
+  (continuation-capture
+   (lambda (cont)
+     (with-exception-catcher
+      (lambda (e)
+	(if (unbound-global-exception? e)
+	    (*else)
+	    (raise e)))
+      (lambda ()
+	(continuation-graft
+	 cont
+	 *then
+	 (eval sym)))))))
+
+(TEST
+ > (*if-symbol-value 'woiuewfoiu
+		     vector
+		     (lambda () 'no))
+ no
+ > (*if-symbol-value '*if-symbol-value
+		     (lambda (v) (eq? v *if-symbol-value))
+		     (lambda () 'no))
+ #t
+ > (with-exception-catcher
+    unbound-global-exception-variable
+    (lambda ()
+      (*if-symbol-value '*if-symbol-value
+			(lambda (v) xh68zzn3j5mc9p2tu2q)
+			(lambda () 'no))))
+ xh68zzn3j5mc9p2tu2q)
+
 
 (define table-update!:noval (box 'noval))
 (define (table-update! t k fn
