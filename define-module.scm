@@ -449,3 +449,9 @@
 (define-macro* (module-import.* prefix name . args)
   (module-import-expand 'define. #f prefix name args))
 
+
+;; ------------------------------------------------------------------
+;; For easy.scm, only works with dot-oo:
+
+;; see easy.scm
+

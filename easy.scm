@@ -8,7 +8,8 @@
 	 dot-oo ;; incl. define.
 	 more-oo ;; well, just re-export?
 	 srfi-11
-	 define-module)
+	 define-module
+	 cj-match)
 
 (define-macro* (& . args)
   ;; `(thunk ,@args)
@@ -49,3 +50,150 @@
 (defmacro (defmodule . args)
   `(define-module ,@args))
 
+
+;; --  extension of define-module.scm ---
+
+;; A new import form, that accepts expressions, but also prefixing iff
+;; the expression is using a symbol that starts with a #\< as head,
+;; and also (a new feature) allows to load pre-evaluated 'modules'
+;; (module expressions?) (i.e. what a module exports when called)
+;; stored in a symbol that is already available at macro expansion
+;; time. (Hm. Good or bad? Could fail if that symbol was defined in
+;; another place but re-defined in the current module; but that's evil
+;; anyway, and future module system of mine (?) will/should do that
+;; better anyway, ookay?)
+
+(def (module-symbol? v)
+     (and (symbol? v)
+	  (let* ((s (symbol.string v))
+		 (len (string.length s)))
+	    (and (>= len 3)
+		 (char=? (string-ref s 0) #\<)
+		 (char=? (string-ref s (dec len)) #\>)
+		 (string-any (lambda (v)
+			       (not (or (char=? v #\<)
+					(char=? v #\>))))
+			     s)))))
+
+
+(TEST
+ > (map module-symbol? '(< <= <> <=> <foo>module <foo>))
+ (#f #f #f #t #f #t))
+
+
+;; check for exporter (runtime value)
+(def (modimport-expand:exporterholder modsymbol export)
+     (*if-symbol-value
+      modsymbol
+      (lambda (exporter)
+	(if (procedure? exporter)
+	    (export (exporter #f))
+	    (source-error
+	     modsymbol
+	     (string-append
+	      "modimport: expecting an exporter procedure"
+	      " in module-holding symbol"))))
+      (lambda ()
+	(source-error
+	 modsymbol
+	 (string-append
+	  "modimport: module-holding symbol does not"
+	  " contain a value (yet?)")))))
+
+;; check for -exports symbol (compiletime value)
+(def (modimport-expand:mod maybe-prefix mod expr *else)
+     (*if-symbol-value
+
+      (source.symbol-append mod '-exports)
+
+      (lambda (exports)
+	(if maybe-prefix
+	    `(module:import/prefix ,expr ,maybe-prefix ,@exports)
+	    `(module:import ,expr ,@exports)))
+
+      *else))
+
+
+(def (modimport-expand maybe-prefix expr vars)
+     (if (pair? vars)
+	 (if maybe-prefix
+	     `(module:import/prefix ,expr ,maybe-prefix ,@vars)
+	     `(module:import ,expr ,@vars))
+
+	 ;; No vars given, need to find the exports list from the
+	 ;; module name with -exports appended, or in case of expr
+	 ;; being a bare symbol, checking if it holds a value at
+	 ;; expansion time already.
+	 (mcase
+	  expr
+
+	  (symbol?
+	   (modimport-expand:mod
+	    maybe-prefix
+	    expr
+	    expr
+	    (&
+	     (modimport-expand:exporterholder
+	      expr
+	      (lambda (exports)
+		(if maybe-prefix
+		    `(module:import/prefix ,expr ,maybe-prefix ,@exports)
+		    `(module:import ,expr ,@exports)))))))
+
+	  (`(`mod . `args)
+	   (if (module-symbol? (source-code mod))
+
+	       (modimport-expand:mod
+		maybe-prefix
+		mod
+		expr
+		(&
+		 (source-error
+		  mod
+		  (string-append
+		   "modimport: can't find -exports entry"
+		   " for this module symbol"))))
+
+	       (source-error
+		mod
+		;; XX this was "if no prefix is given", hmm, which is
+		;; true really?
+		(string-append
+		 "modimport requires syntax matching"
+		 " `module-symbol?` here if no import list is given")))))))
+
+(defmacro (modimport expr . vars)
+  (modimport-expand #f expr vars))
+
+(defmacro (modimport/prefix prefix expr . vars)
+  (modimport-expand prefix expr vars))
+
+(TEST
+ > (expansion#modimport tj8znc94e7fkdsqfm a b c)
+ (module:import tj8znc94e7fkdsqfm a b c)
+ ;; > (expansion#modimport tj8znc94e7fkdsqfm)
+ > (with-exception-catcher source-error-message
+			   (& (modimport-expand #f 'tj8znc94e7fkdsqfm '())))
+ "modimport: module-holding symbol does not contain a value (yet?)"
+ > (with-exception-catcher source-error-message
+			   (& (modimport-expand #f '<tj8znc94e7fkdsqfm> '())))
+ "modimport: module-holding symbol does not contain a value (yet?)"
+ > (with-exception-catcher source-error-message
+			   (& (modimport-expand #f '<tj8znc94e7fkdsqfm> '(a))))
+ (module:import <tj8znc94e7fkdsqfm> a)
+ > (with-exception-catcher source-error-message
+			   (& (modimport-expand foo: '<tj8znc94e7fkdsqfm> '(a))))
+ (module:import/prefix <tj8znc94e7fkdsqfm> foo: a)
+ > (defmodule (<foo> a b) (export bar baz) (def bar a) (def baz b))
+ > (modimport-expand #f '<foo> '())
+ (module:import <foo> bar baz)
+ > (modimport-expand foo: '<foo> '())
+ (module:import/prefix <foo> foo: bar baz)
+ > (def foo (<foo> 10 11))
+ > (modimport-expand foo: '(<foo> 13 14) '())
+ (module:import/prefix (<foo> 13 14) foo: bar baz)
+ > (with-exception-catcher source-error-message
+			   (& (modimport-expand foo: '(foo 13 14) '())))
+ "modimport requires syntax matching `module-symbol?` here if no import list is given"
+ > (modimport-expand foo: 'foo '())
+ (module:import/prefix foo foo: bar baz))
