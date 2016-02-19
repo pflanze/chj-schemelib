@@ -1,5 +1,15 @@
 ;; short identifiers
 
+(require define-macro-star
+	 cj-env ;; identity ?, define-if-not-defined
+	 cj-functional ;; compose
+	 cj-struct
+	 cj-typed
+	 dot-oo ;; incl. define.
+	 more-oo ;; well, just re-export?
+	 srfi-11
+	 define-module)
+
 (define-macro* (& . args)
   ;; `(thunk ,@args)
   `(lambda () ,@args))
@@ -35,4 +45,7 @@
   `(compose* ,@args))
 
 (def id identity)
+
+(defmacro (defmodule . args)
+  `(define-module ,@args))
 
