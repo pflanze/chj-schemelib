@@ -296,7 +296,7 @@
 
 (define-macro* (-> pred . body)
   (with-gensym V
-	       `(let ((,V (##begin ,@body)))
+	       `(let ((,V (##let () ,@body)))
 		  (if (,pred ,V) ,V
 		      (error "value fails to meet predicate:" (list ',pred ,V))))))
 
