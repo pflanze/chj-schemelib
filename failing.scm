@@ -18,6 +18,11 @@
   (def equal? (failing orig:equal?))
   (def source-equal? (failing orig:source-equal?)))
 
+(def <failing>*
+     (lambda (failing)
+       (<failing> failing
+		  equal? source-equal?)))
+
 
 (def (raise-failures f)
      (lambda args
@@ -25,8 +30,6 @@
 	   (error "function returned false"))))
 
 
-(def <failing-on> (<failing> raise-failures
-			     equal? source-equal?))
-(def <failing-off> (<failing> identity
-			      equal? source-equal?))
+(def <failing-on> (<failing>* raise-failures))
+(def <failing-off> (<failing>* identity))
 
