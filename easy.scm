@@ -128,17 +128,18 @@
 	  expr
 
 	  (symbol?
-	   (modimport-expand:mod
-	    maybe-prefix
+	   ;; Always assume that it is the result of a module
+	   ;; parametrization (exporter); checking for mod-exports is
+	   ;; pointless in this case, and dangerous (conflicts with
+	   ;; other actual modules (previously defined ones, although
+	   ;; admittedly that's a problem of the current (non-)module
+	   ;; system)).
+	   (modimport-expand:exporterholder
 	    expr
-	    expr
-	    (&
-	     (modimport-expand:exporterholder
-	      expr
-	      (lambda (exports)
-		(if maybe-prefix
-		    `(module:import/prefix ,expr ,maybe-prefix ,@exports)
-		    `(module:import ,expr ,@exports)))))))
+	    (lambda (exports)
+	      (if maybe-prefix
+		  `(module:import/prefix ,expr ,maybe-prefix ,@exports)
+		  `(module:import ,expr ,@exports)))))
 
 	  (`(`mod . `args)
 	   (if (module-symbol? (source-code mod))
@@ -184,11 +185,24 @@
  > (with-exception-catcher source-error-message
 			   (& (modimport-expand foo: '<tj8znc94e7fkdsqfm> '(a))))
  (module:import/prefix <tj8znc94e7fkdsqfm> foo: a)
+ ;; a shadow definition, defines foo-exports :
+ > (defmodule (foo x) (export bad guys) (def bad 1) (def guys 2))
+ ;; the definition we want to use:
  > (defmodule (<foo> a b) (export bar baz) (def bar a) (def baz b))
- > (modimport-expand #f '<foo> '())
- (module:import <foo> bar baz)
- > (modimport-expand foo: '<foo> '())
- (module:import/prefix <foo> foo: bar baz)
+
+ ;; <foo> is *not* an exporter, it's the module itself, which has to
+ ;; be parametrized (XX although, is it really the case that we never
+ ;; want to use defmodule for unparametrized modules?), thus this is
+ ;; an error:
+ > (with-exception-catcher wrong-number-of-arguments-exception?
+			   (& (modimport-expand #f '<foo> '())))
+ #t
+ ;; correct:
+ > (modimport-expand #f '(<foo> Y) '())
+ (module:import (<foo> Y) bar baz)
+ > (modimport-expand foo: '(<foo> Y) '())
+ (module:import/prefix (<foo> Y) foo: bar baz)
+ ;; defining evaluated module: (software, please do *not* take |foo-exports| !)
  > (def foo (<foo> 10 11))
  > (modimport-expand foo: '(<foo> 13 14) '())
  (module:import/prefix (<foo> 13 14) foo: bar baz)
