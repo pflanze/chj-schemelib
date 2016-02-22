@@ -151,7 +151,8 @@
 	     (cons (car p)
 		   (rec (cdr p))))
 	    (else
-	     ;; (don't keep a reference to the stream head to avoid memory retention!)
+	     ;; (don't keep a reference to the stream head to avoid
+	     ;; memory retention!)
 	     (error "stream->list: improper stream, ending in:" p))))))
 
 (define (stream-drop s k)
@@ -245,7 +246,8 @@
 	     (lp (cdr p)
 		 (inc n)))
 	    (else
-	     ;; (don't keep a reference to the stream head to avoid memory retention!)
+	     ;; (don't keep a reference to the stream head to avoid
+	     ;; memory retention!)
 	     (error "stream->list: improper stream, ending in:" p))))))
 
 
@@ -582,8 +584,9 @@
 			    (y (car b))
 			    (b (cdr b)))
 		   ;; x and y are forced, a and b are not.
-		   ;; The loop handles the merging of non-empty lists.  It has
-		   ;; been written this way to save testing and car/cdring.
+		   ;; The loop handles the merging of non-empty lists.
+		   ;; It has been written this way to save testing and
+		   ;; car/cdring.
 		   (DELAY
 		    (if (less? y x)
 			(FV (b)
@@ -614,28 +617,37 @@
 		      (cdr ss)))))))))
 
 (TEST
- > (F (stream-union < '(1 11 13 14 27 47 61 84 93 98 99) '(31 35 49 65 68 74 74 88 93 94 98)))
+ > (F (stream-union < '(1 11 13 14 27 47 61 84 93 98 99)
+		    '(31 35 49 65 68 74 74 88 93 94 98)))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (F (stream-take (stream-union < '(1 11 13 14 27 47 61 84 93 98 . 99) '(31 35 49 65 68 74 74 88 93 94 . 98)) 10))
+ > (F (stream-take (stream-union < '(1 11 13 14 27 47 61 84 93 98 . 99)
+				 '(31 35 49 65 68 74 74 88 93 94 . 98)) 10))
  (1 11 13 14 27 31 35 47 49 61)
- > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99) '(31 35 49 65 68 74 74 88 93 94 98))
+ > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99)
+	       '(31 35 49 65 68 74 74 88 93 94 98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99) '(31 35 49 65 68 74 74) '(88 93 94) '(98))
+ > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99)
+	       '(31 35 49 65 68 74 74) '(88 93 94) '(98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99) '(88 93 94) '(31 35 49 65 68 74 74) '(98))
+ > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99)
+	       '(88 93 94) '(31 35 49 65 68 74 74) '(98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99) '(88 93 94) '(31 35 49 65 68 74 74) '())
+ > (list-union < '(1 11 13 14) '(27 47 61 84 93 98 99)
+	       '(88 93 94) '(31 35 49 65 68 74 74) '())
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 99)
- > (list-union < '() '(27 47 61 84 93 98 99) '(88 93 94) '(1 11 13 14) '(31 35 49 65 68 74 74))
+ > (list-union < '() '(27 47 61 84 93 98 99) '(88 93 94) '(1 11 13 14)
+	       '(31 35 49 65 68 74 74))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 99)
  > (list-union < '())
  ()
  > (list-union < '() '(88 93 94))
  (88 93 94)
  ;; (antitests or so:
- > (list-union = '(1 11 13 14 27 47 61 84 93 98 99) '(31 35 49 65 68 74 74 88 93 94 98))
+ > (list-union = '(1 11 13 14 27 47 61 84 93 98 99)
+	       '(31 35 49 65 68 74 74 88 93 94 98))
  (1 11 13 14 27 47 61 84 93 98 99 31 35 49 65 68 74 74 88 93 94 98)
- > (list-union > '(1 11 13 14 27 47 61 84 93 98 99) '(31 35 49 65 68 74 74 88 93 94 98))
+ > (list-union > '(1 11 13 14 27 47 61 84 93 98 99)
+	       '(31 35 49 65 68 74 74 88 93 94 98))
  (31 35 49 65 68 74 74 88 93 94 98 1 11 13 14 27 47 61 84 93 98 99)
  ;; )
  )
@@ -739,15 +751,20 @@
 
 (TEST
  ;; just random adapted COPY from above
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99) '(31 35 49 65 68 74 74 88 93 94 98))
+ > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+		   '(31 35 49 65 68 74 74 88 93 94 98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99) '(31 35 49 65 68 74 74) '(88 93 94) '(98))
+ > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+		   '(31 35 49 65 68 74 74) '(88 93 94) '(98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99) '(88 93 94) '(31 35 49 65 68 74 74) '(98))
+ > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+		   '(88 93 94) '(31 35 49 65 68 74 74) '(98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99) '(88 93 94) '(31 35 49 65 68 74 74) '())
+ > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+		   '(88 93 94) '(31 35 49 65 68 74 74) '())
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 99)
- > (cmp-list-union number-cmp '() '(27 47 61 84 93 98 99) '(88 93 94) '(1 11 13 14) '(31 35 49 65 68 74 74))
+ > (cmp-list-union number-cmp '() '(27 47 61 84 93 98 99) '(88 93 94)
+		   '(1 11 13 14) '(31 35 49 65 68 74 74))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 99)
  )
 
@@ -955,7 +972,8 @@
 	   (receive
 	    (list other-lists) (car+cdr lists)
 	    (FV (list)
-		(if (null-list? list) (abort '() '()) ; LIST is empty -- bail out
+		(if (null-list? list)
+		    (abort '() '()) ; LIST is empty -- bail out
 		    (receive (a d) (car+cdr list)
 			     (receive (cars cdrs) (recur other-lists)
 				      (values (cons a cars) (cons d cdrs)))))))
@@ -973,7 +991,7 @@
 			      (if (pair? next-heads)
 				  (and (apply pred heads)
 				       (lp next-heads next-tails))
-				  (apply pred heads)))))) ; Last PRED app is tail call.
+				  (apply pred heads))))))
 
       ;; Fast path
       (FV (lis1)
