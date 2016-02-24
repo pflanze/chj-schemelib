@@ -214,16 +214,26 @@
  ""
  )
 
-(define basename
-  (compose* file-basename
-	    list->string
-	    (cut list-trim-right <> (cut char=? <> #\/))
-	    string->list))
+(define (basename path #!optional suffix)
+  (let* ((n (file-basename (if (string-ends-with? path "/")
+			       (substring path 0 (dec (string-length path)))
+			       path))))
+    (if (and suffix
+	     (string-ends-with? n suffix))
+	(substring n 0 (- (string-length n)
+			  (string-length suffix)))
+	n)))
 
 (TEST
  > (basename "/foo/bar.scm")
  "bar.scm"
+ > (basename "/foo/bar.scm" ".scm")
+ "bar"
+ > (basename "/foo/bar.scmn" ".scm")
+ "bar.scmn"
  > (basename "bar.scm")
+ "bar.scm"
+ > (basename "bar.scm" "longerthanthething")
  "bar.scm"
  > (basename "/foo/")
  "foo"
