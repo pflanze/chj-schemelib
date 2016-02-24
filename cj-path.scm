@@ -14,6 +14,7 @@
 
 (define (path-string? v)
   (and (string? v)
+       (not (string-empty? v))
        ;; and the only(?) restriction:
        (not (string-contains-char? v (cut char=? <> #\nul)))))
 
@@ -21,6 +22,8 @@
  > (path-string? "foo")
  #t
  > (path-string? "foo\0")
+ #f
+ > (path-string? "")
  #f)
 
 
