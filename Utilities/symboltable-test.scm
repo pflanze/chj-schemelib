@@ -7,6 +7,11 @@
 ;;;    terms of the GPL you can link it with any code produced by Categorical
 ;;;    Design Solutions Inc. from Quebec, Canada.
 
+
+(require easy
+	 test
+	 symboltable)
+
 ;;;
 ;;;; Randomized tests and benchmarking
 ;;;
