@@ -39,6 +39,8 @@
 
 (define. string.length string-length)
 
+(define. string.reverse string-reverse)
+
 (TEST
  > (.string 234)
  "234"
