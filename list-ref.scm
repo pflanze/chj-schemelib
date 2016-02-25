@@ -6,9 +6,11 @@
 (require easy
 	 Maybe)
 
+(def _list-ref:nothing (gensym))
+  
 (defmodule (<list-ref> key? .key .equal?)
 
-  (export Maybe-ref)
+  (export Maybe-ref ref)
 
   (def (Maybe-ref lis #(key? key))
        (let lp ((l lis))
@@ -20,5 +22,13 @@
 	       ((null? l)
 		(Nothing))
 	       (else
-		(error "improper list:" alis))))))
+		(error "improper list:" alis)))))
+
+  (def (ref lis key #!optional (alternate _list-ref:nothing))
+       (Maybe:cond ((Maybe-ref lis key) => identity)
+		   (else
+		    (if (eq? alternate _list-ref:nothing)
+			(error "ref: value not found in list"
+			       lis key)
+			alternate)))))
 
