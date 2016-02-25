@@ -6,17 +6,24 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.define-macro-star)
-	 (lib.test)
-	 (lib.simple-match)
-	 (lib.cj-inline)
-	 (lib.cj-symbol))
+(require define-macro-star
+	 test
+	 simple-match
+	 cj-inline
+	 cj-symbol
+	 enum)
 
 
-(define (cmp? v)
-  (case v
-    ((eq lt gt) #t)
-    (else #f)))
+(define-enum cmp
+  eq lt gt)
+
+(TEST
+ > (cmp? 'a)  #f
+ > (cmp? 'LT) #f
+ > (cmp? 'lt) #t
+ > (cmp? 'gt) #t
+ > (cmp? 'eq) #t)
+
 
 
 ;; A comparison operation working for all types in question
