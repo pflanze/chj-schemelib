@@ -11,11 +11,17 @@
 	 simple-match
 	 cj-inline
 	 cj-symbol
-	 enum)
+	 ;; enum  can't, circular dependency
+	 )
 
 
-(define-enum cmp
-  eq lt gt)
+;; (define-enum cmp
+;;   eq lt gt)
+
+(define (cmp? v)
+  (case v
+    ((eq lt gt) #t)
+    (else #f)))
 
 (TEST
  > (cmp? 'a)  #f
