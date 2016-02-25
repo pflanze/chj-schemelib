@@ -165,8 +165,8 @@
 
 (defmacro (modimport expr . vars)
   (if (keyword? (source-code expr))
-      (source-error stx
-		    ;; ^ expr has been stripped of source information,
+      (source-error (second (source-code stx))
+		    ;; expr has been stripped of source information,
 		    ;; gah, for macro expander keyword functionality
 		    (string-append
 		     "modimport: can't take keyword as first argument "
