@@ -165,10 +165,12 @@
 
 (defmacro (modimport expr . vars)
   (if (keyword? (source-code expr))
-      (source-error
-       expr (string-append
-	     "modimport: can't take keyword here "
-	     "(did you mean to use |modimport/prefix|?)"))
+      (source-error stx
+		    ;; ^ expr has been stripped of source information,
+		    ;; gah, for macro expander keyword functionality
+		    (string-append
+		     "modimport: can't take keyword as first argument "
+		     "(did you mean to use |modimport/prefix|?)"))
       (modimport-expand #f expr vars)))
 
 (defmacro (modimport/prefix prefix expr . vars)
