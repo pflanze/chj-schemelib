@@ -164,7 +164,12 @@
 		 " `module-symbol?` here if no import list is given")))))))
 
 (defmacro (modimport expr . vars)
-  (modimport-expand #f expr vars))
+  (if (keyword? (source-code expr))
+      (source-error
+       expr (string-append
+	     "modimport: can't take keyword here "
+	     "(did you mean to use |modimport/prefix|?)"))
+      (modimport-expand #f expr vars)))
 
 (defmacro (modimport/prefix prefix expr . vars)
   (modimport-expand prefix expr vars))
