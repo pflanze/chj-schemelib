@@ -13,6 +13,12 @@
 	 (lib.cj-symbol))
 
 
+(define (cmp? v)
+  (case v
+    ((eq lt gt) #t)
+    (else #f)))
+
+
 ;; A comparison operation working for all types in question
 
 ;; I'm choosing this sort order for mixed-type comparisons:
