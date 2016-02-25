@@ -82,3 +82,15 @@
      )
 ;; ∃
 
+
+
+
+;; -- utilities --
+
+(def (random:permutate l)
+     (map cdr
+	  (sort (map (lambda (v)
+		       (cons (random-real) v))
+		     (stream->list l))
+		(on car <))))
+
