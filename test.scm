@@ -58,7 +58,7 @@
 
 (require (define-macro-star)
 	 (cj-phasing)
-	 (lib.cj-env-1)
+	 (cj-env-1)
 	 (lib.simple-match-1))
 
 ;; This is the *only* binding that has to be available to make loading

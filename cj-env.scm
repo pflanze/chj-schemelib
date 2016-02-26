@@ -11,7 +11,7 @@
 	 (cj-inline)
 	 (test)
 	 ;; require this?: (understand it as part of bundle?)
-	 (lib.cj-env-1))
+	 (cj-env-1))
 
 ;; various small bits that I don't know where to put
 

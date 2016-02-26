@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 (require (test)
-	 (lib.cj-env-1))
+	 (cj-env-1))
 
 
 (define (u8-rlist->_ make-vec vec-set!)

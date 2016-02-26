@@ -166,7 +166,7 @@
 (include "../cj-source.scm")
 (define mod:statically-loaded ;; keep in sync with the above!
   '(lib.srfi-1
-    lib.cj-env-1
+    cj-env-1
     lib.vector-util-1
     lib.list-util-1
     lib.cj-source))

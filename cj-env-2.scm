@@ -11,7 +11,7 @@
 	 (lib.cj-symbol);?
 	 (test)
 	 ;; ?
-	 (lib.cj-env-1))
+	 (cj-env-1))
 
 
 ;; that which cj-standarddeclares.scm was.
