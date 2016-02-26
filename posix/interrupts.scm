@@ -2,7 +2,7 @@
 	 ;;cj-queue
 	 cj-alist
 	 cj-env
-	 ;;(cj-list-util map-iota)
+	 ;;(list-util map-iota)
 	 )
 
 ;; (compile #t)

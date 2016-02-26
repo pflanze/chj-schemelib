@@ -2,7 +2,7 @@
 (require
  cj-env ;;  symbol-append
  (cj-gambit-sys max-fixnum min-fixnum)
- cj-list-util ;; map-with-iota
+ list-util ;; map-with-iota
  (srfi-1 cons*)
  (cj-string-flatten flat-append-strings)
  cj-env

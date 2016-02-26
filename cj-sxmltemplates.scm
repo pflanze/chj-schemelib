@@ -17,7 +17,7 @@
 	 cj-env
 	 srfi-13
 	 cj-expr
-	 (cj-list-util improper-map)
+	 (list-util improper-map)
 	 (test TEST))
 
 (export sxmltemplates-expand
