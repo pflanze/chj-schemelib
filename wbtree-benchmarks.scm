@@ -1,3 +1,8 @@
+(require wbtree
+	 define-macro-star
+	 (cj-env IF)
+	 test)
+
 (declare (standard-bindings)
          (extended-bindings)
          (block)

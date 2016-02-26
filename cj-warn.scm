@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require (cj-env-1 scm:object->string))
+
+
 (define (warn msg . objs)
   (let ((port (current-error-port))
 	(separator " "))

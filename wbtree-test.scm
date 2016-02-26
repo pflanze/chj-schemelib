@@ -5,6 +5,10 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
+(require wbtree
+	 define-macro-star
+	 (cj-env IF)
+	 test)
 
 (define wbtreeparameter-string
   (make-wbtreeparameter string-cmp

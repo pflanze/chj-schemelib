@@ -1,3 +1,9 @@
+(require test
+	 srfi-1
+	 (list-util improper-fold-right)
+	 cj-functional
+	 cut)
+
 
 (define false? not) ;; so as to be able to use "false." as OO prefix
 (define (anything? x) #t)

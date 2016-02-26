@@ -5,6 +5,8 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
+(require define-macro-star)
+
 
 ;; Debugging infrastructure for lazy code:
 

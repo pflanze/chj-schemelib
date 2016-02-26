@@ -1,20 +1,14 @@
-;; (requires
-;;  ;;gambit-interpreter-env
-;;  cj-u8vector-util
-;;  cj-test
-;;  )
+(require cj-u8vector-util
+	 cj-test)
 
-;; (exports
-;;  md5:digest
-;;  (digest md5-digest)
-;;  )
+(export md5:digest
+	(digest md5-digest)
+	#!optional
+	(make-md5-context* make-md5-context)
+	(starts md5-init)
+	(update md5-update)
+	(finish md5-finish))
 
-;; (exports-on-request
-;;  (make-md5-context* make-md5-context)
-;;  (starts md5-init)
-;;  (update md5-update)
-;;  (finish md5-finish)
-;;  )
 
 ;; (compile #t)
 

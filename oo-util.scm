@@ -1,3 +1,7 @@
+(require easy
+	 dot-oo;; included in easy?
+	 )
+
 (define inexact exact->inexact)
 (define. exact.inexact exact->inexact) ;; ah, use the above?
 

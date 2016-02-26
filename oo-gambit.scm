@@ -1,3 +1,7 @@
+(require easy
+	 dot-oo ;; included in easy now?
+	 )
+
 (def (file-info-time-accessor accessor)
      (lambda (v)
        ;; cut off sub-second precision to make it |unixtime?|

@@ -1,4 +1,5 @@
-
+(require easy
+	 test)
 
 (def. (exact.remainder x)
   (remainder (numerator x)

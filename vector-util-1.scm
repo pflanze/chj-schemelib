@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-;;(require)
+;;(require)  included in cj-source and mod/mod.scm
 
 
 (define (vector-map-1 fn vec)

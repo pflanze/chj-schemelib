@@ -1,3 +1,8 @@
+(require (cj-source-util-2 assert)
+	 (stream stream-map)
+	 cut
+	 )
+
 ;; well HAD something in mod
 
 ;; also HAD something base64 alike encoding in mod
@@ -5,6 +10,7 @@
 ;; also HAD something io stream in  lib
 
 
+;;XX move to lib
 (define (port->lines-stream p)
   (let lp ()
     (let ((line (read-line p)))

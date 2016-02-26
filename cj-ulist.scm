@@ -6,6 +6,10 @@
 ;;;    (at your option) any later version.
 
 
+(require dot-oo ;; not cj-struct
+	 test
+	 cj-typed)
+
 ;; uniform lists
 
 ;; just for fun

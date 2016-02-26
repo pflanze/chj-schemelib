@@ -6,6 +6,11 @@
 ;;;    (at your option) any later version.
 
 
+(require test
+	 define-macro-star
+	 (cj-env named)
+	 (cj-source cj-sourcify-deep source-location))
+
 ;; Variant of lib/test.scm's TEST that works in local function scopes.
 
 ;; Notes:

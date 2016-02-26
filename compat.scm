@@ -1,3 +1,5 @@
+(require (cj-env insert-result-of))
+
 ;; Provide compatibility with Gambit 4.2.8-1.1 in Debian
 
 (insert-result-of

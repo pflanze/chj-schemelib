@@ -1,3 +1,5 @@
+(require easy)
+
 ;; debugging with conts
 
 (def *tracks* (make-table test: eq?

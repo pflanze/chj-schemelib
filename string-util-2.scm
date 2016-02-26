@@ -6,6 +6,14 @@
 ;;;    (at your option) any later version.
 
 
+(require cj-functional
+	 test
+	 (cj-env named)
+	 (list-util let-pair rxtake-while)
+	 cj-typed
+	 (local-test local-TEST %test)
+	 )
+
 (define (suffix-list l)
   (rxtake-while (lambda (x)
                  (not (char=? x #\.)))
@@ -425,18 +433,18 @@
 			(C values str #f)))
 
 (TEST
- > (def (t spl failresult)
-	(local-TEST
-	 > (spl "ab  c d" char-whitespace?)
-	 #("ab" "  c d")
-	 > (spl "foo?q=1" #\?)
-	 #("foo" "?q=1")
-	 > (spl "foo?q=1" #\? #t)
-	 #("foo" "q=1")
-	 > (spl "foo?" #\?)
-	 #("foo" "?")
-	 > (equal? (spl "foo" #\?) failresult)
-	 #t))
+ > (define (t spl failresult)
+     (local-TEST
+      > (spl "ab  c d" char-whitespace?)
+      #("ab" "  c d")
+      > (spl "foo?q=1" #\?)
+      #("foo" "?q=1")
+      > (spl "foo?q=1" #\? #t)
+      #("foo" "q=1")
+      > (spl "foo?" #\?)
+      #("foo" "?")
+      > (equal? (spl "foo" #\?) failresult)
+      #t))
  > (%test (t (lambda (str p #!optional ?)
 	       (values->vector (string-split-1 str p ?)))
 	     '#("foo" "")))

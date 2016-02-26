@@ -6,9 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.cj-env)
-	 (lib.test)
-	 (lib.vector-util-1))
+(require cj-env
+	 test
+	 ;; vector-util-1 ;; well, cj-source or mod/mod.scm since those include it?
+	 srfi-1)
 
 
 (define (vectors-map fn vecs accept-uneven-lengths?)

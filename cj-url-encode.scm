@@ -1,4 +1,9 @@
-
+(require cj-typed
+	 test
+	 cj-functional
+	 (srfi-11 letv)
+	 srfi-1
+	 (string-util strings-join string-split))
 
 ;; sigh url-encoding AGAIN. where did I have it before?? recently? no?
 

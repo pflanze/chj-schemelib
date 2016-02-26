@@ -6,6 +6,10 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
+(require cj-struct
+	 (cj-env IF compile-time)
+	 define-strict-and-lazy)
+
 
 (declare (standard-bindings)
 	 (extended-bindings)

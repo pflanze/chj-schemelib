@@ -5,6 +5,19 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
+(require test
+	 (srfi-1 every fold-right)
+	 (string-util-1 string-split strings-join)
+	 (string-util-2 string-pad-left string-downcase)
+	 ;; ^ sigh that mess of scattered libs
+	 (list-util make-list/tail)
+	 (cj-functional compose both)
+	 (cj-env natural0?)
+	 dot-oo
+	 (cj-typed ->)
+	 (cj-source-util-2 assert) ;; HUH, what odd place this is in
+	 )
+
 
 ;; http://en.wikipedia.org/wiki/Domain_name
 ;; "Domain names may be formed from the set of alphanumeric ASCII

@@ -1,7 +1,7 @@
 ;; Version from around 30 May 2006, possibly slightly
 ;; adapted from SLIB to Gambit
 
-
+(require)
 
 ;;; "sort.scm" Defines: sorted?, merge, merge!, sort, sort!
 ;;; Author : Richard A. O'Keefe (based on Prolog code by D.H.D.Warren)
