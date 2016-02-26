@@ -18,7 +18,7 @@
 	 srfi-13
 	 cj-expr
 	 (cj-list-util improper-map)
-	 (cj-test TEST))
+	 (test TEST))
 
 (export sxmltemplates-expand
 	use-sxmltemplates

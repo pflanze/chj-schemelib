@@ -12,7 +12,7 @@
  ;; for the cj-c-types.scm include: (compile-time only)
  cj-env
  cj-gambit-sys
- (cj-test TEST)
+ (test TEST)
  cj-env-2
  ;;cj-struct
  dot-oo

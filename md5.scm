@@ -1,5 +1,5 @@
 (require cj-u8vector-util
-	 cj-test)
+	 test)
 
 (export md5:digest
 	(digest md5-digest)
