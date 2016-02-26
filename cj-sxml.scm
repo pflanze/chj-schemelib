@@ -440,7 +440,7 @@
 	    #f
 	    (error "x-list-maybe-one-value: not a list:" lis)))))
 
-;; --  string related routines, todo move parts to cj-string-util --------
+;; --  string related routines, todo move parts to string-util --------
 
 (define (string-all-whitespace? str)
   (let ((len (string-length str)))

@@ -1,7 +1,10 @@
 (require
  cj-env
  cj-posix
- cj-string-util
+ string-util ;; which one? grr, so..:
+ string-util-1
+ string-util-2
+ string-util-3
  interrupts
  (test TEST)
  )

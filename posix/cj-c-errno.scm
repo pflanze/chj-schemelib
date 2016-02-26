@@ -3,13 +3,8 @@
  (cj-env-1 list-join)
  (srfi-1 filter-map)
  cj-inline
-
- ;;(cj-string-util string-strip-until-last-chars)
- ;; instead:
  char-util
- 
  cj-env-2
-
  cj-c-errno_Cpart ;; from posix/ dir, local reference
  )
 
