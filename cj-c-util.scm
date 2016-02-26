@@ -4,7 +4,7 @@
  (cj-gambit-sys max-fixnum min-fixnum)
  list-util ;; map-with-iota
  (srfi-1 cons*)
- (cj-string-flatten flat-append-strings)
+ ;;XXX port over! (cj-string-flatten flat-append-strings)
  cj-env
  )
 
