@@ -1,6 +1,6 @@
 
 (require define-macro-star
-	 cj-gensym
+	 cj-symbol
 	 test)
 
 (define-macro* (let-named* ident bindings . body)
