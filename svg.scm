@@ -6,7 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require easy 2d-shape color dsssl)
+(require easy
+	 oo-util ;; part of easy, though?
+	 2d-shape
+	 color
+	 dsssl)
 
 
 (def. (real.svg-string x)
