@@ -14,8 +14,8 @@
 ;(namespace "")
 
 (require cj-env
-	 srfi-13
-	 cj-expr
+	 ;;XXX: todo port over srfi-13
+	 ;;XXX dito? cj-expr
 	 (list-util improper-map)
 	 (test TEST))
 
