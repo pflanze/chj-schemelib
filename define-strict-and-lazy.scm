@@ -1,4 +1,4 @@
-(require (lib.define-macro-star)
+(require (define-macro-star)
 	 (lib.simple-match))
 
 

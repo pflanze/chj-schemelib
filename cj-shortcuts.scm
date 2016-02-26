@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.define-macro-star))
+(require (define-macro-star))
 
 
 (define-macro* (L args . body)

@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.define-macro-star)
+(require (define-macro-star)
 	 (lib.simple-match)
 	 cj-source-quasiquote)
 

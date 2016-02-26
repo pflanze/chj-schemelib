@@ -1,6 +1,6 @@
 
 
-(require (lib.define-macro-star))
+(require (define-macro-star))
 
 
 (define-macro* (expansion expr . exprs)

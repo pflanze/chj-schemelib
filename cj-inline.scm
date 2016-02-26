@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.define-macro-star)
+(require (define-macro-star)
 	 (lib.simple-match))
 
 ;; looses location information; see cj-inline-2 which overrides it

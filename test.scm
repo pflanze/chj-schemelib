@@ -56,7 +56,7 @@
 ;; (delete-repl-history!).
 
 
-(require (lib.define-macro-star)
+(require (define-macro-star)
 	 (lib.cj-phasing)
 	 (lib.cj-env-1)
 	 (lib.simple-match-1))
