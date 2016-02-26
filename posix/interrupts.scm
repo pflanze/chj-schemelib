@@ -1,5 +1,4 @@
-(require gambit-interpreter-env
-	 ;;cj-queue
+(require ;;cj-queue
 	 cj-alist
 	 cj-env
 	 ;;(list-util map-iota)

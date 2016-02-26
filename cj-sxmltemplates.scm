@@ -13,8 +13,7 @@
 
 ;(namespace "")
 
-(require gambit-interpreter-env
-	 cj-env
+(require cj-env
 	 srfi-13
 	 cj-expr
 	 (list-util improper-map)

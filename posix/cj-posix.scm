@@ -1,5 +1,4 @@
 (require
- gambit-interpreter-env
  (cj-env warn)
  ;;(interrupts interrupt-install-handler! SIGCHLD)
  cj-c-util	     ;; {maybe-,}define-constant-from-C

@@ -2,7 +2,6 @@
 ; cj Tue, 02 Aug 2005 22:52:37 +0200
 
 (require
- ;;gambit-interpreter-env
  ;;keyword-util does not have a module file.
  (cj-env *do-times)  ;;   keyword->symbol i've recreated here
  (srfi-1 reverse!))
