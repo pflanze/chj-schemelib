@@ -1,3 +1,8 @@
+(require
+ (cj-stream stream-map/filter stream-map stream-filter stream-map/filter/tail)
+ ;;(cj-stream *stream-strict*)
+ (srfi-1 append! fold-right))
+
 
 (define (sxml-element name atts body)
   (cons name (if (and atts (not (null? atts)))

@@ -1,3 +1,4 @@
+(require list-util)
 
 ;; (define (get-xml-file path)
 ;;   )
@@ -7,8 +8,7 @@
 (define (get-sxml-file path)
   ;; xone? or
   (let ((res (call-with-input-file path read-all)))
-    (if (and (pair? res)
-	     (null? (cdr res)))
+    (if (one? res)
 	(car res)
 	res)))
 

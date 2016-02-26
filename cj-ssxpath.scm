@@ -6,6 +6,14 @@
 ;;;    (at your option) any later version.
 
 
+(require list-util
+	 stream
+	 cj-sxml
+	 cj-env  ;; natural0?, should be moved
+	 cj-functional ;; compose
+	 test)
+
+
 ;; Simple XPath alike matching for SXML.
 
 ;; "./foo/bar[0]" == '(foo bar 0)
