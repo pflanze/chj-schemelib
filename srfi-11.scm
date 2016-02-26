@@ -125,7 +125,7 @@
 
 
 (TEST
- > (require (lib.cj-symbol)))
+ > (require (cj-symbol)))
 (TEST
  > (let-values (((a . b) (values 1 2))) a)
  1
