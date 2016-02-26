@@ -8,7 +8,7 @@
 
 (require (define-macro-star)
 	 (cj-phasing)
-	 (lib.cj-inline)
+	 (cj-inline)
 	 (lib.test)
 	 ;; require this?: (understand it as part of bundle?)
 	 (lib.cj-env-1))
