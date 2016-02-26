@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require define-macro*
+(require define-macro-star
 	 cut
 	 cj-typed)
 
