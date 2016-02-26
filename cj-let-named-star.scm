@@ -1,4 +1,8 @@
 
+(require define-macro-star
+	 cj-gensym
+	 test)
+
 (define-macro* (let-named* ident bindings . body)
   (let* ((vars-flat
 	  (map (lambda(v)

@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-;;(require (lib.srfi-1))
+(require srfi-1)
 
 
 (define (inc n)

@@ -1,4 +1,7 @@
-
+(require define-macro-star
+	 cj-match
+	 cj-symbol
+	 test)
 
 (define-macro* (define-constants-from-C . names)
   `(begin

@@ -1,3 +1,6 @@
+
+(require define-macro-star)
+
 ;; This used to be compile-time, which could be used both for the
 ;; result as well as the side effects. now be explicit about the
 ;; purpose:

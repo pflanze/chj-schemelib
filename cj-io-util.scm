@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+(require test)
+
+
 (define (read-lines #!optional (p (current-input-port)) (tail '()))
   (let rec ()
     (let ((line (read-line p)))

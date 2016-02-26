@@ -6,11 +6,13 @@
 ;;;    (at your option) any later version.
 
 
+(require easy
+	 srfi-1 ;; fold
+	 more-oo)
+
 (declare (standard-bindings)
 	 (extended-bindings)
 	 (block))
-
-(require easy more-oo)
 
 
 (def (almost= x y max-abs-diff)

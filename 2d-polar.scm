@@ -6,12 +6,14 @@
 ;;;    (at your option) any later version.
 
 
+(require easy
+	 cj-math)
+
+
 (declare (standard-bindings)
 	 (extended-bindings)
 	 (block))
 
-
-(require cj-math)
 
 (def 90° (* 0.5 pi))
 

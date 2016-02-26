@@ -1,3 +1,8 @@
+
+(require cj-match
+	 test)
+
+
 ;; The "Clojure-macro". What was it named? XXX
 
 (define (chain-expand start exprs)
