@@ -1,6 +1,16 @@
 
 ; cj Tue, 02 Aug 2005 22:52:37 +0200
 
+(require
+ ;;gambit-interpreter-env
+ ;;keyword-util does not have a module file.
+ (cj-env *do-times)  ;;   keyword->symbol i've recreated here
+ (srfi-1 reverse!))
+
+(export keyed->sxml
+	sxml->keyed)
+
+
 '(description "some tools for dealing with SXML")
 '(doc "NOTE that the <DSSSL-like> format as used or produced
   by keyed->sxml and sxml->keyed is not really that (at least not

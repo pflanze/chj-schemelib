@@ -11,6 +11,20 @@
 ;; todo:
 ;; - map of namespaces which are 'constant', and if they should be stripped from the symbol or not
 
+;(namespace "")
+
+(require gambit-interpreter-env
+	 cj-env
+	 srfi-13
+	 cj-expr
+	 (cj-list-util improper-map)
+	 (cj-test TEST))
+
+(export sxmltemplates-expand
+	use-sxmltemplates
+	current-nonscheme-namespaces)
+
+
 
 ;; hacky:
 (define current-nonscheme-namespaces (make-parameter '(html xhtml xml)))
