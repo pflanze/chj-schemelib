@@ -9,15 +9,15 @@
 (require (define-macro-star)
 	 (test)
 	 (cj-phasing)
-	 (lib.cj-functional)
-	 (lib.srfi-11) ;; fst, snd
-	 (lib.cj-source)
-	 (lib.cj-source-2)
-	 (lib.cj-symbol)
-	 (lib.list-util-2)
-	 (lib.cj-alist)
-	 (lib.cj-struct)
-	 (lib.cut)
+	 (cj-functional)
+	 (srfi-11) ;; fst, snd
+	 (cj-source)
+	 (cj-source-2)
+	 (cj-symbol)
+	 (list-util-2)
+	 (cj-alist)
+	 (cj-struct)
+	 (cut)
 	 )
 
 

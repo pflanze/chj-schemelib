@@ -1,5 +1,5 @@
 (require (define-macro-star)
-	 (lib.simple-match))
+	 (simple-match))
 
 
 (define-macro* (define-strict-and-lazy

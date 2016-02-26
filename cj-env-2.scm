@@ -7,8 +7,8 @@
 
 
 (require (define-macro-star)
-	 (lib.cj-match);?
-	 (lib.cj-symbol);?
+	 (cj-match);?
+	 (cj-symbol);?
 	 (test)
 	 ;; ?
 	 (cj-env-1))

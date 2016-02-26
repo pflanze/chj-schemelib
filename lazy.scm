@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.simple-match))
+	 (simple-match))
 
 
 ;; provide delay force promise? no-delay force1

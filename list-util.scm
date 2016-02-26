@@ -8,10 +8,10 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.srfi-1)
-	 (lib.cj-env)
-	 (lib.list-util-1)
-	 (lib.string-util-1) ;; string-split
+	 (srfi-1)
+	 (cj-env)
+	 (list-util-1)
+	 (string-util-1) ;; string-split
 	 )
 
 
@@ -338,7 +338,7 @@
 	       (error "improper list ending in:" l))))
       (error "need non-empty list, got:" lis)))
 (TEST
- > (require (lib.srfi-11)))
+ > (require (srfi-11)))
 (TEST
  > (values->vector (split-preferred '(1) <))
  #(1 (1) ())

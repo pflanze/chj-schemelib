@@ -6,10 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.cj-source)
+(require (cj-source)
 	 (define-macro-star)
 	 (cj-phasing)
-	 (lib.improper-length))
+	 (improper-length))
 
 
 ; (define (warn* message . args)

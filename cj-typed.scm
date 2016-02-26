@@ -8,8 +8,8 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.cj-env)
-	 (lib.srfi-11))
+	 (cj-env)
+	 (srfi-11))
 
 
 ;;;
@@ -284,8 +284,8 @@
      `(define ,name (typed-lambda ,args ,@body)))))
 
 ;; (TEST
-;;  > (require (lib.cj-symbol)
-;; 	    (lib.cj-expansion)))
+;;  > (require (cj-symbol)
+;; 	    (cj-expansion)))
 ;; (TEST
 ;;  > (define TEST:equal? syntax-equal?)
 ;;  > (expansion define-typed (f #(integer? x) #(symbol? a)) (vector x a))

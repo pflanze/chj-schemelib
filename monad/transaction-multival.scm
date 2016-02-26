@@ -6,8 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.monad.syntax)
-	 (lib.srfi-11))
+(require (monad.syntax)
+	 (srfi-11))
 
 
 ;; particular monad for use in transactions:

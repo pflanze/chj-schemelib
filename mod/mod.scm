@@ -11,10 +11,10 @@
 
 ;; Data types:
 
-;; modsym:   a symbol with dots for the namespace hierarchy:  lib.match
+;; modsym:   a symbol with dots for the namespace hierarchy:  match
 ;; modname:  a string with slash instead of the dots:  "lib/match"
 ;; mod:      modsym and possibly source code where it 'came from':
-;;                  (lib.match . #(source1 .....))
+;;                  (match . #(source1 .....))
 ;; path:     path string to .scm file
 
 
@@ -165,11 +165,11 @@
 (include "../list-util-1.scm")
 (include "../cj-source.scm")
 (define mod:statically-loaded ;; keep in sync with the above!
-  '(lib.srfi-1
+  '(srfi-1
     cj-env-1
-    lib.vector-util-1
-    lib.list-util-1
-    lib.cj-source))
+    vector-util-1
+    list-util-1
+    cj-source))
 
 
 

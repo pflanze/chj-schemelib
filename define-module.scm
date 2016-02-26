@@ -9,8 +9,8 @@
 (require (define-macro-star)
 	 (cj-phasing)
 	 (test)
-	 (lib.simple-match)
-	 (lib.srfi-11))
+	 (simple-match)
+	 (srfi-11))
 
 
 ;;;
@@ -199,7 +199,7 @@
 
 
 (TEST
- > (require (lib.cj-symbol)))
+ > (require (cj-symbol)))
 (TEST
  > (define TEST:equal? syntax-equal?)
  > (define (conv forms body)

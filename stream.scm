@@ -7,13 +7,13 @@
 
 
 (require (test)
-	 (lib.lazy)
-	 (lib.define-strict-and-lazy)
-	 (lib.cj-struct)
-	 (lib.list-util)
-	 (lib.cj-cmp)
-	 (lib.srfi-11)
-	 (lib.cj-typed)
+	 (lazy)
+	 (define-strict-and-lazy)
+	 (cj-struct)
+	 (list-util)
+	 (cj-cmp)
+	 (srfi-11)
+	 (cj-typed)
 	 )
 
 
@@ -34,7 +34,7 @@
 
 
 (TEST
- > (require (lib.lazy-debug)))
+ > (require (lazy-debug)))
 (TEST
  > (F (stream-filter/tail even? (list 1 2 3 4 5) '(a b c)))
  (2 4 a b c)

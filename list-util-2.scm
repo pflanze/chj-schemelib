@@ -7,10 +7,10 @@
 
 
 (require (test)
-	 (lib.cj-env)
-	 (lib.define-nested)
-	 (lib.slib-sort)
-	 (lib.cj-symbol))
+	 (cj-env)
+	 (define-nested)
+	 (slib-sort)
+	 (cj-symbol))
 
 
 (define-macro* (pop! var)

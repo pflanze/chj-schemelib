@@ -7,8 +7,8 @@
 
 
 (require (test)
-	 (lib.lazy)
-	 (lib.cj-typed))
+	 (lazy)
+	 (cj-typed))
 
 
 ;;;

@@ -6,11 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.cj-source)
+(require (cj-source)
 	 (define-macro-star)
 	 (cj-phasing)
 	 (test)
-	 (lib.improper-length))
+	 (improper-length))
 
 
 ;; definition of location-warn-to-string see cj-source

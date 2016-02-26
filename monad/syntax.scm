@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.cj-env))
+	 (cj-env))
 
 ;;;
 ;;;; Infrastructure to write monads

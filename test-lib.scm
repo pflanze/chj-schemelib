@@ -8,8 +8,8 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.cj-struct)
-	 (lib.stream))
+	 (cj-struct)
+	 (stream))
 
 ;; A library of helper functions for writing tests
 

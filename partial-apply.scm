@@ -8,7 +8,7 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.cj-source-util))
+	 (cj-source-util))
 
 
 (compile-time

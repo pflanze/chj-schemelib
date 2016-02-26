@@ -8,8 +8,8 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.cj-env)
-	 (lib.cj-symbol))
+	 (cj-env)
+	 (cj-symbol))
 
 
 ;; not sure this is the end of ideas, but, giving it a try

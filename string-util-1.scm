@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.list-util-1) ;; list-split
+(require (list-util-1) ;; list-split
 	 )
 
 

@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.srfi-1))
+(require (srfi-1))
 
 
 ;; This is separate from list-util (and list-util-2) to enable use in

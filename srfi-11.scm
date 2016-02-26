@@ -9,9 +9,9 @@
 (require (define-macro-star)
 	 (cj-phasing)
 	 (test)
-	 (lib.cj-env)
-	 (lib.list-util) ;; let-pair
-	 (lib.cj-functional)
+	 (cj-env)
+	 (list-util) ;; let-pair
+	 (cj-functional)
 	 )
 
 

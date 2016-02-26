@@ -7,7 +7,7 @@
 
 
 (require (test)
-	 (lib.list-util) ;; let-pair
+	 (list-util) ;; let-pair
 	 )
 
 

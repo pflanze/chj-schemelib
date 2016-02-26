@@ -1,6 +1,6 @@
 (require (define-macro-star)
 	 (test)
-	 (lib.simple-match))
+	 (simple-match))
 
 
 ; REFERENCE IMPLEMENTATION FOR SRFI-26 "CUT"
@@ -119,8 +119,8 @@
   `(srfi-26-internal-cute () () () ,@slots-or-exprs))
 
 (TEST
- > (require (lib.cj-expansion)
-	    (lib.cj-symbol)))
+ > (require (cj-expansion)
+	    (cj-symbol)))
 (TEST
  > (define TEST:equal? syntax-equal?)
  > (expansion cut a b c)

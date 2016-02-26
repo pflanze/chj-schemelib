@@ -8,7 +8,7 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.cj-env))
+	 (cj-env))
 
 
 (define symbol<?

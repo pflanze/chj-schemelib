@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.simple-match))
+	 (simple-match))
 
 ;; looses location information; see cj-inline-2 which overrides it
 ;; with a version tha uses quasiquote-source.

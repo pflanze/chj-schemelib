@@ -59,7 +59,7 @@
 (require (define-macro-star)
 	 (cj-phasing)
 	 (cj-env-1)
-	 (lib.simple-match-1))
+	 (simple-match-1))
 
 ;; This is the *only* binding that has to be available to make loading
 ;; of code compiled with TESTs work.

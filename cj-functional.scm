@@ -8,9 +8,9 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.cj-env)
-	 (lib.cj-symbol)
-	 (lib.list-util) ;; let-pair
+	 (cj-env)
+	 (cj-symbol)
+	 (list-util) ;; let-pair
 	 )
 
 

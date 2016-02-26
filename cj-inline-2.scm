@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.simple-match)
+	 (simple-match)
 	 cj-source-quasiquote)
 
 (define-macro* (define-inline name+vars body0 . body)

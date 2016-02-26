@@ -7,8 +7,8 @@
 
 
 (require (test)
-	 (lib.list-util)
-	 (lib.srfi-11))
+	 (list-util)
+	 (srfi-11))
 
 
 ;;;

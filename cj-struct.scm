@@ -8,8 +8,8 @@
 
 (require (define-macro-star)
 	 (test)
-	 (lib.simple-match)
-	 (lib.cj-env);; symbol-append
+	 (simple-match)
+	 (cj-env);; symbol-append
 	 )
 
 ;; XX move to predicates.scm ? dependency order?
