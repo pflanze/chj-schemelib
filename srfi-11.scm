@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.cj-phasing)
+	 (cj-phasing)
 	 (lib.test)
 	 (lib.cj-env)
 	 (lib.list-util) ;; let-pair

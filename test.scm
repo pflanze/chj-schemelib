@@ -57,7 +57,7 @@
 
 
 (require (define-macro-star)
-	 (lib.cj-phasing)
+	 (cj-phasing)
 	 (lib.cj-env-1)
 	 (lib.simple-match-1))
 

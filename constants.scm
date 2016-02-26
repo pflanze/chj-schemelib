@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.cj-phasing))
+	 (cj-phasing))
 
 (compile-time
  (define *CONSTs* (make-table)))
