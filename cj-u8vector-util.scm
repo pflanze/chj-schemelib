@@ -1,25 +1,22 @@
-;; (requires
-;;  gambit-interpreter-env
-;;  cj-math ;; quotient-ceiling
-;;  cj-let-named-star ;; let-named*
-;;  (cj-test TEST)
-;;  )
+(require cj-math   ;; quotient-ceiling
+	 cj-let-named-star ;; let-named*
+	 (cj-test TEST))
 
-;; (exports
-;;  ;;digit->hexchar
-;;  u8vector->hex-string
-;;  u8vector->hex-string-lc
-;;  u8vector->alphanumeric-string
-;;  u8vector->integer
-;;  u8vector->integer-string
-;;  u8vector->string
-;;  string->u8vector
-;;  string->u8vector0
+(export  u8vector->hex-string
+	 u8vector->hex-string-lc
+	 u8vector->alphanumeric-string
+	 u8vector->integer
+	 u8vector->integer-string
+	 u8vector->string
+	 string->u8vector
+	 string->u8vector0
 
-;;  write-u8vector
-;;  read-u8vector
-;;  read-u8vector-from-file
-;; )
+	 write-u8vector
+	 read-u8vector
+	 read-u8vector-from-file
+
+	 #!optional
+	 digit->hexchar)
 
 
 (declare
