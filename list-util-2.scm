@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.test)
+(require (test)
 	 (lib.cj-env)
 	 (lib.define-nested)
 	 (lib.slib-sort)

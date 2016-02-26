@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.test)
+	 (test)
 	 (lib.cj-env)
 	 (lib.cj-symbol)
 	 (lib.list-util) ;; let-pair

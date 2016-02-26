@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.test)
+	 (test)
 	 (lib.srfi-1)
 	 (lib.cj-env)
 	 (lib.list-util-1)

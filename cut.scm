@@ -1,5 +1,5 @@
 (require (define-macro-star)
-	 (lib.test)
+	 (test)
 	 (lib.simple-match))
 
 

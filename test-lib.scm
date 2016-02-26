@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.test)
+	 (test)
 	 (lib.cj-struct)
 	 (lib.stream))
 

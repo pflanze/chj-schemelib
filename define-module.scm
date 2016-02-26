@@ -8,7 +8,7 @@
 
 (require (define-macro-star)
 	 (cj-phasing)
-	 (lib.test)
+	 (test)
 	 (lib.simple-match)
 	 (lib.srfi-11))
 

@@ -9,7 +9,7 @@
 (require (define-macro-star)
 	 (lib.cj-match);?
 	 (lib.cj-symbol);?
-	 (lib.test)
+	 (test)
 	 ;; ?
 	 (lib.cj-env-1))
 

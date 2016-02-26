@@ -9,7 +9,7 @@
 (require (lib.cj-source)
 	 (define-macro-star)
 	 (cj-phasing)
-	 (lib.test)
+	 (test)
 	 (lib.improper-length))
 
 

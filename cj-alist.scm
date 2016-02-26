@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (lib.test))
+(require (test))
 
 
 ;; Library for association lists of various key types

@@ -8,7 +8,7 @@
 
 (require (define-macro-star)
 	 (cj-phasing)
-	 (lib.test)
+	 (test)
 	 (lib.cj-env)
 	 (lib.list-util) ;; let-pair
 	 (lib.cj-functional)
@@ -356,7 +356,7 @@
 (define 3rd (lambda (<>) (values-ref <> 2)))
 
 (TEST
- > (require (lib.test-lib)))
+ > (require (test-lib)))
 
 (TEST
  > (fst (values 'a))

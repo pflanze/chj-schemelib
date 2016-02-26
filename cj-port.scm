@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.test))
+	 (test))
 
 
 (define (with-output-to-string thunk)

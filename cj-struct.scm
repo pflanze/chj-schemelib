@@ -7,7 +7,7 @@
 
 
 (require (define-macro-star)
-	 (lib.test)
+	 (test)
 	 (lib.simple-match)
 	 (lib.cj-env);; symbol-append
 	 )
