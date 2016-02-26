@@ -6,10 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test)
-	 (cj-struct)
-	 (stream))
+(require define-macro-star
+	 test
+	 cj-struct
+	 stream
+	 weak-srfi-1)
 
 ;; A library of helper functions for writing tests
 
