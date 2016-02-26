@@ -6,6 +6,8 @@
 ;;;    (at your option) any later version.
 
 
+(require test)
+
 (define (improper-length v)
   ;; copy from cj-env because of phasing issue
   (define (inc x)

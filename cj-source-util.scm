@@ -6,6 +6,8 @@
 ;;;    (at your option) any later version.
 
 
+(require test)
+
 
 (define (schemedefinition-arity:template->checker t)
   (let ((min-count (vector-ref t 1)))

@@ -6,9 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-;; (require (lib.cj-env-1) ;; inc dec
-;; 	 (lib.vector-util-1)
-;; 	 (lib.list-util-1) ;; improper-map
+;; can't use require form here yet
+;; (require
+;; 	 ;; vector-util-1 ;; included directly
+;; 	 ;; list-util-1 ;; improper-map now copied directly
 ;; 	 )
 
 
