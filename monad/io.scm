@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (monad.syntax))
+(require syntax)
 
 
 ;; IO monad

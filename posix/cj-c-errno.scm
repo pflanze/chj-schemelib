@@ -10,7 +10,7 @@
  
  cj-env-2
 
- posix/cj-c-errno_Cpart
+ cj-c-errno_Cpart ;; from posix/ dir, local reference
  )
 
 ;; (compile #t)

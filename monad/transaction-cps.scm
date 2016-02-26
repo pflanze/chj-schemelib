@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (monad.syntax))
+(require syntax)
 
 
 ;; particular monad for use in transactions:

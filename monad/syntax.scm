@@ -6,8 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (cj-env))
+(require define-macro-star
+	 cj-env)
 
 ;;;
 ;;;; Infrastructure to write monads
