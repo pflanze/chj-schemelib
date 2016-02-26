@@ -19,7 +19,7 @@
 	 (cj-sxml with-sxml-element-attributes/else
 		  sxml-element-attribute-ref
 		  sxml-element:add-attributes-unless-present)
-	 (cj-stream stream-for-each)
+	 (stream stream-for-each)
 	 (test TEST))
 
 (export sxml>>html-fast

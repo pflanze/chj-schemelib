@@ -1,5 +1,5 @@
-(require (cj-stream stream-map/filter stream-map stream-filter
-		    stream-map/filter/tail)
+(require (stream stream-map/filter stream-map stream-filter
+		 stream-map/filter/tail)
 	 ;;(cj-stream *stream-strict*)
 	 (srfi-1 append! fold-right))
 
