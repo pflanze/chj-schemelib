@@ -34,3 +34,15 @@
  #f)
 
 
+;; bah, ~copy-paste
+(def (make-seen?+! . args)
+     (let ((t (apply make-table args)))
+       (values
+	;; seen?
+	(lambda (val)
+	  ;; don't actually need _cj-seen:nothing, huh
+	  (table-ref t val #f))
+	;; seen!
+	(lambda (val)
+	  (table-set! t val #t)))))
+
