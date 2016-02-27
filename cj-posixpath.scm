@@ -11,7 +11,8 @@
 ;; (originally) partially following
 ;; http://hackage.haskell.org/packages/archive/system-filepath/0.4.6/doc/html/src/Filesystem-Path.html
 
-(require easy string-util-1 more-oo)
+(require easy ;; incl. more-oo
+	 string-util-1)
 
 (def (posixpath-segment? v)
      (and (nonempty-string? v)

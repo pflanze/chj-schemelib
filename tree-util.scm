@@ -6,7 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require easy test)
+(require easy-1
+	 (cj-env named) ;; part of easy-1 ?
+	 test)
 
 (def (flatten/ drop-false?)
      (named flatten

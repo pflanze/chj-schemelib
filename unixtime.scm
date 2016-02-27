@@ -7,7 +7,7 @@
 
 
 (require test
-	 easy)
+	 easy-1)
 
 (c-declare "
        #include <time.h>
