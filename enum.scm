@@ -11,7 +11,7 @@
 	 cj-typed
 	 (simple-match-1 assert*)
 	 (cj-symbol with-gensyms)
-	 (cj-env define-if-not-defined)
+	 (cj-env define-if-not-defined symbol-append)
 	 (srfi-1 any))
 
 
