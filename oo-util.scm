@@ -1,6 +1,8 @@
-(require easy
+
+(require easy-1
 	 dot-oo;; included in easy?
-	 )
+	 (string-util-2 string-reverse))
+
 
 (define inexact exact->inexact)
 (define. exact.inexact exact->inexact) ;; ah, use the above?

@@ -7,7 +7,7 @@
 
 
 (require test
-	 easy)
+	 easy-1)
 
 
 (def. (symbol.replace-substrings s substr withstr)

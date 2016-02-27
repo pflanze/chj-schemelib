@@ -1,4 +1,6 @@
-(require test easy)
+(require test
+	 code-map
+	 easy-1)
 
 (def (sum nums)
      (fold + 0 nums))
