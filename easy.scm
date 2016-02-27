@@ -9,7 +9,9 @@
 	 more-oo ;; well, just re-export?
 	 srfi-11
 	 define-module
-	 cj-match)
+	 cj-match
+	 simple-match ;; provided by cj-match ?
+	 )
 
 (define-macro* (& . args)
   ;; `(thunk ,@args)
@@ -25,6 +27,26 @@
 
 (define-macro* (def. . args)
   `(define. ,@args))
+
+;; adapted from cj-inline-2.scm to accept typing
+(define-macro* (def-inline name+args body0 . body)
+  (match-list*
+   name+args
+   ((name . args)
+    (let* ((lambdacode
+	    `(typed-lambda ,args
+		      ,body0 ,@body))
+	   (templatecode
+	    `(,lambdacode
+	      ,@(map (lambda (arg)
+		       (list 'unquote (perhaps-typed.var arg)))
+		     args))))
+      (quasiquote-source
+       (begin
+	 (define-macro* (,(symbol-append (source-code name) '-lambda))
+	   ,(list 'quasiquote-source lambdacode))
+	 (define-macro* (,name ,@(map perhaps-typed.var args))
+	   ,(list 'quasiquote-source templatecode))))))))
 
 (define-macro* (defenum name . args)
   `(define-enum ,name ,@args))
