@@ -6,9 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test)
-	 (cj-source-util))
+(require define-macro-star
+	 test
+	 ;; (cj-source-util schemedefinition-arity:pattern->template)
+	 ;; is included in define-macro-star.scm
+	 )
+	 
 
 
 (compile-time
