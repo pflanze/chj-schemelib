@@ -47,6 +47,10 @@
 	 (then (Just.value v))
 	 (else)))
 
+(TEST
+ > (%try-error (if-Maybe 'foo 1 2))
+ #(error "v does not match Maybe?:" foo))
+
 
 (defmacro (Maybe:if t
 		    then
