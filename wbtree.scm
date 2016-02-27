@@ -33,15 +33,15 @@
 
 
 
-(define-struct wbtreeparameter
+(defstruct wbtreeparameter
   cmp
   element?)
 
 (define (wbtreeparameter:wrap-in tp type? access)
   (let-wbtreeparameter
    ((cmp _) tp) ;; ignoring original |element?| check (not going to nest it)
-   (make-wbtreeparameter (on access cmp)
-		       type?)))
+   (wbtreeparameter (on access cmp)
+		    type?)))
 
 ;; thread param through functions: using macros to reduce the amount
 ;; of code that needs to be changed:

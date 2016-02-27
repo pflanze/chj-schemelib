@@ -11,11 +11,11 @@
 	 test)
 
 (define wbtreeparameter-string
-  (make-wbtreeparameter string-cmp
+  (wbtreeparameter string-cmp
 		      string?))
 
 (define wbtreeparameter-number
-  (make-wbtreeparameter number-cmp
+  (wbtreeparameter number-cmp
 		      number? ;; ##fixnum? but well not inlined anyway anymore
 		      ))
 
@@ -237,7 +237,7 @@
 
 
 (define wbtreeparameter-pair-string
-  (make-wbtreeparameter (on car string-cmp)
+  (wbtreeparameter (on car string-cmp)
 		      pair?))
 
 
