@@ -335,7 +335,11 @@
 (define (thunk-symbol-value-or sym-thunk or-thunk)
   (with-exception-catcher
    (lambda (e) (if (unbound-global-exception? e) (or-thunk) (raise e)))
-   sym-thunk))
+   (lambda ()
+     (let ((v (sym-thunk)))
+       (if (##unbound? v)
+	   (or-thunk)
+	   v)))))
 
 (define-macro* (macro-symbol-value-or sym thunk)
   (if (symbol? (source-code sym))
