@@ -6,12 +6,13 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (cj-phasing)
-	 (test)
-	 (cj-env)
-	 (list-util) ;; let-pair
-	 (cj-functional)
+(require define-macro-star
+	 cj-phasing
+	 test
+	 cj-env
+	 list-util ;; let-pair
+	 (list-util-1 improper-map)
+	 ;; (cj-functional compose) now avoided
 	 )
 
 
@@ -291,18 +292,22 @@
 				   values))
 			(flatten1 (source-code vars*))))
 	 (varstmptop (map gensym varsflat))
-	 (varslex (improper-map (compose gensym source-code)
-				(source-code vars*))))
+	 (varslex (improper-map
+		   ;; (compose gensym source-code)
+		   ;; avoid dependency cycle
+		   (lambda (v)
+		     (gensym (source-code v)))
+		   (source-code vars*))))
     
     `(begin
        ,@(map (lambda (t)
 		`(define ,t #f))
 	      varstmptop)
        (let-values ((,varslex ,expr))
-		   ,@(map (lambda (v* vgen)
-			    `(set! ,v* ,vgen))
-			  varstmptop
-			  (flatten1 varslex)))
+	 ,@(map (lambda (v* vgen)
+		  `(set! ,v* ,vgen))
+		varstmptop
+		(flatten1 varslex)))
        ,@(map (lambda (v t)
 		`(begin
 		   (define ,v ,t)

@@ -10,7 +10,8 @@
 	 (test)
 	 (cj-env)
 	 (cj-symbol)
-	 (list-util) ;; let-pair
+	 (list-util let-pair)
+	 (srfi-11 apply-values)
 	 )
 
 
