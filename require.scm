@@ -2,6 +2,7 @@
 
 (require easy
 	 test
+	 (tree-util flatten)
 	 tsort
 	 Status)
 
@@ -62,20 +63,25 @@
        (map (C symbol-alist-ref z _) (topo.sort* rs))))
 
 
-(def (modulepaths-in-dir dir)
+(def (modulepaths-in-dir dir #!optional (tail '()))
      (parameterize
       ((current-directory dir))
-      (map path-normalize
-	   (xcall-with-input-process
-	    (list path: "gls" arguments: '("*.scm"))
+      (map/tail path-normalize
+		tail
+		(xcall-with-input-process
+		 (list path: "gls" arguments: '("*.scm"))
       
-	    read-lines))))
+		 read-lines))))
 
+
+(def (modulepaths-in-dirs dirpaths #!optional (tail '()))
+     ;;(flatten (map modulepaths-in-dir dirpaths))
+     (fold-right modulepaths-in-dir tail dirpaths))
 
 (def (lib)
      (modulepaths-tsort (modulepaths-in-dir "lib")))
 (def (mydb)
-     (modulepaths-tsort (modulepaths-in-dir "mydb")))
+     (modulepaths-tsort (modulepaths-in-dirs '("lib" "mydb"))))
 
 
 ;; a single-dependency representation
