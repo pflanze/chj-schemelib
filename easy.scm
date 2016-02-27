@@ -6,7 +6,7 @@
 	 cj-struct
 	 cj-typed
 	 dot-oo ;; incl. define.
-	 more-oo ;; well, just re-export?
+	 ;; more-oo ;; well, just re-export? ah can't, dependent on us
 	 srfi-11
 	 define-module
 	 cj-match
