@@ -53,10 +53,10 @@
 
 
 
-(def (if-Status #(Status? v) success failure)
-     (if (Success? v)
-	 (success)
-	 (failure (Failure.value v))))
+(def-inline (if-Status #(Status? v) success failure)
+  (if (Success? v)
+      (success)
+      (failure (Failure.value v))))
 
 
 (defmacro (Status:if t
