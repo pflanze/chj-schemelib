@@ -51,20 +51,21 @@
 	      (relpath (source-code relpath)))
 	 (or (string? container-path)
 	     (error "only works in files, not:" container container-path))
-	 (let ((path (path-normalize relpath
-				     #f
-				     (path-directory container-path))))
-	   (eval `(begin
-		    ;; HACK: drop TEST (no easy way to do it in another place)
-		    (define-macro (TEST . x)
-		      `(begin))
-		    (include ,path)))
-	   `(include ,path))))
+	 (let* ((path (path-normalize relpath
+				      #f
+				      (path-directory container-path)))
+		(code `(begin
+			 ;; HACK: drop require and TEST forms
+			 (define-macro (require . x)
+			   `(begin))
+			 (define-macro (TEST . x)
+			   `(begin))
+			 (include ,path))))
+	   (eval code)
+	   code)))
      (source-code stx))
     stx)))
 
-(define-macro (TEST . x)
-  `(begin))
 (include-and-compiletimeload "cj-source-util.scm")
 
 (define-macro (both-times . body)
