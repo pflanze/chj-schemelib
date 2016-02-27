@@ -22,7 +22,14 @@
       ((processed? processed!) (make-seen?+!))
       (letv
        ((seen? seen!) (make-seen?+!))
-       (let ((get (C topo:ref rs _))
+       (let ((get-for
+	      (lambda (name)
+		(lambda (dep)
+		  (Maybe:cond ((topo:Maybe-ref rs dep)
+			       => identity)
+			      (else
+			       (error "in module, unknown dependency:"
+				      name dep))))))
 	     (out '())
 	     (all-rs rs))
 	 (let load ((rs rs))
@@ -35,7 +42,7 @@
 			   (error "cycle detected involving:" name))
 		   (begin
 		     (seen! name)
-		     (load (map get deps))
+		     (load (map (get-for name) deps))
 		     (push! out r)
 		     (processed! name)))))
 	    rs))
