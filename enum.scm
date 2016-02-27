@@ -8,7 +8,11 @@
 
 (require define-macro-star
 	 cut
-	 cj-typed)
+	 cj-typed
+	 (simple-match-1 assert*)
+	 (cj-symbol with-gensyms)
+	 (cj-env define-if-not-defined)
+	 (srfi-1 any))
 
 
 (define (symbols.predicate syms)
