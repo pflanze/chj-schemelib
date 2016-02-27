@@ -41,11 +41,10 @@
  13)
 
 
-
-(def (if-Maybe #(Maybe? v) then else)
-     (if (Just? v)
-	 (then (Just.value v))
-	 (else)))
+(def-inline (if-Maybe #(Maybe? v) then else)
+  (if (Just? v)
+      (then (Just.value v))
+      (else)))
 
 (TEST
  > (%try-error (if-Maybe 'foo 1 2))
