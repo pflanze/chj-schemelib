@@ -53,58 +53,43 @@
 
 
 
-(def (if-Status #(Status? v) then else)
-     (if (Failure? v)
-	 (then (Failure.value v))
-	 (else)))
+(def (if-Status #(Status? v) success failure)
+     (if (Success? v)
+	 (success)
+	 (failure (Failure.value v))))
 
 
 (defmacro (Status:if t
-		    then
-		    #!optional
-		    else)
-  `(if-Status ,t ,then (lambda () ,(or else `(void)))))
-
-(defmacro (Status:cond t+then #!optional else)
-  (mcase t+then
-	 (`(`t => `then)
-	  `(if-Status ,t
-		     ,then
-		     (lambda ()
-		       ,(if else
-			    (mcase else
-				   (`(else `else)
-				    else))
-			    `(void)))))))
+		     then
+		     #!optional
+		     else)
+  `(if-Status ,t
+	      (lambda ()
+		,then)
+	      (lambda (it)
+		,(or else
+		     `(void)))))
 
 (TEST
- > (def (psqrt x)
-	(if (positive? x)
-	    (Failure (sqrt x))
-	    (Success)))
- > (def (f x)
-	(Status:if (psqrt x)
-		  inc
-		  'n))
- > (def (f* x)
-	(Status:if (psqrt x)
-		  inc))
- > (def (g x)
-	(Status:cond ((psqrt x) => inc)
-		    (else 'n)))
- > (def (g* x)
-	(Status:cond ((psqrt x) => inc)))
- > (map (lambda (x)
-	  (list (f x)
-		(g x)
-		(f* x)
-		(g* x)))
-	(list 4 9 -4))
- ((3 3 3 3)
-  (4 4 4 4)
-  (n n #!void #!void))
- > (%try-error (Status:cond ((sqrt 4) => inc)))
- #(error "v does not match Status?:" 2))
+ > (Status:if (Success) 'ok 'fail)
+ ok
+ > (Status:if (Failure 'foo) 'ok 'fail)
+ fail
+ > (Status:if (Failure 'foo) 'ok)
+ #!void)
+
+(defmacro (Status:unless t
+			 then)
+  `(if-Status ,t
+	      void
+	      (lambda (it)
+		,(or then `(void)))))
+
+(TEST
+ > (Status:unless (Success) it)
+ #!void
+ > (Status:unless (Failure 'foo) it)
+ foo)
 
 
 (def (Status pred)
