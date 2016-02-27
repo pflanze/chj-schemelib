@@ -6,8 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require cj-typed ;; heh indirectly through define-struct. expansion
-	 )
+(require cj-env
+	 define-macro-star
+	 cj-typed ;; heh indirectly through define-struct. expansion
+	 cj-match
+	 test)
 
 
 ;; Principle is to shadow previous definitions of the generic, and the

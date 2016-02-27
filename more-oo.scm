@@ -6,7 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require dot-oo)
+(require easy-1
+	 cj-env
+	 dot-oo)
 
 ;; * add class and subclass syntax
 
