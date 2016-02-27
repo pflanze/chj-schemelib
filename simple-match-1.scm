@@ -6,10 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require (cj-source)
-	 (define-macro-star)
-	 (cj-phasing)
-	 (improper-length))
+(require cj-source
+	 define-macro-star
+	 cj-phasing
+	 ;; improper-length is included by cj-source-util.scm is
+	 ;; included by define-macro-star.scm
+	 )
 
 
 ; (define (warn* message . args)

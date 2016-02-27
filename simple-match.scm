@@ -6,11 +6,13 @@
 ;;;    (at your option) any later version.
 
 
-(require (cj-source)
-	 (define-macro-star)
-	 (cj-phasing)
-	 (test)
-	 (improper-length))
+(require cj-source
+	 define-macro-star
+	 cj-phasing
+	 test
+	 ;; improper-length is included by cj-source-util.scm is
+	 ;; included by define-macro-star.scm
+	 )
 
 
 ;; definition of location-warn-to-string see cj-source
