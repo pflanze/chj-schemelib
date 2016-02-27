@@ -15,7 +15,7 @@
 ;;;
 
 (compile-time
- (define use-implementation-in-c? (set-compiler:compiled?)))
+ (define use-implementation-in-c? (mod:compiled?)))
 
 (IF use-implementation-in-c?
     (begin
