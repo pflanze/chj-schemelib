@@ -52,7 +52,11 @@
 		    then
 		    #!optional
 		    else)
-  `(if-Maybe ,t ,then (lambda () ,(or else `(void)))))
+  `(if-Maybe ,t
+	     (lambda (it)
+	       ,then)
+	     (lambda ()
+	       ,(or else `(void)))))
 
 (defmacro (Maybe:cond t+then #!optional else)
   (mcase t+then
@@ -73,11 +77,11 @@
 	    (Nothing)))
  > (def (f x)
 	(Maybe:if (psqrt x)
-		  inc
+		  (inc it)
 		  'n))
  > (def (f* x)
 	(Maybe:if (psqrt x)
-		  inc))
+		  (inc it)))
  > (def (g x)
 	(Maybe:cond ((psqrt x) => inc)
 		    (else 'n)))
