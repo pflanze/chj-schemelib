@@ -18,7 +18,7 @@
   (lambda (a . rest)
     (apply fn a (map source-code rest))))
 
-(define source.symbol-append (source-wrap-n symbol-append))
+(define source:symbol-append (source-wrap-n symbol-append))
 ;; XX keep source information? rarely used for symbols though.
 
 (define source.length (source-wrap-1 length))

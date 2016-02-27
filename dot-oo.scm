@@ -10,7 +10,8 @@
 	 define-macro-star
 	 cj-typed ;; heh indirectly through define-struct. expansion
 	 cj-match
-	 test)
+	 test
+	 (cj-source-wraps source:symbol-append))
 
 
 ;; Principle is to shadow previous definitions of the generic, and the
@@ -91,7 +92,7 @@
 			 ,(with-gensym
 			   V
 			   ;; [*]
-			   `(lambda (,V) (,(source.symbol-append typename '?) ,V)))
+			   `(lambda (,V) (,(source:symbol-append typename '?) ,V)))
 			 ,name
 			 ,genericname)))))))))
 
@@ -202,18 +203,18 @@
 		  ,@(if (memq unsafe-constructor-name: defs*)
 			`()
 			`(unsafe-constructor-name:
-			  ,(source.symbol-append name '@)))
+			  ,(source:symbol-append name '@)))
 		  ,@defs)))
       
       ;; reserve name for just this purpose?
-      (define. (,(source.symbol-append name ".typecheck!") ,V)
+      (define. (,(source:symbol-append name ".typecheck!") ,V)
 	,@(filter values
 		  (map (lambda (def)
 			 (let ((def* (source-code def)))
 			   (if (typed? def*)
 			       `(let ((,V*
 				       ;; use accessors, or direct vector-ref? :
-				       (,(source.symbol-append name "." (vector-ref def* 1)) ,V)))
+				       (,(source:symbol-append name "." (vector-ref def* 1)) ,V)))
 				  (type-check ,(vector-ref def* 0)
 					      ,V*
 					      ;; stupid (begin) in if not allowed:

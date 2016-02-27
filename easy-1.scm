@@ -10,7 +10,7 @@
 	 define-module
 	 cj-match
 	 simple-match ;; provided by cj-match ?
-	 )
+	 (cj-source-wraps source:symbol-append))
 
 (define-macro* (& . args)
   ;; `(thunk ,@args)
@@ -34,7 +34,7 @@
    ((name . args)
     (let* ((lambdacode
 	    `(typed-lambda ,args
-		      ,body0 ,@body))
+			   ,body0 ,@body))
 	   (templatecode
 	    `(,lambdacode
 	      ,@(map (lambda (arg)
@@ -42,7 +42,7 @@
 		     args))))
       (quasiquote-source
        (begin
-	 (define-macro* (,(symbol-append (source-code name) '-lambda))
+	 (define-macro* (,(source:symbol-append name '-lambda))
 	   ,(list 'quasiquote-source lambdacode))
 	 (define-macro* (,name ,@(map perhaps-typed.var args))
 	   ,(list 'quasiquote-source templatecode))))))))
@@ -125,7 +125,7 @@
 (def (modimport-expand:mod maybe-prefix mod expr *else)
      (*if-symbol-value
 
-      (source.symbol-append mod '-exports)
+      (source:symbol-append mod '-exports)
 
       (lambda (exports)
 	(if maybe-prefix

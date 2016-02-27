@@ -8,7 +8,8 @@
 
 (require easy-1
 	 cj-env
-	 dot-oo)
+	 dot-oo
+	 (cj-source-wraps source:symbol-append))
 
 ;; * add class and subclass syntax
 
@@ -41,8 +42,8 @@
     (no-pp-through-source
      (if (null? subclasses)
 	 `(begin)
-	 `(define ,(source.symbol-append (.class-name c) "?")
-	    (%either ,@(map (C source.symbol-append _ "?")
+	 `(define ,(source:symbol-append (.class-name c) "?")
+	    (%either ,@(map (C source:symbol-append _ "?")
 			    subclasses)))))))
 
 (defmacro (class name . body)
@@ -71,12 +72,12 @@
 	       (mcase bind
 		      (pair?
 		       (let-pair ((name args) (source-code bind))
-				 `(def. (,(source.symbol-append class-name
+				 `(def. (,(source:symbol-append class-name
 								"." name)
 					 ,@args)
 				    ,@rest)))
 		      (symbol?
-		       `(def. ,(source.symbol-append class-name "." bind)
+		       `(def. ,(source:symbol-append class-name "." bind)
 			  ,@rest)))))))
 
 
@@ -95,7 +96,7 @@
 (def (let-dot:accessor v)
      (if (string-contains? (symbol.string v) ".")
 	 v
-	 (source.symbol-append "." v)))
+	 (source:symbol-append "." v)))
 
 (TEST
  > (map (lambda (v) (list (let-dot:var v) (let-dot:accessor v)))

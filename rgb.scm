@@ -6,7 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require easy test more-oo test-logic colorspaces)
+(require easy
+	 test
+	 more-oo
+	 test-logic
+	 colorspaces
+	 (cj-source-wraps source:symbol-append))
 
 ;; lib
 
@@ -218,7 +223,7 @@
 
 (defmacro (def-rgb01 name e)
   (let ((prefixed (lambda (prefix)
-		    (source.symbol-append prefix name))))    
+		    (source:symbol-append prefix name))))    
     (no-pp-through
      `(begin
 	(def ,(prefixed "rgb01:") ,e)
