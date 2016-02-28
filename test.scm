@@ -353,6 +353,10 @@
                                   TEST#loaded)))
                '(begin)))
 
+(define-macro* (TEST-disabledXX . args)
+  `(begin))
+
+
 (define (test-forms-for sourcefile)
   (let* ((testfile (TEST:sourcepath->testfilepath sourcefile)))
     (call-with-input-file (list path: testfile
