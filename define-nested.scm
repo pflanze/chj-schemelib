@@ -6,8 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test))
+(require define-macro-star
+	 cj-source
+	 test)
 
 
 ;; utility:
