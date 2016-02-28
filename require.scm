@@ -15,8 +15,8 @@
 	     (source-code (car (source-code v))))))
 
 ;; module-basename (vs. full module name in the future?)
-(def (path-string.modulename p)
-     (basename p ".scm"))
+(def (path-string.modulename p) -> symbol?
+     (string.symbol (basename p ".scm")))
 
 
 (def modules-without-require-forms
@@ -38,7 +38,7 @@
 
 (def (path-string.topo-relation p)
      (let ((form (call-with-input-file p read))
-	   (mname (string.symbol (path-string.modulename p))))
+	   (mname (path-string.modulename p)))
        (mcase form
 	      (`(require . `rest)
 	       (topo-relation mname
