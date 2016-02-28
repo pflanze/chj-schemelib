@@ -56,10 +56,11 @@
 ;; (delete-repl-history!).
 
 
-(require (define-macro-star)
-	 (cj-phasing)
-	 (cj-env-1)
-	 (simple-match-1))
+(require define-macro-star
+	 cj-phasing
+	 cj-env-1
+	 cj-source
+	 simple-match-1)
 
 ;; This is the *only* binding that has to be available to make loading
 ;; of code compiled with TESTs work.
