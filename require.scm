@@ -127,6 +127,8 @@
 
 (def (check-load.scm)
      (modulepaths-satisfying?
-      (filter (either (C string-starts-with? _ "lib/")
-		      (C string-starts-with? _ "mydb/")) (load.scm-files))))
+      (filter (both (either (C string-starts-with? _ "lib/")
+			    (C string-starts-with? _ "mydb/"))
+		    (complement (C string-ends-with? _ ".scm")))
+	      (load.scm-files))))
 
