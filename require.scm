@@ -51,9 +51,9 @@
 
 (TEST
  ;; well those are evil of course, will break upon module changes
- > (path-string.topo-relation "require.scm")
- #(topo-relation require (easy test tsort Status))
- ;; > (path-string.topo-relation "tsort.scm")
+ > (path-string.topo-relation "lib/require.scm")
+ #(topo-relation require (easy test tree-util tsort Status))
+  ;; > (path-string.topo-relation "tsort.scm")
  ;; #(topo-relation tsort (easy test list-ref))
  )
 
@@ -111,8 +111,8 @@
 (TEST
  > (modulepaths-satisfying? '("lib/Maybe.scm" "lib/easy.scm"))
  #(Failure #(requires Maybe easy))
- > (modulepaths-satisfying? '("lib/easy.scm" "lib/Maybe.scm"))
- #(Failure #(requires easy define-macro-star))
+ > (modulepaths-satisfying? '("lib/easy-1.scm" "lib/Maybe.scm"))
+ #(Failure #(requires easy-1 define-macro-star))
  > (modulepaths-satisfying? '("lib/define-macro-star.scm"))
  #(Success)
  )
