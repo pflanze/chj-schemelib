@@ -8,7 +8,7 @@
 
 (require define-macro-star
 	 cj-phasing
-	 cj-inline
+	 cj-inline-1
 	 test
 	 ;; require this?: (understand it as part of bundle?)
 	 cj-env-1)
