@@ -6,12 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (cj-phasing)
-	 (cj-inline)
-	 (test)
+(require define-macro-star
+	 cj-phasing
+	 cj-inline
+	 test
 	 ;; require this?: (understand it as part of bundle?)
-	 (cj-env-1))
+	 cj-env-1)
 
 ;; various small bits that I don't know where to put
 
