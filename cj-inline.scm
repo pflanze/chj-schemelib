@@ -6,8 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (simple-match)
+(require define-macro-star
+	 simple-match
 	 cj-source-quasiquote)
 
 (define-macro* (define-inline name+vars body0 . body)
