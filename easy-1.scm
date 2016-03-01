@@ -27,7 +27,7 @@
 (define-macro* (def. . args)
   `(define. ,@args))
 
-;; adapted from cj-inline-2.scm to accept typing
+;; adapted from cj-inline.scm to accept typing
 (define-macro* (def-inline name+args body0 . body)
   (match-list*
    name+args

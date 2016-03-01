@@ -2,7 +2,7 @@
  (cj-env warn pp-through thunk)
  (cj-env-1 list-join)
  (srfi-1 filter-map)
- cj-inline-1
+ cj-inline
  char-util
  cj-env-2
  cj-c-errno_Cpart ;; from posix/ dir, local reference

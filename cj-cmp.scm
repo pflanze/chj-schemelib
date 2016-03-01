@@ -9,7 +9,7 @@
 (require define-macro-star
 	 test
 	 simple-match
-	 cj-inline-1
+	 cj-inline
 	 cj-symbol
 	 ;; enum  can't, circular dependency
 	 )
