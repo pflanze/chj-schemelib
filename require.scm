@@ -25,6 +25,9 @@
        dummy-module
        vector-util-1
 
+       ;; mydb top
+       config
+
        ;; lib/mod/ :
        config-example
        gambit
