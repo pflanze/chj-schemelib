@@ -8,7 +8,11 @@
 
 (require define-macro-star
 	 simple-match
-	 cj-source-quasiquote)
+	 cj-source-quasiquote
+	 (cj-typed ->)
+	 (cj-source-wraps source:symbol-append source.symbol?)
+	 (cj-env *if-symbol-value)
+	 test)
 
 (define-macro* (define-inline name+vars body0 . body)
   (match-list*
@@ -28,4 +32,30 @@
 	   ,(list 'quasiquote-source lambdacode))
 	 (define-macro* ,name+vars
 	   ,(list 'quasiquote-source templatecode))))))))
+
+;; XX just how dangerously unsafe is this?
+(define-macro* (inline-through-decompile proc)
+  (##decompile (-> procedure? (eval proc))))
+
+(define-macro* (inline proc)
+  (let ((idec (lambda () `(inline-through-decompile ,proc))))
+    (cond ((source.symbol? proc)
+	   (let ((proclambda (source:symbol-append proc '-lambda)))
+	     ;; XX could go safer than this by storing inline
+	     ;; definitions from define-inline
+	     (cond ((define-macro-star-maybe-ref (source-code proc))
+		    => (lambda (_)
+			 `(,proclambda)))
+		   (else
+		    (idec)))))
+	  (else
+	   (idec)))))
+
+
+(TEST
+ > (define-inline (xssjijqtcs n) (* n n))
+ > (expansion#inline xssjijqtcs)
+ (xssjijqtcs-lambda)
+ > (expansion#inline inc)
+ (inline-through-decompile inc))
 
