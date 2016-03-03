@@ -1,0 +1,124 @@
+;; cj Sun, 20 Aug 2006 01:13:13 +0200
+
+(##include "gambit-default-namespace.scm")
+(include "cj-standarddeclares.scm")
+
+;(declare (fixnum) (not safe))  is not safe yet. (not even ##fixnum.+ might be safe since we might overflow it? (hm only with cyclic input lists.) but is ##fixnum.+ safe agains producing a value which corrupts anything? hm negative allocation length might be problematic already.)
+
+(define (string-list->string strings)
+  (let* ((totlen (let lp ((l strings)
+			  (len 0))
+		   (if (null? l) len
+		       (let ((a (car l)))
+			 (if (string? a) ;;##string? ist gleich
+			     (lp (cdr l)
+				 (+ len (##string-length a)))
+			     (error "not a string:" a))))))
+	 (out (##make-string (if (##fixnum? totlen)
+				 totlen
+				 (error "length overflow")))))
+    (let lp ((l strings)
+	     (i 0))
+      (if (null? l) out
+	  (let* ((str (car l))
+		 (len (##string-length str)))
+	    (@string-copy!_len out i str 0 len)
+	    (lp (cdr l)
+		(+ i len)))))))
+
+
+(c-declare "#include <string.h>")
+
+;; IMPORTANT: arguments are not checked for correct type or whether
+;; they are within correct bounds.
+
+;; @string-copy! has been taking a len argument, unlike the srfi-13
+;; function. So I've renamed it to @string-copy!_len now.
+(define (@string-copy!_len target tstart s start len)
+  (##c-code "
+#define charwidth_in_bytes ___CS
+memcpy(
+       ((char*)___BODY(___ARG1)) + charwidth_in_bytes*___INT(___ARG2),
+       ((char*)___BODY(___ARG3)) + charwidth_in_bytes*___INT(___ARG4),
+       charwidth_in_bytes*___INT(___ARG5)
+      );
+___RESULT=___VOID;/*avoid warning*/
+#undef charwidth_in_bytes
+" target tstart s start len))
+
+;; This is using the same interface as string-copy! from srfi-13. I'm
+;; naming it @string-copy!_end to prevent problems with code using the
+;; previous variant from above.
+(define (@string-copy!_end target tstart s start end)
+  (##c-code "
+#define charwidth_in_bytes ___CS
+memcpy(
+       ((char*)___BODY(___ARG1)) + charwidth_in_bytes*___INT(___ARG2),
+       ((char*)___BODY(___ARG3)) + charwidth_in_bytes*___INT(___ARG4),
+       charwidth_in_bytes*(___INT(___ARG5)-___INT(___ARG4))
+      );
+___RESULT=___VOID;/*avoid warning*/
+#undef charwidth_in_bytes
+" target tstart s start end))
+
+(define (unsigned-fixnum? v)
+  (and (##fixnum? v)
+       (##fixnum.>= v 0)))
+
+(define (string-copy! target tstart s start end)
+  (if (string? target)
+      (if (unsigned-fixnum? tstart)
+	  (if (string? s)
+	      (if (unsigned-fixnum? start)
+		  (if (unsigned-fixnum? end)
+		      (if (>= end start)
+			  (if (<= (+ tstart (- end start)) (string-length target))
+			      (if (<= end (string-length s))
+				  (@string-copy!_end target tstart s start end)
+				  (error "trying to read past end of s:" end))
+			      (error "trying to write past end of target:" tstart start end))
+			  (error "start not before end:" start end))
+		      (error "not an unsigned fixnum:" end))
+		  (error "not an unsigned fixnum:" start))
+	      (error "not a string:" s))
+	  (error "not an unsigned fixnum:" tstart))
+      (error "not a string:" target)))
+
+(let ((! (lambda (a b c d e)
+	     (string-copy! a b c d e)
+	     a)))
+  (TEST
+   > (! "aha" 0 "b" 0 1)
+   "bha"
+   > (%try (! "" 0 "b" 0 1))
+   (exception text: "trying to write past end of target: 0 0 1\n")
+   > (! "aha" 0 "be" 1 2)
+   "eha"
+   > (%try (! "aha" 0 "be" 1 3))
+   (exception text: "trying to read past end of s: 3\n")
+   > (! "aha" 2 "be" 1 2)
+   "ahe"
+   > (! "aha" 2 "be" 0 1)
+   "ahb"
+   > (%try (! "aha" 2 "be" 0 2))
+   (exception text: "trying to write past end of target: 2 0 2\n")
+   ;; NOTE: there are no tests for fixnum over/underflow, which is
+   ;; [probably] only okay while using safe mode in this module.
+   ))
+
+; (define (cj-string-append . strings)
+;   (string-list->string strings))
+
+
+; (define (test-@string-copy! n s1 start1 s2 start2 len)
+;   (*do-times n
+; 	     (@string-copy! s1 start1 s2 start2 len)))
+
+; (define (test-c-code n arg)
+;   (*do-times n
+; 	     (##c-code "___RESULT= ___ARG1;" arg)))
+
+; (define (test-noop n arg)
+;   (*do-times n
+; 	     arg))
+
