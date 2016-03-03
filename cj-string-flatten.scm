@@ -1,5 +1,11 @@
-(##include "gambit-default-namespace.scm")
-(include "cj-standarddeclares.scm")
+(require cj-env
+	 (srfi-1 fold fold-right)
+	 (cj-string string-copy! @string-copy!_end)
+	 cj-test)
+
+(export flat-append-strings
+	#!optional
+	flat-string-length)
 
 
 ; (define (flat-append-strings . strings-or-lists-of-strings)
@@ -37,8 +43,8 @@
  > (flat-string-length '("he" "l" () "lo" ()) -1)
  4
  > (flat-string-length '(() ((("hel")) "l") "o") 0)
- 5
- )
+ 5)
+
 
 (define (flat-append-strings . strings-or-lists-of-strings)
   (let* ((len (flat-string-length strings-or-lists-of-strings 0))
@@ -59,5 +65,5 @@
  > (flat-append-strings '(()))
  ""
  > (%try (flat-append-strings '(() #f)))
- (exception text: "flat-string-length: not a string or list: #f\n")
- )
+ (exception text: "flat-string-length: not a string or list: #f\n"))
+
