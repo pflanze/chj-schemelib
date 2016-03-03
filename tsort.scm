@@ -32,7 +32,7 @@
 				      name dep))))))
 	     (out '())
 	     (all-rs rs))
-	 (let load ((maybe-loadername #f)
+	 (let load ((rloadernames '())
 		    (rs rs))
 	   (for-each
 	    (lambda (r)
@@ -41,10 +41,10 @@
 	       (if (seen? name)
 		   (unless (processed? name)
 			   (error "cycle detected resolving:"
-				  maybe-loadername name))
+				  name rloadernames))
 		   (begin
 		     (seen! name)
-		     (load name
+		     (load (cons name rloadernames)
 			   (map (name.dep.relation name) deps))
 		     (push! out r)
 		     (processed! name)))))
@@ -120,7 +120,7 @@
 (TEST
  > (%try-error
     (topo.sort* (list (topo-relation 'a '(b)) (topo-relation 'b '(a)))))
- #(error "cycle detected resolving:" b a))
+ #(error "cycle detected resolving:" a (b a)))
 
 
 ;; XX add rule based tests
