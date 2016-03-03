@@ -6,7 +6,43 @@
 ;;;    (at your option) any later version.
 
 
-(require test)
+(require easy
+	 test)
+
+(export port.name
+	port.content
+	read-lines
+	writeln
+	pathspec.xcontent
+	string.print-file
+	xcall-with-input-process
+	Xcall-with-input-process
+	xxsystem
+	xsystem
+	01status?
+	01system
+	xbacktick
+	Xbacktick
+	01backtick
+	backtick
+	xbacktick-bash bash
+	hostname
+	file-info->mtime
+	file-basename
+	basename
+	dirname
+	port->stream
+	directory-item-stream
+	user-name-or-id->id
+	group-name-or-id->id
+	chown)
+
+
+(def. (port.name #(port? p)) -> string?
+  (##port-name p))
+
+(def. (port.content p)
+  (read-line p #f))
 
 
 (define (read-lines #!optional (p (current-input-port)) (tail '()))
@@ -20,10 +56,6 @@
 (define (writeln obj)
   (write obj)
   (newline))
-
-
-(define (port.content p)
-  (read-line p #f))
 
 (define (pathspec.xcontent pathspec)
   (let* ((p (open-input-file pathspec))

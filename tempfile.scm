@@ -9,10 +9,10 @@
 (require easy
 	 atomic-box
 	 test
-	 (cj-io-util xxsystem))
+	 (cj-io-util port.name xxsystem))
 
-(export tempfile
-	)
+(export tempfile)
+
 
 
 (def random-appendices
@@ -88,10 +88,6 @@
 			  (close-port (open-output-file path))
 			  path)))
 
-(def. (port.name p)
-  -> string?
-  (assert (port? p))
-  (##port-name p))
 
 ;; to get the path, use port.name on the result
 (def (open-tempfile #!optional (base (string-append tempfile-base "/")))
