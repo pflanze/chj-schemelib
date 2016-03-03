@@ -40,7 +40,7 @@
 	       (cond ,@(map (lambda (sym)
 			      (assert* symbol? sym
 				       (lambda (sym)
-					 `((string=? ,V ,(symbol.string sym))
+					 `((string=? ,V ,(symbol->string sym))
 					   (,SUCCESS ',sym)))))
 			    syms)
 		     (else

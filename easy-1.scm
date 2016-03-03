@@ -86,8 +86,8 @@
 
 (def (module-symbol? v)
      (and (symbol? v)
-	  (let* ((s (symbol.string v))
-		 (len (string.length s)))
+	  (let* ((s (symbol->string v))
+		 (len (string-length s)))
 	    (and (>= len 3)
 		 (char=? (string-ref s 0) #\<)
 		 (char=? (string-ref s (dec len)) #\>)
