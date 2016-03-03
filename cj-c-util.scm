@@ -3,7 +3,7 @@
  cj-env ;;  symbol-append
  (cj-gambit-sys max-fixnum min-fixnum)
  (srfi-1 cons*)
- ;;XXX port over! (cj-string-flatten flat-append-strings)
+ (cj-string-flatten flat-append-strings)
  cj-env
  (cj-functional applying)
  (list-util-1 map/iota)
