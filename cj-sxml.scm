@@ -1,7 +1,8 @@
-(require (stream stream-map/filter stream-map stream-filter
-		 stream-map/filter/tail)
-	 ;;(cj-stream *stream-strict*)
-	 (srfi-1 append! fold-right))
+(require (srfi-1 append! fold-right)
+	 (stream stream-map stream-filter)
+	 Maybe
+	 (stream-Maybe stream-mapfilter
+		       stream-mapfilter/tail))
 
 (export maybe-sxml-element-attribute-alist
 
@@ -340,17 +341,17 @@
   (with-sxml-element
    element
    (lambda (name attrs body)
-     (stream-map/filter/tail
-      (lambda (v yes no)
+     (stream-mapfilter/tail
+      (lambda (v)
 	(with-sxml-element/else
 	 v
 	 (lambda (name attrs body)
 	   (if (and (eq? name eltname)
 		    (string=? (sxml-attribute-value-ref attrs attrname)
 			      attrvalue))
-	       (yes v)
-	       (no)))
-	 no))
+	       (Just v)
+	       (Nothing)))
+	 Nothing))
       tail
       body))))
 
@@ -359,15 +360,16 @@
   ;; only finds those directly inside, not recursively
   (with-sxml-element element
 		     (lambda (name attrs body)
-		       (stream-map/filter (lambda (v yes no)
-				     (with-sxml-element/else
-				      v
-				      (lambda (name attrs body)
-					(if (eq? name eltname)
-					    (yes v)
-					    (no)))
-				      no))
-				   body))))
+		       (stream-mapfilter
+			(lambda (v)
+			  (with-sxml-element/else
+			   v
+			   (lambda (name attrs body)
+			     (if (eq? name eltname)
+				 (Just v)
+				 (Nothing)))
+			   Nothing))
+			body))))
 
 ; (define (sxml-element-search-subelement-with-pathlist elements pathlist)
 ;   (if (null? pathlist)
@@ -462,12 +464,13 @@
    (lambda (name attrs body)
      `(,name
        ,attrs
-       ,@ (stream-map/filter (lambda (v yes no)
-			       (if (and (string? v)
-					(string-all-whitespace? v))
-				   (no)
-				   (yes (sxml-strip-whitespace v))))
-			     body)))
+       ,@ (stream-mapfilter
+	   (lambda (v)
+	     (if (and (string? v)
+		      (string-all-whitespace? v))
+		 (Nothing)
+		 (Just (sxml-strip-whitespace v))))
+	   body)))
    (lambda ()
      (if (and (string? doc)
 	      (string-all-whitespace? doc))
