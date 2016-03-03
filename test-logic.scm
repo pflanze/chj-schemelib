@@ -47,7 +47,7 @@
  ;; *expected* failure
  (0))
 
-(defstruct failure
+(defstruct testfailure
   value
   results)
 
@@ -58,7 +58,7 @@
 			 (f v)) fs)))
 	  (if (apply equal? vs)
 	      res
-	      (cons (failure v vs)
+	      (cons (testfailure v vs)
 		    res))))
       '()
       vs))
@@ -68,7 +68,7 @@
 
 (TEST
  > (F (qcheck* (iota 4) square identity))
- (#(failure 2 (4 2)) #(failure 3 (9 3))))
+ (#(testfailure 2 (4 2)) #(testfailure 3 (9 3))))
 
 
 
