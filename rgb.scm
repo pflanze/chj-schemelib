@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2013-2016 by Christian Jaeger <chrjae@gmail.com>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,18 +11,8 @@
 	 more-oo
 	 test-logic
 	 colorspaces
-	 (cj-source-wraps source:symbol-append))
-
-
-(def 01-margin 0.001)
-(def min01 (- 01-margin))
-(def max01 (+ 1 01-margin))
-
-(def (rgb:0..1? v)
-     (and (real? v)
-	  (<= min01 v)
-	  (<= v max01)))
-
+	 (cj-source-wraps source:symbol-append)
+	 (rgb-util rgb:0..1?))
 
 
 (def +/2 (lambda (a b) (+ a b)))

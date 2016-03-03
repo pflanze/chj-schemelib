@@ -13,7 +13,7 @@
 (require easy
 	 test
 	 math-approximate
-	 (rgb rgb:0..1?))
+	 (rgb-util rgb:0..1?))
 
 
 ;; http://en.wikipedia.org/wiki/Rec._709
