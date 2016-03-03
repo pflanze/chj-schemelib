@@ -1,7 +1,23 @@
 ;; this is a compatibility wrapper for chjmodule's TEST infrastructure
 
 (require define-macro-star
-	 test)
+	 test
+	 cj-exception)
+
+(export TEST ;; re-export
+	%try
+	;; test-at-inittime
+	;; define-tests
+	;; no-test
+	;; %exception-text
+	;; if-TEST
+	;; %values
+	)
+
+;; (global
+;;  *cj-test:do-test*)
+
+
 
 (define (cj-test:try thunk)
   (with-exception/continuation-catcher
