@@ -1,9 +1,47 @@
-;; Copyright 2006-2008 Christian Jaeger
+
+;; Copyright 2006-2016 Christian Jaeger
 ;; Published unter the same terms as Gambit: dual LGPL
 ;; version 2.1 or Apache version 2.0 license
 
+(require)
 
-;; todo wha'ts their new safe name? none?
+(export
+ ;; -- exception type: --
+ 
+ 
+ ;; -- exception/continuation type: --
+
+ ;; constructors and predicate:
+ with-exception/continuation-catcher
+ exception/continuation?
+ 
+ ;; accessors:
+ exception/continuation-exception
+ exception/continuation-continuation
+
+ ;; formatting:  to strings or ports
+ exception/continuation-contextline  ;; ,y
+ exception/continuation-contextlines ;; ,b
+ exception/continuation-message-in-context
+ ;; (only exn, no cont necessary really:)
+ exception/continuation-text
+ ;; (delegate:)
+ ;;exception/continuation-kind not interesting, can only return "ERROR"
+
+ ;; extractors:  --those should take backindex integer value as optional!
+ exception/continuation-procedure ;; cool! really returns the calling procedure as value.
+ exception/continuation-locat ;; cool! the location, e.g. '#((stdin) 3407873)
+
+ repl-within-exception/continuation
+
+ exception/continuation->u8vector
+
+ #!optional
+ make-exception/continuation)
+
+
+
+;; todo what's their new safe name? none?
 (define (cmd-b cont port depth)
   (if (and (##continuation? cont)
 	   (port? port)
