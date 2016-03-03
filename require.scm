@@ -125,14 +125,14 @@
 
 (def (load.scm-files)
      (map (C string-append _ ".scm")
-	  (filter string?
+	  (filter (both string?
+			(complement (C string-ends-with? _ ".scm")))
 		  (flatten
 		   (call-with-input-file ".gambc/load.scm" read-all)))))
 
 (def (check-load.scm)
      (modulepaths-satisfying?
-      (filter (both (either (C string-starts-with? _ "lib/")
-			    (C string-starts-with? _ "mydb/"))
-		    (complement (C string-ends-with? _ ".scm")))
+      (filter (either (C string-starts-with? _ "lib/")
+		      (C string-starts-with? _ "mydb/"))
 	      (load.scm-files))))
 
