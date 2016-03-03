@@ -11,7 +11,8 @@
 	 cj-env
 	 srfi-11
 	 (cj-source-util-2 assert
-			   assert:possibly-symbolize))
+			   assert:possibly-symbolize)
+	 fail)
 
 
 ;;;
