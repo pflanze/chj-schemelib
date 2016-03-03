@@ -6,11 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (cj-phasing)
-	 (test)
-	 (simple-match)
-	 (srfi-11))
+(require define-macro-star
+	 cj-phasing
+	 test
+	 simple-match
+	 srfi-11)
 
 
 ;;;
@@ -273,7 +273,7 @@
  )
 
 
-(define (module:import-expand DEFINE expr vars)
+(define (module:import-expand stx DEFINE expr vars)
   (let ((mk (lambda (select)
 	      (lambda_
 	       (if (symbol? (source-code _))
@@ -301,7 +301,7 @@
 	   "expecting a list of variables to import after the first argument")))))
 
 (define-macro* (module:import expr . vars)
-  (module:import-expand 'define expr vars))
+  (module:import-expand stx 'define expr vars))
 
 (TEST
  > (module:import (foo 11) f)
@@ -364,13 +364,14 @@
 	  (else
 	   (source-error prefix "expecting string or symbol")))))
 
-(define (module:import/prefix-expand DEFINE expr prefix vars)
+(define (module:import/prefix-expand stx DEFINE expr prefix vars)
   (if (null? vars)
-      (source-error ctx "missing bindings to import")
+      (source-error stx "missing bindings to import")
       (module:parse-prefix
        prefix
        (lambda (prefix)
 	 (module:import-expand
+	  stx
 	  DEFINE
 	  expr
 	  (map (lambda (var)
@@ -380,7 +381,7 @@
 	       vars))))))
 
 (define-macro* (module:import/prefix expr prefix . vars)
-  (module:import/prefix-expand 'define expr prefix vars))
+  (module:import/prefix-expand stx 'define expr prefix vars))
 
 (TEST
  > (define-module (foo x) (export a b c) (define a 4))
@@ -401,11 +402,13 @@
 ;; NOTE: use of module-import implies that the module accepts the
 ;; prefix as its first argument!
 
-(define (module-import-expand DEFINE pass-prefix?
+(define (module-import-expand stx
+			      DEFINE pass-prefix?
 			      prefix name args)
   (assert* symbol? name
 	   (lambda (name)
 	     (module:import/prefix-expand
+	      stx
 	      DEFINE
 	      `(,name
 		,@(if pass-prefix?
@@ -416,12 +419,12 @@
 	      (eval (symbol-append name '-exports))))))
 
 (define-macro* (module-import prefix name . args)
-  (module-import-expand 'define #t prefix name args))
+  (module-import-expand stx 'define #t prefix name args))
 
 ;; module-import* does not implicitly pass the prefix
 
 (define-macro* (module-import* prefix name . args)
-  (module-import-expand 'define #f prefix name args))
+  (module-import-expand stx 'define #f prefix name args))
 
 (TEST
  > (compile-time ;; necessary since TEST evaluates all subtests in one go
@@ -444,10 +447,10 @@
 ;; Only works with dot-oo:
 
 (define-macro* (module-import. prefix name . args)
-  (module-import-expand 'define. #t prefix name args))
+  (module-import-expand stx 'define. #t prefix name args))
 
 (define-macro* (module-import.* prefix name . args)
-  (module-import-expand 'define. #f prefix name args))
+  (module-import-expand stx 'define. #f prefix name args))
 
 
 ;; ------------------------------------------------------------------
