@@ -65,7 +65,8 @@
 (define (to-port-or-string maybe-port fn)
   (if maybe-port
       (fn maybe-port)
-      (with-output-to-string "" (lambda () (fn (current-output-port))))))
+      (call-with-output-string ""
+			       (lambda (p) (fn p)))))
 
 
 (define (exception/continuation-contextline e #!optional port)
