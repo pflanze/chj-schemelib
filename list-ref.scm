@@ -22,7 +22,7 @@
 	       ((null? l)
 		(Nothing))
 	       (else
-		(error "improper list:" alis)))))
+		(error "improper list:" lis)))))
 
   (def (ref lis key #!optional (alternate _list-ref:nothing))
        (Maybe:cond ((Maybe-ref lis key) => identity)
