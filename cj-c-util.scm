@@ -6,6 +6,7 @@
  (srfi-1 cons*)
  ;;XXX port over! (cj-string-flatten flat-append-strings)
  cj-env
+ (cj-functional applying)
  )
 
 ;; (compile #f);; since it's only a macro.
@@ -103,21 +104,18 @@ ___RESULT= ___FAL;
 					     "=___arg2;"))))
 	       '())))))
 
-(define code:define-struct-accessors
-  (lambda (#!key
-	   structname
-	   c-field-prefix
-	   fielddefs)
-    `(begin
-       ,@(map (lambda (fielddef)
-;		(step)
-		(apply code:define-struct-field-accessors
-		       (append (cons structname fielddef) ;; wird langsam ugly:  nicht mehr klar so und so viele argumente  welche ich artig wie objekte matche.
-			       (list c-field-prefix: c-field-prefix))))
-	      fielddefs))))
+(define (code:define-struct-accessors #!key
+				      structname
+				      c-field-prefix
+				      fielddefs)
+  `(begin
+     ,@(map (lambda (fielddef)
+	      (apply code:define-struct-field-accessors
+		     (append (cons structname fielddef)
+			     (list c-field-prefix: c-field-prefix))))
+	    fielddefs)))
 
 (define-macro* (define-struct-field-accessors . args)
-  (step)
   (apply code:define-struct-field-accessors args))
 
 (define-macro* (define-struct-accessors . args)
@@ -128,26 +126,9 @@ ___RESULT= ___FAL;
 					 fielddefs: fielddefs))
 	 args))
 
-;;(define-macro (define-struct-accessors . args) (apply code:define-struct-accessors args))
-
-; (define (first-two l)
-;   (cons (car l)
-; 	(cons (cadr l)
-; 	      '())))
-
-; (define (list-> fn)
-;   (lambda (l)
-;     (apply fn l)))
-;;zuerst hatt ich nur ->.  list-apply auch möglich?  list-applier?wenschon?.(wennschonrichtigbleiben)
-;; KRANK ist dass das bloss ein curried  apply ist REALLY.!!!eben
-
-(define (apply/ fn)
-  (lambda (l)
-    (apply fn l)))
-
 (define fielddef:fieldtype
-  (apply/ (lambda (fieldtype fieldname mutable?)
-	    fieldtype)))
+  (applying (lambda (fieldtype fieldname mutable?)
+	      fieldtype)))
 
 (define code:define-struct-from-c
   (lambda (structname
@@ -203,6 +184,4 @@ fielddefs: fielddefs)))))
 
 (define-macro* (define-struct-from-c . args)
   (pp-through
-   (apply code:define-struct-from-c args))) ;;; SHOULD i   put args into macro defs for different macro apply errors? todo
-
-;;fe
+   (apply code:define-struct-from-c args)))
