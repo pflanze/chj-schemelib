@@ -62,6 +62,13 @@
 	 cj-source
 	 simple-match-1)
 
+;; copy from cj-functional to avoid circular dependency:
+(define (complement fn)
+  (lambda v
+    (not (apply fn v))))
+;;/copy
+
+
 ;; This is the *only* binding that has to be available to make loading
 ;; of code compiled with TESTs work.
 ;; Solve this?
