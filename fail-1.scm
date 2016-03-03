@@ -10,6 +10,7 @@
 	failure-string)
 
 (define-struct failure
+  constructor-name: failure
   stack)
 
 (define (failure-show v)

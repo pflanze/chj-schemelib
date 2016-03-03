@@ -91,6 +91,8 @@
 	     GEN:V-2236))))
 
 
+(define. failure.stack-update failure-stack-update)
+(define. failure.stack failure-stack)
 
 (define. (failure.deserialize v)
   (failure.stack-update v
