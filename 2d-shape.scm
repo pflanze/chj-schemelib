@@ -175,7 +175,7 @@
 			 (2d-window.mi v))
 
 		 (method (points v)
-			 (let-2d-rectangle
+			 (let-2d-window
 			  ((mi ma) v)
 			  (let-2d-point
 			   ((x0 y0) mi)
