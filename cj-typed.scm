@@ -12,7 +12,7 @@
 	 srfi-11
 	 (cj-source-util-2 assert
 			   assert:possibly-symbolize)
-	 fail)
+	 (fail-1 failure? failure-string))
 
 
 ;;;
@@ -34,17 +34,9 @@
 		      v))))
     (cond ((eq? w #f)
 	   (err ":"))
-	  ;; HACK: hand-coded predicate for |failure?| to avoid circular
-	  ;; dependency between fail.scm and cj-typed.scm
-	  ((and (vector? w)
-		(> (vector-length w) 1)
-		(eq? (vector-ref w 0) 'failure))
-	   ;; although the joke is that we need to rely on circular
-	   ;; dynamic linking for |failure.string| anyway... (but at
-	   ;; least reducing to just this one will allow type-check to
-	   ;; work without test.scm loaded).
+	  ((failure? w)
 	   (err " "
-		(failure.string w)
+		(failure-string w)
 		":"))
 	  (else
 	   (error "predicate "

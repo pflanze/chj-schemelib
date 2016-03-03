@@ -2,7 +2,7 @@
 	 define-macro-star
 	 dot-oo
 	 test
-	 )
+	 fail-1)
 
 
 ;;lib
@@ -92,9 +92,6 @@
 
 
 
-(define-struct. failure
-  stack)
-
 (define. (failure.deserialize v)
   (failure.stack-update v
 			(lambda (l)
@@ -112,12 +109,9 @@
   ;; HACK? Should really have proper source type?
   (vector 'source (cj-desourcify (serialized-source.object v))))
 
-(define. (failure.show v)
-  (map .show
-       (failure.stack v)))
+(define. failure.show failure-show)
 
-(define. failure.string
-  (compose object->string failure.show))
+(define. failure.string failure-string)
 
 
 (define-macro* (fail:if t a b)
