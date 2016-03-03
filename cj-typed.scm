@@ -6,10 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test)
-	 (cj-env)
-	 (srfi-11))
+(require define-macro-star
+	 test
+	 cj-env
+	 srfi-11
+	 (cj-source-util-2 assert
+			   assert:possibly-symbolize))
 
 
 ;;;
