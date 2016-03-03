@@ -2,11 +2,11 @@
 (require
  cj-env ;;  symbol-append
  (cj-gambit-sys max-fixnum min-fixnum)
- list-util ;; map-with-iota
  (srfi-1 cons*)
  ;;XXX port over! (cj-string-flatten flat-append-strings)
  cj-env
  (cj-functional applying)
+ (list-util-1 map/iota)
  )
 
 ;; (compile #f);; since it's only a macro.
@@ -118,13 +118,14 @@ ___RESULT= ___FAL;
 (define-macro* (define-struct-field-accessors . args)
   (apply code:define-struct-field-accessors args))
 
-(define-macro* (define-struct-accessors . args)
-  ;; really difficult dsssl stufff
-  (apply (lambda (structname #!key c-field-prefix )
-	   (code:define-struct-accessors structname: structname
-					 c-field-prefix: c-field-prefix
-					 fielddefs: fielddefs))
-	 args))
+;; (define-macro* (define-struct-accessors . args)
+;;   ;; really difficult dsssl stufff
+;;   (apply (lambda (structname #!key c-field-prefix )
+;; 	   (code:define-struct-accessors structname: structname
+;; 					 c-field-prefix: c-field-prefix
+;; 					 fielddefs: fielddefs))
+;; 	 args))
+;;XX messed up re fielddefs. Unused.
 
 (define fielddef:fieldtype
   (applying (lambda (fieldtype fieldname mutable?)
@@ -161,18 +162,18 @@ struct "structnamestr" *p= ___make_"structnamestr"();
 ___result_voidstar=p;
 if (p) {
 "
-(map-with-iota (lambda (l n)
-		 (apply
-		  (lambda (fieldtype fieldname mutable?)
-		    (let ((fieldnamestr (string-append
-					 (or c-field-prefix "")
-					 (symbol->string fieldname)))
-			  (nstr (number->string n)))
-		      (list
-		       "    p->"fieldnamestr"=___arg"nstr";\n")))
-		  l))
-	       fielddefs
-	       1)
+(map/iota (lambda (l n)
+	    (apply
+	     (lambda (fieldtype fieldname mutable?)
+	       (let ((fieldnamestr (string-append
+				    (or c-field-prefix "")
+				    (symbol->string fieldname)))
+		     (nstr (number->string n)))
+		 (list
+		  "    p->"fieldnamestr"=___arg"nstr";\n")))
+	     l))
+	  fielddefs
+	  1)
 "}
 ")) ,@arglist)
 	       (error "can't allocate:" ',structname)))
