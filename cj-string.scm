@@ -76,7 +76,7 @@ ___RESULT=___VOID;/*avoid warning*/
 
 (define (unsigned-fixnum? v)
   (and (fixnum? v)
-       (fixnum.>= v 0)))
+       (fx>= v 0)))
 
 (define (string-copy! target tstart s start end)
   (if (string? target)
