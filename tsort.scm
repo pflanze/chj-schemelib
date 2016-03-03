@@ -22,7 +22,7 @@
       ((processed? processed!) (make-seen?+!))
       (letv
        ((seen? seen!) (make-seen?+!))
-       (let ((get-for
+       (let ((name.dep.relation
 	      (lambda (name)
 		(lambda (dep)
 		  (Maybe:cond ((topo:Maybe-ref rs dep)
@@ -32,17 +32,20 @@
 				      name dep))))))
 	     (out '())
 	     (all-rs rs))
-	 (let load ((rs rs))
+	 (let load ((maybe-loadername #f)
+		    (rs rs))
 	   (for-each
 	    (lambda (r)
 	      (let-topo-relation
 	       ((name deps) r)
 	       (if (seen? name)
 		   (unless (processed? name)
-			   (error "cycle detected involving:" name))
+			   (error "cycle detected resolving:"
+				  maybe-loadername name))
 		   (begin
 		     (seen! name)
-		     (load (map (get-for name) deps))
+		     (load name
+			   (map (name.dep.relation name) deps))
 		     (push! out r)
 		     (processed! name)))))
 	    rs))
@@ -117,7 +120,7 @@
 (TEST
  > (%try-error
     (topo.sort* (list (topo-relation 'a '(b)) (topo-relation 'b '(a)))))
- #(error "cycle detected involving:" a))
+ #(error "cycle detected resolving:" b a))
 
 
 ;; XX add rule based tests
