@@ -11,6 +11,8 @@
 
 (export port.name
 	port.content
+	eexist-exception?
+	eperm-exception?
 	read-lines
 	writeln
 	pathspec.xcontent
@@ -43,6 +45,14 @@
 
 (def. (port.content p)
   (read-line p #f))
+
+;; XX still that hack of hard-coding constants
+(def (eexist-exception? v)
+     (and (os-exception? v)
+	  (= (os-exception-code v) -515899375)))
+(def (eperm-exception? v)
+     (and (os-exception? v)
+	  (= (os-exception-code v) -515899379)))
 
 
 (define (read-lines #!optional (p (current-input-port)) (tail '()))

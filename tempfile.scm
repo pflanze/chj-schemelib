@@ -11,7 +11,10 @@
 	 test
 	 (stream stream-map)
 	 (realrandom make-realrandom-string-stream)
-	 (cj-io-util port.name xxsystem))
+	 (cj-io-util port.name
+		     eexist-exception?
+		     eperm-exception?
+		     xxsystem))
 
 (export tempfile)
 
@@ -31,15 +34,6 @@
 
 (def (get-short-random-appendix)
      (substring (get-long-random-appendix) 0 10))
-
-
-;; XX still that hack of hard-coding constants
-(def (eexist-exception? v)
-     (and (os-exception? v)
-	  (= (os-exception-code v) -515899375)))
-(def (eperm-exception? v)
-     (and (os-exception? v)
-	  (= (os-exception-code v) -515899379)))
 
 
 (def (randomly-retrying base get-random-appendix create)
