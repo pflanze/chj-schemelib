@@ -6,11 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require (test)
-	 (cj-env)
-	 (define-nested)
-	 (slib-sort)
-	 (cj-symbol))
+(require test
+	 cj-env
+	 define-nested
+	 slib-sort
+	 cj-symbol
+	 (predicates true?))
 
 
 (define-macro* (pop! var)
