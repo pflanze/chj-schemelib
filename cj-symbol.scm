@@ -6,9 +6,14 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test)
-	 (cj-env))
+(require define-macro-star
+	 test
+	 cj-env)
+
+;; COPY to avoid circular dependency on: (cj-functional false/0)
+(define (false/0)
+  #f)
+;; /COPY
 
 
 (define symbol<?
