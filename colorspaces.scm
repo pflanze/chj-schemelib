@@ -24,11 +24,10 @@
 ;; ratio. The first edition of the standard was approved in 1990.
 
 
-(def (rec709:lum.transfer #(rgb:0..1? l))
-  (-> rgb:0..1?
-      (if (< l 0.018)
-	  (* 4.500 l)
-	  (- (* 1.099 (expt l 0.45)) 0.099))))
+(def (rec709:lum.transfer #(rgb:0..1? l)) -> rgb:0..1?
+     (if (< l 0.018)
+	 (* 4.500 l)
+	 (- (* 1.099 (expt l 0.45)) 0.099)))
 
 ;; odd really exactly the wrong way round? more of the digital part in
 ;; l is devoted to the higher, relatively closer brightnesses?
@@ -79,13 +78,12 @@
 (def srgb:a 0.055)
 
 ;; |linear| is proportional to amount of light energy, right?
-(def (srgb:lum.transfer #(rgb:0..1? linear))
-     (-> rgb:0..1?
-	 (if (< linear 0)
-	     0
-	     (if (<= linear 0.0031308)
-		 (* 12.92 linear)
-		 (- (* (+ 1 srgb:a) (expt linear (/ 2.4))) srgb:a)))))
+(def (srgb:lum.transfer #(rgb:0..1? linear)) -> rgb:0..1?
+     (if (< linear 0)
+	 0
+	 (if (<= linear 0.0031308)
+	     (* 12.92 linear)
+	     (- (* (+ 1 srgb:a) (expt linear (/ 2.4))) srgb:a))))
 
 ;; (plot (list srgb:lum.transfer rec709:lum.transfer (onthese-2 srgb:lum.transfer rec709:lum.transfer -)) 0 1)
 ;; srgb is more strongly curved than rec709
