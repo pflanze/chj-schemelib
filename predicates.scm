@@ -148,3 +148,12 @@
 (define (length-is len)
   (lambda (l)
     (length-= l len)))
+
+
+(define (0..1? v)
+  (and (real? v)
+       (<= 0 v)
+       (<= v 1)))
+
+;; also see rgb:0..1? which accepts 1 milli unit of change.
+

@@ -13,18 +13,12 @@
 	 colorspaces
 	 (cj-source-wraps source:symbol-append))
 
-;; lib
-
-(def (0..1? v)
-     (and (real? v)
-	  (<= 0 v)
-	  (<= v 1)))
 
 (def 01-margin 0.001)
 (def min01 (- 01-margin))
 (def max01 (+ 1 01-margin))
 
-(def (0..1? v)
+(def (rgb:0..1? v)
      (and (real? v)
 	  (<= min01 v)
 	  (<= v max01)))
@@ -114,9 +108,9 @@
 
        (subclass rgb01t
 		 ;; RGB in 0..1 floating point range, sRGB 'transfer' format
-		 (struct #(0..1? r01t)
-			 #(0..1? g01t)
-			 #(0..1? b01t))
+		 (struct #(rgb:0..1? r01t)
+			 #(rgb:0..1? g01t)
+			 #(rgb:0..1? b01t))
 
 		 (method rgb01t identity)
 
@@ -149,9 +143,9 @@
 		 ;; RGB in 0..1 floating point range, linear
 		 ;; (proportional to physical light energy, right?)
 		 ;; format
-		 (struct #(0..1? r01l)
-			 #(0..1? g01l)
-			 #(0..1? b01l))
+		 (struct #(rgb:0..1? r01l)
+			 #(rgb:0..1? g01l)
+			 #(rgb:0..1? b01l))
 
 		 (method rgb01l identity)
 
@@ -274,8 +268,8 @@
  #(rgb01l .2548754380226136 .06379206392765045 -7.790527343750001e-5)
 
  > (%try-error (..* (rgb8 100 200 0) 2))
- ;; #(error "does not match 0..1?:" 80/51)
- #(error "g01l does not match 0..1?:" 1.1551609354972836)
+ ;; #(error "does not match rgb:0..1?:" 80/51)
+ #(error "g01l does not match rgb:0..1?:" 1.1551609354972836)
  > (.mean (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8))
  #(rgb01l 1/2 .75 .7))
 

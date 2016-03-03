@@ -10,7 +10,10 @@
 ;; http://polymathprogrammer.com/2008/08/04/basic-colour-theory-for-programmers/
 ;; / https://news.ycombinator.com/item?id=8574032)
 
-(require easy test math-approximate)
+(require easy
+	 test
+	 math-approximate
+	 (rgb rgb:0..1?))
 
 
 ;; http://en.wikipedia.org/wiki/Rec._709
@@ -21,8 +24,8 @@
 ;; ratio. The first edition of the standard was approved in 1990.
 
 
-(def (rec709:lum.transfer #(0..1? l))
-  (-> 0..1?
+(def (rec709:lum.transfer #(rgb:0..1? l))
+  (-> rgb:0..1?
       (if (< l 0.018)
 	  (* 4.500 l)
 	  (- (* 1.099 (expt l 0.45)) 0.099))))
@@ -76,8 +79,8 @@
 (def srgb:a 0.055)
 
 ;; |linear| is proportional to amount of light energy, right?
-(def (srgb:lum.transfer #(0..1? linear))
-     (-> 0..1?
+(def (srgb:lum.transfer #(rgb:0..1? linear))
+     (-> rgb:0..1?
 	 (if (< linear 0)
 	     0
 	     (if (<= linear 0.0031308)
