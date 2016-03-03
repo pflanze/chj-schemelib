@@ -9,6 +9,8 @@
 (require easy
 	 atomic-box
 	 test
+	 (stream stream-map)
+	 (realrandom make-realrandom-string-stream)
 	 (cj-io-util port.name xxsystem))
 
 (export tempfile)
