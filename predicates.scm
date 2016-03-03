@@ -1,6 +1,8 @@
 (require test
 	 srfi-1
 	 (list-util improper-fold-right)
+	 (char-util char-one-of?/)
+	 (string-util-2 string-empty?)
 	 cj-functional
 	 cut)
 
