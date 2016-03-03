@@ -3,12 +3,9 @@
 	 (list-util improper-fold-right)
 	 (char-util char-one-of?/)
 	 cj-functional
-	 cut)
-
-;; COPY to prevent cycle in: (string-util-2 string-empty?)
-(define (string-empty? str)
-  (zero? (string-length str)))
-;; /COPY
+	 cut
+	 (string-util-4 string-empty?
+			string-every))
 
 
 (define false? not) ;; so as to be able to use "false." as OO prefix

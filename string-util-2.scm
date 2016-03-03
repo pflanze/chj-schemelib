@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2013-2016 by Christian Jaeger <chrjae@gmail.com>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -12,7 +12,9 @@
 	 (list-util let-pair rxtake-while)
 	 cj-typed
 	 (local-test local-TEST %test)
-	 )
+	 (string-util-4 string-empty?
+			string-every))
+
 
 (define (suffix-list l)
   (rxtake-while (lambda (x)
@@ -116,9 +118,6 @@
  > (with-exception-handler range-exception? (thunk (string-ref* "abc" -4)))
  #t
  )
-
-(define (string-empty? str)
-  (zero? (string-length str)))
 
 ;; A string chom that works like Perl's
 
@@ -499,14 +498,8 @@
 	    (string-set! res i (fn (string-ref str i))))
     res))
 
-(define (string-every fn str)
-  (let ((len (string-length str)))
-    (let lp ((i 0))
-      (if (< i len)
-	  (if (fn (string-ref str i))
-	      (lp (inc i))
-	      #f)
-	  #t))))
+
+;; string-every see string-util-4.scm
 
 (TEST
  > (string-every (lambda (x) (char=? x #\x)) "")
