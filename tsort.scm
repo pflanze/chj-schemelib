@@ -41,7 +41,7 @@
 	       (if (seen? name)
 		   (unless (processed? name)
 			   (error "cycle detected resolving:"
-				  name rloadernames))
+				  (reverse rloadernames) name))
 		   (begin
 		     (seen! name)
 		     (load (cons name rloadernames)
@@ -120,7 +120,7 @@
 (TEST
  > (%try-error
     (topo.sort* (list (topo-relation 'a '(b)) (topo-relation 'b '(a)))))
- #(error "cycle detected resolving:" a (b a)))
+ #(error "cycle detected resolving:" (a b) a))
 
 
 ;; XX add rule based tests
