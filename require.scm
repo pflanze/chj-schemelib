@@ -25,6 +25,7 @@
        define-macro-star
        dummy-module
        vector-util-1
+       cj-env-1
 
        ;; mydb top
        config
