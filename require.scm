@@ -131,8 +131,10 @@
 		   (call-with-input-file ".gambc/load.scm" read-all)))))
 
 (def (check-load.scm)
-     (modulepaths-satisfying?
-      (filter (either (C string-starts-with? _ "lib/")
-		      (C string-starts-with? _ "mydb/"))
-	      (load.scm-files))))
+     (let ((modulepaths
+	    (filter (either (C string-starts-with? _ "lib/")
+			    (C string-starts-with? _ "mydb/"))
+		    (load.scm-files))))
+       (vector (length modulepaths)
+	       (modulepaths-satisfying? modulepaths))))
 
