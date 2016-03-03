@@ -8,6 +8,7 @@
 
 (require easy
 	 srfi-1 ;; fold
+	 (list-util let-pair)
 	 more-oo)
 
 (declare (standard-bindings)
