@@ -3,6 +3,7 @@
 (require easy
 	 test
 	 (tree-util flatten)
+	 (cj-io-util read-lines)
 	 tsort
 	 Status)
 
