@@ -56,8 +56,8 @@
 (TEST
  ;; well those are evil of course, will break upon module changes
  > (path-string.topo-relation "lib/require.scm")
- #(topo-relation require (easy test tree-util tsort Status))
-  ;; > (path-string.topo-relation "tsort.scm")
+ #(topo-relation require (easy test tree-util cj-io-util tsort Status))
+ ;; > (path-string.topo-relation "tsort.scm")
  ;; #(topo-relation tsort (easy test list-ref))
  )
 
