@@ -7,8 +7,10 @@
 
 
 (require cj-functional
+	 (cj-functional-2 chain)
 	 test
 	 (cj-env named)
+	 (cj-env-2 C)
 	 (list-util let-pair rxtake-while)
 	 cj-typed
 	 (local-test local-TEST %test)
