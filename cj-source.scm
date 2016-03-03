@@ -10,7 +10,11 @@
 ;; (require
 ;; 	 ;; vector-util-1 ;; included directly
 ;; 	 ;; list-util-1 ;; improper-map now copied directly
+;;       cj-env-1
 ;; 	 )
+
+
+(include "cj-env-1.scm")
 
 
 (define (source? o)

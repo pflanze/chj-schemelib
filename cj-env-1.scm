@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2010-2016 by Christian Jaeger <chrjae@gmail.com>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require srfi-1)
+;; no require form, included in cj-source.scm
 
 
 (define (inc n)
@@ -16,6 +16,17 @@
   (- n 1))
 
 (define (list-join lis val)
+  ;; copy to avoid circular dependency
+  (define (null-list? l)
+    (cond ((pair? l) #f)
+	  ((null? l) #t)
+	  (else (error "null-list?: argument out of domain" l))))
+  (define (fold-right kons knil lis1)
+    (let recur ((lis lis1))		; Fast path
+      (if (null-list? lis) knil
+	  (let ((head (car lis)))
+	    (kons head (recur (cdr lis)))))))
+  ;;/copy
   (if (null? lis)
       lis
       (cons (car lis)
