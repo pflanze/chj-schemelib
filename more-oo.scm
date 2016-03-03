@@ -25,7 +25,8 @@
  (def (class=> cont)
       (if (pair? compile-time:class-ctx)
 	  (cont (car compile-time:class-ctx))
-	  (source-error stx "not placed within a |class| form"))))
+	  (source-error compile-time:class-ctx
+			"not placed within a |class| form"))))
 
 (defmacro (compile-time#start-class! name subclass?)
   (if (source-code subclass?)
