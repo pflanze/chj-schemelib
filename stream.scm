@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2010-2016 by Christian Jaeger <chrjae@gmail.com>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,15 +6,14 @@
 ;;;    (at your option) any later version.
 
 
-(require (test)
-	 (lazy)
-	 (define-strict-and-lazy)
-	 (cj-struct)
-	 (list-util)
-	 (cj-cmp)
-	 (srfi-11)
-	 (cj-typed)
-	 )
+(require test
+	 lazy
+	 define-strict-and-lazy
+	 cj-struct
+	 list-util
+	 cj-cmp
+	 srfi-11
+	 cj-typed)
 
 
 (define (stream-filter/tail pred s tail)
@@ -471,34 +470,6 @@
 ;  > (stream->list #)
 ;  ()
 )
-
-;; |stream-force-in-background!| returns a stream-forcer (just a thread
-;; actually but let's pretend it's an abstract data type)
-
-(define (stream-force-in-background! s
-				     #!optional
-				     (finished-callback (lambda (len)
-							  (void))))
-  (let ((th (make-thread/global-parameters
-	     (lambda ()
-	       (finished-callback (stream-length s))))))
-    ;; lower priority is done with lower numbers:
-    (thread-base-priority-set! th -10.)
-    (thread-start! th)
-    th))
-
-;; kill the thread by raising an exception in its context (don't use
-;; thread-terminate! because that risks broken state)
-
-(define stream-forcer-kill-exception 'stream-forcer-kill-exception)
-(define (stream-forcer-kill-exception? v)
-  (eq? v stream-forcer-kill-exception))
-
-(define (stream-forcer-kill! f)
-  (##thread-call f
-		 (lambda ()
-		   (raise stream-forcer-kill-exception))))
-
 
 (define (random-integer-list n range #!optional (lo 0))
   (let* ((get-int (lambda ()
