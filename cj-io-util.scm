@@ -359,6 +359,11 @@
 			(path-append dir item))))
 		close-port))
 
+(define (file-line-stream file)
+  (port->stream (open-input-file file)
+		read-line
+		close-port))
+
 
 (define (_-name-or-id->id get access msg)
   (lambda (v)
