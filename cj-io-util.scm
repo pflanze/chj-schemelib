@@ -350,6 +350,15 @@
 		read
 		close-port))
 
+(define (directory-path-stream dir)
+  (port->stream (open-directory dir)
+		(lambda (port)
+		  (let ((item (read port)))
+		    (if (eof-object? item)
+			item
+			(path-append dir item))))
+		close-port))
+
 
 (define (_-name-or-id->id get access msg)
   (lambda (v)
