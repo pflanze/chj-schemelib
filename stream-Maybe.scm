@@ -8,17 +8,18 @@
 
 ;; only 1-ary for now
 (def (stream-mapfilter/tail fn tail l)
-     (FV (l)
-	 (if (null? l)
-	     tail
-	     (let-pair ((a l*) l)
-		       (let ((rest (& (stream-mapfilter/tail fn tail l*))))
-			 (Maybe:cond ((fn a) =>
-				      (lambda (v)
-					(cons v
-					      (rest))))
-				     (else
-				      (rest))))))))
+     (delay
+       (FV (l)
+	   (if (null? l)
+	       tail
+	       (let-pair ((a l*) l)
+			 (let ((rest (& (stream-mapfilter/tail fn tail l*))))
+			   (Maybe:cond ((fn a) =>
+					(lambda (v)
+					  (cons v
+						(rest))))
+				       (else
+					(rest)))))))))
 
 
 ;; only 1-ary for now
@@ -27,6 +28,10 @@
 
 
 (TEST
- > (stream-mapfilter (lambda (v) (if (even? v) (Just v) (Nothing))) '(1 3 4 -2 -1))
+ > (def s (stream-mapfilter
+	   (lambda (v) (if (even? v) (Just v) (Nothing))) '(1 3 4 -2 -1)))
+ > (promise? s)
+ #t
+ > (stream->list s)
  (4 -2))
 
