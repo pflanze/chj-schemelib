@@ -78,6 +78,25 @@
  "bar.d/foo.sf")
 
 
+(define (list-trim-left lis pred)
+  (drop-while pred lis))
+
+;; slow way (optimize automatically through deforestation?)
+(define (string-trim-left str)
+  (list->string
+   (list-trim-left (string->list str) char-whitespace?)))
+
+(TEST
+ > (string-trim-left "")
+ ""
+ > (string-trim-left "Foo ")
+ "Foo "
+ > (string-trim-left " Foo ")
+ "Foo "
+ > (string-trim-left " \r\nFoo ")
+ "Foo ")
+
+
 ;; slow way. just  .
 ;; drop-while but from the end.
 (define (list-trim-right lis pred)
