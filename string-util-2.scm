@@ -601,13 +601,16 @@
  )
 
 
-(define (string-ends-with? str substr)
+(define (string-ends-with? str substr #!optional insensitive?)
   ((on string-length
        (lambda (len0 len1)
 	 (let ((offset (- len0 len1)))
 	   (and (not (negative? offset))
-		(string=? (substring str offset len0);; XX performance
-			  substr)))))
+		((if insensitive?
+		     string-ci=?
+		     string=?)
+		 (substring str offset len0) ;; XX performance
+		 substr)))))
    str substr))
 
 (TEST
@@ -621,7 +624,13 @@
  #t
  > (string-ends-with? "xa" "x")
  #f
- )
+ > (string-ends-with? "ax" "X")
+ #f
+ > (string-ends-with? "ax" "X" #t)
+ #t
+ > (string-ends-with? "ax" "A" #t)
+ #f)
+
 
 (define (string-starts-with? str substr)
   ;; copypaste
