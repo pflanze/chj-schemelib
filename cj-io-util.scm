@@ -259,14 +259,17 @@
  ""
  )
 
-(define (basename path #!optional suffix)
+(define (basename path #!optional suffixS insensitive?)
   (let* ((n (file-basename (if (string-ends-with? path "/")
 			       (substring path 0 (dec (string-length path)))
 			       path))))
-    (if (and suffix
-	     (string-ends-with? n suffix))
-	(substring n 0 (- (string-length n)
-			  (string-length suffix)))
+    (if suffixS
+	(cond ((improper-find (C string-ends-with? n _ insensitive?)
+			      suffixS)
+	       => (lambda (suffix)
+		    (substring n 0 (- (string-length n)
+				      (string-length suffix)))))
+	      (else n))
 	n)))
 
 (TEST
@@ -288,7 +291,16 @@
  ".."
  > (basename "/foo/.")
  "."
- )
+ ;; improper list feature:
+ > (basename "/foo/bar.scm" '(".scm" ".txt"))
+ "bar"
+ > (basename "/foo/bar.txt" '(".scm" ".txt"))
+ "bar"
+ > (basename "/foo/bar.txt" '(".scm" ".TXT"))
+ "bar.txt"
+ > (basename "/foo/bar.txt" '(".scm" ".TXT") #t)
+ "bar")
+
 
 (define dirname-slow
   (cut xbacktick "dirname" <>))
