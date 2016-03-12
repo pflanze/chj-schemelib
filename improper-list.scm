@@ -12,6 +12,18 @@
 	 (list-util-1 improper-map) ;; can this be moved here?
 	 )
 
+(export improper-map
+	improper-fold
+	improper-fold-right
+	improper-fold-right*
+	improper-find
+	improper-append
+	improper-last
+	improper-for-each
+	improper-length
+	improper-any)
+
+
 ;;; a map accepting improper lists (i.e. including non-pairs as l)
 
 ;; implementation see list-util-1.scm
@@ -90,6 +102,35 @@
 		 tail)))))
 
 ;; test see improper-fold-right/yn-cont in list-util-2.scm
+
+
+;; should really use Maybe.scm...
+(define (improper-find pred v)
+  (let rec ((v v))
+    (cond ((null? v)
+	   #f)
+	  ((pair? v)
+	   (if (pred (car v))
+	       (car v)
+	       (rec (cdr v))))
+	  (else
+	   (if (pred v)
+	       v
+	       #f)))))
+
+(TEST
+ > (find even? '(1 2 3))
+ 2
+ > (find even? '(1 3))
+ #f
+ > (improper-find even? '(1 2 3))
+ 2
+ > (improper-find even? '(1 3))
+ #f
+ > (improper-find even? 3)
+ #f
+ > (improper-find even? 2)
+ 2)
 
 
 (define (improper-append a b)
