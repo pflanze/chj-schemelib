@@ -5,7 +5,8 @@
 	 cj-functional
 	 cut
 	 (string-util-4 string-empty?
-			string-every))
+			string-every)
+	 (improper-list improper-any))
 
 
 (define false? not) ;; so as to be able to use "false." as OO prefix
@@ -81,28 +82,6 @@
  > (map (improper-list-of (string-of char-alphanumeric?))
 	'("foo" ("a" "b") ("a" . "b") ("a" . b) ("a" ("b"))))
  (#t #t #t #f #f))
-
-;; XX move to an improper-srfi-1 ?
-(define (improper-any pred v)
-  (cond ((pair? v)
-	 (or (pred (car v))
-	     (improper-any pred (cdr v))))
-	((null? v)
-	 #f)
-	(else
-	 (pred v))))
-
-(TEST
- > (improper-any identity '(#f 1 #f))
- 1
- > (improper-any identity '2)
- 2
- > (improper-any even? 1)
- #f
- > (improper-any even? 2)
- #t
- > (improper-any even? '())
- #f)
 
 
 (define char-one-of char-one-of?/)

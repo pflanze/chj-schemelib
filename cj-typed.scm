@@ -12,7 +12,8 @@
 	 srfi-11
 	 (cj-source-util-2 assert
 			   assert:possibly-symbolize)
-	 (fail-1 failure? failure-string))
+	 (fail-1 failure? failure-string)
+	 (improper-list improper-length))
 
 
 ;;;
