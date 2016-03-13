@@ -6,13 +6,14 @@
 ;;;    (at your option) any later version.
 
 
-;; can't use require form here yet
-;; (require
-;; 	 ;; vector-util-1 ;; included directly
-;;       ;; improper-length ;; dito
-;; 	 ;; list-util-1 ;; improper-map now copied directly
-;;       cj-env-1
-;; 	 )
+;; can't use require and export forms here yet, thus quote them instead:
+
+'(require
+ ;; vector-util-1 ;; included directly
+ ;; improper-length ;; dito
+ ;; list-util-1 ;; improper-map now copied directly
+ cj-env-1)
+
 
 '(export source?
 	 source-code
