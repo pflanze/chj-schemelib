@@ -297,9 +297,9 @@
 
 (define-macro* (-> pred . body)
   (with-gensym V
-	       `(let ((,V (##let () ,@body)))
-		  (if (,pred ,V) ,V
-		      (->-error ',pred ,V)))))
+	       `(##let ((,V (##let () ,@body)))
+		       (##if (,pred ,V) ,V
+			     (->-error ',pred ,V)))))
 
 (TEST
  > (-> number? 5)
