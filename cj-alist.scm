@@ -18,6 +18,13 @@
 	  (error "not a symbol:" b))
       (error "not a symbol:" a)))
 
+(define (keyword-equal? a b)
+  (if (keyword? a)
+      (if (keyword? b)
+	  (eq? a b)
+	  (error "not a keyword:" b))
+      (error "not a keyword:" a)))
+
 (define (true/1 v)
   #t)
 
@@ -49,6 +56,10 @@
   (_-alist-ref symbol? symbol-equal?
 	       cj-alist:error-not-found))
 
+(define keyword-alist-ref
+  (_-alist-ref keyword? keyword-equal?
+	       cj-alist:error-not-found))
+
 (define number-alist-ref
   (_-alist-ref number? =
 	       cj-alist:error-not-found))
@@ -63,6 +74,10 @@
 
 (define symbol-alist-maybe-ref
   (_-alist-ref symbol? symbol-equal?
+	       false/2))
+
+(define keyword-alist-maybe-ref
+  (_-alist-ref keyword? keyword-equal?
 	       false/2))
 
 (define number-alist-maybe-ref
@@ -104,6 +119,10 @@
 
 (define symbol-alist-replace
   (_-alist-replace symbol? symbol-equal?
+		   cons _alist-replace-key-not-found))
+
+(define keyword-alist-replace
+  (_-alist-replace keyword? keyword-equal?
 		   cons _alist-replace-key-not-found))
 
 (define number-alist-replace
@@ -167,6 +186,9 @@
 
 (define symbol-alist-add
   (_-alist-add symbol? symbol-equal?))
+
+(define keyword-alist-add
+  (_-alist-add keyword? keyword-equal?))
 
 (define number-alist-add
   (_-alist-add number? =))
