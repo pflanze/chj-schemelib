@@ -5,6 +5,11 @@
 	 (cj-env-2 C)
 	 test)
 
+(export mapfilter/tail
+	stream-mapfilter/tail
+	mapfilter
+	stream-mapfilter)
+
 
 ;; only 1-ary for now
 (define-strict-and-lazy
