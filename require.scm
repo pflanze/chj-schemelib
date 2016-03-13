@@ -22,8 +22,8 @@
 
 (def modules-without-require-forms
      '(;; cj-source
-       define-macro-star
-       dummy-module
+       ;; define-macro-star
+       ;; dummy-module
        vector-util-1
        cj-env-1
 

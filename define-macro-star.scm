@@ -32,6 +32,10 @@
 ;; define-macro* so that it is available at runtime.
 
 
+;; quoted forms (since not normally defined yet) for require.scm
+'(require cj-source)
+'(export define-macro*)
+
 ; (compile-time
 ;  (include "../../lib/cj-warn.scm"))
 
