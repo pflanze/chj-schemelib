@@ -291,13 +291,15 @@
 ;; (XX provide actual tests instead.)
 
 
+(define (->-error pred-code val)
+  (error "value fails to meet predicate:"
+	 (list pred-code (perhaps-quote val))))
+
 (define-macro* (-> pred . body)
   (with-gensym V
 	       `(let ((,V (##let () ,@body)))
 		  (if (,pred ,V) ,V
-		      (error "value fails to meet predicate:"
-			     (list ',pred
-				   (perhaps-quote ,V)))))))
+		      (->-error ',pred ,V)))))
 
 (TEST
  > (-> number? 5)
