@@ -1142,3 +1142,5 @@ if (p) {
 	(raise (posix-exception (- res)))
 	res)))
 
+
+(define posix:environ ##os-environ)
