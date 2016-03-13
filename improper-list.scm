@@ -10,7 +10,9 @@
 
 (require test
 	 (list-util-1 improper-map) ;; can this be moved here?
-	 )
+	 ;; implementation in improper-length.scm, included in
+	 ;; cj-source-util.scm:
+	 (cj-source improper-length))
 
 (export improper-map
 	improper-fold
@@ -190,36 +192,6 @@
  10
  )
 
-
-(define (improper-length v)
-  ;; copy from cj-env because of phasing issue
-  (define (inc x)
-    (+ x 1))
-  ;; /copy
-  (let lp ((v v)
-	   (l 0))
-    (cond ((pair? v)
-	   (lp (cdr v)
-	       (inc l)))
-	  ((null? v)
-	   l)
-	  (else
-	   (- (inc l))))))
-
-(TEST
- > (improper-length '())
- 0
- > (improper-length '(1))
- 1
- > (improper-length '(a b c))
- 3
- > (improper-length '(a b . c))
- -3
- > (improper-length '(a . c))
- -2
- > (improper-length 'c)
- -1
- )
 
 
 (define (improper-any pred v)

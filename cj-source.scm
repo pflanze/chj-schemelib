@@ -9,9 +9,45 @@
 ;; can't use require form here yet
 ;; (require
 ;; 	 ;; vector-util-1 ;; included directly
+;;       ;; improper-length ;; dito
 ;; 	 ;; list-util-1 ;; improper-map now copied directly
 ;;       cj-env-1
 ;; 	 )
+
+'(export source?
+	 source-code
+	 source-location
+	 location?
+	 location-container
+	 container->path
+	 location-position
+	 position?
+	 position-line
+	 position-column
+	 make-position
+	 make-location
+	 make-source
+	 sourcify
+	 cj-sourcify-deep
+	 possibly-sourcify
+	 cj-possibly-sourcify-deep
+	 cj-desourcify
+	 read-all-source
+	 source-error
+	 pos:line
+	 pos:col
+	 show-location-location
+	 show-source-location
+	 source-warn
+	 location-warn
+	 location-warn-to-string
+	 show-source-error
+	 source-error->string
+	 show-procedure-location
+	 source-quote
+	 source-dequote
+	 ;; included from improper-length.scm
+	 improper-length)
 
 
 (include "cj-env-1.scm")
