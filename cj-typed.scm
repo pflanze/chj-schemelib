@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+	 (scheme-meta perhaps-quote)
 	 test
 	 cj-env
 	 srfi-11
@@ -288,20 +289,6 @@
 ;;  ...
 ;;  )
 ;; (XX provide actual tests instead.)
-
-
-;; XX move where? Some meta Scheme library?
-(define (self-quoting? v)
-  ;; avoid depending on |either| from cj-functional ?
-  (or (string? v)
-      (number? v)
-      (boolean? v)
-      (eof-object? v)))
-
-(define (perhaps-quote v)
-  (if (self-quoting? v)
-      v
-      (list 'quote v)))
 
 
 (define-macro* (-> pred . body)
