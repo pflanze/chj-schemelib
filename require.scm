@@ -122,9 +122,9 @@
  #(Failure #(requires Maybe easy))
  > (modulepaths-satisfying? '("lib/easy-1.scm" "lib/Maybe.scm"))
  #(Failure #(requires easy-1 define-macro-star))
- > (modulepaths-satisfying? '("lib/define-macro-star.scm"))
- #(Success)
- )
+ > (modulepaths-satisfying? '("lib/cj-source.scm"
+			      "lib/define-macro-star.scm"))
+ #(Success))
 
 
 
