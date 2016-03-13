@@ -21,7 +21,7 @@
 
 
 (def modules-without-require-forms
-     '(cj-source
+     '(;; cj-source
        define-macro-star
        dummy-module
        vector-util-1
@@ -44,15 +44,19 @@
 (def (path-string.topo-relation p)
      (let ((form (call-with-input-file p read))
 	   (mname (path-string.modulename p)))
-       (mcase form
-	      (`(require . `rest)
-	       (topo-relation mname
-			      (map require-decl.modulename rest)))
-	      (else
-	       (if (memq mname modules-without-require-forms)
-		   (topo-relation mname '())
-		   (error "file does not have a require form as its first form:"
-			  p))))))
+       ((named rec
+	       (mcase-lambda
+		(`(require . `rest)
+		 (topo-relation mname
+				(map require-decl.modulename rest)))
+		(`(quote `q)
+		 (rec q))
+		(else
+		 (if (memq mname modules-without-require-forms)
+		     (topo-relation mname '())
+		     (error "file does not have a require form as its first form:"
+			    p)))))
+	form)))
 
 (TEST
  ;; well those are evil of course, will break upon module changes
