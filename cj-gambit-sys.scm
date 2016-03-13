@@ -1,53 +1,45 @@
-(require
- test
- cj-env;;XX update what exactly?
-
- )
+(require test
+	 cj-env	;;XX update what exactly?
+	 )
 
 ;; (compile #t)
 
-;; (exports
-;;  addressword-peek
-;;  body-address
-;;  body-addressword
-;;  ;;check-mem-allocated
-;;  max-fixnum
-;;  min-fixnum
-;;  mem-address
-;;  mem-addressword
-;;  mem-allocated?
-;;  ;;mk-addressword->address
-;;  subtype
-;;  word-size
-;;  word-width
-;;  head-tag
+(export addressword-peek
+	body-address
+	body-addressword
+	;;check-mem-allocated
+	max-fixnum
+	min-fixnum
+	mem-address
+	mem-addressword
+	mem-allocated?
+	;;mk-addressword->address
+	subtype
+	word-size
+	word-width
+	head-tag
 
-;;  still-object?
-;;  vector-like?
-;;  mem-bytes
+	still-object?
+	vector-like?
+	mem-bytes
 
-;;  ;; utilities:
-;;  vectorlike-bytecopy!
-;;  vectorlike-byteequal?
-;;  vectorlike-byteref
-;;  vectorlike-byteset!
-;;  vectorlike-bytefill!
-;;  )
+	;; utilities:
+	vectorlike-bytecopy!
+	vectorlike-byteequal?
+	vectorlike-byteref
+	vectorlike-byteset!
+	vectorlike-bytefill!
 
-;; (exports-on-request
-;;  check-mem-allocated
-;;  check-vector-like
-;;  @vectorlike-bytecopy!
-;;  @vectorlike-byteequal?
-;;  @vectorlike-byteref
-;;  @vectorlike-byteset!
-;;  @vectorlike-bytefill!
-;;  )
+	#!optional
+	check-mem-allocated
+	check-vector-like
+	@vectorlike-bytecopy!
+	@vectorlike-byteequal?
+	@vectorlike-byteref
+	@vectorlike-byteset!
+	@vectorlike-bytefill!
+	)
 
-
-;; cj Sun, 01 Oct 2006 01:04:23 +0200
-
-;; (I once started in chicken-sys; but seems/iirc didn't finish)
 
 (declare (block)(standard-bindings)(extended-bindings))
 ;; do NOT declare fixnum and not safe; this would break number
