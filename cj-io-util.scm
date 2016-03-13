@@ -37,6 +37,8 @@
 	dirname
 	port->stream
 	directory-item-stream
+	file-line-stream
+	process-input-line-stream
 	user-name-or-id->id
 	group-name-or-id->id
 	chown)
@@ -397,6 +399,14 @@
   (port->stream (open-input-file file)
 		read-line
 		close-port))
+
+(define (process-input-line-stream process
+				   status-handler)
+  (port->stream (open-input-process process)
+		read-line
+		(lambda (p)
+		  (close-port p)
+		  (status-handler (process-status p)))))
 
 
 (define (_-name-or-id->id get access msg)
