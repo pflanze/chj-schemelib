@@ -7,7 +7,8 @@
 
 
 (require easy
-	 test)
+	 test
+	 (cj-path path-string?))
 
 (export port.name
 	port.content
@@ -31,6 +32,7 @@
 	hostname
 	file-info->mtime
 	file-basename
+	basepath
 	basename
 	dirname
 	port->stream
@@ -247,30 +249,50 @@
 ;; name->basename+maybe-suffix . One-argument form only, though, for
 ;; now.
 
-(define (file-basename path)
-  (last (string-split path #\/)))
+(def (file-basename path) -> path-string?
+     (last (string-split path #\/)))
 
 (TEST
  > (file-basename "/foo/bar.scm")
  "bar.scm"
  > (file-basename "bar.scm")
  "bar.scm"
- > (file-basename "/foo/")
- ""
+ ;; > (file-basename "/foo/")
+ ;; ""
+ > (%try-error (file-basename "/foo/"))
+ #(error "value fails to meet predicate:" (path-string? ""))
+ ;; XX ok? sigh.
  )
 
-(define (basename path #!optional suffixS insensitive?)
-  (let* ((n (file-basename (if (string-ends-with? path "/")
-			       (substring path 0 (dec (string-length path)))
-			       path))))
-    (if suffixS
-	(cond ((improper-find (C string-ends-with? n _ insensitive?)
-			      suffixS)
-	       => (lambda (suffix)
-		    (substring n 0 (- (string-length n)
-				      (string-length suffix)))))
-	      (else n))
-	n)))
+(def (basepath #(path-string? n)
+	       suffixS
+	       #!optional insensitive?)
+     -> path-string?
+     (if suffixS
+	 (cond ((improper-find (C string-ends-with? n _ insensitive?)
+			       suffixS)
+		=> (lambda (suffix)
+		     (substring n 0 (- (string-length n)
+				       (string-length suffix)))))
+	       (else n))
+	 n))
+
+(TEST
+ > (basepath "/.foo" ".foo")
+ "/" ;; XX problematic already?
+ > (%try-error (basepath ".foo" ".foo"))
+ #(error "value fails to meet predicate:" (path-string? ""))
+ > (%try-error (basepath "..foo" ".foo"))
+ "." ;; XX problematic, too? Should really work on structured paths?
+ )
+
+(def (basename path #!optional suffixS insensitive?) -> path-string?
+     (basepath (file-basename
+		(if (string-ends-with? path "/")
+		    (substring path 0 (dec (string-length path)))
+		    path))
+	       suffixS
+	       insensitive?))
 
 (TEST
  > (basename "/foo/bar.scm")
