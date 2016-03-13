@@ -290,11 +290,27 @@
 ;; (XX provide actual tests instead.)
 
 
+;; XX move where? Some meta Scheme library?
+(define (self-quoting? v)
+  ;; avoid depending on |either| from cj-functional ?
+  (or (string? v)
+      (number? v)
+      (boolean? v)
+      (eof-object? v)))
+
+(define (perhaps-quote v)
+  (if (self-quoting? v)
+      v
+      (list 'quote v)))
+
+
 (define-macro* (-> pred . body)
   (with-gensym V
 	       `(let ((,V (##let () ,@body)))
 		  (if (,pred ,V) ,V
-		      (error "value fails to meet predicate:" (list ',pred ,V))))))
+		      (error "value fails to meet predicate:"
+			     (list ',pred
+				   (perhaps-quote ,V)))))))
 
 (TEST
  > (-> number? 5)
