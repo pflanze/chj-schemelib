@@ -11,8 +11,9 @@
 '(require
  ;; vector-util-1 ;; included directly
  ;; improper-length ;; dito
+ ;; cj-env-1 dito
  ;; list-util-1 ;; improper-map now copied directly
- cj-env-1)
+ )
 
 
 '(export source?
