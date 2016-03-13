@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (test))
+(require test)
 
 
 ;; Library for association lists of various key types
@@ -195,4 +195,63 @@
 
 (define eq-alist-add
   (_-alist-add any-type? eq?))
+
+(TEST
+ > (keyword-alist-add '() (cons foo: 1))
+ ((foo: . 1))
+ > (keyword-alist-add '((foo: . 2)) (cons foo: 1))
+ ((foo: . 1) (foo: . 2))
+ ;; hm, does *not* clean up, on purpose for cheaper sharing? But not
+ ;; always what one wants There's of course:
+ > (keyword-alist-replace '((foo: . 2)) (cons foo: 1))
+ ((foo: . 1))
+ ;; but:
+ > (%try-error (keyword-alist-replace '((bar: . 2)) (cons foo: 1)))
+ #(error "key not found:" foo:))
+
+
+;; set entries by replacing if existing, adding otherwise
+(define (_-alist-set key-type? equal?)
+  (lambda (alis key+val)
+    (let ((key (car key+val)))
+      (if (key-type? key)
+	  (let lp ((l alis))
+	    (if (null? l)
+		;; key not found, add entry
+		(cons key+val alis)
+		(let ((frame (car l)))
+		  (if (equal? (car frame) key)
+		      ;; replace, i.e. keep tail, replace current, add
+		      ;; newer frames on top
+		      (let ((tail (cons key+val (cdr l))))
+			(let rec ((l2 alis))
+			  (let ((frame2 (car l2)))
+			    (if (eq? frame2 frame)
+				;; arrived at same place again
+				tail
+				(cons frame2
+				      (rec (cdr l2)))))))
+		      (lp (cdr l))))))
+	  (error "wrong type of key:" key)))))
+
+(define symbol-alist-set
+  (_-alist-set symbol? symbol-equal?))
+
+(define keyword-alist-set
+  (_-alist-set keyword? keyword-equal?))
+
+(TEST
+ > (keyword-alist-set '((a: . 0)) '(foo: . 1))
+ ((foo: . 1) (a: . 0))
+ > (keyword-alist-set '((a: . 1)
+			(b: . 2)
+			(foo: . 3)
+			(bar: . 4))
+		      '(foo: . 1))
+ ((a: . 1)
+  (b: . 2)
+  (foo: . 1)
+  (bar: . 4)))
+
+;; XX todo: add extensive tests (qcheck).
 
