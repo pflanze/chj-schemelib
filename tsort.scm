@@ -1,6 +1,6 @@
 (require easy
 	 test
-	 list-ref
+	 alist
 	 cj-seen
 	 )
 
@@ -10,9 +10,9 @@
 	       #((list-of symbol?) deps)))
 
 ;; topo:Maybe-ref, topo:ref
-(modimport/prefix topo: (<list-ref> symbol?
-				    topo-relation.name
-				    eq?))
+(modimport/prefix topo: (<alist> symbol?
+				 topo-relation.name
+				 eq?))
 
 (def topo? (list-of topo-relation?))
 ;; XX must .name be unique in each topo? ?

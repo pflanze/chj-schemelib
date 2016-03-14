@@ -63,7 +63,7 @@
  > (path-string.topo-relation "lib/require.scm")
  #(topo-relation require (easy test tree-util cj-io-util tsort Status))
  ;; > (path-string.topo-relation "tsort.scm")
- ;; #(topo-relation tsort (easy test list-ref))
+ ;; #(topo-relation tsort (easy test alist))
  )
 
 (def (modulepaths-tsort paths)

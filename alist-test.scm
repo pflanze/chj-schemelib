@@ -5,16 +5,16 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
-;; Tests for list-ref.scm
+;; Tests for alist.scm
 
 (require easy
 	 test
 	 (cj-alist keyword-equal?) ;; just for testing
-	 (list-ref <list-ref>)
+	 (alist <alist>)
 	 )
 
 (modimport/prefix keyword-alist:
-		  (<list-ref> keyword? car keyword-equal?))
+		  (<alist> keyword? car keyword-equal?))
 
 (TEST
  > (keyword-alist:set '((a: . 0)) '(foo: . 1))

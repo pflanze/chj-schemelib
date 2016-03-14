@@ -17,7 +17,7 @@
 
 (def _list-ref:nothing (gensym))
   
-(defmodule (<list-ref> key? .key .equal?)
+(defmodule (<alist> key? .key .equal?)
 
   (export Maybe-ref
 	  ref
