@@ -5,13 +5,12 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
-;; Tests for alist.scm
+;; alist parametrized for keywords, and tests
 
 (require easy
 	 test
-	 (cj-alist keyword-equal?) ;; just for testing
-	 (alist <alist>)
-	 )
+	 (cj-alist keyword-equal?) ;; should we move this?
+	 (alist <alist>))
 
 (modimport/prefix keyword-alist:
 		  (<alist> keyword? car keyword-equal?))
