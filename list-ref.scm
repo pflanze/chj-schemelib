@@ -5,7 +5,7 @@
 
 (require easy
 	 Maybe
-	 )
+	 (srfi-1 filter))
 
 (def _list-ref:nothing (gensym))
   
@@ -13,7 +13,8 @@
 
   (export Maybe-ref
 	  ref
-	  set)
+	  set
+	  delete)
 
   (def (Maybe-ref lis #(key? key))
        (let lp ((l lis))
@@ -57,5 +58,13 @@
 				   (cons frame2
 					 (rec (cdr l2)))))))
 			 (lp (cdr l))))))
-	     (error "wrong type of key:" key)))))
+	     (error "wrong type of key:" key))))
+
+  ;; call it remove or delete ? Actually srfi-1 calls it remove; would
+  ;; have conflict here :), but might be an indication it should be
+  ;; called remove really. XX?
+  (def (delete lis #(key? key))
+       (remove (lambda (v)
+		 (.equal? (.key v) key))
+	       lis)))
 
