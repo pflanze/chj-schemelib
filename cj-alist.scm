@@ -11,6 +11,9 @@
 
 ;; Library for association lists of various key types
 
+;; ** See alist.scm now, for a more flexible (but perhaps not
+;; bootstrappable) solution **
+
 (define (symbol-equal? a b)
   (if (symbol? a)
       (if (symbol? b)

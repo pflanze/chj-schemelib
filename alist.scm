@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-;; Unlike _-alist-ref doen't hard-code the pairings using pairs,
+;; Unlike cj-alist.scm doen't hard-code the pairings using pairs,
 ;; instead use parametrized accessors
 
 ;; Perhaps call it associative-list instead?
