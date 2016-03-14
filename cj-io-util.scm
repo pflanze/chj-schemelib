@@ -8,9 +8,20 @@
 
 (require easy
 	 test
-	 (cj-path path-string?))
+	 (cj-path path-string?)
+	 (keyword-alist keyword-alist:Maybe-ref
+			keyword-alist:delete
+			keyword-alist:set)
+	 (alist <alist>)
+	 srfi-11
+	 srfi-1
+	 (cj-posix posix:environ)
+	 (cj-functional list-of values-of))
 
-(export port.name
+(export open-process*
+	open-input-process*
+	open-output-process*
+	port.name
 	port.content
 	eexist-exception?
 	eperm-exception?
@@ -42,6 +53,99 @@
 	user-name-or-id->id
 	group-name-or-id->id
 	chown)
+
+
+;; handle setenv:-enriched process specs:
+
+(def (env-alist:key+val.key #(string? s))
+     (letv ((k maybe-v)
+	    (string-split-once s #\= #t))
+	   k))
+
+(def (environ-key? v)
+     (and (string? v)
+	  (not (string-empty? v))
+	  (not (string-contains? v "="))))
+
+(modimport/prefix env-alist:
+		  (<alist> string?
+			   env-alist:key+val.key
+			   string=?))
+
+(def (process*-alist-expand spec *environ)
+     (Maybe:cond
+      ((keyword-alist:Maybe-ref spec setenv:)
+       => (lambda (entry)
+	    (let ((k+v-s (-> (list-of (values-of environ-key? string?))
+			     (cdr entry))))
+	      (keyword-alist:set
+	       (keyword-alist:delete spec setenv:)
+	       (cons environment:
+		     (fold-right
+		      (lambda (k+v env)
+			(letv ((k v) k+v)
+			      (env-alist:set env
+					     (string-append k "=" v))))
+		      (*environ)
+		      k+v-s))))))
+      (else
+       spec)))
+
+(TEST
+ > (process*-alist-expand '((foo: . "bar") (baz: . "bum"))
+			  (C error "bug"))
+ ((foo: . "bar") (baz: . "bum")))
+
+
+(def (process-list.alist l)
+     (if (null? l)
+	 l
+	 (let-pair ((k l) l)
+		   (let-pair ((v l) l)
+			     (cons (cons k v)
+				   (process-list.alist l))))))
+
+(def (process-alist.list l)
+     (if (null? l)
+	 l
+	 (let-pair ((k+v l) l)
+		   (let-pair ((k v) k+v)
+			     (cons* k v
+				    (process-alist.list l))))))
+
+
+(def (process*-spec-expand spec *environ)
+     (if (string? spec)
+	 spec
+	 (process-alist.list
+	  (process*-alist-expand (process-list.alist spec)
+				 *environ))))
+
+(TEST
+ > (process*-spec-expand "foo" (C error "bug"))
+ "foo"
+ > (def (env)
+	'("PATH=a:b:c" "BAR=2" "CWD=/x/y"))
+ > (process*-spec-expand '(foo: "bar" baz: "bum") env)
+ (foo: "bar" baz: "bum")
+ > (process*-spec-expand
+    (list setenv: (list (values "FOO" "bar")
+			(values "BAR" "baz"))
+	  baz: "bum")
+    env)
+ (environment: ("FOO=bar" "PATH=a:b:c" "BAR=baz" "CWD=/x/y")
+	       baz: "bum"))
+
+
+(def (open-process* spec)
+     (open-process (process*-spec-expand spec posix:environ)))
+
+(def (open-input-process* spec)
+     (open-input-process (process*-spec-expand spec posix:environ)))
+
+(def (open-output-process* spec)
+     (open-output-process (process*-spec-expand spec posix:environ)))
+
 
 
 (def. (port.name #(port? p)) -> string?
@@ -102,10 +206,10 @@
 		(err s parms))))))
 
 (define _xcall-with-input-process
-  (__xcall-with-process open-input-process close-input-port))
+  (__xcall-with-process open-input-process* close-input-port))
 
 (define _xcall-with-process
-  (__xcall-with-process open-process close-port))
+  (__xcall-with-process open-process* close-port))
 
 
 (define xcall-with-input-process
@@ -402,7 +506,7 @@
 
 (define (process-input-line-stream process
 				   status-handler)
-  (port->stream (open-input-process process)
+  (port->stream (open-input-process* process)
 		read-line
 		(lambda (p)
 		  (close-port p)
