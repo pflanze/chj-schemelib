@@ -8,7 +8,9 @@
 
 (require test
 	 easy
-	 unixtime-types)
+	 unixtime-types
+	 (predicates in-signed-range?))
+
 
 
 (c-declare "

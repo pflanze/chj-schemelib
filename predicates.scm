@@ -139,3 +139,34 @@
 
 ;; also see rgb:0..1? which accepts 1 milli unit of change.
 
+
+
+(define (in-signed-range? wordsize-bits v)
+  (let ((half (expt 2 (dec wordsize-bits))))
+    (and (<= (- half) v)
+	 (< v half))))
+
+(TEST
+ > (define (test basenum v)
+     (list (in-signed-range? 8 v)
+	   (number->string (+ basenum v) 2)))
+ > (test (expt 2 16) -1)
+ (#t "1111111111111111")
+ ;;   1234567812345678
+ > (test (expt 2 16) -126)
+ (#t "1111111110000010")
+ > (test (expt 2 16) -127)
+ (#t "1111111110000001")
+ > (test (expt 2 16) -128)
+ (#t "1111111110000000")
+ > (test (expt 2 16) -129)
+ (#f "1111111101111111")
+ > (test (expt 2 15) 0)
+ (#t "1000000000000000")
+ > (test (expt 2 15) 127)
+ (#t "1000000001111111")
+ > (test (expt 2 15) 128)
+ (#f "1000000010000000")
+ ;;   1234567812345678
+ )
+
