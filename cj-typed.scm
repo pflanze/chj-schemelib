@@ -113,7 +113,10 @@
 		     (default (cadr arg*)))
 		 (letv ((subargs body*) (transform-arg arg** args body))
 		       (let-pair ((subarg _) subargs)
-				 (values (cons `(,subarg ,default) args)
+				 (values (cons (possibly-sourcify
+						`(,subarg ,default)
+						arg)
+					       args)
 					 body*))))
 	       ;; XX could give better error message, though
 	       (err)))
@@ -127,9 +130,10 @@
 		  (console)
 		  983059))
  > (values->vector (transform-arg s1 '() 'BODY))
- #(((#(#(source1) pair? (console) 1048595)
-      #(#(source1) a (console) 1441811)))
-   ;; ^ bug: list with no source info
+ #((#(#(source2) (#(#(source1) pair? (console) 1048595)
+		   #(#(source1) a (console) 1441811))
+       (console)
+       983059))
    BODY))
 
 
@@ -241,8 +245,10 @@
 	 (console)
 	 917523))
  > (values->vector (typed-lambda-args-expand s 'BODY))
- #(((#(#(source1) pair? (console) 1048595) #(#(source1) a (console) 1441811)))
-   ;;^ issue: list with no source information
+ #((#(#(source2) (#(#(source1) pair? (console) 1048595)
+		   #(#(source1) a (console) 1441811))
+       (console)
+       983059))
    (##begin . BODY)))
 
 
