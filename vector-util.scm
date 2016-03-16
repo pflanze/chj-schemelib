@@ -9,7 +9,28 @@
 (require cj-env
 	 test
 	 ;; vector-util-1 ;; well, cj-source or mod/mod.scm since those include it?
-	 srfi-1)
+	 srfi-1
+	 (list-util-1 map/iota))
+
+
+(export vectors-map
+	vector-map
+	vector-map*
+	;; note: dot-oo versions of these are now also in oo-vector-lib
+	vector-fold-right
+	vector-fold
+	vector-for-each
+	vector-generate
+	if-avector-ref
+	maybe-avector-ref
+	;; note: not OO:
+	vector.set
+	vector.insert
+	vector-every
+	vector-of
+	;; note: not oo, just curried:
+	vector.value.pos)
+
 
 
 (define (vectors-map fn vecs accept-uneven-lengths?)
@@ -211,4 +232,18 @@
 	   #(1 a 3)))
  (#t #f #f #f
      #f #t #f #f #f))
+
+
+
+(define vector-util:no-alternative (gensym "no-alternative"))
+
+(define (vector.value.pos vs)
+  (let ((t (list->table (map/iota (lambda (s i)
+				    (cons s i))
+				  (vector->list vs)))))
+    (lambda (k #!optional (alternative vector-util:no-alternative))
+      (let ((v (table-ref t k alternative)))
+	(if (eq? v vector-util:no-alternative)
+	    (error "unknown key:" k)
+	    v)))))
 
