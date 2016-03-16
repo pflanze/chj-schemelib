@@ -120,6 +120,19 @@
 	  (else
 	   (err)))))
 
+(TEST
+ > (define s1 '#(#(source1)
+		  (#(#(source1) pair? (console) 1048595)
+		    #(#(source1) a (console) 1441811))
+		  (console)
+		  983059))
+ > (values->vector (transform-arg s1 '() 'BODY))
+ #(((#(#(source1) pair? (console) 1048595)
+      #(#(source1) a (console) 1441811)))
+   ;; ^ bug: list with no source info
+   BODY))
+
+
 ;; for use by other code
 (define (perhaps-typed.var x)
   (car (fst (transform-arg x '() '()))))
@@ -198,6 +211,40 @@
  > (typed-body-parse #f '(-> b c) vector)
  #(b (c)))
 
+(define (typed-lambda-args-expand args body)
+  (let rem ((args args))
+    (let ((args_ (source-code args)))
+      (cond ((null? args_)
+	     (values '()
+		     `(##begin ,@body)))
+	    ((pair? args_)
+	     (let-pair ((arg args*) args_)
+		       (letv (($1 $2) (rem args*))
+			     (transform-arg arg $1 $2))))
+	    (else
+	     ;; rest arg, artificially pick out the single var
+	     (letv ((vars body) (letv (($1 $2) (rem '()))
+				      (transform-arg args $1 $2)))
+		   (assert (= (length vars) 1))
+		   (values (car vars)
+			   body)))))))
+
+(TEST
+ > (define s
+     ;; (quote-source ((pair? a)))
+     '#(#(source1)
+	 (#(#(source1)
+	     (#(#(source1) pair? (console) 1048595)
+	       #(#(source1) a (console) 1441811))
+	     (console)
+	     983059))
+	 (console)
+	 917523))
+ > (values->vector (typed-lambda-args-expand s 'BODY))
+ #(((#(#(source1) pair? (console) 1048595) #(#(source1) a (console) 1441811)))
+   ;;^ issue: list with no source information
+   (##begin . BODY)))
+
 
 (define-macro* (typed-lambda args . body)
   (typed-body-parse
@@ -206,24 +253,7 @@
      (let ((body (if maybe-pred
 		     `((-> ,maybe-pred ,@body))
 		     body)))
-       (letv ((vars body)
-	      (let rem ((args args))
-		(let ((args_ (source-code args)))
-		  (cond ((null? args_)
-			 (values '()
-				 `(##begin ,@body)))
-			((pair? args_)
-			 (let-pair ((arg args*) args_)
-				   (letv (($1 $2) (rem args*))
-					 (transform-arg arg $1 $2))))
-			(else
-			 ;; rest arg, artificially pick out the single var
-			 (letv ((vars body)
-				(letv (($1 $2) (rem '()))
-				      (transform-arg args $1 $2)))
-			       (assert (= (length vars) 1))
-			       (values (car vars)
-				       body)))))))
+       (letv ((vars body) (typed-lambda-args-expand args body))
 	     `(lambda ,vars
 		,body))))))
 
