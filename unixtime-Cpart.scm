@@ -96,7 +96,7 @@
     LTSET(7,res.tm_yday);
     LTSET(8,res.tm_isdst); /* always 0 for gmtime, because it doesn't deal
                              with tz data, unlike localtime. ? */
-    LTSET(9,0); /* ok? */
+    LTSET(9,0); /* timezone, ok? */
 #undef LTSET
 }" in out)
     out))
