@@ -8,6 +8,7 @@
 
 (require (list-util-1 list-split))
 
+(export string-split)
 
 (define (string-split str char-or-pred)
   (map list->string (list-split (string->list str) char-or-pred)))

@@ -9,6 +9,9 @@
 (require test
 	 (list-util let-pair))
 
+(export lists-join
+	strings-join)
+
 
 (define (lists-join ls seplis #!optional (tail '()))
   (let rec ((ls ls))

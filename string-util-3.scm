@@ -2,6 +2,22 @@
 (require cj-env
 	 dot-oo)
 
+(export string-contains-char?
+	make-replace-substring
+	replace-substring-error
+	string.replace-substring
+	string.replace-substring-ci
+	string.replace-substrings
+	string.replace-substrings-ci
+	string.maybe-replace-substring
+	string.maybe-replace-substring-ci
+	string.maybe-replace-substrings
+	string.maybe-replace-substrings-ci
+	string.drop
+	string.take
+	string.any)
+
+
 ;; (define-macro* (for var seq . body)
 ;;   `(.for seq
 ;; 	 (lambda (,var return)

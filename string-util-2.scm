@@ -17,6 +17,50 @@
 	 (string-util-4 string-empty?
 			string-every))
 
+(export suffix-list
+	suffix
+	list-dropstop
+	strip-suffix
+	list-trim-left
+	string-trim-left
+	list-trim-right
+	string-trim-right
+	string-ref*
+	chomp
+	trim
+	trim-maybe
+	char-newline?
+	trimlines
+	trimlines-maybe
+	string-trimlines-right
+	nonempty? ;; nonempty-string? ? no, different.
+	string-multiply
+	number->padded-string
+	inexact.round-at ;; XX move
+	inexact.number-format
+	string-starts?
+	string-starts-ci?
+	string-contains
+	string-contains-ci
+	string-contains?
+	string-contains-ci?
+	string-split-1 ;; vs. string-split-once ?
+	if-string-split-once
+	string-split-once
+	string-reverse
+	dirname* ;; vs. cj-io-util !
+	string-map
+	;; string-every see string-util-4.scm
+	string-any
+	string-downcase string-lc
+	string-pad-left
+	string-ends-with?
+	string-starts-with? ;;XXX vs string-starts? ?
+	
+	#!optional
+	string-_-starts?
+	string-_-contains)
+
 
 (define (suffix-list l)
   (rxtake-while (lambda (x)

@@ -11,9 +11,10 @@
 	 srfi-11)
 
 
-;;;
-;;;; string quoting
-;;;
+(export shell-quote
+	perl-quote
+	write-string)
+
 
 (define (shell-quote str)
   (list->string
