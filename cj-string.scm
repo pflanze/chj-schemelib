@@ -1,3 +1,4 @@
+;; TODO: eliminate
 
 (require cj-env ;; testing only
 	 (cj-test TEST %try))

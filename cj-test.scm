@@ -1,4 +1,5 @@
 ;; this is a compatibility wrapper for chjmodule's TEST infrastructure
+;; TODO: eliminate
 
 (require define-macro-star
 	 test
