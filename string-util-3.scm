@@ -1,6 +1,7 @@
 
 (require cj-env
 	 dot-oo
+	 (unclean make-unclean-string)
 	 (list-util let-pair))
 
 (export string-contains-char?
