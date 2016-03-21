@@ -1,6 +1,7 @@
 
 (require cj-env
-	 dot-oo)
+	 dot-oo
+	 (list-util let-pair))
 
 (export string-contains-char?
 	make-replace-substring
@@ -15,7 +16,8 @@
 	string.maybe-replace-substrings-ci
 	string.drop
 	string.take
-	string.any)
+	string.any
+	list.string-reverse)
 
 
 ;; (define-macro* (for var seq . body)
@@ -156,4 +158,24 @@
  #t
  > (string.any "" char-whitespace?)
  #f)
+
+
+;; (should this be in a list or string lib? string since list is the
+;; default type in lisps.)
+
+(define. (list.string-reverse l #!optional (len (length l)))
+  (let ((out (make-unclean-string len)))
+    (let lp ((i (dec len))
+	     (l l))
+      (if (negative? i)
+	  out
+	  (let-pair ((c l*) l)
+		    (string-set! out i c)
+		    (lp (dec i) l*))))))
+
+(TEST
+ > (.string-reverse '(#\c #\b #\a))
+ "abc"
+ > (.string-reverse '(#\c #\b #\a) 2)
+ "bc")
 
