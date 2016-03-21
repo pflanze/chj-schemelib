@@ -6,9 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require (test)
-	 (list-util)
-	 (srfi-11))
+(require test
+	 list-util
+	 srfi-11)
 
 
 ;;;

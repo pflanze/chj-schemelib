@@ -6,8 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (list-util-1) ;; list-split
-	 )
+(require (list-util-1 list-split))
 
 
 (define (string-split str char-or-pred)

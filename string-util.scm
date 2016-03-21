@@ -6,9 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (test)
-	 (list-util) ;; let-pair
-	 )
+(require test
+	 (list-util let-pair))
 
 
 (define (lists-join ls seplis #!optional (tail '()))

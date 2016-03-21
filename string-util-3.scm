@@ -1,4 +1,6 @@
-(require cj-env dot-oo)
+
+(require cj-env
+	 dot-oo)
 
 ;; (define-macro* (for var seq . body)
 ;;   `(.for seq
