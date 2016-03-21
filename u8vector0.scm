@@ -149,15 +149,13 @@ ___RESULT= ___FIX(res);
 	  (list.string-reverse l)))))
 
 (TEST
- > (u8vector0.string '#u8(195 164 195 182 195 188 0))
+ > (.string '#u8(195 164 195 182 195 188 0))
  "äöü"
- > (u8vector0.string '#u8(195 164 195 182 195 188 0 0))
- "äöü"
- > (u8vector0.string '#u8(195 164 195 182 195 0 188 0))
+ > (.string '#u8(195 164 195 182 195 188 0 0))
  "äöü"
  > (%try-error (u8vector0.string '#u8(195 164 195 182 195 0 188 0)))
  #(error "utf-8 decoding error, can't proceed")
- > (u8vector0.string '#u8(195 164 195 182 0 195 188 0))
+ > (.string '#u8(195 164 195 182 0 195 188 0))
  "äö"
  > (%try-error (u8vector0.string '#u8(195 164 195 0 182 195 188 0)))
  #(error "utf-8 decoding error, can't proceed"))
