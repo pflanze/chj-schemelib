@@ -16,7 +16,6 @@
 	ctime
 	unixtime.gmtime
 	unixtime.localtime
-	;;	string->u8vector/0
 	setenv! ;; XX move elsewhere?
 	tzset
 	set-TZ!
@@ -157,21 +156,12 @@
 ;; strptime see unixtime-Cpart-strptime, but it doesn't really work.
 
 
-(def (string->u8vector/0 str)
-  (let* ((len (string-length str))
-	 (res (##make-u8vector (inc len))))
-    (for..< (i 0 len)
-	    (u8vector-set! res i
-			   (char->integer (string-ref str i))))
-    (u8vector-set! res len 0)
-    res))
-
 (def (setenv! key val) ;; does |setenv| do the same really?
   (##c-code "___RESULT=
        ___FIX(setenv( ___CAST(char*,___BODY(___ARG1)),
                       ___CAST(char*,___BODY(___ARG2)), 1));"
-	    (string->u8vector/0 key)
-	    (string->u8vector/0 val)))
+	    (string.utf8-u8vector0 key)
+	    (string.utf8-u8vector0 val)))
 
 (def (tzset)
   (##c-code "tzset();")
