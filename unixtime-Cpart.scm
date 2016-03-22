@@ -12,6 +12,18 @@
 	 (predicates in-signed-range?)
 	 u8vector0)
 
+(export time_t? unixtime?
+	ctime
+	unixtime.gmtime
+	unixtime.localtime
+	;;	string->u8vector/0
+	setenv! ;; XX move elsewhere?
+	tzset
+	set-TZ!
+	
+	#!optional
+	sizeof-time_t
+	bitsof-time_t)
 
 
 (c-declare "
