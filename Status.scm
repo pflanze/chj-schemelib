@@ -122,6 +122,17 @@
 	   (and (Failure? v)
 		(pred-failure (Failure.value v))))))
 
+(def (Result-of pred)
+     (lambda (v)
+       (and (Result? v)
+	    (pred (Result.value v)))))
+
+(def (Failure-of pred)
+     (lambda (v)
+       (and (Failure? v)
+	    (pred (Failure.value v)))))
+
+
 (TEST
  > (def l
 	(list (Success)
@@ -133,5 +144,9 @@
  > (map (Status/Success integer?) l)
  (#t #f #f  #f #t #f)
  > (map (Status/Result symbol? integer?) l)
- (#f #f #t  #f #t #f))
+ (#f #f #t  #f #t #f)
+ > (map (Result-of integer?) l)
+ (#f #t #f #f #f #f)
+ > (map (Failure-of symbol?) l)
+ (#f #f #f #f #f #t))
 
