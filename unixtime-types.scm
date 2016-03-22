@@ -123,6 +123,9 @@
 			       (localtime.tzoffset-string v))))
 
        (method (rfc-2822 v)
-	       (rfc-2822-alike-string v #f)))
+	       (rfc-2822-alike-string v #f))
+
+       (method (gmtime-string v)
+	       (rfc-2822-alike-string v "GMT")))
 
 
