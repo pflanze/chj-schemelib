@@ -18,7 +18,9 @@
 
 (require easy
 	 more-oo
-	 test)
+	 (dot-oo void/1)
+	 test
+	 Maybe)
 
 ;; how do Perl6 or so call them?
 (class Status
@@ -70,37 +72,66 @@
 
 
 
-(def-inline (if-Status #(Status? v) success failure)
-  (if (Success? v) ;; XXX Result ? and pass value?
-      (success)
-      (failure (Failure.value v))))
+(def (if-Success v yes no)
+     (cond ((Success? v)
+	    (yes))
+	   ((Failure? v)
+	    (no (Failure.value v)))
+	   (else
+	    (error "not a Success or Failure:" v))))
 
+(def (if-Result v yes no)
+     (cond ((Result? v)
+	    (yes (Result.value v)))
+	   ((Failure? v)
+	    (no (Failure.value v)))
+	   (else
+	    (error "not a Result or Failure:" v))))
+
+;; hmm, now depending on Maybe, good or bad idea?
+(def-inline (if-Success* v yes no)
+  (cond ((Success? v)
+	 (yes (Nothing)))
+	((Result? v)
+	 (yes (Just (Result.value v))))
+	((Failure? v)
+	 (no (Failure.value v)))
+	(else
+	 (error "not a Success, Result or Failure:" v))))
 
 (defmacro (Status:if t
 		     then
 		     #!optional
 		     else)
-  `(if-Status ,t
-	      (lambda ()
-		,then)
-	      (lambda (it)
-		,(or else
-		     `(void)))))
+  `(if-Success* ,t
+		(lambda (it)
+		  ,then)
+		(lambda (it)
+		  ,(or else
+		       `(void)))))
 
 (TEST
  > (Status:if (Success) 'ok 'fail)
  ok
+ > (Status:if (Success) it 'fail)
+ #(Nothing)
+ > (Status:if (Result 12) 'ok 'fail)
+ ok
+ > (Status:if (Result 12) it 'fail)
+ #(Just 12)
  > (Status:if (Failure 'foo) 'ok 'fail)
  fail
+ > (Status:if (Failure 'foo) 'ok it)
+ foo
  > (Status:if (Failure 'foo) 'ok)
  #!void)
 
 (defmacro (Status:unless t
 			 then)
-  `(if-Status ,t
-	      void
-	      (lambda (it)
-		,(or then `(void)))))
+  `(if-Success* ,t
+		void/1
+		(lambda (it)
+		  ,(or then `(void)))))
 
 (TEST
  > (Status:unless (Success) it)
