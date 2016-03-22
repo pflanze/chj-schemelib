@@ -21,6 +21,19 @@
 
 (def. unixtime.rfc-2822 (compose localtime.rfc-2822 unixtime.localtime))
 
+(TEST
+ > (set-TZ! "Europe/Zurich")
+ > (.gmtime 1329129873)
+ #(localtime 33 44 10 13 1 112 1 43 0 0)
+ > (.gmtime-string #)
+ "Mon, 13 Feb 2012 10:44:33 GMT"
+ > (.gmtime-string 1329129873)
+ "Mon, 13 Feb 2012 10:44:33 GMT"
+ > (.rfc-2822 1329129873) ;; unlike gmtime, influenced by TZ
+ "Mon, 13 Feb 2012 11:44:33 +0100"
+ > (.rfc-2822 1529129873)
+ "Sat, 16 Jun 2018 08:17:53 +0200")
+
 
 (def (gmtime? v)
      (and (localtime? v)
