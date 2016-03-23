@@ -1,3 +1,11 @@
+;;; Copyright 2014-2016 by Christian Jaeger, ch at christianjaeger ch
+
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
 
 ;; part of the `fail` module that can be implemented without `dot-oo`,
 ;; to satisfy `cj-typed`'s dependency
