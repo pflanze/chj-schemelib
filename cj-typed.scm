@@ -6,45 +6,20 @@
 ;;;    (at your option) any later version.
 
 
+;;;
+;;;; simple explicit type checking
+;;;
+
 (require define-macro-star
 	 (scheme-meta perhaps-quote)
 	 test
 	 cj-env
 	 srfi-11
+	 (simple-match-1 assert*)
 	 (cj-source-util-2 assert
 			   assert:possibly-symbolize)
-	 (fail-1 failure? failure-string)
-	 (improper-list improper-length))
-
-
-;;;
-;;;; simple explicit type checking
-;;;
-
-
-(define (cj-typed#type-check-error maybe-exprstr predstr w v)
-  ;; v = value
-  ;; w = result of predicate
-
-  (let ((err (lambda strs
-	       (error (apply string-append
-			     (if maybe-exprstr
-				 (string-append maybe-exprstr " "))
-			     "does not match "
-			     predstr
-			     strs)
-		      v))))
-    (cond ((eq? w #f)
-	   (err ":"))
-	  ((failure? w)
-	   (err " "
-		(failure-string w)
-		":"))
-	  (else
-	   (error "predicate "
-		  predstr
-		  " returned invalid non-boolean value:"
-		  w)))))
+	 (improper-list improper-length)
+	 cj-typed-1)
 
 
 (define-macro* (type-check predicate expr . body)
