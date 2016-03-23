@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+;; XX also see Status.scm and failure.scm; should this module
+;; be ditched/merged? (But bootstrapping issues.)
+
 (require cj-functional
 	 define-macro-star
 	 dot-oo
