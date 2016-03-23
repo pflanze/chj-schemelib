@@ -139,7 +139,7 @@ i_res[1]= c;
 	    ;; ^ XX should this take into consideration zero end byte
 	    ;; in the case of u8vector0? But need real typing
 	    ;; then. Alternatively check in functions like
-	    ;; u8vector0.string.
+	    ;; u8vector0.utf8-parse .
 	    (values (integer->char (-> ucs4-codepoint? c))
 		    i*))))))
 

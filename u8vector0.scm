@@ -126,7 +126,10 @@ ___RESULT= ___FIX(res);
  #(error "value fails to meet predicate:" (positive? 0)))
 
 
-(def. (u8vector0.string #(u8vector0? v))
+;; don't call this u8vector0.string -- u8vector.string does *not* do
+;; utf8 decoding, also, why hard code this implicitely so hard. It's
+;; wrong.
+(def. (u8vector0.utf8-parse #(u8vector0? v)) -> string?
   (let ((len (u8vector0.strlen v)))
     (let lp ((i 0)
 	     ;; using a list instead of pre-calculating size, XX room
@@ -149,14 +152,14 @@ ___RESULT= ___FIX(res);
 	  (list.string-reverse l)))))
 
 (TEST
- > (.string '#u8(195 164 195 182 195 188 0))
+ > (.utf8-parse '#u8(195 164 195 182 195 188 0))
  "äöü"
- > (.string '#u8(195 164 195 182 195 188 0 0))
+ > (.utf8-parse '#u8(195 164 195 182 195 188 0 0))
  "äöü"
- > (%try-error (u8vector0.string '#u8(195 164 195 182 195 0 188 0)))
+ > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
  #(error "utf-8 decoding error, can't proceed")
- > (.string '#u8(195 164 195 182 0 195 188 0))
+ > (.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö"
- > (%try-error (u8vector0.string '#u8(195 164 195 0 182 195 188 0)))
+ > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
  #(error "utf-8 decoding error, can't proceed"))
 
