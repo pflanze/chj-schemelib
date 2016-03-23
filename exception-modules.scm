@@ -2,7 +2,7 @@
 ;; some way.
 
 (require
- fail
+ fallible
  catch-throw
  exceptions)
 

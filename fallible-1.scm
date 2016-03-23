@@ -7,21 +7,21 @@
 
 
 
-;; part of the `fail` module that can be implemented without `dot-oo`,
+;; part of the `fallible` module that can be implemented without `dot-oo`,
 ;; to satisfy `cj-typed`'s dependency
 
 (require cj-struct
 	 (cj-functional compose)
 	 (cj-env symbol-value-or))
 
-(export fail?
-	fail-string)
+(export fallible?
+	fallible-string)
 
-(define-struct fail
-  constructor-name: fail
+(define-struct fallible
+  constructor-name: fallible
   stack)
 
-(define (fail-show v)
+(define (fallible-show v)
   ;; XX but now need to rely on dot-oo or cycle workaround hack
   ;; *anyway*. Bah. TODO: avoid relying on cj-typed from dot-oo ? Or
   ;; split cj-typed ?
@@ -32,7 +32,7 @@
 		    ;;  in hack to workaround dependency cycle,
 		    (error ".show not yet defined"))))))
     (map .show
-	 (fail-stack v))))
+	 (fallible-stack v))))
 
-(define fail-string
-  (compose object->string fail-show))
+(define fallible-string
+  (compose object->string fallible-show))

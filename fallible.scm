@@ -13,7 +13,7 @@
 	 define-macro-star
 	 dot-oo
 	 test
-	 fail-1)
+	 fallible-1)
 
 
 ;;lib
@@ -24,23 +24,23 @@
 
 ;; propagate from Scheme #f to optional 'failures'
 
-;; current-fail is called in the context of the failure (hence could
+;; current-fallible is called in the context of the failure (hence could
 ;; continue or capture the continuation), with either the serialized
 ;; source code of the form (serialized-source) or the actual value
 ;; that failed as the first argument and the failure value as the
 ;; second. The idea is to collect all layers in the failure value
 ;; while leaving the predicate.
 
-(define current-fail (make-parameter false/2))
+(define current-fallible (make-parameter false/2))
 
-(define (with-fail-handler handler thunk)
-  (parameterize ((current-fail handler))
+(define (with-fallible-handler handler thunk)
+  (parameterize ((current-fallible handler))
 		(thunk)))
 
-(define (with-fail-catcher handler thunk)
+(define (with-fallible-catcher handler thunk)
   (continuation-capture
    (lambda (return)
-     (parameterize ((current-fail
+     (parameterize ((current-fallible
 		     (lambda (x rest)
 		       (continuation-graft
 			return
@@ -62,7 +62,7 @@
 (define. value.object value.val)
 
 
-(define (fail:and-expand If Or forms)
+(define (fallible:and-expand If Or forms)
   (fold-right/last
    (lambda (form tail)
      (with-gensym
@@ -70,7 +70,7 @@
       `(##let ((,V ,form))
 	      (,If ,V
 		   ,tail
-		   ((current-fail)
+		   ((current-fallible)
 		    ',(serialized-source (object->u8vector form))
 		    ,V)))))
    (lambda (form tail)
@@ -79,14 +79,14 @@
       V
       `(##let ((,V ,form))
 	      ,(Or V
-		   `((current-fail)
+		   `((current-fallible)
 		     ',(serialized-source (object->u8vector form)) ,V)))))
    '()
    forms))
 
 (TEST
  > (define TEST:equal? syntax-equal?)
- > (fail:and-expand 'if
+ > (fallible:and-expand 'if
 		    (lambda (t f)
 		      `(or ,t ,f))
 		    '("a" "b"))
@@ -94,19 +94,19 @@
 	(if GEN:V-2236
 	    (##let ((GEN:V-2258 "b"))
 		   (or GEN:V-2258
-		       ((current-fail)
+		       ((current-fallible)
 			'#(serialized-source #u8(17 98))
 			GEN:V-2258)))
-	    ((current-fail)
+	    ((current-fallible)
 	     '#(serialized-source #u8(17 97))
 	     GEN:V-2236))))
 
 
-(define. fail.stack-update fail-stack-update)
-(define. fail.stack fail-stack)
+(define. fallible.stack-update fallible-stack-update)
+(define. fallible.stack fallible-stack)
 
-(define. (fail.deserialize v)
-  (fail.stack-update v
+(define. (fallible.deserialize v)
+  (fallible.stack-update v
 			(lambda (l)
 			  (map (lambda (v)
 				 (if (serialized-source? v)
@@ -122,40 +122,40 @@
   ;; HACK? Should really have proper source type?
   (vector 'source (cj-desourcify (serialized-source.object v))))
 
-(define. fail.show fail-show)
+(define. fallible.show fallible-show)
 
-(define. fail.string fail-string)
+(define. fallible.string fallible-string)
 
 
-(define-macro* (fail:if t a b)
-  `(##if (##or (##not ,t) (fail? ,t))
+(define-macro* (fallible:if t a b)
+  `(##if (##or (##not ,t) (fallible? ,t))
 	 ,b
 	 ,a))
 
-(define-macro* (fail:and . forms)
-  (fail:and-expand 'fail:if
+(define-macro* (fallible:and . forms)
+  (fallible:and-expand 'fallible:if
 		   (lambda (t f)
-		     `(fail:if ,t ,t ,f))
+		     `(fallible:if ,t ,t ,f))
 		   forms))
 
-(define active-fail-handler
+(define active-fallible-handler
   (lambda (v rest)
     (if rest
-	(fail.stack-update
+	(fallible.stack-update
 	 rest (lambda (vs)
 		(cons v vs)))
-	(fail (cons v '())))))
+	(fallible (cons v '())))))
 
 (define (with-fails thunk)
-  (with-fail-handler active-fail-handler
+  (with-fallible-handler active-fallible-handler
 		     thunk))
 
 (define (without-fails thunk)
-  (with-fail-handler false/2
+  (with-fallible-handler false/2
 		     thunk))
 
 (define-typed (activate-fails! #(boolean? y))
-  (current-fail (if y active-fail-handler
+  (current-fallible (if y active-fallible-handler
 		    false/2)))
 
 (define-macro* (%with-fails . body)
@@ -168,32 +168,32 @@
 
 (TEST
  > (define (tests)
-     (list (fail:and 1 2)
-	   (fail:and 1 #f)
-	   (fail:and #f 2)
-	   (fail:and (even? 4) (even? 5))
-	   (fail:and (even? 7) (even? 8))
-	   (fail:and (even? 9) (even? 11))
-	   (fail:and (even? 10) (even? 12))
-	   (fail:and (even? -2)
-		     (fail:and (even? 0)
+     (list (fallible:and 1 2)
+	   (fallible:and 1 #f)
+	   (fallible:and #f 2)
+	   (fallible:and (even? 4) (even? 5))
+	   (fallible:and (even? 7) (even? 8))
+	   (fallible:and (even? 9) (even? 11))
+	   (fallible:and (even? 10) (even? 12))
+	   (fallible:and (even? -2)
+		     (fallible:and (even? 0)
 			       (odd? 0)))))
  > (without-fails tests)
  (2 #f #f #f #f #f #t #f)
  > (cj-desourcify
     (map (lambda (v)
-	   (if (fail? v)
-	       (fail.deserialize v)
+	   (if (fallible? v)
+	       (fallible.deserialize v)
 	       v))
 	 (with-fails tests)))
  (2
-  #(fail (#f))
-  #(fail (#f))
-  #(fail ((even? 5)))
-  #(fail ((even? 7)))
-  #(fail ((even? 9)))
+  #(fallible (#f))
+  #(fallible (#f))
+  #(fallible ((even? 5)))
+  #(fallible ((even? 7)))
+  #(fallible ((even? 9)))
   #t
-  #(fail ((fail:and (even? 0)
+  #(fallible ((fallible:and (even? 0)
 		    (odd? 0))
 	  (odd? 0)))))
 
@@ -204,14 +204,14 @@
 (IF #f
     (begin
 
-      (define-macro* (fail:_and . forms)
-	(fail:and-expand 'if
+      (define-macro* (fallible:_and . forms)
+	(fallible:and-expand 'if
 			 (lambda (t f)
 			   `(or ,t ,f))
 			 forms))
 
-      (define-macro* (fail:And . forms)
-	(fail:and-expand 'If
+      (define-macro* (fallible:And . forms)
+	(fallible:and-expand 'If
 			 (lambda (t f)
 			   `(If ,t #t ,f))
 			 forms))
@@ -219,21 +219,21 @@
 
 
       (TEST
-       > (fail:_and 1 2)
+       > (fallible:_and 1 2)
        2
-       > (with-fail-catcher (1st/2 cj-desourcify) (& (fail:_and (even? 4) (even? 5))))
+       > (with-fallible-catcher (1st/2 cj-desourcify) (& (fallible:_and (even? 4) (even? 5))))
        (even? 5)
-       > (%try-error (fail:And 1 2))
+       > (%try-error (fallible:And 1 2))
        #(error "If: expecting boolean, got:" 1)
-       > (%try-error (fail:And #t 2))
+       > (%try-error (fallible:And #t 2))
        #(error "If: expecting boolean, got:" 2)
-       > (fail:And #t (even? 6))
+       > (fallible:And #t (even? 6))
        #t
-       > (fail:And #t (even? 7))
+       > (fallible:And #t (even? 7))
        #f
-       > (with-fail-catcher (1st/2 cj-desourcify) (& (fail:And #t (even? 7))))
+       > (with-fallible-catcher (1st/2 cj-desourcify) (& (fallible:And #t (even? 7))))
        (even? 7)
-       > (with-fail-catcher (1st/2 cj-desourcify) (& (fail:And (even? 5) (even? 7))))
+       > (with-fallible-catcher (1st/2 cj-desourcify) (& (fallible:And (even? 5) (even? 7))))
        (even? 5)
        )
 
@@ -254,49 +254,49 @@
        n)
 
 
-      (define-macro* (fail:anD . forms)
-	(fail:and-expand 'iF
+      (define-macro* (fallible:anD . forms)
+	(fallible:and-expand 'iF
 			 (lambda (t f)
 			   `(iF ,t #t ,f))
 			 forms))
 
       (TEST
-       > (fail:anD 1 2)
+       > (fallible:anD 1 2)
        #f ;; because the default handler is false/1
-       > (fail:anD 1 #t)
+       > (fallible:anD 1 #t)
        #f
-       > (fail:anD (even? 4) (even? 6))
+       > (fallible:anD (even? 4) (even? 6))
        #t
-       > (with-fail-handler (1st/2 cj-desourcify) (& (fail:anD (even? 4) (even? 7))))
+       > (with-fallible-handler (1st/2 cj-desourcify) (& (fallible:anD (even? 4) (even? 7))))
        (even? 7)
-       > (with-fail-handler (1st/2 cj-desourcify) (& (fail:anD (even? 5) (even? 7))))
+       > (with-fallible-handler (1st/2 cj-desourcify) (& (fallible:anD (even? 5) (even? 7))))
        (even? 5))))
 
 
 ;; ------------------------------------------------------------------
 ;; supporting library
 
-(define (fail:every pred l)
+(define (fallible:every pred l)
   (let lp ((l l))
     (if (null? l)
 	#t
 	(let-pair ((a r) l)
 		  (let ((v (pred a)))
-		    (fail:if v
+		    (fallible:if v
 			     (lp r)
 			     ;; no source to show, but a value: (XX
 			     ;; although, iff v is a failure already,
 			     ;; it probably already has the value?)
-			     ((current-fail) (value a) v)))))))
+			     ((current-fallible) (value a) v)))))))
 
-;; XX (fail:and (fail:every )) etc.: should every fail:-'function' be
-;; a macro and maintain its own reporting? including fail:and
+;; XX (fallible:and (fallible:every )) etc.: should every fallible:-'function' be
+;; a macro and maintain its own reporting? including fallible:and
 ;; reporting on the whole expression?
 
 (TEST
  > (cj-desourcify
     (map .object
-	 (fail.stack
-	  (%with-fails (fail:and (fail:every even? '(2 3 4)))))))
- ((fail:every even? '(2 3 4)) 3))
+	 (fallible.stack
+	  (%with-fails (fallible:and (fallible:every even? '(2 3 4)))))))
+ ((fallible:every even? '(2 3 4)) 3))
 
