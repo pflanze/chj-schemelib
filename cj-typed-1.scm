@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (fail-1 failure? failure-string))
+(require (fail-1 fail? fail-string))
 
 
 (define (cj-typed#type-check-error maybe-exprstr predstr w v)
@@ -23,9 +23,9 @@
 		      v))))
     (cond ((eq? w #f)
 	   (err ":"))
-	  ((failure? w)
+	  ((fail? w)
 	   (err " "
-		(failure-string w)
+		(fail-string w)
 		":"))
 	  (else
 	   (error "predicate "

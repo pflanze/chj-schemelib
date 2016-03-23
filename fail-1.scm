@@ -6,14 +6,14 @@
 	 (cj-functional compose)
 	 (cj-env symbol-value-or))
 
-(export failure?
-	failure-string)
+(export fail?
+	fail-string)
 
-(define-struct failure
-  constructor-name: failure
+(define-struct fail
+  constructor-name: fail
   stack)
 
-(define (failure-show v)
+(define (fail-show v)
   ;; XX but now need to rely on dot-oo or cycle workaround hack
   ;; *anyway*. Bah. TODO: avoid relying on cj-typed from dot-oo ? Or
   ;; split cj-typed ?
@@ -24,7 +24,7 @@
 		    ;;  in hack to workaround dependency cycle,
 		    (error ".show not yet defined"))))))
     (map .show
-	 (failure-stack v))))
+	 (fail-stack v))))
 
-(define failure-string
-  (compose object->string failure-show))
+(define fail-string
+  (compose object->string fail-show))

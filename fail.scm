@@ -91,11 +91,11 @@
 	     GEN:V-2236))))
 
 
-(define. failure.stack-update failure-stack-update)
-(define. failure.stack failure-stack)
+(define. fail.stack-update fail-stack-update)
+(define. fail.stack fail-stack)
 
-(define. (failure.deserialize v)
-  (failure.stack-update v
+(define. (fail.deserialize v)
+  (fail.stack-update v
 			(lambda (l)
 			  (map (lambda (v)
 				 (if (serialized-source? v)
@@ -111,13 +111,13 @@
   ;; HACK? Should really have proper source type?
   (vector 'source (cj-desourcify (serialized-source.object v))))
 
-(define. failure.show failure-show)
+(define. fail.show fail-show)
 
-(define. failure.string failure-string)
+(define. fail.string fail-string)
 
 
 (define-macro* (fail:if t a b)
-  `(##if (##or (##not ,t) (failure? ,t))
+  `(##if (##or (##not ,t) (fail? ,t))
 	 ,b
 	 ,a))
 
@@ -130,29 +130,29 @@
 (define active-fail-handler
   (lambda (v rest)
     (if rest
-	(failure.stack-update
+	(fail.stack-update
 	 rest (lambda (vs)
 		(cons v vs)))
-	(failure (cons v '())))))
+	(fail (cons v '())))))
 
-(define (with-failures thunk)
+(define (with-fails thunk)
   (with-fail-handler active-fail-handler
 		     thunk))
 
-(define (without-failures thunk)
+(define (without-fails thunk)
   (with-fail-handler false/2
 		     thunk))
 
-(define-typed (activate-failures! #(boolean? y))
+(define-typed (activate-fails! #(boolean? y))
   (current-fail (if y active-fail-handler
 		    false/2)))
 
-(define-macro* (%with-failures . body)
-  `(with-failures (##lambda ()
+(define-macro* (%with-fails . body)
+  `(with-fails (##lambda ()
 			    ,@body)))
 
-(define-macro* (%without-failures . body)
-  `(without-failures (##lambda ()
+(define-macro* (%without-fails . body)
+  `(without-fails (##lambda ()
 			       ,@body)))
 
 (TEST
@@ -167,24 +167,24 @@
 	   (fail:and (even? -2)
 		     (fail:and (even? 0)
 			       (odd? 0)))))
- > (without-failures tests)
+ > (without-fails tests)
  (2 #f #f #f #f #f #t #f)
  > (cj-desourcify
     (map (lambda (v)
-	   (if (failure? v)
-	       (failure.deserialize v)
+	   (if (fail? v)
+	       (fail.deserialize v)
 	       v))
-	 (with-failures tests)))
+	 (with-fails tests)))
  (2
-  #(failure (#f))
-  #(failure (#f))
-  #(failure ((even? 5)))
-  #(failure ((even? 7)))
-  #(failure ((even? 9)))
+  #(fail (#f))
+  #(fail (#f))
+  #(fail ((even? 5)))
+  #(fail ((even? 7)))
+  #(fail ((even? 9)))
   #t
-  #(failure ((fail:and (even? 0)
-		       (odd? 0))
-	     (odd? 0)))))
+  #(fail ((fail:and (even? 0)
+		    (odd? 0))
+	  (odd? 0)))))
 
 
 ;; ------------------------------------------------------------------
@@ -285,7 +285,7 @@
 (TEST
  > (cj-desourcify
     (map .object
-	 (failure.stack
-	  (%with-failures (fail:and (fail:every even? '(2 3 4)))))))
+	 (fail.stack
+	  (%with-fails (fail:and (fail:every even? '(2 3 4)))))))
  ((fail:every even? '(2 3 4)) 3))
 
