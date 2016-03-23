@@ -156,10 +156,10 @@ ___RESULT= ___FIX(res);
  "äöü"
  > (.utf8-parse '#u8(195 164 195 182 195 188 0 0))
  "äöü"
- > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
+ > (%try-error (.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
  #(error "utf-8 decoding error, can't proceed")
  > (.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö"
- > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
+ > (%try-error (.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
  #(error "utf-8 decoding error, can't proceed"))
 
