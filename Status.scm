@@ -37,8 +37,8 @@
 	Status:unless ;; macro
 	Status:and ;; macro
 	Status:or ;; macro
-	Status/Success
-	Status/Result
+	Status/Success-of
+	Status/Result-of
 	Result-of
 	Failure-of
 	
@@ -231,13 +231,13 @@
 
 ;; Predicates
 
-(def (Status/Success pred-failure)
+(def (Status/Success-of pred-failure)
      (lambda (v)
        (or (Success? v)
 	   (and (Failure? v)
 		(pred-failure (Failure.value v))))))
 
-(def (Status/Result pred-result pred-failure)
+(def (Status/Result-of pred-result pred-failure)
      (lambda (v)
        (or (and (Result? v)
 		(pred-result (Result.value v)))
@@ -263,9 +263,9 @@
 	      10
 	      (Failure 10)
 	      (Failure 'y)))
- > (map (Status/Success integer?) l)
+ > (map (Status/Success-of integer?) l)
  (#t #f #f  #f #t #f)
- > (map (Status/Result symbol? integer?) l)
+ > (map (Status/Result-of symbol? integer?) l)
  (#f #f #t  #f #t #f)
  > (map (Result-of integer?) l)
  (#f #t #f #f #f #f)
