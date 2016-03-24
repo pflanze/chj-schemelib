@@ -140,6 +140,74 @@
  foo)
 
 
+(defmacro (Status:and . clauses)
+  (if (one? clauses)
+      (first clauses)
+      (let-pair ((a r) (reverse clauses))
+		(fold (lambda (clause next)
+			(with-gensym
+			 V
+			 `(let ((,V ,clause))
+			    (if (Success*? ,V)
+				,next
+				,V))))
+		      a
+		      r))))
+
+(TEST
+ ;; > (Status:and)
+ ;; (Failure "empty Status:and statement")
+ ;; or better simply don't allow syntactically?
+ > (Status:and (Failure "foo"))
+ #(Failure "foo")
+ > (Status:and (Failure "foo") (Failure "bar"))
+ #(Failure "foo")
+ > (Status:and (Success) (Failure "bar"))
+ #(Failure "bar")
+ > (Status:and (Result "foo") (Failure "bar"))
+ #(Failure "bar")
+ > (Status:and (Result "foo") (Success) (Failure "bar"))
+ #(Failure "bar")
+ > (Status:and (Result "foo") (Success) (Result "bar"))
+ #(Result "bar")
+ > (Status:and (Result "foo") (Success))
+ #(Success))
+
+(defmacro (Status:or . clauses)
+  (if (one? clauses)
+      (first clauses)
+      (let-pair ((a r) (reverse clauses))
+		(fold (lambda (clause next)
+			(with-gensym
+			 V
+			 `(let ((,V ,clause))
+			    (if (Success*? ,V)
+				,V
+				,next))))
+		      a
+		      r))))
+
+(TEST
+ ;; > (Status:or)
+ ;; (Failure "empty Status:or statement") or don't allow
+ > (Status:or (Failure "foo"))
+ #(Failure "foo")
+ > (Status:or (Failure "foo") (Failure "bar"))
+ #(Failure "bar")
+ > (Status:or (Success) (Failure "bar"))
+ #(Success)
+ > (Status:or (Result "foo") (Failure "bar"))
+ #(Result "foo")
+ > (Status:or (Failure "bar") (Result "foo"))
+ #(Result "foo")
+ > (Status:or (Success) (Result "foo") (Failure "bar"))
+ #(Success)
+ > (Status:or (Failure "foo") (Failure "bar") (Success))
+ #(Success))
+
+
+;; Predicates
+
 (def (Status/Success pred-failure)
      (lambda (v)
        (or (Success? v)
