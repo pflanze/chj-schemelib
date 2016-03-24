@@ -31,7 +31,7 @@
 (define (true/1 v)
   #t)
 
-(define any-type? true/1)
+(define any? true/1)
 
 (define (cj-alist:error-not-found alis key)
   (error "key not found:" alis key))
@@ -72,7 +72,7 @@
 	       cj-alist:error-not-found))
 
 (define eq-alist-ref
-  (_-alist-ref any-type? eq?
+  (_-alist-ref any? eq?
 	       cj-alist:error-not-found))
 
 (define symbol-alist-maybe-ref
@@ -92,7 +92,7 @@
 	       false/2))
 
 (define eq-alist-maybe-ref
-  (_-alist-ref any-type? eq?
+  (_-alist-ref any? eq?
 	       false/2))
 
 
@@ -133,7 +133,7 @@
 		   cons _alist-replace-key-not-found))
 
 (define eq-alist-replace
-  (_-alist-replace any-type? eq?
+  (_-alist-replace any? eq?
 		   cons _alist-replace-key-not-found))
 
 (define string-alist-replace
@@ -197,7 +197,7 @@
   (_-alist-add number? =))
 
 (define eq-alist-add
-  (_-alist-add any-type? eq?))
+  (_-alist-add any? eq?))
 
 (TEST
  > (keyword-alist-add '() (cons foo: 1))

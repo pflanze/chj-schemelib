@@ -89,7 +89,7 @@
 ;; ------------------------------------------
 ;; Check values for truthness the Perl way:
 
-(define. (anything.perl-true? x)
+(define. (any.perl-true? x)
   #t)
 
 (define number-zero? (both number? zero?))
