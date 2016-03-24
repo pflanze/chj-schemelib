@@ -9,6 +9,37 @@
 	 (improper-list improper-any))
 
 
+(export forced ;; rename to possibly-promise-of ?
+	false?
+	anything?
+	true?
+	true
+	inexact-real?
+	exact-real?
+	exact-number?
+	pair-with-car
+	nonempty-string?
+	improper*-map/tail ;; XX move
+	improper*-map ;; dito
+	string-of
+	improper-every  ;; XX move
+	improper-list-of ;; hmm
+	char-one-of ;; move to char lib?
+	perhaps-source-of ;; XX rename to possibly-source-of ?
+	source-of
+	perhaps-source*-of ;; dito
+	source*-of
+	length-=
+	length-is ;; see also list-of/length  -- rename to list-of-length ?
+	0..1? ;; see also rgb:0..1?
+	in-signed-range?)
+
+
+(define (forced pred)
+  (lambda (v)
+    (pred (force v))))
+
+
 (define false? not) ;; so as to be able to use "false." as OO prefix
 (define (anything? x) #t)
 ;; maybe also, since at it:
