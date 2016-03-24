@@ -18,6 +18,7 @@
 	inexact-real?
 	exact-real?
 	exact-number?
+	pair-or-null?
 	pair-with-car
 	nonempty-string?
 	improper*-map/tail ;; XX move
@@ -67,6 +68,10 @@
  > (exact-number? 3+2i)
  #t)
 
+
+(define (pair-or-null? v)
+  (or (pair? v)
+      (null? v)))
 
 (define (pair-with-car pred)
   (lambda (v)
