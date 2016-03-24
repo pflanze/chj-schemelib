@@ -22,6 +22,29 @@
 	 test
 	 Maybe)
 
+(export Status?
+	Success*?
+	Success? Success
+	Result? Result Result.value
+	Failure? Failure Failure.value
+	.value ;; XX oh, that one I usually forget. Finally need class
+	       ;; export form or so. But, anyway, these methods are
+	       ;; not local(izable that way) (right?)
+	if-Success
+	if-Result
+	if-Success* ;; inline
+	Status:if ;; macro
+	Status:unless ;; macro
+	Status:and ;; macro
+	Status:or ;; macro
+	Status/Success
+	Status/Result
+	Result-of
+	Failure-of
+	
+	#!optional
+	_Success)
+
 ;; how do Perl6 or so call them?
 (class Status
        (subclass Success*
