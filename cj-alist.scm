@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require test)
+(require test
+	 (predicates any? true/1 false/2))
 
 
 ;; Library for association lists of various key types
@@ -28,16 +29,9 @@
 	  (error "not a keyword:" b))
       (error "not a keyword:" a)))
 
-(define (true/1 v)
-  #t)
-
-(define any? true/1)
-
 (define (cj-alist:error-not-found alis key)
   (error "key not found:" alis key))
 
-(define (false/2 a b)
-  #f)
 
 (define (_-alist-ref key-type? equal? not-found)
   (lambda (alis key)
