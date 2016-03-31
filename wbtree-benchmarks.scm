@@ -75,12 +75,12 @@
 
 
 (define-macro* ($ . body)
-  `(let (($param wbtreeparameter-number))
+  `(let (($wbtreeparameter wbtreeparameter-number))
      ,@body))
 
 (define-macro* ($define var body)
   `(define ,var
-     (let (($param wbtreeparameter-number))
+     (let (($wbtreeparameter wbtreeparameter-number))
        ,body)))
 
 (TEST
