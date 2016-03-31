@@ -52,7 +52,7 @@
 	t
 	(next n step
 	      (lambda (n step)
-		(lp (wbtree:add* t n wbtreeparameter-number)
+		(lp (wbtree:add* wbtreeparameter-number t n)
 		    (dec i)
 		    n
 		    step))))))
@@ -66,7 +66,7 @@
 	tot
 	(next n step
 	      (lambda (n step)
-		(lp (if (wbtree:member?* t n wbtreeparameter-number)
+		(lp (if (wbtree:member?* wbtreeparameter-number t n)
 			(inc tot)
 			tot)
 		    (dec i)
