@@ -14,6 +14,21 @@
 	 Status)
 
 
+(TEST
+ > (simple-basename ".")
+ "." ;; ok?
+ > (simple-basename "./bar/foo.scm")
+ "foo.scm"
+ > (scm-basename "./bar/foo.scm")
+ "foo"
+ > (scm-basename "bar.scm")
+ "bar"
+ > (%try-error (scm-basename "./bar/foo"))
+ #(error "not a path with suffix '.scm':" "./bar/foo")
+ > (%try-error (scm-basename "./bar/foo.scmx"))
+ #(error "not a path with suffix '.scm':" "./bar/foo.scmx"))
+
+
 (def (path-string.topo-relation p)
      (path-string.relation p topo-relation))
 
