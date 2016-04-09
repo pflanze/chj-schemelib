@@ -1,6 +1,27 @@
-;; 'parse them', sort them, kr(ypton)
 
-(require (cj-io-util basename))
+(require)
+
+
+(define (scm-stripsuffix p)
+  (let ((len (string-length p)))
+    (if (and (> len 4)
+	     (string=? (substring p (- len 4) len) ".scm"))
+	(substring p 0 (- len 4))
+	(error "not a path with suffix '.scm':" p))))
+
+(define (simple-basename p)
+  (let ((len (string-length p)))
+    (let lp ((i (- len 1)))
+      (if (negative? i)
+	  p
+	  (let ((c (string-ref p i)))
+	    (if (char=? c #\/)
+		(substring p (+ i 1) len)
+		(lp (- i 1))))))))
+
+;; unlike (basename p ".scm"), this also complains for wrong suffix
+(define (scm-basename p)
+  (simple-basename (scm-stripsuffix p)))
 
 
 (define (require-decl.modulename v)
@@ -13,7 +34,7 @@
 
 ;; module-basename (vs. full module name in the future?)
 (define (path-string.modulename p) ;; -> symbol?
-  (string->symbol (basename p ".scm")))
+  (string->symbol (scm-basename p)))
 
 
 (define modules-without-require-forms
