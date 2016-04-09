@@ -1,7 +1,6 @@
 ;; 'parse them', sort them, kr(ypton)
 
-(require (cj-io-util basename)
-	 (tsort (class topo-relation)))
+(require (cj-io-util basename))
 
 
 (define (require-decl.modulename v)
@@ -38,7 +37,7 @@
     remote
     usersyntax))
 
-(define (path-string.topo-relation p)
+(define (path-string.relation p relation)
   (let ((form (call-with-input-file p read))
 	(mname (path-string.modulename p)))
     (let rec ((form form))
@@ -46,8 +45,8 @@
        ;; `(require . `rest)
        ((and (pair? form)
 	     (eq? (car form) 'require))
-	(topo-relation mname
-		       (map require-decl.modulename (cdr form))))
+	(relation mname
+		  (map require-decl.modulename (cdr form))))
 
        ;; `(quote `q)
        ((and (pair? form)
@@ -58,7 +57,7 @@
 
        (else
 	(if (memq mname modules-without-require-forms)
-	    (topo-relation mname '())
+	    (relation mname '())
 	    (error "file does not have a require form as its first form:"
 		   p)))))))
 

@@ -6,6 +6,9 @@
 	 Status)
 
 
+(def (path-string.topo-relation p)
+     (path-string.relation p topo-relation))
+
 (TEST
  ;; well those are evil of course, will break upon module changes
  > (path-string.topo-relation "lib/require-util.scm")
