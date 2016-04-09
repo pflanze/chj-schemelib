@@ -1,56 +1,65 @@
 ;; 'parse them', sort them, kr(ypton)
 
-(require easy)
+(require (cj-io-util basename)
+	 (tsort (class topo-relation)))
 
 
-(def (require-decl.modulename v)
-     (mcase v
-	    (symbol?
-	     (source-code v))
-	    (pair?
-	     (source-code (car (source-code v))))))
+(define (require-decl.modulename v)
+  (cond ((symbol? v)
+	 (source-code v))
+	((pair? v)
+	 (source-code (car (source-code v))))
+	(else
+	 (error "no match:" v))))
 
 ;; module-basename (vs. full module name in the future?)
-(def (path-string.modulename p) -> symbol?
-     (string.symbol (basename p ".scm")))
+(define (path-string.modulename p) ;; -> symbol?
+  (string->symbol (basename p ".scm")))
 
 
-(def modules-without-require-forms
-     '(;; cj-source
-       ;; define-macro-star
-       ;; dummy-module
-       vector-util-1
-       cj-env-1
+(define modules-without-require-forms
+  '( ;; cj-source
+    ;; define-macro-star
+    ;; dummy-module
+    vector-util-1
+    cj-env-1
 
-       ;; mydb top
-       config
+    ;; mydb top
+    config
 
-       ;; lib/mod/ :
-       config-example
-       gambit
-       imperative-load-tree
-       lib
-       mod
-       monad
-       monadic-load-tree
-       remote
-       usersyntax))
+    ;; lib/mod/ :
+    config-example
+    gambit
+    imperative-load-tree
+    lib
+    mod
+    monad
+    monadic-load-tree
+    remote
+    usersyntax))
 
-(def (path-string.topo-relation p)
-     (let ((form (call-with-input-file p read))
-	   (mname (path-string.modulename p)))
-       ((named rec
-	       (mcase-lambda
-		(`(require . `rest)
-		 (topo-relation mname
-				(map require-decl.modulename rest)))
-		(`(quote `q)
-		 (rec q))
-		(else
-		 (if (memq mname modules-without-require-forms)
-		     (topo-relation mname '())
-		     (error "file does not have a require form as its first form:"
-			    p)))))
-	form)))
+(define (path-string.topo-relation p)
+  (let ((form (call-with-input-file p read))
+	(mname (path-string.modulename p)))
+    (let rec ((form form))
+      (cond
+       ;; `(require . `rest)
+       ((and (pair? form)
+	     (eq? (car form) 'require))
+	(topo-relation mname
+		       (map require-decl.modulename (cdr form))))
+
+       ;; `(quote `q)
+       ((and (pair? form)
+	     (eq? (car form) 'quote)
+	     (pair? (cdr form))
+	     (null? (cddr form)))
+	(rec (cadr form)))
+
+       (else
+	(if (memq mname modules-without-require-forms)
+	    (topo-relation mname '())
+	    (error "file does not have a require form as its first form:"
+		   p)))))))
 
 ;; tests see in require-util.scm
