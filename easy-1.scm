@@ -71,6 +71,7 @@
 (defmacro (defmodule . args)
   `(define-module ,@args))
 
+(def the xxone)
 
 ;; --  extension of define-module.scm ---
 
