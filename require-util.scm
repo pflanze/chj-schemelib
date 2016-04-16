@@ -110,14 +110,12 @@
 		  (flatten
 		   (call-with-input-file ".gambc/load.scm" read-all)))))
 
-(def (check-load.scm check-mydb-too?)
+(def (check-load.scm all?)
      (let ((modulepaths
-	    (filter (let ((lib (C string-starts-with? _ "lib/")))
-		      (if check-mydb-too?
-			  (either lib
-				  (C string-starts-with? _ "mydb/"))
-			  lib))
-		    (load.scm-files))))
+	    (if all?
+		(load.scm-files)
+		(filter (C string-starts-with? _ "lib/")
+			(load.scm-files)))))
        (vector (length modulepaths)
 	       (modulepaths-satisfying? modulepaths))))
 
