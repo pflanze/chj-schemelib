@@ -24,6 +24,12 @@
       `(define-typed ,first ,@rest)
       `(define ,first ,@rest)))
 
+;; forward declaration; no body, but might accept ->
+(define-macro* (forward-def . args)
+  ;; in the context of a host that doesn't require forward
+  ;; declarations:
+  `(begin))
+
 (define-macro* (def. . args)
   `(define. ,@args))
 
