@@ -32,15 +32,16 @@
 (def. (atomic-box.update! b fn)
   (let-atomic-box ((v m) b)
 		  (mutex-lock! m)
-		  (with-exception-catcher
-		   ;; everything is costly in this...
-		   (lambda (e)
-		     (mutex-unlock! m)
-		     (raise e))
-		   (& (letv ((v* res) (fn v))
-			    (vector-set! b 1 v*) ;; hack
-			    (mutex-unlock! m)
-			    res)))))
+		  (let ((orig-handler (current-exception-handler)))
+		    (with-exception-handler
+		     ;; everything is costly in this...
+		     (lambda (e)
+		       (mutex-unlock! m)
+		       (orig-handler e))
+		     (& (letv ((v* res) (fn v))
+			      (vector-set! b 1 v*) ;; hack
+			      (mutex-unlock! m)
+			      res))))))
 
 (def. atomic-box.unbox
   atomic-box.value)
