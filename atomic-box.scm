@@ -9,13 +9,12 @@
 (require easy
 	 test)
 
-(export atomic-box
-	atomic-box.value atomic-box.unbox
-	atomic-box.mutex
-	atomic-box.update!
-	;; and the corresponding generics, .value, .mutex, .update!
+(export (struct atomic-box)
+	(method atomic-box.update!)
+	(method atomic-box.unbox) atomic-unbox
 	atomic-box-of
-	)
+	#!optional
+	_atomic-box)
 
 (defstruct atomic-box
   constructor-name: _atomic-box
