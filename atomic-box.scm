@@ -14,12 +14,18 @@
 	atomic-box.mutex
 	atomic-box.update!
 	;; and the corresponding generics, .value, .mutex, .update!
+	atomic-box-of
 	)
 
 (defstruct atomic-box
   constructor-name: _atomic-box
   value
   mutex)
+
+(def (atomic-box-of pred)
+     (lambda (v)
+       (and (atomic-box? v)
+	    (pred (atomic-box.value v)))))
 
 (def. (atomic-box val)
   (_atomic-box val (make-mutex)))
