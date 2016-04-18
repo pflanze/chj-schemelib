@@ -29,7 +29,8 @@
 (def. (atomic-box val)
   (_atomic-box val (make-mutex)))
 
-(def. (atomic-box.update! b fn)
+;; fn: (A?) -> (values A? B?)
+(def. (atomic-box.update! b fn) ;; -> B?
   (let-atomic-box ((v m) b)
 		  (mutex-lock! m)
 		  (let ((orig-handler (current-exception-handler)))
