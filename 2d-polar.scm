@@ -31,13 +31,22 @@
  #(2d-point 0 0)
  > (.point (2d-polar 0 1))
  #(2d-point 1 0)
- > (.point (2d-polar 90° 1))
- #(2d-point 6.123233995736766e-17 1.) ;; or something
- > (.point (2d-polar (* 2 90°) 1))
- #(2d-point -1. 1.2246467991473532e-16)
- > (.point (2d-polar (* 3 90°) 1))
- #(2d-point -1.8369701987210297e-16 -1.)
- )
+
+ ;; 32 and 64 bit Gambit don't give the same values (huh?)
+ > (def (t v e64 e32)
+	(or (equal? v e64)
+	    (equal? v e32)))
+ > (t (.point (2d-polar 90° 1))
+      '#(2d-point 6.123233995736766e-17 1.)
+      '#(2d-point 6.123031769111886e-17 1.))
+ > (t (.point (2d-polar (* 2 90°) 1))
+      '#(2d-point -1. 1.2246467991473532e-16)
+      '#(2d-point -1. 1.2246063538223773e-16))
+ > (t (.point (2d-polar (* 3 90°) 1))
+      '#(2d-point -1.8369701987210297e-16 -1.)
+
+      '#(2d-point -1.836909530733566e-16 -1.)))
+
 
 (def. (2d-point.polar v)
   (let-2d-point
