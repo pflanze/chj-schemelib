@@ -33,6 +33,7 @@
 	source*-of
 	length-=
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
+	list-of-length
 	0..1? ;; see also rgb:0..1?
 	in-signed-range?)
 
@@ -173,6 +174,31 @@
 (define (length-is len)
   (lambda (l)
     (length-= l len)))
+
+
+;; XX base on length-= for simplification?
+(define (list-of-length n)
+  (lambda (v)
+    (let lp ((v v)
+	     (len 0))
+      (cond ((pair? v)
+	     (if (< len n)
+		 (lp (cdr v) (inc len))
+		 #f))
+	    ((null? v)
+	     (= len n))
+	    (else
+	     ;; not a list
+	     #f)))))
+
+(TEST
+ > (def vals '(() (a) (a b) (a b c) (a b . c) a))
+ > (map (list-of-length 2) vals)
+ (#f #f #t #f #f #f)
+ > (map (list-of-length 0) vals)
+ (#t #f #f #f #f #f)
+ > (map (list-of-length 4) vals)
+ (#f #f #f #f #f #f))
 
 
 (define (0..1? v)
