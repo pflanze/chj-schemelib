@@ -12,6 +12,13 @@
 	 (cj-env symbol-append)
 	 (predicates list-of-length))
 
+(export (macro define-struct)
+	(macro define-struct*)
+	struct?
+	struct-of-type
+	;; odd one?:
+	struct-of)
+
 
 (define define-struct:arg->maybe-fieldname
   (named self
@@ -338,13 +345,29 @@
 		 #t))))))
 
 (TEST
- > (map (struct-of natural0?)
-	'(foo
-	  (foo)
-	  #(foo)
-	  #(foo 1)
-	  #(1 foo)
-	  #(foo 1 2)
-	  #(foo 1 -2)
-	  #(foo 1 "-2")))
+ > (define vals '(foo
+		  (foo)
+		  #(foo)
+		  #(foo 1)
+		  #(1 foo)
+		  #(foo 1 2)
+		  #(foo 1 -2)
+		  #(foo 1 "-2")))
+ > (map (struct-of natural0?) vals)
  (#f #f #t #t #f #t #f #f))
+
+
+;; Does not check for parent types! (This is not an is-a check.) Also,
+;; does not verify the number of fields, just the type name!
+(define (struct-of-type type-name)
+  (if (symbol? type-name)
+      (lambda (v)
+	(and (struct? v)
+	     (eq? (vector-ref v 0) type-name)))
+      (error "not a symbol:" type-name)))
+
+(TEST
+ > (define f? (struct-of-type 'foo))
+ > (map f? vals)
+ (#f #f #t #t #f #t #t #t))
+
