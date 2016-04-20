@@ -15,6 +15,7 @@
 (export (macro define-struct)
 	(macro define-struct*)
 	struct?
+	struct-type
 	struct-of-type
 	;; odd one?:
 	struct-of)
@@ -357,13 +358,19 @@
  (#f #f #t #t #f #t #f #f))
 
 
+(define (struct-type v)
+  (if (struct? v)
+      (vector-ref v 0)
+      (error "not a struct:" v)))
+
+
 ;; Does not check for parent types! (This is not an is-a check.) Also,
 ;; does not verify the number of fields, just the type name!
 (define (struct-of-type type-name)
   (if (symbol? type-name)
       (lambda (v)
 	(and (struct? v)
-	     (eq? (vector-ref v 0) type-name)))
+	     (eq? (struct-type v) type-name)))
       (error "not a symbol:" type-name)))
 
 (TEST
