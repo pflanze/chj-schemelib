@@ -24,7 +24,13 @@
 	   (match-list*
 	    exprs
 	    ((e1 e2 . exprs*)
-	     `(,>> ,e1 ,(apply self e2 exprs*)))
+	     ;; give better location reporting; since >> will only
+	     ;; check the type of its first argument, not the second,
+	     ;; the error was probably because of it, hence mark the
+	     ;; application location with it:
+	     (sourcify
+	      `(,>> ,e1 ,(apply self e2 exprs*))
+	      e1))
 	    ((e1)
 	     e1)))))
 
