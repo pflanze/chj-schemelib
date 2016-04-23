@@ -6,19 +6,19 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test)
-	 (cj-phasing)
-	 (cj-functional)
-	 (srfi-11) ;; fst, snd
-	 (cj-source)
-	 (cj-source-2)
-	 (cj-symbol)
-	 (list-util-2)
-	 (cj-alist)
-	 (cj-struct)
-	 (cut)
-	 )
+(require define-macro-star
+	 test
+	 cj-phasing
+	 cj-functional
+	 (srfi-11 fst snd)
+	 cj-source
+	 cj-source-2
+	 cj-symbol
+	 list-util-2
+	 cj-alist
+	 cj-struct
+	 C)
+
 
 
 ;; destructuring bind
@@ -569,7 +569,7 @@
 		 (let ()
 		   (define (cont updater)
 		     (updater (rec)
-			      (cut cons clause <>)))
+			      (C cons clause _)))
 		   (matchl clause
 			   ((else . `body)
 			    (cont mcaseclauses-else-update))
