@@ -10,6 +10,7 @@
 	 test
 	 simple-match
 	 symbol-append
+	 (cj-symbol with-gensyms)
 	 named
 	 (predicates list-of-length))
 
