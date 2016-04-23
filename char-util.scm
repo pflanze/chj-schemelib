@@ -1,5 +1,5 @@
 
-(require srfi-11 ;; cut
+(require cut
 	 test)
 
 (define (char=?/ c)
