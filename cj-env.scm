@@ -10,6 +10,7 @@
 	 cj-phasing
 	 cj-inline-1
 	 test
+	 (test-lib %try-error)
 	 ;; require this?: (understand it as part of bundle?)
 	 cj-env-1)
 
