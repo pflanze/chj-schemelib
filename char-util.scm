@@ -1,11 +1,26 @@
 ;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
 
-(require cut
-	 (cj-functional either)
+(require (cj-env-2 C)
+	 ;; (cj-functional either) circular dependency
+	 (list-util let-pair) ;; for either
 	 test)
 
+;;XX to avoid circular dependency on cj-functional
+(define (either . fs)
+  (if (null? fs)
+      (lambda x
+	#f)
+      (let-pair ((f fs*) fs)
+		((lambda (r)
+		   (lambda x
+		     (or (apply f x)
+			 (apply r x))))
+		 (apply either fs*)))))
+
+
+
 (define (char=?/ c)
-  (cut char=? <> c))
+  (C char=? _ c))
 
 (define (char-one-of?/ str)
   (let ((strlen (string-length str)))
@@ -30,13 +45,13 @@
     (fn (char->integer c))))
 
 (define char-digit?
-  (on-char (cut <= (char->integer #\0) <> (char->integer #\9))))
+  (on-char (C <= (char->integer #\0) _ (char->integer #\9))))
 
 (define char-alpha-lc?
-  (on-char (cut <= (char->integer #\a) <> (char->integer #\z))))
+  (on-char (C <= (char->integer #\a) _ (char->integer #\z))))
 
 (define char-alpha-uc?
-  (on-char (cut <= (char->integer #\A) <> (char->integer #\Z))))
+  (on-char (C <= (char->integer #\A) _ (char->integer #\Z))))
 
 (define char-alpha?
   (either char-alpha-lc? char-alpha-uc?))

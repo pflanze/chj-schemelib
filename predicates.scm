@@ -3,7 +3,7 @@
 	 (list-util improper-fold-right)
 	 (char-util char-one-of?/)
 	 cj-functional
-	 cut
+	 (cj-env-2 C)
 	 (string-util-4 string-empty?
 			string-every)
 	 (improper-list improper-any))
@@ -93,7 +93,7 @@
 		       tail
 		       v))
 
-(define improper*-map (cut improper*-map/tail <> <> '()))
+(define improper*-map (C improper*-map/tail _ _ '()))
 
 (TEST
  > (improper*-map true? '("" . ""))
@@ -120,7 +120,7 @@
 	 (pred v))))
 
 (define (improper-list-of pred)
-  (cut improper-every pred <>))
+  (C improper-every pred _))
 
 (TEST
  > (map (improper-list-of (string-of char-alphanumeric?))
