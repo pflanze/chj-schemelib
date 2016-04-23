@@ -7,6 +7,7 @@
 
 
 (require test
+	 C
 	 (predicates any? true/1 false/2))
 
 
@@ -112,7 +113,7 @@
 		   (error "improper alis ending in:" alis))))
 	  (error "wrong type of key:" key)))))
 
-(define _alist-replace-key-not-found (cut error "key not found:" <>))
+(define _alist-replace-key-not-found (C error "key not found:" _))
 
 (define symbol-alist-replace
   (_-alist-replace symbol? symbol-equal?
