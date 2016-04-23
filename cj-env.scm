@@ -18,20 +18,6 @@
 
 ;; (include "cj-env-1.scm") already in test.scm
 
-(define (symbol-or-string->string v)
-  (cond ((string? v)
-	 v)
-	((symbol? v)
-	 (symbol->string v))
-	(else (error "invalid type:" v))))
-
-(define (symbol-append . vals)
-  (string->symbol
-   (apply string-append
-	  (map 
-	   symbol-or-string->string
-	   vals))))
-
 
 ;; a compile time if:
 (define-macro* (IF test yes #!optional (no '(begin)))

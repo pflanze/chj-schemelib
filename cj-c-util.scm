@@ -1,6 +1,6 @@
 ;;;XXX sort out what I still want/need
 (require
- cj-env ;;  symbol-append
+ symbol-append
  (cj-gambit-sys max-fixnum min-fixnum)
  (srfi-1 cons*)
  (cj-string-flatten flat-append-strings)

@@ -9,7 +9,7 @@
 (require define-macro-star
 	 test
 	 simple-match
-	 (cj-env symbol-append)
+	 symbol-append
 	 (predicates list-of-length))
 
 (export (macro define-struct)
