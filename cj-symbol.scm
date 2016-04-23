@@ -9,7 +9,8 @@
 (require define-macro-star
 	 test
 	 symbol-append
-	 (cj-env-1 inc))
+	 (cj-env-1 inc)
+	 (cj-env on symbol-value-or))
 
 ;; COPY to avoid circular dependency on: (cj-functional false/0)
 (define (false/0)
