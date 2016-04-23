@@ -11,6 +11,7 @@
 	 cj-struct
 	 stream
 	 weak-srfi-1
+	 (lazy FV)
 	 (lazy-debug F))
 
 ;; A library of helper functions for writing tests
