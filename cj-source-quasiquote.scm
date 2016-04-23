@@ -10,7 +10,7 @@
 	 cj-match
 	 define-macro-star
 	 cj-source-util-2
-	 )
+	 (vector-util vector-map))
 
 
 (define (source-quasiquote-run u8vec alis)
