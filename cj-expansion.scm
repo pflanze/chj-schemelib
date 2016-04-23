@@ -1,6 +1,9 @@
+;; Copyright 2011-2016 by Christian Jaeger <ch@christianjaeger.ch>
 
 
-(require (define-macro-star))
+(require define-macro-star
+	 (simple-match-1 match*)
+	 (cj-source-util-2 assert))
 
 
 (define-macro* (expansion expr . exprs)
