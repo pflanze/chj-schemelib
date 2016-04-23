@@ -10,6 +10,7 @@
 	 test
 	 simple-match
 	 symbol-append
+	 named
 	 (predicates list-of-length))
 
 (export (macro define-struct)
