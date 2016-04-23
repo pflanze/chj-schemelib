@@ -7,7 +7,9 @@
 
 
 (require test
-	 cj-env
+	 (list-util let-pair)
+	 (srfi-11 letv)
+	 (cj-env-1 inc)
 	 define-nested
 	 slib-sort
 	 cj-symbol
