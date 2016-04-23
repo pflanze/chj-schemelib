@@ -3,3 +3,7 @@
 
 (define-macro* (require . body)
   `(begin))
+
+(define-macro* (export . forms)
+  '(begin))
+

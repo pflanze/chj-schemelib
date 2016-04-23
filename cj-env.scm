@@ -168,11 +168,6 @@
      ,@body))
 
 
-;; |export| is for documentary purposes only currently
-(define-macro* (export . forms)
-  '(begin))
-
-
 (define (box-inc! b)
   (let ((v (inc (unbox b))))
     (set-box! b v)
