@@ -9,7 +9,7 @@
 (require easy
 	 test
 	 (tree-util flatten)
-	 (cj-io-util read-lines)
+	 (cj-io-util read-lines xcall-with-input-process)
 	 tsort
 	 Status)
 
