@@ -11,7 +11,8 @@
 	 cj-match
 	 simple-match ;; provided by cj-match ?
 	 (cj-source-wraps source:symbol-append)
-	 (enum define-enum))
+	 (enum define-enum)
+	 (cj-source-quasiquote quasiquote-source))
 
 (define-macro* (& . args)
   ;; `(thunk ,@args)
