@@ -1,6 +1,7 @@
 
 (require easy-1
 	 dot-oo;; included in easy?
+	 (cj-math integer)
 	 (string-util-2 string-reverse))
 
 
