@@ -9,7 +9,7 @@
 (require define-macro-star
 	 test
 	 srfi-1
-	 cj-env
+	 (cj-env-1 dec inc identity)
 	 (string-util-1 string-split)
 	 (improper-list improper-length)
 	 )
@@ -88,7 +88,7 @@
  > (fold-right/last vector cons 'end '(1))
  (1 . end)
  > (with-exception-catcher type-exception?
-			   (thunk (fold-right/last vector cons 'end '())))
+			   (lambda () (fold-right/last vector cons 'end '())))
  #t
  )
 

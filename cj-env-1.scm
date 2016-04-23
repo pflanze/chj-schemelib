@@ -56,3 +56,7 @@
 	   (if (and prepend (pair? objs))
 	       (cons (if (string? prepend) prepend separator) m)
 	       m))))
+
+
+(define (identity x)
+  x)

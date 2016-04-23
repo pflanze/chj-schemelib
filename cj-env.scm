@@ -306,10 +306,6 @@
   (thread-join! th))
 
 
-(define (identity x)
-  x)
-
-
 (define (symbol-value-or sym thunk)
   (with-exception-catcher
    (lambda (e)
