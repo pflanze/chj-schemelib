@@ -11,7 +11,8 @@
 	 cj-typed ;; heh indirectly through define-struct. expansion
 	 cj-match
 	 test
-	 (cj-source-wraps source:symbol-append))
+	 (cj-source-wraps source:symbol-append)
+	 (string-util strings-join))
 
 
 ;; Principle is to shadow previous definitions of the generic, and the
