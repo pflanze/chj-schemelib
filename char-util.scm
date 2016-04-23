@@ -1,5 +1,7 @@
+;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
 
 (require cut
+	 (cj-functional either)
 	 test)
 
 (define (char=?/ c)
