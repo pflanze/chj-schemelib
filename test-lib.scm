@@ -10,7 +10,8 @@
 	 test
 	 cj-struct
 	 stream
-	 weak-srfi-1)
+	 weak-srfi-1
+	 (lazy-debug F))
 
 ;; A library of helper functions for writing tests
 
