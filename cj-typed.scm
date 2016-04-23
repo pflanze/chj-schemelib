@@ -13,7 +13,6 @@
 (require define-macro-star
 	 (scheme-meta perhaps-quote)
 	 test
-	 cj-env
 	 srfi-11
 	 (simple-match-1 assert*)
 	 (cj-source-util-2 assert
