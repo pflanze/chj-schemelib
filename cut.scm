@@ -1,6 +1,7 @@
-(require (define-macro-star)
-	 (test)
-	 (simple-match))
+(require define-macro-star
+	 test
+	 simple-match
+	 (cj-expansion expansion))
 
 
 ; REFERENCE IMPLEMENTATION FOR SRFI-26 "CUT"
