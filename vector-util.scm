@@ -7,6 +7,7 @@
 
 
 (require cj-env
+	 (cj-env-2 for..<)
 	 test
 	 ;; vector-util-1 ;; well, cj-source or mod/mod.scm since those include it?
 	 srfi-1
