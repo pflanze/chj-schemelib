@@ -10,7 +10,8 @@
 	 define-module
 	 cj-match
 	 simple-match ;; provided by cj-match ?
-	 (cj-source-wraps source:symbol-append))
+	 (cj-source-wraps source:symbol-append)
+	 (enum define-enum))
 
 (define-macro* (& . args)
   ;; `(thunk ,@args)
