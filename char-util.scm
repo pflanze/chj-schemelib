@@ -1,6 +1,6 @@
 ;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
 
-(require (cj-env-2 C)
+(require C
 	 ;; (cj-functional either) circular dependency
 	 (list-util let-pair) ;; for either
 	 test)

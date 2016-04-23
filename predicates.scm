@@ -3,7 +3,7 @@
 	 (list-util improper-fold-right)
 	 (char-util char-one-of?/)
 	 cj-functional
-	 (cj-env-2 C)
+	 C
 	 (string-util-4 string-empty?
 			string-every)
 	 (improper-list improper-any))
