@@ -10,7 +10,6 @@
 	 cj-phasing
 	 cj-inline-1
 	 test
-	 (test-lib %try-error)
 	 ;; require this?: (understand it as part of bundle?)
 	 cj-env-1)
 
@@ -383,17 +382,7 @@
 		    (notexist)
 		    (fn v)))))
 
-(TEST
- > (define t (make-table))
- > (%try-error (table-update! t 'a inc))
- #(error "key not found")
- > (table-set! t 'a 1)
- > (table-update! t 'a inc)
- > (table-ref t 'a)
- 2
- > (table-update! t 'b inc (lambda () 10))
- > (table-ref t 'b)
- 10)
+;; tests see cj-env-test
 
 
 (define-macro* (define-parameter name default-value)
