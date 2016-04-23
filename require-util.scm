@@ -102,15 +102,16 @@
  #(Success))
 
 
+(def default-load.scm-path ".gambc/load.scm")
 
-(def (load.scm-files)
+(def (load.scm-files #!optional (load-path default-load.scm-path))
      (map (C string-append _ ".scm")
 	  (filter (both string?
 			(complement (C string-ends-with? _ ".scm")))
 		  (flatten
-		   (call-with-input-file ".gambc/load.scm" read-all)))))
+		   (call-with-input-file load-path read-all)))))
 
-(def (check-load.scm all?)
+(def (check-load.scm all? #!optional (load-path default-load.scm-path))
      (let ((modulepaths
 	    (if all?
 		(load.scm-files)

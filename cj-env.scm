@@ -41,12 +41,6 @@
   (error "If: expecting boolean, got:" v))
 
 
-(define-macro* (named-lambda name vars . body)
-  `(letrec ((,name (lambda ,vars
-		     ,@body)))
-     ,name))
-
-
 (both-times
  (define (natural? x)
    (and (integer? x)
@@ -239,15 +233,6 @@
  > (if* #f 1 #f)
  #f
  )
-
-;; Simpler than named-lambda and combinable with other (special) forms:
-
-(define-macro* (named name form)
-  (assert* symbol? name
-	   (lambda (_)
-	     `(letrec ((,name ,form))
-		,name))))
-
 
 (define (pp-through a . r)
   (define port (current-error-port))

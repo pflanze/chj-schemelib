@@ -6,13 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test)
-	 (cj-env)
-	 (cj-symbol)
+(require define-macro-star
+	 test
+	 (cj-env-1 dec inc)
+	 cj-symbol
 	 (list-util let-pair)
-	 (srfi-11 apply-values)
-	 )
+	 (srfi-11 apply-values))
 
 
 (define (flip f)
