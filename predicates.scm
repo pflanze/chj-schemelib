@@ -15,6 +15,9 @@
 	false? ;; == not
 	true?
 	true
+	nonnegative-real?
+	nonpositive-real?
+	negative-real?
 	inexact-real?
 	exact-real?
 	exact-number?
@@ -22,11 +25,11 @@
 	pair-with-car
 	nonempty-string?
 	improper*-map/tail ;; XX move
-	improper*-map ;; dito
+	improper*-map	   ;; dito
 	string-of
-	improper-every  ;; XX move
-	improper-list-of ;; hmm
-	char-one-of ;; move to char lib?
+	improper-every	  ;; XX move
+	improper-list-of  ;; hmm
+	char-one-of	  ;; move to char lib?
 	perhaps-source-of ;; XX rename to possibly-source-of ?
 	source-of
 	perhaps-source*-of ;; dito
@@ -56,6 +59,15 @@
 (define (true x)
   ;; any kind of true; identity
   (not (not x)))
+
+
+;; XX move positive-real? from cj-env.scm here.
+
+(define nonnegative-real? (both real? (complement negative?)))
+
+(define nonpositive-real? (both real? (complement positive?)))
+
+(define negative-real? (both real? negative?))
 
 (define inexact-real? (both real? inexact?))
 
