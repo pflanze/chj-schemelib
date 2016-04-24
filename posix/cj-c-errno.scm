@@ -5,6 +5,7 @@
  cj-inline
  char-util
  cj-env-2
+ (cj-ffi symbol->string*)
  cj-c-errno_Cpart ;; from posix/ dir, local reference
  )
 
