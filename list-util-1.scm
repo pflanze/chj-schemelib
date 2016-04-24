@@ -6,7 +6,19 @@
 ;;;    (at your option) any later version.
 
 
-(require (srfi-1))
+(require srfi-1)
+
+(export rest
+	map/tail
+	map/iota
+	improper-map
+	mapS
+	r-list-split
+	list-split)
+
+
+;; srfi-1 defines first, but not rest (nor head nor tail)
+(define rest cdr)
 
 
 ;; This is separate from list-util (and list-util-2) to enable use in
