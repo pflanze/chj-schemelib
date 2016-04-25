@@ -1,6 +1,7 @@
 ;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
 
 (require easy
+	 (cj-gambit-sys procedure-name maybe-decompile)
 	 (list-util let-pair)
 	 (cj-functional flip)
 	 (cj-functional-2 chain) ;; just for fun, in test
@@ -68,7 +69,9 @@
 				      fst
 				      rst)
 		     (error "typed-list: value does not meed predicate:"
-			    fst)))))
+			    fst
+			    (or (procedure-name pred)
+				(maybe-decompile pred)))))))
 
 
 (def typed-list-cons (flip typed-list.cons))
@@ -96,9 +99,9 @@
  > (.list (.cons (.cons (typed-list number?) 10) 11))
  (11 10)
  > (%try-error (.list (.cons (.cons (typed-list number?) "10") 11)))
- #(error "typed-list: value does not meed predicate:" "10")
+ #(error "typed-list: value does not meed predicate:" "10" number?)
  > (%try-error (.list (.cons (.cons (typed-list number?) 10) "11")))
- #(error "typed-list: value does not meed predicate:" "11")
+ #(error "typed-list: value does not meed predicate:" "11" number?)
  > (chain (typed-list number?) (.cons 10) (.cons 11) (.list))
  (11 10))
 
