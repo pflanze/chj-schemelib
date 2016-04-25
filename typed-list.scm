@@ -137,3 +137,14 @@
  #(error "fewer than one element")
  > (%try-error (.the (typed-list number? 19 20)))
  #(error "more than one element"))
+
+(TEST
+ > ((typed-list-of number?) (typed-list number?))
+ #t
+ ;; currently doesn't allow subtyping...:
+ > ((typed-list-of number?) (typed-list integer?))
+ #f
+ ;; also currently doesn't allow for function redefinitions, bah:
+ > ((typed-list-of number?) (typed-list (lambda (v) (number? v))))
+ #f)
+
