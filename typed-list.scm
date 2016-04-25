@@ -67,7 +67,8 @@
 				      (inc (.length rst))
 				      fst
 				      rst)
-		     (error "typed-list: value does not meed predicate")))))
+		     (error "typed-list: value does not meed predicate:"
+			    fst)))))
 
 
 (def typed-list-cons (flip typed-list.cons))
@@ -95,9 +96,9 @@
  > (.list (.cons (.cons (typed-list number?) 10) 11))
  (11 10)
  > (%try-error (.list (.cons (.cons (typed-list number?) "10") 11)))
- #(error "typed-list: value does not meed predicate")
+ #(error "typed-list: value does not meed predicate:" "10")
  > (%try-error (.list (.cons (.cons (typed-list number?) 10) "11")))
- #(error "typed-list: value does not meed predicate")
+ #(error "typed-list: value does not meed predicate:" "11")
  > (chain (typed-list number?) (.cons 10) (.cons 11) (.list))
  (11 10))
 
