@@ -23,6 +23,9 @@
 	vector-like?
 	mem-bytes
 
+	decompile
+	procedure-name
+
 	;; utilities:
 	vectorlike-bytecopy!
 	vectorlike-byteequal?
@@ -421,3 +424,14 @@ memset(obj+offset,value,numbytes);
  > (%try-error (vectorlike-byteequal? a 25 b 0 20))
  #(error "out of bounds access:" "Hallo Welt" 25 "Lechz ächz so oder so" 0 20))
 
+
+
+(define (decompile v)
+  (if (procedure? v)
+      (##decompile v)
+      (error "not a procedure:" v)))
+
+(define (procedure-name v)
+  (if (procedure? v)
+      (##procedure-name v)
+      (error "not a procedure:" v)))
