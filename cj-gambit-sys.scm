@@ -23,7 +23,7 @@
 	vector-like?
 	mem-bytes
 
-	decompile
+	maybe-decompile
 	procedure-name
 
 	;; utilities:
@@ -426,9 +426,11 @@ memset(obj+offset,value,numbytes);
 
 
 
-(define (decompile v)
+(define (maybe-decompile v)
   (if (procedure? v)
-      (##decompile v)
+      (let ((v* (##decompile v)))
+	(and (not (procedure? v*))
+	     v*))
       (error "not a procedure:" v)))
 
 (define (procedure-name v)
