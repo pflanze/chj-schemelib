@@ -7,6 +7,15 @@
 	 (cj-functional-2 chain) ;; just for fun, in test
 	 test)
 
+(export typed-list? ;; (class typed-list)
+	(class typed-list-pair)
+	(class typed-list-cons)
+	typed-list-cons
+	typed-list-of
+	list.typed-list
+	typed-list)
+
+
 ;; Using the names "first" and "rest" as chosen in functional-perl
 ;; now, instead of "head" and "tail" like Haskell. Good or bad idea?
 ;; (See overview of other languages in functional-perl docs.)
@@ -75,6 +84,13 @@
 
 
 (def typed-list-cons (flip typed-list.cons))
+
+(def (typed-list-of pred)
+     (lambda (v)
+       (and (typed-list? v)
+	    ;; XX: how to compare type predicates? This is
+	    ;; pessimistic.
+	    (eq? pred (.pred v)))))
 
 (def (list.typed-list pred vals)
      (if (null? vals)
