@@ -114,9 +114,9 @@
 (def (check-load.scm all? #!optional (load-path default-load.scm-path))
      (let ((modulepaths
 	    (if all?
-		(load.scm-files)
+		(load.scm-files load-path)
 		(filter (C string-starts-with? _ "lib/")
-			(load.scm-files)))))
+			(load.scm-files load-path)))))
        (vector (length modulepaths)
 	       (modulepaths-satisfying? modulepaths))))
 
