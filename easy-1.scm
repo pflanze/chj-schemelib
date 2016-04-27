@@ -12,7 +12,30 @@
 	 simple-match ;; provided by cj-match ?
 	 (cj-source-wraps source:symbol-append)
 	 (enum define-enum)
-	 (cj-source-quasiquote quasiquote-source))
+	 (cj-source-quasiquote quasiquote-source)
+	 test)
+
+(export (macro &)
+	(macro defstruct)
+	(macro def)
+	(macro forward-def)
+	(macro def.)
+	(macro def-inline)
+	(macro defenum)
+	(macro defmacro)
+	(macro defvalues)
+	(macro defparameter)
+	(macro def-once)
+	comp
+	id
+	(macro defmodule)
+	the
+	(macro modimport)
+	(macro modimport/prefix)
+	
+	#!optional
+	module-symbol?)
+
 
 (define-macro* (& . args)
   ;; `(thunk ,@args)
