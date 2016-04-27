@@ -27,6 +27,7 @@
 	improper*-map/tail ;; XX move
 	improper*-map	   ;; dito
 	string-of
+	string-of-length
 	improper-every	  ;; XX move
 	improper-list-of  ;; hmm
 	char-one-of	  ;; move to char lib?
@@ -122,6 +123,18 @@
  (#f #t #f #t #f #f #t))
 
 
+(define (string-of-length len)
+  (if (natural0? len)
+      (lambda (v)
+	(and (string? v)
+	     (= (string-length v) len)))
+      (error "not a natural0:" len)))
+
+(TEST
+ > (map (string-of-length 3) '(foo "" "a" "ab" "abc" "abcd"))
+ (#f  #f #f #f #t #f))
+
+
 (define (improper-every pred v)
   (cond ((pair? v)
 	 (and (pred (car v))
@@ -204,7 +217,7 @@
 	     #f)))))
 
 (TEST
- > (def vals '(() (a) (a b) (a b c) (a b . c) a))
+ > (define vals '(() (a) (a b) (a b c) (a b . c) a))
  > (map (list-of-length 2) vals)
  (#f #f #t #f #f #f)
  > (map (list-of-length 0) vals)
