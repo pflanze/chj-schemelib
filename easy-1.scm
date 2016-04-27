@@ -29,7 +29,7 @@
 	comp
 	id
 	(macro defmodule)
-	the
+	(macro the)
 	(macro modimport)
 	(macro modimport/prefix)
 	
@@ -102,7 +102,49 @@
 (defmacro (defmodule . args)
   `(define-module ,@args))
 
-(def the xxone)
+
+;; if given one optional argument, it is evaluated in either the
+;; not-found and too-many cases, if two optional arguments are given,
+;; the first is evaluated in the not-found case the second in the
+;; too-many case.
+(defmacro (the expr #!optional error-expr too-many-error-expr)
+  (if error-expr
+      (with-gensym
+       V
+       `(let ((,V ,expr))
+	  ,(if too-many-error-expr
+	       `(cond ((one? ,V) (car ,V))
+		      ((null? ,V) ,error-expr)
+		      (else
+		       ,too-many-error-expr))
+	       `(if (one? ,V)
+		    (car ,V)
+		    ,error-expr))))
+      `(xxone ,expr)))
+
+(TEST
+ > (%try-error (the '()))
+ #(error "expected one item, but got:" not-found ())
+ > (%try-error (the '(1)))
+ 1
+ > (%try-error (the '(1 2)))
+ #(error "expected one item, but got:" found-too-many (1 2))
+
+ > (the '() 'nope)
+ nope
+ > (the '(1) 'nope)
+ 1
+ > (the '(1 2) 'nope)
+ nope
+
+ > (the '() 'nothing 'many)
+ nothing
+ > (the '(1) 'nothing 'many)
+ 1
+ > (the '(1 2) 'nothing 'many)
+ many)
+
+
 
 ;; --  extension of define-module.scm ---
 
