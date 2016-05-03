@@ -35,6 +35,8 @@
 	perhaps-source*-of ;; dito
 	source*-of
 	length-=
+	length-<=
+	length->=
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
 	list-of-length
 	0..1? ;; see also rgb:0..1?
@@ -170,16 +172,39 @@
 	  (length-= (cdr l) (dec len)))))
 
 (TEST
- > (length-= '() 0)
- #t
- > (length-= '() 1)
- #f
- > (length-= '(a) 1)
- #t
- > (length-= '(a) 0)
- #f
- > (length-= '(a b) 2)
- #t)
+ > (def (t-length= length*)
+	(map (lambda (l)
+	       (apply length* l))
+	     '((() 0)
+	       (() 1)
+	       ((a) 1)
+	       ((a) 0)
+	       ((a b) 2)
+	       ((a b) 3))))
+ > (t-length= length-=)
+ (#t #f #t #f #t #f))
+
+(define (length-<= l len)
+  (if (null? l)
+      #t
+      (if (zero? len)
+	  #f
+	  (length-<= (cdr l) (dec len)))))
+
+(TEST
+ > (t-length= length-<=)
+ (#t #t #t #f #t #t))
+
+(define (length->= l len)
+  (if (null? l)
+      (zero? len)
+      (if (zero? len)
+	  #t
+	  (length->= (cdr l) (dec len)))))
+
+(TEST
+ > (t-length= length->=)
+ (#t #f #t #t #t #f))
 
 
 ;; see also list-of/length
