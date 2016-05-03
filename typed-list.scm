@@ -32,6 +32,10 @@
 			 (cons (.first l)
 			       (.list (.rest l))))
 
+		 (method (reverse-list l #!optional (tail '()))
+			 (.reverse-list (.rest l)
+					(cons (.first l) tail)))
+
 		 (method (filter l f)
 			 (let-typed-list-pair
 			  ((pred _ v r) l)
@@ -64,6 +68,9 @@
 		 (method (list l)
 			 '())
 
+		 (method (reverse-list l #!optional (tail '()))
+			 tail)
+
 		 (method (filter l f)
 			 l)
 
@@ -81,6 +88,7 @@
 			    fst
 			    (or (procedure-name pred)
 				(maybe-decompile pred)))))))
+
 
 
 (def typed-list-cons (flip typed-list.cons))
@@ -114,6 +122,10 @@
  ()
  > (.list (.cons (.cons (typed-list number?) 10) 11))
  (11 10)
+ > (.reverse-list (typed-list number? 1 3 4))
+ (4 3 1)
+ > (.reverse-list (typed-list number? ))
+ ()
  > (%try-error (.list (.cons (.cons (typed-list number?) "10") 11)))
  #(error "typed-list: value does not meed predicate:" "10" number?)
  > (%try-error (.list (.cons (.cons (typed-list number?) 10) "11")))
