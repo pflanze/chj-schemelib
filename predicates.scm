@@ -17,7 +17,8 @@
 	 (improper-list improper-any))
 
 
-(export forced ;; rename to possibly-promise-of ?
+(export function?
+	forced ;; rename to possibly-promise-of ?
 	any? true/1
 	false/2
 	false? ;; == not
@@ -50,6 +51,11 @@
 	list-of-length
 	0..1? ;; see also rgb:0..1?
 	in-signed-range?)
+
+
+;; for now there's no difference (intent: pure functions, aside of
+;; unsafe I/O through stderr, ok? No further typing then, either.)
+(define function? procedure?)
 
 
 (define (forced pred)
