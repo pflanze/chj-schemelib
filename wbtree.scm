@@ -10,6 +10,50 @@
 	 (cj-env IF compile-time)
 	 define-strict-and-lazy)
 
+(export empty-wbtree
+	empty-wbtree?
+	wbtree?
+
+	(struct wbtree) ;; XX but with _ prefix
+
+	;; XX both as macros as well as functions:
+	wbtree:size
+	wbtree:member?
+	wbtree:maybe-ref
+	wbtree:maybe-ref&rank
+	wbtree:min
+	wbtree:max
+	wbtree:add
+	wbtree:delete
+	wbtree:inorder-fold
+	wbtree:stream-inorder-fold
+	wbtree:inorder-fold-reverse
+	wbtree:stream-inorder-fold-reverse
+	wbtree:members
+	wbtree:stream-members
+	list->wbtree
+	wbtreesort
+	wbtree:lt
+	wbtree:gt
+	wbtree:next
+	wbtree:union
+	wbtree:difference
+	wbtree:intersection
+	wbtrees:intersection-stream
+	wbtree->stream
+	wbtree:between
+	wbtree:rank
+	wbtree:index
+	
+	#!optional
+	make-wbtree
+	new-wbtree ;; vs make-wbtree ?
+	;; XX both as macros as well as functions:
+	wbtree-element
+	wbtree-size
+	wbtree-left
+	wbtree-right)
+
 
 (declare (standard-bindings)
 	 (extended-bindings)
@@ -147,6 +191,12 @@
 		 _wbtree-right) v))
       ;; / dynamic dispatch
       ))
+
+
+(define (wbtree? v)
+  (or (_wbtree? v)
+      (empty-wbtree? v)))
+
 
 (define* (wbtree:size t)
   (cond ((empty-wbtree? t)
