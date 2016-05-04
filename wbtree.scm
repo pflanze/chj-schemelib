@@ -12,7 +12,7 @@
 
 (export empty-wbtree
 	empty-wbtree?
-	wbtree?
+	wbtree? ;; CAREFUL, dangerous in optimized variant!
 
 	(struct wbtree) ;; XX but with _ prefix
 
@@ -138,10 +138,13 @@
       (define-struct wbtree
 	;; constructor-name: _make-wbtree
 	element	;; element
-	size ;; int
-	left ;; wbtree
-	right ;; wbtree
-	))
+	size	;; int
+	left	;; wbtree
+	right	;; wbtree
+	)
+      (define (wbtree? v)
+	(or (_wbtree? v)
+	    (empty-wbtree? v))))
 
     (begin ;; optimized variant
       (define-struct wbtree
@@ -151,10 +154,13 @@
 	let*-name: let*-wbtree
 
 	element	;; element
-	size ;; int
-	left ;; wbtree
-	right ;; wbtree
+	size	;; int
+	left	;; wbtree
+	right	;; wbtree
 	)
+      ;; can't type-check in optimized variant! DANGER!
+      (define (wbtree? v)
+	#t)
 
       ;; dynamic dispatch, to save wrapping the leaf elements in wbtrees:
       (define (make-wbtree e s l r)
@@ -179,23 +185,18 @@
 	((_access identity _wbtree-element) v))
       (define* (wbtree-size v)
 	((_access (lambda (v)
-		   1)
-		 _wbtree-size) v))
+		    1)
+		  _wbtree-size) v))
       (define* (wbtree-left v)
 	((_access (lambda (v)
-		   empty-wbtree)
-		 _wbtree-left) v))
+		    empty-wbtree)
+		  _wbtree-left) v))
       (define* (wbtree-right v)
 	((_access (lambda (v)
-		   empty-wbtree)
-		 _wbtree-right) v))
+		    empty-wbtree)
+		  _wbtree-right) v))
       ;; / dynamic dispatch
       ))
-
-
-(define (wbtree? v)
-  (or (_wbtree? v)
-      (empty-wbtree? v)))
 
 
 (define* (wbtree:size t)
