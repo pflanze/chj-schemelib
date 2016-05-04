@@ -18,6 +18,7 @@
 
 
 (export function?
+	box-of
 	forced ;; rename to possibly-promise-of ?
 	any? true/1
 	false/2
@@ -57,6 +58,10 @@
 ;; unsafe I/O through stderr, ok? No further typing then, either.)
 (define function? procedure?)
 
+(define (box-of pred)
+  (lambda (v)
+    (and (box? v)
+	 (pred (unbox v)))))
 
 (define (forced pred)
   (lambda (v)
