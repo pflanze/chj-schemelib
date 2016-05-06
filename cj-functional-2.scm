@@ -1,7 +1,10 @@
 
 (require cj-match
-	 test)
+	 test
+	 (cj-env-1 inc))
 
+(export chain
+	chain*)
 
 ;; The "Clojure-macro". What was it named? XXX
 
@@ -22,3 +25,12 @@
 (define-macro* (chain start . exprs)
   (chain-expand start exprs))
 
+(define-macro* (chain* . exprs)
+  (with-gensym
+   V
+   `(lambda (,V)
+      ,(chain-expand V exprs))))
+
+(TEST
+ > ((chain* (inc)) 10)
+ 11)
