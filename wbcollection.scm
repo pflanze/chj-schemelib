@@ -6,6 +6,15 @@
 ;;;    (at your option) any later version.
 
 
+;; FUTURE?: add strict type checking and then avoid the ubiquitous
+;; boxing in cases where the element type is guaranteed to be disjoint
+;; from the optimized wbtree parts. XX Hmm btw why does wbtree really
+;; need this check? Isn't `wbtree struct or not` all it needs? (Also
+;; even if box is not avoidable, wbtree.scm could be extended to
+;; search for elements with implicit unboxing for the comparison;
+;; actually, could just pass a cmp function that only unboxes one of
+;; its two arguments?)
+
 (require easy
 	 (cj-source-quasiquote quasiquote-source)
 	 (wbtree wbtree? empty-wbtree empty-wbtree?))
