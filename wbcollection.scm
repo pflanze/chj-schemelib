@@ -140,13 +140,17 @@
 	 (wbtree:index $data item)))
 
 
+(def (not-_wbtree? v) (not (_wbtree? v)))
+(def (wbtreeparameter* cmp)
+     (wbtreeparameter cmp not-_wbtree?))
+
 (def (empty-wbcollection #(function? cmp))
-     (wbcollection (wbtreeparameter cmp (complement _wbtree?))
+     (wbcollection (wbtreeparameter* cmp)
 		   empty-wbtree))
 
 (def (list.wbcollection #(function? cmp)
 			l)
-     (let (($wbtreeparameter (wbtreeparameter cmp (complement _wbtree?))))
+     (let (($wbtreeparameter (wbtreeparameter* cmp)))
        (wbcollection $wbtreeparameter
 		     (list->wbtree l))))
 
