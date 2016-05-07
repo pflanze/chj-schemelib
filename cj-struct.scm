@@ -12,6 +12,7 @@
 	 symbol-append
 	 (cj-symbol with-gensyms)
 	 named
+	 (cj-env define-if-not-defined) ;; in macro expansion
 	 (predicates list-of-length))
 
 (export (macro define-struct)
@@ -74,6 +75,7 @@
 	      (if tag-prefix
 		  `(symbol-append ,tag-prefix (##quote ,name*))
 		  `(##quote ,name*))))
+	 (tag-binding (symbol-append "cj-struct:tag:" name))
 	 (fields* (filter identity (map arg->maybe-fieldname args*)))
 	 (fields+ (filter (lambda (arg) (not (meta-object? (source-code arg))))
 			  ;; ^ assuming that DEFINE/LAMBDA won't ever need anything else
@@ -135,11 +137,12 @@
 	    (symbol-append (safe-accessor-for-field field) "-update")))
 	 )
     `(begin
+       (define-if-not-defined ,tag-binding (list ,tag-code))
        ,@(let ((construct
 		(lambda (LAMBDA constructor-name)
 		  `(define ,constructor-name
 		     (,LAMBDA ,args*
-			      (##vector ,tag-code
+			      (##vector ,tag-binding
 					,@fields*))))))
 	   `(,(construct LAMBDA
 			 constructor-name)
@@ -153,7 +156,7 @@
 	   (and (vector? v)
 		(= (vector-length v) ,(add-offset numfields))
 		(eq? (vector-ref v 0)
-		     ,tag-code))))
+		     ,tag-binding))))
        (define ,error-name
 	 (lambda (v)
 	   (error ,(string-append "expecting a "
@@ -214,7 +217,6 @@
 		(offset ',offset)
 		(prefix ',prefix)
 		(accessor-prefix ',accessor-prefix)
-		(name ,tag-code)
 		(generic-accessor-prefix ',generic-accessor-prefix)
 		;; copies of procedures from the outer expander
 		(add-offset
@@ -281,10 +283,14 @@
 (TEST
  > (define-struct foo a b )
  > (make-foo 10 11)
- #(foo 10 11)
+ #((foo) 10 11)
  > (foo? #)
  #t
  > (foo? #)
+ #f
+ > (foo? '#((foo) 10 11))
+ ;; unlike TEST comparisons which are based on equal?, this is
+ ;; comparing more strictly
  #f
  > (define x (make-foo 10 11))
  > (foo-a x)
@@ -296,27 +302,34 @@
  ;; 1> 
  > (let-foo ((a b) x) a)
  10
+
  ;; tag feature:
  > (define-struct foo tag: 'myvery:foo a b)
  > (make-foo 10 11)
- #(myvery:foo 10 11)
- > (foo? #)
+ #((foo) 10 11)
+ ;; aha that was because we defined foo already above. and although
+ ;; 'everything' is overwritten, that excludes the tag binding. sigh.
+ > (define-struct foo2 tag: 'myvery:foo a b)
+ > (make-foo2 10 11)
+ #((myvery:foo) 10 11)
+ > (foo2? #)
  #t
- > (foo? #)
+ > (foo2? #)
  #f
+
  ;; updaters
  > (define-struct foo a b)
  > (make-foo 1 2)
- #(foo 1 2)
+ #((foo) 1 2)
  > (foo-b-update # inc)
- #(foo 1 3)
+ #((foo) 1 3)
  > (foo-b-update # inc)
- #(foo 1 4)
+ #((foo) 1 4)
  > (foo-a-update # inc)
- #(foo 2 4)
+ #((foo) 2 4)
  > (define-struct foo #!key quote x y z)
  > (make-foo quote: 10)
- #(foo 10 #f #f #f)
+ #((foo) 10 #f #f #f)
  )
 
 ;; omit the |make-| prefix for the constructor name

@@ -588,7 +588,7 @@
 
  (TEST
   > (mcase-separate-clauses '((else 1) ((identity symbol?) 2) (`(`x) 3) (else 4) (symbol? 5)))
-  #(mcaseclauses
+  #((mcaseclauses)
     ((`(`x) 3))
     (((identity symbol?) 2) (symbol? 5))
     ((else 1) (else 4)))

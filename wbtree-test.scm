@@ -49,10 +49,10 @@
 (IF use-wbtrees-as-leafs?
     (TEST
      > t
-     #(wbtree "a" 2 empty-wbtree #(wbtree "b" 1 empty-wbtree empty-wbtree)))
+     #((wbtree) "a" 2 empty-wbtree #((wbtree) "b" 1 empty-wbtree empty-wbtree)))
     (TEST
      > t
-     #(wbtree "a" 2 empty-wbtree "b")))
+     #((wbtree) "a" 2 empty-wbtree "b")))
 
 (TEST
  > ($sdefine t1 t)
@@ -69,43 +69,43 @@
      #(wbtree
        "b"
        4
-       #(wbtree "a" 1 empty-wbtree empty-wbtree)
-       #(wbtree "c" 2 empty-wbtree #(wbtree "d" 1 empty-wbtree empty-wbtree)))
+       #((wbtree) "a" 1 empty-wbtree empty-wbtree)
+       #((wbtree) "c" 2 empty-wbtree #((wbtree) "d" 1 empty-wbtree empty-wbtree)))
      > ($sdefine t (wbtree:add t "d"))
      > t
      #(wbtree
        "b"
        4
-       #(wbtree "a" 1 empty-wbtree empty-wbtree)
-       #(wbtree "c" 2 empty-wbtree #(wbtree "d" 1 empty-wbtree empty-wbtree)))
+       #((wbtree) "a" 1 empty-wbtree empty-wbtree)
+       #((wbtree) "c" 2 empty-wbtree #((wbtree) "d" 1 empty-wbtree empty-wbtree)))
      > ($sdefine t (wbtree:add t "e"))
      > t
      #(wbtree
        "c"
        5
-       #(wbtree "b" 2 #(wbtree "a" 1 empty-wbtree empty-wbtree) empty-wbtree)
-       #(wbtree "d" 2 empty-wbtree #(wbtree "e" 1 empty-wbtree empty-wbtree))))
+       #((wbtree) "b" 2 #((wbtree) "a" 1 empty-wbtree empty-wbtree) empty-wbtree)
+       #((wbtree) "d" 2 empty-wbtree #((wbtree) "e" 1 empty-wbtree empty-wbtree))))
     (TEST
      > t
-     #(wbtree
+     #((wbtree)
        "b"
        4
        "a"
-       #(wbtree "c" 2 empty-wbtree "d"))
+       #((wbtree) "c" 2 empty-wbtree "d"))
      > ($sdefine t (wbtree:add t "d"))
      > t
-     #(wbtree
+     #((wbtree)
        "b"
        4
        "a"
-       #(wbtree "c" 2 empty-wbtree "d"))
+       #((wbtree) "c" 2 empty-wbtree "d"))
      > ($sdefine t (wbtree:add t "e"))
      > t
-     #(wbtree
+     #((wbtree)
        "c"
        5
-       #(wbtree "b" 2 "a" empty-wbtree)
-       #(wbtree "d" 2 empty-wbtree "e"))))
+       #((wbtree) "b" 2 "a" empty-wbtree)
+       #((wbtree) "d" 2 empty-wbtree "e"))))
 
 
 (TEST
@@ -140,28 +140,28 @@
        #(wbtree
 	 "abba"
 	 4
-	 #(wbtree "a" 2 #(wbtree "Zwerg" 1 empty-wbtree empty-wbtree) empty-wbtree)
-	 #(wbtree "abc" 1 empty-wbtree empty-wbtree))
+	 #((wbtree) "a" 2 #((wbtree) "Zwerg" 1 empty-wbtree empty-wbtree) empty-wbtree)
+	 #((wbtree) "abc" 1 empty-wbtree empty-wbtree))
        #(wbtree
 	 "f"
 	 5
-	 #(wbtree "def" 2 #(wbtree "berta" 1 empty-wbtree empty-wbtree) empty-wbtree)
-	 #(wbtree "n" 2 empty-wbtree #(wbtree "zwerg" 1 empty-wbtree empty-wbtree)))))
+	 #((wbtree) "def" 2 #((wbtree) "berta" 1 empty-wbtree empty-wbtree) empty-wbtree)
+	 #((wbtree) "n" 2 empty-wbtree #((wbtree) "zwerg" 1 empty-wbtree empty-wbtree)))))
     (TEST
      > t
-     #(wbtree
+     #((wbtree)
        "abe"
        10
-       #(wbtree
+       #((wbtree)
 	 "abba"
 	 4
-	 #(wbtree "a" 2 "Zwerg" empty-wbtree)
+	 #((wbtree) "a" 2 "Zwerg" empty-wbtree)
 	 "abc")
-       #(wbtree
+       #((wbtree)
 	 "f"
 	 5
-	 #(wbtree "def" 2 "berta" empty-wbtree)
-	 #(wbtree "n" 2 empty-wbtree "zwerg")))))
+	 #((wbtree) "def" 2 "berta" empty-wbtree)
+	 #((wbtree) "n" 2 empty-wbtree "zwerg")))))
 
 (TEST
  ;; > (define t-input-sorted (sort t-input string<?))  but it contains a double. so instead:
@@ -253,11 +253,11 @@
 (TEST
  > ($define t2 (list->wbtree '(("a". 1) ("z". 2) ("e". 3) ("f". 4) ("g". 5))))
  > t2
- #(wbtree
+ #((wbtree)
    ("f" . 4)
    5
-   #(wbtree ("e" . 3) 2 ("a" . 1) empty-wbtree)
-   #(wbtree ("g" . 5) 2 empty-wbtree ("z" . 2)))
+   #((wbtree) ("e" . 3) 2 ("a" . 1) empty-wbtree)
+   #((wbtree) ("g" . 5) 2 empty-wbtree ("z" . 2)))
  > ($ (wbtree:member? t2 '("a" . x)))
  #t
  > ($ (wbtree:member? t2 '("aa" . x)))
@@ -268,13 +268,13 @@
  #f
 
  > ($ (wbtree:between t2 '("aa") '("x")))
- #(wbtree ("f" . 4) 3 ("e" . 3) ("g" . 5))
+ #((wbtree) ("f" . 4) 3 ("e" . 3) ("g" . 5))
  > ($ (wbtree:between t2 '("a") '("x")))
- #(wbtree ("f" . 4) 3 ("e" . 3) ("g" . 5))
+ #((wbtree) ("f" . 4) 3 ("e" . 3) ("g" . 5))
  > ($ (wbtree:between t2 '("") '("x")))
- #(wbtree ("f" . 4) 4 #(wbtree ("a" . 1) 2 empty-wbtree ("e" . 3)) ("g" . 5))
+ #((wbtree) ("f" . 4) 4 #((wbtree) ("a" . 1) 2 empty-wbtree ("e" . 3)) ("g" . 5))
  > ($ (wbtree:between t2 '("a") '("g")))
- #(wbtree ("f" . 4) 2 ("e" . 3) empty-wbtree)
+ #((wbtree) ("f" . 4) 2 ("e" . 3) empty-wbtree)
  > ($ (wbtree:members (wbtree:between t2 '("a") '("g"))))
  (("e" . 3) ("f" . 4))
  > ($ (wbtree:members (wbtree:between t2 '("") '("g"))))
