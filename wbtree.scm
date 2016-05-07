@@ -13,6 +13,7 @@
 (export empty-wbtree
 	empty-wbtree?
 	wbtree? ;; CAREFUL, dangerous in optimized variant!
+	wbtreeparameter*
 
 	(struct wbtree) ;; XX but with _ prefix
 
@@ -80,6 +81,15 @@
 (defstruct wbtreeparameter
   cmp
   element?)
+
+
+;; XXX: shouldn't we simply drop element? from wbtreeparameter
+;; instead?
+(def (not-_wbtree? v) (not (_wbtree? v)))
+(def (wbtreeparameter* cmp)
+     (wbtreeparameter cmp not-_wbtree?))
+
+
 
 (define (wbtreeparameter:wrap-in tp type? access)
   (let-wbtreeparameter

@@ -8,10 +8,8 @@
 
 (require easy
 	 (cj-source-quasiquote quasiquote-source)
-	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?))
-
-;; XX the reliance on |_wbtree?| is ugly and arguably a bug in
-;; wbtree.scm
+	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?
+		 wbtreeparameter*))
 
 (export (class wbcollection)
 	empty-wbcollection
@@ -139,10 +137,6 @@
        (def-wbcollection-method (index c item)
 	 (wbtree:index $data item)))
 
-
-(def (not-_wbtree? v) (not (_wbtree? v)))
-(def (wbtreeparameter* cmp)
-     (wbtreeparameter cmp not-_wbtree?))
 
 (def (empty-wbcollection #(function? cmp))
      (wbcollection (wbtreeparameter* cmp)
