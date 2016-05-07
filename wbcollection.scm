@@ -6,18 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-;; FUTURE?: add strict type checking and then avoid the ubiquitous
-;; boxing in cases where the element type is guaranteed to be disjoint
-;; from the optimized wbtree parts. XX Hmm btw why does wbtree really
-;; need this check? Isn't `wbtree struct or not` all it needs? (Also
-;; even if box is not avoidable, wbtree.scm could be extended to
-;; search for elements with implicit unboxing for the comparison;
-;; actually, could just pass a cmp function that only unboxes one of
-;; its two arguments?)
-
 (require easy
 	 (cj-source-quasiquote quasiquote-source)
-	 (wbtree wbtree? empty-wbtree empty-wbtree?))
+	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?))
+
+;; XX the reliance on |_wbtree?| is ugly and arguably a bug in
+;; wbtree.scm
 
 (export (class wbcollection)
 	empty-wbcollection
@@ -64,7 +58,7 @@
 	 (empty-wbtree? $data))
 
        (def-wbcollection-method (contains? c item)
-	 (wbtree:member? $data (box item)))
+	 (wbtree:member? $data item))
 
        ;; (def-wbcollection-method ( c)
        ;; 	 (wbtree:maybe-ref $data))
@@ -73,10 +67,10 @@
        ;; 	 (wbtree:maybe-ref&rank $data))
 
        (def-wbcollection-method (min c)
-	 (unbox (wbtree:min $data)))
+	 (wbtree:min $data))
 
        (def-wbcollection-method (max c)
-	 (unbox (wbtree:max $data)))
+	 (wbtree:max $data))
 
        ;; `first` and `rest` don't really seem fitting here, since
        ;; there's no maintainance of insertion order, so leave it to
@@ -85,23 +79,23 @@
        ;; XX is there a faster way to do this? (splitting)
        (def-wbcollection-method (min&rest c)
 	 (let ((*v (wbtree:min $data)))
-	   (values (unbox *v)
+	   (values *v
 		   (wbcollection $wbtreeparameter
 				 (wbtree:delete $data *v)))))
        ;; copy-paste
        (def-wbcollection-method (max&rest c)
 	 (let ((*v (wbtree:max $data)))
-	   (values (unbox *v)
+	   (values *v
 		   (wbcollection $wbtreeparameter
 				 (wbtree:delete $data *v)))))
 
        (def-wbcollection-method (add c item)
 	 (wbcollection $wbtreeparameter
-		       (wbtree:add $data (box item))))
+		       (wbtree:add $data item)))
 
        (def-wbcollection-method (delete c item)
 	 (wbcollection $wbtreeparameter
-		       (wbtree:delete $data (box item))))
+		       (wbtree:delete $data item)))
 
        ;; wbtree:inorder-fold
        ;; wbtree:stream-inorder-fold
@@ -109,14 +103,12 @@
        ;; wbtree:stream-inorder-fold-reverse
 
        (def-wbcollection-method (members c)
-	 (map unbox
-	      (wbtree:members $data)))
+	 (wbtree:members $data))
 
        (method list wbcollection.members)
 
        (def-wbcollection-method (members-stream c)
-	 (stream-map unbox
-		     (wbtree:stream-members $data)))
+	 (wbtree:stream-members $data))
 
        (method stream wbcollection.members-stream)
 
@@ -140,22 +132,23 @@
        ;; wbtree:between
 
        (def-wbcollection-method (rank c item)
-	 (wbtree:rank $data (box item)))
+	 (wbtree:rank $data item))
 
        ;; rename this to `.ref` ? Or would that be dangerously close
        ;; to `.contains?` ?
        (def-wbcollection-method (index c item)
-	 (wbtree:index $data (box item))))
+	 (wbtree:index $data item)))
 
 
 (def (empty-wbcollection #(function? cmp))
-     (wbcollection (wbtreeparameter (on unbox cmp) box?) empty-wbtree))
+     (wbcollection (wbtreeparameter cmp (complement _wbtree?))
+		   empty-wbtree))
 
 (def (list.wbcollection #(function? cmp)
 			l)
-     (let (($wbtreeparameter (wbtreeparameter (on unbox cmp) box?)))
+     (let (($wbtreeparameter (wbtreeparameter cmp (complement _wbtree?))))
        (wbcollection $wbtreeparameter
-		     (list->wbtree (map box l)))))
+		     (list->wbtree l))))
 
 
 (TEST
