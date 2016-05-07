@@ -45,8 +45,8 @@
   (#t #t #f n)
   (#t #f #t 1)
   (#t #f #t #f)
-  (#t #f #t #(Nothing))
-  (#t #f #t #(Just 13)))
+  (#t #f #t #((Nothing)))
+  (#t #f #t #((Just) 13)))
  > (Just.value (.value (Just (Just 13))))
  13)
 

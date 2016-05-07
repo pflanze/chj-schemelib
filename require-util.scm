@@ -35,10 +35,11 @@
 (TEST
  ;; well those are evil of course, will break upon module changes
  > (path-string.topo-relation "lib/require-util.scm")
- #(topo-relation require-util
-		 (easy test tree-util cj-io-util tsort Status))
+ #((topo-relation)
+   require-util
+   (easy test tree-util cj-io-util tsort Status))
  ;; > (path-string.topo-relation "tsort.scm")
- ;; #(topo-relation tsort (easy test alist))
+ ;; #((topo-relation) tsort (easy test alist))
  )
 
 (def (modulepaths-tsort paths)
@@ -94,12 +95,12 @@
 
 (TEST
  > (modulepaths-satisfying? '("lib/Maybe.scm" "lib/easy.scm"))
- #(Failure #(requires Maybe easy))
+ #((Failure) #((requires) Maybe easy))
  > (modulepaths-satisfying? '("lib/easy-1.scm" "lib/Maybe.scm"))
- #(Failure #(requires easy-1 define-macro-star))
+ #((Failure) #((requires) easy-1 define-macro-star))
  > (modulepaths-satisfying? '("lib/cj-source.scm"
 			      "lib/define-macro-star.scm"))
- #(Success))
+ #((Success)))
 
 
 (def default-load.scm-path ".gambc/load.scm")
