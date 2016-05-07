@@ -152,6 +152,16 @@
 
 
 (TEST
+ ;; make sure there's no confusion with wbtee symbols
+ > (def c (list.wbcollection generic-cmp '(1 9 -2 wbtree #(wbtree))))
+ > (.list c)
+ (-2 1 9 wbtree #(wbtree))
+ > (def c (list.wbcollection generic-cmp '(1 9 -2 wbtree #(wbtree 1 2 3 4))))
+ > (.list c)
+ (-2 1 9 wbtree #(wbtree 1 2 3 4)))
+
+
+(TEST
  > (def c (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3)))
  > (.contains? c 3)
  #t
