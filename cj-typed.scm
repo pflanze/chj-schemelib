@@ -234,33 +234,33 @@
 		     `((-> ,maybe-pred ,@body))
 		     body)))
        (letv ((vars body) (typed-lambda-args-expand args body))
-	     `(lambda ,vars
+	     `(##lambda ,vars
 		,body))))))
 
 (TEST
  > (expansion#typed-lambda (a b) 'hello 'world)
- (lambda (a b) (##begin 'hello 'world))
+ (##lambda (a b) (##begin 'hello 'world))
  > (expansion#typed-lambda foo 'hello 'world)
- (lambda foo (##begin 'hello 'world))
+ (##lambda foo (##begin 'hello 'world))
  > (expansion#typed-lambda (a #(pair? b)) 'hello 'world)
- (lambda (a b)
+ (##lambda (a b)
    (type-check pair? b
 	       (##begin 'hello 'world)))
  > (expansion#typed-lambda (a #(pair? b) . c) 'hello 'world)
- (lambda (a b . c)
+ (##lambda (a b . c)
    (type-check pair? b
 	       (##begin 'hello 'world)))
  > (expansion#typed-lambda (a #(pair? b) #!rest c) 'hello 'world)
- (lambda (a b #!rest c) (type-check pair? b (##begin 'hello 'world)))
+ (##lambda (a b #!rest c) (type-check pair? b (##begin 'hello 'world)))
  > (expansion#typed-lambda (a #(pair? b) . #(number? c)) 'hello 'world)
- (lambda (a b . c)
+ (##lambda (a b . c)
    (type-check pair? b (type-check number? c (##begin 'hello 'world))))
  ;;^ XX wrong? make it list-of ? (this would be a redo, sigh)
  > (expansion#typed-lambda (a #!key #(pair? b) #!rest #(number? c)) 'hello 'world)
- (lambda (a #!key b #!rest c)
+ (##lambda (a #!key b #!rest c)
    (type-check pair? b (type-check number? c (##begin 'hello 'world))))
  > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10)) hello)
- (lambda (a b #!optional (c 10))
+ (##lambda (a b #!optional (c 10))
    (type-check pair? a
 	       (type-check number? c (##begin hello)))))
 
@@ -269,7 +269,7 @@
  > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10))
 			   -> foo?
 			   hello)
- (lambda (a b #!optional (c 10))
+ (##lambda (a b #!optional (c 10))
    (type-check pair? a (type-check number? c (##begin (-> foo? hello))))))
 
 
