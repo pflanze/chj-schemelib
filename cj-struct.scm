@@ -24,6 +24,88 @@
 	struct-of)
 
 
+;; A struct is a vector with an object in slot 0 that unambiguously
+;; determines the struct type, implemented by using allocated,
+;; non-interned objects ("tags", but they are not visual, but
+;; invisibly unique).
+
+;; A map from tag objects to metadata, currently just #t
+(define-if-not-defined cj-struct:tags (make-table test: eq?))
+
+(define (@maybe-struct-tag-name v)
+  (and (pair? v)
+       (null? (cdr v))
+       (let ((t (car v)))
+	 (and (symbol? t)
+	      t))))
+
+(define (@struct-tag? v)
+  (and (@maybe-struct-tag-name v)
+       #t))
+
+;; A map from tag object *names* (aim: tag equivalents, but with the
+;; current implementation of them being a list containing a symbol,
+;; the symbol itself is enough) to actual tag objects
+(define-if-not-defined cj-struct:lookup (make-table))
+;; what's the best test?
+
+(define (symbol.maybe-struct-tag s)
+  (if (symbol? s)
+      (table-ref cj-struct:lookup s #f)
+      (error "not a symbol:" s)))
+
+(define (struct-tag-generate! s)
+  (if (symbol? s)
+      (let ((t (list s)))
+	(table-set! cj-struct:tags t #t)
+	(table-set! cj-struct:lookup s t)
+	t)
+      (error "not a symbol:" s)))
+
+(define (struct-tag? v)
+  (table-ref cj-struct:tags v #f))
+
+(define (maybe-struct-tag-name v)
+  (and (table-ref cj-struct:tags v #f)
+       (@maybe-struct-tag-name v)))
+
+
+;; 
+
+
+(TEST
+ > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
+ #f
+ > (define t (struct-tag-generate! 'kkfjkif3hnunnfgw56k))
+ > (struct-tag? t)
+ #t
+ > (struct-tag? '(kkfjkif3hnunnfgw56k))
+ #f
+ > (@struct-tag? '(kkfjkif3hnunnfgw56k))
+ #t
+ > (equal? t '(kkfjkif3hnunnfgw56k))
+ #t
+ > (eq? t '(kkfjkif3hnunnfgw56k))
+ #f
+ > (maybe-struct-tag-name '(kkfjkif3hnunnfgw56k))
+ #f
+ > (@maybe-struct-tag-name '(kkfjkif3hnunnfgw56k))
+ kkfjkif3hnunnfgw56k
+ > (maybe-struct-tag-name t)
+ kkfjkif3hnunnfgw56k
+ > (@maybe-struct-tag-name t)
+ kkfjkif3hnunnfgw56k
+ > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
+ (kkfjkif3hnunnfgw56k)
+ > (eq? # t)
+ #t
+
+ ;; cleanup, hacky
+ > (table-set! cj-struct:tags t)
+ > (table-set! cj-struct:lookup 'kkfjkif3hnunnfgw56k #f))
+
+
+
 (define define-struct:arg->maybe-fieldname
   (named self
 	 (lambda (v*)
@@ -137,7 +219,7 @@
 	    (symbol-append (safe-accessor-for-field field) "-update")))
 	 )
     `(begin
-       (define-if-not-defined ,tag-binding (list ,tag-code))
+       (define-if-not-defined ,tag-binding (struct-tag-generate! ,tag-code))
        ,@(let ((construct
 		(lambda (LAMBDA constructor-name)
 		  `(define ,constructor-name
@@ -348,7 +430,7 @@
   ;; multiversioning?
   (and (vector? v)
        (>= (vector-length v) 1)
-       (symbol? (vector-ref v 0))))
+       (struct-tag? (vector-ref v 0))))
 
 (define (struct-of pred)
   (lambda (v)
@@ -361,16 +443,19 @@
 		 #t))))))
 
 (TEST
- > (define vals '(foo
+ > (define vals `(foo
 		  (foo)
 		  #(foo)
-		  #(foo 1)
+		  #((foo))
+		  #(,cj-struct:tag:foo)
+		  #((foo) 1)
+		  #(,cj-struct:tag:foo 1)
 		  #(1 foo)
-		  #(foo 1 2)
-		  #(foo 1 -2)
-		  #(foo 1 "-2")))
+		  #(,cj-struct:tag:foo 1 2)
+		  #(,cj-struct:tag:foo 1 -2)
+		  #(,cj-struct:tag:foo 1 "-2")))
  > (map (struct-of natural0?) vals)
- (#f #f #t #t #f #t #f #f))
+ (#f #f #f #t #f #t #f #t #f #f))
 
 
 (define (struct-type v)
