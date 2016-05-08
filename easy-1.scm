@@ -271,6 +271,11 @@
 (defmacro (modimport/prefix prefix expr . vars)
   (modimport-expand prefix expr vars))
 
+
+(defmacro (lambda . rest)
+  `(typed-lambda ,@rest))
+
+
 (TEST
  > (expansion#modimport tj8znc94e7fkdsqfm a b c)
  (module:import tj8znc94e7fkdsqfm a b c)
