@@ -444,8 +444,11 @@
 
 (TEST
  > (define vals `(foo
+		  ,cj-struct:tag:foo
 		  (foo)
+		  (,cj-struct:tag:foo)
 		  #(foo)
+		  ,(list->vector cj-struct:tag:foo)
 		  #((foo))
 		  #(,cj-struct:tag:foo)
 		  #((foo) 1)
@@ -455,7 +458,7 @@
 		  #(,cj-struct:tag:foo 1 -2)
 		  #(,cj-struct:tag:foo 1 "-2")))
  > (map (struct-of natural0?) vals)
- (#f #f #f #t #f #t #f #t #f #f))
+ (#f #f #f #f #f #f #f #t #f #t #f #t #f #f))
 
 
 (define (struct-type v)
@@ -465,16 +468,23 @@
 
 
 ;; Does not check for parent types! (This is not an is-a check.) Also,
-;; does not verify the number of fields, just the type name!
+;; does not verify the number of fields, just the type tag!
 (define (struct-of-type type-name)
   (if (symbol? type-name)
-      (lambda (v)
-	(and (struct? v)
-	     (eq? (struct-type v) type-name)))
+      (cond ((symbol.maybe-struct-tag type-name)
+	     => (lambda (tag)
+		  (lambda (v)
+		    (and (struct? v)
+			 (eq? (struct-type v) tag)))))
+	    (else
+	     ;; XXX ah, should it do 'late binding', so that it would
+	     ;; allow to infer, ehr create the type later on ?
+	     (error "unknown type:" type-name)))
       (error "not a symbol:" type-name)))
 
 (TEST
  > (define f? (struct-of-type 'foo))
  > (map f? vals)
- (#f #f #t #t #f #t #t #t))
+ ;; (0 0 0 0 0 0 0 1 0 1 0 1 1 1)
+ (#f #f #f #f #f #f #f #t #f #t #f #t #t #t))
 
