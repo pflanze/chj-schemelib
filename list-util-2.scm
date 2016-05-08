@@ -92,8 +92,31 @@
  > (segregate '() <)
  ()
  > (segregate '(3 1 2 5 6 3 4 3 5) <)
- ((1) (2) (3 3 3) (4) (5 5) (6))
- )
+ ((1) (2) (3 3 3) (4) (5 5) (6)))
+
+
+(define (segregate* lis extract less? #!optional (tail '()))
+  (define (equal? a b)
+    (and (not (less? a b))
+	 (not (less? b a))))
+  (map (lambda (group)
+	 (cons (extract (car group))
+	       group))
+       (group-by (sort lis (on extract less?))
+		 (on extract equal?)
+		 tail)))
+
+(TEST
+ > (segregate* '() car <)
+ ()
+ > (segregate* '("bummer" "abba" "apple" "beta" "carotin" "all")
+	       (lambda (v) (string-ref v 0)) char<?)
+ ((#\a "abba" "apple" "all")
+  ;; (retains original order since sort comparison function only
+  ;; checks this field!)
+  (#\b "bummer" "beta")
+  (#\c "carotin")))
+
 
 
 ;; Maybe I'm rather going to use improper-fold-right* directly?
