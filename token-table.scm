@@ -37,8 +37,8 @@
 
    (def (token-map . symbols)
 	(let ((t (list-of-symbol.token-table symbols)))
-	  (typed-lambda (#(token? str))
-		   (table-ref t str #f))))))
+	  (lambda (#(token? str))
+	    (table-ref t str #f))))))
 
 (module-import || <token-table> string? list-of-symbol.token-table)
 (module-import |u8vector-| <token-table> u8vector? list-of-symbol.u8vector-token-table)

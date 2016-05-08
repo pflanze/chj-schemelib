@@ -76,23 +76,22 @@
 ;; (do *not* expect list-of-posixpath-segment, as it is meant to be
 ;; used after string-split)--ah, but "." is still ok for that?
 (def. list-of-string.posixpath
-  (typed-lambda
-   (l #!optional #((maybe posixpath-type?) type))
-   (if (null? l)
-       (error "what's this?")
-       ;; ^ rootpath or ? ah doesn't happen from string-split,
-       ;; splitting "" gives ("") yeah, remember, stupid right?
-       (let ((absolute? (string-empty? (car l)))
-	     (looks-like-directory? ((either string-empty?
-					     .dot?
-					     .dotdot?) (last l)))
-	     (ss (filter (complement string-empty?) l)))
-	 (uncollapsed-posixpath
-	  absolute?
-	  ss
-	  (or type
-	      ;; XX instead give error when in conflict with each other?
-	      (and looks-like-directory? 'directory)))))))
+  (lambda (l #!optional #((maybe posixpath-type?) type))
+    (if (null? l)
+	(error "what's this?")
+	;; ^ rootpath or ? ah doesn't happen from string-split,
+	;; splitting "" gives ("") yeah, remember, stupid right?
+	(let ((absolute? (string-empty? (car l)))
+	      (looks-like-directory? ((either string-empty?
+					      .dot?
+					      .dotdot?) (last l)))
+	      (ss (filter (complement string-empty?) l)))
+	  (uncollapsed-posixpath
+	   absolute?
+	   ss
+	   (or type
+	       ;; XX instead give error when in conflict with each other?
+	       (and looks-like-directory? 'directory)))))))
 
 (def. (string.posixpath s #!optional type)
   (if (string-empty? s)
@@ -377,10 +376,8 @@
 ;; actually no need to require them to be collapsed, here..
 
 (def. posixpath.add
-  (typed-lambda
-   (a
-    #(posixpath? b))
-   (.collapse (.append a b))))
+  (lambda (a #(posixpath? b))
+    (.collapse (.append a b))))
 
 (TEST
  > (.string (.add (.posixpath "/foo/baz") (.posixpath "../bar.html")))

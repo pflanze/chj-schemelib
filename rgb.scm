@@ -243,11 +243,11 @@
 (def-rgb01 mean-towards (rgb01:op/2+1 mean-towards))
 
 (def (rgb01:.op op)
-     (typed-lambda (a #(number? b))
-		   (insert-result-of
-		    `(rgb01l ,@(map (lambda_
-				     `(op (,_ a) b))
-				    '(.r01l .g01l .b01l))))))
+     (lambda (a #(number? b))
+       (insert-result-of
+	`(rgb01l ,@(map (lambda_
+			 `(op (,_ a) b))
+			'(.r01l .g01l .b01l))))))
 
 (def-rgb01 .* (rgb01:.op *))
 (def-rgb01 ./ (rgb01:.op /))
