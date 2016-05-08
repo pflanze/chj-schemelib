@@ -15,6 +15,19 @@
 	 cj-symbol
 	 (predicates true?))
 
+(export (macro pop!)
+	group-by
+	segregate
+	segregate*
+	improper-fold-right/yn-cont
+	lists-common-prefix-length
+	cartesian-product
+	all-equal?
+	sublist
+	
+	#!optional
+	shiftmap ;; ?
+	cartesian-product-2)
 
 (define-macro* (pop! var)
   (with-gensym
