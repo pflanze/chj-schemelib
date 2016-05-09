@@ -32,7 +32,7 @@
 		   ;;XX size_t?
 		   natural0?)
 
-     (let* ((out (make-vector 11 'localtime))
+     (let* ((out (localtime 1 2 3 4 5 6 7 8 9 10))
 	    (res (##c-code "
 {
     const char *in = ___CAST(char*, ___BODY(___ARG1));
@@ -84,7 +84,7 @@
  > (set-TZ! "Europe/Zurich")
  > (values->vector (strptime (.utf8-u8vector0 "Thu Jan 21 07:35:56 2016")
 			     (.utf8-u8vector0 "%a %b %d %H:%M:%S %Y")))
- #(#(localtime 56 35 7 21 0 116 4 20 -1 -3600) 24)
+ #(#((localtime) 56 35 7 21 0 116 4 20 -1 -3600) 24)
  ;; XXX -1 is wrong but how do we get it?
 
  > (values->vector (strptime (.utf8-u8vector0 "Hello") (.utf8-u8vector0 "%s")))

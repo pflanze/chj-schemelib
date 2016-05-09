@@ -293,11 +293,11 @@
  > (define a (2d-point 10 1))
  > (define b (.rot90 a))
  > b
- #(2d-point -1 10)
+ #((2d-point) -1 10)
  > (define c (.rot90 b))
  > (define d (.rot90 c))
  > (.rot90 d)
- #(2d-point 10 1)
+ #((2d-point) 10 1)
  ;; almost= :
  > (def a (2d-point 1 2))
  > (map (lambda (p)
@@ -369,26 +369,26 @@
  ;; ---- a quadratic window
  > (def w (window (point 10 11) (point 20 21)))
  > (.range w) ;; .size ? well whatever
- #(2d-point 10 10)
+ #((2d-point) 10 10)
  ;; for every w, the division of the numbers in .range equals .proportions
  > (.proportions w)
  1
  ;; -- cut
  > (def w2 (.fit-to-proportions w 2 #t))
  > w2
- #(2d-window #(2d-point 10 27/2) #(2d-point 20 37/2))
+ #((2d-window) #((2d-point) 10 27/2) #((2d-point) 20 37/2))
  ;; for every w and y, (comp .proportions (C .fit-to-proportions _ x
  ;; y)) equals x
  > (.range w2)
- #(2d-point 10 5)
+ #((2d-point) 10 5)
  > (.proportions w2)
  2
  ;; -- add borders
  > (def w2 (.fit-to-proportions w 2 #f))
  > w2
- #(2d-window #(2d-point 5 11) #(2d-point 25 21))
+ #((2d-window) #((2d-point) 5 11) #((2d-point) 25 21))
  > (.range w2)
- #(2d-point 20 10)
+ #((2d-point) 20 10)
  > (.proportions w2)
  2
 
@@ -398,27 +398,27 @@
  3
  > (def w2 (.fit-to-proportions w 2 #t))
  > w2
- #(2d-window #(2d-point -5 11) #(2d-point 15 21))
+ #((2d-window) #((2d-point) -5 11) #((2d-point) 15 21))
  > (.range w2)
- #(2d-point 20 10)
+ #((2d-point) 20 10)
  > (.proportions w2)
  2
 
  > (def w2 (.fit-to-proportions w 6 #t))
  > w2
- #(2d-window #(2d-point -10 27/2) #(2d-point 20 37/2))
+ #((2d-window) #((2d-point) -10 27/2) #((2d-point) 20 37/2))
  > (.range w2)
- #(2d-point 30 5)
+ #((2d-point) 30 5)
  > (.proportions w2)
  6
 
  > (def w2 (.fit-to-proportions w -6 #t))
  > w2
- #(2d-window #(2d-point -10 37/2) #(2d-point 20 27/2))
+ #((2d-window) #((2d-point) -10 37/2) #((2d-point) 20 27/2))
  ;; yes, it's flipped over now (there are two ways to flip, though,
  ;; why that variant?)
  > (.range w2)
- #(2d-point 30 -5)
+ #((2d-point) 30 -5)
  > (.proportions w2)
  -6
  )
@@ -553,32 +553,32 @@
 (TEST
  > (define (t l)
      (all-equal? (shiftmap canonical-2d-square l)))
- > (t '(#(2d-point 9 77) #(2d-point -1 -1) #(2d-point 77 -11) #(2d-point 87 67)))
+ > (t (list (2d-point 9 77) (2d-point -1 -1) (2d-point 77 -11) (2d-point 87 67)))
  #t
- > (t '(#(2d-point 10 1) #(2d-point 10 2) #(2d-point 9 2) #(2d-point 9 1)))
+ > (t (list (2d-point 10 1) (2d-point 10 2) (2d-point 9 2) (2d-point 9 1)))
  #t
  ;; not a square:
- > (t '(#(2d-point 10 1) #(2d-point 10 3) #(2d-point 9 2) #(2d-point 9 1)))
+ > (t (list (2d-point 10 1) (2d-point 10 3) (2d-point 9 2) (2d-point 9 1)))
  #f
 
  ;; detail tests (not necessary if the above are successful):
  > (.points (canonical-2d-square (2d-point 10 1) (2d-point 10 2)))
- (#(2d-point 9 1) #(2d-point 10 1) #(2d-point 10 2) #(2d-point 9 2))
+ (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
  > (.points (canonical-2d-square (2d-point 10 2) (2d-point 9 2)))
- (#(2d-point 9 1) #(2d-point 10 1) #(2d-point 10 2) #(2d-point 9 2))
+ (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
  > (.points (canonical-2d-square (2d-point 9 2) (2d-point 9 1)))
- (#(2d-point 9 1) #(2d-point 10 1) #(2d-point 10 2) #(2d-point 9 2))
+ (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
  > (.points (canonical-2d-square (2d-point 9 1) (2d-point 10 1)))
- (#(2d-point 9 1) #(2d-point 10 1) #(2d-point 10 2) #(2d-point 9 2))
+ (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
  )
 
 (TEST ;; 2d-line.diff and 2d-line.slope
  > (.diff (2d-line (2d-point 1 2) (2d-point 3 4)))
- #(2d-point 2 2)
+ #((2d-point) 2 2)
  > (.slope (2d-line (2d-point 1 2) (2d-point 3 4)))
  1
  > (.diff (2d-line (2d-point 1 2) (2d-point -3 4)))
- #(2d-point -4 2)
+ #((2d-point) -4 2)
  > (.slope (2d-line (2d-point 1 2) (2d-point -3 4)))
  -1/2
  > (.slope (2d-line (2d-point 1 2) (2d-point 1 4)))

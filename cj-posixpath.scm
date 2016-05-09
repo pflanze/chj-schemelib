@@ -102,17 +102,17 @@
  > (%try-error (.posixpath ""))
  #(error "not accepting empty string as a posixpath")
  > (.posixpath "/foo")
- #(uncollapsed-posixpath #t ("foo") #f)
+ #((uncollapsed-posixpath) #t ("foo") #f)
  > (.posixpath "/foo/")
- #(uncollapsed-posixpath #t ("foo") directory)
+ #((uncollapsed-posixpath) #t ("foo") directory)
  > (.posixpath "/")
- #(uncollapsed-posixpath #t () directory)
+ #((uncollapsed-posixpath) #t () directory)
  > (.string (.posixpath "/"))
  "/"
  > (.posixpath "./foo")
- #(uncollapsed-posixpath #f ("." "foo") #f)
+ #((uncollapsed-posixpath) #f ("." "foo") #f)
  > (.posixpath "foo")
- #(uncollapsed-posixpath #f ("foo") #f)
+ #((uncollapsed-posixpath) #f ("foo") #f)
  > (.string (.posixpath '("foo" "bar")))
  "foo/bar"
  > (%try-error (.string (.posixpath '("foo/f" "bar"))))
@@ -179,13 +179,13 @@
  > (.string (.append (.posixpath "//foo//bar") (.posixpath "baz/")))
  "/foo/bar/baz/"
  > (.append (.posixpath "//foo//bar") (.collapse (.posixpath "../baz/")))
- #(uncollapsed-posixpath #t ("foo" "bar" ".." "baz") directory)
+ #((uncollapsed-posixpath) #t ("foo" "bar" ".." "baz") directory)
  > (.append (.collapse (.posixpath "//foo//bar"))
 	    (.collapse (.posixpath "../baz/")))
- #(uncollapsed-posixpath #t ("foo" "bar" ".." "baz") directory)
+ #((uncollapsed-posixpath) #t ("foo" "bar" ".." "baz") directory)
  > (.append (.collapse (.posixpath "//foo//bar"))
 	    (.collapse (.posixpath "baz/")))
- #(collapsed-posixpath #t ("foo" "bar" "baz") directory)
+ #((collapsed-posixpath) #t ("foo" "bar" "baz") directory)
  )
 
 
@@ -255,7 +255,7 @@
  > (%try-error (.string (.collapse (.posixpath "/foo/bar/../../../baz"))))
  #(error
    "absolute path pointing outside the root:"
-   #(uncollapsed-posixpath #t ("foo" "bar" ".." ".." ".." "baz") #f))
+   #((uncollapsed-posixpath) #t ("foo" "bar" ".." ".." ".." "baz") #f))
  ;; would get "/../baz" without the exception
  > (.string (.collapse (.posixpath "bar/./../baz/./..")))
  "./"
@@ -264,7 +264,7 @@
  > (.string (.collapse (.posixpath "foo/..")))
  "./"
  > (.collapse (.posixpath "./foo/../."))
- #(collapsed-posixpath #f () directory)
+ #((collapsed-posixpath) #f () directory)
  > (.string (.collapse (.posixpath "./foo/../.")))
  "./"
  > (.string (.collapse (.posixpath "./foo/.././..")))
@@ -403,7 +403,7 @@
  > (%try-error (t "/foo/baz" "../bar.html"))
  #(error
    ".chroot-add: path b is not absolute:"
-   #(uncollapsed-posixpath #f (".." "bar.html") #f))
+   #((uncollapsed-posixpath) #f (".." "bar.html") #f))
  > (t "/foo/baz" "/bar.html")
  "/foo/baz/bar.html"
  > (t "/foo/baz/" "/bar.html")
@@ -415,7 +415,7 @@
  > (%try-error (t "/foo/baz/" "/../bar.html"))
  #(error
    "absolute path pointing outside the root:"
-   #(uncollapsed-posixpath #t (".." "bar.html") #f))
+   #((uncollapsed-posixpath) #t (".." "bar.html") #f))
  > (t "/foo/.." "/bar.html")
  ;; .chroot-add does not collapse a
  "/foo/../bar.html"
@@ -434,22 +434,22 @@
  "./"
  ;; correct directory vs. file handling:
  > (t* ".." "/.")
- #(uncollapsed-posixpath #f ("..") directory)
+ #((uncollapsed-posixpath) #f ("..") directory)
  > (t* ".." "/")
- #(uncollapsed-posixpath #f ("..") directory)
+ #((uncollapsed-posixpath) #f ("..") directory)
  > (t* ".." "/foo")
- #(uncollapsed-posixpath #f (".." "foo") #f)
+ #((uncollapsed-posixpath) #f (".." "foo") #f)
  > (%try-error (.chroot-add (.posixpath "foo") (.posixpath "/bar" 'file)))
- #(uncollapsed-posixpath #f ("foo" "bar") file)
+ #((uncollapsed-posixpath) #f ("foo" "bar") file)
  ;; superfluous since this check in .append is already tested, but...:
  > (%try-error (.chroot-add (.posixpath "foo" 'file) (.posixpath "/bar")))
  #(error "first path is to a file:" "foo")
  ;; hm BTW interesting, a path ending in a slash can be a file?
  > (.chroot-add (.posixpath "foo") (.posixpath "/bar/" 'file))
- #(uncollapsed-posixpath #f ("foo" "bar") file)
+ #((uncollapsed-posixpath) #f ("foo" "bar") file)
  ;; check collapse 'flag' maintenance
  > (.chroot-add (.collapse (.posixpath "foo")) (.posixpath "/bar/" 'file))
- #(collapsed-posixpath #f ("foo" "bar") file))
+ #((collapsed-posixpath) #f ("foo" "bar") file))
 
 
 ;; Idea: a type wrapper that makes .add do .chroot-add, so that users
@@ -469,22 +469,22 @@
 
 (TEST
  > (.chroot-add (chroot-path (.posixpath "foo")) (.posixpath "/bar/"))
- #(uncollapsed-posixpath #f ("foo" "bar") directory)
+ #((uncollapsed-posixpath) #f ("foo" "bar") directory)
  > (.add (chroot-path (.posixpath "foo")) (.posixpath "/bar/"))
- #(uncollapsed-posixpath #f ("foo" "bar") directory)
+ #((uncollapsed-posixpath) #f ("foo" "bar") directory)
  ;; XX BUT does it make sense?: b would probably be relative in apps
  ;; in those cases, which would make chroot-path's just give
  ;; exceptions all the time:
  > (.add (.posixpath "foo") (.posixpath "/bar/"))
- #(collapsed-posixpath #t ("bar") directory)
+ #((collapsed-posixpath) #t ("bar") directory)
 
  > (%try-error (.add (chroot-path (.posixpath "foo")) (.posixpath "../")))
  #(error
    ".chroot-add: path b is not absolute:"
-   #(uncollapsed-posixpath #f ("..") directory))
+   #((uncollapsed-posixpath) #f ("..") directory))
  ;; versus:
  > (%try-error (.add (.posixpath "foo") (.posixpath "../")))
- #(collapsed-posixpath #f () directory))
+ #((collapsed-posixpath) #f () directory))
 
 ;; /idea
 
@@ -625,17 +625,17 @@
  ;; > (%try-error (t "/.." "foo.png"))
  ;; #(error
  ;;   "absolute path pointing outside the root:"
- ;;   #(uncollapsed-posixpath #t (".." "foo.png") #f))
+ ;;   #((uncollapsed-posixpath) #t (".." "foo.png") #f))
  ;; #(error
  ;;   "absolute path pointing outside the root:"
- ;;   #(uncollapsed-posixpath #t ("..") directory))
+ ;;   #((uncollapsed-posixpath) #t ("..") directory))
  > (t-add "/bar" "foo.png")
  "/foo.png"
  > (%try-error (t-add "/bar" "../foo.png"))
  ;; XX should probably use an overridable (continuable) error
  #(error
    "absolute path pointing outside the root:"
-   #(uncollapsed-posixpath #t (".." "foo.png") #f))
+   #((uncollapsed-posixpath) #t (".." "foo.png") #f))
  > (t-add "/bar/" "../foo.png")
  "/foo.png"
  > (t-add "/bar/baz" "../foo.png")

@@ -92,7 +92,7 @@
   (let ((in (s64vector t))
 	;; XX still output localtime objects? Since they contain
 	;; the time zone, all should be ok?
-	(out (make-vector 11 'localtime)))
+	(out (localtime 1 2 3 4 5 6 7 8 9 10)))
     (##c-code "{
     long long *in = ___CAST(long long*, ___BODY(___ARG1));
     time_t t= *in;
@@ -128,7 +128,7 @@
 
 (def. (unixtime.localtime #(time_t? t))
   (let ((in (s64vector t))
-	(out (make-vector 11 'localtime)))
+	(out (localtime 1 2 3 4 5 6 7 8 9 10)))
     (##c-code "
 {
     long long *in = ___CAST(long long*, ___BODY(___ARG1));

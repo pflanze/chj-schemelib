@@ -24,7 +24,7 @@
 (TEST
  > (set-TZ! "Europe/Zurich")
  > (.gmtime 1329129873)
- #(localtime 33 44 10 13 1 112 1 43 0 0)
+ #((localtime) 33 44 10 13 1 112 1 43 0 0)
  > (.gmtime-string #)
  "Mon, 13 Feb 2012 10:44:33 GMT"
  > (.gmtime-string 1329129873)
@@ -54,13 +54,13 @@
  > (ctime 1366681842)
  "Tue Apr 23 02:50:42 2013"
  > (.gmtime 1366681842)
- #(localtime 42 50 1 23 3 113 2 112 0 0)
+ #((localtime) 42 50 1 23 3 113 2 112 0 0)
  > (.gmtime-string 1366681842)
  "Tue, 23 Apr 2013 01:50:42 GMT"
  > (.rfc-2822 (.gmtime 1366681842))
  "Tue, 23 Apr 2013 01:50:42 +0000"
  > (.localtime 1366681842)
- #(localtime 42 50 2 23 3 113 2 112 1 0)
+ #((localtime) 42 50 2 23 3 113 2 112 1 0)
  > (.rfc-2822 (.localtime 1366681842))
  "Tue, 23 Apr 2013 02:50:42 +0100"
 
@@ -71,7 +71,7 @@
  "Tue, 23 Apr 2013 03:50:42 +0200"
 
  > (.localtime 1356209442)
- #(localtime 42 50 21 22 11 112 6 356 0 -3600)
+ #((localtime) 42 50 21 22 11 112 6 356 0 -3600)
  > (ctime 1356209442)
  "Sat Dec 22 21:50:42 2012"
  > (.rfc-2822 (.localtime 1356209442))
