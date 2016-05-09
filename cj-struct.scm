@@ -19,6 +19,7 @@
 	(macro define-struct*)
 	struct?
 	struct-type
+	struct-type-name
 	struct-of-type
 	;; odd one?:
 	struct-of)
@@ -465,6 +466,11 @@
   (if (struct? v)
       (vector-ref v 0)
       (error "not a struct:" v)))
+
+(define (struct-type-name v)
+  ;; struct-type already guarantees the type is valid, thus use unsafe
+  ;; name getter
+  (@maybe-struct-tag-name (struct-type v)))
 
 
 ;; Does not check for parent types! (This is not an is-a check.) Also,
