@@ -17,12 +17,24 @@
 
 (export (macro define-struct)
 	(macro define-struct*)
+
+	symbol.maybe-struct-tag
+	symbol.struct-tag
+	struct-tag?
+	maybe-struct-tag-name
+	
 	struct?
 	struct-type
 	struct-type-name
 	struct-of-type
 	;; odd one?:
-	struct-of)
+	struct-of
+
+	#!optional
+	@maybe-struct-tag-name
+	@struct-tag?
+	
+	struct-tag-generate!)
 
 
 ;; A struct is a vector with an object in slot 0 that unambiguously
@@ -54,6 +66,10 @@
   (if (symbol? s)
       (table-ref cj-struct:lookup s #f)
       (error "not a symbol:" s)))
+
+(define (symbol.struct-tag s)
+  (or (symbol.maybe-struct-tag s)
+      (error "no struct of name:" s)))
 
 (define (struct-tag-generate! s)
   (if (symbol? s)
