@@ -177,22 +177,22 @@
 		(parameterize ((cs-id 0))
 			      (_cs:begin v (get-env) #f))))
  > (t-_cs:begin '((define a 1) (define b 2)))
- #(#(cs-begin
-     (#(cs-def #(cs-var a 1) #(cs-literal 1))
-       #(cs-def #(cs-var b 2) #(cs-literal 2))))
-    (#(cs-var b 2) #(cs-var a 1)))
+ #(#((cs-begin)
+     (#((cs-def) #((cs-var) a 1) #((cs-literal) 1))
+       #((cs-def) #((cs-var) b 2) #((cs-literal) 2))))
+    (#((cs-var) b 2) #((cs-var) a 1)))
  > (t-_cs:begin '((define a 1) (define b a)))
- #(#(cs-begin
-     (#(cs-def #(cs-var a 1) #(cs-literal 1))
-       #(cs-def #(cs-var b 2) #(cs-ref #(cs-var a 1)))))
-    (#(cs-var b 2) #(cs-var a 1)))
+ #(#((cs-begin)
+     (#((cs-def) #((cs-var) a 1) #((cs-literal) 1))
+       #((cs-def) #((cs-var) b 2) #((cs-ref) #((cs-var) a 1)))))
+    (#((cs-var) b 2) #((cs-var) a 1)))
  > (t-_cs:begin '((define a b) (define b a)))
  ;; this might be invalid Scheme, but valid Ocaml; XXX: ah, actually
  ;; ambiguous?, if b was defined earlier, that one is used instead!
- #(#(cs-begin
-     (#(cs-def #(cs-var a 1) #(cs-ref #(cs-var b 2)))
-       #(cs-def #(cs-var b 2) #(cs-ref #(cs-var a 1)))))
-    (#(cs-var b 2) #(cs-var a 1)))
+ #(#((cs-begin)
+     (#((cs-def) #((cs-var) a 1) #((cs-ref) #((cs-var) b 2)))
+       #((cs-def) #((cs-var) b 2) #((cs-ref) #((cs-var) a 1)))))
+    (#((cs-var) b 2) #((cs-var) a 1)))
  > (take (vector-ref
 	  (t-_cs:begin '((define (odd? n)
 			   (if (zero? n)
@@ -204,9 +204,9 @@
 			       (odd? (- n 1)))))
 		       default-scheme-env)
 	  1) 3)
- (#(cs-var even? 11)
-   #(cs-var odd? 10)
-   #(cs-var + 1))
+ (#((cs-var) even? 11)
+   #((cs-var) odd? 10)
+   #((cs-var) + 1))
  )
 
 
@@ -391,7 +391,7 @@
 		 (_cs '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
 		      '() ;; (default-scheme-env)
 		      #f))
- (#(cs-var even? 1)))
+ (#((cs-var) even? 1)))
 
 (def (cs expr
 	 #!optional
@@ -405,48 +405,48 @@
  > (def (catching thunk)
 	(with-exception-catcher source-error-message thunk))
  > (cs '(define x 2))
- #(cs-def #(cs-var x 1) #(cs-literal 2))
+ #((cs-def) #((cs-var) x 1) #((cs-literal) 2))
  > (cs '(lambda x 2))
- #(cs-lambda #(cs-var x 1) #(cs-literal 2))
+ #((cs-lambda) #((cs-var) x 1) #((cs-literal) 2))
  > (catching (& (cs '(f x))))
  "undefined variable in function position"
  > (catching (& (cs '(begin x 2))))
  "undefined variable"
  > (cs '(let ((x 4))
 	  (begin x 2)))
- #(cs-app
-   #(cs-lambda
-     (#(cs-var x 1))
-     #(cs-begin (#(cs-ref #(cs-var x 1)) #(cs-literal 2))))
-   (#(cs-literal 4)))
+ #((cs-app)
+   #((cs-lambda)
+     (#((cs-var) x 1))
+     #((cs-begin) (#((cs-ref) #((cs-var) x 1)) #((cs-literal) 2))))
+   (#((cs-literal) 4)))
  > (catching (& (cs '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
  > (cs '(let ((x 4) (y 5)) (begin x 2)))
- #(cs-app
-   #(cs-lambda
-     (#(cs-var x 1) #(cs-var y 2))
-     #(cs-begin (#(cs-ref #(cs-var x 1)) #(cs-literal 2))))
-   (#(cs-literal 4) #(cs-literal 5)))
+ #((cs-app)
+   #((cs-lambda)
+     (#((cs-var) x 1) #((cs-var) y 2))
+     #((cs-begin) (#((cs-ref) #((cs-var) x 1)) #((cs-literal) 2))))
+   (#((cs-literal) 4) #((cs-literal) 5)))
  > (cs '(let* ((x 4) (y x)) (begin x 2)))
- #(cs-app
-   #(cs-lambda
-     (#(cs-var x 1))
-     #(cs-app
-       #(cs-lambda
-	 (#(cs-var y 2))
-	 #(cs-begin (#(cs-ref #(cs-var x 1)) #(cs-literal 2))))
-       (#(cs-ref #(cs-var x 1)))))
-   (#(cs-literal 4)))
+ #((cs-app)
+   #((cs-lambda)
+     (#((cs-var) x 1))
+     #((cs-app)
+       #((cs-lambda)
+	 (#((cs-var) y 2))
+	 #((cs-begin) (#((cs-ref) #((cs-var) x 1)) #((cs-literal) 2))))
+       (#((cs-ref) #((cs-var) x 1)))))
+   (#((cs-literal) 4)))
  > (cs '(+ - * /) default-scheme-env)
- #(cs-app
-   #(cs-ref #(cs-var + 1))
-   (#(cs-ref #(cs-var - 2)) #(cs-ref #(cs-var * 3)) #(cs-ref #(cs-var / 4))))
+ #((cs-app)
+   #((cs-ref) #((cs-var) + 1))
+   (#((cs-ref) #((cs-var) - 2)) #((cs-ref) #((cs-var) * 3)) #((cs-ref) #((cs-var) / 4))))
  > (cs '(lambda (n) (* n n)) default-scheme-env)
- #(cs-lambda
-   (#(cs-var n 10))
-   #(cs-app
-     #(cs-ref #(cs-var * 3))
-     (#(cs-ref #(cs-var n 10)) #(cs-ref #(cs-var n 10)))))
+ #((cs-lambda)
+   (#((cs-var) n 10))
+   #((cs-app)
+     #((cs-ref) #((cs-var) * 3))
+     (#((cs-ref) #((cs-var) n 10)) #((cs-ref) #((cs-var) n 10)))))
  )
 
 
