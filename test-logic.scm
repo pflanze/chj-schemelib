@@ -68,7 +68,7 @@
 
 (TEST
  > (F (qcheck* (iota 4) square identity))
- (#(testfailure 2 (4 2)) #(testfailure 3 (9 3))))
+ (#((testfailure) 2 (4 2)) #((testfailure) 3 (9 3))))
 
 
 
