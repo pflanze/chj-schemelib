@@ -77,7 +77,7 @@
 					     stdout-redirection: #t)))
 	    (f (future (writer p)))
 	    (res (reader p)))
-       (close-port p)
+       (close-input-port p)
        (thread-join! f) ;; should exceptions be suppressed here?
        (let ((s (process-status p)))
 	 (if (ok? s)
