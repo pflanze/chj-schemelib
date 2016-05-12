@@ -18,17 +18,58 @@
 (export (class command)
 	process-run
 	string-writer
-	string-reader)
+	string-reader
+
+	#!optional
+	process-spec?)
+
+
+(def (process-spec? v)
+     (or (null? v)
+	 (and (pair? v)
+	      (let-pair ((a v*) v)
+			(and (keyword? a)
+			     (pair? v*)
+			     (let-pair ((b v**) v*)
+				       (and (or (symbol? b)
+						(string? b))
+					    (process-spec? v**))))))))
+
+(TEST
+ > (process-spec? '())
+ #t
+ > (process-spec? '(a))
+ #f
+ > (process-spec? '(a:))
+ #f
+ > (process-spec? '(a: "a"))
+ #t
+ > (process-spec? '("a:" "a"))
+ #f
+ > (process-spec? '(a: "a" b: b))
+ #t)
 
 
 (class command
        (struct #(path-string? path)
+	       #!key
+	       (#(process-spec? additional-spec) '())
 	       #!rest
 	       #((list-of string?) arguments))
+
        (method (process-spec c . args)
 	       `(path: ,(.path c)
-		 arguments: ,(.arguments c)
-		 ,@args)))
+		       arguments: ,(.arguments c)
+		       ;; XX do the following two need merging?
+		       ,@(.additional-spec c)
+		       ,@args)))
+
+(TEST
+ > (command "a" additional-spec: '(foo: "a") "b")
+ #((command) "a" (foo: "a") ("b"))
+ > (command "a" "b")
+ #((command) "a" () ("b")))
+
 
 (def (process-run cmd reader writer ok?)
      (let* ((p (open-process* (.process-spec cmd
