@@ -29,6 +29,7 @@
 	chomp
 	trim
 	trim-maybe
+	trim-both
 	char-newline?
 	trimlines
 	trimlines-maybe
@@ -210,6 +211,10 @@
 (define trim string-trim-right)
 
 (define trim-maybe (_-maybe trim))
+;; XX what does that do differently??
+
+(define trim-both (compose string-trim-right string-trim-left))
+
 
 (define char-newline?
   (cut char=? <> #\newline))
