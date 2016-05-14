@@ -12,6 +12,7 @@
 	char-alpha-uc?
 	char-alpha?
 	char-alphanumeric?
+	char-whitespace?
 	char-in-range?
 	char-hexdigit?
 	
@@ -79,6 +80,16 @@
  #t
  )
 
+;; XX unify with |u8-whitespace?| (but make it a dependency or? Only
+;; have those once please, really. Make u8* a dependency on us,
+;; rather?)
+(define (char-whitespace? char)
+  (case char
+    ((#\space #\newline #\tab #\page #\return)
+     #t)
+    (else #f)))
+
+
 (define (char-in-range? fromchar tochar)
   (let ((from (char->integer fromchar))
 	(to (char->integer tochar)))
@@ -100,4 +111,3 @@
  > (char-hexdigit? #\9)
  #t
  )
-
