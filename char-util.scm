@@ -5,6 +5,19 @@
 	 (list-util let-pair) ;; for either
 	 test)
 
+(export char=?/ ;; ?
+	char-one-of?/
+	char-digit?
+	char-alpha-lc?
+	char-alpha-uc?
+	char-alpha?
+	char-alphanumeric?
+	char-in-range?
+	char-hexdigit?
+	
+	#!optional
+	on-char)
+
 ;;XX to avoid circular dependency on cj-functional
 (define (either . fs)
   (if (null? fs)
