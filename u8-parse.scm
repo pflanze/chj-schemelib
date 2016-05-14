@@ -5,8 +5,22 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
-(require (test)
-	 (cj-env-1))
+(require test
+	 cj-env-1)
+
+(export u8-rlist->string
+	u8-rlist->u8vector
+	read-u8-until
+	read-u8-line
+	u8-whitespace?
+	read-u8-word
+	read-u8-u8line
+	read-u8-integer
+	;; huh, how comes mk-read-all is not used anywhere?
+
+	#!optional
+	premature-eof
+	mk-read-all)
 
 
 (define (u8-rlist->_ make-vec vec-set!)
