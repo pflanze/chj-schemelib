@@ -32,6 +32,8 @@
 	(macro the)
 	(macro modimport)
 	(macro modimport/prefix)
+	(macro lambda)
+	(macro let)
 	
 	#!optional
 	module-symbol?)
@@ -318,3 +320,21 @@
  "modimport requires syntax matching `module-symbol?` here if no import list is given"
  > (modimport-expand foo: 'foo '())
  (module:import/prefix foo foo: bar baz))
+
+
+(defmacro (let binds . body)
+  (let ((binds* (source-code binds)))
+    (if (and (pair? binds*)
+	     (symbol? (source-code (car binds*))))
+	;; single-binding let: this means that we can't bind multiple
+	;; values though. (But that's what letv is for?)
+	`(##let (,binds) ,@body)
+	`(##let ,binds ,@body))))
+
+(TEST
+ > (let (a 1) a)
+ 1
+ > (let ((a 2)) a)
+ 2
+ > (let ((a 2) (b 3)) b)
+ 3)
