@@ -381,7 +381,7 @@
 
 (def (source.cs expr
 	 #!optional
-	 (get-ctx (lambda () '()))
+	 (get-ctx default-scheme-env)
 	 (realmode? #t)) -> cs-expr?
      (fst (parameterize ((cs-id 0))
 			(_cs expr (get-ctx) realmode?))))
@@ -390,16 +390,17 @@
 (TEST
  > (def (catching thunk)
 	(with-exception-catcher source-error-message thunk))
- > (source.cs '(define x 2))
+ > (def (empty-environment) '())
+ > (source.cs '(define x 2) empty-environment)
  #((cs-def) #((cs-var) x 1) #((cs-literal) 2))
- > (source.cs '(lambda x 2))
+ > (source.cs '(lambda x 2) empty-environment)
  #((cs-lambda) #((cs-var) x 1) #((cs-literal) 2))
  > (catching (& (source.cs '(f x))))
  "undefined variable in function position"
  > (catching (& (source.cs '(begin x 2))))
  "undefined variable"
  > (source.cs '(let ((x 4))
-		 (begin x 2)))
+		 (begin x 2)) empty-environment)
  #((cs-app)
    #((cs-lambda)
      (#((cs-var) x 1))
@@ -407,13 +408,13 @@
    (#((cs-literal) 4)))
  > (catching (& (source.cs '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
- > (source.cs '(let ((x 4) (y 5)) (begin x 2)))
+ > (source.cs '(let ((x 4) (y 5)) (begin x 2)) empty-environment)
  #((cs-app)
    #((cs-lambda)
      (#((cs-var) x 1) #((cs-var) y 2))
      #((cs-begin) (#((cs-ref) #((cs-var) x 1)) #((cs-literal) 2))))
    (#((cs-literal) 4) #((cs-literal) 5)))
- > (source.cs '(let* ((x 4) (y x)) (begin x 2)))
+ > (source.cs '(let* ((x 4) (y x)) (begin x 2)) empty-environment)
  #((cs-app)
    #((cs-lambda)
      (#((cs-var) x 1))
