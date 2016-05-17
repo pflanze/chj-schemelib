@@ -14,7 +14,7 @@
 	(class typed-list-cons)
 	typed-list-cons
 	typed-list-of
-	list.typed-list
+	list->typed-list
 	typed-list
 	(macro typed-list:let-pair))
 
@@ -103,15 +103,18 @@
 	    ;; pessimistic.
 	    (eq? pred (.pred v)))))
 
-(def (list.typed-list pred vals)
+;; don't name list.typed-list, since it can't be dot-oo (with this
+;; argument order, and wouldn't make sense (efficiently, and hence at
+;; all) otherwise)
+(def (list->typed-list pred vals)
      (if (null? vals)
 	 (typed-list-null pred)
 	 (let-pair ((v vals*) vals)
 		   (typed-list-cons v
-				    (list.typed-list pred vals*)))))
+				    (list->typed-list pred vals*)))))
 
 (def (typed-list pred . vals)
-     (list.typed-list pred vals))
+     (list->typed-list pred vals))
 
 (defmacro (typed-list:let-pair bind . body)
   (mcase bind
