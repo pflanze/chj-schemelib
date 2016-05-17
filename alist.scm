@@ -12,11 +12,10 @@
 ;; Perhaps call it associative-list instead?
 
 (require easy
-	 Maybe
-	 (srfi-1 filter))
+	 Maybe)
 
-(def _list-ref:nothing (gensym))
-  
+(def alist:nothing (gensym))
+
 (defmodule (<alist> key? .key .equal?)
 
   (export Maybe-ref
@@ -36,10 +35,10 @@
 	       (else
 		(error "improper list:" lis)))))
 
-  (def (ref lis key #!optional (alternate _list-ref:nothing))
+  (def (ref lis key #!optional (alternate alist:nothing))
        (Maybe:cond ((Maybe-ref lis key) => identity)
 		   (else
-		    (if (eq? alternate _list-ref:nothing)
+		    (if (eq? alternate alist:nothing)
 			(error "ref: value not found in list"
 			       lis key)
 			alternate))))
