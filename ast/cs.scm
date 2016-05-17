@@ -1,7 +1,5 @@
 ;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
 
-;; (Yet Another Stub for a Scheme Compiler)
-
 ;; Todo:
 
 ;; - DSSSL style arguments
@@ -24,6 +22,27 @@
 	 alist
 	 Maybe)
 
+(export corescheme-literal-atom?
+	corescheme-literal?
+	(class cs-var)
+	(class cs-expr
+	       (subclass cs-literal)
+	       (subclass cs-lambda)
+	       (subclass cs-app)
+	       (subclass cs-ref)
+	       (subclass cs-def)
+	       (subclass cs-begin)
+	       (subclass cs-if)
+	       (subclass cs-set!)
+	       (subclass cs-letrec))
+	source.cs
+	
+	#!optional
+	cs-id
+	cs-next-id!
+	new-cs-var!
+	cs-ctx?
+	default-scheme-env)
 
 ;; Core Scheme representation
 
@@ -393,7 +412,7 @@
 		      #f))
  (#((cs-var) even? 1)))
 
-(def (cs expr
+(def (source.cs expr
 	 #!optional
 	 (get-ctx (lambda () '()))
 	 (realmode? #t)) -> cs-expr?
@@ -404,30 +423,30 @@
 (TEST
  > (def (catching thunk)
 	(with-exception-catcher source-error-message thunk))
- > (cs '(define x 2))
+ > (source.cs '(define x 2))
  #((cs-def) #((cs-var) x 1) #((cs-literal) 2))
- > (cs '(lambda x 2))
+ > (source.cs '(lambda x 2))
  #((cs-lambda) #((cs-var) x 1) #((cs-literal) 2))
- > (catching (& (cs '(f x))))
+ > (catching (& (source.cs '(f x))))
  "undefined variable in function position"
- > (catching (& (cs '(begin x 2))))
+ > (catching (& (source.cs '(begin x 2))))
  "undefined variable"
- > (cs '(let ((x 4))
-	  (begin x 2)))
+ > (source.cs '(let ((x 4))
+		 (begin x 2)))
  #((cs-app)
    #((cs-lambda)
      (#((cs-var) x 1))
      #((cs-begin) (#((cs-ref) #((cs-var) x 1)) #((cs-literal) 2))))
    (#((cs-literal) 4)))
- > (catching (& (cs '(let ((x 4) (y x)) (begin x 2)))))
+ > (catching (& (source.cs '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
- > (cs '(let ((x 4) (y 5)) (begin x 2)))
+ > (source.cs '(let ((x 4) (y 5)) (begin x 2)))
  #((cs-app)
    #((cs-lambda)
      (#((cs-var) x 1) #((cs-var) y 2))
      #((cs-begin) (#((cs-ref) #((cs-var) x 1)) #((cs-literal) 2))))
    (#((cs-literal) 4) #((cs-literal) 5)))
- > (cs '(let* ((x 4) (y x)) (begin x 2)))
+ > (source.cs '(let* ((x 4) (y x)) (begin x 2)))
  #((cs-app)
    #((cs-lambda)
      (#((cs-var) x 1))
@@ -437,11 +456,11 @@
 	 #((cs-begin) (#((cs-ref) #((cs-var) x 1)) #((cs-literal) 2))))
        (#((cs-ref) #((cs-var) x 1)))))
    (#((cs-literal) 4)))
- > (cs '(+ - * /) default-scheme-env)
+ > (source.cs '(+ - * /) default-scheme-env)
  #((cs-app)
    #((cs-ref) #((cs-var) + 1))
    (#((cs-ref) #((cs-var) - 2)) #((cs-ref) #((cs-var) * 3)) #((cs-ref) #((cs-var) / 4))))
- > (cs '(lambda (n) (* n n)) default-scheme-env)
+ > (source.cs '(lambda (n) (* n n)) default-scheme-env)
  #((cs-lambda)
    (#((cs-var) n 10))
    #((cs-app)
@@ -456,7 +475,7 @@
 (TEST
  > (def (cs-back source)
 	(.scheme-code
-	 (cs source default-scheme-env)))
+	 (source.cs source default-scheme-env)))
  > (def t-scheme-code
 	(lambda (source result)
 	  (and
