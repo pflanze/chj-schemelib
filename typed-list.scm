@@ -3,7 +3,7 @@
 (require easy
 	 (cj-gambit-sys procedure-name maybe-decompile)
 	 (list-util let-pair)
-	 (cj-functional flip)
+	 (cj-functional flip complement)
 	 (cj-functional-2 chain) ;; just for fun, in test
 	 (cj-match mcase) ;; part of easy?
 	 (cj-symbol with-gensym) ;; part of easy?
@@ -55,6 +55,9 @@
 						     r*))
 				r*))))
 
+		 (method (remove l f)
+			 (typed-list-pair.filter l (complement f)))
+
 		 (method (the l)
 			 (let-typed-list-pair
 			  ((_ len v _) l)
@@ -75,6 +78,9 @@
 			 tail)
 
 		 (method (filter l f)
+			 l)
+
+		 (method (remove l f)
 			 l)
 
 		 (method (the l)
