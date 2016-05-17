@@ -11,12 +11,16 @@
 
 ;; Perhaps call it associative-list instead?
 
+;; XX adapted COPY of alist.scm, gah
+
 (require easy
+	 typed-list
 	 Maybe)
 
-(def alist:nothing (gensym))
+(def typed-alist:nothing (gensym))
 
-(defmodule (<alist> key? .key .equal?)
+;; gah, need pairing? as additional parameter over <alist>
+(defmodule (<typed-alist> key? .key .equal? pairing?)
 
   (export alist
 	  Maybe-ref
@@ -24,25 +28,24 @@
 	  set
 	  delete)
 
-  ;; for compat with typed-alist.scm
-  (def alist list)
+  (def (alist . pairings)
+       (list->typed-list pairing? pairings))
 
   (def (Maybe-ref lis #(key? key))
        (let lp ((l lis))
-	 (cond ((pair? l)
-		(let-pair ((a r) l)
-			  (if (.equal? key (.key a))
-			      (Just  a)
-			      (lp r))))
-	       ((null? l)
-		(Nothing))
-	       (else
-		(error "improper list:" lis)))))
+	 (xcond ((typed-list-pair? l)
+		 (typed-list:let-pair
+		  ((a r) l)
+		  (if (.equal? key (.key a))
+		      (Just  a)
+		      (lp r))))
+		((typed-list-null? l)
+		 (Nothing)))))
 
-  (def (ref lis key #!optional (alternate alist:nothing))
+  (def (ref lis key #!optional (alternate typed-alist:nothing))
        (Maybe:cond ((Maybe-ref lis key) => identity)
 		   (else
-		    (if (eq? alternate alist:nothing)
+		    (if (eq? alternate typed-alist:nothing)
 			(error "ref: value not found in list"
 			       lis key)
 			alternate))))
@@ -53,29 +56,32 @@
        (let ((key (.key key+val)))
 	 (if (key? key)
 	     (let lp ((l lis))
-	       (if (null? l)
+	       (if (typed-list-null? l)
 		   ;; key not found, add entry to front
-		   (cons key+val lis)
-		   (let ((frame (car l)))
-		     (if (.equal? (.key frame) key)
-			 ;; replace, i.e. keep tail, replace current
-			 ;; frame, add newer frames on top
-			 (let ((tail (cons key+val (cdr l))))
-			   (let rec ((l2 lis))
-			     (let ((frame2 (car l2)))
-			       (if (eq? frame2 frame)
-				   ;; arrived at same place again
-				   tail
-				   (cons frame2
-					 (rec (cdr l2)))))))
-			 (lp (cdr l))))))
+		   (typed-list.cons lis key+val)
+		   (typed-list:let-pair
+		    ((frame r) l)
+		    (if (.equal? (.key frame) key)
+			;; replace, i.e. keep tail, replace current
+			;; frame, add newer frames on top
+			(let ((tail (typed-list.cons r key+val)))
+			  (let rec ((l2 lis))
+			    (typed-list:let-pair
+			     ((frame2 r2) l2)
+			     (if (eq? frame2 frame)
+				 ;; arrived at same place again
+				 tail
+				 (typed-list.cons (rec r2) frame2)))))
+			(lp r)))))
 	     (error "wrong type of key:" key))))
 
   ;; call it remove or delete ? Actually srfi-1 calls it remove; would
   ;; have conflict here :), but might be an indication it should be
   ;; called remove really. XX?
   (def (delete lis #(key? key))
-       (remove (lambda (v)
-		 (.equal? (.key v) key))
-	       lis)))
+       ;; There's no typed-list.remove, as it has to dispatch anyway!
+       ;; (wow)
+       (.remove lis
+		(lambda (v)
+		  (.equal? (.key v) key)))))
 
