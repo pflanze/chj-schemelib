@@ -5,6 +5,8 @@
 	 (list-util let-pair)
 	 (cj-functional flip)
 	 (cj-functional-2 chain) ;; just for fun, in test
+	 (cj-match mcase) ;; part of easy?
+	 (cj-symbol with-gensym) ;; part of easy?
 	 test)
 
 (export typed-list? ;; (class typed-list)
@@ -13,7 +15,8 @@
 	typed-list-cons
 	typed-list-of
 	list.typed-list
-	typed-list)
+	typed-list
+	(macro typed-list:let-pair))
 
 
 ;; Using the names "first" and "rest" as chosen in functional-perl
@@ -110,6 +113,18 @@
 (def (typed-list pred . vals)
      (list.typed-list pred vals))
 
+(defmacro (typed-list:let-pair bind . body)
+  (mcase bind
+	 (`(`vars `expr)
+	  (mcase vars
+		 (`(`a `r)
+		  (with-gensym
+		   V
+		   `(let ((,V ,expr))
+		      (let* ((,a (typed-list-pair.first ,V))
+			     (,r (@typed-list-pair.rest ,V)))
+			,@body))))))))
+
 
 (TEST
  > (.length (typed-list number? 1 3 4))
@@ -160,3 +175,13 @@
  > ((typed-list-of number?) (typed-list (lambda (v) (number? v))))
  #f)
 
+(TEST
+ > (typed-list:let-pair ((a r) (typed-list number? 3 4)) (list a (.list r)))
+ (3 (4))
+ > (%try-error (typed-list:let-pair ((a r) (cons 3 4)) a))
+ #(error "expecting a typed-list-pair, got:" (3 . 4))
+ ;; > (%try-error (typed-list:let-pair ((a r) (typed-list-null number?)) a))
+ ;; #(error
+ ;;   "expecting a typed-list-pair, got:"
+ ;;   #((typed-list-null) #<procedure #12 number?>))
+ )
