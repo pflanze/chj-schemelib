@@ -1,5 +1,7 @@
 ;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
 
+;; Parse source into a core Scheme AST.
+
 ;; Todo:
 
 ;; - DSSSL style arguments
@@ -65,72 +67,37 @@
 
 (class cs-expr
        (subclass cs-literal
-		 (struct #(corescheme-literal? val))
-		 (method (scheme-code v)
-			 (let-cs-literal
-			  ((val) v)
-			  (cond (((either symbol? keyword? null?)
-				  (source-code val))
-				 `(quote ,val))
-				(else
-				 val)))))
+		 (struct #(corescheme-literal? val)))
 
        (subclass cs-lambda
 		 (struct #((improper-list-of cs-var?) vars)
-			 #(cs-expr? expr))
-		 (method (scheme-code v)
-			 (let-cs-lambda ((vars expr) v)
-					`(lambda ,(map .name vars)
-					   ,@(map .scheme-code
-						  (if (cs-begin? expr)
-						      (.body expr)
-						      (list expr)))))))
+			 #(cs-expr? expr)))
+       
        (subclass cs-app
 		 (struct #(cs-expr? proc)
-			 #((list-of cs-expr?) args))
-		 (method (scheme-code v)
-			 (let-cs-app ((proc args) v)
-				     `(,(.scheme-code proc)
-				       ,@(map .scheme-code args)))))
+			 #((list-of cs-expr?) args)))
+       
        (subclass cs-ref
-		 (struct #(cs-var? var))
-		 (method scheme-code (comp .name .var)))
+		 (struct #(cs-var? var)))
 
        (subclass cs-def
 		 (struct #(cs-var? var)
-			 #(cs-expr? val))
-		 (method (scheme-code v)
-			 (let-cs-def ((var val) v)
-				     `(define ,(.name var)
-					,(.scheme-code val)))))
+			 #(cs-expr? val)))
 
        (subclass cs-begin
-		 (struct #((list-of cs-expr?) body))
-		 (method (scheme-code v)
-			 `(begin ,@(map .scheme-code (.body v)))))
-
+		 (struct #((list-of cs-expr?) body)))
+       
        (subclass cs-if
 		 (struct #(cs-expr? test)
 			 #(cs-expr? then)
 			 ;; should the missing-else case be encoded as
 			 ;; explicit (void) ?
-			 #((maybe cs-expr?) else))
-		 (method (scheme-code v)
-			 (let-cs-if ((test then else) v)
-				    `(if ,(.scheme-code test)
-					 ,(.scheme-code then)
-					 ,@(if else
-					       (list (.scheme-code else))
-					       '())))))
+			 #((maybe cs-expr?) else)))
        
        (subclass cs-set!
 		 (struct #(cs-var? var)
-			 #(cs-expr? val))
-		 (method (scheme-code v)
-			 `(set! ,(.name var)
-				,(.scheme-code val))))
+			 #(cs-expr? val)))
 
-       ;; XX?
        (subclass cs-letrec
 		 (struct #((list-of cs-var?) vars)
 			 #((list-of cs-expr?) exprs))))
@@ -465,97 +432,6 @@
    (#((cs-var) n 10))
    #((cs-app)
      #((cs-ref) #((cs-var) * 3))
-     (#((cs-ref) #((cs-var) n 10)) #((cs-ref) #((cs-var) n 10)))))
- )
+     (#((cs-ref) #((cs-var) n 10)) #((cs-ref) #((cs-var) n 10))))))
 
-
-;; change to <failing-on> for debugging
-(modimport/prefix failing: <failing-off>)
-
-(TEST
- > (def (cs-back source)
-	(.scheme-code
-	 (source.cs source default-scheme-env)))
- > (def t-scheme-code
-	(lambda (source result)
-	  (and
-	   ;; are the given code fragments even evaluating to the same
-	   ;; value?
-	   (failing:equal? (eval source)
-			   (eval result))
-	   ;; and does the compiler actually give the given result?
-	   (failing:source-equal? (cs-back source)
-				  result))))
- > (def t-scheme-code*
-	(lambda (v)
-	  (let-pair ((a b) (source-code v))
-		    (t-scheme-code a b))))
- > (def failures
-	(qcheck
-	 (source-code
-	  (quote-source
-	   (;; source and expected result from cs-back in pairs
-	    ((let* ((x 4) (y x))
-	       (begin 2 x))
-	     .
-	     ((lambda (x) ((lambda (y) 2 x) x)) 4))
-
-	    ((let ((x 4) (y 5)) (begin 2 x))
-	     .
-	     ((lambda (x y) 2 x) 4 5))
-
-	    ((let ((x 4) (y 5)) 2 x)
-	     .
-	     ((lambda (x y) 2 x) 4 5))
-
-	    ((let ((x '()))
-	       x)
-	     .
-	     ((lambda (x) x) '()))
-
-	    ((define (square n)
-	       (* n n))
-	     .
-	     (define square (lambda (n) (* n n))))
-
-	    ((define (fact n)
-	       (if (zero? n)
-		   1
-		   (* n (fact (- n 1)))))
-	     .
-	     (define fact
-	       (lambda (n)
-		 (if (zero? n)
-		     1
-		     (* n (fact (- n 1)))))))
-	    
-	    ((begin (define a 1) (define b a))
-	     .
-	     (begin (define a 1) (define b a)))
-
-	    ((begin
-	       (define (odd? n)
-	    	 (if (zero? n)
-	    	     #f
-	    	     (even? (- n 1))))
-	       (define (even? n)
-	    	 (if (zero? n)
-	    	     #t
-	    	     (odd? (- n 1)))))
-	     .
-	     (begin
-	       (define odd?
-		 (lambda (n)
-		   (if (zero? n)
-		       #f
-		       (even? (- n 1)))))
-	       (define even?
-		 (lambda (n)
-		   (if (zero? n)
-		       #t
-		       (odd? (- n 1)))))))
-	    )))
-	 t-scheme-code*))
- > failures
- ())
 
