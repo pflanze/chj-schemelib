@@ -10,6 +10,8 @@
 	 test
 	 cj-typed)
 
+;; XX oh, now eliminate in favor of typed-list.scm ?
+
 ;; uniform lists
 
 ;; just for fun
