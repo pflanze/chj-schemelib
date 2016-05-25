@@ -13,6 +13,42 @@
 	 (list-util let-pair)
 	 (srfi-11 apply-values))
 
+(export flip
+	complement
+	compose
+	maybe-compose
+	either
+	(macro %either)
+	both
+	all-of
+	right-associate
+	left-associate
+	syntax:right-associate
+	syntax:left-associate
+	(macro RA)
+	(macro LA)
+	compose**
+	(macro compose*)
+	true/0
+	true/1
+	false/0
+	false/1
+	just?
+	maybe
+	on* ;; for binary |on| see cj-env
+	(macro or*)
+	(macro or/)
+	list-of
+	list-of/length ;; see also length-is
+	improper-list/length>=
+	pair-of
+	strictly-monotonic-list-of
+	<to<=
+	sorted-list-of
+	values-of
+	applying)
+
+
 
 (define (flip f)
   (lambda (x y)
@@ -25,6 +61,11 @@
 (define (compose f g)
   (lambda x
     (f (apply g x))))
+
+(define (maybe-compose f g)
+  (lambda x
+    (cond ((apply g x) => f)
+	  (else #f))))
 
 ;; name?
 (define (either . fs)
