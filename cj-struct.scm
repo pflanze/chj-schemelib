@@ -117,6 +117,10 @@
  > (eq? # t)
  #t
 
+ > (eq? (struct-tag-generate! 'kkfjkif3hnunnfgw56k)
+	(struct-tag-generate! 'kkfjkif3hnunnfgw56k))
+ #f
+
  ;; cleanup, hacky
  > (table-set! cj-struct:tags t)
  > (table-set! cj-struct:lookup 'kkfjkif3hnunnfgw56k #f))
