@@ -112,6 +112,11 @@
 
 
 ;; for use by other code
+
+;; Note: "var" (i.e. the result type) *should* be a symbol; we don't
+;; check here, but it would be an error. (Default values would be
+;; given outside, not here: `(#(number? y) 10) not `#(number? (y 10)))
+
 (define (perhaps-typed.var x)
   (car (fst (transform-arg x '() '()))))
 
