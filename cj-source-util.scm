@@ -6,6 +6,8 @@
 ;;;    (at your option) any later version.
 
 
+;; XX move to cj-source-lambda.scm?
+
 (require test)
 
 
