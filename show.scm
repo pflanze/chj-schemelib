@@ -7,12 +7,17 @@
 
 
 (require dot-oo
-	 (predicates any)
 	 (cj-source-util-2 assert)
+	 (scheme-meta self-quoting)
 	 (cj-gambit-sys procedure-name))
 
-(define. (any.show v)
+
+
+(define. (self-quoting.show v)
   v)
+
+(define. (symbol.show v)
+  `(quote ,v))
 
 
 ;; XX move? to predicates or rather cj-gambit-sys?
