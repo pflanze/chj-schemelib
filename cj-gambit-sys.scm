@@ -24,7 +24,7 @@
 	mem-bytes
 
 	maybe-decompile
-	procedure-name
+	maybe-procedure-name
 
 	;; utilities:
 	vectorlike-bytecopy!
@@ -433,7 +433,7 @@ memset(obj+offset,value,numbytes);
 	     v*))
       (error "not a procedure:" v)))
 
-(define (procedure-name v)
+(define (maybe-procedure-name v)
   (if (procedure? v)
       (##procedure-name v)
       (error "not a procedure:" v)))

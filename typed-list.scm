@@ -1,7 +1,7 @@
 ;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
 
 (require easy
-	 (cj-gambit-sys procedure-name maybe-decompile)
+	 (cj-gambit-sys maybe-procedure-name maybe-decompile)
 	 (list-util let-pair)
 	 (cj-functional flip complement)
 	 (cj-functional-2 chain) ;; just for fun, in test
@@ -95,7 +95,7 @@
 				      rst)
 		     (error "typed-list: value does not meed predicate:"
 			    fst
-			    (or (procedure-name pred)
+			    (or (maybe-procedure-name pred)
 				(maybe-decompile pred)))))))
 
 
