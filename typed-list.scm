@@ -86,6 +86,10 @@
 		 (method (the l)
 			 (error "fewer than one element")))
 
+       (method (show v)
+	       `(typed-list ,(.show (.pred v))
+			    ,@(map .show (.list v))))
+
        (method (cons rst fst)
 	       (let ((pred (.pred rst)))
 		 (if (pred fst)
