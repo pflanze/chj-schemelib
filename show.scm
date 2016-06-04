@@ -39,8 +39,8 @@
 ;; (default) constructor:
 
 (define. (struct.show v)
-   ;; The HACK is: assumption that the constructor carries the same
-   ;; name as the type, and that it takes positional arguments
-  (cons (struct-type-name v)
+   ;; The HACK is: assumption that the constructor takes positional
+   ;; arguments
+  (cons (struct-constructor-name v)
 	(map .show (struct->values v))))
 
