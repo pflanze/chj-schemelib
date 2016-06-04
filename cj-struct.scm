@@ -26,6 +26,7 @@
 	struct?
 	struct-type
 	struct-type-name
+	struct-constructor-name
 	struct-of-type
 	;; odd one?:
 	struct-of
@@ -192,6 +193,8 @@
 	 (separator (source-code separator))
 	 (constructor-name (or constructor-name
 			       (symbol-append prefix "make-" name)))
+	 (constructor-name-binding
+	  (symbol-append "cj-struct:constructor-name:" name))
 	 (predicate-name
 	  (if predicate-name
 	      (source-code predicate-name)
@@ -240,7 +243,10 @@
 	    (symbol-append (safe-accessor-for-field field) "-update")))
 	 )
     `(begin
+       ;; meta data. XX should I have a better concept for these?
+       (define ,constructor-name-binding ',constructor-name)
        (define-if-not-defined ,tag-binding (struct-tag-generate! ,tag-code))
+
        ,@(let ((construct
 		(lambda (LAMBDA constructor-name)
 		  `(define ,constructor-name
@@ -385,6 +391,8 @@
 
 (TEST
  > (define-struct foo a b )
+ > (struct-constructor-name (make-foo 1 2))
+ make-foo
  > (make-foo 10 11)
  #((foo) 10 11)
  > (foo? #)
@@ -491,6 +499,12 @@
   ;; struct-type already guarantees the type is valid, thus use unsafe
   ;; name getter
   (@maybe-struct-tag-name (struct-type v)))
+
+
+;; XX should really move to a hashtable to avoid eval (faster, XXX is
+;; this even insecure?)
+(define (struct-constructor-name v)
+  (eval (symbol-append "cj-struct:constructor-name:" (struct-type-name v))))
 
 
 ;; Does not check for parent types! (This is not an is-a check.) Also,
