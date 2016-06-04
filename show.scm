@@ -8,10 +8,20 @@
 
 (require dot-oo
 	 (predicates any)
-	 (cj-source-util-2 assert))
+	 (cj-source-util-2 assert)
+	 (cj-gambit-sys procedure-name))
 
 (define. (any.show v)
   v)
+
+
+;; XX move? to predicates or rather cj-gambit-sys?
+(define (toplevel-procedure? v)
+  (and (procedure? v)
+       (maybe-procedure-name v)
+       #t))
+
+(define. toplevel-procedure.show maybe-procedure-name)
 
 ;; structs:
 
