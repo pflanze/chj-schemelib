@@ -67,7 +67,7 @@
 	load ;; ? global override needed? XX
 
 	#!optional
-	TEST:parse)
+	TEST:parse/)
 
 ;; copy from cj-functional to avoid circular dependency:
 (define (complement fn)
@@ -199,73 +199,73 @@
 	  (string-append str ".scm"))))
 
  
- (define (TEST:parse forms stx fold-sideeffect fold-test)
-   (let rec ((forms forms)
-	     (maybe-namespace-form #f))
-     (define (rec/rest rest) 
-       (rec rest
-	    maybe-namespace-form))
-     (match-list*
-      forms
-      (() '())
-      ((form . rest)
-       (let ((form* (source-code form)))
-	 (cond
-	  ((eq? form* '>)
-	   (match-list*
-	    rest
-	    (()
-	     (source-error stx "expecting form after |>| at end of TEST form"))
-	    ((expr . rest)
-	     (let ((understand-as-sideeffect
-		    (lambda ()
-		      (fold-sideeffect expr (rec/rest rest)))))
-	       (match-list*
-		rest
-		(() (understand-as-sideeffect))
-		((next . rest)
-		 ;; btw O(n^2) because of rest scanning for proper list right. should have match* for that right?.
-		 (let ((understand-as-test
-			(lambda ()
-			  (fold-test expr next maybe-namespace-form
-				     (rec/rest rest)))))
-		   (if (eq? (source-code next) '>)
-		       ;; could be either the result value for the
-		       ;; test, or the start of the next test case;
-		       ;; look ahead further
-		       (match-list*
-			rest
-			(() (understand-as-test))
-			((next2 . rest2)
-			 (if (eq? (source-code next2) '>)
-			     (understand-as-test)
-			     (understand-as-sideeffect))))
-		       (understand-as-test)))))))))
-	  ((and (pair? form*)
-		(eq? (source-code (car form*))
-		     'namespace:))
-	   (rec rest
-		`(##namespace ,@(cdr form*))))
-	  (else
-	   (source-error form "expect |>|, got" (cj-desourcify form)))))))))
+ (define (TEST:parse/ fold-sideeffect fold-test)
+   (lambda (forms stx)
+     (let rec ((forms forms)
+	       (maybe-namespace-form #f))
+       (define (rec/rest rest) 
+	 (rec rest
+	      maybe-namespace-form))
+       (match-list*
+	forms
+	(() '())
+	((form . rest)
+	 (let ((form* (source-code form)))
+	   (cond
+	    ((eq? form* '>)
+	     (match-list*
+	      rest
+	      (()
+	       (source-error stx "expecting form after |>| at end of TEST form"))
+	      ((expr . rest)
+	       (let ((understand-as-sideeffect
+		      (lambda ()
+			(fold-sideeffect expr (rec/rest rest)))))
+		 (match-list*
+		  rest
+		  (() (understand-as-sideeffect))
+		  ((next . rest)
+		   ;; btw O(n^2) because of rest scanning for proper list right. should have match* for that right?.
+		   (let ((understand-as-test
+			  (lambda ()
+			    (fold-test expr next maybe-namespace-form
+				       (rec/rest rest)))))
+		     (if (eq? (source-code next) '>)
+			 ;; could be either the result value for the
+			 ;; test, or the start of the next test case;
+			 ;; look ahead further
+			 (match-list*
+			  rest
+			  (() (understand-as-test))
+			  ((next2 . rest2)
+			   (if (eq? (source-code next2) '>)
+			       (understand-as-test)
+			       (understand-as-sideeffect))))
+			 (understand-as-test)))))))))
+	    ((and (pair? form*)
+		  (eq? (source-code (car form*))
+		       'namespace:))
+	     (rec rest
+		  `(##namespace ,@(cdr form*))))
+	    (else
+	     (source-error form "expect |>|, got" (cj-desourcify form))))))))))
 
- (define (TEST:conv forms stx)
-   (TEST:parse forms stx
-	       (lambda (expr rest)
-		 (cons expr rest))
-	       (lambda (expr result maybe-namespace-form rest)
-		 (cons (cj-sourcify-deep
-			`(TEST:check (let ((repl-result-history-ref
-					    TEST:repl-result-history-ref))
-				       ,@(if maybe-namespace-form
-					     (list maybe-namespace-form)
-					     (list))
-				       ,expr)
-				     ',result
-				     ',(source-location expr)
-				     TEST:equal?)
-			expr)
-		       rest)))))
+ (define TEST:conv
+   (TEST:parse/ (lambda (expr rest)
+		  (cons expr rest))
+		(lambda (expr result maybe-namespace-form rest)
+		  (cons (cj-sourcify-deep
+			 `(TEST:check (let ((repl-result-history-ref
+					     TEST:repl-result-history-ref))
+					,@(if maybe-namespace-form
+					      (list maybe-namespace-form)
+					      (list))
+					,expr)
+				      ',result
+				      ',(source-location expr)
+				      TEST:equal?)
+			 expr)
+			rest)))))
 
 (define (TEST:check res expect loc TEST:equal?)
   (define-macro (inc! v)
