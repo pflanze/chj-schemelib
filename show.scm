@@ -12,6 +12,11 @@
 	 (cj-gambit-sys procedure-name))
 
 
+(export (method show)
+	#!optional
+	toplevel-procedure?
+	struct->values)
+
 
 (define. (self-quoting.show v)
   v)
