@@ -7,6 +7,7 @@
 	 (cj-functional-2 chain) ;; just for fun, in test
 	 (cj-match mcase) ;; part of easy?
 	 (cj-symbol with-gensym) ;; part of easy?
+	 show
 	 test)
 
 (export typed-list? ;; (class typed-list)
@@ -16,7 +17,16 @@
 	typed-list-of
 	list->typed-list
 	typed-list
-	(macro typed-list:let-pair))
+	(macro typed-list:let-pair)
+
+	(method list
+		reverse-list
+		filter
+		remove
+		the
+		show
+		cons
+		improper-prepend))
 
 
 ;; Using the names "first" and "rest" as chosen in functional-perl
@@ -100,7 +110,20 @@
 		     (error "typed-list: value does not meed predicate:"
 			    fst
 			    (or (maybe-procedure-name pred)
-				(maybe-decompile pred)))))))
+				(maybe-decompile pred))))))
+
+        ;; XX should actually not be a method since it's generic by
+        ;; way of .cons anyway?
+       (method improper-prepend
+	       (named rec
+		      (lambda (l v)
+			(cond ((null? v)
+			       l)
+			      ((pair? v)
+			       (let-pair ((val v*) v)
+					 (.cons (rec l v*) val)))
+			      (else
+			       (.cons l v)))))))
 
 
 
@@ -198,3 +221,15 @@
  ;;   "expecting a typed-list-pair, got:"
  ;;   #((typed-list-null) #<procedure #12 number?>))
  )
+
+(TEST
+ > (def z (typed-list number?))
+ > (.show (.improper-prepend z '(1 2)))
+ (typed-list number? 1 2)
+ > (.show (.improper-prepend z '(1 . 2)))
+ (typed-list number? 1 2)
+ > (.show (.improper-prepend z 3))
+ (typed-list number? 3)
+ > (%try-error (.show (.improper-prepend z '(a))))
+ #(error "typed-list: value does not meed predicate:" a number?))
+
