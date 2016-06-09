@@ -388,8 +388,16 @@
 
 
 (TEST
- > (def (catching thunk)
-	(with-exception-catcher source-error-message thunk))
+ > (def (catching thunk) ;; XX move something like/from this to lib
+	(let ((orig-handler (current-exception-handler)))
+	  (call/cc
+	   (lambda (return)
+	     (with-exception-handler
+	      (lambda (e)
+		(if (source-error? e)
+		    (return (source-error-message e))
+		    (orig-handler e)))
+	      thunk)))))
  > (def (empty-environment) '())
  > (source.cs '(define x 2) empty-environment)
  #((cs-def) #((cs-var) x 1) #((cs-literal) 2))
