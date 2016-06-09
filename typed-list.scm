@@ -26,6 +26,7 @@
 		the
 		show
 		cons
+		prepend
 		improper-prepend))
 
 
@@ -114,6 +115,17 @@
 
         ;; XX should actually not be a method since it's generic by
         ;; way of .cons anyway?
+       (method prepend
+	       (named rec
+		      (lambda (l v)
+			(cond ((null? v)
+			       l)
+			      ((pair? v)
+			       (let-pair ((val v*) v)
+					 (.cons (rec l v*) val)))
+			      (else
+			       ;; only difference to improper-prepend
+			       (error "improper list:" v))))))
        (method improper-prepend
 	       (named rec
 		      (lambda (l v)
@@ -232,4 +244,10 @@
  (typed-list number? 3)
  > (%try-error (.show (.improper-prepend z '(a))))
  #(error "typed-list: value does not meed predicate:" a number?))
+
+(TEST
+ > (.show (.prepend z '(1 2)))
+ (typed-list number? 1 2)
+ > (%try-error (.show (.prepend z '(1 . 2))))
+ #(error "improper list:" 2))
 
