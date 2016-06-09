@@ -21,7 +21,8 @@
 
 (require easy
 	 more-oo
-	 alist
+	 typed-list
+	 typed-alist
 	 Maybe)
 
 (export corescheme-literal-atom?
@@ -115,17 +116,20 @@
      (cs-var name (cs-next-id!)))
 
 ;; ctx:Maybe-ref
-(modimport/prefix ctx: (<alist> symbol?
-				cs-var.name
-				(on source-code eq?)))
+(modimport/prefix ctx: (<typed-alist> symbol?
+				      cs-var.name
+				      (on source-code eq?)
+				      cs-var?))
 
 
-;; XX efficiency, want typed lists.
-(def cs-ctx? (list-of cs-var?))
+(def cs-ctx? (typed-list-of cs-var?))
+(def empty-cs-ctx (typed-list cs-var?))
 
-(def (default-scheme-env) -> (list-of cs-var?)
-     (map new-cs-var!
-	  '(+ - * / cons car cdr zero? null?)))
+(def (default-scheme-env) -> cs-ctx?
+     (list->typed-list
+      cs-var?
+      (map new-cs-var!
+	   '(+ - * / cons car cdr zero? null?))))
 
 
 (def (_cs:begin rest
@@ -157,43 +161,44 @@
 	       ctx*))))
 
 (TEST
- > (def (t-_cs:begin v #!optional (get-env (lambda () '())))
+ > (def (t-_cs:begin v #!optional (get-env (lambda () empty-cs-ctx)))
 	(vector (parameterize ((cs-id 0))
 			      (_cs:begin v (get-env) #t))
 		(parameterize ((cs-id 0))
 			      (_cs:begin v (get-env) #f))))
- > (t-_cs:begin '((define a 1) (define b 2)))
- #(#((cs-begin)
-     (#((cs-def) #((cs-var) a 1) #((cs-literal) 1))
-       #((cs-def) #((cs-var) b 2) #((cs-literal) 2))))
-    (#((cs-var) b 2) #((cs-var) a 1)))
- > (t-_cs:begin '((define a 1) (define b a)))
- #(#((cs-begin)
-     (#((cs-def) #((cs-var) a 1) #((cs-literal) 1))
-       #((cs-def) #((cs-var) b 2) #((cs-ref) #((cs-var) a 1)))))
-    (#((cs-var) b 2) #((cs-var) a 1)))
- > (t-_cs:begin '((define a b) (define b a)))
+ > (.show (t-_cs:begin '((define a 1) (define b 2))))
+ (vector (cs-begin
+	  (list (cs-def (cs-var 'a 1) (cs-literal 1))
+		(cs-def (cs-var 'b 2) (cs-literal 2))))
+	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
+ > (.show (t-_cs:begin '((define a 1) (define b a))))
+ (vector (cs-begin
+	  (list (cs-def (cs-var 'a 1) (cs-literal 1))
+		(cs-def (cs-var 'b 2) (cs-ref (cs-var 'a 1)))))
+	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
+ > (.show (t-_cs:begin '((define a b) (define b a))))
  ;; this might be invalid Scheme, but valid Ocaml; XXX: ah, actually
  ;; ambiguous?, if b was defined earlier, that one is used instead!
- #(#((cs-begin)
-     (#((cs-def) #((cs-var) a 1) #((cs-ref) #((cs-var) b 2)))
-       #((cs-def) #((cs-var) b 2) #((cs-ref) #((cs-var) a 1)))))
-    (#((cs-var) b 2) #((cs-var) a 1)))
- > (take (vector-ref
-	  (t-_cs:begin '((define (odd? n)
-			   (if (zero? n)
-			       #f
-			       (even? (- n 1))))
-			 (define (even? n)
-			   (if (zero? n)
-			       #t
-			       (odd? (- n 1)))))
-		       default-scheme-env)
-	  1) 3)
- (#((cs-var) even? 11)
-   #((cs-var) odd? 10)
-   #((cs-var) + 1))
- )
+ (vector (cs-begin
+	  (list (cs-def (cs-var 'a 1) (cs-ref (cs-var 'b 2)))
+		(cs-def (cs-var 'b 2) (cs-ref (cs-var 'a 1)))))
+	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
+ > (.show (.take (vector-ref
+		  (t-_cs:begin '((define (odd? n)
+				   (if (zero? n)
+				       #f
+				       (even? (- n 1))))
+				 (define (even? n)
+				   (if (zero? n)
+				       #t
+				       (odd? (- n 1)))))
+			       default-scheme-env)
+		  1)
+		 3))
+ (typed-list cs-var?
+	     (cs-var 'even? 11)
+	     (cs-var 'odd? 10)
+	     (cs-var '+ 1)))
 
 
 (defmacro (%return-normal e)
@@ -258,7 +263,7 @@
 		    (mcase rest
 			   (`(`expr)
 			    (let* ((what* (new-cs-var! what))
-				   (ctx* (cons what* ctx)))
+				   (ctx* (.cons ctx what*)))
 			      ;; XX really letrec behaviour?
 			      (if realmode?
 				  (cs-def what*
@@ -270,11 +275,11 @@
 		    (let-pair
 		     ((var args) (source-code what))
 		     (let* ((var* (new-cs-var! var))
-			    (ctx* (cons var* ctx)))
+			    (ctx* (.cons ctx var*)))
 		       (if realmode?
 			   ;; XX copypaste from above, see improper-* usage
 			   (let* ((args* (improper-map new-cs-var! args))
-				  (ctx** (improper-append args* ctx*)))
+				  (ctx** (.improper-prepend ctx* args*)))
 			     (cs-def var*
 				     (cs-lambda
 				      args*
@@ -294,7 +299,7 @@
 			    (source-code binds)))
 		      (vs (map (comp new-cs-var! fst) v+e-s))
 		      (es (map (comp* fst (C _cs _ ctx realmode?) snd) v+e-s))
-		      (ctx* (append vs ctx)))
+		      (ctx* (.improper-prepend ctx vs)))
 		 (%return-normal
 		  (cs-app
 		   (cs-lambda
@@ -338,7 +343,7 @@
 		       (`(`var `expr)
 			(let ((var* (new-cs-var! var)))
 			  (lp bs*
-			      (cons var* ctx)
+			      (.cons ctx var*)
 			      (cons var* vars)
 			      (cons
 			       (fst
@@ -352,7 +357,7 @@
 	   (`(lambda `vars . `rest)
 	    (%return-normal
 	     (let* ((vars* (improper-map new-cs-var! vars))
-		    (ctx* (improper-append vars* ctx)))
+		    (ctx* (.improper-prepend ctx vars*)))
 	       (cs-lambda vars* (_cs:begin rest ctx* realmode?)))))
 	   (`(begin . `rest)
 	    (_cs:begin rest ctx realmode?))
@@ -373,11 +378,11 @@
 
 
 (TEST
- > (parameterize ((cs-id 0))
-		 (_cs '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
-		      '() ;; (default-scheme-env)
-		      #f))
- (#((cs-var) even? 1)))
+ > (.show (parameterize ((cs-id 0))
+			(_cs '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
+			     empty-cs-ctx ;; (default-scheme-env)
+			     #f)))
+ (typed-list cs-var? (cs-var 'even? 1)))
 
 (def (source.cs expr
 	 #!optional
@@ -398,7 +403,7 @@
 		    (return (source-error-message e))
 		    (orig-handler e)))
 	      thunk)))))
- > (def (empty-environment) '())
+ > (def (empty-environment) empty-cs-ctx)
  > (source.cs '(define x 2) empty-environment)
  #((cs-def) #((cs-var) x 1) #((cs-literal) 2))
  > (source.cs '(lambda x 2) empty-environment)
