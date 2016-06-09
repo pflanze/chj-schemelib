@@ -19,7 +19,8 @@
 	typed-list
 	(macro typed-list:let-pair)
 
-	(method list
+	(method null
+		list
 		reverse-list
 		filter
 		remove
@@ -27,7 +28,8 @@
 		show
 		cons
 		prepend
-		improper-prepend))
+		improper-prepend
+		take))
 
 
 ;; Using the names "first" and "rest" as chosen in functional-perl
@@ -74,7 +76,10 @@
 			  ((_ len v _) l)
 			  (if (= len 1)
 			      v
-			      (error "more than one element")))))
+			      (error "more than one element"))))
+
+		 (method (null l)
+			 (typed-list-null (.pred l))))
 
        (subclass typed-list-null
 		 (struct #(procedure? pred))
@@ -95,7 +100,10 @@
 			 l)
 
 		 (method (the l)
-			 (error "fewer than one element")))
+			 (error "fewer than one element"))
+
+		 (method (null l)
+			 l))
 
        (method (show v)
 	       `(typed-list ,(.show (.pred v))
@@ -113,8 +121,8 @@
 			    (or (maybe-procedure-name pred)
 				(maybe-decompile pred))))))
 
-        ;; XX should actually not be a method since it's generic by
-        ;; way of .cons anyway?
+       ;; XX should actually not be a method since it's generic by
+       ;; way of .cons anyway?
        (method prepend
 	       (named rec
 		      (lambda (l v)
@@ -135,7 +143,13 @@
 			       (let-pair ((val v*) v)
 					 (.cons (rec l v*) val)))
 			      (else
-			       (.cons l v)))))))
+			       (.cons l v))))))
+
+       (method (take l #(natural0? n))
+	       (if (positive? n)
+		   (.cons (.take (.rest l) (dec n))
+			  (.first l))
+		   (.null l))))
 
 
 
@@ -251,3 +265,6 @@
  > (%try-error (.show (.prepend z '(1 . 2))))
  #(error "improper list:" 2))
 
+(TEST
+ > (.show (.take (typed-list number? 5 6 7) 2))
+ (typed-list number? 5 6))
