@@ -9,7 +9,8 @@
 (require dot-oo
 	 (cj-source-util-2 assert)
 	 (scheme-meta self-quoting)
-	 (cj-gambit-sys procedure-name))
+	 (cj-gambit-sys procedure-name)
+	 test)
 
 
 (export (method show)
@@ -23,6 +24,20 @@
 
 (define. (symbol.show v)
   `(quote ,v))
+
+
+;; XX if not struct. ugly implicit assumption through ordering
+;; currently. More generic must be earlier.
+
+(define. (vector.show v)
+  `(vector ,@(map .show (vector->list v))))
+
+(define. (pair.show v)
+  `(cons ,(.show (car v))
+	 ,(.show (cdr v))))
+
+(define. (list.show v)
+  (cons 'list (map .show v)))
 
 
 ;; XX move? to predicates or rather cj-gambit-sys?
@@ -48,4 +63,12 @@
    ;; arguments
   (cons (struct-constructor-name v)
 	(map .show (struct->values v))))
+
+
+
+(TEST
+ > (.show '(1 2 3))
+ (list 1 2 3)
+ > (.show '(1 2 . 3))
+ (cons 1 (cons 2 3)))
 
