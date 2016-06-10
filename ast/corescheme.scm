@@ -150,7 +150,6 @@
 		(parameterize
 		 ((cs-id (cs-id)))
 		 (fold (lambda (r ctx)
-;;			 (step)
 			 (_cs r ctx #f))
 		       ctx
 		       rest))))
