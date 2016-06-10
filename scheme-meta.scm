@@ -10,13 +10,25 @@
 
 (require)
 
+(export self-quoting?
+	perhaps-quote
+
+	#!optional
+	void?)
+
+
+(define (void? v)
+  ;; (eq? v (void))  or, since I don't have a void.show yet either:
+  (eq? v #!void))
 
 (define (self-quoting? v)
   ;; avoid depending on |either| from cj-functional ?
   (or (string? v)
       (number? v)
       (boolean? v)
-      (eof-object? v)))
+      (eof-object? v)
+      (void? v)
+      (keyword? v)))
 
 (define (perhaps-quote v)
   (if (self-quoting? v)
