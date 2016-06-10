@@ -21,6 +21,13 @@
   ;; (eq? v (void))  or, since I don't have a void.show yet either:
   (eq? v #!void))
 
+(define (optional? v)
+  (eq? v #!optional))
+
+(define (key? v)
+  (eq? v #!key))
+
+
 (define (self-quoting? v)
   ;; avoid depending on |either| from cj-functional ?
   (or (string? v)
@@ -28,6 +35,8 @@
       (boolean? v)
       (eof-object? v)
       (void? v)
+      (optional? v)
+      (key? v)
       (keyword? v)))
 
 (define (perhaps-quote v)
