@@ -402,29 +402,33 @@
 		    (return (source-error-message e))
 		    (orig-handler e)))
 	      thunk)))))
+
  > (def (empty-environment) empty-cs-ctx)
- > (.show (source.cs '(define x 2) empty-environment))
+ > (def (cs/empty c)
+	(.show (source.cs c empty-environment)))
+
+ > (cs/empty '(define x 2))
  (cs-def (cs-var 'x 1) (cs-literal 2))
- > (.show (source.cs '(lambda x 2) empty-environment))
+ > (cs/empty '(lambda x 2))
  (cs-lambda (cs-var 'x 1) (cs-literal 2))
  > (catching (& (source.cs '(f x))))
  "undefined variable in function position"
  > (catching (& (source.cs '(begin x 2))))
  "undefined variable"
- > (.show (source.cs '(let ((x 4))
-			(begin x 2)) empty-environment))
+ > (cs/empty '(let ((x 4))
+		(begin x 2)))
  (cs-app (cs-lambda
 	  (list (cs-var 'x 1))
 	  (cs-begin (list (cs-ref (cs-var 'x 1)) (cs-literal 2))))
 	 (list (cs-literal 4)))
  > (catching (& (source.cs '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
- > (.show (source.cs '(let ((x 4) (y 5)) (begin x 2)) empty-environment))
+ > (cs/empty '(let ((x 4) (y 5)) (begin x 2)))
  (cs-app (cs-lambda
 	  (list (cs-var 'x 1) (cs-var 'y 2))
 	  (cs-begin (list (cs-ref (cs-var 'x 1)) (cs-literal 2))))
 	 (list (cs-literal 4) (cs-literal 5)))
- > (.show (source.cs '(let* ((x 4) (y x)) (begin x 2)) empty-environment))
+ > (cs/empty '(let* ((x 4) (y x)) (begin x 2)))
  (cs-app (cs-lambda
 	  (list (cs-var 'x 1))
 	  (cs-app (cs-lambda
@@ -432,12 +436,17 @@
 		   (cs-begin (list (cs-ref (cs-var 'x 1)) (cs-literal 2))))
 		  (list (cs-ref (cs-var 'x 1)))))
 	 (list (cs-literal 4)))
- > (.show (source.cs '(+ - * /) default-scheme-env))
+
+
+ > (def (cs/default c)
+	(.show (source.cs c default-scheme-env)))
+
+ > (cs/default '(+ - * /))
  (cs-app (cs-ref (cs-var '+ 1))
 	 (list (cs-ref (cs-var '- 2))
 	       (cs-ref (cs-var '* 3))
 	       (cs-ref (cs-var '/ 4))))
- > (.show (source.cs '(lambda (n) (* n n)) default-scheme-env))
+ > (cs/default '(lambda (n) (* n n)))
  (cs-lambda
   (list (cs-var 'n 10))
   (cs-app (cs-ref (cs-var '* 3))
