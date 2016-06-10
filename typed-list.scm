@@ -146,13 +146,17 @@
 			       (.cons l v))))))
 
        (method (take l #(natural0? n))
-	       (if (= n (.length l))
-		   l
-		   (let rec ((l l) (n n))
-		     (if (positive? n)
-			 (.cons (rec (.rest l) (dec n))
-				(.first l))
-			 (.null l))))))
+	       (let ((len (.length l)))
+		 (cond ((= n len)
+			l)
+		       ((> n len)
+			(error "list too short (len vs. n):" len n))
+		       (else
+			(let rec ((l l) (n n))
+			  (if (positive? n)
+			      (.cons (rec (.rest l) (dec n))
+				     (.first l))
+			      (.null l))))))))
 
 
 
@@ -281,6 +285,8 @@
  2
  > (.length (.take l 3))
  3
- ;; optimization:
+ ;; optimizations:
  > (eq? (.take l 3) l)
- #t)
+ #t
+ > (%try-error (.take l 4))
+ #(error "list too short (len vs. n):" 3 4))
