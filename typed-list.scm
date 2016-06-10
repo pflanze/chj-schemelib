@@ -146,10 +146,13 @@
 			       (.cons l v))))))
 
        (method (take l #(natural0? n))
-	       (if (positive? n)
-		   (.cons (.take (.rest l) (dec n))
-			  (.first l))
-		   (.null l))))
+	       (if (= n (.length l))
+		   l
+		   (let rec ((l l) (n n))
+		     (if (positive? n)
+			 (.cons (rec (.rest l) (dec n))
+				(.first l))
+			 (.null l))))))
 
 
 
@@ -266,5 +269,18 @@
  #(error "improper list:" 2))
 
 (TEST
- > (.show (.take (typed-list number? 5 6 7) 2))
- (typed-list number? 5 6))
+ > (def l (typed-list number? 5 6 7))
+ > (.show (.take l 2))
+ (typed-list number? 5 6)
+
+ ;; should verify such things rules-based:
+
+ ;; (The length of outputs is the same as n given, or an error
+ ;; happens.)
+ > (.length (.take l 2))
+ 2
+ > (.length (.take l 3))
+ 3
+ ;; optimization:
+ > (eq? (.take l 3) l)
+ #t)
