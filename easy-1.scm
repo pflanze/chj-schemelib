@@ -13,7 +13,8 @@
 	 (cj-source-wraps source:symbol-append)
 	 (enum define-enum)
 	 (cj-source-quasiquote quasiquote-source)
-	 test)
+	 test
+	 (test-lib %try-syntax-error))
 
 (export (macro defstruct)
 	(macro def)
@@ -58,7 +59,7 @@
 
 (define-macro* (def& bind . type+body)
   (mcase bind
-	 (`(`name `_thunkvar)
+	 (`(`name `thunkvar)
 	  ;; ^ XX could allow optional and keyword args though
 	  (let ((macrocode
 		 `(quasiquote (,name (& ))))
@@ -75,7 +76,11 @@
  > (lol (& 'ha))
  ha
  > (lol& 'ha)
- ha)
+ ha
+ ;; for now:
+ > (%try-syntax-error (def& (lol x y) (x)))
+ #(source-error "no match, expecting: `(`name `thunkvar)"))
+
 
 ;; forward declaration; no body, but might accept ->
 (define-macro* (forward-def . args)
