@@ -311,19 +311,24 @@
 	 (source-error constructor
 		       "only list matching is implemented")))))))
 
+
+(compile-time
+ (define (match-expand input clauses message-string)
+   ;; group according to type of datum
+   (let* ((clausegroups
+	   (segregate clauses
+		      (on clause:constructor-xsym
+			  symbol<?))))
+     (case (length clausegroups)
+       ((1)
+	(handle-op-group input (car clausegroups) message-string))
+       ((0)
+	(source-error stx "missing clauses"))
+       (else
+	(source-error stx "match currently only implements list matching"))))))
+
 (define-macro*d (match input . clauses)
-  ;; group according to type of datum
-  (let* ((clausegroups
-	  (segregate clauses
-		     (on clause:constructor-xsym
-			 symbol<?))))
-    (case (length clausegroups)
-      ((1)
-       (handle-op-group input (car clausegroups) "no match"))
-      ((0)
-       (source-error stx "missing clauses"))
-      (else
-       (source-error stx "match currently only implements list matching")))))
+  (match-expand input clauses "no match"))
 
 (TEST
  > (define TEST:equal? syntax-equal?)
@@ -520,15 +525,20 @@
  (list 'quasiquote ,a)
  )
 
+(compile-time
+ (define (matchl-expand input clauses message-string)
+   (match-expand
+    input
+    (map (lambda (clause)
+	   (match clause
+		  ((apply list ,test ,body)
+		   `(,(matchl-test->match-test test)
+		     ,@body))))
+	 clauses)
+    message-string)))
+
 (define-macro*d (matchl input . clauses)
-  `(match
-    ,input
-    ,@(map (lambda (clause)
-	     (match clause
-		    ((apply list ,test ,body)
-		     `(,(matchl-test->match-test test)
-		       ,@body))))
-	   clauses)))
+  (matchl-expand input clauses "no match"))
 
 (TEST
  > (matchl '(a b)
@@ -565,13 +575,18 @@
    (let-mcaseclauses
     ((l o e) c)
     (map (lambda (cl)
-	   (let* ((c* (car (source-code cl)))
-		  (c (source-code c*)))
-	     (if (and (pair? c)
-		      (eq? (source-code (car c)) 'quasiquote)
-		      (= (length c) 2))
-		 (cadr c)
-		 (source-error c* "not quasiquote, BUG?"))))
+	   ;; (let* ((c* (car (source-code cl)))
+	   ;; 	  (c (source-code c*)))
+	   ;;   (if (and (pair? c)
+	   ;; 	      (eq? (source-code (car c)) 'quasiquote)
+	   ;; 	      (= (length c) 2))
+	   ;; 	 (cadr c)
+	   ;; 	 (source-error c* "not quasiquote, BUG?")))
+
+	   ;; but then actually realizing that I probably want it
+	   ;; *with* the quasiquote...
+
+	   (car (source-code cl)))
 	 l)))
 
  ;; XX todo dito.
@@ -682,20 +697,22 @@
 	 ,@(if (not (null? (mcaseclauses-list sepclauses)))
 	       `(((natural0? (improper-length (source-code ,V)))
 		  ;;^ XX assumes that there are no annotated pairs further behind
-		  (matchl ,V
-			  ,@(map (lambda (clause)
+		  ,(matchl-expand
+		    V
+		    (append (map (lambda (clause)
 				   (matchl clause
 					   ((`quotedform . `body)
 					    (matchl quotedform
 						    ((quasiquote `form)
 						     (cons form body))))))
 				 (mcaseclauses-list sepclauses))
-			  ,@(if* (mcaseclauses-else sepclauses)
+			    (if* (mcaseclauses-else sepclauses)
 				 ;; `(`,,'_ (,ELSE))
 				 (list
 				  (list (list 'quasiquote _)
 					(list ELSE)))
-				 '()))))
+				 '()))
+		    message-string)))
 	       '())
 
 	 ;; else
@@ -718,7 +735,7 @@
  > (mcase '(a) (number? 'num) (`(a) 'lis) (else 'nomatch))
  lis
  > (%try-syntax-error (mcase '(b) (number? 'num) (`(a) 'lis)))
- #(source-error "no match")
+ #(source-error "no match, expecting: number? | `(a)")
  > (%try-syntax-error (mcase '(b) (number? 'num) (`(a) 'lis) (else 'nomatch)))
  nomatch
  > (mcase '(a) (number? 'num) (`(`a) 'lis) (else 'nomatch))
@@ -726,14 +743,15 @@
 
  ;; else handling:
  > (define TEST:equal? syntax-equal?)
- > (expansion#mcase 'a (`(a b) 1) (foo? 3) (else 2))
- (let* ((GEN:V1903 'a)
-	(GEN:V*1904 (source-code GEN:V1903))
-	(GEN:ELSE1905 (lambda () 2)))
-   (cond ((foo? GEN:V*1904) 3)
-	 ((natural0? (improper-length (source-code GEN:V1903)))
-	  (matchl GEN:V1903 ((a b) 1) (`GEN:_1906 (GEN:ELSE1905))))
-	 (else (GEN:ELSE1905))))
+ ;; > (expansion#mcase 'a (`(a b) 1) (foo? 3) (else 2))
+ ;; (let* ((GEN:V1903 'a)
+ ;; 	(GEN:V*1904 (source-code GEN:V1903))
+ ;; 	(GEN:ELSE1905 (lambda () 2)))
+ ;;   (cond ((foo? GEN:V*1904) 3)
+ ;; 	 ((natural0? (improper-length (source-code GEN:V1903)))
+ ;; 	  (matchl GEN:V1903 ((a b) 1) (`GEN:_1906 (GEN:ELSE1905))))
+ ;; 	 (else (GEN:ELSE1905))))
+ ;;it's more complicated now since it expands matchl in place.
  > (mcase 'a (`(a b) 1) (symbol? 3) (else 2))
  3
  > (mcase '"a" (`(a b) 1) (symbol? 3) (else 2))
@@ -773,7 +791,7 @@
  > (mcase '(foo quasiquote x) (`(foo quasiquote `y) y))
  x
  > (%try-syntax-error (mcase '(foo quasiquotee x) (`(foo quasiquote `y) y)))
- #(source-error "no match")
+ #(source-error "no match, expecting: `(foo quasiquote `y)")
 
  ;; unquote
 
@@ -789,11 +807,11 @@
 
 (TEST ;; error messages
  > (%try-syntax-error (mcase 1 (`(`a `b) a)))
- #(source-error "no match, expecting: (`a `b)")
+ #(source-error "no match, expecting: `(`a `b)")
  > (%try-syntax-error (mcase 1 (pair? a)))
  #(source-error "no match, expecting: pair?")
  > (%try-syntax-error (mcase 1 (`(`a `b) a) (pair? a)))
- #(source-error "no match, expecting: pair? | (`a `b)"))
+ #(source-error "no match, expecting: pair? | `(`a `b)"))
 
 
 ;; like match-lambda (?):
