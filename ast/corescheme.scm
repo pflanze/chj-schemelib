@@ -161,39 +161,36 @@
 
 (TEST
  > (def (t-_cs:begin v #!optional (get-env (lambda () empty-cs-ctx)))
-	(vector (parameterize ((cs-id 0))
+	(values (parameterize ((cs-id 0))
 			      (_cs:begin v (get-env) #t))
 		(parameterize ((cs-id 0))
 			      (_cs:begin v (get-env) #f))))
  > (.show (t-_cs:begin '((define a 1) (define b 2))))
- (vector (cs-begin
+ (values (cs-begin
 	  (list (cs-def (cs-var 'a 1) (cs-literal 1))
 		(cs-def (cs-var 'b 2) (cs-literal 2))))
 	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
  > (.show (t-_cs:begin '((define a 1) (define b a))))
- (vector (cs-begin
+ (values (cs-begin
 	  (list (cs-def (cs-var 'a 1) (cs-literal 1))
 		(cs-def (cs-var 'b 2) (cs-ref (cs-var 'a 1)))))
 	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
  > (.show (t-_cs:begin '((define a b) (define b a))))
  ;; this might be invalid Scheme, but valid Ocaml; XXX: ah, actually
  ;; ambiguous?, if b was defined earlier, that one is used instead!
- (vector (cs-begin
+ (values (cs-begin
 	  (list (cs-def (cs-var 'a 1) (cs-ref (cs-var 'b 2)))
 		(cs-def (cs-var 'b 2) (cs-ref (cs-var 'a 1)))))
 	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
- > (.show (.take (vector-ref
-		  (t-_cs:begin '((define (odd? n)
-				   (if (zero? n)
-				       #f
-				       (even? (- n 1))))
-				 (define (even? n)
-				   (if (zero? n)
-				       #t
-				       (odd? (- n 1)))))
-			       default-scheme-env)
-		  1)
-		 3))
+ > (.show (.take (snd (t-_cs:begin '((define (odd? n)
+				       (if (zero? n)
+					   #f
+					   (even? (- n 1))))
+				     (define (even? n)
+				       (if (zero? n)
+					   #t
+					   (odd? (- n 1)))))
+				   default-scheme-env)) 3))
  (typed-list cs-var?
 	     (cs-var 'even? 11)
 	     (cs-var 'odd? 10)
