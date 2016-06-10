@@ -10,6 +10,7 @@
 	 (cj-source-util-2 assert)
 	 (scheme-meta self-quoting)
 	 (cj-gambit-sys procedure-name)
+	 (srfi-11 values? values->list)
 	 test)
 
 
@@ -38,6 +39,10 @@
 
 (define. (list.show v)
   (cons 'list (map .show v)))
+
+
+(define. (values.show v)
+  (cons 'values (map .show (values->list v))))
 
 
 ;; XX move? to predicates or rather cj-gambit-sys?
@@ -70,5 +75,7 @@
  > (.show '(1 2 3))
  (list 1 2 3)
  > (.show '(1 2 . 3))
- (cons 1 (cons 2 3)))
+ (cons 1 (cons 2 3))
+ > (.show (values (+ 1 2) 2))
+ (values 3 2))
 
