@@ -17,6 +17,7 @@
 	 list-util-2
 	 cj-alist
 	 cj-struct
+	 (string-util strings-join)
 	 C)
 
 
@@ -214,7 +215,7 @@
 
 (compile-time
  (define handle-op-group
-   (lambda (input opgroup)
+   (lambda (input opgroup message-string)
      ;; XX assumes that there is only one group; should move V* V LEN up
      (let ((constructor (clause:constructor-xsym (source-code (car opgroup)))))
        (symbol-case
@@ -247,7 +248,7 @@
 			    (,V (source-code ,V*))
 			    (,LEN (improper-length ,V))
 			    (,NO-MATCH (lambda ()
-					 (source-error ,V* "no match"))))
+					 (source-error ,V* ,message-string))))
 		       (let ,(map (lambda_
 				   (apply
 				    (lambda (nargs name group)
@@ -303,7 +304,7 @@
 					      (,(narity->name nargs)
 					       ,REM)
 					      (,REM))))))
-				  `(source-error ,V* "no match")
+				  `(source-error ,V* ,message-string)
 				  (filter clause:apply?
 					  opgroup))))))))))))
 	(else
@@ -318,7 +319,7 @@
 			 symbol<?))))
     (case (length clausegroups)
       ((1)
-       (handle-op-group input (car clausegroups)))
+       (handle-op-group input (car clausegroups) "no match"))
       ((0)
        (source-error stx "missing clauses"))
       (else
@@ -558,9 +559,55 @@
    other
    else ;; always last ? need ?
    )
+
+ ;; XX todo: use these in actual matcher, too, right?
+ (define (mcaseclauses-list-matchexpressions c)
+   (let-mcaseclauses
+    ((l o e) c)
+    (map (lambda (cl)
+	   (let* ((c* (car (source-code cl)))
+		  (c (source-code c*)))
+	     (if (and (pair? c)
+		      (eq? (source-code (car c)) 'quasiquote)
+		      (= (length c) 2))
+		 (cadr c)
+		 (source-error c* "not quasiquote, BUG?"))))
+	 l)))
+
+ ;; XX todo dito.
+ ;; for predicate based matches
+ (define (mcaseclauses-other-matchexpressions c)
+   (let-mcaseclauses
+    ((l o e) c)
+    (map (lambda (cl)
+	   (car (source-code cl)))
+	 o)))
+
+ ;; there is no mcaseclauses-else-matchexpressions, stupid.
+
+ ;; string describing what is expected:
+ (define (mcaseclauses-message c)
+   (let ((es
+	  ;; XX which ones are to be checked first? todo:
+	  ;; do same as in matcher, i.e. provide method.
+	  (append (mcaseclauses-other-matchexpressions c)
+		  (mcaseclauses-list-matchexpressions c))))
+     (if (null? es)
+	 ;; no match clauses! (should we throw an error at compile
+	 ;; time instead?)
+	 "can never match"
+
+	 (string-append
+	  "no match, expecting: "
+	  (strings-join (map (lambda (m)
+			       (object->string (cj-desourcify m)))
+			     es)
+			" | ")))))
+
  (define mcase-no-clauses (make-mcaseclauses '()
-					      '()
-					      '()))
+					     '()
+					     '()))
+
  (define (mcase-separate-clauses clauses)
    (if (pair? clauses)
        (let-pair ((clause clauses*) clauses)
@@ -595,7 +642,8 @@
   ))
 
 (define-macro*d (mcase expr . clauses)
-  (let* ((sepclauses (mcase-separate-clauses clauses)))
+  (let* ((sepclauses (mcase-separate-clauses clauses))
+	 (message-string (mcaseclauses-message sepclauses)))
     (with-gensyms
      (V V* ELSE _)
      `(let* ((,V ,expr)
@@ -616,7 +664,7 @@
 				  ((else `what)
 				   what)))
 			 (()
-			  `(source-error ,V "no match"))
+			  `(source-error ,V ,message-string))
 			 (`_
 			  (source-error stx "more than one else clause"))))))
 	(cond
@@ -656,7 +704,7 @@
 
 (TEST
  > (%try-syntax-error (mcase 1))
- #(source-error "no match")
+ #(source-error "can never match")
  > (mcase 1 (even? 'even) (odd? 'odd))
  odd
  > (mcase 2 (even? 'even) (odd? 'odd))
@@ -738,6 +786,15 @@
  ;; gmb turns `y into 'y, right? btw why list ?
  
  )
+
+(TEST ;; error messages
+ > (%try-syntax-error (mcase 1 (`(`a `b) a)))
+ #(source-error "no match, expecting: (`a `b)")
+ > (%try-syntax-error (mcase 1 (pair? a)))
+ #(source-error "no match, expecting: pair?")
+ > (%try-syntax-error (mcase 1 (`(`a `b) a) (pair? a)))
+ #(source-error "no match, expecting: pair? | (`a `b)"))
+
 
 ;; like match-lambda (?):
 (define-macro* (mcase-lambda . clauses)
