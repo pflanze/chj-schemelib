@@ -15,14 +15,15 @@
 	 (cj-source-quasiquote quasiquote-source)
 	 test)
 
-(export (macro &)
-	(macro defstruct)
+(export (macro defstruct)
 	(macro def)
+	(macro defmacro)
+	(macro &)
+	(macro def&)
 	(macro forward-def)
 	(macro def.)
 	(macro def-inline)
 	(macro defenum)
-	(macro defmacro)
 	(macro defvalues)
 	(macro defparameter)
 	(macro def-once)
@@ -40,10 +41,6 @@
 	module-symbol?)
 
 
-(define-macro* (& . args)
-  ;; `(thunk ,@args)
-  `(lambda () ,@args))
-
 (define-macro* (defstruct . args)
   `(define-struct. ,@args))
 
@@ -51,6 +48,34 @@
   (if (pair? (source-code first))
       `(define-typed ,first ,@rest)
       `(define ,first ,@rest)))
+
+(define-macro* (defmacro . args)
+  `(define-macro* ,@args))
+
+(define-macro* (& . args)
+  ;; `(thunk ,@args)
+  `(lambda () ,@args))
+
+(define-macro* (def& bind . type+body)
+  (mcase bind
+	 (`(`name `_thunkvar)
+	  ;; ^ XX could allow optional and keyword args though
+	  (let ((macrocode
+		 `(quasiquote (,name (& ))))
+		(name* (source.symbol-append name '&)))
+	    (with-gensym
+	     E
+	     `(begin
+		(def ,bind ,@type+body)
+		(defmacro (,name* . ,E)
+		  `(,',name (##lambda () ,@,E)))))))))
+
+(TEST
+ > (def& (lol x) (x))
+ > (lol (& 'ha))
+ ha
+ > (lol& 'ha)
+ ha)
 
 ;; forward declaration; no body, but might accept ->
 (define-macro* (forward-def . args)
@@ -83,9 +108,6 @@
 
 (define-macro* (defenum name . args)
   `(define-enum ,name ,@args))
-
-(define-macro* (defmacro . args)
-  `(define-macro* ,@args))
 
 (define-macro* (defvalues . args)
   `(define-values ,@args))
