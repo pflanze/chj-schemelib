@@ -11,6 +11,14 @@
 	 dot-oo
 	 (cj-source-wraps source:symbol-append))
 
+(export (macro class)
+	(macro subclass)
+	(macro struct)
+	(macro method)
+	(macro let.)
+	#!optional
+	compile-time:class-ctx)
+
 ;; * add class and subclass syntax
 
 (compile-time
