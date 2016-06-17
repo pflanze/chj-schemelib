@@ -17,7 +17,7 @@
 	(macro method)
 	(macro let.)
 	#!optional
-	compile-time:class-ctx)
+	more-oo:current-class)
 
 ;; * add class and subclass syntax
 
@@ -43,6 +43,12 @@
   (push! compile-time:class-ctx
 	 (more-oo-class-ctx name (box '())))
   `(begin))
+
+
+;; for macro expanders:
+(def (more-oo:current-class)
+     (car compile-time:class-ctx))
+
 
 (defmacro (compile-time#end-class!)
   (let* ((c (pop! compile-time:class-ctx))
