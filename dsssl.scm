@@ -6,6 +6,8 @@
 ;;;    (at your option) any later version.
 
 
+;; XXX shouldn't this be merged with cj-source-lambda.scm ?
+
 (require easy cj-alist list-util)
 
 

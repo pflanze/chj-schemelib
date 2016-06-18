@@ -6,6 +6,8 @@
 ;;;    (at your option) any later version.
 
 
+;; XXX shouldn't this be merged with dsssl.scm ?
+
 (require test
 	 (cj-source-util-2 assert)
 	 (list-util let-pair)
