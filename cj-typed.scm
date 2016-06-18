@@ -20,6 +20,19 @@
 	 (improper-list improper-length)
 	 cj-typed-1)
 
+(export (macro type-check)
+	perhaps-typed.var
+	typed?
+	typed.var
+	args-detype
+	(macro typed-lambda)
+	(macro define-typed)
+	(macro ->)
+	;; indirectly: ->-error
+
+	#!optional
+	typed-body-parse)
+
 
 (define-macro* (type-check predicate expr . body)
   (let ((V (gensym))
