@@ -59,82 +59,94 @@
 	   (expect 'positional)
 	   (res '()))
 
-    (if (null? s)
-	(if (or (not maybe-vs)
-		(null? maybe-vs))
-	    (let ((e (reverse res)))
-	      (if maybe-expr
-		  (let ((e (cons maybe-expr e)))
-		    (if (eq? expect 'end)
-			;; XX Is that really only after rest?
-			(cons 'apply e)
-			e))
-		  e))
-	    (error "got too many value slots, still have:"
-		   maybe-vs))
-	(let-pair
-	 ((b s*) s)
-	 (let ((*b (source-code b))
-	       (lp-expect (lambda (expect)
-			    (lp s* maybe-vs expect res))))
-	   (case *b
-	     ((#!optional)
-	      ;; XX replace all assert with proper source-error
-	      ;; messaging? Or use a source-assert? What does the
-	      ;; fancy one already do?
-	      (assert (not (eq? expect 'optional)))
-	      (lp-expect 'optional))
-	     ((#!key)
-	      (assert (not (eq? expect 'key)))
-	      (lp-expect 'key))
-	     ((#!rest)
-	      (assert (not (eq? expect 'rest)))
-	      (lp-expect 'rest))
-	     ;; XX also handle #!rest #!key and such nonsense(?)
-	     (else
-	      (case expect
-		((end)
-		 (source-error b "superfluous item"))
+    (let ((handle
+	   (lambda (s* b *b expect)
+	     (cond ((or (symbol? *b)
+			;; XX list-of-length-2 would be wrong
+			;; in the case of rest, right? complain
+			;; in this case.
+			(source.list-of-length-2? *b))
+		    (if (and maybe-vs (null? maybe-vs))
+			(error "did not get enough value slots")
 
-		(else
-		 (cond ((or (symbol? *b)
-			    (source.list-of-length-2? *b))
-			(if (and maybe-vs (null? maybe-vs))
-			    (error "did not get enough value slots")
+			(case expect
+			  ((positional optional)
+			   (lp s*
+			       (and maybe-vs (cdr maybe-vs))
+			       expect
+			       (cons (if maybe-vs
+					 (car maybe-vs)
+					 b)
+				     res)))
 
-			    (case expect
-			      ((positional optional)
-			       (lp s*
-				   (and maybe-vs (cdr maybe-vs))
-				   expect
-				   (cons (if maybe-vs
-					     (car maybe-vs)
-					     b)
-					 res)))
+			  ((rest)
+			   (lp s*
+			       (and maybe-vs (cdr maybe-vs))
+			       'end
+			       (if maybe-vs
+				   (append-reverse (car maybe-vs)
+						   res)
+				   (cons b res))))
 
-			      ((rest)
-			       (lp s*
-				   (and maybe-vs (cdr maybe-vs))
-				   'end
-				   (if maybe-vs
-				       (append-reverse (car maybe-vs)
-						       res)
-				       (cons b res))))
+			  ((key)
+			   (lp s*
+			       (and maybe-vs (cdr maybe-vs))
+			       'key
+			       (cons (if maybe-vs
+					 (car maybe-vs)
+					 b)
+				     (cons (string->keyword (symbol->string *b))
+					   res))))
+			  (else
+			   (error "in invalid mode:" expect)))))
+		   (else
+		    (source-error b
+				  "expecting symbol or list of length 2"))))))
+    
+      (cond ((null? s)
+	     (if (or (not maybe-vs)
+		     (null? maybe-vs))
+		 (let ((e (reverse res)))
+		   (if maybe-expr
+		       (let ((e (cons maybe-expr e)))
+			 (if (eq? expect 'end)
+			     ;; XX Is that really only after rest?
+			     (cons 'apply e)
+			     e))
+		       e))
+		 (error "got too many value slots, still have:"
+			maybe-vs)))
+	    ((pair? s)
+	     (let-pair
+	      ((b s*) s)
+	      (let ((*b (source-code b))
+		    (lp-expect (lambda (expect)
+				 (lp s* maybe-vs expect res))))
+		(case *b
+		  ((#!optional)
+		   ;; XX replace all assert with proper source-error
+		   ;; messaging? Or use a source-assert? What does the
+		   ;; fancy one already do?
+		   (assert (not (eq? expect 'optional)))
+		   (lp-expect 'optional))
+		  ((#!key)
+		   (assert (not (eq? expect 'key)))
+		   (lp-expect 'key))
+		  ((#!rest)
+		   (assert (not (eq? expect 'rest)))
+		   (lp-expect 'rest))
+		  ;; XX also handle #!rest #!key and such nonsense(?)
+		  (else
+		   (case expect
+		     ((end)
+		      (source-error b "superfluous item"))
 
-			      ((key)
-			       (lp s*
-				   (and maybe-vs (cdr maybe-vs))
-				   'key
-				   (cons (if maybe-vs
-					     (car maybe-vs)
-					     b)
-					 (cons (string->keyword (symbol->string *b))
-					       res))))
-			      (else
-			       (error "in invalid mode:" expect)))))
-		       (else
-			(source-error b
-				      "expecting symbol or list of length 2"))))))))))))
+		     (else
+		      (handle s* b *b expect))))))))
+	    (else
+	     ;; combination of #!rest-triggered rest and end modes
+	     (assert (not (eq? expect 'rest)))
+	     (handle '() s (source-code s) 'rest))))))
 
 
 (TEST
@@ -164,9 +176,10 @@
  (10 11 12 13)
  > (t '(a b #!rest c) #f 'f)
  (apply f a b c)
- ;; > (t '(a b . c) #f 'f)
- ;; (apply f a b c)
- ;;XXX TODO
+ > (t '(a b . c) '(10 11 (12 13)))
+ (10 11 12 13)
+ > (t '(a b . c) #f 'f)
+ (apply f a b c)
  > (t '(a b #!rest #!rest) '(10 11 (12 13)))
  #(error "assertment failure: (not (eq? expect 'rest))" (not (eq? 'rest 'rest)))
  > (t '(a b #!optional c #!rest d) '(10 11 12 (13 14)))
