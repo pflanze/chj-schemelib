@@ -12,7 +12,8 @@
 	 (cj-source-util-2 assert)
 	 (list-util let-pair)
 	 (cj-source source-error)
-	 (srfi-1 append-reverse))
+	 (srfi-1 append-reverse)
+	 (cj-typed perhaps-typed.var))
 
 (export source.bindings->app
 	#!optional
@@ -119,9 +120,10 @@
 	    ((pair? s)
 	     (let-pair
 	      ((b s*) s)
-	      (let ((*b (source-code b))
-		    (lp-expect (lambda (expect)
-				 (lp s* maybe-vs expect res))))
+	      (let* ((b1 (perhaps-typed.var b))
+		     (*b (source-code b1))
+		     (lp-expect (lambda (expect)
+				  (lp s* maybe-vs expect res))))
 		(case *b
 		  ((#!optional)
 		   ;; XX replace all assert with proper source-error
@@ -142,11 +144,12 @@
 		      (source-error b "superfluous item"))
 
 		     (else
-		      (handle s* b *b expect))))))))
+		      (handle s* b1 *b expect))))))))
 	    (else
 	     ;; combination of #!rest-triggered rest and end modes
 	     (assert (not (eq? expect 'rest)))
-	     (handle '() s (source-code s) 'rest))))))
+	     (let ((b1 (perhaps-typed.var s)))
+	       (handle '() b1 (source-code b1) 'rest)))))))
 
 
 (TEST
@@ -187,3 +190,37 @@
  > (t '(a b #!optional c #!rest d) #f '(f))
  (apply f a b c d))
 
+;; and typed stuff: (ugly adapted copy paste)
+(TEST
+ > (t '(a #(foo? b) #(bar? c)) '(10 11 12))
+ (10 11 12)
+ > (t '(a #(foo? b) #(bar? c)) #f '(f))
+ (f a b c)
+ > (t '(a b #(bar? c)) '(10 11))
+ #(error "did not get enough value slots")
+ > (t '(a b #(bar? c)) '(10 11 12 13))
+ #(error "got too many value slots, still have:" (13))
+ > (t '(a b #!optional #(baz? c)) '(10 11))
+ #(error "did not get enough value slots")
+ > (t '(a b #!optional #(baz? c)) #f '(F))
+ (F a b c)
+ > (t '(a b #!optional #(baz? c)) '(10 11 12))
+ (10 11 12)
+ > (t '(a #(bar? b) #!key #(fii? c) #(baz? d)) '(10 11 12 13))
+ (10 11 c: 12 d: 13)
+ > (t '(a #(bar? b) #!key #(fii? c) #(baz? d)) #f '(f))
+ (f a b c: c d: d)
+ > (t '(a #(bar? b) #!key #(fii? c) #(baz? d)) '(10 11 12))
+ #(error "did not get enough value slots")
+ > (t '(a b #!rest #((list-of foo?) c)) '(10 11 (12 13)))
+ (10 11 12 13)
+ > (t '(a b #!rest #((list-of foo?) c)) #f '(f))
+ (apply f a b c)
+ > (t '(a b . #((list-of foo?) c)) '(10 11 (12 13)))
+ (10 11 12 13)
+ > (t '(a b . #((list-of foo?) c)) #f '(f x))
+ (apply f x a b c)
+ > (t '(a b #!optional #(bar? c) #!rest #((list-of foo?) d)) '(10 11 12 (13 14)))
+ (10 11 12 13 14)
+ > (t '(a b #!optional #(bar? c) #!rest #((list-of foo?) d)) #f '(f))
+ (apply f a b c d))
