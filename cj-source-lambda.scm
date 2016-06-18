@@ -51,7 +51,7 @@
 			      ;; two modi: either values, or calling
 			      ;; expr
 			      maybe-vs
-			      maybe-expr)
+			      maybe-exprs)
   ;; "state machine"
   ;; expect: 'positional | 'optional | 'key | 'rest | 'end
   (let lp ((s (source-code bind))
@@ -107,8 +107,8 @@
 	     (if (or (not maybe-vs)
 		     (null? maybe-vs))
 		 (let ((e (reverse res)))
-		   (if maybe-expr
-		       (let ((e (cons maybe-expr e)))
+		   (if maybe-exprs
+		       (let ((e (append maybe-exprs e)))
 			 (if (eq? expect 'end)
 			     ;; XX Is that really only after rest?
 			     (cons 'apply e)
@@ -154,7 +154,7 @@
      (%try-error (source.bindings->app b vs f)))
  > (t '(a b c) '(10 11 12))
  (10 11 12)
- > (t '(a b c) #f 'f)
+ > (t '(a b c) #f '(f))
  (f a b c)
  > (t '(a b c) '(10 11))
  #(error "did not get enough value slots")
@@ -162,28 +162,28 @@
  #(error "got too many value slots, still have:" (13))
  > (t '(a b #!optional c) '(10 11))
  #(error "did not get enough value slots")
- > (t '(a b #!optional c) #f 'F)
+ > (t '(a b #!optional c) #f '(F))
  (F a b c)
  > (t '(a b #!optional c) '(10 11 12))
  (10 11 12)
  > (t '(a b #!key c d) '(10 11 12 13))
  (10 11 c: 12 d: 13)
- > (t '(a b #!key c d) #f 'f)
+ > (t '(a b #!key c d) #f '(f))
  (f a b c: c d: d)
  > (t '(a b #!key c d) '(10 11 12))
  #(error "did not get enough value slots")
  > (t '(a b #!rest c) '(10 11 (12 13)))
  (10 11 12 13)
- > (t '(a b #!rest c) #f 'f)
+ > (t '(a b #!rest c) #f '(f))
  (apply f a b c)
  > (t '(a b . c) '(10 11 (12 13)))
  (10 11 12 13)
- > (t '(a b . c) #f 'f)
- (apply f a b c)
+ > (t '(a b . c) #f '(f x))
+ (apply f x a b c)
  > (t '(a b #!rest #!rest) '(10 11 (12 13)))
  #(error "assertment failure: (not (eq? expect 'rest))" (not (eq? 'rest 'rest)))
  > (t '(a b #!optional c #!rest d) '(10 11 12 (13 14)))
  (10 11 12 13 14)
- > (t '(a b #!optional c #!rest d) #f 'f)
+ > (t '(a b #!optional c #!rest d) #f '(f))
  (apply f a b c d))
 
