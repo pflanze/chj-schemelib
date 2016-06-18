@@ -46,24 +46,37 @@
 ;; into function application syntax
 
 ;; -> source
-(define (source.bindings->app bind vs)
+(define (source.bindings->app bind
+			      #!optional
+			      ;; two modi: either values, or calling
+			      ;; expr
+			      maybe-vs
+			      maybe-expr)
   ;; "state machine"
   ;; expect: 'positional | 'optional | 'key | 'rest | 'end
   (let lp ((s (source-code bind))
-	   (vs vs)
+	   (maybe-vs maybe-vs)
 	   (expect 'positional)
 	   (res '()))
 
     (if (null? s)
-	(if (null? vs)
-	    (reverse res)
+	(if (or (not maybe-vs)
+		(null? maybe-vs))
+	    (let ((e (reverse res)))
+	      (if maybe-expr
+		  (let ((e (cons maybe-expr e)))
+		    (if (eq? expect 'end)
+			;; XX Is that really only after rest?
+			(cons 'apply e)
+			e))
+		  e))
 	    (error "got too many value slots, still have:"
-		   vs))
+		   maybe-vs))
 	(let-pair
 	 ((b s*) s)
 	 (let ((*b (source-code b))
 	       (lp-expect (lambda (expect)
-			    (lp s* vs expect res))))
+			    (lp s* maybe-vs expect res))))
 	   (case *b
 	     ((#!optional)
 	      ;; XX replace all assert with proper source-error
@@ -86,27 +99,35 @@
 		(else
 		 (cond ((or (symbol? *b)
 			    (source.list-of-length-2? *b))
-			(if (null? vs)
+			(if (and maybe-vs (null? maybe-vs))
 			    (error "did not get enough value slots")
 
 			    (case expect
 			      ((positional optional)
 			       (lp s*
-				   (cdr vs)
+				   (and maybe-vs (cdr maybe-vs))
 				   expect
-				   (cons (car vs) res)))
+				   (cons (if maybe-vs
+					     (car maybe-vs)
+					     b)
+					 res)))
 
 			      ((rest)
 			       (lp s*
-				   (cdr vs)
+				   (and maybe-vs (cdr maybe-vs))
 				   'end
-				   (append-reverse (car vs) res)))
+				   (if maybe-vs
+				       (append-reverse (car maybe-vs)
+						       res)
+				       (cons b res))))
 
 			      ((key)
 			       (lp s*
-				   (cdr vs)
+				   (and maybe-vs (cdr maybe-vs))
 				   'key
-				   (cons (car vs)
+				   (cons (if maybe-vs
+					     (car maybe-vs)
+					     b)
 					 (cons (string->keyword (symbol->string *b))
 					       res))))
 			      (else
@@ -117,26 +138,39 @@
 
 
 (TEST
- > (define (t b vs) (%try-error (source.bindings->app b vs)))
+ > (define (t b #!optional vs f)
+     (%try-error (source.bindings->app b vs f)))
  > (t '(a b c) '(10 11 12))
  (10 11 12)
+ > (t '(a b c) #f 'f)
+ (f a b c)
  > (t '(a b c) '(10 11))
  #(error "did not get enough value slots")
  > (t '(a b c) '(10 11 12 13))
  #(error "got too many value slots, still have:" (13))
  > (t '(a b #!optional c) '(10 11))
  #(error "did not get enough value slots")
+ > (t '(a b #!optional c) #f 'F)
+ (F a b c)
  > (t '(a b #!optional c) '(10 11 12))
  (10 11 12)
  > (t '(a b #!key c d) '(10 11 12 13))
  (10 11 c: 12 d: 13)
+ > (t '(a b #!key c d) #f 'f)
+ (f a b c: c d: d)
  > (t '(a b #!key c d) '(10 11 12))
  #(error "did not get enough value slots")
  > (t '(a b #!rest c) '(10 11 (12 13)))
  (10 11 12 13)
+ > (t '(a b #!rest c) #f 'f)
+ (apply f a b c)
+ ;; > (t '(a b . c) #f 'f)
+ ;; (apply f a b c)
+ ;;XXX TODO
  > (t '(a b #!rest #!rest) '(10 11 (12 13)))
  #(error "assertment failure: (not (eq? expect 'rest))" (not (eq? 'rest 'rest)))
  > (t '(a b #!optional c #!rest d) '(10 11 12 (13 14)))
  (10 11 12 13 14)
- )
+ > (t '(a b #!optional c #!rest d) #f 'f)
+ (apply f a b c d))
 
