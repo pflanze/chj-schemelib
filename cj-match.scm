@@ -313,7 +313,7 @@
 
 
 (compile-time
- (define (match-expand input clauses message-string)
+ (define (match-expand stx input clauses message-string)
    ;; group according to type of datum
    (let* ((clausegroups
 	   (segregate clauses
@@ -328,7 +328,7 @@
 	(source-error stx "match currently only implements list matching"))))))
 
 (define-macro*d (match input . clauses)
-  (match-expand input clauses "no match"))
+  (match-expand stx input clauses "no match"))
 
 (TEST
  > (define TEST:equal? syntax-equal?)
@@ -526,8 +526,9 @@
  )
 
 (compile-time
- (define (matchl-expand input clauses message-string)
+ (define (matchl-expand stx input clauses message-string)
    (match-expand
+    stx
     input
     (map (lambda (clause)
 	   (match clause
@@ -538,7 +539,7 @@
     message-string)))
 
 (define-macro*d (matchl input . clauses)
-  (matchl-expand input clauses "no match"))
+  (matchl-expand stx input clauses "no match"))
 
 (TEST
  > (matchl '(a b)
@@ -698,6 +699,7 @@
 	       `(((natural0? (improper-length (source-code ,V)))
 		  ;;^ XX assumes that there are no annotated pairs further behind
 		  ,(matchl-expand
+		    stx
 		    V
 		    (append (map (lambda (clause)
 				   (matchl clause
