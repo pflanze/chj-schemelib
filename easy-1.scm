@@ -63,7 +63,7 @@
 	  ;; ^ XX could allow optional and keyword args though
 	  (let ((macrocode
 		 `(quasiquote (,name (& ))))
-		(name* (source.symbol-append name '&)))
+		(name* (source:symbol-append name '&)))
 	    (with-gensym
 	     E
 	     `(begin
