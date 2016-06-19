@@ -1,7 +1,11 @@
 (require (cj-source-util-2 assert)
 	 (stream stream-map)
 	 cut
-	 )
+	 (char-util char-alphanumeric?))
+
+
+(export make-realrandom-string-stream
+	make-realrandom-alphanumeric-string-stream)
 
 ;; well HAD something in mod
 
@@ -24,7 +28,7 @@
 	    (cons line
 		  (lp)))))))
 
-(define (make-realrandom-string-stream maybe-stringlen)
+(define (make-realrandom-string-stream #!optional maybe-stringlen maybe-fn)
   (if maybe-stringlen
       (assert (< maybe-stringlen 76))) ;; that's what base64 delivers. sick yeah but...
   (let ((s (port->lines-stream
@@ -34,8 +38,27 @@
 	     (list path: "bash"
 		   arguments: (list "-c" "exec base64 /dev/urandom 2>/dev/null")
 		   stdout-redirection: #t)))))
-    (if maybe-stringlen
-	(stream-map (cut substring <> 0 maybe-stringlen)
+    (if (or maybe-stringlen maybe-fn)
+	(stream-map (let ((l1 (cut substring <> 0 maybe-stringlen)))
+		      (cond ((and maybe-stringlen maybe-fn)
+			     (lambda (v)
+			       (maybe-fn (l1 v))))
+			    (maybe-stringlen
+			     l1)
+			    (else
+			     maybe-fn)))
 		    s)
 	s)))
+
+;; XX careful: does not guarantee to deliver stringlen characters per string!
+(define (make-realrandom-alphanumeric-string-stream #!optional maybe-stringlen)
+  (make-realrandom-string-stream #f
+				 (lambda (s)
+				   ;; well..
+				   (list->string
+				    (let ((l (filter char-alphanumeric?
+						     (string->list s))))
+				      (if maybe-stringlen
+					  (take l maybe-stringlen)
+					  l))))))
 
