@@ -8,7 +8,56 @@
 
 ;; XXX shouldn't this be merged with cj-source-lambda.scm ?
 
-(require easy cj-alist list-util)
+(require easy
+	 cj-alist
+	 (list-util let-pair))
+
+(export sequential-pairs
+	sequencialpairs->pairs ;; older, obsolete ?
+	dsssl-maybe-ref ;; should move to Maybe ?
+	dsssl-ref
+	dsssl-delete
+	dsssl-apply)
+
+
+(def (sequential-pairs lis
+		       pair-cons
+		       #!optional
+		       (list-cons cons)
+		       (list-null '()))
+     (let rec ((l lis))
+       (cond ((null? l)
+	      list-null)
+	     ((pair? l)
+	      (let-pair
+	       ((k l*) l)
+	       (cond ((pair? l*)
+		      (let-pair ((v l*) l*)
+				(list-cons (pair-cons k v)
+					   (rec l*))))
+		     ((null? l*)
+		      (error (string-append
+			      "uneven number of elements where"
+			      " sequential pairs are expected:")
+			     lis))
+		     (else
+		      (error "improper list:" lis)))))
+	     (else
+	      (error "improper list:" lis)))))
+
+(TEST
+ > (sequential-pairs '(a 1 b 2) cons)
+ ((a . 1) (b . 2))
+ > (sequential-pairs '(a 1) vector)
+ (#(a 1))
+ > (%try-error (sequential-pairs '(a 1 2) cons))
+ #(error
+   "uneven number of elements where sequential pairs are expected:"
+   (a 1 2))
+ > (%try-error (sequential-pairs '(a 1 . 2) cons))
+ #(error "improper list:" (a 1 . 2))
+ > (%try-error (sequential-pairs '(a . 1) cons))
+ #(error "improper list:" (a . 1)))
 
 
 (define (sequencialpairs->pairs lis key-type? value-type?)
@@ -21,10 +70,11 @@
 	  (assert (value-type? val))
 	  (cons (cons key val)
 		(rec (cddr lis)))))))
+
 (TEST
  > (sequencialpairs->pairs '(a 1) symbol? number?)
- ((a . 1))
- )
+ ((a . 1)))
+
 
 
 ;; 'restargs-keyref' 'keyargs-maybe-ref'
