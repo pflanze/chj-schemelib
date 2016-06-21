@@ -28,6 +28,19 @@
  > (%try-error (scm-basename "./bar/foo.scmx"))
  #(error "not a path with suffix '.scm':" "./bar/foo.scmx"))
 
+(TEST
+ > (%try-error (path-string.modulename "/foo"))
+ #(error "not a path with suffix '.scm':" "/foo")
+ > (%try-error (path-string.modulename "/foo.scm"))
+ #(error "need relative path, got:" "/foo.scm")
+ > (path-string.modulename "bar.scm")
+ bar
+ > (path-string.modulename "lib/bar.scm")
+ bar
+ > (path-string.modulename "lib/foo/bar.scm")
+ foo/bar)
+
+
 
 (def (path-string.topo-relation p)
      (path-string.relation p topo-relation))

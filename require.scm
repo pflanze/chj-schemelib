@@ -39,9 +39,33 @@
 	(else
 	 (error "no match:" v))))
 
-;; module-basename (vs. full module name in the future?)
+
+;; expect relative path, strip first level of folders. XX this is a
+;; HACK to get rid of project folders; but local subfolders will be
+;; stripped as well.
+
+;; (define (path-string.modulename p) ;; -> symbol?
+;;   (let ((l (string-split (scm-stripsuffix p) #\/)))
+;;     (if (string=? (car l) "")
+;; 	(error "need relative path, got:" p)
+;; 	(strings-join (cdr l) "/"))))
+;; ^ relies on unavailable dependencies
+
 (define (path-string.modulename p) ;; -> symbol?
-  (string->symbol (scm-basename p)))
+  (string->symbol
+   (let* ((s (scm-stripsuffix p))
+	  (len (string-length s))
+	  (maybe-ifirst (let lp ((i 0))
+			  (if (< i len)
+			      (if (char=? (string-ref s i) #\/)
+				  i
+				  (lp (+ i 1)))
+			      #f))))
+     (if maybe-ifirst
+	 (if (zero? maybe-ifirst)
+	     (error "need relative path, got:" p)
+	     (substring s (+ maybe-ifirst 1) len))
+	 s))))
 
 
 (define modules-without-require-forms
