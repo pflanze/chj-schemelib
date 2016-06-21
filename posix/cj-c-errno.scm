@@ -1,13 +1,12 @@
-(require
- (cj-env warn pp-through thunk)
- (cj-env-1 list-join)
- (srfi-1 filter-map)
- cj-inline
- char-util
- cj-env-2
- (cj-ffi symbol->string*)
- cj-c-errno_Cpart ;; from posix/ dir, local reference
- )
+(require (cj-env warn pp-through thunk)
+	 (cj-env-1 list-join)
+	 (srfi-1 filter-map)
+	 cj-inline
+	 char-util
+	 cj-env-2
+	 (cj-ffi symbol->string*)
+	 posix/cj-c-errno_Cpart)
+
 
 ;; (compile #t)
 

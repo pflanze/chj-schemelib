@@ -1,13 +1,12 @@
-(require
- cj-env
- cj-posix
- string-util ;; which one? grr, so..:
- string-util-1
- string-util-2
- string-util-3
- interrupts
- (test TEST)
- )
+(require cj-env
+	 posix/cj-posix
+	 string-util ;; which one? grr, so..:
+	 string-util-1
+	 string-util-2
+	 string-util-3
+	 interrupts
+	 (test TEST)
+	 )
 
 ;; cj Thu, 21 Dec 2006 01:41:15 +0100
 

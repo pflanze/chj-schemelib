@@ -15,7 +15,7 @@
 	 (alist <alist>)
 	 srfi-11
 	 srfi-1
-	 (cj-posix posix:environ)
+	 (posix/cj-posix posix:environ)
 	 (cj-functional list-of values-of))
 
 (export open-process*

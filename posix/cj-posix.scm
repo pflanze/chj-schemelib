@@ -1,12 +1,14 @@
 (require (cj-env warn)
 	 ;;(interrupts interrupt-install-handler! SIGCHLD)
-	 cj-c-util  ;; {maybe-,}define-constant-from-C
-	 cj-c-errno ;; including define/check and define/check->integer
-	 (cj-c-errno throw-posix-exception
-		     posix-exception) ;;(or should I make cj-c-errno export those by default?)
-	 (cj-c-errno posix-exception?
-		     posix-exception-errno
-		     posix-exception-message) ;; for re-export
+	 cj-c-util	  ;; {maybe-,}define-constant-from-C
+	 posix/cj-c-errno ;; including define/check and define/check->integer
+	 (posix/cj-c-errno throw-posix-exception
+			   posix-exception ;;(or should I make cj-c-errno export those by default?)
+
+			   ;; for re-export:
+			   posix-exception?
+			   posix-exception-errno
+			   posix-exception-message)
 	 ;; for the cj-c-types.scm include: (compile-time only)
 	 cj-env
 	 cj-gambit-sys
