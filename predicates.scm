@@ -51,7 +51,8 @@
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
 	list-of-length
 	0..1? ;; see also rgb:0..1?
-	in-signed-range?)
+	in-signed-range?
+	parameter?)
 
 
 ;; for now there's no difference (intent: pure functions, aside of
@@ -307,4 +308,7 @@
  (#f "1000000010000000")
  ;;   1234567812345678
  )
+
+
+(define parameter? ##parameter?)
 
