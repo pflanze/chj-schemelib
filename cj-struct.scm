@@ -58,26 +58,27 @@
   (and (@maybe-struct-tag-name v)
        #t))
 
-;; A map from tag object *names* (aim: tag equivalents, but with the
-;; current implementation of them being a list containing a symbol,
-;; the symbol itself is enough) to actual tag objects
-(define-if-not-defined cj-struct:lookup (make-table))
-;; what's the best test?
+;; ;; A map from tag object *names* (aim: tag equivalents, but with the
+;; ;; current implementation of them being a list containing a symbol,
+;; ;; the symbol itself is enough) to actual tag objects
+;; (define-if-not-defined cj-struct:lookup (make-table))
+;; ;; what's the best test?
 
-(define (symbol.maybe-struct-tag s)
-  (if (symbol? s)
-      (table-ref cj-struct:lookup s #f)
-      (error "not a symbol:" s)))
+;; (define (symbol.maybe-struct-tag s)
+;;   (if (symbol? s)
+;;       (table-ref cj-struct:lookup s #f)
+;;       (error "not a symbol:" s)))
 
-(define (symbol.struct-tag s)
-  (or (symbol.maybe-struct-tag s)
-      (error "no struct of name:" s)))
+;; (define (symbol.struct-tag s)
+;;   (or (symbol.maybe-struct-tag s)
+;;       (error "no struct of name:" s)))
+
 
 (define (struct-tag-generate! s)
   (if (symbol? s)
       (let ((t (list s)))
 	(table-set! cj-struct:tags t #t)
-	(table-set! cj-struct:lookup s t)
+	;; (table-set! cj-struct:lookup s t)
 	t)
       (error "not a symbol:" s)))
 
@@ -93,8 +94,8 @@
 
 
 (TEST
- > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
- #f
+ ;; > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
+ ;; #f
  > (define t (struct-tag-generate! 'kkfjkif3hnunnfgw56k))
  > (struct-tag? t)
  #t
@@ -114,10 +115,10 @@
  kkfjkif3hnunnfgw56k
  > (@maybe-struct-tag-name t)
  kkfjkif3hnunnfgw56k
- > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
- (kkfjkif3hnunnfgw56k)
- > (eq? # t)
- #t
+ ;; > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
+ ;; (kkfjkif3hnunnfgw56k)
+ ;; > (eq? # t)
+ ;; #t
 
  > (eq? (struct-tag-generate! 'kkfjkif3hnunnfgw56k)
 	(struct-tag-generate! 'kkfjkif3hnunnfgw56k))
@@ -125,7 +126,8 @@
 
  ;; cleanup, hacky
  > (table-set! cj-struct:tags t)
- > (table-set! cj-struct:lookup 'kkfjkif3hnunnfgw56k #f))
+ ;; > (table-set! cj-struct:lookup 'kkfjkif3hnunnfgw56k #f)
+ )
 
 
 
