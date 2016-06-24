@@ -26,6 +26,7 @@
 	struct?
 	struct-type
 	struct-type-name
+	struct-type->constructor-name
 	struct-constructor-name
 	struct-of-type
 	;; odd one?:
@@ -193,8 +194,6 @@
 	 (separator (source-code separator))
 	 (constructor-name (or constructor-name
 			       (symbol-append prefix "make-" name)))
-	 (constructor-name-binding
-	  (symbol-append "cj-struct:constructor-name:" name))
 	 (predicate-name
 	  (if predicate-name
 	      (source-code predicate-name)
@@ -244,8 +243,8 @@
 	 )
     `(begin
        ;; meta data. XX should I have a better concept for these?
-       (define ,constructor-name-binding ',constructor-name)
        (define-if-not-defined ,tag-binding (struct-tag-generate! ,tag-code))
+       (set-struct-type->constructor-name! ',constructor-name ,tag-binding)
 
        ,@(let ((construct
 		(lambda (LAMBDA constructor-name)
@@ -501,10 +500,17 @@
   (@maybe-struct-tag-name (struct-type v)))
 
 
-;; XX should really move to a hashtable to avoid eval (faster, XXX is
-;; this even insecure?)
+(define-if-not-defined cj-struct:type->constructor-name
+  (make-table test: eq?))
+
+(define (set-struct-type->constructor-name! t name)
+  (table-set! cj-struct:type->constructor-name t name))
+
+(define (struct-type->constructor-name t)
+  (table-ref cj-struct:type->constructor-name t))
+
 (define (struct-constructor-name v)
-  (eval (symbol-append "cj-struct:constructor-name:" (struct-type-name v))))
+  (struct-type->constructor-name (struct-type v)))
 
 
 ;; Does not check for parent types! (This is not an is-a check.) Also,
