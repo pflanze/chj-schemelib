@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+	 (cj-env define-if-not-defined-strict make-unbound)
 	 cj-phasing
 	 test
 	 simple-match
@@ -27,6 +28,8 @@
 
 
 (both-times ;; runtime mostly just for the tests
+ (define-if-not-defined-strict define-module:unbound
+   (make-unbound 'define-module))
 
  ;; lib
  (define source-xxone
@@ -184,7 +187,7 @@
 	      `(let ,(map (lambda (var+expr)
 			    (match* var+expr
 				    ((var expr)
-				     `(,var 'define-module-unbound))))
+				     `(,var define-module:unbound))))
 			  (filter (compose* not cj-gensym? car)
 				  convertedforms))
 		 ,@movedout
@@ -209,15 +212,15 @@
        ((mod:compiled? #t))
        (convert-module-body forms body))))
  > (conv '((define a 1) (define a 12) (define b (a 2))) '(mybody))
- #((let ((a 'define-module-unbound)
-	 (b 'define-module-unbound))
+ #((let ((a define-module:unbound)
+	 (b define-module:unbound))
      (set! a 1)
      (set! a 12)
      (set! b (a 2))
      mybody)
    (begin (letrec ((a 1) (GEN:1 (set! a 12)) (b (a 2))) mybody)))
  > (conv '((define a 1) (set! a list) (define b (a 2))) '(b))
- #((let ((a 'define-module-unbound) (b 'define-module-unbound))
+ #((let ((a define-module:unbound) (b define-module:unbound))
      (set! a 1) (set! a list) (set! b (a 2))
      b)
    (begin (letrec ((a 1) (GEN:3716 (set! a list)) (b (a 2))) b)))
