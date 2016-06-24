@@ -309,14 +309,16 @@
 
 ;; This variant is using closures instead of eval, thus works on
 ;; lexicals, too. To make it work with e.g. define-module, use the
-;; unbound "protocol" defined above.
+;; unbound "protocol" defined above by default.
 
-(define (thunk-symbol-value-or sym-thunk or-thunk)
+(define (thunk-symbol-value-or sym-thunk or-thunk #!optional strict?)
   (with-exception-catcher
    (lambda (e) (if (unbound-global-exception? e) (or-thunk) (raise e)))
    (lambda ()
      (let ((v (sym-thunk)))
-       (if (unbound? v)
+       (if (if strict?
+	       (##unbound? v)
+	       (unbound? v))
 	   (or-thunk)
 	   v)))))
 
@@ -324,7 +326,8 @@
   (if (symbol? (source-code sym))
       `(thunk-symbol-value-or
 	(lambda () ,sym)
-	,thunk)
+	,thunk
+	#f)
       (source-error sym "not a symbol")))
 
 (define-macro* (define-if-not-defined name expr)
@@ -332,7 +335,16 @@
 	   (lambda (name)
 	     `(define ,name
 		(thunk-symbol-value-or (lambda () ,name)
-				       (lambda () ,expr))))))
+				       (lambda () ,expr)
+				       #f)))))
+
+(define-macro* (define-if-not-defined-strict name expr)
+  (assert* symbol? name
+	   (lambda (name)
+	     `(define ,name
+		(thunk-symbol-value-or (lambda () ,name)
+				       (lambda () ,expr)
+				       #t)))))
 
 (TEST
  > (define-if-not-defined abczxfwef 10)
@@ -341,6 +353,18 @@
  > (define-if-not-defined abczxfwef 11)
  > abczxfwef
  10
+
+ > (define-if-not-defined cj-env-test:unbound (make-unbound 'define-module))
+ > (def a cj-env-test:unbound)
+ > (define-if-not-defined cj-env-test:unbound (make-unbound 'define-module))
+ > (eq? a cj-env-test:unbound)
+ #f
+
+ > (define-if-not-defined-strict cj-env-test:unbound2 (make-unbound 'define-module))
+ > (def a cj-env-test:unbound2)
+ > (define-if-not-defined-strict cj-env-test:unbound2 (make-unbound 'define-module))
+ > (eq? a cj-env-test:unbound2)
+ #t
  )
 
 (define-if-not-defined gambit:load load)
