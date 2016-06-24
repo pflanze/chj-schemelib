@@ -294,12 +294,29 @@
    (lambda ()
      (eval sym))))
 
+
+(define unbound:type-tag (vector 'unbound))
+
+(define (make-unbound info)
+  ;; info should probably be a symbol
+  (vector unbound:type-tag info))
+
+(define (unbound? v)
+  (or (##unbound? v)
+      (and (vector? v)
+	   (eq? (vector-ref v 0) unbound:type-tag))))
+
+
+;; This variant is using closures instead of eval, thus works on
+;; lexicals, too. To make it work with e.g. define-module, use the
+;; unbound "protocol" defined above.
+
 (define (thunk-symbol-value-or sym-thunk or-thunk)
   (with-exception-catcher
    (lambda (e) (if (unbound-global-exception? e) (or-thunk) (raise e)))
    (lambda ()
      (let ((v (sym-thunk)))
-       (if (##unbound? v)
+       (if (unbound? v)
 	   (or-thunk)
 	   v)))))
 
