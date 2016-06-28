@@ -7,7 +7,7 @@
 
 
 (require cj-functional
-	 (cj-functional-2 chain)
+	 (cj-functional-2 =>)
 	 test
 	 (cj-env named)
 	 (cj-env-2 C)
@@ -534,17 +534,17 @@
 ;; dirname that gives empty string for root. yeah, remembering now
 (define (dirname* str)
   ;;XX woah super efficiency and anything
-  (chain str
-	 (string->list)
-	 (list-trim-right (cut char=? <> #\/))
-	 (reverse)
-	 (list->string)
-	 (string-split-1 #\/)
-	 (snd)
-	 (string->list)
-	 (reverse)
-	 (list-trim-right (cut char=? <> #\/))
-	 (list->string)))
+  (=> str
+      (string->list)
+      (list-trim-right (cut char=? <> #\/))
+      (reverse)
+      (list->string)
+      (string-split-1 #\/)
+      (snd)
+      (string->list)
+      (reverse)
+      (list-trim-right (cut char=? <> #\/))
+      (list->string)))
 
 (TEST
  > (dirname* "/foo")

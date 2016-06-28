@@ -10,7 +10,8 @@
 	 oo-util ;; part of easy, though?
 	 2d-shape
 	 color
-	 dsssl)
+	 dsssl
+	 (cj-functional-2 =>))
 
 
 (def. (real.svg-string x)
@@ -259,10 +260,10 @@
 	   (size (dsssl-ref options size: default-svg-size))
 	   (path (or (dsssl-ref options path: #f)
 		     (svg-path-generate)))
-	   (options (chain options
-			   (dsssl-delete fit:)
-			   (dsssl-delete size:)
-			   (dsssl-delete path:))))
+	   (options (=> options
+			(dsssl-delete fit:)
+			(dsssl-delete size:)
+			(dsssl-delete path:))))
        ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
        (let* ((p0 (.start (car (force shapes)))))
 	 (let-pair ((mi ma) (stream-fold-left .min+maxs/prev

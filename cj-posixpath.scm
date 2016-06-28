@@ -13,7 +13,8 @@
 
 (require easy ;; incl. more-oo
 	 test
-	 string-util-1)
+	 string-util-1
+	 (cj-functional-2 =>))
 
 (def (posixpath-segment? v)
      (and (nonempty-string? v)
@@ -511,9 +512,9 @@
 		      (.string to))
 	       ;; segments is all we need to change? Even stays
 	       ;; collapsed?
-	       (chain to
-		      (.segments-set (make-list/tail (length froms) ".." tos))
-		      (.absolute?-set #f)))))
+	       (=> to
+		   (.segments-set (make-list/tail (length froms) ".." tos))
+		   (.absolute?-set #f)))))
 
 (def (cj-posixpath:_diff from to)
      (if (.absolute? from)

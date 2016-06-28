@@ -4,7 +4,7 @@
 	 (cj-gambit-sys maybe-procedure-name maybe-decompile)
 	 (list-util let-pair)
 	 (cj-functional flip complement)
-	 (cj-functional-2 chain) ;; just for fun, in test
+	 (cj-functional-2 =>) ;; just for fun, in test
 	 (cj-match mcase) ;; part of easy?
 	 (cj-symbol with-gensym) ;; part of easy?
 	 show
@@ -214,7 +214,7 @@
  #(error "typed-list: value does not meed predicate:" "10" number?)
  > (%try-error (.list (.cons (.cons (typed-list number?) 10) "11")))
  #(error "typed-list: value does not meed predicate:" "11" number?)
- > (chain (typed-list number?) (.cons 10) (.cons 11) (.list))
+ > (=> (typed-list number?) (.cons 10) (.cons 11) (.list))
  (11 10))
 
 (TEST
