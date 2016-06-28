@@ -1,7 +1,9 @@
 
 (require cj-match
+	 ;; for tests:
 	 test
-	 (cj-env-1 inc))
+	 (cj-env-1 inc)
+	 srfi-1)
 
 (export (macro =>)
 	(macro =>*)
@@ -62,4 +64,13 @@
    `(lambda (,V)
       ,(=>>-expand V exprs))))
 
+
+(TEST
+ > (=>> (iota 10)
+	(map inc)
+	(filter even?)
+	(take 2))
+ (2 4)
+ > ((=>>* (inc)) 10)
+ 11)
 
