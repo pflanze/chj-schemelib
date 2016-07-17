@@ -178,7 +178,7 @@
     v))
 
 (TEST
- > (def b (box 10))
+ > (define b (box 10))
  > b
  #&10
  > (box-inc! b)
@@ -355,13 +355,13 @@
  10
 
  > (define-if-not-defined cj-env-test:unbound (make-unbound 'define-module))
- > (def a cj-env-test:unbound)
+ > (define a cj-env-test:unbound)
  > (define-if-not-defined cj-env-test:unbound (make-unbound 'define-module))
  > (eq? a cj-env-test:unbound)
  #f
 
  > (define-if-not-defined-strict cj-env-test:unbound2 (make-unbound 'define-module))
- > (def a cj-env-test:unbound2)
+ > (define a cj-env-test:unbound2)
  > (define-if-not-defined-strict cj-env-test:unbound2 (make-unbound 'define-module))
  > (eq? a cj-env-test:unbound2)
  #t
