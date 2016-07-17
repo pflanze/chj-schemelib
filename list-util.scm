@@ -9,6 +9,7 @@
 (require define-macro-star
 	 test
 	 (test-lib-1 %try-error)
+	 C
 	 srfi-1
 	 (cj-env-1 dec inc identity)
 	 (string-util-1 string-split)
@@ -384,13 +385,13 @@
 
 (TEST
  > (%try-error
-    (trif-one '(a . b) identity (cut error "too many:" <>) (cut error "none")))
+    (trif-one '(a . b) identity (C error "too many:" _) (C error "none")))
  #(error "too many:" (a . b))
  > (%try-error
-    (trif-one '(a) identity (cut error "too many:" <>) (cut error "none")))
+    (trif-one '(a) identity (C error "too many:" _) (C error "none")))
  a
  > (%try-error
-    (trif-one '() identity (cut error "too many:" <>) (cut error "none")))
+    (trif-one '() identity (C error "too many:" _) (C error "none")))
  #(error "none")
  )
 
