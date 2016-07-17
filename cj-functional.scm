@@ -388,12 +388,12 @@
 		   (cdr v)))))))
 
 (TEST
- > (def l '(a
-	    (a)
-	    (a . b)
-	    (a b)
-	    (a b . c)
-	    (a b c)))
+ > (define l '(a
+	       (a)
+	       (a . b)
+	       (a b)
+	       (a b . c)
+	       (a b c)))
  > (map (improper-list/length>= 0) l)
  (#t #t #t #t #t #t)
  > (map (improper-list/length>= 1) l)
