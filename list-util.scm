@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2010-2016 by Christian Jaeger <chrjae@gmail.com>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,7 +8,6 @@
 
 (require define-macro-star
 	 test
-	 (test-lib %try-error)
 	 srfi-1
 	 (cj-env-1 dec inc identity)
 	 (string-util-1 string-split)
@@ -382,17 +381,7 @@
 	  (toomany/1 x))
       (none/0)))
 
-(TEST
- > (%try-error
-    (trif-one '(a . b) identity (cut error "too many:" <>) (cut error "none")))
- #(error "too many:" (a . b))
- > (%try-error
-    (trif-one '(a) identity (cut error "too many:" <>) (cut error "none")))
- a
- > (%try-error
-    (trif-one '() identity (cut error "too many:" <>) (cut error "none")))
- #(error "none")
- )
+;; tests see list-util-test
 
 (define (trif-one/ fn)
   (lambda (x then/1 toomany/1 none/0)
