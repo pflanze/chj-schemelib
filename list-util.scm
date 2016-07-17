@@ -8,6 +8,7 @@
 
 (require define-macro-star
 	 test
+	 (test-lib %try-error)
 	 srfi-1
 	 (cj-env-1 dec inc identity)
 	 (string-util-1 string-split)
@@ -381,7 +382,17 @@
 	  (toomany/1 x))
       (none/0)))
 
-;; tests see list-util-test
+(TEST
+ > (%try-error
+    (trif-one '(a . b) identity (cut error "too many:" <>) (cut error "none")))
+ #(error "too many:" (a . b))
+ > (%try-error
+    (trif-one '(a) identity (cut error "too many:" <>) (cut error "none")))
+ a
+ > (%try-error
+    (trif-one '() identity (cut error "too many:" <>) (cut error "none")))
+ #(error "none")
+ )
 
 (define (trif-one/ fn)
   (lambda (x then/1 toomany/1 none/0)
