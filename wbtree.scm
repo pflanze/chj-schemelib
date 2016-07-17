@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <chrjae@gmail.com>
+;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
 ;;; based on a text (c) University of Southampton (see below)
 
 ;;;    This file is free software; you can redistribute it and/or modify
