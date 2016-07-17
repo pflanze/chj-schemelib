@@ -8,7 +8,7 @@
 
 (require define-macro-star
 	 test
-	 (test-lib %try-error)
+	 (test-lib-1 %try-error)
 	 srfi-1
 	 (cj-env-1 dec inc identity)
 	 (string-util-1 string-split)

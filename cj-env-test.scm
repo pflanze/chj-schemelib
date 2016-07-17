@@ -12,7 +12,7 @@
 	 cj-phasing
 	 cj-inline-1
 	 test
-	 (test-lib %try-error)
+	 (test-lib-1 %try-error)
 	 cj-env-1)
 
 
