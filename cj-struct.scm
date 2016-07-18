@@ -456,9 +456,7 @@
  ;; tag feature:
  > (define-struct foo tag: 'myvery:foo a b)
  > (make-foo 10 11)
- #((foo) 10 11)
- ;; aha that was because we defined foo already above. and although
- ;; 'everything' is overwritten, that excludes the tag binding. sigh.
+ #((myvery:foo) 10 11)
  > (define-struct foo2 tag: 'myvery:foo a b)
  > (make-foo2 10 11)
  #((myvery:foo) 10 11)
