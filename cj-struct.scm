@@ -35,8 +35,9 @@
 	#!optional
 	@maybe-struct-tag-name
 	@struct-tag?
-	
-	struct-tag-generate!)
+	struct-tag-allocate!
+	maybe-struct-tag->metadata
+	struct-tag->metadata)
 
 
 ;; A struct is a vector with an object in slot 0 that unambiguously
@@ -44,8 +45,33 @@
 ;; non-interned objects ("tags", but they are not visual, but
 ;; invisibly unique).
 
-;; A map from tag objects to metadata, currently just #t
-(define-if-not-defined cj-struct:tags (make-table test: eq?))
+
+;; Metadata
+
+;; we can't use the struct-tag machinery yet, so hand-code the same
+;; thing here for this type:
+(define-if-not-defined struct-metadata:tag (list 'struct-metadata))
+
+(define (struct-metadata? v)
+  (and (vector? v)
+       (> (vector-length v) 1)
+       (eq? (vector-ref v 0) struct-metadata:tag)))
+
+(define (make-struct-metadata-accessor slot-number)
+  (lambda (v)
+    (if (struct-metadata? v)
+	(vector-ref v slot-number)
+	(error "wrong type"))))
+
+(define (struct-metadata constructor-name)
+  (vector struct-metadata:tag constructor-name))
+
+(define struct-metadata.constructor-name (make-struct-metadata-accessor 1))
+
+
+;; Mapping  from tag objects to metadata
+
+(define-if-not-defined cj-struct:type->metadata (make-table test: eq?))
 
 (define (@maybe-struct-tag-name v)
   (and (pair? v)
@@ -74,19 +100,27 @@
 ;;       (error "no struct of name:" s)))
 
 
-(define (struct-tag-generate! s)
+(define (struct-tag-allocate! s metadata)
   (if (symbol? s)
       (let ((t (list s)))
-	(table-set! cj-struct:tags t #t)
+	(table-set! cj-struct:type->metadata t metadata)
 	;; (table-set! cj-struct:lookup s t)
 	t)
       (error "not a symbol:" s)))
 
+(define (maybe-struct-tag->metadata t)
+  (table-ref cj-struct:type->metadata t #f))
+
+(define (struct-tag->metadata t)
+  (or (maybe-struct-tag->metadata t)
+      (error "not a struct tag:" t)))
+
 (define (struct-tag? v)
-  (table-ref cj-struct:tags v #f))
+  (and (maybe-struct-tag->metadata v)
+       #t))
 
 (define (maybe-struct-tag-name v)
-  (and (table-ref cj-struct:tags v #f)
+  (and (struct-tag? v)
        (@maybe-struct-tag-name v)))
 
 
@@ -96,7 +130,8 @@
 (TEST
  ;; > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
  ;; #f
- > (define t (struct-tag-generate! 'kkfjkif3hnunnfgw56k))
+ > (define m (struct-metadata 'foo))
+ > (define t (struct-tag-allocate! 'kkfjkif3hnunnfgw56k m))
  > (struct-tag? t)
  #t
  > (struct-tag? '(kkfjkif3hnunnfgw56k))
@@ -120,12 +155,12 @@
  ;; > (eq? # t)
  ;; #t
 
- > (eq? (struct-tag-generate! 'kkfjkif3hnunnfgw56k)
-	(struct-tag-generate! 'kkfjkif3hnunnfgw56k))
+ > (eq? (struct-tag-allocate! 'kkfjkif3hnunnfgw56k m)
+	(struct-tag-allocate! 'kkfjkif3hnunnfgw56k m))
  #f
 
  ;; cleanup, hacky
- > (table-set! cj-struct:tags t)
+ > (table-set! cj-struct:type->metadata t)
  ;; > (table-set! cj-struct:lookup 'kkfjkif3hnunnfgw56k #f)
  )
 
@@ -148,9 +183,9 @@
 		     "expecting symbol or meta-object")))))))
 
 (define (define-struct-expand
-	  DEFINE ;; what definition forms to use
-	  LAMBDA ;; what lambda form to use; useful for typed-lambda
-	  UNSAFE-LAMBDA	       ;; what lambda form to use when
+	  DEFINE	;; what definition forms to use
+	  LAMBDA		;; what lambda form to use; useful for typed-lambda
+	  UNSAFE-LAMBDA	;; what lambda form to use when
 	  ;; unsafe-constructor-name is given
 	  arg->maybe-fieldname ;; fn to extract the field name symbols
 	  wrap-var ;; (var, field+) -> e.g. field+ with variable replaced by var
@@ -244,16 +279,17 @@
 	    (symbol-append (safe-accessor-for-field field) "-update")))
 	 )
     `(begin
-       ;; meta data. XX should I have a better concept for these?
-       (define-if-not-defined ,tag-binding (struct-tag-generate! ,tag-code))
-       (set-struct-type->constructor-name! ',constructor-name ,tag-binding)
+       ;; XX use define-if-not-defined here or not?
+       (define ,tag-binding
+	 (struct-tag-allocate! ,tag-code
+			       (struct-metadata ',constructor-name)))
 
        ,@(let ((construct
 		(lambda (LAMBDA constructor-name)
 		  `(define ,constructor-name
 		     (,LAMBDA ,args*
-			      (##vector ,tag-binding
-					,@fields*))))))
+			 (##vector ,tag-binding
+				   ,@fields*))))))
 	   `(,(construct LAMBDA
 			 constructor-name)
 	     ,@(if unsafe-constructor-name
@@ -311,8 +347,8 @@
 		    ;; functional setter:
 		    (,DEFINE ,(safe-setter-for-field field)
 		      (,LAMBDA (v ,(wrap-var 'value field+))
-			       ;; use shared code
-			       (,genericsetter-name v ,(add-offset i) value)))
+			  ;; use shared code
+			  (,genericsetter-name v ,(add-offset i) value)))
 		    ;; functional updater:
 		    (,DEFINE ,(safe-updater-for-field field)
 		      (lambda (v ,FN)
@@ -359,8 +395,8 @@
 				 (C (gensym)))
 			     `(let ((,V ,inp)
 				    (,C (lambda ,(map (lambda (v+f+i)
-							(vector-ref v+f+i 0))
-						      real-v+f+i-s)
+						   (vector-ref v+f+i 0))
+						 real-v+f+i-s)
 					  ,(rec (cdr vars+inp-s)))))
 				(if (,',predicate-name ,V)
 				    (,C
@@ -392,6 +428,8 @@
 
 (TEST
  > (define-struct foo a b )
+ > (struct? (make-foo 1 2))
+ #t
  > (struct-constructor-name (make-foo 1 2))
  make-foo
  > (make-foo 10 11)
@@ -502,14 +540,9 @@
   (@maybe-struct-tag-name (struct-type v)))
 
 
-(define-if-not-defined cj-struct:type->constructor-name
-  (make-table test: eq?))
-
-(define (set-struct-type->constructor-name! t name)
-  (table-set! cj-struct:type->constructor-name t name))
-
 (define (struct-type->constructor-name t)
-  (table-ref cj-struct:type->constructor-name t))
+  (struct-metadata.constructor-name
+   (struct-tag->metadata t)))
 
 (define (struct-constructor-name v)
   (struct-type->constructor-name (struct-type v)))
