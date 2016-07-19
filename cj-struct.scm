@@ -18,8 +18,6 @@
 (export (macro define-struct)
 	(macro define-struct*)
 
-	symbol.maybe-struct-tag
-	symbol.struct-tag
 	struct-tag?
 	maybe-struct-tag-name
 	
@@ -43,7 +41,7 @@
 ;; A struct is a vector with an object in slot 0 that unambiguously
 ;; determines the struct type, implemented by using allocated,
 ;; non-interned objects ("tags", but they are not visual, but
-;; invisibly unique).
+;; invisibly unique; for now, sadly (no type language yet)).
 
 
 ;; Metadata
@@ -84,21 +82,6 @@
   (and (@maybe-struct-tag-name v)
        #t))
 
-;; ;; A map from tag object *names* (aim: tag equivalents, but with the
-;; ;; current implementation of them being a list containing a symbol,
-;; ;; the symbol itself is enough) to actual tag objects
-;; (define-if-not-defined cj-struct:lookup (make-table))
-;; ;; what's the best test?
-
-;; (define (symbol.maybe-struct-tag s)
-;;   (if (symbol? s)
-;;       (table-ref cj-struct:lookup s #f)
-;;       (error "not a symbol:" s)))
-
-;; (define (symbol.struct-tag s)
-;;   (or (symbol.maybe-struct-tag s)
-;;       (error "no struct of name:" s)))
-
 
 (define (struct-tag-allocate! s metadata)
   (if (symbol? s)
@@ -128,8 +111,6 @@
 
 
 (TEST
- ;; > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
- ;; #f
  > (define m (struct-metadata 'foo))
  > (define t (struct-tag-allocate! 'kkfjkif3hnunnfgw56k m))
  > (struct-tag? t)
@@ -150,10 +131,6 @@
  kkfjkif3hnunnfgw56k
  > (@maybe-struct-tag-name t)
  kkfjkif3hnunnfgw56k
- ;; > (symbol.maybe-struct-tag 'kkfjkif3hnunnfgw56k)
- ;; (kkfjkif3hnunnfgw56k)
- ;; > (eq? # t)
- ;; #t
 
  > (eq? (struct-tag-allocate! 'kkfjkif3hnunnfgw56k m)
 	(struct-tag-allocate! 'kkfjkif3hnunnfgw56k m))
@@ -548,21 +525,24 @@
 
 ;; Does not check for parent types! (This is not an is-a check.) Also,
 ;; does not verify the number of fields, just the type tag!
-(define (struct-of-type type-name)
-  (if (symbol? type-name)
-      (cond ((symbol.maybe-struct-tag type-name)
-	     => (lambda (tag)
-		  (lambda (v)
-		    (and (struct? v)
-			 (eq? (struct-type v) tag)))))
-	    (else
-	     ;; XXX ah, should it do 'late binding', so that it would
-	     ;; allow to infer, ehr create the type later on ?
-	     (error "unknown type:" type-name)))
-      (error "not a symbol:" type-name)))
+
+;; Also, currently requires a type value, it doesn't look them up by
+;; name, currently can't: the concept is eq values ("invisible"
+;; ones). You need to pass them by scope etc., by value, not
+;; "stored-name". The storage place is in the runtime code. Again,
+;; currently, might change this "to type language" (then passing the
+;; "term" works here, and equal terms will be the same type).  OF
+;; COURSE this is quite pointless really now since we have predicate
+;; functions already! Those are even better since they work with
+;; subtyping (sort of). Hum.
+
+(define (struct-of-type tag)
+  (lambda (v)
+    (and (struct? v)
+	 (eq? (struct-type v) tag))))
 
 (TEST
- > (define f? (struct-of-type 'foo))
+ > (define f? (struct-of-type cj-struct:tag:foo))
  > (map f? vals)
  ;; (0 0 0 0 0 0 0 1 0 1 0 1 1 1)
  (#f #f #f #f #f #f #f #t #f #t #f #t #t #t))
