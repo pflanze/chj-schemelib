@@ -537,9 +537,11 @@
 ;; subtyping (sort of). Hum.
 
 (define (struct-of-type tag)
-  (lambda (v)
-    (and (struct? v)
-	 (eq? (struct-type v) tag))))
+  (if (struct-tag? tag)
+      (lambda (v)
+	(and (struct? v)
+	     (eq? (struct-type v) tag)))
+      (error "struct-of-type: not a struct tag:" tag)))
 
 (TEST
  > (define f? (struct-of-type cj-struct:tag:foo))
