@@ -48,6 +48,8 @@
 	cmp-list-uniq cmp-stream-uniq
 	list-group stream-group
 	cmp-list-group cmp-stream-group
+	chop/map stream-chop/map
+	chop stream-chop
 	stream-unfold
 	stream-unfold2
 	stream-zip
@@ -840,6 +842,64 @@
 
 (define cmp-list-group (equalfn->cmpfn list-group))
 (define cmp-stream-group (equalfn->cmpfn stream-group))
+
+
+;; define groupn function:
+
+;; http://api.call-cc.org/doc/data-structures#sec:chop
+;; https://hackage.haskell.org/package/split-0.2.3.1/docs/Data-List-Split.html#v:chunksOf
+;; <jcowan> group-by-size works for me
+
+(define-strict-and-lazy
+  chop/map
+  stream-chop/map
+  (typed-lambda (#(natural? n) s #(procedure? f) #!optional (tail '()))
+	   (let buildup ((s s)
+			 (l '())
+			 (m n))
+	     (DELAY
+	      (FV (s)
+		  (if (null? s)
+		      (if (null? l)
+			  tail
+			  (cons (f l) tail))
+		      (let-pair ((a s*) s)
+				(let ((l* (cons a l)))
+				  (if (<= m 1)
+				      (cons (f l*)
+					    (buildup s* '() n))
+				      (buildup s* l* (dec m)))))))))))
+
+(define (chop n s #!optional (tail '()))
+  (chop/map n s reverse tail))
+
+(define (stream-chop n s #!optional (tail '()))
+  (stream-chop/map n s reverse tail))
+
+(TEST
+ > (chop 10 '(a b c))
+ ((a b c))
+ > (chop 1 '(a b c d e))
+ ((a) (b) (c) (d) (e))
+ > (chop 2 '(a b c d e))
+ ((a b) (c d) (e))
+ > (chop 2 '(a b))
+ ((a b))
+ > (chop 2 '(a))
+ ((a))
+ > (chop 2 '())
+ ()
+ > (chop 3 '(a b c d e f))
+ ((a b c) (d e f))
+ > (chop 4 '(a b c d e))
+ ((a b c d) (e))
+ ;; ok?:
+ > (%try-error (chop 0 '(a b c d e)))
+ #(error "n does not match natural?:" 0)
+ > (%try-error (chop -1 '(a b c d e)))
+ #(error "n does not match natural?:" -1))
+
+
 
 
 (define (stream-unfold p f g seed #!optional maybe-tail-gen)
