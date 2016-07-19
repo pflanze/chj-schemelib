@@ -753,6 +753,10 @@
  (1)
  )
 
+;; XX grr, Haskell *does* call this groupBy (although it also has
+;; group, but that uses the default comparison function for the given
+;; data type)
+
 (define-strict-and-lazy
   list-group
   stream-group
