@@ -18,8 +18,13 @@
 (export (macro define-struct)
 	(macro define-struct*)
 
-	struct-tag?
+	struct-tag? ;; XX inconsistent: struct-type etc. are all
+		    ;; talking about 'type'; and yeah it should be
+		    ;; that right?
 	maybe-struct-tag-name
+	struct-tag.name ;; stupid naming? (oo again, that isn't) (but
+			;; matches, above it may not be a struct-tag
+			;; and is ok)
 	
 	struct?
 	struct-type
@@ -105,6 +110,11 @@
 (define (maybe-struct-tag-name v)
   (and (struct-tag? v)
        (@maybe-struct-tag-name v)))
+
+(define (struct-tag.name v)
+  (if (struct-tag? v)
+      (@maybe-struct-tag-name v)
+      (error "not a struct tag:" v)))
 
 
 ;; 
