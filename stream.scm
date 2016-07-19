@@ -15,6 +15,50 @@
 	 srfi-11
 	 cj-typed)
 
+(export stream-filter/tail
+	stream-for-each
+	stream-fold-right
+	stream:fold-right
+	stream-map/tail
+	stream-map1
+	stream-map
+	stream-improper-map
+	stream->list
+	stream-drop
+	stream-take
+	stream-sublist
+	stream-length
+	(struct stream-difference-at)
+	(struct stream-no-difference)
+	stream-difference
+	show-stream-difference
+	stream-equal?
+	stream-filter
+	stream-fold-left
+	stream-append-optimized
+	stream-append/2
+	stream-append
+	stream-iota
+	;; huh why here? XX vs test-lib ?
+	random-integer-list
+	list-union stream-union
+	list-uniq stream-uniq
+	list-uniq-count stream-uniq-count
+	cmp-list-union cmp-stream-union
+	cmp-list-uniq cmp-stream-uniq
+	list-group stream-group
+	cmp-list-group cmp-stream-group
+	stream-unfold
+	stream-unfold2
+	stream-zip
+	stream-zip2
+	stream-drop-while
+	stream-ref
+	stream-xone
+	;; stream-%cars+cdrs
+	stream-every
+	)
+
 
 (define (stream-filter/tail pred s tail)
   (let rec ((s s))
