@@ -66,10 +66,10 @@
 
 
 (TEST
- > (=>> (iota 10)
-	(map inc)
-	(filter even?)
-	(take 2))
+ > (=> (=>> (iota 10)
+	    (map inc)
+	    (filter even?))
+       (take 2))
  (2 4)
  > ((=>>* (inc)) 10)
  11)
