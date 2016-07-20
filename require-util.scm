@@ -118,12 +118,52 @@
 
 (def default-load.scm-path ".gambc/load.scm")
 
+(def load.scm-extract-forms-yes
+     '((begin recurse)
+       (c/load 0)
+       (i/load 0)
+       (load 0)))
+
+(def load.scm-extract-forms-no
+     '((include)
+       (quote)
+       (define)))
+
+(def (load.scm-extract sexpr tail)
+     (mcase
+      sexpr
+      (pair?
+       (let-pair
+	((head rest) (source-code sexpr))
+	(let ((head (-> symbol? (source-code head))))
+	  (let ((q (lambda (lis)
+		     (assq head lis))))
+	    (let ((yes (q load.scm-extract-forms-yes))
+		  (no (q load.scm-extract-forms-no)))
+	      (if (if yes
+		      (if no
+			  (error "symbol in both yes and no lists:"
+				 head)
+			  #t)
+		      (if no
+			  #f
+			  (error "symbol unknown:"
+				 head)))
+		  ;; extract
+		  (xcase (cadr yes)
+			 ((recurse)
+			  (fold-right load.scm-extract
+				      tail
+				      rest))
+			 ((0)
+			  (cons (car rest) tail)))
+		  ;; ignore
+		  tail))))))))
+
 (def (load.scm-files #!optional (load-path default-load.scm-path))
      (map (C string-append _ ".scm")
-	  (filter (both string?
-			(complement (C string-ends-with? _ ".scm")))
-		  (flatten
-		   (call-with-input-file load-path read-all)))))
+	  (load.scm-extract (cons 'begin (call-with-input-file load-path read-all))
+			    '())))
 
 (def (check-load.scm all? #!optional (load-path default-load.scm-path))
      (let ((modulepaths
