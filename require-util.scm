@@ -118,7 +118,7 @@
 
 (def default-load.scm-path ".gambc/load.scm")
 
-(def (load.scm-files load-path)
+(def (load.scm-files #!optional (load-path default-load.scm-path))
      (map (C string-append _ ".scm")
 	  (filter (both string?
 			(complement (C string-ends-with? _ ".scm")))
