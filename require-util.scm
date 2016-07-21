@@ -165,7 +165,7 @@
 	  (load.scm-extract (cons 'begin (call-with-input-file load-path read-all))
 			    '())))
 
-(def (check-load.scm all? #!optional (load-path default-load.scm-path))
+(def (check-load.scm #!optional (all? #t) (load-path default-load.scm-path))
      (let ((modulepaths
 	    (if all?
 		(load.scm-files load-path)
