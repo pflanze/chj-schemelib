@@ -16,6 +16,28 @@
 	 (improper-list improper-length)
 	 )
 
+(export (macro let-pair
+	  let-pair*
+	  lambda-pair
+	  with-pair)
+	fold-right/last
+	box-push!
+	(macro push!)
+	list-preferred
+	split-preferred
+	rappend
+	for-each* ;; for-each*/2, but what sense did this name have?
+	split-at*
+	rxtake-while
+	one?
+	xone
+	xxone
+	trif-one
+	trif-one/
+	make-list/tail
+	map-apply
+	butlast)
+
 
 ;; destructuring syntax
 
