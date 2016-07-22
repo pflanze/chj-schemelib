@@ -80,8 +80,9 @@
  (values 3 2))
 
 
-(def. (exception.show e)
-  `(raise ,e))
+;; (def. (exception.show e)
+;;   `(raise ,e))
+;; oh {##,}exception? doesn't exist
 
 (def. (error-exception.show e)
   `(error ,(error-exception-message e)
