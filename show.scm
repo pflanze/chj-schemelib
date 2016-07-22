@@ -79,3 +79,11 @@
  > (.show (values (+ 1 2) 2))
  (values 3 2))
 
+
+(def. (exception.show e)
+  `(raise ,e))
+
+(def. (error-exception.show e)
+  `(error ,(error-exception-message e)
+	  ,@(error-exception-parameters e)))
+
