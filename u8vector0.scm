@@ -20,6 +20,14 @@
 	 unclean
 	 (string-util-3 list.string-reverse))
 
+
+(export u8vector0?
+	(method u8vector0.strlen
+		string.utf8-bytes
+		string.utf8-u8vector0)
+	u8vector0.utf8-parse)
+
+
 (c-declare "
        #include <string.h>
        #include <assert.h>
