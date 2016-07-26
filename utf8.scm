@@ -85,7 +85,7 @@ ___RESULT= ___FIX(p-base);"
 
   (@u8vector-utf8-put!
    v
-   (-> (C < _ (- (u8vector-length v) (utf8-bytes c)))
+   (-> (C <= _ (- (u8vector-length v) (utf8-bytes c)))
        i)
    c))
 
