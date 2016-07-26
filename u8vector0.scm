@@ -24,6 +24,7 @@
 (export u8vector0?
 	(method u8vector0.strlen
 		string.utf8-bytes
+		string.utf8-u8vector
 		string.utf8-u8vector0)
 	u8vector0.utf8-parse)
 
@@ -99,21 +100,27 @@ ___RESULT= ___FIX(res);
 ;; Also see string->u8vector0 in cj-u8vector-util.scm which can't do
 ;; UTF-8; XX eliminate it.
 
-(def. (string.utf8-u8vector0 s)
-  (let* ((len (string-length s))
-	 (bytes (string.utf8-bytes s len))
-	 (out (##make-u8vector (inc bytes))))
-    (let lp ((i 0)
-	     (i* 0))
-      (if (< i len)
-	  (lp (inc i)
-	      (u8vector.utf8-put! out i*
-				  ;; don't accept 0 byte, ok?
-				  (-> positive?
-				      (char->integer (string-ref s i)))))
-	  (begin
-	    (u8vector-set! out bytes 0)
-	    out)))))
+(def (make-string->utf8-u8vector* 0?)
+     (lambda (s)
+       (let* ((len (string-length s))
+	      (bytes (string.utf8-bytes s len))
+	      (out (##make-u8vector (if 0? (inc bytes) bytes))))
+	 (let lp ((i 0)
+		  (i* 0))
+	   (if (< i len)
+	       (lp (inc i)
+		   (u8vector.utf8-put! out i*
+				       ;; don't accept 0 byte, ok?
+				       (-> positive?
+					   (char->integer (string-ref s i)))))
+	       (begin
+		 (if 0?
+		     (u8vector-set! out bytes 0))
+		 out))))))
+
+(def. string.utf8-u8vector (make-string->utf8-u8vector* #f))
+(def. string.utf8-u8vector0 (make-string->utf8-u8vector* #t))
+
 
 (TEST
  > (string.utf8-u8vector0 "Hello")
