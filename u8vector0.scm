@@ -123,8 +123,16 @@ ___RESULT= ___FIX(res);
 
 
 (TEST
+ > (string.utf8-u8vector "")
+ #u8()
+ > (string.utf8-u8vector0 "")
+ #u8(0)
+ > (string.utf8-u8vector "Hello")
+ #u8(72 101 108 108 111)
  > (string.utf8-u8vector0 "Hello")
  #u8(72 101 108 108 111 0)
+ > (string.utf8-u8vector "Hellö")
+ #u8(72 101 108 108 195 182)
  > (string.utf8-u8vector0 "Hellö")
  #u8(72 101 108 108 195 182 0)
  > (string.utf8-u8vector0 "Hellöl")
