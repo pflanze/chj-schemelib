@@ -9,6 +9,7 @@
 (require define-macro-star
 	 test
 	 cj-struct
+	 (cj-env-2 xcase)
 	 stream
 	 weak-srfi-1
 	 (lazy FV)
@@ -41,6 +42,15 @@
 	random-natural0-above-stream
 	test-natural0-exponentials
 	test-natural0s
+
+	random-natural0*-big
+	random-natural0*-exponential
+	random-natural0*
+	random-sign
+	random-integer*
+	random-real-1-1
+	random-float
+	random-number
 	
 	#!optional
 	do-iter ;; ?
@@ -373,3 +383,52 @@
    (stream-take (random-natural0-above-stream len-serial)
 		len-random)))
 
+
+(define (random-natural0*-big)
+  ;; grr was aliasing random-integer to random-natural0 a bad idea?
+  ;; Well was already badly named.
+  (random-natural0 (arithmetic-shift 1 (random-natural0 100))))
+
+(define (random-natural0*-exponential)
+  ;; hmm how exactly anyway, the above is already exponential, but,
+  ;; usually small numbers is meant here.
+  ;; XXX unfinished
+  (random-natural0 (arithmetic-shift 1 (random-natural0 20))))
+
+(define (random-natural0*)
+  ;; grr was aliasing random-integer to random-natural0 a bad idea?
+  ;; Well was already badly named.
+  (xcase (random-integer 3)
+	 ((0)
+	  (random-natural0*-big))
+	 ((1 2)
+	  (random-natural0*-exponential))))
+
+(define (random-sign)
+  (xcase (random-integer 2)
+	 ((0) -1)
+	 ((1) 1)))
+
+;; same as random-natural0* except extending into the negative range,
+;; too. Might have zeroes twice as frequent, though. (All a hack.)
+(define (random-integer*)
+  (* (random-sign) (random-natural0*)))
+
+
+(define (random-real-1-1)
+  (- (* (random-real) 2.0) 1.0))
+
+(define (random-float)
+  ;; XX what should the limits be? This includes +/- inf at least.
+  (* (random-real-1-1) (expt 10 (- (random-integer 700) 350))))
+
+(define (random-number)
+  (xcase (random-integer 7)
+	 ((0)
+	  (random-real-1-1))
+	 ((1 2 3)
+	  (random-float))
+	 ((4 5)
+	  (random-natural0*))
+	 ((6)
+	  (random-integer*))))
