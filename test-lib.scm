@@ -51,6 +51,8 @@
 	random-real-1-1
 	random-float
 	random-number
+
+	random-boolean
 	
 	#!optional
 	do-iter ;; ?
@@ -432,3 +434,9 @@
 	  (random-natural0*))
 	 ((6)
 	  (random-integer*))))
+
+
+(define (random-boolean)
+  (xcase (random-integer 2)
+	 ((0) #f)
+	 ((1) #t)))
