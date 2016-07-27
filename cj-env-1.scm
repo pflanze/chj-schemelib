@@ -15,7 +15,7 @@
 (define (dec n)
   (- n 1))
 
-(define (list-join lis val)
+(define (list-join lis val #!optional (tail '()))
   ;; copy to avoid circular dependency
   (define (null-list? l)
     (cond ((pair? l) #f)
@@ -32,7 +32,7 @@
       (cons (car lis)
 	    (fold-right (lambda (v l)
 			  (cons val (cons v l)))
-			'()
+			tail
 			(cdr lis)))))
 
 (define (scm:object->string v)
