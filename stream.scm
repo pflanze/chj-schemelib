@@ -59,7 +59,8 @@
 	stream-xone
 	;; stream-%cars+cdrs
 	stream-every
-	)
+	gen-infinite-stream
+	gen-stream)
 
 
 (define (stream-filter/tail pred s tail)
@@ -1094,4 +1095,32 @@
  > (stream-every (lambda (a b) (a b)) (list even? even?) (stream-iota))
  #f)
 
+
+
+(define (gen-infinite-stream get)
+  (let lp ()
+    (delay
+      (cons (get) (lp)))))
+
+(define (gen-stream get eof? #!optional (tail '()))
+  (let lp ()
+    (delay
+      (let ((v (get)))
+	(if (eof? v)
+	    tail
+	    (cons v (lp)))))))
+
+(TEST
+ > (define s (gen-infinite-stream (lambda () 1)))
+ > (F (stream-take s 3))
+ (1 1 1)
+ > (define s1 (gen-stream (let ((c 0))
+			    (lambda ()
+			      (inc! c)
+			      c))
+			  (lambda (_) (> _ 5))))
+ > (F s1)
+ (1 2 3 4 5)
+ > (promise? s1)
+ #t)
 
