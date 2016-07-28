@@ -12,6 +12,8 @@
 	char-alpha-uc?
 	char-alpha?
 	char-alphanumeric?
+	char-numeric+?
+	char-alphanumeric+?
 	char-whitespace?
 	char-in-range?
 	char-hexdigit?
@@ -72,6 +74,14 @@
 
 (define char-alphanumeric?
   (either char-digit? char-alpha? (char=?/ #\_)))
+
+(define char-numeric+?
+  ;; f and d are synonyms for e in exponent notation in Scheme?
+  (either char-digit? (char-one-of?/ "+-.defi")))
+
+(define char-alphanumeric+?
+  (either char-alpha? (char=?/ #\_) char-numeric+?))
+
 
 (TEST
  > (every char-alphanumeric? (string->list "abc "))
