@@ -28,7 +28,7 @@
 	    (kons head (recur (cdr lis)))))))
   ;;/copy
   (if (null? lis)
-      lis
+      tail
       (cons (car lis)
 	    (fold-right (lambda (v l)
 			  (cons val (cons v l)))

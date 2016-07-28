@@ -28,3 +28,14 @@
  > (table-ref t 'b)
  10)
 
+(TEST
+ > (list-join '() 'a)
+ ()
+ > (list-join '(1 2) 'a)
+ (1 a 2)
+ > (list-join '(1) 'a 'rest)
+ (1 . rest)
+ > (list-join '(1 2) 'a 'rest)
+ (1 a 2 . rest)
+ > (list-join '() 'a 'rest)
+ rest)
