@@ -1,4 +1,5 @@
 (require cj-u8vector-util
+	 (u8vector0 string.utf8-u8vector)
 	 test)
 
 (export md5:digest
@@ -339,14 +340,15 @@ static ___SCMOBJ release_md5_context(void*p){
 (define alloc-buf (make-u8vector bufsize))
 
 (define (md5:raw-digest obj
-		     #!optional
-		     [result alloc-result])
+			#!optional
+			[result alloc-result])
   (let* ([ctxt alloc-context])
     (starts ctxt)
     (cond [(string? obj)
-	   (update ctxt
-		   (string->u8vector obj)
-		   (##string-length obj))]
+	   (let ((v (string.utf8-u8vector obj)))
+	     (update ctxt
+		     v
+		     (u8vector-length v)))]
 	  [(u8vector? obj)
 	   (update ctxt obj (##u8vector-length obj))]
           [(input-port? obj)
@@ -384,7 +386,10 @@ static ___SCMOBJ release_md5_context(void*p){
        "message digest"
        "abcdefghijklmnopqrstuvwxyz"
        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-       "12345678901234567890123456789012345678901234567890123456789012345678901234567890"))
+       "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+       ;; own tests:
+       "Motörhead"
+       "Garçon méchant"))
  > (map md5:digest msg)
  ("d41d8cd98f00b204e9800998ecf8427e"
   "0cc175b9c0f1b6a831c399e269772661"
@@ -392,5 +397,9 @@ static ___SCMOBJ release_md5_context(void*p){
   "f96b697d7cb7938d525a2f31aaf161d0"
   "c3fcd3d76192e4007dfb496cca67e13b"
   "d174ab98d277d9f5a5611c2c9f419d9f"
-  "57edf4a22be3c955ac49da2e2107b67a"))
+  "57edf4a22be3c955ac49da2e2107b67a"
+  ;;
+  "0d8f8b8d8c3dec7c40f0119cdb650038"
+  "24d578412bef48b3514b5f635b4d7a6f"
+  ))
 
