@@ -370,7 +370,7 @@ static ___SCMOBJ release_md5_context(void*p){
 		   (begin
 		     (update ctxt alloc-buf n-read)
 		     (loop)))))]
-          [else (error "bad argument type - not a string or input-port" obj)] )
+          [else (error "bad argument type - not a string or input-port" obj)])
     (finish ctxt result)
     result))
 
