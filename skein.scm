@@ -1,15 +1,15 @@
-import java.util.Arrays;
+;; Translation of http://www.h2database.com/skein/Skein512.java back
+;; to C (for simplicity), which is:
 
-/**
- * This is a fast implementation of the Skein-512-512 hash function.
- * All other modes are not tested and supported.
- * It is compatible with the revised reference implementation (1.3).
- * <p>
- * Author: Thomas Mueller, 2008-2010 based on the C reference implementation
- * written by Doug Whiting, 2008.
- * <p>
- * This algorithm and source code is released to the public domain.
- */
+;;  This is a fast implementation of the Skein-512-512 hash function.
+;;  All other modes are not tested and supported.
+;;  It is compatible with the revised reference implementation (1.3).
+;;
+;;  Author: Thomas Mueller, 2008-2010 based on the C reference implementation
+;;  written by Doug Whiting, 2008.
+;;
+;;  This algorithm and source code is released to the public domain.
+
 public class Skein512 {
     // block function constants
     private static final int R00 = 46, R01 = 36, R02 = 19, R03 = 37;
