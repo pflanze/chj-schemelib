@@ -154,6 +154,9 @@ STATIC
 struct Skein512* skein_new_Skein512();
 
 STATIC
+void Skein512_init(struct Skein512 *this);
+
+STATIC
 void skein_hash_bytes(const byte *msg, int byteCount,
                       struct Skein512digest *digest);
 
@@ -207,7 +210,7 @@ static void skein_throw(const char *msg) {
 
 /* build/process the configuration block (only done once) */
 
-static struct Skein512* _skein_new_Skein512 (int hashBitCount) {
+static struct Skein512* _skein_initial_Skein512 (int hashBitCount) {
     LET_XNEW(this, struct Skein512);
 
     this->hashBitCount = hashBitCount;
@@ -231,21 +234,24 @@ static struct Skein512* _skein_new_Skein512 (int hashBitCount) {
 }
 
 static void skein_init_Skein512 () {
-    INITIALIZED= _skein_new_Skein512(512);
+    INITIALIZED= _skein_initial_Skein512(512);
 }
 
 STATIC
-struct Skein512* skein_new_Skein512() {
-    LET_XNEW(this,  struct Skein512);
+void Skein512_init(struct Skein512 *this) {
+    /* the Java version relies on the JVM to do this */
+    memset(this, 0, sizeof(struct Skein512));
 
     this->hashBitCount = INITIALIZED->hashBitCount;
     this->tweak0 = INITIALIZED->tweak0;
     this->tweak1 = INITIALIZED->tweak1;
     skein_arraycopy_long(INITIALIZED->x, 0, this->x, 0, WORDS);
+}
 
-    /* rely on LET_NEW to clear the remaining values to zero, like the
-       Java version relies on the JVM to do this */
-
+STATIC
+struct Skein512* skein_new_Skein512() {
+    LET_XNEW(this,  struct Skein512);
+    Skein512_init(this);
     return this;
 }
 
@@ -294,12 +300,13 @@ void skein_hash_bits(const byte *msg, int bitCount,
             but msg is const currently, copy it or consume it?
         */
     }
-    struct Skein512 *instance = skein_new_Skein512();
-    Skein512_update(instance, msg, byteCount);
+    struct Skein512 instance;
+    Skein512_init(&instance);
+    Skein512_update(&instance, msg, byteCount);
     if ((bitCount & 7) != 0) {
-	instance->tweak1 |= T1_FLAG_BIT_PAD;
+	instance.tweak1 |= T1_FLAG_BIT_PAD;
     }
-    Skein512_finalize(instance, digest);
+    Skein512_finalize(&instance, digest);
 }
 
 /* process the input bytes */
@@ -481,14 +488,8 @@ DEBUG("r, x1,x5: %d, %ld, %ld",r,x1,x5);
     }
 }
 
-static long _skein_rotlXor(long x, int n, long xor) {
-    return ((x << n) | SIGNED_BITSHIFT_RIGHT_ZERO(long, x, (64 - n))) ^ xor;
-}
-
 static long skein_rotlXor(long x, int n, long xor) {
-    long res= _skein_rotlXor(x, n, xor);
-DEBUG("rotlXor: %ld, %d, %ld, %ld", x, n, xor, res);
-    return res;
+    return ((x << n) | SIGNED_BITSHIFT_RIGHT_ZERO(long, x, (64 - n))) ^ xor;
 }
 
 
@@ -507,7 +508,7 @@ static void skein_setBytes(byte *dst, long *src, int byteCount) {
     }
 }
 
-static long _skein_getLong(const byte *b, int len, int i) {
+static long skein_getLong(const byte *b, int len, int i) {
     if ((i < 0) || (i >= len + 8)) {
 	skein_throw("ArrayIndexOutOfBounds");
     }
@@ -516,13 +517,6 @@ static long _skein_getLong(const byte *b, int len, int i) {
 	((b[i + 2] & 255) << 16) + ((b[i + 3] & 255) << 24)) & 0xffffffffL) +
 	(((b[i + 4] & 255) + ((b[i + 5] & 255) << 8) + ((b[i + 6] & 255) << 16) +
 	((b[i + 7] & 255L) << 24)) << 32);
-}
-
-static long skein_getLong(const byte *b, int len, int i) {
-    long res= _skein_getLong(b, len, i);
-//DEBUG("getLong: len, i, res: %ld, %ld, %ld", len, i, res);
-DEBUG("getLong: i, res: %d, %ld", i, res);
-    return res;
 }
 
 static 
@@ -554,7 +548,10 @@ int main (int argc, const char**argv) {
     skein_init();
     assert(argc==2);
     struct Skein512digest d;
-    skein_hash_chars(argv[1], strlen(argv[1]), &d);
+    int i;
+    for (i=0; i<1000000; i++) {
+	skein_hash_chars(argv[1], strlen(argv[1]), &d);
+    }
     Skein512digest_println(&d, stdout);
     return 0;
 }
