@@ -441,9 +441,11 @@ DEBUG_Along(\"c\", c, 8);
 DEBUG_Along(\"ks\", ks, 17);
 	/* pre-compute the key schedule for this block */
 	skein_arraycopy_long(c, 0, ks, 0, 8);
+DEBUG_Along(\"ks after 1st arraycopy\", ks, 17);
 	skein_arraycopy_long(c, 0, ks, 9, 8);
+DEBUG_Along(\"ks after 2nd arraycopy\", ks, 17);
 	ks[8] = KS_PARITY ^ c[7] ^ c[0] ^ c[1] ^ c[2] ^ c[3] ^ c[4] ^ c[5] ^ c[6];
-DEBUG_Along(\"ks\", ks, 17);
+DEBUG_Along(\"ks after KS_PARITY\", ks, 17);
 	/* do the first full key injection */
 	long x0 = (c[0] = skein_getLong(block, BYTES, off)) + ks[0];
 	long x1 = (c[1] = skein_getLong(block, BYTES, off + 8)) + ks[1];
