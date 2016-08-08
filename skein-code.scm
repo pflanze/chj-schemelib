@@ -186,6 +186,9 @@ STATIC
 struct Skein512* skein_new_Skein512();
 
 STATIC
+void Skein512_init(struct Skein512 *this);
+
+STATIC
 void skein_hash_bytes(const byte *msg, int byteCount,
                       struct Skein512digest *digest);
 
@@ -239,7 +242,7 @@ static void skein_throw(const char *msg) {
 
 /* build/process the configuration block (only done once) */
 
-static struct Skein512* _skein_new_Skein512 (int hashBitCount) {
+static struct Skein512* _skein_initial_Skein512 (int hashBitCount) {
     LET_XNEW(this, struct Skein512);
 
     this->hashBitCount = hashBitCount;
@@ -263,21 +266,24 @@ static struct Skein512* _skein_new_Skein512 (int hashBitCount) {
 }
 
 static void skein_init_Skein512 () {
-    INITIALIZED= _skein_new_Skein512(512);
+    INITIALIZED= _skein_initial_Skein512(512);
 }
 
 STATIC
-struct Skein512* skein_new_Skein512() {
-    LET_XNEW(this,  struct Skein512);
+void Skein512_init(struct Skein512 *this) {
+    /* the Java version relies on the JVM to do this */
+    memset(this, 0, sizeof(struct Skein512));
 
     this->hashBitCount = INITIALIZED->hashBitCount;
     this->tweak0 = INITIALIZED->tweak0;
     this->tweak1 = INITIALIZED->tweak1;
     skein_arraycopy_long(INITIALIZED->x, 0, this->x, 0, WORDS);
+}
 
-    /* rely on LET_NEW to clear the remaining values to zero, like the
-       Java version relies on the JVM to do this */
-
+STATIC
+struct Skein512* skein_new_Skein512() {
+    LET_XNEW(this,  struct Skein512);
+    Skein512_init(this);
     return this;
 }
 
@@ -326,12 +332,13 @@ void skein_hash_bits(const byte *msg, int bitCount,
             but msg is const currently, copy it or consume it?
         */
     }
-    struct Skein512 *instance = skein_new_Skein512();
-    Skein512_update(instance, msg, byteCount);
+    struct Skein512 instance;
+    Skein512_init(&instance);
+    Skein512_update(&instance, msg, byteCount);
     if ((bitCount & 7) != 0) {
-	instance->tweak1 |= T1_FLAG_BIT_PAD;
+	instance.tweak1 |= T1_FLAG_BIT_PAD;
     }
-    Skein512_finalize(instance, digest);
+    Skein512_finalize(&instance, digest);
 }
 
 /* process the input bytes */
