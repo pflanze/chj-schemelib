@@ -1,7 +1,6 @@
 
 (require easy
 	 (u8vector0 string.utf8-u8vector)
-	 test
 	 skein-code)
 
 (export make-skein512-digest
@@ -69,10 +68,4 @@ ___RESULT=___VOID;
 	    (error "skein:digest: can only hash strings or u8vectors"))))
 
 (def skein:digest (comp u8vector->hex-string-lc skein:raw-digest))
-
-
-(TEST
- > (skein:digest "")
- "5d1e6f83d097d1b68c72a076a2b58143f4cb8d96f95208fe734347e1ee3511f67d6270f7c19971d3c6003976800cbc00b40ebf7cf58b1160eda28d03d870810b"
- )
 
