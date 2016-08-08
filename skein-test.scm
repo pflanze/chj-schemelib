@@ -25,5 +25,5 @@
 
 (def (bench-skein msg n)
      (time (repeat n
-		   (skein:digest msg))))
+		   (skein:raw-digest msg))))
 
