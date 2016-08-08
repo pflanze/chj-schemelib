@@ -1,7 +1,9 @@
 
 (require easy
 	 skein
-	 test)
+	 test
+	 (cj-env-2 repeat))
+
 
 (TEST
  > (skein:digest "")
@@ -17,4 +19,11 @@
 ;; don't understand how comes that KAT_MCT/ShortMsgKAT_512.txt or any
 ;; other files in the reference implementation don't have
 ;; those. Wikipedia confirms the above.
+
+
+;; Some benchmarking
+
+(def (bench-skein msg n)
+     (time (repeat n
+		   (skein:digest msg))))
 
