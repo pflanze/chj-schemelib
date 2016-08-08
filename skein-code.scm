@@ -513,14 +513,8 @@ DEBUG(\"r, x1,x5: %d, %ld, %ld\",r,x1,x5);
     }
 }
 
-static long _skein_rotlXor(long x, int n, long xor) {
-    return ((x << n) | SIGNED_BITSHIFT_RIGHT_ZERO(long, x, (64 - n))) ^ xor;
-}
-
 static long skein_rotlXor(long x, int n, long xor) {
-    long res= _skein_rotlXor(x, n, xor);
-DEBUG(\"rotlXor: %ld, %d, %ld, %ld\", x, n, xor, res);
-    return res;
+    return ((x << n) | SIGNED_BITSHIFT_RIGHT_ZERO(long, x, (64 - n))) ^ xor;
 }
 
 
@@ -539,7 +533,7 @@ static void skein_setBytes(byte *dst, long *src, int byteCount) {
     }
 }
 
-static long _skein_getLong(const byte *b, int len, int i) {
+static long skein_getLong(const byte *b, int len, int i) {
     if ((i < 0) || (i >= len + 8)) {
 	skein_throw(\"ArrayIndexOutOfBounds\");
     }
@@ -548,13 +542,6 @@ static long _skein_getLong(const byte *b, int len, int i) {
 	((b[i + 2] & 255) << 16) + ((b[i + 3] & 255) << 24)) & 0xffffffffL) +
 	(((b[i + 4] & 255) + ((b[i + 5] & 255) << 8) + ((b[i + 6] & 255) << 16) +
 	((b[i + 7] & 255L) << 24)) << 32);
-}
-
-static long skein_getLong(const byte *b, int len, int i) {
-    long res= _skein_getLong(b, len, i);
-//DEBUG(\"getLong: len, i, res: %ld, %ld, %ld\", len, i, res);
-DEBUG(\"getLong: i, res: %d, %ld\", i, res);
-    return res;
 }
 
 static 
