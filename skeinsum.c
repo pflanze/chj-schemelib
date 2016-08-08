@@ -6,6 +6,8 @@
 
 #define STATIC static
 
+#define CAST(type,e) ((type)(e))
+
 /* Java's >>> */
 #define SIGNED_BITSHIFT_RIGHT_ZERO(stype, x, bits) (stype)(((unsigned stype)(x)) >> ((unsigned stype)(bits)))
 
@@ -33,7 +35,7 @@ static void skein_arraycopy_long(const long *in, int iIn, long *out, int iOut, i
     assert(n >= 0);
 
     /* XXX check for number overflows here */
-    memmove(&(out[iOut]), &(in[iOut]), n*sizeof(long));
+    memmove(&(out[iOut]), &(in[iIn]), n*sizeof(long));
 }
 
 static void skein_arraycopy_byte(const byte *in, int iIn, byte *out, int iOut, int n) {
@@ -42,21 +44,21 @@ static void skein_arraycopy_byte(const byte *in, int iIn, byte *out, int iOut, i
     assert(n >= 0);
 
     /* XXX check for number overflows here */
-    memmove(&(out[iOut]), &(in[iOut]), n*1);
+    memmove(&(out[iOut]), &(in[iIn]), n*1);
 }
 
-static void skein_array_fill(char *v, int len,
+static void skein_array_fill(byte *v, int len,
                              byte b) {
     assert(len >= 0);
     memset(v, b, len);
 }
 
-static void skein_array_fill_from_to(char *v, int len,
-                                     int fromIndex, int toIndex, byte b) {
+static void skein_array_fill_from_to_bytes(byte *v, int len,
+					   int fromIndex, int toIndex, byte b) {
     assert(len >= 0);
-    assert(0 <= fromIndex < len);
-    assert(0 <= toIndex < len);
-    memset(v, b, len);
+    assert((0 <= fromIndex) && (fromIndex <= len));
+    assert((0 <= toIndex) && (toIndex <= len));
+    memset(&(v[fromIndex]), b, toIndex-fromIndex);
 }
 
 
@@ -147,16 +149,20 @@ STATIC
 struct Skein512* skein_new_Skein512();
 
 STATIC
-void skein_hash_bytes(const char *msg, int byteCount,
+void skein_hash_bytes(const byte *msg, int byteCount,
                       struct Skein512digest *digest);
 
 STATIC
-void skein_hash_bits(const char *msg, int bitCount,
+void skein_hash_chars(const char *msg, int byteCount,
+                      struct Skein512digest *digest);
+
+STATIC
+void skein_hash_bits(const byte *msg, int bitCount,
                      struct Skein512digest *digest);
 
 STATIC
 void Skein512_update(struct Skein512 *this,
-                     const char *msg, int len);
+                     const byte *msg, int len);
 
 STATIC
 void Skein512_finalize(struct Skein512* this,
@@ -166,13 +172,13 @@ static void Skein512_startNewType(struct Skein512* this,
                                   long type);
 
 static void Skein512_processBlock(struct Skein512 *this,
-                                  const char *block, int off, int blocks, int bytes);
+                                  const byte *block, int off, int blocks, int bytes);
 
 static long skein_rotlXor(long x, int n, long xor);
 
 static void skein_setBytes(byte *dst, long *src, int byteCount);
 
-static long skein_getLong(const char *b, int len, int i);
+static long skein_getLong(const byte *b, int len, int i);
 
 
 
@@ -245,13 +251,19 @@ struct Skein512* skein_new_Skein512() {
  * @param digest the resulting hash code
  */
 STATIC
-void skein_hash_bytes(const char *msg, int byteCount,
+void skein_hash_bytes(const byte *msg, int byteCount,
                       struct Skein512digest *digest) {
     assert(byteCount >= 0);
     assert(byteCount < (1 << (sizeof(byteCount)*8 - 3)));
     /* ^ XX is this correct or are we going to trigger positivity assert in skein_hash_bits ? */
 
     skein_hash_bits(msg, byteCount << 3, digest);
+}
+
+STATIC
+void skein_hash_chars(const char *msg, int byteCount,
+                      struct Skein512digest *digest) {
+    return skein_hash_bytes(CAST(const byte *,msg), byteCount, digest);
 }
 
 /**
@@ -262,7 +274,7 @@ void skein_hash_bytes(const char *msg, int byteCount,
  * @param digest the resulting hash code
  */
 STATIC
-void skein_hash_bits(const char *msg, int bitCount,
+void skein_hash_bits(const byte *msg, int bitCount,
                      struct Skein512digest *digest) {
     assert(bitCount >= 0);
 
@@ -288,8 +300,8 @@ void skein_hash_bits(const char *msg, int bitCount,
 /* process the input bytes */
 STATIC
 void Skein512_update(struct Skein512 *this,
-                     const char *msg, int len) {
-DEBUG("update: %ld", len);
+                     const byte *msg, int len) {
+DEBUG("update: %d", len);
     const int origLen= len;
 
     int pos = 0;
@@ -334,7 +346,7 @@ DEBUG("update: %ld", len);
 	skein_arraycopy_byte(msg, pos, this->buffer, this->byteCount, len);
 	this->byteCount += len;
     }
-DEBUG("/update: pos, byteCount, len: %ld, %ld, %ld", pos, this->byteCount, len);
+DEBUG("/update: pos, byteCount, len: %d, %d, %d", pos, this->byteCount, len);
 }
 
 /* finalize the hash computation and output the result */
@@ -347,7 +359,7 @@ void Skein512_finalize(struct Skein512* this,
 
     /* zero pad if necessary */
     if (this->byteCount < BYTES) {
-	skein_array_fill_from_to(this->buffer, BYTES,  this->byteCount, BYTES, (byte) 0);
+	skein_array_fill_from_to_bytes(this->buffer, BYTES,  this->byteCount, BYTES, (byte) 0);
     }
 
     /* process the final block */
@@ -378,14 +390,14 @@ static void Skein512_startNewType(struct Skein512* this,
 }
 
 static void Skein512_processBlock(struct Skein512 *this,
-                                  const char *block, int off, int blocks, int bytes) {
-DEBUG("processBlock: %ld, %ld, %ld", off, blocks, bytes);
+                                  const byte *block, int off, int blocks, int bytes) {
+DEBUG("processBlock: %d, %d, %d", off, blocks, bytes);
     while (blocks-- > 0) {
 	/* this implementation supports 2**64 input bytes (no carry out here)
 	   update processed length */
 	long *ts = this->tweakSchedule;
 	this->tweak0 += bytes;
-DEBUG("blocks, tweak0: %ld, %ld", blocks, this->tweak0);
+DEBUG("blocks, tweak0: %d, %ld", blocks, this->tweak0);
 	int *mod3 = MOD3;
 	int *mod9 = MOD9;
 	ts[3] = ts[0] = this->tweak0; ts[4] = ts[1] = this->tweak1;
@@ -397,9 +409,11 @@ DEBUG_Along("c", c, 8);
 DEBUG_Along("ks", ks, 17);
 	/* pre-compute the key schedule for this block */
 	skein_arraycopy_long(c, 0, ks, 0, 8);
+DEBUG_Along("ks after 1st arraycopy", ks, 17);
 	skein_arraycopy_long(c, 0, ks, 9, 8);
+DEBUG_Along("ks after 2nd arraycopy", ks, 17);
 	ks[8] = KS_PARITY ^ c[7] ^ c[0] ^ c[1] ^ c[2] ^ c[3] ^ c[4] ^ c[5] ^ c[6];
-DEBUG_Along("ks", ks, 17);
+DEBUG_Along("ks after KS_PARITY", ks, 17);
 	/* do the first full key injection */
 	long x0 = (c[0] = skein_getLong(block, BYTES, off)) + ks[0];
 	long x1 = (c[1] = skein_getLong(block, BYTES, off + 8)) + ks[1];
@@ -420,7 +434,7 @@ DEBUG("x7, c[7]: %ld, %ld", x7, c[7]);
 	/* unroll 8 rounds */
         int r;
 	for (r = 1; r <= ROUNDS / 4; r += 2) {
-DEBUG("r, x1,x5: %ld, %ld, %ld",r,x1,x5);
+DEBUG("r, x1,x5: %d, %ld, %ld",r,x1,x5);
 	    int rm9 = mod9[r], rm3 = mod3[r];
 	    x1 = skein_rotlXor(x1, R00, x0 += x1); x3 = skein_rotlXor(x3, R01, x2 += x3);
 	    x5 = skein_rotlXor(x5, R02, x4 += x5); x7 = skein_rotlXor(x7, R03, x6 += x7);
@@ -468,7 +482,7 @@ static long _skein_rotlXor(long x, int n, long xor) {
 
 static long skein_rotlXor(long x, int n, long xor) {
     long res= _skein_rotlXor(x, n, xor);
-DEBUG("rotlXor: %ld, %ld, %ld, %ld", x, n, xor, res);
+DEBUG("rotlXor: %ld, %d, %ld, %ld", x, n, xor, res);
     return res;
 }
 
@@ -488,7 +502,7 @@ static void skein_setBytes(byte *dst, long *src, int byteCount) {
     }
 }
 
-static long _skein_getLong(const char *b, int len, int i) {
+static long _skein_getLong(const byte *b, int len, int i) {
     if ((i < 0) || (i >= len + 8)) {
 	skein_throw("ArrayIndexOutOfBounds");
     }
@@ -499,10 +513,10 @@ static long _skein_getLong(const char *b, int len, int i) {
 	((b[i + 7] & 255L) << 24)) << 32);
 }
 
-static long skein_getLong(const char *b, int len, int i) {
+static long skein_getLong(const byte *b, int len, int i) {
     long res= _skein_getLong(b, len, i);
 //DEBUG("getLong: len, i, res: %ld, %ld, %ld", len, i, res);
-DEBUG("getLong: i, res: %ld, %ld", i, res);
+DEBUG("getLong: i, res: %d, %ld", i, res);
     return res;
 }
 
@@ -535,7 +549,7 @@ int main (int argc, const char**argv) {
     skein_init();
     assert(argc==2);
     struct Skein512digest d;
-    skein_hash_bytes(argv[1], strlen(argv[1]), &d);
+    skein_hash_chars(argv[1], strlen(argv[1]), &d);
     Skein512digest_println(&d, stdout);
     return 0;
 }
