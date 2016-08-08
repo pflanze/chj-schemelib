@@ -83,7 +83,7 @@ static void skein_arraycopy_long(const long *in, int iIn, long *out, int iOut, i
     assert(n >= 0);
 
     /* XXX check for number overflows here */
-    memmove(&(out[iOut]), &(in[iOut]), n*sizeof(long));
+    memmove(&(out[iOut]), &(in[iIn]), n*sizeof(long));
 }
 
 static void skein_arraycopy_byte(const byte *in, int iIn, byte *out, int iOut, int n) {
@@ -92,7 +92,7 @@ static void skein_arraycopy_byte(const byte *in, int iIn, byte *out, int iOut, i
     assert(n >= 0);
 
     /* XXX check for number overflows here */
-    memmove(&(out[iOut]), &(in[iOut]), n*1);
+    memmove(&(out[iOut]), &(in[iIn]), n*1);
 }
 
 static void skein_array_fill(byte *v, int len,
