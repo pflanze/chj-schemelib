@@ -576,7 +576,10 @@ int main (int argc, const char**argv) {
     skein_init();
     assert(argc==2);
     struct Skein512digest d;
-    skein_hash_chars(argv[1], strlen(argv[1]), &d);
+    int i;
+    for (i=0; i<100000; i++) {
+	skein_hash_chars(argv[1], strlen(argv[1]), &d);
+    }
     Skein512digest_println(&d, stdout);
     return 0;
 }
