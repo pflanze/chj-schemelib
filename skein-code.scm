@@ -584,7 +584,7 @@ int main (int argc, const char**argv) {
     assert(argc==2);
     struct Skein512digest d;
     int i;
-    for (i=0; i<100000; i++) {
+    for (i=0; i<1000000; i++) {
 	skein_hash_chars(argv[1], strlen(argv[1]), &d);
     }
     Skein512digest_println(&d, stdout);
