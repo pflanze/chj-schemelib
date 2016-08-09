@@ -18,13 +18,13 @@
 
 (##c-code "skein_init();")
 
-(define-constant-from-C BYTES)
+(define-constant-from-C skein:BYTES)
  ;; don't run each time though please^^ ehr   prefix please  no conflict please
-(assert (= BYTES (/ 512 8)))
+(assert (= skein:BYTES (/ 512 8)))
 
 (def (skein512-digest? v)
      (and (u8vector? v)
-	  (= (u8vector-length v) BYTES)))
+	  (= (u8vector-length v) skein:BYTES)))
 
 (def (skein-hash-bytes #(u8vector? in)
 		       #((maybe natural0?) len)
@@ -51,7 +51,7 @@ ___RESULT=___VOID;
 		 out)))
 
 (def (make-skein512-digest)
-     (make-u8vector BYTES))
+     (make-u8vector skein:BYTES))
 
 (def (skein:raw-digest v)
      (def (hash u)
