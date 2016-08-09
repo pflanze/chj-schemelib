@@ -7,7 +7,7 @@
  cj-env
  (cj-functional applying)
  (list-util-1 map/iota)
- )
+ test)
 
 ;; (compile #f);; since it's only a macro.
 
@@ -24,12 +24,37 @@
 
 (declare (block)(standard-bindings)(extended-bindings))
 
+;; XX move to one of the string libs?
+(define (substring-after str ch)
+  ;; strip everything before the last occurrence of char ch
+  (let ((len (string-length str)))
+    (let lp ((i (dec len)))
+      (if (negative? i)
+	  str
+	  (let ((c (string-ref str i)))
+	    (if (char=? c ch)
+		(substring str (inc i) len)
+		(lp (dec i))))))))
+
+(TEST
+ > (substring-after "foo:" #\:)
+ ""
+ > (substring-after "foo:bar" #\:)
+ "bar"
+ > (substring-after "foo:bar:baz" #\:)
+ "baz"
+ > (substring-after ":baz" #\:)
+ "baz"
+ > (substring-after "baz" #\:)
+ "baz")
+
+
 ;; Note: it seems CPP doesn't support number constants exceeding 32
 ;; bits, hence can't check for fixnum range using something like '#if
 ;; (" namestr " > " max-fixnum-str ")'? And instead can just be
 ;; 'trusted'? (Or what? See commit msg.)
 (define (code:constant-from-C namestr)
-  (string-append "___RESULT= ___FIX(" namestr ");"))
+  (string-append "___RESULT= ___FIX(" (substring-after namestr #\:) ");"))
 
 
 (define define-constant-from-C-code
