@@ -23,10 +23,12 @@
 
 (export u8vector0?
 	(method u8vector0.strlen
+		u8vector.strlen
 		string.utf8-bytes
 		string.utf8-u8vector
-		string.utf8-u8vector0)
-	u8vector0.utf8-parse)
+		string.utf8-u8vector0
+		u8vector0.utf8-parse
+		u8vector.utf8-parse))
 
 
 (c-declare "
@@ -149,31 +151,6 @@ ___RESULT= ___FIX(res);
  #(error "value fails to meet predicate:" (positive? 0)))
 
 
-;; don't call this u8vector0.string -- u8vector.string does *not* do
-;; utf8 decoding, also, why hard code this implicitely so hard. It's
-;; wrong.
-(def. (u8vector0.utf8-parse #(u8vector0? v)) -> string?
-  (let ((len (u8vector0.strlen v)))
-    (let lp ((i 0)
-	     ;; using a list instead of pre-calculating size, XX room
-	     ;; for optimization (also use @u8vector.utf8-get then).
-	     (l '())
-	     (n 0))
-      (if (< i len)
-	  (letv ((maybe-c i*) (u8vector.utf8-get v i))
-		(if maybe-c
-		    (lp i*
-			(cons maybe-c l)
-			(inc n))
-		    (if (= i* i)
-			(error "utf-8 decoding error, can't proceed")
-			;; otherwise just skip it, OK?
-			(begin
-			  (warn "utf-8 decoding error, skipping over bad sequence")
-			  ;; XX or should we die anyway?
-			  (lp i* l n)))))
-	  (list.string-reverse l)))))
-
 (TEST
  > (.utf8-parse '#u8(195 164 195 182 195 188 0))
  "äöü"
@@ -185,4 +162,75 @@ ___RESULT= ___FIX(res);
  "äö"
  > (%try-error (.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
  #(error "utf-8 decoding error, can't proceed"))
+
+
+(def (<>.utf8-parse T? T.strlen)
+     (typed-lambda
+      (#(T? v)) -> string?
+      (let ((len (T.strlen v)))
+	(let lp ((i 0)
+		 ;; using a list instead of pre-calculating size, XX room
+		 ;; for optimization (also use @u8vector.utf8-get then).
+		 (l '())
+		 (n 0))
+	  (if (< i len)
+	      (letv ((maybe-c i*) (u8vector.utf8-get v i))
+		    (if maybe-c
+			(lp i*
+			    (cons maybe-c l)
+			    (inc n))
+			(if (= i* i)
+			    (error "utf-8 decoding error, can't proceed")
+			    ;; otherwise just skip it, OK?
+			    (begin
+			      (warn "utf-8 decoding error, skipping over bad sequence")
+			      ;; XX or should we die anyway?
+			      (lp i* l n)))))
+	      (list.string-reverse l))))))
+
+(def. u8vector.utf8-parse (<>.utf8-parse u8vector? u8vector-length))
+
+;; don't call this u8vector0.string -- u8vector.string does *not* do
+;; utf8 decoding, also, why hard code this implicitely so hard. It's
+;; wrong.
+(def. u8vector0.utf8-parse (<>.utf8-parse u8vector0? u8vector0.strlen))
+
+
+(TEST
+ > (.utf8-parse '#u8(195 164 195 182 195 188 0))
+ "äöü"
+ > (.utf8-parse '#u8(195 164 195 182 195 188))
+ "äöü"
+
+ > (u8vector0.utf8-parse '#u8(195 164 195 182 195 188 0))
+ "äöü"
+ > (u8vector.utf8-parse '#u8(195 164 195 182 195 188 0))
+ "äöü\0"
+
+ > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 182 195 188)))
+ #(error "v does not match T?:" #u8(195 164 195 182 195 188))
+ ;; ^ XX sigh. stupid system, disjoint of compile-time syntax
+ ;; vs. instantiation (at runtime). (C++ templates to the rescue? Or,
+ ;; well, you know, just keep referring to it at runtime instead of
+ ;; stringifying syntax. About like assert does, really! Todo.)
+ > (u8vector.utf8-parse '#u8(195 164 195 182 195 188))
+ "äöü"
+
+ > (u8vector0.utf8-parse '#u8(195 164 195 182 195 188 0 0))
+ "äöü"
+ > (u8vector.utf8-parse '#u8(195 164 195 182 195 188 0 0))
+ "äöü\0\0"
+ > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
+ #(error "utf-8 decoding error, can't proceed")
+ > (%try-error (u8vector.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
+ #(error "utf-8 decoding error, can't proceed")
+ > (u8vector0.utf8-parse '#u8(195 164 195 182 0 195 188 0))
+ "äö"
+ > (u8vector.utf8-parse '#u8(195 164 195 182 0 195 188 0))
+ "äö\0ü\0"
+ > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
+ #(error "utf-8 decoding error, can't proceed")
+ > (%try-error (u8vector.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
+ #(error "utf-8 decoding error, can't proceed")
+ )
 
