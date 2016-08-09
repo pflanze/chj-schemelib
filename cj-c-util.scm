@@ -32,28 +32,35 @@
   (string-append "___RESULT= ___FIX(" namestr ");"))
 
 
+(define define-constant-from-C-code
+  (lambda (name)
+    `(define ,name
+       (##c-code ,(code:constant-from-C (symbol->string name))))))
+
 (define-macro* (define-constant-from-C name)
   (assert* symbol? name
-	   (lambda (name)
-	     `(define ,name
-		(##c-code ,(code:constant-from-C (symbol->string name)))))))
+	   define-constant-from-C-code))
 
 
 ;; define the constant to be either false, if it doesn't exist in C
 ;; space, or the integer value if it does:
 
-(define-macro* (maybe-define-constant-from-C name)
-  (assert* symbol? name
-	   (lambda (name)
-	     (let ((namestr (symbol->string name)))
-	       `(define ,name
-		  (##c-code ,(string-append "
+(define maybe-define-constant-from-C-code
+  (lambda (name)
+    (let ((namestr (symbol->string name)))
+      `(define ,name
+	 (##c-code ,(string-append "
 #ifdef " namestr "
 " (code:constant-from-C namestr) "
 #else
 ___RESULT= ___FAL;
 #endif
-")))))))
+"))))))
+
+(define-macro* (maybe-define-constant-from-C name)
+  (assert* symbol? name
+	   maybe-define-constant-from-C-code))
+
 
 
 ;; hehe this one does not even need the client modul to be compiled :)
