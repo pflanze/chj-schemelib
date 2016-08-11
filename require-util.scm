@@ -122,6 +122,7 @@
      '((begin recurse)
        (c/load 0)
        (i/load 0)
+       (/load 0)
        (load 0)))
 
 (def load.scm-extract-forms-no
