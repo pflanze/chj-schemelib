@@ -14,6 +14,17 @@
 ;;;; Hash tables with symbols as keys
 ;;;
 
+;; Those are implemented using naked vectors, i.e. (currently) without
+;; type safety!
+
+;; Also, using no wrapper prohibits mutators that change the number of
+;; elements in the hash. But OTOH, restricting it this way also means
+;; that it's automatically thread-safe (well, it can *lose* changes in
+;; race conditions, but it will never leave a corrupt table, and often
+;; readers (and in some cases writers) never need to aquire a lock).
+
+
+;; automatically chose implementation in C when compiled
 (compile-time
  (define use-implementation-in-c? (mod:compiled?)))
 
