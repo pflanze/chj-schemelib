@@ -285,7 +285,9 @@
 				 unsafe-constructor-name))
 		   '())))
        
-       ,(or predicate-code
+       ,(if predicate-code
+	    (predicate-code predicate-name tag-binding
+			    add-offset numfields)
 	    `(define ,predicate-name
 	       (lambda (v)
 		 (and (vector? v)
