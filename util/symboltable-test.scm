@@ -26,43 +26,50 @@
 			  "."
 			  (number->string id)))))
 
+;; randomized-test data
+
+(define (strings) (pseudorandomsource*->a-z-string-stream
+		   (make-pseudorandomsource 10 11)
+		   (make-pseudorandomsource 10 13)
+		   (make-range 3 6)))
+
 (TEST
- ;; randomized-test data
- > (define (strings) (pseudorandomsource*->a-z-string-stream
-		      (make-pseudorandomsource 10 11)
-		      (make-pseudorandomsource 10 13)
-		      (make-range 3 6)))
  > (define (lengths) (pseudorandomsource->integer-stream
 		      (make-pseudorandomsource 103 114)
 		      (make-range 0 600)))
- > (define (gaplengths #!optional (prs (make-pseudorandomsource 114 103)))
-     (stream-map (lambda (n)
-		   (expt (* n 1/100 1.5) 10))
-		 (pseudorandomsource->integer-stream
-		  prs
-		  (make-range 0 100))))
- 
- > (define (mkpis from-id)
-     (define maybe-parent #f)
-     ;; (let rec ((id from-id)
-     ;; 	       (strs (strings)))
-     ;;   (delay
-     ;; 	 (let-pair ((str strs*) (force strs))
-     ;; 		   (letv ((id* pi) (make-symbol id maybe-parent str))
-     ;; 			 (cons pi
-     ;; 			       (rec id* strs*))))))
+ )
 
-     ;; or: 
-     (stream-unfold2
-      (lambda (x) #f) ;; or (lambda-values ((id strs)) (null? (force strs)))
-      (lambda-values
-       ((id strs))
-       (let-pair ((str strs*) (force strs))
-		 (letv ((id* pi) (make-symbol id maybe-parent str))
-		       (values pi
-			       (values id* strs*)))))
-      (values from-id
-	      (strings))))
+(define (gaplengths #!optional (prs (make-pseudorandomsource 114 103)))
+  (stream-map (lambda (n)
+		(expt (* n 1/100 1.5) 10))
+	      (pseudorandomsource->integer-stream
+	       prs
+	       (make-range 0 100))))
+
+(define (mkpis from-id)
+  (define maybe-parent #f)
+  ;; (let rec ((id from-id)
+  ;; 	       (strs (strings)))
+  ;;   (delay
+  ;; 	 (let-pair ((str strs*) (force strs))
+  ;; 		   (letv ((id* pi) (make-symbol id maybe-parent str))
+  ;; 			 (cons pi
+  ;; 			       (rec id* strs*))))))
+
+  ;; or: 
+  (stream-unfold2
+   (lambda (x) #f) ;; or (lambda-values ((id strs)) (null? (force strs)))
+   (lambda-values
+    ((id strs))
+    (let-pair ((str strs*) (force strs))
+	      (letv ((id* pi) (make-symbol id maybe-parent str))
+		    (values pi
+			    (values id* strs*)))))
+   (values from-id
+	   (strings))))
+
+
+(TEST 
  > (F (stream-take (mkpis 1000) 10))
  (
   jsipz.1000
@@ -100,35 +107,39 @@
 					      (values (cons pi gaps)
 						      nongaps))))))))))
  ;; ^ this is worthless because streaming doesn't work. Have to walk the input independently.
- > (define filter-nongaps
-     (named-lambda
-	 nextI (gaplens pis)
-	 ;; back to open coding. GR
-	 (delay
-	   (let-pair ((gaplen gaplens*) (force gaplens))
-		     (let nextII ((gaplen gaplen)
-				  (pis pis))
-		       (let-pair ((pi pis*) (force pis))
-				 (if (< gaplen 1)
-				     (cons pi
-					   (nextI gaplens* pis*))
-				     (nextII (- gaplen 1)
-					     pis*))))))))
- > (define filter-gaps
-     (named-lambda
-	 nextI (gaplens pis)
-	 ;; back to open coding. GR
-	 (delay
-	   (let-pair ((gaplen gaplens*) (force gaplens))
-		     (let nextII ((gaplen gaplen)
-				  (pis pis))
-		       (let-pair ((pi pis*) (force pis))
-				 (if (< gaplen 1)
-				     ;; the difference from filter-nongaps :
-				     (nextI gaplens* pis*)
-				     (cons pi
-					   (nextII (- gaplen 1)
-						   pis*)))))))))
+ )
+
+(define filter-nongaps
+  (named-lambda
+      nextI (gaplens pis)
+      ;; back to open coding. GR
+      (delay
+	(let-pair ((gaplen gaplens*) (force gaplens))
+		  (let nextII ((gaplen gaplen)
+			       (pis pis))
+		    (let-pair ((pi pis*) (force pis))
+			      (if (< gaplen 1)
+				  (cons pi
+					(nextI gaplens* pis*))
+				  (nextII (- gaplen 1)
+					  pis*))))))))
+(define filter-gaps
+  (named-lambda
+      nextI (gaplens pis)
+      ;; back to open coding. GR
+      (delay
+	(let-pair ((gaplen gaplens*) (force gaplens))
+		  (let nextII ((gaplen gaplen)
+			       (pis pis))
+		    (let-pair ((pi pis*) (force pis))
+			      (if (< gaplen 1)
+				  ;; the difference from filter-nongaps :
+				  (nextI gaplens* pis*)
+				  (cons pi
+					(nextII (- gaplen 1)
+						pis*)))))))))
+
+(TEST
  > (define (split-gaps gaplens pis) ;; -> (values nongaps gaps)
      (values (filter-nongaps gaplens pis)
 	     (filter-gaps gaplens pis)))
@@ -155,17 +166,19 @@
   zuka.1024
   nft.1025
   klnpp.1026
-  )
+  ))
 
- > (define (mkmapping from-id)
-     (values (stream-map cons
-			 (filter-nongaps (gaplengths)
-					 (mkpis from-id))
-			 (stream-iota))
-	     ;; thanks to taking new streams below, there is no
-	     ;; holding on to memory
-	     (filter-gaps (gaplengths) 
-			  (mkpis from-id))))
+(define (mkmapping from-id)
+  (values (stream-map cons
+		      (filter-nongaps (gaplengths)
+				      (mkpis from-id))
+		      (stream-iota))
+	  ;; thanks to taking new streams below, there is no
+	  ;; holding on to memory
+	  (filter-gaps (gaplengths) 
+		       (mkpis from-id))))
+
+(TEST
  > (map floor (F (stream-take (gaplengths) 25)))
  (1. 2. 0. 0. 0. 1. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 4. 0. 0. 0. 0. 17.)
  > (define-values (nongaps gaps) (mkmapping 1000))
@@ -194,16 +207,18 @@
   (bog.1052 . 27)
   (gvm.1053 . 28)
   (tuxww.1054 . 29)
-  )
+  ))
 
- ;; the actual symboltable tests:
+;; the actual symboltable tests:
 
- > (define (mkmapping+symboltable id len) ;; -> (values m t gaps)
-     (letv ((nongaps gaps) (mkmapping id))
-	   (let ((m (F (stream-take nongaps len))))
-	     (values m
-		     (list->symboltable m)
-		     (F (stream-take gaps len))))))
+(define (mkmapping+symboltable id len) ;; -> (values m t gaps)
+  (letv ((nongaps gaps) (mkmapping id))
+	(let ((m (F (stream-take nongaps len))))
+	  (values m
+		  (list->symboltable m)
+		  (F (stream-take gaps len))))))
+
+(TEST
  ;;> (define-values (m t gaps) (mkmapping+symboltable 1000 30))
  > (define (sum l) (fold + 0 l))
  > (define test-mapping+symboltable
