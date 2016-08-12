@@ -190,6 +190,7 @@
 	  constructor-name
 	  unsafe-constructor-name
 	  predicate-name
+	  predicate-code ;; mostly for joo.scm
 	  let*-name
 	  let-name
 	  tag
@@ -284,12 +285,13 @@
 				 unsafe-constructor-name))
 		   '())))
        
-       (define ,predicate-name
-	 (lambda (v)
-	   (and (vector? v)
-		(= (vector-length v) ,(add-offset numfields))
-		(eq? (vector-ref v 0)
-		     ,tag-binding))))
+       ,(or predicate-code
+	    `(define ,predicate-name
+	       (lambda (v)
+		 (and (vector? v)
+		      (= (vector-length v) ,(add-offset numfields))
+		      (eq? (vector-ref v 0)
+			   ,tag-binding)))))
        (define ,error-name
 	 (lambda (v)
 	   (error ,(string-append "expecting a "
