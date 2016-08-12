@@ -8,6 +8,15 @@
 
 (require)
 
+(export base-string.maybe-modulename
+	base-string.modulename
+	path-string.modulename
+	path-string.relation
+	#!optional ;; move? :
+	scm-stripsuffix
+	simple-basename
+	scm-basename)
+
 
 (define (scm-stripsuffix p)
   (let ((len (string-length p)))
