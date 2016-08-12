@@ -161,7 +161,7 @@
  (define dot.oo:have-no-typecheck
    '(symbol? fixnum? string? boolean? number? integer? complex?)))
 
-(define-macro* (define-struct. name . defs)
+(define (define-struct.-expand name defs)
   (with-gensyms
    (V V*)
    `(begin
@@ -236,6 +236,9 @@
 			       #f)))
 		       defs))
 	,V))))
+
+(define-macro* (define-struct. name . defs)
+  (define-struct.-expand name defs))
 
 
 ;; need this often enough I guess:
