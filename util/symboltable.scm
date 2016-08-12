@@ -54,6 +54,7 @@
 
 (define symboltable:key-name symbol->string)
 
+;; XX worry Gambit, does length never overflow the fixnum range?
 (define (symboltable? x)
   (and (vector? x)
        (let ((len (vector-length x)))
