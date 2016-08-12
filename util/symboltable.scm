@@ -28,17 +28,10 @@
 (compile-time
  (define use-implementation-in-c? (mod:compiled?)))
 
+
 (IF use-implementation-in-c?
     (begin
-      
-      (c-declare "
-#define likely(expr) __builtin_expect(expr, 1)
-#define unlikely(expr) __builtin_expect(expr, 0)
-")
-
-      (c-declare "
-#define ___keyp ___SYMBOLP
-")
+      ;; keep in sync with definition in C, ___keyp
       (define (symboltable:key?:c x)
 	(##c-code "___RESULT= ___keyp(___ARG1) ? ___TRU : ___FAL;" x))))
 
@@ -55,29 +48,13 @@
 (define symboltable:key-name symbol->string)
 
 ;; XX worry Gambit, does length never overflow the fixnum range?
+;; XX: keep in sync with definition in C, ___tablep !
 (define (symboltable? x)
   (and (vector? x)
        (let ((len (vector-length x)))
 	 (and (>= len 3)
 	      (odd? len)
 	      (fixnum? (vector-ref x 0))))))
-;; XX: keep in sync with above definition!
-(IF use-implementation-in-c?
-    (c-declare "
-static inline
-int ___tablep(___SCMOBJ x)
-{
-    ___WORD ___temp;
-    if (___VECTORP(x)) {
-        ___WORD vlen = ___INT(___VECTORLENGTH(x));
-        return ((vlen >= 3)
-		&& (vlen & 1)
-		&& ___FIXNUMP(___VECTORREF(x, ___FIX(0))));
-    } else {
-        return 0;
-    }
-}
-"))
 
 (define empty-symboltable '#(0 #f #f))
 
@@ -177,10 +154,21 @@ int ___tablep(___SCMOBJ x)
   (symboltable:_update t key vector-ref (lambda ()
 					  alternate-value)))
 
-(IF use-implementation-in-c?
-    (begin
 
-      (c-declare "
+(define symboltable-ref:c:invalid-type (gensym))
+
+(defmacro (symboltable-init-scope)
+  `(begin
+     (c-declare "
+#define likely(expr) __builtin_expect(expr, 1)
+#define unlikely(expr) __builtin_expect(expr, 0)
+")
+
+     (c-declare "
+#define ___keyp ___SYMBOLP
+")
+
+     (c-declare "
 // #include <stdio.h>
 
 static inline
@@ -207,17 +195,36 @@ ___WORD ___fxlength(___WORD x)
           (x);
 #endif
 }
-
-___SCMOBJ ___error_invalid_type= 0;
 ")
+    ;; XX: keep in sync with Scheme definition, |symboltable?| !
+     (c-declare "
+static inline
+int ___tablep(___SCMOBJ x)
+{
+    ___WORD ___temp;
+    if (___VECTORP(x)) {
+        ___WORD vlen = ___INT(___VECTORLENGTH(x));
+        return ((vlen >= 3)
+		&& (vlen & 1)
+		&& ___FIXNUMP(___VECTORREF(x, ___FIX(0))));
+    } else {
+        return 0;
+    }
+}
+")
+     (c-declare "___SCMOBJ ___error_invalid_type= 0;")
+     (##c-code "___error_invalid_type=___ARG1;" symboltable-ref:c:invalid-type)))
 
-(define symboltable-ref:c:invalid-type (gensym))
-(##c-code "___error_invalid_type=___ARG1;" symboltable-ref:c:invalid-type)
-(define (symboltable-ref:c t key alternate-value)
-  (declare (standard-bindings)
-	   (extended-bindings)
-	   (not safe))
-  (let ((res (##c-code "
+(IF use-implementation-in-c?
+    
+(begin
+  (symboltable-init-scope)
+
+  (define (symboltable-ref:c t key alternate-value)
+    (declare (standard-bindings)
+	     (extended-bindings)
+	     (not safe))
+    (let ((res (##c-code "
 ___SCMOBJ t = ___ARG1;
 ___SCMOBJ key = ___ARG2;
 ___SCMOBJ alternate_value = ___ARG3;
@@ -275,13 +282,13 @@ lp: {
 }
 end:
 "
-		       t key alternate-value)))
-    (if (eq? res symboltable-ref:c:invalid-type)
-	(error "invalid type")
-	res)))
+			 t key alternate-value)))
+      (if (eq? res symboltable-ref:c:invalid-type)
+	  (error "invalid type")
+	  res)))
 
-(define symboltable-ref symboltable-ref:c) ;; choose
-)
+  (define symboltable-ref symboltable-ref:c) ;; choose
+  )
 
 (begin ;; not compile
   (define symboltable-ref:c symboltable-ref:scheme) ;; fake

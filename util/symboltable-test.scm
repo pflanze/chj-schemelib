@@ -351,3 +351,20 @@
 	    (+ res 3))
 	res)))
 
+
+;; inlining:
+
+(symboltable-init-scope)
+
+(def (bench-symboltable-ref.inline t k notfound #((both natural0? fixnum?) n))
+  (declare (standard-bindings)
+	   (extended-bindings)
+	   (fixnum)
+	   (not safe))
+  (def ref (inline symboltable-ref))
+  (let lp ((i n)
+	   (res #f))
+    (if (positive? i)
+	(lp (- i 1)
+	    (ref t k notfound))
+	res)))
