@@ -51,10 +51,13 @@
 ;; 	(strings-join (cdr l) "/"))))
 ;; ^ relies on unavailable dependencies
 
-(define (path-string.modulename p) ;; -> symbol?
+
+;; path-string: ending in .scm
+;; base-string: with .scm stripped
+
+(define (base-string.modulename s) ;; -> symbol?
   (string->symbol
-   (let* ((s (scm-stripsuffix p))
-	  (len (string-length s))
+   (let* ((len (string-length s))
 	  (maybe-ifirst (let lp ((i 0))
 			  (if (< i len)
 			      (if (char=? (string-ref s i) #\/)
@@ -66,6 +69,10 @@
 	     (error "need relative path, got:" p)
 	     (substring s (+ maybe-ifirst 1) len))
 	 s))))
+
+(define (path-string.modulename p) ;; -> symbol?
+  (base-string.modulename (scm-stripsuffix p)))
+
 
 
 (define modules-without-require-forms
