@@ -237,7 +237,7 @@ if (unlikely(! ___tablep(t))) {
     goto end;
 }
 
-if (unlikely(! ___key_id(key))) {
+if (unlikely(! ___keyp(key))) {
     ___RESULT= ___error_invalid_type;
     goto end;
 }
