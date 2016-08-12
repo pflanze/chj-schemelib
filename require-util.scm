@@ -33,6 +33,12 @@
  #(error "not a path with suffix '.scm':" "/foo")
  > (%try-error (path-string.modulename "/foo.scm"))
  #(error "need relative path, got:" "/foo.scm")
+ > (%try-error (base-string.modulename "/foo"))
+ #(error "need relative base string, got:" "/foo")
+ > (base-string.modulename "bar")
+ bar
+ > (base-string.modulename "lib/bar")
+ bar
  > (path-string.modulename "bar.scm")
  bar
  > (path-string.modulename "lib/bar.scm")

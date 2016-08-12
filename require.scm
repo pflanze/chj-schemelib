@@ -55,9 +55,9 @@
 ;; path-string: ending in .scm
 ;; base-string: with .scm stripped
 
-(define (base-string.modulename s) ;; -> symbol?
-  (string->symbol
-   (let* ((len (string-length s))
+;; returns #f if given s is absolute
+(define (base-string.maybe-modulename s) ;; -> (maybe symbol?)
+  (let* ((len (string-length s))
 	  (maybe-ifirst (let lp ((i 0))
 			  (if (< i len)
 			      (if (char=? (string-ref s i) #\/)
@@ -66,12 +66,17 @@
 			      #f))))
      (if maybe-ifirst
 	 (if (zero? maybe-ifirst)
-	     (error "need relative path, got:" p)
-	     (substring s (+ maybe-ifirst 1) len))
-	 s))))
+	     #f
+	     (string->symbol (substring s (+ maybe-ifirst 1) len)))
+	 (string->symbol s))))
+
+(define (base-string.modulename s) ;; -> symbol?
+  (or (base-string.maybe-modulename s)
+      (error "need relative base string, got:" s)))
 
 (define (path-string.modulename p) ;; -> symbol?
-  (base-string.modulename (scm-stripsuffix p)))
+  (or (base-string.maybe-modulename (scm-stripsuffix p))
+      (error "need relative path, got:" p)))
 
 
 
