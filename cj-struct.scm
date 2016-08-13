@@ -76,9 +76,13 @@
 
 (define-if-not-defined cj-struct:type->metadata (make-table test: eq?))
 
-;; NOTE: @maybe-struct-tag-name is being inlined by joo.scm in unsafe
-;; compilation mode!
 (define (@maybe-struct-tag-name v)
+  (declare (block)
+	   (standard-bindings)
+	   (extended-bindings)
+	   (not safe))
+  ;; @maybe-struct-tag-name is also being inlined by joo.scm in unsafe
+  ;; compilation mode.
   (and (pair? v)
        (null? (cdr v))
        (let ((t (car v)))
