@@ -290,7 +290,7 @@
  ((kqw.1001 . 0)
   (kzv.1004 . 1))
  > (vector-length t2)
- 9
+ 10
  
 
  ;; test symboltable->list
