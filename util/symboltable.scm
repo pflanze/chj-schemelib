@@ -11,6 +11,10 @@
 	 (cj-env define-if-not-defined)
 	 test)
 
+(declare (standard-bindings)
+	 (extended-bindings)
+	 (block))
+
 ;;;
 ;;;; Hash tables with symbols as keys
 ;;;
