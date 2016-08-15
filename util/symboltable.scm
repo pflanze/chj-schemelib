@@ -66,7 +66,7 @@
 (define-if-not-defined symboltable:tag
   (list 'symboltable))
 
-(define (symboltable? x)
+(define-inline (symboltable? x)
   ;; XX Gambit: does length never overflow the fixnum range?
   (declare (standard-bindings)
   	   (extended-bindings)
