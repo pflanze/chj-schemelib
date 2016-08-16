@@ -51,6 +51,8 @@
 
 ;; Metadata
 
+;; `struct-metadata` struct:
+
 ;; we can't use the struct-tag machinery yet, so hand-code the same
 ;; thing here for this type:
 (define-if-not-defined struct-metadata:tag (list 'struct-metadata))
