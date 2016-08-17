@@ -12,6 +12,26 @@
 	 show ;; should it be possible to make things optional?!
 	 test)
 
+(export (inline symboltable?)
+	empty-symboltable ;; treat as read-only, please!
+	symboltable-length
+	symboltable-ref ;; with required alternative value if missing
+	symboltable-refx ;; exception
+	symboltable-contains?
+	symboltable-update!
+	symboltable-update
+	list->symboltable
+	symboltable
+	symboltable:fold ;; hm name?
+	symboltable->list
+	(method symboltable.show)
+	symboltable-keys
+	symboltable-sortedkeys
+	symboltable-update-all
+	symboltable-add
+	symboltable-remove
+	)
+
 (declare (standard-bindings)
 	 (extended-bindings)
 	 (block))
