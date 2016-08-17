@@ -9,6 +9,7 @@
 
 (require easy
 	 (cj-env define-if-not-defined)
+	 show ;; should it be possible to make things optional?!
 	 test)
 
 (declare (standard-bindings)
@@ -397,6 +398,9 @@ end:
 	    (lp (cdr l)))))
     vec))
 
+(define (symboltable . l)
+  (list->symboltable l))
+
 (define (symboltable:fold t tail fn)
   (let ((vlen (symboltable:vector-length t))
 	(vec t))
@@ -418,6 +422,10 @@ end:
   (symboltable:fold t tail (lambda (k v r)
 			     (cons (cons k v)
 				   r))))
+
+(def. (symboltable.show v)
+  `(symboltable ,@(map .show (symboltable->list v))))
+
 
 (define (symboltable-keys t #!optional (tail '()))
   (symboltable:fold t tail (lambda (k v r)
