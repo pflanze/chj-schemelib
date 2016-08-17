@@ -29,6 +29,7 @@
 	symboltable-sortedkeys
 	symboltable-update-all
 	symboltable-add
+	symboltable-set
 	symboltable-remove
 	)
 
@@ -568,6 +569,19 @@ end:
 		  (handle-not-found vec i key)))))))))
 
 
+(define (symboltable-set t key val)
+  (let ((v (symboltable-ref t key symboltable:nothing)))
+    (if (eq? v symboltable:nothing)
+	(symboltable-add t key val)
+	(if (eq? v val)
+	    t
+	    (let ((t* (vector-copy t)))
+	      (symboltable-update! t* key
+				   (lambda (_)
+				     val))
+	      t*)))))
+
+
 ;; (Note: there's no hysteresis implemented for the resizing, up and
 ;; down is at same number of keys.)
 
@@ -774,6 +788,15 @@ end:
 
  > (%try-error (symboltable-add t 'b "moo-c"))
  #(error "key already in table:" b)
+ > (symboltable-set t 'b "moo-c")
+ #((symboltable) 3 #f #f ha 2 b "moo-c" a "moo-a")
+ > (symboltable-set t 'c "c")
+ #((symboltable) 4 #f #f ha 2 #f #f #f #f #f #f c "c" b "moo-b" a "moo-a")
+ > (.show #)
+ (symboltable (cons 'ha 2) (cons 'c "c") (cons 'b "moo-b") (cons 'a "moo-a"))
+ > (equal? (symboltable-add t 'c "c") (symboltable-set t 'c "c"))
+ #t
+
  > (%try-error (symboltable-remove t 'nono))
  #(error "key not in table:" nono)
 
