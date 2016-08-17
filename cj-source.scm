@@ -46,8 +46,9 @@
 	 show-source-error
 	 source-error->string
 	 show-procedure-location
-	 source-quote
-	 source-dequote
+	 source-quote ;; deprecated, use source-quote* instead?
+	 source-dequote ;; dito
+	 source-quote*
 	 ;; included from improper-length.scm
 	 improper-length)
 
@@ -387,4 +388,9 @@
 (define (source-dequote v)
   (u8vector->object v))
 
+;; why the hell did I do the above which aren't a full abstraction?
+;; And not this (ah, also compare to quote-source):
+
+(define (source-quote* v)
+  `(u8vector->object ',(object->u8vector v)))
 
