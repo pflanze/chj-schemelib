@@ -14,7 +14,8 @@
 	 ;; cj-source-util.scm:
 	 (cj-source improper-length))
 
-(export improper-map
+(export improper-list->list
+	improper-map
 	improper-fold
 	improper-fold-right
 	improper-fold-right*
@@ -86,6 +87,17 @@
  > (improper-fold-right inccons 'end '(1 2 . 3))
  (2 3 4 . end)
  )
+
+
+(define (improper-list->list l #!optional (tail '()))
+  (improper-fold-right cons tail l))
+
+(TEST
+ > (improper-list->list '(1 2 . 3))
+ (1 2 3)
+ > (improper-list->list '(1 2 . 3) 'end)
+ (1 2 3 . end))
+
 
 ;; improper-fold-right that also tells whether the argument is the end
 ;; of an improper input list:
