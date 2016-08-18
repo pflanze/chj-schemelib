@@ -112,7 +112,7 @@
 	       #(list? field-decls)
 	       ;; of source-code (never contains constructor-name:)
 	       #(symboltable? members)
-	       ;; mutable; includes type itself
+	       ;; mutable; includes self
 	       )
        (method (members-set! s #(symboltable? members))
 	       (vector-set! s 8 members))
@@ -292,7 +292,7 @@
 (def (joo:joo-type-symbol class-name) -> symbol?
      (assert* symbol? class-name
 	      (lambda (v)
-		(symbol-append "joo:joo-type:" v))))
+		(symbol-append "joo-type:" v))))
 
 
 ;; (def (joo:classes)
@@ -334,7 +334,7 @@
 ;; XX actually don't really need a type tag for this??
 ;;    Instead add a class-name field to joo-type ?
 
-(def joo:joo-type:joo-object
+(def joo-type:joo-object
      (make-joo-type! 'joo-object
 		     #f
 		     joo:joo-object-tag
@@ -348,7 +348,7 @@
        (joo-type.covers-instance? type v)))
 
 (def joo-object?
-     (joo:make-predicate joo:joo-type:joo-object))
+     (joo:make-predicate joo-type:joo-object))
 
 
 
@@ -513,6 +513,14 @@
 			 . defs)
   (joo:joo-expand #t decl #f extends defs))
 
+
+(def. (joo-object.instance-of? s #(joo-type? t))
+  (joo-type.covers-instance? t s))
+
+;; this would need mapping from tags to types sigh. Not just from tag
+;; names.
+(def. (joo-object.is-a? s #(joo-object? t))
+  (joo-type.is-a? XXX XXX))
 
 
 (TEST
