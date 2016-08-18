@@ -100,20 +100,30 @@
        ;; With metadata; still call it joo-metadata instead?  Those
        ;; are mutable, and singletons, please!
        (struct #(symbol? class-name)
+	       ;;^ XX should rename that to name ? (is for interfaces, too)
 	       #((maybe symbol?) maybe-constructor-name)
 	       ;; #f means no constructor
 	       #((maybe struct-tag?) maybe-struct-tag)
 	       ;; #f means no cj-struct (i.e. same as above)
-	       #((maybe joo-type?) maybe-parent)
+	       #(boolean? interface?)
+	       #((if interface? false? (maybe joo-type?)) maybe-parent)
 	       ;; #f means this is joo-object
-	       #((list-of joo-type?) implements)
+	       #((list-of joo-interface-type?) implements)
 	       #(list? field-decls)
 	       ;; of source-code (never contains constructor-name:)
 	       #(symboltable? members)
 	       ;; mutable; includes type itself
 	       )
        (method (members-set! s #(symboltable? members))
-	       (vector-set! s 7 members))
+	       (vector-set! s 8 members))
+
+       (def (joo-interface-type? s)
+	    (and (joo-type? s)
+		 (joo-type.interface? s)))
+
+       (def (joo-class-type? s)
+	    (and (joo-type? s)
+		 (not (joo-type.interface? s))))
 
        ;; both `extends` and `implements` parents
        (method (all-immediate-parents s)
@@ -197,6 +207,7 @@
 (def (make-joo-type! #(symbol? class-name)
 		     #((maybe symbol?) constructor-name)
 		     #((maybe struct-tag?) tag)
+		     #(boolean? interface?)
 		     #((maybe joo-type?) parent)
 		     #((list-of joo-type?) implements)
 		     #(list? field-decls))
@@ -205,6 +216,7 @@
      (let ((t (joo-type class-name
 			constructor-name
 			tag
+			interface?
 			parent
 			implements
 			field-decls
@@ -220,6 +232,7 @@
 			(struct-tag-allocate!
 			 class-name
 			 (struct-metadata 'joo-test-fake-constructor))
+			#f ;; XX should test interfaces, too
 			parent
 			implements
 			'()))
@@ -325,8 +338,9 @@
      (make-joo-type! 'joo-object
 		     #f
 		     joo:joo-object-tag
-		     #f
-		     '()
+		     #f ;; not an interface
+		     #f ;; no parent
+		     '() ;; does not implement anything
 		     '()))
 
 (def (joo:make-predicate type)
@@ -345,11 +359,7 @@
 		     ;; implementations
 		     implements
 		     ;; (improper-list-of class-name), for type
-		     ;; checking (XX ok doesn't currently check
-		     ;; class-name to be an interface, nor that
-		     ;; interfaces don't extend non-interfaces, hence
-		     ;; (currently, using dot-oo for implementation)
-		     ;; allows to inherit methods this way, too)
+		     ;; checking (i.e. predicates)
 		     defs)
      (let ((cc
 	    (lambda (class-name maybe-constructor-name field-decls)
@@ -372,8 +382,8 @@
 		     ;; it work with define-module (good luck implementing the
 		     ;; module system / meta-language expander).
 
-		     (parent-type-symbol
-		      (joo:joo-type-symbol extends))
+		     (maybe-parent-type-symbol
+		      (and extends (joo:joo-type-symbol extends)))
 	   
 		     (type-symbol
 		      (joo:joo-type-symbol class-name))
@@ -386,7 +396,9 @@
 		      (make-joo-type! class-name
 				      maybe-constructor-name
 				      fake-tag
-				      (eval parent-type-symbol)
+				      interface?
+				      (and maybe-parent-type-symbol
+					   (eval maybe-parent-type-symbol))
 				      ;; ^ XX as mentioned above should really pass
 				      ;; context to eval
 				      (map eval implements-type-symbols)
@@ -432,7 +444,12 @@
 					       ,(if maybe-constructor-name
 						    tag-symbol
 						    #f)
-					       ,parent-type-symbol
+					       ,interface?
+					       ,maybe-parent-type-symbol
+					       ;; ^ heh, otherwise #f
+					       ;; which is also valid
+					       ;; source for the
+					       ;; purpose
 					       (list ,@implements-type-symbols)
 					       ,(source-quote* field-decls)))
 
@@ -487,10 +504,14 @@
 
 (defmacro (joo-interface decl
 			 #!key
-			 (extends 'joo-object)
-			 (implements '()) ;; XXX allowed in Java?
+			 (extends '())
+			 ;;(implements '())
+			 ;; XX is `implements` allowed for interfaces
+			 ;; in Java? Seems that yes?
+			 ;; http://docs.oracle.com/javase/specs/jls/se8/html/jls-9.html
+			 ;; but then tests show that not.
 			 . defs)
-  (joo:joo-expand #t decl extends implements defs))
+  (joo:joo-expand #t decl #f extends defs))
 
 
 
