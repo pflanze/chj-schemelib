@@ -18,7 +18,8 @@
 	string.drop
 	string.take
 	string.any
-	list.string-reverse)
+	list.string-reverse
+	substring*)
 
 
 ;; (define-macro* (for var seq . body)
@@ -179,4 +180,13 @@
  "abc"
  > (.string-reverse '(#\c #\b #\a) 2)
  "bc")
+
+
+
+(define (substring* str i)
+  (substring str i (string-length str)))
+
+(TEST
+ > (substring* "foo-bar" 3)
+ "-bar")
 
