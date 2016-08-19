@@ -381,7 +381,8 @@
  ((a b) (c d) (e) ())
  > (list-split '(x a b x c d x e x) 'x)
  (() (a b) (c d) (e) ())
- )
+ > (list-split '(a aa b c d) 'b #t)
+ ((a aa) b (c d)))
 
 
 

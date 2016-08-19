@@ -69,7 +69,7 @@
 ;; TEST see list-util.scm
 
 
-(define (r-list-split l separator)
+(define (r-list-split l separator #!optional retain-match? reverse?)
   (let ((separator? (if (procedure? separator)
 			separator
 			(lambda (v)
@@ -77,20 +77,27 @@
     (let lp ((l l)
 	     (cum '())
 	     (res '()))
+      (define (end-cum)
+	(if reverse?
+	    (reverse cum)
+	    cum))
       (if (null? l)
-	  (cons cum res)
+	  (cons (end-cum) res)
 	  (let ((a (car l))
 		(r (cdr l)))
 	    (if (separator? a)
 		(lp r
 		    '()
-		    (cons cum res))
+		    (let ((res* (cons (end-cum) res)))
+		      (if retain-match?
+			  (cons a res*)
+			  res*)))
 		(lp r
 		    (cons a cum)
 		    res)))))))
 
-(define (list-split l separator)
-  (reverse (map reverse (r-list-split l separator))))
+(define (list-split l separator #!optional retain-match?)
+  (reverse (r-list-split l separator retain-match? #t)))
 
 ;; TEST see list-util.scm
 
