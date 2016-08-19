@@ -106,7 +106,12 @@
 	       #((maybe struct-tag?) maybe-struct-tag)
 	       ;; #f means no cj-struct (i.e. same as above)
 	       #(boolean? interface?)
-	       #((if interface? false? (maybe joo-type?)) maybe-parent)
+	       #(;;(if interface? false? (maybe joo-type?))  sigh, I
+		 ;; remembered right afterwards: doesn't work in the
+		 ;; code used for setters; fix this in cj-struct?
+		 ;; (~ugh, and heh, C++/Java style object field
+		 ;; accesses, you know, heh)
+		 (maybe joo-type?) maybe-parent)
 	       ;; #f means this is joo-object
 	       #((list-of joo-interface-type?) implements)
 	       #(list? field-decls)
@@ -519,7 +524,7 @@
 
 ;; this would need mapping from tags to types sigh. Not just from tag
 ;; names.
-(def. (joo-object.is-a? s #(joo-object? t))
+'(def. (joo-object.is-a? s #(joo-object? t))
   (joo-type.is-a? XXX XXX))
 
 
