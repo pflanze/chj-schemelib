@@ -35,6 +35,8 @@
 	;; odd one?:
 	struct-of
 
+	struct-values
+
 	#!optional
 	@maybe-struct-tag-name
 	@struct-tag?
@@ -570,4 +572,10 @@
  > (map f? vals)
  ;; (0 0 0 0 0 0 0 1 0 1 0 1 1 1)
  (#f #f #f #f #f #f #f #t #f #t #f #t #t #t))
+
+
+(define (struct-values s)
+  (if (struct? s)
+      (cdr (vector->list s))
+      (error "not a struct:" s)))
 
