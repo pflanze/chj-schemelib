@@ -1,10 +1,41 @@
-(require)
+;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
 
-;; again. lost on tie
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
+(require cj-source)
+
+(export source-wrap-1
+	source-wrap-1*
+	source-wrap-n
+	source-wrap-1+
+	source:symbol-append ;; aliased to source.symbol-append by oo-util
+	source.length
+	source.car
+	source.cdr 
+	source.pair?
+	source.symbol?
+	source.string?
+	source.number?
+	;; move?
+	symbol->keyword 
+	source.symbol->keyword
+	source.symbol->string
+	;;/move?
+	source.map
+	source.improper*-map)
+
 
 (define (source-wrap-1 fn)
   (lambda (x)
     (fn (source-code x))))
+
+(define (source-wrap-1* fn)
+  (lambda (x)
+    (possibly-sourcify (fn (source-code x)) x)))
 
 (define (source-wrap-n fn)
   (lambda xs
