@@ -8,6 +8,7 @@
 
 (require easy
 	 joo
+	 cj-cmp
 	 (cj-source-quasiquote quasiquote-source)
 	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?
 		 wbtreeparameter*))
