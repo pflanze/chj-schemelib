@@ -29,7 +29,8 @@
 		 intersection
 		 intersection-stream
 		 rank
-		 index))
+		 index
+		 show))
 
 
 (defmacro (def-wbcollection-method name+args . body)
@@ -106,6 +107,11 @@
    (wbtree:members $data))
 
  (method list wbcollection.members)
+
+ (method (show s)
+	 `(list.wbcollection
+	   ,(.show (.param s))
+	   (list ,@(map .show (wbcollection.members s)))))
 
  (def-wbcollection-method (members-stream c)
    (wbtree:stream-members $data))
@@ -216,6 +222,10 @@
  12
  > (.list r)
  (-2 1 2 3 3.3 9)
+
+ > (.show r)
+ (list.wbcollection (wbtreeparameter number-cmp not-_wbtree?)
+		    (list -2 1 2 3 3.3 9))
  
  ;; > (with-exception-catcher identity (& (set! c (.delete c 1))))
  ;; not-found  XXX why does this give #!void instead of exception?
@@ -230,4 +240,11 @@
  ;; sigh, why different kind of error here?
  #(error "can't get min from empty wbtree")
  > (%try-error (.max c))
- #(error "can't get min from empty wbtree"))
+ #(error "can't get min from empty wbtree")
+
+ > (.show c)
+ ;; (wbcollection (wbtreeparameter number-cmp not-_wbtree?) 'empty-wbtree)
+ ;; nope, now:
+ (list.wbcollection (wbtreeparameter number-cmp not-_wbtree?) (list))
+ )
+
