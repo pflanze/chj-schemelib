@@ -7,6 +7,7 @@
 
 
 (require easy
+	 joo
 	 (cj-source-quasiquote quasiquote-source)
 	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?
 		 wbtreeparameter*))
@@ -40,102 +41,102 @@
 		     ,@body))))))
 
 
-(class wbcollection
-       (struct #(wbtreeparameter? param)
+(joo-class
+ (wbcollection #(wbtreeparameter? param)
 	       #(wbtree? data))
 
-       ;; (Methods which take an item can't type-check it: we don't
-       ;; have a type predicate, just a comparison function. The type
-       ;; predicate in wbtreeparameter? is only used by wbtree.scm to
-       ;; distinguish leafs from branches.)
+ ;; (Methods which take an item can't type-check it: we don't
+ ;; have a type predicate, just a comparison function. The type
+ ;; predicate in wbtreeparameter? is only used by wbtree.scm to
+ ;; distinguish leafs from branches.)
 
-       (def-wbcollection-method (size c)
-	 (wbtree:size $data))
+ (def-wbcollection-method (size c)
+   (wbtree:size $data))
 
-       (def-wbcollection-method (empty? c)
-	 (empty-wbtree? $data))
+ (def-wbcollection-method (empty? c)
+   (empty-wbtree? $data))
 
-       (def-wbcollection-method (contains? c item)
-	 (wbtree:member? $data item))
+ (def-wbcollection-method (contains? c item)
+   (wbtree:member? $data item))
 
-       ;; (def-wbcollection-method ( c)
-       ;; 	 (wbtree:maybe-ref $data))
+ ;; (def-wbcollection-method ( c)
+ ;; 	 (wbtree:maybe-ref $data))
 
-       ;; (def-wbcollection-method ( c)
-       ;; 	 (wbtree:maybe-ref&rank $data))
+ ;; (def-wbcollection-method ( c)
+ ;; 	 (wbtree:maybe-ref&rank $data))
 
-       (def-wbcollection-method (min c)
-	 (wbtree:min $data))
+ (def-wbcollection-method (min c)
+   (wbtree:min $data))
 
-       (def-wbcollection-method (max c)
-	 (wbtree:max $data))
+ (def-wbcollection-method (max c)
+   (wbtree:max $data))
 
-       ;; `first` and `rest` don't really seem fitting here, since
-       ;; there's no maintainance of insertion order, so leave it to
-       ;; min and max.
+ ;; `first` and `rest` don't really seem fitting here, since
+ ;; there's no maintainance of insertion order, so leave it to
+ ;; min and max.
 
-       ;; XX is there a faster way to do this? (splitting)
-       (def-wbcollection-method (min&rest c)
-	 (let ((*v (wbtree:min $data)))
-	   (values *v
-		   (wbcollection $wbtreeparameter
-				 (wbtree:delete $data *v)))))
-       ;; copy-paste
-       (def-wbcollection-method (max&rest c)
-	 (let ((*v (wbtree:max $data)))
-	   (values *v
-		   (wbcollection $wbtreeparameter
-				 (wbtree:delete $data *v)))))
+ ;; XX is there a faster way to do this? (splitting)
+ (def-wbcollection-method (min&rest c)
+   (let ((*v (wbtree:min $data)))
+     (values *v
+	     (wbcollection $wbtreeparameter
+			   (wbtree:delete $data *v)))))
+ ;; copy-paste
+ (def-wbcollection-method (max&rest c)
+   (let ((*v (wbtree:max $data)))
+     (values *v
+	     (wbcollection $wbtreeparameter
+			   (wbtree:delete $data *v)))))
 
-       (def-wbcollection-method (add c item)
-	 (wbcollection $wbtreeparameter
-		       (wbtree:add $data item)))
+ (def-wbcollection-method (add c item)
+   (wbcollection $wbtreeparameter
+		 (wbtree:add $data item)))
 
-       (def-wbcollection-method (delete c item)
-	 (wbcollection $wbtreeparameter
-		       (wbtree:delete $data item)))
+ (def-wbcollection-method (delete c item)
+   (wbcollection $wbtreeparameter
+		 (wbtree:delete $data item)))
 
-       ;; wbtree:inorder-fold
-       ;; wbtree:stream-inorder-fold
-       ;; wbtree:inorder-fold-reverse
-       ;; wbtree:stream-inorder-fold-reverse
+ ;; wbtree:inorder-fold
+ ;; wbtree:stream-inorder-fold
+ ;; wbtree:inorder-fold-reverse
+ ;; wbtree:stream-inorder-fold-reverse
 
-       (def-wbcollection-method (members c)
-	 (wbtree:members $data))
+ (def-wbcollection-method (members c)
+   (wbtree:members $data))
 
-       (method list wbcollection.members)
+ (method list wbcollection.members)
 
-       (def-wbcollection-method (members-stream c)
-	 (wbtree:stream-members $data))
+ (def-wbcollection-method (members-stream c)
+   (wbtree:stream-members $data))
 
-       (method stream wbcollection.members-stream)
+ (method stream wbcollection.members-stream)
 
-       ;; wbtree:lt
-       ;; wbtree:gt
-       ;; wbtree:next
+ ;; wbtree:lt
+ ;; wbtree:gt
+ ;; wbtree:next
 
-       (def-wbcollection-method (union c1 c2)
-	 (wbtree:union $data c1 c2))
+ (def-wbcollection-method (union c1 c2)
+   (wbtree:union $data c1 c2))
 
-       (def-wbcollection-method (difference c)
-	 (wbtree:difference $data))
+ (def-wbcollection-method (difference c)
+   (wbtree:difference $data))
 
-       (def-wbcollection-method (intersection c1 c2)
-	 (wbtree:intersection $data c1 c2))
+ (def-wbcollection-method (intersection c1 c2)
+   (wbtree:intersection $data c1 c2))
 
-       (def-wbcollection-method (intersection-stream c1 c2)
-	 (wbtrees:intersection-stream $data c1 c2))
+ (def-wbcollection-method (intersection-stream c1 c2)
+   (wbtrees:intersection-stream $data c1 c2))
 
-       ;; wbtree->stream
-       ;; wbtree:between
+ ;; wbtree->stream
+ ;; wbtree:between
 
-       (def-wbcollection-method (rank c item)
-	 (wbtree:rank $data item))
+ (def-wbcollection-method (rank c item)
+   (wbtree:rank $data item))
 
-       ;; rename this to `.ref` ? Or would that be dangerously close
-       ;; to `.contains?` ?
-       (def-wbcollection-method (index c item)
-	 (wbtree:index $data item)))
+ ;; rename this to `.ref` ? Or would that be dangerously close
+ ;; to `.contains?` ?
+ (def-wbcollection-method (index c item)
+   (wbtree:index $data item)))
 
 
 (def (empty-wbcollection #(function? cmp))
