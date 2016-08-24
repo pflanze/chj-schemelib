@@ -13,24 +13,24 @@
 	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?
 		 wbtreeparameter*))
 
-(export (class wbcollection)
+(export (joo-class wbcollection)
 	empty-wbcollection
 	list.wbcollection
-	(methods size
-		 contains?
-		 min
-		 max
-		 add
-		 delete
-		 members list
-		 members-stream stream
-		 union
-		 difference
-		 intersection
-		 intersection-stream
-		 rank
-		 index
-		 show))
+	(joo-methods size
+		     contains?
+		     min
+		     max
+		     add
+		     delete
+		     members list
+		     members-stream stream
+		     union
+		     difference
+		     intersection
+		     intersection-stream
+		     rank
+		     index
+		     show))
 
 
 (defmacro (def-wbcollection-method name+args . body)
