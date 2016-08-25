@@ -49,6 +49,7 @@
 	length-<=
 	length->=
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
+	length=
 	list-of-length
 	lists?
 	0..1? ;; see also rgb:0..1?
@@ -217,6 +218,28 @@
 	    ((a b) 3))))
  > (t-length= length-=)
  (#t #f #t #f #t #f))
+
+(define (length= l1 l2)
+  (if (null? l1)
+      (null? l2)
+      (if (null? l2)
+	  #f
+	  (length= (cdr l1) (cdr l2)))))
+
+(TEST
+ > (length= '() '())
+ #t
+ > (length= '(a) '())
+ #f
+ > (length= '(a) '(1))
+ #t
+ > (length= '(a) '(1 2))
+ #f
+ > (length= '(a b) '(1 2))
+ #t
+ > (%try (length= '(a . b) '(1 . 2)))
+ (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
+
 
 (define (length-<= l len)
   (if (null? l)
