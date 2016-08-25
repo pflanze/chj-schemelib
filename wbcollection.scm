@@ -52,6 +52,8 @@
  ;; predicate in wbtreeparameter? is only used by wbtree.scm to
  ;; distinguish leafs from branches.)
 
+ ;; XX why not call this length (size being meant for capacity not
+ ;; current number of elements, i.e. in C++ libraries?)?
  (def-wbcollection-method (size c)
    (wbtree:size $data))
 
