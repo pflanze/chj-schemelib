@@ -466,8 +466,16 @@
 					predicate-symbol*)
 			       (joo:make-predicate ,type-symbol))))
 
+		   ;; for backwards compatibility, deprecated? use
+		   ;; def-method instead.
 		   (##define-syntax
 		    method
+		    (,(if interface?
+			  `joo:interface-method-expander-for
+			  `joo:method-expander-for) ',class-name))
+
+		   (##define-syntax
+		    def-method
 		    (,(if interface?
 			  `joo:interface-method-expander-for
 			  `joo:method-expander-for) ',class-name))
