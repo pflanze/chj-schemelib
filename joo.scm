@@ -467,7 +467,8 @@
 			       (joo:make-predicate ,type-symbol))))
 
 		   ;; for backwards compatibility, deprecated? use
-		   ;; def-method instead.
+		   ;; def-method instead. XX: keep `method` for
+		   ;; interfaces though?
 		   (##define-syntax
 		    method
 		    (,(if interface?
