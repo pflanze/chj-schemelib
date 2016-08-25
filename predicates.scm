@@ -50,6 +50,7 @@
 	length->=
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
 	list-of-length
+	lists?
 	0..1? ;; see also rgb:0..1?
 	in-signed-range?
 	parameter?)
@@ -269,6 +270,17 @@
  (#t #f #f #f #f #f)
  > (map (list-of-length 4) vals)
  (#f #f #f #f #f #f))
+
+
+(define lists? (list-of list?))
+
+(TEST
+ > (lists? '())
+ #t
+ > (lists? '(() (1)))
+ #t
+ > (lists? '(() (1) 2))
+ #f)
 
 
 (define (0..1? v)
