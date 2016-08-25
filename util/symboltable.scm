@@ -13,6 +13,7 @@
 	 test)
 
 (export (inline symboltable?)
+	symboltable-of
 	empty-symboltable ;; treat as read-only, please!
 	symboltable-length
 	symboltable-ref ;; with required alternative value if missing
@@ -23,6 +24,7 @@
 	list->symboltable
 	symboltable
 	symboltable:fold ;; hm name?
+	symboltable:every?
 	symboltable->list
 	(method symboltable.show)
 	symboltable-keys
@@ -428,7 +430,7 @@ end:
     (let lp ((i (symboltable:dec-from-base vlen))
 	     (res tail))
       (let lp2 ((i i))
-	(if (positive? i)
+	(if (>= i symboltable:base-i)
 	    (cond ((vector-ref vec i)
 		   => (lambda (key)
 			(lp (dec2 i)
@@ -438,6 +440,19 @@ end:
 		  (else
 		   (lp2 (dec2 i))))
 	    res)))))
+
+(define (symboltable:every? t pred/2)
+  (let ((vlen (symboltable:vector-length t))
+	(vec t))
+    (let lp ((i symboltable:base-i))
+      (if (< i vlen)
+	  (cond ((vector-ref vec i)
+		 => (lambda (key)
+		      (and (pred/2 key (vector-ref vec (inc i)))
+			   (lp (inc2 i)))))
+		(else
+		 (lp (inc2 i))))
+	  #t))))
 
 (define (symboltable->list t #!optional (tail '()))
   (symboltable:fold t tail (lambda (k v r)
@@ -682,6 +697,16 @@ end:
 	(error "key not in table:" key)
 	t*)))
 
+
+(define (symboltable-of pred)
+  (let ((pred* (lambda (key val)
+		 (pred val))))
+    (lambda (v)
+      (and (symboltable? v)
+	   (symboltable:every? v pred*)))))
+
+
+
 (TEST
  > (symboltable? empty-symboltable)
  #t
@@ -729,6 +754,8 @@ end:
 	   l)))
  > t
  #((symboltable) 3 #f #f ha "moo-ha" b "moo-b" a "moo-a")
+ > ((symboltable-of string?) t)
+ #t
  > (symboltable-ref t 'ha 'not-found)
  "moo-ha"
  > (symboltable-ref t 'hu 'not-found)
@@ -757,9 +784,13 @@ end:
 
  > t
  #((symboltable) 3 #f #f ha 2 b "moo-b" a "moo-a")
+ > ((symboltable-of string?) t)
+ #f
  > (define t2 (symboltable-add t 'c "moo-c"))
  > t2
  #((symboltable) 4 #f #f ha 2 #f #f #f #f #f #f c "moo-c" b "moo-b" a "moo-a")
+ > ((symboltable-of (either number? string?)) t)
+ #t
  > (symboltable-remove t2 'c)
  #((symboltable) 3 #f #f ha 2 b "moo-b" a "moo-a")
  > (symboltable-remove t2 'a)
