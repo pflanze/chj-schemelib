@@ -31,7 +31,7 @@
       (define (make-empty-wbtree)
 	empty-wbtree))
     (begin ;; use hash tables
-      (define (wbtree:add t n)
+      (define (wbtree:set t n)
 	(table-set! t n #t)
 	t)
       (define (wbtree:member? t k)

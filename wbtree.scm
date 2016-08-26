@@ -24,7 +24,7 @@
 	wbtree:maybe-ref&rank
 	wbtree:min
 	wbtree:max
-	wbtree:add
+	wbtree:set
 	wbtree:delete
 	wbtree:inorder-fold
 	wbtree:stream-inorder-fold
@@ -363,7 +363,7 @@
 		(new-wbtree v l r))))))
 
 ;; a better name for this would probably be wbtree:set
-(define* (wbtree:add t x)
+(define* (wbtree:set t x)
   (let add ((t t))
     (cond ((empty-wbtree? t)
 	   (make-wbtree x 1 empty-wbtree empty-wbtree))
@@ -529,7 +529,7 @@
 
 (define* (list->wbtree l)
   (fold (lambda (x t)
-	  (wbtree:add t x))
+	  (wbtree:set t x))
 	empty-wbtree
 	l))
 
@@ -550,9 +550,9 @@
 
 (define* (concat3 v l r)
   (cond ((empty-wbtree? l)
-	 (wbtree:add r v))
+	 (wbtree:set r v))
 	((empty-wbtree? r)
-	 (wbtree:add l v))
+	 (wbtree:set l v))
 	(else
 	 (let*-wbtree (((v1 n1 l1 r1) l)
 		     ((v2 n2 l2 r2)  r))

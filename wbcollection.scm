@@ -94,7 +94,7 @@
 
  (def-wbcollection-method (add c item)
    (wbcollection $wbtreeparameter
-		 (wbtree:add $data item)))
+		 (wbtree:set $data item)))
 
  (def-wbcollection-method (delete c item)
    (wbcollection $wbtreeparameter

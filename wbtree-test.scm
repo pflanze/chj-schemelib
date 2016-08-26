@@ -43,8 +43,8 @@
  ("a" "b" "c" "e" "f" "g" "h")
  > ($s(wbtree:members (wbtree:gt (list->wbtree '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o")) "l")))
  ("n" "o" "r" "z")
- > ($sdefine t (wbtree:add empty-wbtree "a"))
- > ($sdefine t (wbtree:add t "b")))
+ > ($sdefine t (wbtree:set empty-wbtree "a"))
+ > ($sdefine t (wbtree:set t "b")))
 
 (IF use-wbtrees-as-leafs?
     (TEST
@@ -56,12 +56,12 @@
 
 (TEST
  > ($sdefine t1 t)
- > ($sdefine t (wbtree:add t "b"))
+ > ($sdefine t (wbtree:set t "b"))
  > (equal? t1 t)
  #t
- > ($sdefine t (wbtree:add t "c"))
- > ($sdefine t (wbtree:add t "d"))
- > ($sdefine t (wbtree:add t "c")))
+ > ($sdefine t (wbtree:set t "c"))
+ > ($sdefine t (wbtree:set t "d"))
+ > ($sdefine t (wbtree:set t "c")))
 
 (IF use-wbtrees-as-leafs?
     (TEST
@@ -71,14 +71,14 @@
        4
        #((wbtree) "a" 1 empty-wbtree empty-wbtree)
        #((wbtree) "c" 2 empty-wbtree #((wbtree) "d" 1 empty-wbtree empty-wbtree)))
-     > ($sdefine t (wbtree:add t "d"))
+     > ($sdefine t (wbtree:set t "d"))
      > t
      #(wbtree
        "b"
        4
        #((wbtree) "a" 1 empty-wbtree empty-wbtree)
        #((wbtree) "c" 2 empty-wbtree #((wbtree) "d" 1 empty-wbtree empty-wbtree)))
-     > ($sdefine t (wbtree:add t "e"))
+     > ($sdefine t (wbtree:set t "e"))
      > t
      #(wbtree
        "c"
@@ -92,14 +92,14 @@
        4
        "a"
        #((wbtree) "c" 2 empty-wbtree "d"))
-     > ($sdefine t (wbtree:add t "d"))
+     > ($sdefine t (wbtree:set t "d"))
      > t
      #((wbtree)
        "b"
        4
        "a"
        #((wbtree) "c" 2 empty-wbtree "d"))
-     > ($sdefine t (wbtree:add t "e"))
+     > ($sdefine t (wbtree:set t "e"))
      > t
      #((wbtree)
        "c"
@@ -121,7 +121,7 @@
  #f
  > ($s(wbtree:members t))
  ("a" "b" "c" "d" "e")
- > ($sdefine t (wbtree:add t "da"))
+ > ($sdefine t (wbtree:set t "da"))
  > ($s(wbtree:members t))
  ("a" "b" "c" "d" "da" "e")
  ;; aha ye: uniq:
