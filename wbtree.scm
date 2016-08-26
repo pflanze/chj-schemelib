@@ -551,7 +551,7 @@
 
 (define* (list->wbtree l)
   (fold (lambda (x t)
-	  (wbtree:set t x))
+	  (wbtree:add t x))
 	empty-wbtree
 	l))
 
