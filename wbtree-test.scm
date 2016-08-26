@@ -122,6 +122,14 @@
  > ($s(wbtree:members t))
  ("a" "b" "c" "d" "e")
  > ($sdefine t (wbtree:set t "da"))
+ > (equal? t ($s(wbtree:set t "da")))
+ #t
+ > (define e (with-exception-catcher identity (lambda () ($s(wbtree:add t "da")))))
+ > (wbtree-duplicate-exception? e)
+ #t
+ > (wbtree-duplicate-exception-element e)
+ "da"
+
  > ($s(wbtree:members t))
  ("a" "b" "c" "d" "da" "e")
  ;; aha ye: uniq:

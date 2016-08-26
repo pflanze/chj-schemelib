@@ -25,6 +25,7 @@
 	wbtree:min
 	wbtree:max
 	wbtree:set
+	wbtree:add
 	wbtree:delete
 	wbtree:inorder-fold
 	wbtree:stream-inorder-fold
@@ -362,7 +363,9 @@
 		      (double-r v l r)))
 		(new-wbtree v l r))))))
 
-;; a better name for this would probably be wbtree:set
+
+;; wbtree:set: setting an element that already exists with regards to
+;; cmp replaces the previous one with the new one.
 (define* (wbtree:set t x)
   (let add ((t t))
     (cond ((empty-wbtree? t)
@@ -373,10 +376,29 @@
 		       ((lt) (T* v (add l) r))
 		       ((gt) (T* v l (add r)))
 		       ((eq)
-			;; already there XXX
-			;; -- ps.  auch den eq? trick andwenden?  oder eben just error out? ps what about contains etc. .
-			;;t
+			;; key already there, but replace with new
+			;; element, ok? (i.e. don't just return t)
 			(new-wbtree x l r))))))))
+
+
+(define-struct wbtree-duplicate-exception
+  constructor-name: wbtree-duplicate-exception
+  element)
+
+;; wbtree:add: adding an element that's already there with regards to
+;; cmp is an error and raises a wbtree-duplicate-exception
+(define* (wbtree:add t x)
+  (let add ((t t))
+    (cond ((empty-wbtree? t)
+	   (make-wbtree x 1 empty-wbtree empty-wbtree))
+	  (else
+	   (let-wbtree ((v _ l r) t)
+		     (match-cmp (cmp x v)
+		       ((lt) (T* v (add l) r))
+		       ((gt) (T* v l (add r)))
+		       ((eq)
+			(raise (wbtree-duplicate-exception x)))))))))
+
 
 ; (define (wbtree:_delete* l r)
 ;   (cond ((empty-wbtree? l)
