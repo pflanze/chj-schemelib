@@ -92,9 +92,13 @@
 	     (wbcollection $wbtreeparameter
 			   (wbtree:delete $data *v)))))
 
- (def-wbcollection-method (add c item)
+ (def-wbcollection-method (set c item)
    (wbcollection $wbtreeparameter
 		 (wbtree:set $data item)))
+
+ (def-wbcollection-method (add c item)
+   (wbcollection $wbtreeparameter
+		 (wbtree:add $data item)))
 
  (def-wbcollection-method (delete c item)
    (wbcollection $wbtreeparameter
@@ -170,7 +174,12 @@
 
 
 (TEST
- > (def c (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3)))
+ > (wbtree-duplicate-exception-element
+    (with-exception-catcher
+     identity
+     (& (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3)))))
+ 3
+ > (def c (list.wbcollection number-cmp '(1 3 2 9 -2 3.3)))
  > (.contains? c 3)
  #t
  > (.contains? c 3.3)
@@ -183,6 +192,9 @@
  -2
  > (.max c)
  9
+ > (wbtree-duplicate-exception?
+    (with-exception-catcher identity (& (.add c 3))))
+ #t
  > (def c2 (.add c 12))
  > (.max c2)
  12
