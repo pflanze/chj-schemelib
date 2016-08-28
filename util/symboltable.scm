@@ -22,6 +22,7 @@
 	symboltable-update!
 	symboltable-update
 	list->symboltable
+	list->symboltable-function
 	symboltable
 	symboltable:fold ;; hm name?
 	symboltable:every?
@@ -420,6 +421,11 @@ end:
 		    (vector-set! vec (inc i) (cdr a)))))
 	    (lp (cdr l)))))
     vec))
+
+(define (list->symboltable-function l #!optional alternate-value)
+  (let ((t (list->symboltable l)))
+    (lambda (k)
+      (symboltable-ref t k alternate-value))))
 
 (define (symboltable . l)
   (list->symboltable l))
@@ -853,6 +859,14 @@ end:
  > (%try-error (symboltable-remove # 'b))
  #(error "key not in table:" b)
  ;; and not #(0 a 1)
+
+ ;; list->symboltable-function
+ > (def f (list->symboltable-function '((a . 1) (b . 2))))
+ > (map f '(a b c))
+ (1 2 #f)
+ > (def f (list->symboltable-function '((a . 1) (b . 2)) -1))
+ > (map f '(a b c))
+ (1 2 -1)
  )
 
 ;; test always run to make sure changes in Gambit won't make
