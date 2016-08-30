@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2016 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -13,6 +13,47 @@
 	 cj-symbol
 	 ;; enum  can't, circular dependency
 	 )
+
+(export (macro match-cmp)
+	element? ;; XX move elsewhere, change? (scheme.scm ?) Not even used here
+
+	cmp->equal?
+	cmp->lt?
+	lt->cmp
+
+	cmp-not
+	cmp-complement
+	2cmp
+	cmp-always-eq
+	list-cmps->cmp
+	cmps->cmp
+	(macro cmp-or)
+
+	(inline @boolean-cmp
+		@number-cmp
+		@symbol-cmp
+		@string-cmp)
+	boolean-cmp
+	number-cmp
+	symbol-cmp
+	string-cmp
+	u8vector-cmp
+
+	xserial-number ;; XX move elsewhere?
+	pointer-cmp
+
+	char-cmp
+	
+	length-cmp
+	
+	german-char-downcase
+	lc_perhaps-compound-1st
+	lc_umlaut?
+	german-string-cmp
+	german-generic-cmp
+	
+	cmp-sort
+	)
 
 
 ;; (define-enum cmp
@@ -450,3 +491,29 @@
 	   (string? b))
       (german-string-cmp a b)
       (generic-cmp a b)))
+
+
+
+;; XX compare with length= in predicates.scm, these both really should
+;; be in list library right? *!*
+
+(define (length-cmp l1 l2)
+  (if (null? l1)
+      (if (null? l2) 'eq 'lt)
+      (if (null? l2)
+	  'gt
+	  (length-cmp (cdr l1) (cdr l2)))))
+
+(TEST
+ > (length-cmp '() '())
+ eq
+ > (length-cmp '(a) '())
+ gt
+ > (length-cmp '(a) '(1))
+ eq
+ > (length-cmp '(a) '(1 2))
+ lt
+ > (length-cmp '(a b) '(1 2))
+ eq
+ > (%try (length-cmp '(a . b) '(1 . 2)))
+ (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
