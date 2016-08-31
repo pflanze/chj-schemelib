@@ -4,7 +4,7 @@
 	 string-util-1
 	 string-util-2
 	 string-util-3
-	 interrupts
+	 posix/interrupts
 	 (test TEST)
 	 )
 
