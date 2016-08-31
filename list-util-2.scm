@@ -13,7 +13,7 @@
 	 define-nested
 	 slib-sort
 	 cj-symbol
-	 (predicates true?))
+	 (predicates-1 true?))
 
 (export (macro pop!)
 	group-by

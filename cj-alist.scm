@@ -8,7 +8,7 @@
 
 (require test
 	 C
-	 (predicates any? true/1 false/2))
+	 (predicates-1 any? true/1 false/2))
 
 
 ;; Library for association lists of various key types

@@ -13,7 +13,7 @@
 	 (cj-symbol with-gensyms)
 	 named
 	 (cj-env define-if-not-defined) ;; in macro expansion
-	 (predicates list-of-length))
+	 (predicates-1 list-of-length))
 
 (export (macro define-struct)
 	(macro define-struct*)
