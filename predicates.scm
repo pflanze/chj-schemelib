@@ -55,7 +55,9 @@
 	lists?
 	0..1? ;; see also rgb:0..1?
 	in-signed-range?
-	parameter?)
+	parameter?
+	function?
+	predicate?)
 
 
 ;; for now there's no difference (intent: pure functions, aside of
@@ -366,3 +368,13 @@
 
 (define parameter? ##parameter?)
 
+
+(define function? procedure?)
+
+;; ^ also, for (java etc.) translation, more information of course,
+;; finally.
+
+;; well, like:
+
+;; a function that takes any value and returns a boolean.
+(define predicate? function?)
