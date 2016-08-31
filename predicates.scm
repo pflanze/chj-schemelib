@@ -30,6 +30,7 @@
 	negative-real?
 	inexact-real?
 	exact-real?
+	exact-integer?
 	exact-number?
 	pair-or-null?
 	pair-with-car
@@ -98,13 +99,31 @@
 
 (define exact-real? (both real? exact?))
 
+(define exact-integer? (both integer? exact?))
+
 (define exact-number? (both number? exact?))
 
 (TEST
  > (exact-real? 3+2i)
  #f
  > (exact-number? 3+2i)
- #t)
+ #t
+ > (exact-real? 0.0)
+ #f
+ > (exact-real? 1)
+ #t
+ > (exact-real? 1/2)
+ #t
+ > (exact-integer? 0.0)
+ #f
+ > (exact-integer? 1)
+ #t
+ > (exact-integer? 1/2)
+ #f
+ ;; TODO, sigh, exact versions of all the others... really?
+ > (natural0? 1.)
+ #t
+ )
 
 
 (define (pair-or-null? v)
