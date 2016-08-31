@@ -70,7 +70,10 @@
 (def (modulepaths-in-dir dir #!optional (tail '()) normalize?)
      (parameterize
       ((current-directory dir))
-      (map/tail (if normalize? path-normalize identity)
+      (map/tail (if normalize?
+		    path-normalize
+		    (lambda (p)
+		      (path-append dir p)))
 		tail
 		(xcall-with-input-process
 		 (list path: "gls" arguments: '("*.scm"))
