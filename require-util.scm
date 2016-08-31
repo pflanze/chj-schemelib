@@ -67,10 +67,10 @@
        (map (C symbol-alist-ref z _) (topo.sort* rs))))
 
 
-(def (modulepaths-in-dir dir #!optional (tail '()))
+(def (modulepaths-in-dir dir #!optional (tail '()) normalize?)
      (parameterize
       ((current-directory dir))
-      (map/tail path-normalize
+      (map/tail (if normalize? path-normalize identity)
 		tail
 		(xcall-with-input-process
 		 (list path: "gls" arguments: '("*.scm"))
