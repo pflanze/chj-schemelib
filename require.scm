@@ -100,15 +100,15 @@
     config
 
     ;; lib/mod/ :
-    config-example
-    gambit
-    imperative-load-tree
-    lib
-    mod
-    monad
-    monadic-load-tree
-    remote
-    usersyntax))
+    mod/config-example
+    mod/gambit
+    mod/imperative-load-tree
+    mod/lib
+    mod/mod
+    mod/monad
+    mod/monadic-load-tree
+    mod/remote
+    mod/usersyntax))
 
 (define (path-string.relation p relation)
   (let ((form (call-with-input-file p read))
