@@ -16,6 +16,27 @@
 	 ;; (cj-functional compose) now avoided
 	 )
 
+(export (macro let*-values)
+	improper-mapfold ;; move??
+	values->vector
+	values->list
+	list->values
+	(macro letv)
+	(macro with-values)
+	(macro lambda-values)
+	(macro lambda-values/force)
+	(macro apply-values)
+	(macro define-values)
+	values-ref
+	fst
+	snd
+	3rd
+	4th
+	5th
+	values?
+	values-equal?
+	)
+
 
 (define-macro* (let*-values bindforms* . body)
   (match-list*
@@ -360,6 +381,8 @@
 (define fst (lambda (<>) (values-ref <> 0)))
 (define snd (lambda (<>) (values-ref <> 1)))
 (define 3rd (lambda (<>) (values-ref <> 2)))
+(define 4th (lambda (<>) (values-ref <> 3)))
+(define 5th (lambda (<>) (values-ref <> 4)))
 
 (TEST
  > (require (test-lib)))
