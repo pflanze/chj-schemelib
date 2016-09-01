@@ -18,7 +18,7 @@
 (export (joo-class wbtable)
 	wbtable?
 	wbtable-of
-	empty-wbtable
+	empty-wbtable-of
 	list->wbtable-of ;; list.wbtable-of ;; no list.wbtable, OK?
 	;; list.wbtable-function
 	(method
@@ -96,7 +96,7 @@
       (_wbtable (wbtable-head key? key-cmp value?)
 		data))
 
- (def (empty-wbtable key? key-cmp value?)
+ (def (empty-wbtable-of key? key-cmp value?)
       (wbtable key? key-cmp value? empty-wbtree))
 
  (def (wbtable-of key? value?)
@@ -121,7 +121,7 @@
       (fold (lambda (k.v t)
 	      ;; re-use pairs, ah (dimly remember)
 	      (.add-pair t k.v))
-	    (empty-wbtable key? key-cmp value?)
+	    (empty-wbtable-of key? key-cmp value?)
 	    l))
 
 
@@ -210,7 +210,7 @@
 
 
 (TEST
- > (def t (empty-wbtable symbol? symbol-cmp integer?))
+ > (def t (empty-wbtable-of symbol? symbol-cmp integer?))
  > (def t2 (=> t
 	       (.add 'x 1)
 	       (.add 'y 2)))
@@ -236,7 +236,7 @@
  > (map .empty? (list t t2 t3))
  (#t #f #f)
  > (map (wbtable-of symbol? integer?)
-	(list t t2 t3 't (empty-wbtable symbol? symbol-cmp string?)))
+	(list t t2 t3 't (empty-wbtable-of symbol? symbol-cmp string?)))
  (#t #t #t #f #f)
  > (.show t2)
  ((list->wbtable-of symbol? symbol-cmp integer?)
