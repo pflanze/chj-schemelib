@@ -39,7 +39,8 @@
 	 wbtable.set
 	 wbtable.remove)
 	#!optional
-	(joo-class wbtable-head))
+	(joo-class wbtable-head)
+	wbtable:list->_)
 
 
 
@@ -126,14 +127,21 @@
  ;; 	empty-wbtree
  ;; 	l))
 
- (def ((list->wbtable-of key? key-cmp value?) l)
-      ;; (assert ((list-of (pair-of key? value?)) l))
-      ;; better: throw exception while iterating
+ ;; (assert ((list-of (pair-of key? value?)) l))
+ ;; better: throw exception while iterating
+
+ ;; make re-usable by inheriting classes..:
+ 
+ (def (wbtable:list->_ empty l)
       (fold (lambda (k.v t)
 	      ;; re-use pairs, ah (dimly remember)
 	      (.add-pair t k.v))
-	    (empty-wbtable-of key? key-cmp value?)
+	    empty
 	    l))
+ 
+ (def ((list->wbtable-of key? key-cmp value?) l)
+      (wbtable:list->_ (empty-wbtable-of key? key-cmp value?) l))
+ 
 
 
  ;; yeah, should really rename size in wbcollection ? !
