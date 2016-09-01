@@ -19,7 +19,8 @@
 	wbtable?
 	wbtable-of
 	empty-wbtable-of
-	list->wbtable-of ;; list.wbtable-of ;; no list.wbtable, OK?
+	list->wbtable-of
+	;; list.wbtable-of  nah just too many args, k? ;; no list.wbtable, OK?
 	;; list.wbtable-function
 	(method
 	 wbtable.length
@@ -70,7 +71,17 @@
  (def (wbtable-head key? key-cmp value?)
       (_wbtable-head key? key-cmp value?
 		     (wbtreeparameter (on car key-cmp)
-				      pair?))))
+				      pair?)))
+
+ (def-method (compatible? s #(wbtable-head? t))
+   ;; pessimistic for now...
+   (let-wbtable-head
+    ((a b c _) s)
+    (let-wbtable-head
+     ((x y z _) t)
+     (and (eq? a x)
+	  (eq? b y)
+	  (eq? c z))))))
 
 
 (defmacro (def-wbtable-method name+args . body)
@@ -205,6 +216,20 @@
 
  (def-method (delete s key)
    (wbtable.delete-pair s (cons key #f)))
+
+ ;; XX die or not on conflicting elements?
+ (def-wbtable-method (union s t)
+   (let ((h1 (.table-head s))
+	 (h2 (.table-head t)))
+     (if (.compatible? h1 h2)
+	 (.data-set s
+		    (wbtree:union $data
+				  (.data t)))
+	 ;; worry about huge data or not, forever? only show heads?
+	 (error "incompatible table heads:"
+		;; and do an error that does .show implicitely rather
+		;; than use .show here, k?
+		h1 h2))))
  
  )
 
@@ -241,5 +266,15 @@
  > (.show t2)
  ((list->wbtable-of symbol? symbol-cmp integer?)
   (list (cons 'x 1)
+	(cons 'y 2)))
+
+ > (def u ((list->wbtable-of symbol? symbol-cmp integer?)
+	   '((a . 11) (b . 12) (x . 10))))
+ > (def u2 (.union t2 u))
+ > (.show u2)
+ ((list->wbtable-of symbol? symbol-cmp integer?)
+  (list (cons 'a 11)
+	(cons 'b 12)
+	(cons 'x 10)
 	(cons 'y 2)))
  )
