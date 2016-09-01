@@ -28,7 +28,7 @@
 			;; be with easy?
 	 (cj-struct struct-tag.name)
 	 dot-oo ;; actually still using define-struct. currently
-	 util/symboltable ;; XX gah, util/ is more useless than source of it
+	 symboltable
 	 (cj-source source-quote source-dequote)
 	 cj-seen
 	 (improper-list improper-list->list))
