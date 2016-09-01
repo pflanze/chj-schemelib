@@ -8,60 +8,97 @@
 ;;;    Design Solutions Inc. from Quebec, Canada.
 
 
-;; do a 'naked' abstraction over wbtable, i.e. just wrappers for the
-;; functions (non-generics).
-
 (require easy
 	 cj-cmp
-	 wbtable
+	 joo
+	 wbtable ;; implied baseclass loading anyone?
+	 (wbtable wbtable:list->_)
+	 (wbtree empty-wbtree)
 	 test)
 
-(export wbsymboltable?
+(export (joo-class wbsymboltable)
+	;; wbsymboltable? implied in the above?
 	wbsymboltable-of
 	empty-wbsymboltable-of
 	list->wbsymboltable-of
 	list.wbsymboltable-of
-	
-	;; plus method and class re-exports from wbtable..
+
+	;; plus same method exports as wbtable, could we inherit those
+	;; please? Or rather well really automatic, those for joo are
+	;; not difficult? Except at runtime only.
 	)
 
 
-(def wbsymboltable?
-     ;; hm can't use wbtable-of, wow. Since that does eq? not
-     ;; subtyping checking with the value? predicate.
-     (lambda (v)
-       (and (wbtable? v)
-	    (=> v
-		(.table-head)
-		(.key?)
-		(eq? symbol?)))))
+;; returns #t for structually equivalent table but possibly not
+;; 'blessed into' wbsymboltable:
 
-(def (wbsymboltable-of value?)
-     ;; XX Note that this one is (just strictly speaking?) also
-     ;; actually broken, since subtyping is missing; value? may very
-     ;; well return true for all of its values but not be eq? (well we
-     ;; knew that about the non-eq-but-equivalent case anyway, but the
-     ;; point is that the predicate doesn't even need to be type
-     ;; equivalent, but subtype matching is enough, for it to remain
-     ;; true.)
-     (wbtable-of symbol? value?))
-
-(def (empty-wbsymboltable-of value?)
-     (empty-wbtable-of symbol? symbol-cmp value?))
+(def. (wbtable.wbsymboltable-compatible? v)
+  ;; hm can't use wbtable-of, wow. Since that does eq? not
+  ;; subtyping checking with the value? predicate.
+  (=> v
+      (.table-head)
+      (.key?)
+      (eq? symbol?)))
 
 
-(def (list->wbsymboltable-of value?)
-     (list->wbtable-of symbol? symbol-cmp value?))
+(joo-class
+ ((wbsymboltable _wbsymboltable))
+ ;; really want fewer fields, kinda, does that screem for containment
+ ;; instead of inheritance (but really have all the methods to share)
+ extends: wbtable
 
-(def (list.wbsymboltable-of l value?)
-     ((list->wbtable-of symbol? symbol-cmp value?) l))
+ ;; Here's our constructor with fewer fields:
+ (def (wbsymboltable value? data)
+      (_wbsymboltable (wbtable-head symbol? symbol-cmp value?)
+		      data))
+ ;; (XX why not wbsymboltable-of to be consistent with
+ ;; empty-wbsymboltable-of, sigh?)
+
+ (def (empty-wbsymboltable-of value?)
+      (wbsymboltable value? empty-wbtree))
 
 
-(def. (wbsymboltable.show t)
-  `(list.wbsymboltable-of ,(.show (.list t))
-			  ,(.show (=> t
-				      (.table-head)
-				      (.value?)))))
+ (def (wbsymboltable-of value?)
+      ;; XX Note that this one is (just strictly speaking?) also
+      ;; actually broken, since subtyping is missing; value? may very
+      ;; well return true for all of its values but not be eq? (well we
+      ;; knew that about the non-eq-but-equivalent case anyway, but the
+      ;; point is that the predicate doesn't even need to be type
+      ;; equivalent, but subtype matching is enough, for it to remain
+      ;; true.)
+
+      ;; actually be satisfied with wbtable-of, i.e. (kinda?)
+      ;; structural typing?
+      ;;(wbtable-of symbol? value?)
+
+      ;; or:
+      (lambda (v)
+	(and (wbsymboltable? v)
+	     (=> v
+		 (.table-head)
+		 (.value?)
+		 (eq? value?)))))
+
+
+
+
+ (def (list.wbsymboltable-of l value?)
+      (wbtable:list->_ (empty-wbsymboltable-of value?) l))
+
+ ;; ~just for compat, well
+ (def ((list->wbsymboltable-of value?) l)
+      (list.wbsymboltable-of l value?))
+ 
+
+ (def-method (show t)
+   `(list.wbsymboltable-of ,(.show (.list t))
+			   ,(.show (=> t
+				       (.table-head)
+				       (.value?)))))
+
+ )
+
+
 
 (TEST
  > (def t (empty-wbsymboltable-of number?))
