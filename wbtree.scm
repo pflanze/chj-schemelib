@@ -383,7 +383,8 @@
 
 (define-struct wbtree-duplicate-exception
   constructor-name: wbtree-duplicate-exception
-  element)
+  old-element
+  new-element)
 
 ;; wbtree:add: adding an element that's already there with regards to
 ;; cmp is an error and raises a wbtree-duplicate-exception
@@ -397,7 +398,7 @@
 		       ((lt) (T* v (add l) r))
 		       ((gt) (T* v l (add r)))
 		       ((eq)
-			(raise (wbtree-duplicate-exception x)))))))))
+			(raise (wbtree-duplicate-exception v x)))))))))
 
 
 ; (define (wbtree:_delete* l r)
