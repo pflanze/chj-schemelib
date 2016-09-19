@@ -174,11 +174,11 @@
 
 
 (TEST
- > (wbtree-duplicate-exception-element
+ > (.show
     (with-exception-catcher
      identity
      (& (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3)))))
- 3
+ (wbtree-duplicate-exception 3 3)
  > (def c (list.wbcollection number-cmp '(1 3 2 9 -2 3.3)))
  > (.contains? c 3)
  #t
