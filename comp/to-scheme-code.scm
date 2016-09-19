@@ -58,7 +58,7 @@
 (TEST
  > (def (cs-back source)
 	(.scheme-code
-	 (source.cs source default-scheme-env)))
+	 (source.cs-ast source default-scheme-env)))
  > (def t-scheme-code
 	(lambda (source result)
 	  (and
