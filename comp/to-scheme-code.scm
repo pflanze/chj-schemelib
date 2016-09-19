@@ -1,7 +1,7 @@
 ;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
 
 (require easy
-	 corescheme
+	 s2ocaml/ast/corescheme
 	 (failing <failing-on> <failing-off>))
 
 
