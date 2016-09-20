@@ -34,7 +34,9 @@
 	 (improper-list improper-list->list))
 
 (export (macro joo-class)
-	(macro joo-interface))
+	(macro joo-interface)
+	#!optional
+	joo:parse-decl)
 
 
 ;; We define a new |method| syntax, but it is locally scoped, not
@@ -356,6 +358,35 @@
      (joo:make-predicate joo-type:joo-object))
 
 
+(def (joo:parse-decl decl
+		     ;; conts all receive:
+		     ;; (class-name, maybe-constructor-name, field-decls)
+		     cont-renamedconstructor
+		     cont-samename
+		     cont-abstract)
+     (mcase decl
+	    (`(`class-name+perhaps-constructor-name* . `field-decls)
+	     (mcase class-name+perhaps-constructor-name*
+
+		    ;; separate constructor (XX hm, allow #f, too?,
+		    ;; i.e. fields but no constructor)
+		    (`(`class-name `constructor-name)
+		     (cont-renamedconstructor class-name
+					      constructor-name
+					      field-decls))
+
+		    ;; constructor has the same name as the class
+		    (symbol?
+		     (let ((n (source-code class-name+perhaps-constructor-name*)))
+		       (cont-samename class-name+perhaps-constructor-name*
+				      class-name+perhaps-constructor-name*
+				      field-decls)))))
+	    (symbol?
+	     ;; no constructor at all, and no fields either
+	     (cont-abstract decl
+			    #f
+			    `()))))
+
 
 (def (joo:joo-expand interface?
 		     decl
@@ -367,11 +398,15 @@
 		     ;; checking (i.e. predicates)
 		     defs)
      (let ((cc
-	    (lambda (class-name maybe-constructor-name field-decls)
+	    (lambda (class-name* maybe-constructor-name* field-decls)
 	      ;; if maybe-constructor-name is #f, that means, no
 	      ;; constructor at all
 
-	      (let* ( ;; XX HACKy, especially since now we depend on internals of
+	      (let* ((class-name (source-code class-name*))
+		     (maybe-constructor-name
+		      (and maybe-constructor-name*
+			   (source-code maybe-constructor-name*)))
+		     ;; XX HACKy, especially since now we depend on internals of
 		     ;; cj-struct. Also, not the same as allocated at runtime,
 		     ;; so....?!
 		     (fake-tag
@@ -482,32 +517,11 @@
 			  `joo:method-expander-for) ',class-name))
 
 		   ,@defs)))))
-       
-       (mcase
-	decl
 
-	(`(`class-name+perhaps-constructor-name* . `field-decls)
-	 (mcase class-name+perhaps-constructor-name*
-
-		;; separate constructor (XX hm, allow #f, too?,
-		;; i.e. fields but no constructor)
-		(`(`class-name `constructor-name)
-		 (cc (source-code class-name)
-		     (source-code constructor-name)
-		     field-decls))
-
-		;; constructor has the same name as the class
-		(symbol?
-		 (let ((n (source-code class-name+perhaps-constructor-name*)))
-		   (cc n
-		       n
-		       field-decls)))))
-
-	(symbol?
-	 ;; no constructor at all, and no fields either
-	 (cc (source-code decl)
-	     #f
-	     `())))))
+       (joo:parse-decl decl
+		       cc
+		       cc
+		       cc)))
 
 (defmacro (joo-class decl
 		     #!key
