@@ -501,6 +501,12 @@
 					predicate-symbol*)
 			       (joo:make-predicate ,type-symbol))))
 
+
+		   ;; XX ##define-syntax is ugly, it leaves the scope
+		   ;; of the |begin| forms, and hence the original
+		   ;; joo-* forms. Replace by explicit parsing
+		   ;; (same-level only).
+
 		   ;; for backwards compatibility, deprecated? use
 		   ;; def-method instead. XX: keep `method` for
 		   ;; interfaces though?
