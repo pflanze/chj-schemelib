@@ -170,11 +170,11 @@
 			  (let ((test (car rest))
 				(then (cadr rest))
 				(perhaps-else (cddr rest)))
-			    (load.scm-extract then
-					      (if (pair? perhaps-else)
-						  (load.scm-extract (car perhaps-else)
-								    tail)
-						  tail))))
+			    (if (eval test)
+				(load.scm-extract then tail)
+				(if (pair? perhaps-else)
+				    (load.scm-extract (car perhaps-else) tail)
+				    tail))))
 			 ((0)
 			  (cons (car rest) tail)))
 		  ;; ignore
