@@ -129,6 +129,7 @@
 
 (def load.scm-extract-forms-yes
      '((begin recurse)
+       (if recurse-if)
        (c/load 0)
        (i/load 0)
        (/load 0)
@@ -165,6 +166,15 @@
 			  (fold-right load.scm-extract
 				      tail
 				      rest))
+			 ((recurse-if)
+			  (let ((test (car rest))
+				(then (cadr rest))
+				(perhaps-else (cddr rest)))
+			    (load.scm-extract then
+					      (if (pair? perhaps-else)
+						  (load.scm-extract (car perhaps-else)
+								    tail)
+						  tail))))
 			 ((0)
 			  (cons (car rest) tail)))
 		  ;; ignore
