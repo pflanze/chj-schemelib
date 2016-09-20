@@ -32,6 +32,11 @@
 ;; inner layer of forms and run the same expander (recursively) on
 ;; found forms.
 
+;; Ah, interesting: *because* of ##define-syntax exiting begin scopes,
+;; I now also have to *move* nested jclass / jinterface forms out to
+;; the toplevel, wow. Ah won't actually help for the same
+;; reason. *Wow*.
+
 
 ;; XX move to joo
 (def (joo-extends-or-implements stx super-is-class? is-class?)
