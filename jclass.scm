@@ -35,7 +35,10 @@
 ;; Ah, interesting: *because* of ##define-syntax exiting begin scopes,
 ;; I now also have to *move* nested jclass / jinterface forms out to
 ;; the toplevel, wow. Ah won't actually help for the same
-;; reason. *Wow*.
+;; reason. *Wow*. Eh ok it will actually help, not because of the
+;; nesting change but because the ordering is changed (and in line
+;; with the original nesting, I mean stuff remains with stuff now).
+;; (Ok, XX clean up those stupid comments some time.)
 
 
 ;; XX move to joo
@@ -57,26 +60,35 @@
      (let-pair
       ((decl forms) args)
       (let ((c (lambda (name _maybe-constructor-name _field-decls)
-		 `(,(if is-class? `joo-class `joo-interface)
-		   ,decl
-		   ,@(if maybe-super-name
-			 (list (joo-extends-or-implements
-				stx super-is-class? is-class?)
-			       maybe-super-name)
-			 '())
-		   ,@(map (C jclass:perhaps-expand-in-context
-			     #f
-			     _
-			     name
-			     is-class?)
-			  forms)))))
+		 (let ((forms* (map (C jclass:perhaps-expand-in-context
+				       _
+				       name
+				       is-class?)
+				    forms)))
+		   `(begin
+		      (,(if is-class? `joo-class `joo-interface)
+		       ,decl
+		       ,@(if maybe-super-name
+			     (list (joo-extends-or-implements
+				    stx super-is-class? is-class?)
+				   maybe-super-name)
+			     '())
+		       ;; forms that are unrelated (didn't expand)
+		       ;; remain in the scope of the joo-* definition:
+		       ,@(map fst (filter (complement snd) forms*)))
+		      ;; forms that are expanded by jclass.scm are put
+		      ;; afterwards:
+		      ,@(map fst (filter snd forms*)))))))
 	(joo:parse-decl decl c c c))))
 
 
-(def (jclass:perhaps-expand-in-context require-match?
-				       expr
+(def (jclass:perhaps-expand-in-context expr
 				       maybe-super-name
 				       super-is-class?)
+     -> (values-of any?
+		   ;; #t if it did expand
+		   boolean?)
+
      (mcase expr
 	    (pair?
 	     (let-pair ((a r) (source-code expr))
@@ -85,27 +97,33 @@
 			     ;; wow have to check for expansion#
 			     ;; version, too. OMG
 			     ((jinterface expansion#jinterface) 
-			      (jclass:expand expr
-					     #f r
-					     maybe-super-name
-					     super-is-class?))
+			      (values (jclass:expand expr
+						     #f r
+						     maybe-super-name
+						     super-is-class?)
+				      #t))
 			     ((jclass expansion#jclass)
-			      (jclass:expand expr
-					     #t r
-					     maybe-super-name
-					     super-is-class?))
-			     (else expr))
+			      (values (jclass:expand expr
+						     #t r
+						     maybe-super-name
+						     super-is-class?)
+				      #t))
+			     (else (values expr #f)))
 			   (source-error expr "missing decl"))))
 	    (else
-	     (if require-match?
-		 (source-error expr "BUG")
-		 expr))))
+	     (values expr #f))))
+
+(def (jclass:toplevel-expand stx is-class?)
+     (letv ((stx* did?) (jclass:perhaps-expand-in-context stx #f is-class?))
+	   (if did?
+	       stx*
+	       (syntax-error stx "BUG"))))
 
 (defmacro (jinterface decl . forms)
-  (jclass:perhaps-expand-in-context #t stx #f #f))
+  (jclass:toplevel-expand stx #f))
 
 (defmacro (jclass decl . forms)
-  (jclass:perhaps-expand-in-context #t stx #f #t))
+  (jclass:toplevel-expand stx #t))
 
 ;; ^ XX btw double extends: or implements: keywords, how to handle?
 ;; Really \SCHEME[keyword arguments should handle duplicate argument
@@ -113,11 +131,16 @@
 
 
 (TEST
- > (jinterface jclasst
+ > (jinterface jct
 	       (jclass (foo x y)
 		       (jclass (bar z)
-			       (jclass (baz))))
-	       (jinterface jclasst2
+			       (jclass (baz)))
+		       ;; method *after* an inner class definition to
+		       ;; test for the ##define-syntax (inner syntax
+		       ;; scoping) issue:
+		       (def-method (meth s)
+			 (+ (.x s) (.y s))))
+	       (jinterface jct2
 			   (jclass (foo2 x))))
  > (foo 10 12)
  #((foo) 10 12)
@@ -126,29 +149,45 @@
  #((baz) 10 12 13)
  > (foo? b)
  #t
- > (jclasst? b)
+ > (jct? b)
  #t
- > (jclasst2? b)
+ > (jct2? b)
  #f
- > (jclasst? (foo2 1))
+ > (jct? (foo2 1))
  #t
- > (jclasst2? (foo2 1))
+ > (jct2? (foo2 1))
  #t
- ;; > (jclasst? jclasst2) ehr there's no constructor. Do or do I not
+ ;; > (jct? jct2) ehr there's no constructor. Do or do I not
  ;; have a way to check this hierarchy just on the class level yet?
 
  ;; > (with-exception-handler
  ;;    identity ;; source-error-message
- ;;    (& (eval (quote-source (jinterface jclasst
+ ;;    (& (eval (quote-source (jinterface jct
  ;; 				       (jclass (foo x y)
- ;; 					       (jinterface jclasstdeep
+ ;; 					       (jinterface jctdeep
  ;; 							   (jclass (bar z)
  ;; 								   (jclass (baz)))))
- ;; 				       (jinterface jclasst2
+ ;; 				       (jinterface jct2
  ;; 						   (jclass (foo2 x))))))))
  ;;"an interface cannot extend a class"
 
  ;; ^ ok wow that crashes Gambit; without with-exception-handler it's
  ;; fine, goes into debugger. Same thing when using quote.
- )
 
+ ;; Test the inner syntax scoping thing:
+ > (expansion#jclass (foo x y) (jclass (bar z)))
+ (begin (joo-class (foo x y))
+	(begin (joo-class (bar z) extends: foo)))
+ > (expansion#jclass (foo x y)
+		     (jclass (bar z) (def-method (meth s) 'bar))
+		     (def-method (meth s) 'foo))
+ (begin
+   (joo-class (foo x y)
+	      (def-method (meth s) 'foo))
+   (begin
+     (joo-class (bar z) extends: foo
+		(def-method (meth s) 'bar))))
+
+ ;; and on the earlier, actually executed, definition of foo:
+ > (.meth (foo 10 11))
+ 21)
