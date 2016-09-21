@@ -122,6 +122,12 @@
 				      cs-var?))
 
 
+;; -- XX why typed-list not typed-alist ??? Ah because typed-alist is
+;; a naked data structure? (Or at least doesn't currently offer a
+;; predicate for it?)
+;; > empty-cs-ctx
+;; #((typed-list-null) #<procedure #2 cs-var?>)
+;; Nah, could do it.
 (def cs-ctx? (typed-list-of cs-var?))
 (def empty-cs-ctx (typed-list cs-var?))
 
