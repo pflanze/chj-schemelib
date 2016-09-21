@@ -22,12 +22,15 @@
 ;; gah, need pairing? as additional parameter over <alist>
 (defmodule (<typed-alist> key? .key .equal? pairing?)
 
-  (export alist
+  (export ?
+	  alist
 	  Maybe-ref
 	  ref
 	  set
 	  delete)
 
+  (def ? (typed-list-of pairing?))
+  
   (def (alist . pairings)
        (list->typed-list pairing? pairings))
 
