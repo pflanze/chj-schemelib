@@ -37,10 +37,10 @@
   (match* name+args
 	  ((name c . args)
 	   (quasiquote-source
-	    (method ,name+args
-		    (let-wbcollection
-		     (($wbtreeparameter $data) ,c)
-		     ,@body))))))
+	    (def-method ,name+args
+	      (let-wbcollection
+	       (($wbtreeparameter $data) ,c)
+	       ,@body))))))
 
 
 (joo-class
@@ -112,17 +112,17 @@
  (def-wbcollection-method (members c)
    (wbtree:members $data))
 
- (method list wbcollection.members)
+ (def-method list wbcollection.members)
 
- (method (show s)
-	 `(list.wbcollection
-	   ,(.show (.param s))
-	   (list ,@(map .show (wbcollection.members s)))))
+ (def-method (show s)
+   `(list.wbcollection
+     ,(.show (.param s))
+     (list ,@(map .show (wbcollection.members s)))))
 
  (def-wbcollection-method (members-stream c)
    (wbtree:stream-members $data))
 
- (method stream wbcollection.members-stream)
+ (def-method stream wbcollection.members-stream)
 
  ;; wbtree:lt
  ;; wbtree:gt
