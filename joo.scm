@@ -45,7 +45,7 @@
 ;; already how that was a bad idea, hm?), I mean, ok?  I.e. its
 ;; definition is exported with |jooclass|.
 
-(def (joo:method-expander-for class-name)
+(def (joo:implementation-method-expander-for class-name)
      (def class-name. (symbol-append class-name "."))
      (lambda (stx)
        (cj-sourcify-deep
@@ -61,7 +61,7 @@
 			   ,@rest)))))
 	stx)))
 
-(def (joo:interface-method-expander-for class-name)
+(def (joo:abstract-method-expander-for class-name)
      ;; (Future: could instead parse from joo-interface form, store
      ;; and use for checking in joo-class forms, whatever.)
      (lambda (stx)
@@ -69,7 +69,13 @@
 	`(begin)
 	stx)))
 
+(def joo:abstract-method-expander-forbidden
+     (lambda (stx)
+       (source-error stx "abstract method not allowed in non-abstract class")))
 
+(def joo:implementation-method-expander-forbidden
+     (lambda (stx)
+       (source-error stx "method implementation not allowed in abstract class")))
 
 
 ;; How to check for (eq? and, nah, actually only, although including
@@ -398,136 +404,146 @@
 		     ;; checking (i.e. predicates)
 		     defs)
      (let ((cc
-	    (lambda (class-name* maybe-constructor-name* field-decls)
-	      ;; if maybe-constructor-name is #f, that means, no
-	      ;; constructor at all
+	    (lambda (abstract?)
+	      ;; parsed decl:
+	      (lambda (class-name* maybe-constructor-name* field-decls)
+		;; if maybe-constructor-name is #f, that means, no
+		;; constructor at all (abstract class or interface)
 
-	      (let* ((class-name (source-code class-name*))
-		     (maybe-constructor-name
-		      (and maybe-constructor-name*
-			   (source-code maybe-constructor-name*)))
-		     ;; XX HACKy, especially since now we depend on internals of
-		     ;; cj-struct. Also, not the same as allocated at runtime,
-		     ;; so....?!
-		     (fake-tag
-		      (struct-tag-allocate!
-		       class-name
-		       (struct-metadata maybe-constructor-name)))
-		     ;; Why are we doing the hack? Because need, at compile
-		     ;; time, the list of fields, right? Need to append parent
-		     ;; classes' field lists (all-field-decls), before
-		     ;; generating code. So yes. And then we've got 1 data
-		     ;; structure for everything. Also in the future should
-		     ;; access parent class storage from lexical scope, to make
-		     ;; it work with define-module (good luck implementing the
-		     ;; module system / meta-language expander).
+		;; XX wait^, do we have, with abstract? and
+		;; maybe-constructor-name, now the same info twice?
 
-		     (maybe-parent-type-symbol
-		      (and extends (joo:joo-type-symbol extends)))
+		(if
+		 (and interface? maybe-constructor-name*)
+		 (source-error
+		  decl "field definitions not allowed in interface")
+
+		 (let*
+		     ((class-name (source-code class-name*))
+		      (maybe-constructor-name
+		       (and maybe-constructor-name*
+			    (source-code maybe-constructor-name*)))
+		      ;; XX HACKy, especially since now we depend on internals of
+		      ;; cj-struct. Also, not the same as allocated at runtime,
+		      ;; so....?!
+		      (fake-tag
+		       (struct-tag-allocate!
+			class-name
+			(struct-metadata maybe-constructor-name)))
+		      ;; Why are we doing the hack? Because need, at compile
+		      ;; time, the list of fields, right? Need to append parent
+		      ;; classes' field lists (all-field-decls), before
+		      ;; generating code. So yes. And then we've got 1 data
+		      ;; structure for everything. Also in the future should
+		      ;; access parent class storage from lexical scope, to make
+		      ;; it work with define-module (good luck implementing the
+		      ;; module system / meta-language expander).
+
+		      (maybe-parent-type-symbol
+		       (and extends (joo:joo-type-symbol extends)))
 	   
-		     (type-symbol
-		      (joo:joo-type-symbol class-name))
+		      (type-symbol
+		       (joo:joo-type-symbol class-name))
 
-		     (implements-type-symbols
-		      (map joo:joo-type-symbol
-			   (improper-list->list (source-code implements))))
+		      (implements-type-symbols
+		       (map joo:joo-type-symbol
+			    (improper-list->list (source-code implements))))
 
-		     (type
-		      (make-joo-type! class-name
-				      maybe-constructor-name
-				      fake-tag
-				      interface?
-				      (and maybe-parent-type-symbol
-					   (eval maybe-parent-type-symbol))
-				      ;; ^ XX as mentioned above should really pass
-				      ;; context to eval
-				      (map eval implements-type-symbols)
-				      field-decls))
+		      (type
+		       (make-joo-type! class-name
+				       maybe-constructor-name
+				       fake-tag
+				       interface?
+				       (and maybe-parent-type-symbol
+					    (eval maybe-parent-type-symbol))
+				       ;; ^ XX as mentioned above should really pass
+				       ;; context to eval
+				       (map eval implements-type-symbols)
+				       field-decls))
 
-		     (saved-values (values #f #f)))
+		      (saved-values (values #f #f)))
 
-		;; store in the symbol in case another joo-class is being
-		;; expanded in the same compilation run (sigh, the old
-		;; schizophrenia is back) (ah and crazy, in two-step process
-		;; here, for storing run time value):
-		(eval `(define ,type-symbol #f))
-		((eval `(lambda (v) (set! ,type-symbol v))) type)
+		   ;; store in the symbol in case another joo-class is being
+		   ;; expanded in the same compilation run (sigh, the old
+		   ;; schizophrenia is back) (ah and crazy, in two-step process
+		   ;; here, for storing run time value):
+		   (eval `(define ,type-symbol #f))
+		   ((eval `(lambda (v) (set! ,type-symbol v))) type)
 
-		`(begin
-		   ,(if maybe-constructor-name
-			(define-struct.-expand
-			  class-name
-			  (cons* predicate-code:
-				 (lambda (predicate-symbol tag-symbol add-offset numfields)
-				   ;; ugh ugly but so, to break up circular dependency
-				   ;; between cj-struct and make-joo-type!:
-				   (set! saved-values (values predicate-symbol tag-symbol))
-				   ;; output no predicate code yet, will that work?
-				   `(begin))
-				 constructor-name:
-				 maybe-constructor-name
-				 (joo-type.all-field-decls type)))
-			`(begin))
+		   `(begin
+		      ,(if maybe-constructor-name
+			   (define-struct.-expand
+			     class-name
+			     (cons* predicate-code:
+				    (lambda (predicate-symbol tag-symbol add-offset numfields)
+				      ;; ugh ugly but so, to break up circular dependency
+				      ;; between cj-struct and make-joo-type!:
+				      (set! saved-values (values predicate-symbol tag-symbol))
+				      ;; output no predicate code yet, will that work?
+				      `(begin))
+				    constructor-name:
+				    maybe-constructor-name
+				    (joo-type.all-field-decls type)))
+			   `(begin))
 
-		   ,(letv ((predicate-symbol tag-symbol) saved-values)
-			  `(begin
-			     (define ,type-symbol
-			       ;; XX and as mentioned gah, since here ge create
-			       ;; another version of the joo-type object, when it
-			       ;; should be a singleton. Hope the kind of mutations
-			       ;; done don't matter. And can't even use the same
-			       ;; code since eval with *our* lexical context (macro
-			       ;; expander) wouldn't work either. \SCHEME is so
-			       ;; unfinished! \CL?
-			       (make-joo-type! ',class-name
-					       ',maybe-constructor-name
-					       ,(if maybe-constructor-name
-						    tag-symbol
-						    #f)
-					       ,interface?
-					       ,maybe-parent-type-symbol
-					       ;; ^ heh, otherwise #f
-					       ;; which is also valid
-					       ;; source for the
-					       ;; purpose
-					       (list ,@implements-type-symbols)
-					       ,(source-quote* field-decls)))
+		      ,(letv ((predicate-symbol tag-symbol) saved-values)
+			     `(begin
+				(define ,type-symbol
+				  ;; XX and as mentioned gah, since here ge create
+				  ;; another version of the joo-type object, when it
+				  ;; should be a singleton. Hope the kind of mutations
+				  ;; done don't matter. And can't even use the same
+				  ;; code since eval with *our* lexical context (macro
+				  ;; expander) wouldn't work either. \SCHEME is so
+				  ;; unfinished! \CL?
+				  (make-joo-type! ',class-name
+						  ',maybe-constructor-name
+						  ,(if maybe-constructor-name
+						       tag-symbol
+						       #f)
+						  ,interface?
+						  ,maybe-parent-type-symbol
+						  ;; ^ heh, otherwise #f
+						  ;; which is also valid
+						  ;; source for the
+						  ;; purpose
+						  (list ,@implements-type-symbols)
+						  ,(source-quote* field-decls)))
 
-			     (define ,(let ((predicate-symbol*
-					     (symbol-append class-name "?")))
-					(if predicate-symbol
-					    (assert (eq? predicate-symbol*
-							 predicate-symbol)))
-					predicate-symbol*)
-			       (joo:make-predicate ,type-symbol))))
+				(define ,(let ((predicate-symbol*
+						(symbol-append class-name "?")))
+					   (if predicate-symbol
+					       (assert (eq? predicate-symbol*
+							    predicate-symbol)))
+					   predicate-symbol*)
+				  (joo:make-predicate ,type-symbol))))
 
 
-		   ;; XX ##define-syntax is ugly, it leaves the scope
-		   ;; of the |begin| forms, and hence the original
-		   ;; joo-* forms. Replace by explicit parsing
-		   ;; (same-level only).
+		      ;; XX ##define-syntax is ugly, it leaves the scope
+		      ;; of the |begin| forms, and hence the original
+		      ;; joo-* forms. Replace by explicit parsing
+		      ;; (same-level only).
 
-		   ;; for backwards compatibility, deprecated? use
-		   ;; def-method instead. XX: keep `method` for
-		   ;; interfaces though?
-		   (##define-syntax
-		    method
-		    (,(if interface?
-			  `joo:interface-method-expander-for
-			  `joo:method-expander-for) ',class-name))
+		      (##define-syntax
+		       ;; abstract methods
+		       method
+		       ,(if (or interface? abstract?)
+			    `(joo:abstract-method-expander-for ',class-name)
+			    `joo:abstract-method-expander-forbidden))
 
-		   (##define-syntax
-		    def-method
-		    (,(if interface?
-			  `joo:interface-method-expander-for
-			  `joo:method-expander-for) ',class-name))
+		      (##define-syntax
+		       ;; implementations
+		       def-method
+		       ,(if interface?
+			    `joo:implementation-method-expander-forbidden
+			    `(joo:implementation-method-expander-for ',class-name)))
 
-		   ,@defs)))))
+		      ,@defs)))))))
 
        (joo:parse-decl decl
-		       cc
-		       cc
-		       cc)))
+		       (cc #f)
+		       (cc #f)
+		       (cc #t))))
 
 (defmacro (joo-class decl
 		     #!key
@@ -559,15 +575,34 @@
 
 (TEST
  > (joo-class (fooo a b)
-	      (method (haha s)
-		      (.a s))
-	      (method id identity))
+	      (def-method (haha s)
+		(.a s))
+	      (def-method id identity))
  > (joo-object? (fooo 1 2))
  #t
  > (.haha (fooo 1 2))
  1
  > (.show (.id (fooo 1 2)))
  (fooo 1 2))
+
+;; test checks:
+(TEST
+ > (with-exception-handler source-error-message
+			   (& (eval `(joo-class (fooo a b)
+						(method (haha s))))))
+ "abstract method not allowed in non-abstract class"
+ > (eval `(joo-class fooo
+		     (method (haha s))))
+ #!void
+ > (with-exception-handler source-error-message
+			   (& (eval `(joo-interface fooo
+						    (def-method (haha s))))))
+ "method implementation not allowed in abstract class"
+ > (with-exception-handler source-error-message
+			   (& (eval `(joo-interface (fooo a b)
+						    (method (haha s))))))
+ "field definitions not allowed in interface")
+
 
 ;; without interfaces:
 (TEST
@@ -611,8 +646,8 @@
 
  > (joo-class (bar-integer)
 	      implements: (bar-integer-interface)
-	      (method (exact? _)
-		      #t))
+	      (def-method (exact? _)
+		#t))
  > (joo-class (bar-natural0)
 	      extends: bar-integer
 	      implements: (bar-natural0-interface))
