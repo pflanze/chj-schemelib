@@ -27,6 +27,7 @@
 	  Maybe-ref
 	  ref
 	  set
+	  add
 	  delete)
 
   (def ? (typed-list-of pairing?))
@@ -77,6 +78,10 @@
 				 (typed-list.cons (rec r2) frame2)))))
 			(lp r)))))
 	     (error "wrong type of key:" key))))
+
+  ;; the simple variant that retains older entries
+  (def (add lis key+val)
+       (typed-list.cons lis key+val))
 
   ;; call it remove or delete ? Actually srfi-1 calls it remove; would
   ;; have conflict here :), but might be an indication it should be
