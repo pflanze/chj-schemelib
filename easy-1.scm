@@ -305,7 +305,7 @@
 
 
 (defmacro (lambda . rest)
-  `(typed-lambda ,@rest))
+  (quasiquote-source (typed-lambda ,@rest)))
 
 
 (TEST
