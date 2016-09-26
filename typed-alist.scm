@@ -23,6 +23,7 @@
 (defmodule (<typed-alist> key? .key .equal? pairing?)
 
   (export ?
+	  from-list
 	  alist
 	  Maybe-ref
 	  ref
@@ -31,9 +32,12 @@
 	  delete)
 
   (def ? (typed-list-of pairing?))
-  
-  (def (alist . pairings)
+
+  (def (from-list pairings)
        (list->typed-list pairing? pairings))
+
+  (def (alist . pairings)
+       (from-list pairings))
 
   (def (Maybe-ref lis #(key? key))
        (let lp ((l lis))
