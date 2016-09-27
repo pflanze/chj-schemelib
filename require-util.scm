@@ -130,6 +130,7 @@
 (def load.scm-extract-forms-yes
      '((begin recurse)
        (if recurse-if)
+       (let recurse-let)
        (c/load 0)
        (i/load 0)
        (/load 0)
@@ -175,6 +176,17 @@
 				(if (pair? perhaps-else)
 				    (load.scm-extract (car perhaps-else) tail)
 				    tail))))
+			 ((recurse-let)
+			  (let ((binds (car rest))
+				(body (cdr rest)))
+			    ;; simply ignore binds (for now), rely on
+			    ;; still only using /load, i.e. only
+			    ;; binding /load is allowed, I mean, still
+			    ;; only /load works so only binding that
+			    ;; makes sense.
+			    (fold-right load.scm-extract
+					tail
+					body)))
 			 ((0)
 			  (cons (car rest) tail)))
 		  ;; ignore
