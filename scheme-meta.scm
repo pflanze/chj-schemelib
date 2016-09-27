@@ -33,6 +33,7 @@
   (or (string? v)
       (number? v)
       (boolean? v)
+      (char? v)
       (eof-object? v)
       (void? v)
       (optional? v)
