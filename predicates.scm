@@ -55,6 +55,7 @@
 	predicate?
 	throwing
 	function-of
+	procedure-of
 	arguments-of)
 
 
@@ -92,6 +93,11 @@
   ;; wrapped version of fn. Really need the static declarations and
   ;; checking. For now:
   function?)
+
+
+(define procedure-of function-of)
+
+
 
 ;; with no support for rest / optional / keyword args:
 (define (arguments-of . preds)
