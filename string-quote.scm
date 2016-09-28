@@ -13,6 +13,7 @@
 
 (export shell-quote
 	perl-quote
+	singlequote-javascript
 	write-string)
 
 
@@ -76,6 +77,9 @@
  > (perl-quote "hel\\o")
  "'hel\\\\o'"
  )
+
+
+(define singlequote-javascript perl-quote) ;; XXX really correct?
 
 
 ;; (define (scheme-quote str)
