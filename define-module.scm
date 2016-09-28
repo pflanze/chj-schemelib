@@ -10,8 +10,10 @@
 	 (cj-env define-if-not-defined-strict make-unbound)
 	 cj-phasing
 	 test
+	 cj-typed ;; wow can use it, seems we're later anyway, no circular problem!
 	 simple-match
-	 srfi-11)
+	 srfi-11
+	 (simple-match-1 assert*))
 
 
 ;;;
@@ -234,38 +236,44 @@
   (assert* (either pair? symbol?) name-or-name+params
 	   (lambda (name-or-name+params*)
 	     ((lambda (name)
-		(match*
-		 export-form
-		 ((_export . exports)
-		  (if (eq? (source-code _export) 'export)
-		      (with-gensyms
-		       (VARNAME)
-		       (let ((exports-name (symbol-append name '-exports)))
-			 `(begin
-			    (define ,exports-name
-			      ',exports)
-			    (define ,name-or-name+params
-			      ,(convert-module-body
-				body
-				`((lambda (,VARNAME)
-				    (if ,VARNAME
-					(case ,VARNAME
-					  ,@(map/tail
-					     (lambda_
-					      `((,_) ,_))
-					     `((else
-						(error
-						 "in module, name not exported:"
-						 ',name
-						 ,VARNAME)))
-					     (source-code exports)))
-					,exports-name))))))))
-		      (source-error
-		       export-form
-		       "expecting (export . VAR*) form")))))
+		(assert*
+		 symbol? name
+		 (lambda (name)
+		   (match*
+		    export-form
+		    ((_export . exports)
+		     (if (eq? (source-code _export) 'export)
+			 (with-gensyms
+			  (VARNAME)
+			  (let ((exports-name (symbol-append name '-exports)))
+			    `(begin
+			       (define ,exports-name
+				 ',exports)
+			       (,(if (pair? name-or-name+params*)
+				     `define-typed
+				     `define)
+				,name-or-name+params
+				,(convert-module-body
+				  body
+				  `((lambda (,VARNAME)
+				      (if ,VARNAME
+					  (case ,VARNAME
+					    ,@(map/tail
+					       (lambda_
+						`((,_) ,_))
+					       `((else
+						  (error
+						   "in module, name not exported:"
+						   ',name
+						   ,VARNAME)))
+					       (source-code exports)))
+					  ,exports-name))))))))
+			 (source-error
+			  export-form
+			  "expecting (export . VAR*) form")))))))
 	      (if (pair? name-or-name+params*)
 		  (car name-or-name+params*)
-		  name-or-name+params*)))))
+		  name-or-name+params)))))
 
 (TEST
  > (define-module (foo x) (export f) (define (f n) (/ n x)))
