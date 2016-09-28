@@ -53,7 +53,8 @@
 	;; and the new meat:
 	function?
 	predicate?
-	throwing)
+	throwing
+	function-of)
 
 
 ;; for now there's no difference (intent: pure functions, aside of
@@ -74,4 +75,20 @@
 (define-typed (throwing #(predicate? e?)
 			#(predicate? t?))
   t?)
+
+
+
+(define (function-of #(predicate? inputs?) #(predicate? output?))
+  ;; (lambda vals
+  ;;   (if (inputs? vals)
+  ;; 	(let ((res ())))))
+
+  ;; (lambda (fn)
+  ;;   )
+
+  ;; Ah stupid (again?), can't do this. Predicates are only used to
+  ;; check the input, not to wrap it. Can't make a type-checking
+  ;; wrapped version of fn. Really need the static declarations and
+  ;; checking. For now:
+  function?)
 
