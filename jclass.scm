@@ -117,7 +117,7 @@
      (letv ((stx* did?) (jclass:perhaps-expand-in-context stx #f is-class?))
 	   (if did?
 	       stx*
-	       (syntax-error stx "BUG"))))
+	       (source-error stx "BUG"))))
 
 (defmacro (jinterface decl . forms)
   (jclass:toplevel-expand stx #f))
