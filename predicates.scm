@@ -54,7 +54,8 @@
 	function?
 	predicate?
 	throwing
-	function-of)
+	function-of
+	arguments-of)
 
 
 ;; for now there's no difference (intent: pure functions, aside of
@@ -78,7 +79,7 @@
 
 
 
-(define (function-of #(predicate? inputs?) #(predicate? output?))
+(define-typed (function-of #(predicate? inputs?) #(predicate? output?))
   ;; (lambda vals
   ;;   (if (inputs? vals)
   ;; 	(let ((res ())))))
@@ -91,4 +92,42 @@
   ;; wrapped version of fn. Really need the static declarations and
   ;; checking. For now:
   function?)
+
+;; with no support for rest / optional / keyword args:
+(define (arguments-of . preds)
+  (let ((arity (length preds)))
+    (lambda (args)
+      (let lp ((ps preds)
+	       (as args))
+	(if (null? ps)
+	    (null? as)
+	    (if (pair? as)
+		;; now could save the length checks above!
+		(let-pair ((p? ps*) ps)
+			  (let-pair ((a as*) as)
+				    (and (p? a)
+					 (lp ps* as*))))
+		(if (null? as)
+		    #f
+		    (error "improper args list"))))))))
+
+(TEST
+ > (def p? (arguments-of any?))
+ > (p? '(1))
+ #t
+ > (p? '())
+ #f
+ > (p? '(1 2))
+ #f
+ > (p? '(""))
+ #t
+ > (def p? (arguments-of string? number?))
+ > (p? '(""))
+ #f
+ > (p? '("" 1))
+ #t
+ > (p? '(1 ""))
+ #f
+ > (p? '(1 1))
+ #f)
 
