@@ -12,7 +12,9 @@
 	 cj-inline
 	 cj-symbol
 	 ;; enum  can't, circular dependency
-	 (predicates function-of arguments-of))
+	 (predicates function-of arguments-of)
+	 (list-util let-pair)
+	 named)
 
 (export (macro match-cmp)
 	element? ;; XX move elsewhere, change? (scheme.scm ?) Not even used here
@@ -45,6 +47,8 @@
 	char-cmp
 	
 	length-cmp
+
+	list-cmp-for
 	
 	german-char-downcase
 	lc_perhaps-compound-1st
@@ -518,6 +522,54 @@
  eq
  > (%try (length-cmp '(a . b) '(1 . 2)))
  (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
+
+
+(define (list-cmp-for cmp)
+  (named lp (lambda (l1 l2)
+	      (if (null? l1)
+		  (if (null? l2)
+		      'eq
+		      'lt)
+		  (if (null? l2)
+		      'gt
+		      (let-pair
+		       ((a l1*) l1)
+		       (let-pair
+			((b l2*) l2)
+			(match-cmp (cmp a b)
+				   ((eq) (lp l1* l2*))
+				   ((lt) 'lt)
+				   ((gt) 'gt)))))))))
+
+(TEST
+ > (def c (list-cmp-for number-cmp))
+ > (c '() '())
+ eq
+ > (c '(2) '(2))
+ eq
+ > (c '(1) '(2))
+ lt
+ > (c '(2) '(1))
+ gt
+ > (c '(1 3) '(2 3))
+ lt
+ > (c '(2 3) '(1 3))
+ gt
+ > (c '(1) '(2 3))
+ lt
+ > (c '(1 3) '(2))
+ lt
+ > (c '(1 3) '(1 3))
+ eq
+ > (c '(1 4) '(1 3))
+ gt
+ > (c '(1 3) '(1 4))
+ lt
+ > (c '(1 3) '(1 3 3))
+ lt
+ > (c '(1 3 3) '(1 3))
+ gt)
+
 
 
 (define cmp-function? (function-of (arguments-of any? any?)
