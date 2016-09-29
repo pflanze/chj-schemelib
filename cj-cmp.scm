@@ -12,7 +12,7 @@
 	 cj-inline
 	 cj-symbol
 	 ;; enum  can't, circular dependency
-	 )
+	 (predicates function-of arguments-of))
 
 (export (macro match-cmp)
 	element? ;; XX move elsewhere, change? (scheme.scm ?) Not even used here
@@ -53,7 +53,8 @@
 	german-generic-cmp
 	
 	cmp-sort
-	)
+
+	cmp-function?)
 
 
 ;; (define-enum cmp
@@ -517,3 +518,8 @@
  eq
  > (%try (length-cmp '(a . b) '(1 . 2)))
  (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
+
+
+(define cmp-function? (function-of (arguments-of any? any?)
+				   cmp?))
+
