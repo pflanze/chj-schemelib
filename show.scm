@@ -84,7 +84,7 @@
 ;;   `(raise ,e))
 ;; oh {##,}exception? doesn't exist
 
-(def. (error-exception.show e)
+(define. (error-exception.show e)
   `(error ,(error-exception-message e)
 	  ,@(error-exception-parameters e)))
 
