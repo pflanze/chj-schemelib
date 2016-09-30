@@ -13,12 +13,20 @@
 	 list-util
 	 (srfi-1 any))
 
-(export (method table.test
+(export table
+	;; accessors:
+	(method table.test
 		table.hash
 		;; XX warning, .weak-keys and .weak-values not working
 		table.init
 		table.show)
-	table)
+	;; utilities:
+	(method table.list
+		table.keys
+		table.sorted-keys
+		table.values
+		table.sorted-values)
+	)
 
 
 ;; finally provide a nicer interface to creating tables
@@ -118,5 +126,22 @@
  > (.show (list->table '((a . 1) (b . 2)) init: 123))
  (table init: 123 (cons 'a 1) (cons 'b 2))
  )
+
+
+(define. table.list table->list)
+
+(define. (table.keys t)
+  ;; XX more efficient?
+  (map car (table->list t)))
+
+(define. (table.sorted-keys t)
+  (cmp-sort (table.keys t) generic-cmp))
+
+(define. (table.values t)
+  ;; XX more efficient?
+  (map cdr (table->list t)))
+
+(define. (table.sorted-values t #!optional (cmp generic-cmp))
+  (cmp-sort (table.values t) cmp))
 
 
