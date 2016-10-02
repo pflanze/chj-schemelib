@@ -13,6 +13,19 @@
 	 tsort
 	 Status)
 
+(export lib
+	mydb
+	check-load.scm
+
+	#!optional
+	path-string.topo-relation
+	modulepaths-tsort
+	modulepaths-in-dir
+	modulepaths-in-dirs
+	(class requires)
+	modulepaths-satisfying?
+	load.scm-files)
+
 
 (TEST
  > (simple-basename ".")
