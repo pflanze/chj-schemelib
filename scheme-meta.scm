@@ -12,7 +12,12 @@
 	 ;;(vector-util vector-of)  circular dep?
 	 )
 
-(export self-quoting?
+(export void?
+	optional?
+	key?
+	rest?
+	
+	self-quoting?
 	perhaps-quote
 	uvector?
 	svector?
@@ -51,6 +56,9 @@
 (define (key? v)
   (eq? v #!key))
 
+(define (rest? v)
+  (eq? v #!rest))
+
 
 (define (self-quoting? v)
   ;; avoid depending on |either| from cj-functional ?
@@ -62,6 +70,7 @@
       (void? v)
       (optional? v)
       (key? v)
+      (rest? v)
       (keyword? v)))
 
 (define (perhaps-quote v)
