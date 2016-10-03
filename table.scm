@@ -26,7 +26,7 @@
 		table.sorted-keys
 		table.values
 		table.sorted-values)
-	)
+	list.table-maybe-function)
 
 
 ;; finally provide a nicer interface to creating tables
@@ -144,4 +144,10 @@
 (define. (table.sorted-values t #!optional (cmp generic-cmp))
   (cmp-sort (table.values t) cmp))
 
+
+(define (list.table-maybe-function lis)
+  (let ((t (list->table lis)))
+    (lambda (k #!optional get-table?)
+      (if get-table? t
+	  (table-ref t k #f)))))
 
