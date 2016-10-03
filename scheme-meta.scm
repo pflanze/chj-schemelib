@@ -119,7 +119,8 @@
       (pair-of-sexpr? v)
       (vector-of-sexpr? v)
       ;; XX really?
-      (homogenous-vector? v)))
+      (homogenous-vector? v)
+      (box? v)))
 
 (define pair-of-sexpr? (pair-of sexpr? sexpr?))
 (define vector-of-sexpr? (vector-of sexpr?))
