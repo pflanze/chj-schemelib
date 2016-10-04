@@ -15,6 +15,7 @@
 
 
 (export (method show)
+	try-show
 	#!optional
 	toplevel-procedure?
 	struct->values)
@@ -80,11 +81,19 @@
  (values 3 2))
 
 
+
+(define (try-show v)
+  (with-exception-catcher
+   (lambda (e)
+     `(try-show ,v))
+   (lambda ()
+     (.show v))))
+
 ;; (def. (exception.show e)
 ;;   `(raise ,e))
 ;; oh {##,}exception? doesn't exist
 
 (define. (error-exception.show e)
   `(error ,(error-exception-message e)
-	  ,@(error-exception-parameters e)))
+	  ,@(map try-show (error-exception-parameters e))))
 
