@@ -11,7 +11,8 @@
 	 cj-cmp
 	 (cj-source-quasiquote quasiquote-source)
 	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?
-		 wbtreeparameter*))
+		 wbtreeparameter*)
+	 (stream stream->list))
 
 (export (joo-class wbcollection)
 	empty-wbcollection
@@ -119,8 +120,13 @@
      ,(.show (.param s))
      (list ,@(map .show (wbcollection.members s)))))
 
- (def-wbcollection-method (members-stream c)
-   (wbtree:stream-members $data))
+ (def-wbcollection-method (members-stream c
+					  #!optional
+					  #(boolean? reverse?)
+					  (tail '()))
+   (if reverse?
+       (wbtree:stream-inorder-fold-reverse $data cons tail)
+       (wbtree:stream-inorder-fold $data cons tail)))
 
  (def-method stream wbcollection.members-stream)
 
@@ -231,6 +237,11 @@
  -2
  > (.list r)
  (1 2 3 3.3 9 12)
+ > (stream->list (.stream r))
+ (1 2 3 3.3 9 12)
+ > (stream->list (.stream r #t))
+ (12 9 3.3 3 2 1)
+ 
  > (defvalues (m r) (.max&rest c2))
  > m
  12
