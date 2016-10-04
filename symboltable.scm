@@ -17,7 +17,7 @@
 	empty-symboltable ;; treat as read-only, please!
 	symboltable-length
 	symboltable-ref ;; with required alternative value if missing
-	symboltable-refx ;; exception
+	symboltable-xref ;; exception
 	symboltable-contains?
 	symboltable-update!
 	symboltable-update
@@ -364,7 +364,7 @@ end:
 
 (define symboltable:nothing (gensym 'nothing))
 
-(define (symboltable-refx t key)
+(define (symboltable-xref t key)
   (let ((res (symboltable-ref t key symboltable:nothing)))
     (if (eq? res symboltable:nothing)
 	(error "key not found:" key)
