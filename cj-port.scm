@@ -9,6 +9,11 @@
 (require (define-macro-star)
 	 (test))
 
+(export with-output-to-string
+	(macro *with-output-to-string)
+	with-output-to-string*
+	pretty-print-to-string)
+
 
 (define (with-output-to-string thunk)
   (call-with-output-string
@@ -40,4 +45,9 @@
 (TEST
  > (values->vector (with-output-to-string* (& (print "hello") 1)))
  #(1 "hello"))
+
+
+(define (pretty-print-to-string v)
+  (with-output-to-string (lambda ()
+			   (pretty-print v))))
 
