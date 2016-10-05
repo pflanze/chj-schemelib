@@ -304,8 +304,8 @@
   (modimport-expand prefix expr vars))
 
 
-(defmacro (lambda . rest)
-  (quasiquote-source (typed-lambda ,@rest)))
+(defmacro (lambda bs expr . rest)
+  (quasiquote-source (typed-lambda ,bs ,expr ,@rest)))
 
 
 (TEST
