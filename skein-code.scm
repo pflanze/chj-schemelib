@@ -355,6 +355,7 @@ DEBUG(\"update: %d\", len);
 
 	/* finish up any buffered message data */
 	if (this->byteCount != 0) {
+            DEBUG(\"  update: this->byteCount=%d\", this->byteCount);
 	    /* # bytes free in buffer */
 	    int n = BYTES - this->byteCount;
 	    if (n != 0) {
@@ -370,6 +371,7 @@ DEBUG(\"update: %d\", len);
 
 	/* now process any remaining full blocks, 
 	   directly from input message data */
+        DEBUG(\"  update: process any remaining full blocks, len=%d\", len);
 	if (len > BYTES) {
 	    /* number of full blocks to process */
 	    int n = (len - 1) / BYTES;
@@ -435,13 +437,13 @@ static void Skein512_startNewType(struct Skein512* this,
 
 static void Skein512_processBlock(struct Skein512 *this,
                                   const byte *block, int off, int blocks, int bytes) {
-DEBUG(\"processBlock: %d, %d, %d\", off, blocks, bytes);
+DEBUG(\"processBlock: off=%d, blocks=%d, bytes=%d\", off, blocks, bytes);
     while (blocks-- > 0) {
 	/* this implementation supports 2**64 input bytes (no carry out here)
 	   update processed length */
 	long *ts = this->tweakSchedule;
 	this->tweak0 += bytes;
-DEBUG(\"blocks, tweak0: %d, %ld\", blocks, this->tweak0);
+DEBUG(\"   processBlock: blocks, tweak0: %d, %ld\", blocks, this->tweak0);
 	int *mod3 = MOD3;
 	int *mod9 = MOD9;
 	ts[3] = ts[0] = this->tweak0; ts[4] = ts[1] = this->tweak1;
