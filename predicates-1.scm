@@ -9,7 +9,7 @@
 (require test
 	 srfi-1
 	 (list-util improper-fold-right)
-	 (char-util char-one-of?/)
+	 (char-util char-one-of?/ char-digit?)
 	 cj-functional
 	 C
 	 (string-util-4 string-empty?
@@ -37,6 +37,9 @@
 	improper*-map/tail ;; XX move
 	improper*-map	   ;; dito
 	string-of
+	nonempty-string-of
+	natural0-string? ;; do these two really
+	natural-string? ;; belong here (in a neutral predicates lib)?
 	string-of-length
 	improper-every	  ;; XX move
 	improper-list-of  ;; hmm
@@ -159,6 +162,30 @@
 (TEST
  > (map (string-of char-alphanumeric?) '(foo "" " " "foo" "foo bar" "foo:" "Foo_"))
  (#f #t #f #t #f #f #t))
+
+(define (nonempty-string-of pred)
+  (lambda (v)
+    (and (nonempty-string? v)
+	 (string-every pred v))))
+
+
+(define natural0-string?
+  (nonempty-string-of char-digit?))
+
+(define natural-string?
+  (both (nonempty-string-of char-digit?)
+	(complement (string-of (lambda (v) (char=? v #\0))))))
+
+(TEST
+ ;; no understanding of octals BTW? Well doesn't matter. Ah, but no
+ ;; understanding of hexadecimal either, I mean, bare decimal number
+ ;; strings only! Kinda stupid really! Misleading names?
+ > (def ns '("0" "-0" "-1" "1" "10" "00" "2" "2."))
+ > (map natural0-string? ns)
+ (#t #f #f #t #t #t #t #f)
+ > (map natural-string? ns)
+ (#f #f #f #t #t #f #t #f))
+
 
 
 (define (string-of-length len)
