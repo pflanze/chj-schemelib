@@ -52,7 +52,8 @@
 	process-input-line-stream
 	user-name-or-id->id
 	group-name-or-id->id
-	chown)
+	chown
+	possibly-create-directory)
 
 
 ;; handle setenv:-enriched process specs:
@@ -540,4 +541,26 @@
 		 (group-name-or-id->id maybe-groupname-or-id)
 		 (posix:getgid))))
     (posix:chown path uid gid)))
+
+
+
+(define (possibly-create-directory path)
+  (with-exception-catcher
+   (lambda (e)
+     (if (eexist-exception? e)
+	 #f
+	 (raise e)))
+   (lambda ()
+     (create-directory path)
+     #t)))
+
+(TEST
+ > (def cj-io-util:testbase ".cj-io-util:testbase")
+ > (possibly-create-directory cj-io-util:testbase)
+ #t
+ > (possibly-create-directory cj-io-util:testbase)
+ #f
+ > (possibly-create-directory cj-io-util:testbase)
+ #f
+ > (delete-directory cj-io-util:testbase))
 
