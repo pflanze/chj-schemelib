@@ -60,7 +60,7 @@
 #define SIGNED_BITSHIFT_RIGHT_ZERO(stype, x, bits) (stype)(((unsigned stype)(x)) >> ((unsigned stype)(bits)))
 
 /* Debugging */
-#if 0
+#if 1
 #  define DEBUG(msg,...) fprintf(stderr, msg \"\\n\", ##__VA_ARGS__);
 #  define DEBUG_Along(msg, arg, len) debug_Along(msg, arg, len);
 static void debug_Along (const char* msg, const long* v, int l) {
