@@ -5,24 +5,27 @@
 
 (require easy
 	 test
-	 (skein skein:digest)
+	 ;;(skein skein:digest) buggy, until fixed, use:
+	 (md5 md5:digest)
 	 jclass
 	 (cj-path path-string?)
 	 tempfile)
+
+(def fstable:digest md5:digest)
 
 
 (jclass (fstable #(path-string? basedir))
 
 	(def-method (set! t #(string? key) #(string? val))
 	  (let ((tf (tempfile (string-append (.basedir t) ".tmp")))
-		(keyhash (skein:digest key)))
+		(keyhash (fstable:digest key)))
 	    (call-with-output-file tf
 	      (lambda (p)
 		(display val p)))
 	    (rename-file tf (string-append (.basedir t) "/" keyhash))))
 
 	(def-method (ref t #(string? key) alternative)
-	  (let* ((keyhash (skein:digest key))
+	  (let* ((keyhash (fstable:digest key))
 		 (path (string-append (.basedir t) "/" keyhash)))
 	    (with-exception-catcher
 	     (lambda (e)
@@ -32,7 +35,7 @@
 	     (& (call-with-input-file path (C read-line _ #f))))))
 
 	(def-method (delete! t #(string? key))
-	  (let ((keyhash (skein:digest key)))
+	  (let ((keyhash (fstable:digest key)))
 	    (delete-file (string-append (.basedir t) "/" keyhash)))))
 
 
