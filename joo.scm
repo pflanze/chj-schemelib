@@ -647,7 +647,10 @@
  > (joo-class (bar-integer)
 	      implements: (bar-integer-interface)
 	      (def-method (exact? _)
-		#t))
+		#t)
+	      ;; to see that rest args work:
+	      (def-method (fifi a . b)
+		(vector a b)))
  > (joo-class (bar-natural0)
 	      extends: bar-integer
 	      implements: (bar-natural0-interface))
