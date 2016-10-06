@@ -52,10 +52,11 @@
 	(mcase stx
 	       (`(`METHOD `bind . `rest)
 		(mcase bind
-		       (`(`name . `args)
-			`(def. (,(source.symbol-append class-name. name)
-				,@args)
-			   ,@rest))
+		       (pair?
+			(let-pair ((name args) (source-code bind))
+				  `(def. (,(source.symbol-append class-name. name)
+					  ,@args)
+				     ,@rest)))
 		       (symbol?
 			`(def. ,(source.symbol-append class-name. bind)
 			   ,@rest)))))
