@@ -10,9 +10,10 @@
 	delimcc-simple:shift*
 
 	#!optional
-	;; but these change all the time? may not be exportable by value
+	;; seems only to be set once?:
 	delimcc-simple:go
-	delimcc-simple:pstack
+	;; but this changes all the time, not exportable by value:
+	;; delimcc-simple:pstack
 	)
 
 
@@ -64,14 +65,16 @@
 (let ((v
 	(call/cc
 	  (lambda (k)
+	    ;;(warn "setting go=" k)
 	    (set! delimcc-simple:go k)
 	    (k #f)))))
   (if v
     (let* ((r (v))
 	   (h (car delimcc-simple:pstack))
 	   (_ (set! delimcc-simple:pstack (cdr delimcc-simple:pstack))))
-      (h r))	; does not return
-    ))
+      ;;(warn "pstack=" delimcc-simple:pstack)
+      ;; does not return:
+      (h r))))
 
 ;; let push_prompt_aux (p : 'a prompt) (body : unit -> 'a) : 'a =
 ;;   let ek = get_ek () in
