@@ -97,3 +97,7 @@
   `(error ,(error-exception-message e)
 	  ,@(map try-show (error-exception-parameters e))))
 
+(define. (unbound-global-exception.show e)
+  ;;`(unbound-global-exception )  hmm or really simply?:
+  (unbound-global-exception-variable e)
+  )
