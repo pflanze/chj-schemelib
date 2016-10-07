@@ -10,11 +10,8 @@
 	delimcc-simple:shift*
 
 	#!optional
-	;; seems only to be set once?:
 	delimcc-simple:go
-	;; but this changes all the time, not exportable by value:
-	;; delimcc-simple:pstack
-	)
+	delimcc-simple:pstack)
 
 
 ; The implementation of ordinary shift/reset derived 
@@ -37,10 +34,10 @@
 ; implementation supports such a thing.
 ;(define call/cc call-with-current-continuation)
 
-(define delimcc-simple:go #f)
+(define delimcc-simple:go (make-parameter #f))
 
 ; pstack is a list of k: stack fragments
-(define delimcc-simple:pstack '())
+(define delimcc-simple:pstack (make-parameter '()))
 
 ; Execute a thunk in the empty environment -- at the bottom of the stack --
 ; and pass the result, too encapsulated as a thunk, to the
@@ -66,13 +63,13 @@
 	(call/cc
 	  (lambda (k)
 	    ;;(warn "setting go=" k)
-	    (set! delimcc-simple:go k)
+	    (delimcc-simple:go k)
 	    (k #f)))))
   (if v
     (let* ((r (v))
-	   (h (car delimcc-simple:pstack))
-	   (_ (set! delimcc-simple:pstack (cdr delimcc-simple:pstack))))
-      ;;(warn "pstack=" delimcc-simple:pstack)
+	   (h (car (delimcc-simple:pstack)))
+	   (_ (delimcc-simple:pstack (cdr (delimcc-simple:pstack)))))
+      ;;(warn "pstack=" (delimcc-simple:pstack))
       ;; does not return:
       (h r))))
 
@@ -87,18 +84,18 @@
 (define (delimcc-simple:reset* th)
   (call/cc
     (lambda (k)
-       (set! delimcc-simple:pstack (cons k delimcc-simple:pstack))
-       (delimcc-simple:go th))))			; does not return
+       (delimcc-simple:pstack (cons k (delimcc-simple:pstack)))
+       ((delimcc-simple:go) th))))	; does not return
 
 (define (delimcc-simple:shift* f)
   (call/cc
     (lambda (k)			; stack fragment
-      (delimcc-simple:go 
+      ((delimcc-simple:go) 
 	(lambda () 
 	  (f 
 	    (lambda (v)
 	      (call/cc (lambda (k1)
-			 (set! delimcc-simple:pstack (cons k1 delimcc-simple:pstack))
+			 (delimcc-simple:pstack (cons k1 (delimcc-simple:pstack)))
 			 (k v))))))))))
 
 ; ------------------------------- Syntactic sugar
