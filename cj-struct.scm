@@ -277,8 +277,11 @@
 	    (symbol-append (safe-accessor-for-field field) "-update")))
 	 )
     `(begin
-       ;; XX use define-if-not-defined here or not?
-       (define ,tag-binding
+       ;; Use define-if-not-defined here or not? Yes because otherwise
+       ;; reloading the file with a struct definition breaks handling
+       ;; of previously allocated objects. (But then isn't this
+       ;; breaking define-module concerns? Hey why should it?)
+       (define-if-not-defined ,tag-binding
 	 (struct-tag-allocate! ,tag-code
 			       (struct-metadata ',constructor-name)))
 
