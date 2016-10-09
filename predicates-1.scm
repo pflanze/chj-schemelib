@@ -57,7 +57,8 @@
 	lists?
 	0..1? ;; see also rgb:0..1?
 	in-signed-range?
-	parameter?)
+	parameter?
+	parameter-of)
 
 
 (define (box-of pred)
@@ -387,4 +388,9 @@
 
 
 (define parameter? ##parameter?)
+
+(define (parameter-of pred)
+  (lambda (v)
+    (and (parameter? v)
+	 (pred (v)))))
 
