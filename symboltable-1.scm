@@ -19,6 +19,7 @@
 	symboltable-xref ;; exception
 	symboltable-contains?
 	symboltable-update!
+	symboltable-set! ;; only works for keys already in the table
 	symboltable-update
 	list->symboltable
 	list->symboltable-function
@@ -385,6 +386,13 @@ end:
   (symboltable:_update t key
 		       (lambda (vec i)
 			 (vector-set! vec i (fn (vector-ref vec i))))
+		       (or not-found symboltable:error-key-not-found)))
+
+;; only works for keys that already are in the table (for now)
+(define (symboltable-set! t key val)
+  (symboltable:_update t key
+		       (lambda (vec i)
+			 (vector-set! vec i val))
 		       (or not-found symboltable:error-key-not-found)))
 
 (define (symboltable-update t key fn #!optional not-found)
