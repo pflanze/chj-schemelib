@@ -10,10 +10,12 @@
 (require dot-oo
 	 symboltable-1
 	 show ;; should it be possible to make things optional?!
-	 test)
+	 test
+	 cj-cmp)
 
 ;; re-export all exports from symboltable-1, plus
-(export (method symboltable.show))
+(export (method symboltable.show)
+	symboltable-sortedkeys)
 
 
 (declare (standard-bindings)
@@ -23,6 +25,9 @@
 
 (define. (symboltable.show v)
   `(symboltable ,@(map .show (symboltable->list v))))
+
+(define (symboltable-sortedkeys t #!optional (tail '()))
+  (cmp-sort (symboltable-keys t tail) symbol-cmp))
 
 
 

@@ -29,7 +29,6 @@
 	symboltable->list
 	(method symboltable.show)
 	symboltable-keys
-	symboltable-sortedkeys
 	symboltable-update-all
 	symboltable-add
 	symboltable-set
@@ -481,10 +480,6 @@ end:
   (symboltable:fold t tail (lambda (k v r)
 			     (cons k
 				   r))))
-
-(define (symboltable-sortedkeys t #!optional (tail '()))
-  (cmp-sort (symboltable-keys t tail) symbol-cmp))
-
 
 ;; quasi combination of fold and update:
 (define (symboltable-update-all t fn/2)
