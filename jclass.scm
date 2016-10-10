@@ -132,7 +132,7 @@
 
 (TEST
  > (jinterface jct
-	       (jclass (foo x y)
+	       (jclass (jclass_foo x y)
 		       (jclass (bar z)
 			       (jclass (baz)))
 		       ;; method *after* an inner class definition to
@@ -141,21 +141,21 @@
 		       (def-method (meth s)
 			 (+ (.x s) (.y s))))
 	       (jinterface jct2
-			   (jclass (foo2 x))))
- > (foo 10 12)
- #((foo) 10 12)
+			   (jclass (jclass_foo2 x))))
+ > (jclass_foo 10 12)
+ #((jclass_foo) 10 12)
  > (def b (baz 10 12 13))
  > b
  #((baz) 10 12 13)
- > (foo? b)
+ > (jclass_foo? b)
  #t
  > (jct? b)
  #t
  > (jct2? b)
  #f
- > (jct? (foo2 1))
+ > (jct? (jclass_foo2 1))
  #t
- > (jct2? (foo2 1))
+ > (jct2? (jclass_foo2 1))
  #t
  ;; > (jct? jct2) ehr there's no constructor. Do or do I not
  ;; have a way to check this hierarchy just on the class level yet?
@@ -189,5 +189,5 @@
 		(def-method (meth s) 'bar))))
 
  ;; and on the earlier, actually executed, definition of foo:
- > (.meth (foo 10 11))
+ > (.meth (jclass_foo 10 11))
  21)
