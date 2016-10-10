@@ -458,16 +458,22 @@
  10
 
  ;; tag feature:
- > (define-struct foo tag: 'myvery:foo a b)
- > (make-foo 10 11)
+ > (define-struct foo1 tag: 'myvery:foo a b)
+ > (define v1 (make-foo1 10 11))
+ > v1
  #((myvery:foo) 10 11)
  > (define-struct foo2 tag: 'myvery:foo a b)
- > (make-foo2 10 11)
+ > (define v2 (make-foo2 10 11))
+ > v2
  #((myvery:foo) 10 11)
- > (foo2? #)
+ > (foo1? v1)
  #t
- > (foo2? #)
+ > (foo1? v2)
  #f
+ > (foo2? v1)
+ #f
+ > (foo2? v2)
+ #t
 
  ;; updaters
  > (define-struct foo a b)
