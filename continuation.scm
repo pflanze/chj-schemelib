@@ -47,6 +47,57 @@
 
 
 
+(TEST
+ > (def cnt 0)
+ > (def (t)
+	(continuation-capture
+	 (lambda (exit)
+	   (dynamic-wind
+	       (lambda ()
+		 (warn "going in"))
+	       (lambda ()
+		 (letv ((signal newc)
+			(continuation-capture
+			 (lambda (cont)
+			   (continuation-return exit cont))))
+		       (warn "signal = " signal)
+		       newc))
+	       (lambda ()
+		 (warn "going out"))))))
+ > (def c (t))
+ > (if (< cnt 3)
+       (begin
+	 (inc! cnt)
+	 (warn "calling c; tp,cnt=" (tp) cnt)
+	 (continuation-return c (values cnt c)))))
+
+(TEST
+ > (def cnt 0)
+ > (def (t)
+	(continuation-capture
+	 (lambda (exit)
+	   (dynamic-wind
+	       (lambda ()
+		 (warn "going in"))
+	       (lambda ()
+		 (letv ((signal newc)
+			(continuation-capture
+			 (lambda (cont)
+			   (continuation-return-no-winding exit cont))))
+		       (warn "signal = " signal)
+		       newc))
+	       (lambda ()
+		 (warn "going out"))))))
+ > (def c (t))
+ > (if (< cnt 3)
+       (begin
+	 (inc! cnt)
+	 (warn "calling c; tp,cnt=" (tp) cnt)
+	 (continuation-return-no-winding c (values cnt c)))))
+
+
 
 ;; TODO: ##continuation-capture-aux
 ;; etc., for stack access..
+
+
