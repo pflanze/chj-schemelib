@@ -1,3 +1,6 @@
+(require delimcc-simple)
+
+
 ; ------------------------------- Tests
 
 (display (+ 10 (reset (+ 2 (shift k (+ 100 (k (k 3))))))))
