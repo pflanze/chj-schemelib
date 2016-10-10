@@ -424,3 +424,9 @@
 (define-macro* (define-parameter name default-value)
   `(define ,name (make-parameter ,default-value)))
 
+
+(define (keyword->symbol v)
+  (string->symbol (keyword->string v)))
+
+(define (symbol->keyword v)
+  (string->keyword (symbol->string v)))

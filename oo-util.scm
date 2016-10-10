@@ -2,7 +2,8 @@
 (require easy-1
 	 dot-oo;; included in easy?
 	 (cj-math integer)
-	 (string-util-2 string-reverse))
+	 (string-util-2 string-reverse)
+	 cj-env)
 
 
 (define inexact exact->inexact)
@@ -30,10 +31,8 @@
 (define. keyword.string keyword->string)
 (define. string.keyword string->keyword)
 
-(define. (keyword.symbol v)
-  (string.symbol (keyword.string v)))
-(define. (symbol.keyword v)
-  (string.keyword (symbol.string v)))
+(define. keyword.symbol keyword->symbol)
+(define. symbol.keyword symbol->keyword)
 
 (define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
 

@@ -10,7 +10,8 @@
 	 predicates-1 ;; for re-exports only?
 	 cj-typed
 	 dot-oo
-	 symboltable-1)
+	 symboltable-1
+	 (cj-env keyword->symbol))
 
 
 (export box-of
@@ -179,7 +180,7 @@
 			 ((a as*) as)
 			 (and (keyword? a)
 			      (pair? as*)
-			      (let ((k (keyword.symbol a)))
+			      (let ((k (keyword->symbol a)))
 				(cond ((symboltable-ref tbl
 							k
 							#f)
