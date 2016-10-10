@@ -14,7 +14,8 @@
 	 (enum define-enum)
 	 (cj-source-quasiquote quasiquote-source)
 	 test
-	 (test-lib %try-syntax-error))
+	 (test-lib %try-syntax-error)
+	 (string-util-2 string-any))
 
 (export (macro defstruct)
 	(macro def)

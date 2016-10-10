@@ -13,7 +13,8 @@
 	 stream
 	 weak-srfi-1
 	 (lazy FV)
-	 (lazy-debug F))
+	 (lazy-debug F)
+	 (cj-math integer natural0.bitsize))
 
 ;; A library of helper functions for writing tests
 ;; also see test-lib-1

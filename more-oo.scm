@@ -9,7 +9,9 @@
 (require easy-1
 	 cj-env
 	 dot-oo
-	 (cj-source-wraps source:symbol-append))
+	 (cj-source-wraps source:symbol-append)
+	 (string-util-2 string-contains?)
+	 (oo-util string.symbol symbol.string))
 
 (export (macro class)
 	(macro subclass)
