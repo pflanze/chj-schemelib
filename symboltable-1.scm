@@ -33,6 +33,7 @@
 	symboltable-add
 	symboltable-set
 	symboltable-remove
+	symboltable-copy ;; clone
 	)
 
 (declare (standard-bindings)
@@ -710,6 +711,11 @@ end:
       (and (symboltable? v)
 	   (symboltable:every? v pred*)))))
 
+
+(define (symboltable-copy v)
+  (if (symboltable? v)
+      (vector-copy v)
+      (error "not a symboltable:" v)))
 
 
 ;; test always run to make sure changes in Gambit won't make
