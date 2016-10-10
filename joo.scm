@@ -575,53 +575,53 @@
 
 
 (TEST
- > (joo-class (fooo a b)
+ > (joo-class (joo_fooo a b)
 	      (def-method (haha s)
 		(.a s))
 	      (def-method id identity))
- > (joo-object? (fooo 1 2))
+ > (joo-object? (joo_fooo 1 2))
  #t
- > (.haha (fooo 1 2))
+ > (.haha (joo_fooo 1 2))
  1
- > (.show (.id (fooo 1 2)))
- (fooo 1 2))
+ > (.show (.id (joo_fooo 1 2)))
+ (joo_fooo 1 2))
 
 ;; test checks:
 (TEST
  > (with-exception-handler source-error-message
-			   (& (eval `(joo-class (fooo a b)
+			   (& (eval `(joo-class (joo_fooo a b)
 						(method (haha s))))))
  "abstract method not allowed in non-abstract class"
- > (eval `(joo-class fooo
+ > (eval `(joo-class joo_fooo
 		     (method (haha s))))
  #!void
  > (with-exception-handler source-error-message
-			   (& (eval `(joo-interface fooo
+			   (& (eval `(joo-interface joo_fooo
 						    (def-method (haha s))))))
  "method implementation not allowed in abstract class"
  > (with-exception-handler source-error-message
-			   (& (eval `(joo-interface (fooo a b)
+			   (& (eval `(joo-interface (joo_fooo a b)
 						    (method (haha s))))))
  "field definitions not allowed in interface")
 
 
 ;; without interfaces:
 (TEST
- > (joo-class (foo-number))
- > (joo-class (foo-complex #(boolean? exact?))
-	      extends: foo-number)
- > (joo-class (foo-real) extends: foo-complex)
- > (joo-class ((foo-integer _foo-integer))
-	      extends: foo-real
-	      (def (foo-integer)
-		   (_foo-integer #t)))
- > (joo-class (foo-natural0)
-	      extends: foo-integer)
+ > (joo-class (joo_foo-number))
+ > (joo-class (joo_foo-complex #(boolean? exact?))
+	      extends: joo_foo-number)
+ > (joo-class (joo_foo-real) extends: joo_foo-complex)
+ > (joo-class ((joo_foo-integer _joo_foo-integer))
+	      extends: joo_foo-real
+	      (def (joo_foo-integer)
+		   (_joo_foo-integer #t)))
+ > (joo-class (joo_foo-natural0)
+	      extends: joo_foo-integer)
 
- > (foo-real? (foo-integer))
+ > (joo_foo-real? (joo_foo-integer))
  #t
  ;; breaking down here, foo-natural0 still needs the argument:
- > (.exact? (foo-natural0 #f))
+ > (.exact? (joo_foo-natural0 #f))
  #f)
 
 ;; with interfaces:
