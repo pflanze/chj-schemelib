@@ -392,7 +392,7 @@ end:
   (symboltable:_update t key
 		       (lambda (vec i)
 			 (vector-set! vec i val))
-		       (or not-found symboltable:error-key-not-found)))
+		       symboltable:error-key-not-found))
 
 (define (symboltable-update t key fn #!optional not-found)
   (symboltable:_update t key
