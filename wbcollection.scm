@@ -19,6 +19,7 @@
 	list.wbcollection
 	(joo-methods size
 		     contains?
+		     maybe-ref
 		     min
 		     max
 		     add
@@ -64,8 +65,8 @@
  (def-wbcollection-method (contains? c item)
    (wbtree:member? $data item))
 
- ;; (def-wbcollection-method ( c)
- ;; 	 (wbtree:maybe-ref $data))
+ (def-wbcollection-method (maybe-ref c item)
+   (wbtree:maybe-ref $data item))
 
  ;; (def-wbcollection-method ( c)
  ;; 	 (wbtree:maybe-ref&rank $data))
