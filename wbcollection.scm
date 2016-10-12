@@ -272,7 +272,7 @@
  ;; sigh, why different kind of error here?
  #(error "can't get min from empty wbtree")
  > (%try-error (.max c))
- #(error "can't get min from empty wbtree")
+ #(error "can't get max from empty wbtree")
 
  > (.show c)
  ;; (wbcollection (wbtreeparameter number-cmp not-_wbtree?) 'empty-wbtree)
