@@ -19,7 +19,8 @@
 	process-run
 	string-writer
 	string-reader
-
+	file-contents
+	
 	#!optional
 	process-spec?)
 
@@ -107,4 +108,7 @@
  ;; BTW status codes should have their own type, too, right. Then we
  ;; would see it perfectly well-informed here, too !
  )
+
+(def (file-contents #(path-string? path))
+     (call-with-input-file path string-reader))
 
