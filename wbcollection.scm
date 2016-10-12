@@ -23,6 +23,7 @@
 		     min
 		     max
 		     add
+		     add-multiple
 		     delete
 		     members list
 		     members-stream stream
@@ -107,6 +108,13 @@
  (def-wbcollection-method (add c item)
    (wbcollection $wbtreeparameter
 		 (wbtree:add $data item)))
+
+ (def-wbcollection-method (add-multiple c items)
+   (wbcollection $wbtreeparameter
+		 (fold (lambda (item data)
+			 (wbtree:add data item))
+		       $data
+		       items)))
 
  (def-wbcollection-method (delete c item)
    (wbcollection $wbtreeparameter
