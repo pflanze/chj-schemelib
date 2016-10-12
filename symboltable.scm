@@ -191,20 +191,21 @@
 
 (define (symboltable-eqv? a b)
   (if (and (symboltable? a) (symboltable? b))
-      (let ((len (symboltable-length a)))
-	(and (= len (symboltable-length b))
-	     (let ((nothing (box b)))
-	       ;; since we've checked that the length is the same,
-	       ;; then if we never encounter a missing key from a in
-	       ;; b, then there will also not be any missing key from
-	       ;; b in a, hence we won't need to check for that (hence
-	       ;; no record of our checking is necessary)
-	       (symboltable:every?
-		a
-		(lambda (key val1)
-		  ;; since `nothing` can't appear in a, we don't have
-		  ;; to explicitely check for it here either.
-		  (eq? val1 (symboltable-ref b key nothing)))))))
+      (or (eq? a b)
+	  (let ((len (symboltable-length a)))
+	    (and (= len (symboltable-length b))
+		 (let ((nothing (box b)))
+		   ;; since we've checked that the length is the same,
+		   ;; then if we never encounter a missing key from a in
+		   ;; b, then there will also not be any missing key from
+		   ;; b in a, hence we won't need to check for that (hence
+		   ;; no record of our checking is necessary)
+		   (symboltable:every?
+		    a
+		    (lambda (key val1)
+		      ;; since `nothing` can't appear in a, we don't have
+		      ;; to explicitely check for it here either.
+		      (eq? val1 (symboltable-ref b key nothing))))))))
       (error "symboltable-eqv?: need two symboltables:" a b)))
 
 (TEST
