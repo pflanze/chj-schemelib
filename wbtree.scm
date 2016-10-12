@@ -278,8 +278,10 @@
 (define* (_wbtree-minmax minmax _wbtree-left* t)
   (let rec ((t t))
     (cond ((empty-wbtree? t)
-	   (error (string-append
-		   "can't get " minmax " from empty wbtree")))
+	   (if minmax
+	       (error (string-append
+		       "can't get " minmax " from empty wbtree"))
+	       #f))
 	  (else
 	   (let ((l (_wbtree-left* $wbtreeparameter t)))
 	     (cond ((empty-wbtree? l)
@@ -292,6 +294,13 @@
 
 (define* (wbtree:max t)
   (_wbtree-minmax "max" wbtree-right* t))
+
+(define* (wbtree:maybe-min t)
+  (_wbtree-minmax #f wbtree-left* t))
+
+(define* (wbtree:maybe-max t)
+  (_wbtree-minmax #f wbtree-right* t))
+
 
 ; fun single_L (a,x,T(b,_,y,z))         = N(b,N(a,x,y),z)
 ; fun single_R (b,T(a,_,x,y),z)         = N(a,x,N(b,y,z))
