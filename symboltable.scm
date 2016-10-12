@@ -15,7 +15,8 @@
 
 ;; re-export all exports from symboltable-1, plus
 (export (method symboltable.show)
-	symboltable-sortedkeys)
+	symboltable-sortedkeys
+	symboltable-eqv?)
 
 
 (declare (standard-bindings)
@@ -186,4 +187,37 @@
  > (map f '(a b c))
  (1 2 -1)
  )
+
+
+(define (symboltable-eqv? a b)
+  (if (and (symboltable? a) (symboltable? b))
+      (let ((len (symboltable-length a)))
+	(and (= len (symboltable-length b))
+	     (let ((nothing (box b)))
+	       ;; since we've checked that the length is the same,
+	       ;; then if we never encounter a missing key from a in
+	       ;; b, then there will also not be any missing key from
+	       ;; b in a, hence we won't need to check for that (hence
+	       ;; no record of our checking is necessary)
+	       (symboltable:every?
+		a
+		(lambda (key val1)
+		  ;; since `nothing` can't appear in a, we don't have
+		  ;; to explicitely check for it here either.
+		  (eq? val1 (symboltable-ref b key nothing)))))))
+      (error "symboltable-eqv?: need two symboltables:" a b)))
+
+(TEST
+ > (def t1 (list->symboltable '((a . 1) (b . 3))))
+ > (def t2 (list->symboltable '((b . 3) (a . 2) (c . 4))))
+ > (symboltable-eqv? t1 t2)
+ #f
+ > (def t3 (symboltable-delete t2 'c))
+ > (symboltable-eqv? t1 t3)
+ #f
+ > (def t4 (symboltable-set t3 'a 1))
+ > (eq? t1 t4)
+ #f
+ > (symboltable-eqv? t1 t4)
+ #t)
 
