@@ -58,6 +58,14 @@
 			       (lcons item oldgroup)))
 			 (else group1)))))))
 
+ (def-method (add-multiple c items)
+   ;; (yeah, *could* be optimized minimally by avoiding object
+   ;; allocations)
+   (fold (lambda (v c)
+	   (wbmcollection.add c v))
+	 c
+	 items))
+ 
 
  (def-method (maybe-ref c item)
    (let-wbmcollection
@@ -120,10 +128,8 @@
 			 leaf-null
 			 leaf-cons
 			 l)
-     (fold (lambda (v c)
-	     (wbmcollection.add c v))
-	   (empty-wbmcollection cmp leaf-null leaf-cons)
-	   l))
+     (.add-multiple (empty-wbmcollection cmp leaf-null leaf-cons)
+		    l))
 
 
 (def (lists.wbmcollection #(function? cmp)
