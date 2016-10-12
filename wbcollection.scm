@@ -77,6 +77,12 @@
  (def-wbcollection-method (max c)
    (wbtree:max $data))
 
+ (def-wbcollection-method (maybe-min c)
+   (wbtree:maybe-min $data))
+
+ (def-wbcollection-method (maybe-max c)
+   (wbtree:maybe-max $data))
+
  ;; `first` and `rest` don't really seem fitting here, since
  ;; there's no maintainance of insertion order, so leave it to
  ;; min and max.
