@@ -152,8 +152,8 @@
 
  (def-method (show s)
    `(list.wbcollection
-     ,(.show (.param s))
-     (list ,@(map .show (wbcollection.members s)))))
+     ,(.show (wbtreeparameter.cmp (.param s)))
+     ,(.show (wbcollection.members s))))
 
  (def-wbcollection-method (members-stream c
 					  #!optional
@@ -284,8 +284,9 @@
  (-2 1 2 3 3.3 9)
 
  > (.show r)
- (list.wbcollection (wbtreeparameter number-cmp not-_wbtree?)
-		    (list -2 1 2 3 3.3 9))
+ (list.wbcollection number-cmp (list -2 1 2 3 3.3 9))
+ > (.show (list.wbcollection number-cmp (list -2 1 2 3 3.3 9)))
+ (list.wbcollection number-cmp (list -2 1 2 3 3.3 9))
  
  ;; > (with-exception-catcher identity (& (set! c (.delete c 1))))
  ;; not-found  XXX why does this give #!void instead of exception?
@@ -303,8 +304,6 @@
  #(error "can't get max from empty wbtree")
 
  > (.show c)
- ;; (wbcollection (wbtreeparameter number-cmp not-_wbtree?) 'empty-wbtree)
- ;; nope, now:
- (list.wbcollection (wbtreeparameter number-cmp not-_wbtree?) (list))
+ (list.wbcollection number-cmp (list))
  )
 
