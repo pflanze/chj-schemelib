@@ -36,7 +36,17 @@
 
 	(def-method (delete! t #(string? key))
 	  (let ((keyhash (fstable:digest key)))
-	    (delete-file (string-append (.basedir t) "/" keyhash)))))
+	    (delete-file (string-append (.basedir t) "/" keyhash))))
+
+	(def-method (possibly-delete! t #(string? key)) -> boolean?
+	  (let ((keyhash (fstable:digest key)))
+	    (with-exception-catcher
+	     (lambda (e)
+	       (if (no-such-file-or-directory-exception? e)
+		   #f
+		   (raise e)))
+	     (& (delete-file (string-append (.basedir t) "/" keyhash))
+		#t)))))
 
 
 (TEST
