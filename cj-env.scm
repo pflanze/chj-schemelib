@@ -190,6 +190,12 @@
  > b
  #&10)
 
+(define (box-update! b fn)
+  (let ((v (fn (unbox b))))
+    (set-box! b v)
+    v))
+
+
 (define-macro* (inc! v)
   (let ((V (gensym)))
     `(let ((,V (inc ,v)))
