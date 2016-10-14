@@ -203,6 +203,9 @@
 ;; (Just in the end it *does* get you. Scheme is inconsistent?)
 (define box-set! set-box!) ;; ?
 
+;; another crazy name?:
+(define bitwise-or bitwise-ior)
+
 
 (define-macro* (inc! v)
   (let ((V (gensym)))
