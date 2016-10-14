@@ -60,7 +60,8 @@
 	;; stream-%cars+cdrs
 	stream-every
 	gen-infinite-stream
-	gen-stream)
+	gen-stream
+	stream-min&max)
 
 
 (define (stream-filter/tail pred s tail)
@@ -1124,3 +1125,18 @@
  > (promise? s1)
  #t)
 
+
+(define (stream-min&max s)
+  (let-pair
+   ((a s*) (force s))
+   (stream-fold-left (lambda-values (v (lo hi))
+			       (values (min v lo)
+				       (max v hi)))
+		     (values a a)
+		     s*)))
+
+(TEST
+ > (.vector (stream-min&max '(3 5 9 -3 7)))
+ #(-3 9)
+ > (.vector (stream-min&max '(3)))
+ #(3 3))
