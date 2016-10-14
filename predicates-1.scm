@@ -41,6 +41,7 @@
 	natural0-string? ;; do these two really
 	natural-string? ;; belong here (in a neutral predicates lib)?
 	string-of-length
+	u8vector-of-length
 	improper-every	  ;; XX move
 	improper-list-of  ;; hmm
 	char-one-of	  ;; move to char lib?
@@ -199,6 +200,20 @@
 (TEST
  > (map (string-of-length 3) '(foo "" "a" "ab" "abc" "abcd"))
  (#f  #f #f #f #t #f))
+
+
+(define (u8vector-of-length len)
+  (if (natural0? len)
+      (lambda (v)
+	(and (u8vector? v)
+	     (= (u8vector-length v) len)))
+      (error "not a natural0:" len)))
+
+(TEST
+ > (map (u8vector-of-length 3)
+	(list 'foo "" (u8vector) (u8vector 5) (u8vector 3 4) (u8vector 8 7 5)
+	      (make-u8vector 4)))
+ (#f #f  #f #f #f #t #f))
 
 
 (define (improper-every pred v)
