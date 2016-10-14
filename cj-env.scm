@@ -195,6 +195,11 @@
     (set-box! b v)
     v))
 
+(define (box-add! b x)
+  (let ((v (+ (unbox b) x)))
+    (set-box! b v)
+    v))
+
 
 (define-macro* (inc! v)
   (let ((V (gensym)))
