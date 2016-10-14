@@ -744,13 +744,48 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
   ((int fd) (const_void* buf) (size_t count))
   ssize_t)
 
-(define/check->integer "read" posix:_read-u8vector posix:read-u8vector
-  ((int fd) ((pointer unsigned-int8) buf) (size_t count))
-  ssize_t)
+;; (define/check->integer "read" posix:_read-u8vector posix:read-u8vector
+;;   ((int fd) ((pointer unsigned-int8) buf) (size_t count))
+;;   ssize_t)
+;;doesn't work, expansion hand-edited:
+(begin
+  (define (posix:_read-u8vector fd buf count)
+    (if (u8vector? buf)
+	(error-to-posix-exception
+	 ((c-lambda
+	   (int scheme-object size_t)
+	   ssize_t
+	   "___result= read(___arg1, ___BODY(___arg2), ___arg3);
+ if(___result<0) ___result=-errno;")
+	  fd
+	  buf
+	  count))
+	(error "not a u8vector:" buf)))
+  (define (posix:read-u8vector fd buf count)
+    (check-not-posix-exception
+     (posix:_read-u8vector fd buf count)
+     'posix:read-u8vector
+     '(fd buf count)
+     (lambda () (list fd buf count)))))
 
-(define/check->integer "write" posix:_write-u8vector posix:write-u8vector
-  ((int fd) ((pointer unsigned-int8) buf) (size_t count))
-  ssize_t)
+;; (define/check->integer "write" posix:_write-u8vector posix:write-u8vector
+;;   ((int fd) ((pointer unsigned-int8) buf) (size_t count))
+;;   ssize_t)
+;; dito, aha, less expansion needed:
+(define/check
+  posix:_write-u8vector
+  posix:write-u8vector
+  (fd buf count)
+  (if (u8vector? buf)
+      (error-to-posix-exception
+       ((c-lambda
+	 (int scheme-object size_t)
+	 ssize_t
+	 "___result= write(___arg1, ___BODY(___arg2), ___arg3); if(___result<0) ___result=-errno;")
+	fd
+	buf
+	count))
+      (error "not a u8vector:" buf)))
 
 ;;NOTE that void* canot be replaced with wordaddress: it's not
 ;;necessarily bound/parallizd ehr to a word. Aligned.
