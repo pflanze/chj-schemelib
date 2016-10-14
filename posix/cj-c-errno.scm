@@ -168,6 +168,7 @@
     (case (source-code returntype)
       ((int uid_t gid_t
 	    ssize_t ;; OK?todo.
+	    off_t ;; OK? XX
 	    )
        (let ((argnames (map cadr type-argname-alist*))
 	     (argtypes (map car type-argname-alist*)))
