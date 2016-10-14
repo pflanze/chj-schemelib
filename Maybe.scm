@@ -14,10 +14,13 @@
 
 (class Maybe
        (subclass Nothing
-		 (struct constructor-name: _Nothing))
+		 (struct constructor-name: _Nothing)
+		 (method (maybe-value s)
+			 #f))
 
        (subclass Just
-		 (struct value)))
+		 (struct value)
+		 (method maybe-value Just.value)))
 
 ;; optimization:
 (def __Nothing (_Nothing))
