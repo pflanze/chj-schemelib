@@ -45,6 +45,9 @@
 (define. (values.show v)
   (cons 'values (map .show (values->list v))))
 
+(define. (box.show v)
+  `(box ,(.show (unbox v))))
+
 
 ;; XX move? to predicates or rather cj-gambit-sys?
 (define (toplevel-procedure? v)
