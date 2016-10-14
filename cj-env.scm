@@ -200,6 +200,9 @@
     (set-box! b v)
     v))
 
+;; (Just in the end it *does* get you. Scheme is inconsistent?)
+(define box-set! set-box!) ;; ?
+
 
 (define-macro* (inc! v)
   (let ((V (gensym)))
