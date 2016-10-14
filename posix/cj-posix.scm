@@ -724,6 +724,10 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 
 ;; ===== read/write accesses: ========================================
 
+(define/check->integer "lseek" posix:_lseek posix:lseek
+  ((int fd) (off_t offset) (int whence)) off_t)
+
+
 ;; Note that these are unbuffered and are not integrated into Gambit's
 ;; I/O (thus block!)
 
