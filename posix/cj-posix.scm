@@ -744,6 +744,14 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
   ((int fd) (const_void* buf) (size_t count))
   ssize_t)
 
+(define/check->integer "read" posix:_read-u8vector posix:read-u8vector
+  ((int fd) ((pointer unsigned-int8) buf) (size_t count))
+  ssize_t)
+
+(define/check->integer "write" posix:_write-u8vector posix:write-u8vector
+  ((int fd) ((pointer unsigned-int8) buf) (size_t count))
+  ssize_t)
+
 ;;NOTE that void* canot be replaced with wordaddress: it's not
 ;;necessarily bound/parallizd ehr to a word. Aligned.
 
