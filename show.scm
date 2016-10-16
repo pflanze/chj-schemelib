@@ -104,3 +104,8 @@
   ;;`(unbound-global-exception )  hmm or really simply?:
   (unbound-global-exception-variable e)
   )
+
+
+(define. (u8vector.show v)
+  `(u8vector ,@(u8vector->list v)))
+
