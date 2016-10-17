@@ -24,8 +24,8 @@
 ;; through the hashtable actually man. man.
 
 (require easy
-	 (srfi-1 cons*) ;; btw so many times, fold etc., should this
-			;; be with easy?
+	 (srfi-1 cons* take drop)
+	 ;; ^ btw so many times, fold etc., should this be with easy?
 	 (cj-struct struct-tag.name)
 	 dot-oo ;; actually still using define-struct. currently
 	 symboltable
@@ -98,20 +98,36 @@
 		   (if maybe-fields
 		       (let* ((used (list->symbolcollection
 				     (joo:body-symbols rest)))
-			      (args* (joo:args->vars bind))
-			      (args (list->symbolcollection
-				     (map source-code args*))))
-			 (list
-			  `(,(symbol-append 'let- class-name)
-			    (,(map (lambda (nam)
-				     (if (and (symboltable-ref used nam #f)
-					      (not
-					       (symboltable-ref args nam #f)))
-					 nam
-					 '_))
-				   maybe-fields)
-			     ,(cadr args*))
-			    ,@rest)))
+			      (bindvars* (joo:args->vars bind))
+			      (bindvars (list->symbolcollection
+					 (map source-code bindvars*)))
+			      (args (cdr bindvars*)))
+			 (letv ((pre body)
+				;; Also have to parse rest for "->"
+				;; syntax *UH*, that's bad? Well the ->
+				;; is part of the binds thing,
+				;; basically, but still, XX should
+				;; really provide proper parsers!
+				;; (S-expr *is* just a layer in the
+				;; syntax parsing. Really.)
+				(if (and (pair? rest)
+					 (eq? (source-code (car rest)) '->)
+					 (pair? (cdr rest)))
+				    (values (take rest 2)
+					    (drop rest 2))
+				    (values '()
+					    rest)))
+			       `(,@pre
+				 (,(symbol-append 'let- class-name)
+				  (,(map (lambda (nam)
+					   (if (and (symboltable-ref used nam #f)
+						    (not
+						     (symboltable-ref bindvars nam #f)))
+					       nam
+					       '_))
+					 maybe-fields)
+				   ,(car args))
+				  ,@body))))
 		       rest)))
 	      (let-pair ((name args) (source-code bind))
 			`(def. (,(source.symbol-append class-name. name)
@@ -763,7 +779,11 @@
 
  > (joo-class (fooagain2 x #(pair? y) z)
 	      (def-method* (bar x y)
+		(list x y z))
+	      (def-method* (baz x y) -> pair?
 		(list x y z)))
  > (.bar (fooagain2 10 (cons 1 2) 'f) 11)
+ (#((fooagain2) 10 (1 . 2) f) 11 f)
+ > (.baz (fooagain2 10 (cons 1 2) 'f) 11)
  (#((fooagain2) 10 (1 . 2) f) 11 f)
  )
