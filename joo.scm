@@ -28,10 +28,12 @@
 			;; be with easy?
 	 (cj-struct struct-tag.name)
 	 dot-oo ;; actually still using define-struct. currently
-	 symboltable-1
+	 symboltable
 	 (cj-source source-quote source-dequote)
 	 cj-seen
-	 (improper-list improper-list->list))
+	 (improper-list improper-list->list)
+	 (tree-util flatten)
+	 (cj-typed args-detype))
 
 (export (macro joo-class)
 	(macro joo-interface)
@@ -45,21 +47,86 @@
 ;; already how that was a bad idea, hm?), I mean, ok?  I.e. its
 ;; definition is exported with |jooclass|.
 
-(def (joo:implementation-method-expander-for class-name)
+;; Look for symbols of the same name as the field names, if found *and
+;; not in method argument list* then copy the corresponding field from
+;; the object using the let-foo thing. Could be better by properly
+;; analyzing the code but defer that to when I have proper
+;; macros.... (Although OTOH by then perhaps the compiler is also
+;; smarter and will elide unused vector-ref's (and even better move
+;; used ones to better places).)
+
+(def (joo:body-symbols body) ;; -> (list-of symbol?)
+     (filter symbol? (flatten (cj-desourcify body))))
+
+(TEST
+ > (joo:body-symbols '(foo (a bar 1 let) #(pair? x)))
+ (foo a bar let))
+
+
+(def (joo:args->vars args)
+     (map (lambda (bind)
+	    (if (pair? bind) (car bind)
+		bind))
+	  (filter (comp (either pair? symbol?) source-code)
+		  (improper-list->list (args-detype args)))))
+
+(TEST
+ > (joo:args->vars '(a #(vector? b) . #(pair? c)))
+ (a b c)
+ > (joo:args->vars '(a #(vector? b) #!optional #(pair? c)))
+ (a b c)
+ > (joo:args->vars '(a #(vector? b) #!key (#(pair? c) (cons 1 2))))
+ (a b c))
+
+
+(def (joo:implementation-method-expander-for
+      class-name
+      maybe-fields)
+     ;; called copy-fields? not alias-fields? since *in case* I'll
+     ;; ever provide mutability it will be broken here.--now called
+     ;; maybe-fields
      (def class-name. (symbol-append class-name "."))
      (lambda (stx)
        (cj-sourcify-deep
-	(mcase stx
-	       (`(`METHOD `bind . `rest)
-		(mcase bind
-		       (pair?
-			(let-pair ((name args) (source-code bind))
-				  `(def. (,(source.symbol-append class-name. name)
-					  ,@args)
-				     ,@rest)))
-		       (symbol?
-			`(def. ,(source.symbol-append class-name. bind)
-			   ,@rest)))))
+	(mcase
+	 stx
+	 (`(`METHOD `bind . `rest)
+	  (mcase
+	   bind
+	   (pair?
+	    (let ((rest*
+		   (if maybe-fields
+		       (let* ((used (list->symbolcollection
+				     (joo:body-symbols rest)))
+			      (args* (joo:args->vars bind))
+			      (args (list->symbolcollection
+				     (map source-code args*))))
+			 (list
+			  `(,(symbol-append 'let- class-name)
+			    (,(map (lambda (nam)
+				     (if (and (symboltable-ref used nam #f)
+					      (not
+					       (symboltable-ref args nam #f)))
+					 nam
+					 '_))
+				   maybe-fields)
+			     ,(cadr args*))
+			    ,@rest)))
+		       rest)))
+	      (let-pair ((name args) (source-code bind))
+			`(def. (,(source.symbol-append class-name. name)
+				,@args)
+			   ,@rest*))))
+	   (symbol?
+	    (if maybe-fields
+		;; or simply do not do it, or parse lambda if that's
+		;; the value expression
+		(source-error
+		 stx
+		 (string-append "def-method* expects bindings list, use"
+				" def-method for bare symbols"))
+		`(def. ,(source.symbol-append class-name. bind)
+		   ,@rest))))))
 	stx)))
 
 (def (joo:abstract-method-expander-for class-name)
@@ -525,19 +592,27 @@
 		      ;; joo-* forms. Replace by explicit parsing
 		      ;; (same-level only).
 
+		      ;; abstract methods
 		      (##define-syntax
-		       ;; abstract methods
 		       method
 		       ,(if (or interface? abstract?)
 			    `(joo:abstract-method-expander-for ',class-name)
 			    `joo:abstract-method-expander-forbidden))
 
+		      ;; implementations
 		      (##define-syntax
-		       ;; implementations
 		       def-method
 		       ,(if interface?
 			    `joo:implementation-method-expander-forbidden
-			    `(joo:implementation-method-expander-for ',class-name)))
+			    `(joo:implementation-method-expander-for ',class-name #f)))
+		      ;; with fields bound to variables
+		      (##define-syntax
+		       def-method*
+		       ,(if interface?
+			    `joo:implementation-method-expander-forbidden
+			    `(joo:implementation-method-expander-for
+			      ',class-name
+			      ',(joo:args->vars field-decls))))
 
 		      ,@defs)))))))
 
@@ -676,3 +751,19 @@
  #t
  )
 
+
+;; def-method*
+(TEST
+ > (def z 'outside)
+ > (joo-class (fooagain x #(pair? y) z)
+	      (def-method (bar x y)
+		(list x y z)))
+ > (.bar (fooagain 10 (cons 1 2) 'f) 11)
+ (#((fooagain) 10 (1 . 2) f) 11 outside)
+
+ > (joo-class (fooagain2 x #(pair? y) z)
+	      (def-method* (bar x y)
+		(list x y z)))
+ > (.bar (fooagain2 10 (cons 1 2) 'f) 11)
+ (#((fooagain2) 10 (1 . 2) f) 11 f)
+ )
