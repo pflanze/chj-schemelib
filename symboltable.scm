@@ -15,8 +15,10 @@
 
 ;; re-export all exports from symboltable-1, plus
 (export (method symboltable.show)
+	symboltable->sortedlist
 	symboltable-sortedkeys
-	symboltable-eqv?)
+	symboltable-eqv?
+	list->symbolcollection)
 
 
 (declare (standard-bindings)
@@ -24,8 +26,11 @@
 	 (block))
 
 
+(define (symboltable->sortedlist t)
+  (cmp-sort (symboltable->list t) (on car symbol-cmp)))
+
 (define. (symboltable.show v)
-  `(symboltable ,@(map .show (symboltable->list v))))
+  `(symboltable ,@(map .show (symboltable->sortedlist v))))
 
 (define (symboltable-sortedkeys t #!optional (tail '()))
   (cmp-sort (symboltable-keys t tail) symbol-cmp))
@@ -149,7 +154,7 @@
  > (symboltable-set t 'c "c")
  #((symboltable) 4 #f #f ha 2 #f #f #f #f #f #f c "c" b "moo-b" a "moo-a")
  > (.show #)
- (symboltable (cons 'ha 2) (cons 'c "c") (cons 'b "moo-b") (cons 'a "moo-a"))
+ (symboltable (cons 'a "moo-a") (cons 'b "moo-b") (cons 'c "c") (cons 'ha 2))
  > (equal? (symboltable-add t 'c "c") (symboltable-set t 'c "c"))
  #t
 
@@ -222,3 +227,14 @@
  > (symboltable-eqv? t1 t4)
  #t)
 
+
+;; name? not really a new type, just a symboltable of #t values.
+(define (list->symbolcollection l)
+  (fold (lambda (v t)
+	  (symboltable-set t v #t))
+	empty-symboltable
+	l))
+
+(TEST
+ > (symboltable->sortedlist (list->symbolcollection '(a b c)))
+ ((a . #t) (b . #t) (c . #t)))
