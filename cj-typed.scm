@@ -241,7 +241,10 @@
 		   #(#(source1) a (console) 1441811))
        (console)
        983059))
-   (##begin . BODY)))
+   (##begin . BODY))
+ ;; ehr well this is the test in action:
+ > (values->vector (typed-lambda-args-expand '(#(pair? x)) 'BODY))
+ #((x) (type-check pair? x (##begin . BODY))))
 
 
 (define-macro* (typed-lambda args . body)
