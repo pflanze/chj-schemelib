@@ -10,7 +10,9 @@
 (require easy)
 
 (export (macro DEBUG)
-	(macro T))
+	(macro T)
+	*debug* ;; well, by alias?
+	2>)
 
 (def *debug* 2) ;; statements below that level remain quiet; #f means
 		 ;; don't compile debugging statements into the code
@@ -80,4 +82,10 @@
  3
  > (T 3 + 2 3) ;; this one should make it to stderr
  5)
+
+
+(def (2> #(path-string? path))
+     (force-output (current-error-port))
+     ;; XX O_APPEND ?
+     (current-error-port (open-output-file path)))
 
