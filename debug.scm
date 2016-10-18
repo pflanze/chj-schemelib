@@ -84,8 +84,12 @@
  5)
 
 
-(def (2> #(path-string? path))
+(def debug:default-port (current-error-port))
+
+(def (2> #!optional #((maybe path-string?) path))
      (force-output (current-error-port))
-     ;; XX O_APPEND ?
-     (current-error-port (open-output-file path)))
+     (if path
+	 ;; XX O_APPEND ?
+	 (current-error-port (open-output-file path))
+	 (current-error-port debug:default-port)))
 
