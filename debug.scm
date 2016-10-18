@@ -12,45 +12,72 @@
 (export (macro DEBUG)
 	(macro T))
 
+(def *debug* 2) ;; statements below that level remain quiet; #f means
+		 ;; don't compile debugging statements into the code
+		 ;; at all
 
-(def *debug?* #t)
+
+(def (debug:parse-level lvl rest cont)
+     (let ((level (source-code lvl)))
+       (if (real? level)
+	   (cont rest level)
+	   (cont (cons lvl rest) 1))))
 
 
-(defmacro (DEBUG . args)
-  (if *debug?*
-      `(warn ,@args)
+;; lvl is optional, default is 1
+
+(defmacro (DEBUG lvl . rest)
+  (if *debug*
+      (debug:parse-level
+       lvl rest
+       (lambda (args level)
+	 `(if (and *debug* (<= *debug* ,level))
+	      (warn ,@args))))
       `(##void)))
 
 
-;; "trace"
-(defmacro (T . args)
-  (if *debug?*
-      (with-gensym
-       res
-       (let ((vs (map (comp gensym .string) (cdr (iota (length args))))))
-	 `(let ,(map (lambda (v arg)
-		       `(,v ,arg))
-		     vs
-		     (cdr args))
-	    (warn "T:"
-		  ;;,(object->string (cj-desourcify (car args)))
-		  (list
-		   ',(car args)
-		   ,@(map (lambda (v)
-			    `(.show ,v))
-			  vs))
-		  '->
-		  '...)
-	    (let ((,res (,(car args) ,@vs)))
-	      (warn " :"
-		    ;;,(object->string (cj-desourcify (car args)))
-		    (list
-		     ',(car args)
-		     ,@(map (lambda (v)
-			      `(.show ,v))
-			    vs))
-		    '->
-		    (.show ,res))
-	      ,res))))
-      args))
+(defmacro (T lvl . rest)
+  (if *debug*
+      (debug:parse-level
+       lvl rest
+       (lambda (form level)
+	 (with-gensym
+	  res
+	  (let ((vs (map (comp gensym .string) (cdr (iota (length form))))))
+	    `(let ,(map (lambda (v arg)
+			  `(,v ,arg))
+			vs
+			(cdr form))
+	       (if (and *debug* (<= *debug* ,level))
+		   (warn "T:"
+			 ;;,(object->string (cj-desourcify (car form)))
+			 (list
+			  ',(car form)
+			  ,@(map (lambda (v)
+				   `(.show ,v))
+				 vs))
+			 '...))
+	       (let ((,res (,(car form) ,@vs)))
+		 (if (and *debug* (<= *debug* ,level))
+		     (warn " :"
+			   ;;,(object->string (cj-desourcify (car form)))
+			   (list
+			    ',(car form)
+			    ,@(map (lambda (v)
+				     `(.show ,v))
+				   vs))
+			   '->
+			   (.show ,res)))
+		 ,res))))))
+      (debug:parse-level
+       lvl rest
+       (lambda (form)
+	 form))))
+
+(TEST
+ > (both-times (def *debug* 2))
+ > (T + 1 2)
+ 3
+ > (T 3 + 2 3) ;; this one should make it to stderr
+ 5)
 
