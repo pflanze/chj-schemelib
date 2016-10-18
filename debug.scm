@@ -19,30 +19,65 @@
 		 ;; at all
 
 
-(def (debug:parse-level lvl rest cont)
-     (let ((level (source-code lvl)))
-       (if (real? level)
-	   (cont rest level)
-	   (cont (cons lvl rest) 1))))
+(def (debug:parse-level form want-marker? cont) ;; form/level/maybe-marker
+     (def (with-level level form)
+	  (if (and want-marker? (pair? form))
+	      (let-pair ((b form*) form)
+			(let ((B (source-code b)))
+			  (if (string? B)
+			      (cont form* level B)
+			      (cont form level #f))))
+	      (cont form level #f)))
+     (if (pair? form)
+	 (let-pair ((a form*) form)
+		   (let ((A (source-code a)))
+		     (if (real? A)
+			 (with-level A form*)
+			 (with-level 1 form))))
+	 (cont form 1 #f)))
+
+(TEST
+ ;; DEBUG
+ > (debug:parse-level '((a 1) b) #f list)
+ (((a 1) b) 1 #f)
+ > (debug:parse-level '("uh" (a 1) b) #f list)
+ (("uh" (a 1) b) 1 #f)
+ > (debug:parse-level '(3 "uh" (a 1) b) #f list)
+ (("uh" (a 1) b) 3 #f)
+ > (debug:parse-level '(3 (a 1) b) #f list)
+ (((a 1) b) 3 #f)
+
+ ;; T
+ > (debug:parse-level '((a 1) b) #t list)
+ (((a 1) b) 1 #f)
+ > (debug:parse-level '("uh" (a 1) b) #t list)
+ (((a 1) b) 1 "uh")
+ > (debug:parse-level '(3 "uh" (a 1) b) #t list)
+ (((a 1) b) 3 "uh")
+ > (debug:parse-level '(3 (a 1) b) #t list)
+ (((a 1) b) 3 #f))
 
 
-;; lvl is optional, default is 1
 
-(defmacro (DEBUG lvl . rest)
+;; DEBUG supports an optional level as the first arg (default: 1)
+(defmacro (DEBUG . args)
   (if *debug*
       (debug:parse-level
-       lvl rest
-       (lambda (args level)
+       args #f
+       (lambda (args level maybe-marker)
+	 (assert (not maybe-marker))
 	 `(if (and *debug* (<= *debug* ,level))
 	      (warn ,@args))))
       `(##void)))
 
 
-(defmacro (T lvl . rest)
+;; T supports an optional level then an optional marker string as the
+;; first arg(s)
+(defmacro (T . form)
   (if *debug*
       (debug:parse-level
-       lvl rest
-       (lambda (form level)
+       form #t
+       (lambda (form level maybe-marker)
 	 (with-gensym
 	  res
 	  (let ((vs (map (comp gensym .string) (cdr (iota (length form))))))
@@ -51,7 +86,9 @@
 			vs
 			(cdr form))
 	       (if (and *debug* (<= *debug* ,level))
-		   (warn "T:"
+		   (warn ,(if maybe-marker
+			      (string-append "T " (source-code maybe-marker)":")
+			      "T:")
 			 ;;,(object->string (cj-desourcify (car form)))
 			 (list
 			  ',(car form)
@@ -61,7 +98,9 @@
 			 '...))
 	       (let ((,res (,(car form) ,@vs)))
 		 (if (and *debug* (<= *debug* ,level))
-		     (warn " :"
+		     (warn ,(if maybe-marker
+			      (string-append "  " (source-code maybe-marker)":")
+			      " :")
 			   ;;,(object->string (cj-desourcify (car form)))
 			   (list
 			    ',(car form)
@@ -72,8 +111,8 @@
 			   (.show ,res)))
 		 ,res))))))
       (debug:parse-level
-       lvl rest
-       (lambda (form)
+       form #t
+       (lambda (form level maybe-marker)
 	 form))))
 
 (TEST
@@ -81,7 +120,11 @@
  > (T + 1 2)
  3
  > (T 3 + 2 3) ;; this one should make it to stderr
- 5)
+ 5
+ > (T 3 "ey" + 3 3) ;; dito
+ 6
+ > (T "ey" + 3 4)
+ 7)
 
 
 (def debug:default-port (current-error-port))
