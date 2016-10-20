@@ -43,6 +43,7 @@
 	hostname
 	file-info->mtime
 	file-basename
+	file-mtime
 	basepath
 	basename
 	dirname
@@ -347,7 +348,12 @@
 (define file-info->mtime
   (compose time->seconds
 	   file-info-last-modification-time))
+;;^ also now see file-info.mtime in oo-gambit.scm
 
+(define (file-mtime path)
+  (time->seconds
+   (file-info-last-modification-time
+    (file-info path))))
 
 
 ;; -- for a different libary?  not full path lib but simple path manipul
