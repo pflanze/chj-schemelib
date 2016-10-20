@@ -15,6 +15,11 @@
 	 srfi-11
 	 (simple-match-1 assert*))
 
+(export (macro module:import)
+	(macro module:import/prefix)
+	(macro module-import)
+	(macro module-import*))
+
 
 ;;;
 ;;;; runtime-parameterized modules
