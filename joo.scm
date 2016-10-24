@@ -626,7 +626,7 @@
 		      ;; with fields bound to variables
 		      (##define-syntax
 		       def-method*
-		       ,(if interface?
+		       ,(if (or interface? abstract?)
 			    `joo:implementation-method-expander-forbidden
 			    `(joo:implementation-method-expander-for
 			      ',class-name
