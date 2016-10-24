@@ -787,3 +787,19 @@
  > (.baz (fooagain2 10 (cons 1 2) 'f) 11)
  (#((fooagain2) 10 (1 . 2) f) 11 f)
  )
+
+;; def-method* and inheritance, or, test the let-<classname> feature
+;; with inheritance for the first tiem:
+(TEST
+ > (joo-class (baa a b))
+ > (joo-class (boo c) extends: baa
+	      (def-method* (foo1 s) (list c))
+	      (def-method* (foo2 s) (list a b c))
+	      (def-method* (foo3 s) -> pair? (list b c)))
+ > (.foo1 (boo 10 11 12))
+ (12)
+ > (.foo2 (boo 10 11 12))
+ (10 11 12)
+ > (.foo3 (boo 10 11 12))
+ (11 12))
+
