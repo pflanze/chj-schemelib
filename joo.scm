@@ -82,9 +82,10 @@
 (def (joo:implementation-method-expander-for
       class-name
       maybe-fields)
-     ;; called copy-fields? not alias-fields? since *in case* I'll
-     ;; ever provide mutability it will be broken here.--now called
-     ;; maybe-fields
+     ;; maybe-fields is true (and the list of all fields (including
+     ;; those of parent classes) in order) if object fields should be
+     ;; visible as same-named variables (they are currently copied,
+     ;; though, not aliased).
      (def class-name. (symbol-append class-name "."))
      (lambda (stx)
        (cj-sourcify-deep
