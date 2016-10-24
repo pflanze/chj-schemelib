@@ -387,13 +387,14 @@
 		    vars*
 		    (vars
 		     (let ((numvars (length vars)))
-		       (if (<= numvars ,numfields) ;; allow smaller num of vars for extensibility, ok?
+		       ;; allow smaller num of vars for extensibility
+		       (if (<= numvars ,numfields)
 			   (let ((real-v+f+i-s (filter (lambda (v+f+i)
 							 (not (eq? (source-code (vector-ref v+f+i 0))
 								   '_)))
 						       (map vector
 							    vars
-							    ',fields
+							    (take ',fields numvars)
 							    (iota numvars))))
 				 (V (gensym))
 				 (C (gensym)))
