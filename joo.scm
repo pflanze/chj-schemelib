@@ -629,7 +629,7 @@
 			    `joo:implementation-method-expander-forbidden
 			    `(joo:implementation-method-expander-for
 			      ',class-name
-			      ',(joo:args->vars field-decls))))
+			      ',(joo:args->vars (joo-type.all-field-decls type)))))
 
 		      ,@defs)))))))
 
