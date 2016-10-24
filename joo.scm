@@ -79,6 +79,7 @@
  (a b c))
 
 
+;; def-method and def-method*
 (def (joo:implementation-method-expander-for
       class-name
       maybe-fields)
