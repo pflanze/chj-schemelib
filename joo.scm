@@ -82,7 +82,8 @@
 ;; def-method and def-method*
 (def (joo:implementation-method-expander-for
       class-name
-      maybe-fields)
+      maybe-fields
+      abstract?)
      ;; maybe-fields is true (and the list of all fields (including
      ;; those of parent classes) in order) if object fields should be
      ;; visible as same-named variables (they are currently copied,
@@ -97,7 +98,10 @@
 	   bind
 	   (pair?
 	    (let ((rest*
-		   (if maybe-fields
+		   (if (and maybe-fields
+			    ;; only non-abstract classes have let-
+			    ;; forms
+			    (not abstract?))
 		       (let* ((used (list->symbolcollection
 				     (joo:body-symbols rest)))
 			      (bindvars* (joo:args->vars bind))
@@ -622,15 +626,18 @@
 		       def-method
 		       ,(if interface?
 			    `joo:implementation-method-expander-forbidden
-			    `(joo:implementation-method-expander-for ',class-name #f)))
+			    `(joo:implementation-method-expander-for ',class-name
+								     #f
+								     ,abstract?)))
 		      ;; with fields bound to variables
 		      (##define-syntax
 		       def-method*
-		       ,(if (or interface? abstract?)
+		       ,(if interface?
 			    `joo:implementation-method-expander-forbidden
 			    `(joo:implementation-method-expander-for
 			      ',class-name
-			      ',(joo:args->vars (joo-type.all-field-decls type)))))
+			      ',(joo:args->vars (joo-type.all-field-decls type))
+			      ,abstract?)))
 
 		      ,@defs)))))))
 
