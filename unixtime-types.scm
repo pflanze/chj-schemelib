@@ -104,7 +104,8 @@
 	       (vector-ref rfc-2822:months (.month-1 v)))
 
 
-       (def (rfc-2822-alike-string v maybe-zone-string)
+       (def (rfc-2822-alike-string v maybe-zone-string
+				   #!optional (show-zone? #t))
 	    (string-append (localtime.wday-shortstring v)
 			   ", "
 			   (localtime.mday-string v)
@@ -118,14 +119,19 @@
 			   (localtime.min-paddedstring v)
 			   ":"
 			   (localtime.sec-paddedstring v)
-			   " "
-			   (or maybe-zone-string
-			       (localtime.tzoffset-string v))))
+			   (if show-zone? " " "")
+			   (if show-zone?
+			       (or maybe-zone-string
+				   (localtime.tzoffset-string v))
+			       "")))
 
        (method (rfc-2822 v)
 	       (rfc-2822-alike-string v #f))
 
        (method (gmtime-string v)
-	       (rfc-2822-alike-string v "GMT")))
+	       (rfc-2822-alike-string v "GMT"))
+
+       (method (localtime-string v)
+	       (rfc-2822-alike-string v #f #f)))
 
 
