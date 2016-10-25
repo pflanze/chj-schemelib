@@ -13,7 +13,7 @@
 	 (cj-env-2 C)
 	 (list-util let-pair rxtake-while)
 	 cj-typed
-	 (local-test local-TEST %test)
+	 (local-test local-TEST* %test)
 	 (string-util-4 string-empty?
 			string-every))
 
@@ -503,7 +503,7 @@
 
 (TEST
  > (define (t spl failresult)
-     (local-TEST
+     (local-TEST*
       > (spl "ab  c d" char-whitespace?)
       #("ab" "  c d")
       > (spl "foo?q=1" #\?)

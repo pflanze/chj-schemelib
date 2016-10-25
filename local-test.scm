@@ -11,6 +11,13 @@
 	 (cj-env named)
 	 (cj-source cj-sourcify-deep source-location))
 
+(export (macro local-TEST)
+	;; and for parametrized ones:
+	(macro local-TEST*)
+	run-test
+	(macro %test))
+
+
 ;; Variant of lib/test.scm's TEST that works in local function scopes.
 
 ;; Notes:
@@ -26,13 +33,21 @@
 ;; Example:
 ;; (TEST
 ;;  > (define (t-foo f)
-;;      (local-TEST
+;;      (local-TEST*
 ;;       > (f 10)
 ;;       1234
 ;;       > (f 11)
 ;;       12355))
 ;;  > (%test (t-foo foo))
 ;;  > (%test (t-foo foo*)))
+
+;; or, if parametrization isn't the motivation for it:
+;; (TEST
+;;  > (parameterize
+;;     ((current-manadb (empty-manadb/time 1)))
+;;     (local-TEST 
+;;      > 1
+;;      2)))
 
 
 (define (TEST-expand test-check)
@@ -64,8 +79,12 @@
 		equal?)
    e))
 
-(define-macro* (local-TEST . args)
+(define-macro* (local-TEST* . args)
   `(lambda ()
+     ,@((TEST-expand 'test-check) args)))
+
+(define-macro* (local-TEST . args)
+  `(begin
      ,@((TEST-expand 'test-check) args)))
 
 
