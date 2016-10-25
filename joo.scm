@@ -65,8 +65,9 @@
 
 (def (joo:args->vars args)
      (map (lambda (bind)
-	    (if (pair? bind) (car bind)
-		bind))
+	    (let ((bind* (source-code bind)))
+	      (if (pair? bind*) (car bind*)
+		  bind)))
 	  (filter (comp (either pair? symbol?) source-code)
 		  (improper-list->list (args-detype args)))))
 
@@ -76,7 +77,24 @@
  > (joo:args->vars '(a #(vector? b) #!optional #(pair? c)))
  (a b c)
  > (joo:args->vars '(a #(vector? b) #!key (#(pair? c) (cons 1 2))))
- (a b c))
+ (a b c)
+ > (joo:args->vars '(row-stream
+		     s
+		     #((list-of symbol?) index-names)
+		     #(boolean? reverse?)
+		     #!optional
+		     (tail '())))
+ (row-stream s index-names reverse? tail)
+ > (cj-desourcify
+    (joo:args->vars (quote-source
+		     (row-stream
+		      s
+		      #((list-of symbol?) index-names)
+		      #(boolean? reverse?)
+		      #!optional
+		      (tail '())))))
+ (row-stream s index-names reverse? tail))
+
 
 
 ;; def-method and def-method*
