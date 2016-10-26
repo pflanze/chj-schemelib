@@ -10,6 +10,7 @@
 (require easy)
 
 (export (macro DEBUG)
+	(macro DEBUG*)
 	(macro T)
 	*debug* ;; well, by alias?
 	2>)
@@ -59,7 +60,8 @@
 
 
 
-;; DEBUG supports an optional level as the first arg (default: 1)
+;; DEBUG supports an optional level as the first arg (default:
+;; 1). Side-effect only, returns (void) in all cases!
 (defmacro (DEBUG . args)
   (if *debug*
       (debug:parse-level
@@ -70,6 +72,20 @@
 	      (warn ,@args))))
       `(##void)))
 
+;; Variant of DEBUG that returns the values args evaluate to after
+;; dropping a static string at the start of args (regardless of
+;; whether debugging is active or not).
+(defmacro (DEBUG* . args)
+  (debug:parse-level
+   args #t
+   (lambda (args level maybe-marker)
+     (let ((vars (map (lambda_ (gensym))
+		      (iota (length args)))))
+       `(let ,(map list vars args)
+	  (if (and *debug* (<= *debug* ,level))
+	      (warn ,@(if maybe-marker (list maybe-marker) '())
+		    ,@args))
+	  (values ,@vars))))))
 
 ;; T supports an optional level then an optional marker string as the
 ;; first arg(s)
