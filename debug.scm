@@ -15,9 +15,12 @@
 	*debug* ;; well, by alias?
 	2>)
 
-(def *debug* 2) ;; statements below that level remain quiet; #f means
-		 ;; don't compile debugging statements into the code
-		 ;; at all
+;; statements below that level remain quiet; #f means don't compile
+;; debugging statements into the code at all
+(def *debug* 2)
+
+;; whether
+(def *debug/continuations* #t)
 
 
 (def (debug:parse-level form want-marker? cont) ;; form/level/maybe-marker
@@ -75,17 +78,66 @@
 ;; Variant of DEBUG that returns the values args evaluate to after
 ;; dropping a static string at the start of args (regardless of
 ;; whether debugging is active or not).
+
+(def (debug:perhaps-warn/cont level maybe-cont maybe-msg vals)
+     (if (and *debug* (<= *debug* level))
+	 (let ((msg (if maybe-cont
+			(let ((cstr (object->string maybe-cont)))
+			  (if maybe-msg
+			      (string-append cstr " " maybe-msg)
+			      cstr))
+			(or maybe-msg ""))))
+	   (apply warn msg vals))))
+
+
+(def (debug:continuation-capture recv)
+     (if *debug/continuations*
+	 (continuation-capture recv)
+	 (recv #f)))
+
 (defmacro (DEBUG* . args)
   (debug:parse-level
    args #t
    (lambda (args level maybe-marker)
      (let ((vars (map (lambda_ (gensym))
 		      (iota (length args)))))
-       `(let ,(map list vars args)
-	  (if (and *debug* (<= *debug* ,level))
-	      (warn ,@(if maybe-marker (list maybe-marker) '())
-		    ,@args))
-	  (values ,@vars))))))
+       (let ((exprs (if maybe-marker (cons maybe-marker args) args))
+	     (cont
+
+	      (lambda (maybe-msg real-exprs)
+		(let ((C (gensym)))
+		  `(debug:continuation-capture
+		    (lambda (,C) (let ,(map list vars args)
+			      (debug:perhaps-warn/cont
+			       ,level ,C ,maybe-msg (##list ,@vars))
+			      ,(if (one? vars) (car vars)
+				   `(values ,@vars)))))))))
+
+	 (if (and (pair? exprs)
+		  (string? (source-code (car exprs))))
+	     (cont (car exprs)
+		   (cdr exprs))
+	     (cont #f
+		   exprs)))))))
+
+(TEST
+ > (def *debug* 2)
+ > (def x 123) 
+ > (DEBUG* x)
+ 123
+ > (DEBUG* 1 x)
+ 123
+ > (DEBUG* 0 x)
+ 123
+ > (DEBUG* 2 x)
+ ;; prints: #<continuation #4> 123
+ 123
+ > (DEBUG* "x" x)
+ 123
+ > (DEBUG* 2 "x" x)
+ ;; prints: #<continuation #6> x 123
+ 123)
+
 
 ;; T supports an optional level then an optional marker string as the
 ;; first arg(s)
