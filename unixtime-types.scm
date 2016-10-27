@@ -103,6 +103,15 @@
        (method (month-shortstring v)
 	       (vector-ref rfc-2822:months (.month-1 v)))
 
+       (method (time-string v #!optional (with-seconds? #t))
+	       (string-append
+		(localtime.hour-paddedstring v)
+		":"
+		(localtime.min-paddedstring v)
+		(if with-seconds?
+		    (string-append ":"
+				   (localtime.sec-paddedstring v))
+		    "")))
 
        (def (rfc-2822-alike-string v maybe-zone-string
 				   #!optional (show-zone? #t))
@@ -114,11 +123,7 @@
 			   " "
 			   (localtime.year-string v)
 			   " "
-			   (localtime.hour-paddedstring v)
-			   ":"
-			   (localtime.min-paddedstring v)
-			   ":"
-			   (localtime.sec-paddedstring v)
+			   (localtime.time-string v)
 			   (if show-zone? " " "")
 			   (if show-zone?
 			       (or maybe-zone-string
