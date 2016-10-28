@@ -11,7 +11,8 @@
 	 (cj-env-1 dec inc)
 	 cj-symbol
 	 (list-util let-pair)
-	 (srfi-11 apply-values))
+	 (srfi-11 apply-values)
+	 (lazy FV))
 
 (export flip
 	complement
@@ -383,9 +384,10 @@
 	     (v v))
       (if (zero? n)
 	  #t
-	  (and (pair? v)
-	       (lp (dec n)
-		   (cdr v)))))))
+	  (FV (v)
+	      (and (pair? v)
+		   (lp (dec n)
+		       (cdr v))))))))
 
 (TEST
  > (define l '(a
