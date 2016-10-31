@@ -12,6 +12,7 @@
 	map/tail
 	map/iota
 	filter/iota
+	for-each/iota
 	improper-map
 	mapS
 	r-list-split
@@ -53,6 +54,17 @@
 	  (if (pred (car lis) i)
 	      (cons a r)
 	      r)))))
+
+;; TEST see list-util.scm
+
+(define (for-each/iota proc lis)
+  (let lp ((lis lis)
+	   (i 0))
+    (if (null? lis) (void)
+	(let ((a (car lis))
+	      (r (cdr lis)))
+	  (proc a i)
+	  (lp r (inc i))))))
 
 ;; TEST see list-util.scm
 

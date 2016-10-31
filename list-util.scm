@@ -498,6 +498,14 @@
  > (filter/iota (lambda (x i) (and (negative? x) (even? i))) '(4 3 2 1 0 -1 -2 -3 -4))
  (-2 -4))
 
+(TEST
+ > (define v (make-vector 5 #f))
+ > (for-each/iota (lambda (val i)
+		    (vector-set! v i val))
+		  '(a b c d))
+ > v
+ #(a b c d #f))
+
 
 (define (butlast l)
   (drop-right l 1))
