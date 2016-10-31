@@ -11,6 +11,7 @@
 (export rest
 	map/tail
 	map/iota
+	filter/iota
 	improper-map
 	mapS
 	r-list-split
@@ -40,6 +41,18 @@
     (if (null? lis) lis
 	(cons (fn (car lis) i)
 	      (rec (cdr lis) (inc i))))))
+
+;; TEST see list-util.scm
+
+(define (filter/iota pred lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (if (null? lis) lis
+	(let ((a (car lis))
+	      (r (rec (cdr lis) (inc i))))
+	  (if (pred (car lis) i)
+	      (cons a r)
+	      r)))))
 
 ;; TEST see list-util.scm
 

@@ -492,6 +492,12 @@
  > (map/iota cons '(a b))
  ((a . 0) (b . 1)))
 
+(TEST
+ > (filter/iota (lambda (x i) (and (positive? x) (even? i))) '(4 3 2 1 0 -1 -2 -3 -4))
+ (4 2)
+ > (filter/iota (lambda (x i) (and (negative? x) (even? i))) '(4 3 2 1 0 -1 -2 -3 -4))
+ (-2 -4))
+
 
 (define (butlast l)
   (drop-right l 1))
