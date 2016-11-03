@@ -6,7 +6,8 @@
 	 (string-util strings-join string-split))
 
 (export url-encode
-	path-string.url-encode)
+	path-string.url-encode
+	url-string-and-fragment)
 
 
 ;; sigh url-encoding AGAIN. where did I have it before?? recently? no?
@@ -111,4 +112,13 @@
  > (path-string.url-encode "foo/ bär")
  "foo/%20b%E4r" ;; XXX hmmm wrong right? sigh.
  )
+
+
+(define-typed (url-string-and-fragment #(string? url-string) #(string? fragment))
+  ;; XXX do we need to escape fragment somehow ?
+  (string-append url-string "#" fragment))
+
+(TEST
+ > (url-string-and-fragment (url-encode "foo#bar") "baz#1")
+ "foo%23bar#baz#1")
 
