@@ -16,6 +16,7 @@
 (export lib
 	mydb
 	check-load.scm
+	loadorder-in-dirs
 
 	#!optional
 	path-string.topo-relation
@@ -98,10 +99,13 @@
      ;;(flatten (map modulepaths-in-dir dirpaths))
      (fold-right modulepaths-in-dir tail dirpaths))
 
+(def (loadorder-in-dirs . dirpaths)
+     (modulepaths-tsort (modulepaths-in-dirs dirpaths)))
+
 (def (lib)
-     (modulepaths-tsort (modulepaths-in-dir "lib")))
+     (loadorder-in-dirs "lib"))
 (def (mydb)
-     (modulepaths-tsort (modulepaths-in-dirs '("lib" "mydb"))))
+     (loadorder-in-dirs '("lib" "mydb")))
 
 
 ;; a single-dependency representation
