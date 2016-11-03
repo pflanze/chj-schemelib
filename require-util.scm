@@ -11,7 +11,8 @@
 	 (tree-util flatten)
 	 (cj-io-util read-lines xcall-with-input-process)
 	 tsort
-	 Status)
+	 Status
+	 (cj-functional complement))
 
 (export lib
 	mydb
@@ -81,6 +82,17 @@
        (map (C symbol-alist-ref z _) (topo.sort* rs))))
 
 
+;; path before normalization
+(def (require-util:modulepath-ignore? path)
+     (or (string-starts-with? path "Attic/")
+	 (string-starts-with? path "Trash/")
+	 (string-starts-with? path "trash/")
+	 (string-starts-with? path "trash/")
+	 (string-starts-with? path ".gambc/")))
+
+(def require-util:real-modulepath?
+     (complement require-util:modulepath-ignore?))
+
 (def (modulepaths-in-dir dir #!optional (tail '()) normalize?)
      (parameterize
       ((current-directory dir))
@@ -89,10 +101,11 @@
 		    (lambda (p)
 		      (path-append dir p)))
 		tail
-		(xcall-with-input-process
-		 (list path: "gls" arguments: '("*.scm"))
+		(filter require-util:real-modulepath?
+			(xcall-with-input-process
+			 (list path: "git" arguments: '("ls-files" "*.scm"))
       
-		 read-lines))))
+			 read-lines)))))
 
 
 (def (modulepaths-in-dirs dirpaths #!optional (tail '()))
