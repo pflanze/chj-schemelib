@@ -6,7 +6,7 @@
 	 (string-util strings-join string-split))
 
 (export url-encode
-	path->url-encode)
+	path-string.url-encode)
 
 
 ;; sigh url-encoding AGAIN. where did I have it before?? recently? no?
@@ -97,18 +97,18 @@
  "%E4bi" ;; hmm ok?
  )
 
-(define (path->url-encode str)
+(define (path-string.url-encode str)
   (strings-join (map url-encode (string-split str #\/)) "/"))
 
 
 (TEST
- > (path->url-encode "")
+ > (path-string.url-encode "")
  ""
- > (path->url-encode "/")
+ > (path-string.url-encode "/")
  "/"
- > (path->url-encode "foo/ bar")
+ > (path-string.url-encode "foo/ bar")
  "foo/%20bar"
- > (path->url-encode "foo/ bär")
+ > (path-string.url-encode "foo/ bär")
  "foo/%20b%E4r" ;; XXX hmmm wrong right? sigh.
  )
 
