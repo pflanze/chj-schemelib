@@ -5,6 +5,10 @@
 	 srfi-1
 	 (string-util strings-join string-split))
 
+(export url-encode
+	path->url-encode)
+
+
 ;; sigh url-encoding AGAIN. where did I have it before?? recently? no?
 
 (define url-encoding:reserved-chars
