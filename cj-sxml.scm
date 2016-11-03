@@ -8,7 +8,9 @@
 
 	sxml-attribute-ref
 	sxml-attribute-value-ref
-	sxml-attributes:ref
+	sxml-attributes:ref ;; depreciate?
+	sxml-attributes.ref
+	sxml-attributes.maybe-ref
 	sxml-element-attribute-ref
 	sxml-element-attributes
 	sxml-element-name
@@ -240,6 +242,9 @@
       (error "expected sxml-attributes, got:" attrs namesym)))
 
 (define sxml-attributes.ref sxml-attributes:ref)
+
+(define (sxml-attributes.maybe-ref a key)
+  (sxml-attributes.ref a key #f))
 
 (TEST
  > (sxml-attributes.ref '(@ (foo 1) (bar 2)) 'bar)
