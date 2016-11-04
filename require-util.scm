@@ -71,7 +71,7 @@
  > (path-string.topo-relation "lib/require-util.scm")
  #((topo-relation)
    require-util
-   (easy test tree-util cj-io-util tsort Status))
+   (easy test tree-util cj-io-util tsort Status cj-functional))
  ;; > (path-string.topo-relation "tsort.scm")
  ;; #((topo-relation) tsort (easy test alist))
  )
