@@ -17,6 +17,7 @@
 	symboltable-length
 	symboltable-ref ;; with required alternative value if missing
 	symboltable-xref ;; exception
+	symboltable-maybe-ref
 	symboltable-contains?
 	symboltable-update!
 	symboltable-set! ;; only works for keys already in the table
@@ -372,6 +373,9 @@ end:
     (if (eq? res symboltable:nothing)
 	(error "key not found:" key)
 	res)))
+
+(define (symboltable-maybe-ref t key)
+  (symboltable-ref t key #f))
 
 (define (symboltable-contains? t key)
   (not (eq? (symboltable-ref t key symboltable:nothing)
