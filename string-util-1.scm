@@ -27,7 +27,7 @@
 ;; (define (string-split str char-or-pred)
 ;;   (map list->string (list-split (string->list str) char-or-pred)))
 
-(define (string-split str char-or-pred)
+(define (string-split str char-or-pred #!optional retain-matches?)
   (let ((len (string-length str))
 	(pred (cond ((char? char-or-pred)
 		     (lambda (c)
@@ -43,7 +43,11 @@
 	  (if (pred (string-ref str i))
 	      (lp (dec i)
 		  i
-		  (cons (substring str (inc i) prev-position)
+		  (cons (substring str
+				   (if retain-matches?
+				       i
+				       (inc i))
+				   prev-position)
 			strs))
 	      (lp (dec i)
 		  prev-position
@@ -61,5 +65,6 @@
  ("" "" "baz" "")
  > (string-split "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f))))
  ("" "" "b" "z" "")
- )
+ > (string-split "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f))) #t)
+ ("" "|" "|b" "az" "|"))
 
