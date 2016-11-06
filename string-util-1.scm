@@ -6,10 +6,60 @@
 ;;;    (at your option) any later version.
 
 
-(require (list-util-1 list-split))
+(require test
+	 ;;(list-util-1 list-split)
+	 )
 
 (export string-split)
 
+
+;; just for performance
+(declare (standard-bindings)
+	 (extended-bindings)
+	 (fixnum))
+(define (inc x)
+  (+ x 1))
+(define (dec n)
+  (- n 1))
+;;/
+
+
+;; (define (string-split str char-or-pred)
+;;   (map list->string (list-split (string->list str) char-or-pred)))
+
 (define (string-split str char-or-pred)
-  (map list->string (list-split (string->list str) char-or-pred)))
+  (let ((len (string-length str))
+	(pred (cond ((char? char-or-pred)
+		     (lambda (c)
+		       (eq? c char-or-pred)))
+		    ((procedure? char-or-pred)
+		     char-or-pred)
+		    (else
+		     (error "expecting char or pred:" char-or-pred)))))
+    (let lp ((i (dec len))
+	     (prev-position len)
+	     (strs '()))
+      (if (>= i 0)
+	  (if (pred (string-ref str i))
+	      (lp (dec i)
+		  i
+		  (cons (substring str (inc i) prev-position)
+			strs))
+	      (lp (dec i)
+		  prev-position
+		  strs))
+	  (cons (substring str 0 prev-position) strs)))))
+
+(TEST
+ > (string-split "Foo|bar|baz|" #\x)
+ ("Foo|bar|baz|")
+ > (string-split "Foo|bar|baz|" #\|)
+ ("Foo" "bar" "baz" "")
+ > (string-split "|bar|baz|" #\|)
+ ("" "bar" "baz" "")
+ > (string-split "||baz|" #\|)
+ ("" "" "baz" "")
+ > (string-split "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f))))
+ ("" "" "b" "z" "")
+ )
 
