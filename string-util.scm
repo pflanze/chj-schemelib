@@ -7,7 +7,8 @@
 
 
 (require test
-	 (list-util let-pair))
+	 (list-util let-pair)
+	 (string-util-1 string-split))
 
 (export lists-join
 	strings-join)
@@ -31,4 +32,20 @@
 (define (strings-join strs str)
   (list->string (lists-join (map string->list strs) (string->list str))))
 
+
+(define (string-escape str chars #!optional (escape-char #\\))
+  (strings-join (string-split str
+			      (let ((cs (cons escape-char chars)))
+				(lambda (c)
+				  (memq c cs)))
+			      #t)
+		(string escape-char)))
+
+(TEST
+ > (string-escape "Foo|bar" '(#\x))
+ "Foo|bar"
+ > (string-escape "Foo|bar" '(#\|))
+ "Foo\\|bar"
+ > (string-escape "|Foo||b\\ar|" '(#\|))
+ "\\|Foo\\|\\|b\\\\ar\\|")
 
