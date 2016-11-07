@@ -306,7 +306,10 @@
 
 
 (defmacro (lambda bs expr . rest)
-  (quasiquote-source (typed-lambda ,bs ,expr ,@rest)))
+  ;;(quasiquote-source (typed-lambda ,bs ,expr ,@rest))
+  ;; Nope, more often I do want to see where it is being used! Should
+  ;; be aware now that lambda is redefined, ok?
+  (quasiquote (typed-lambda ,bs ,expr ,@rest)))
 
 
 (TEST
