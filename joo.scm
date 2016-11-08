@@ -289,7 +289,12 @@
 	       (for-each (lambda (p)
 			   (joo-type.members-perhaps-add! p s))
 			 (joo-type.all-parents s)))
-       
+
+       ;; build one decl that encompasses all the field declarations
+       ;; of parents and ourselves; take care of #!key etc. so that
+       ;; the new decl is valid DSSSL syntax. Ah, actually don't
+       ;; especially take care of it, just have the user understand
+       ;; that DSSSL syntax *continues across subclassing* ? !
        (method (all-field-decls s)
 	       (append (cond ((joo-type.maybe-parent s)
 			      => (lambda (p)
