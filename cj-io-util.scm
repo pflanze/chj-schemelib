@@ -41,6 +41,9 @@
 	backtick
 	xbacktick-bash bash
 	hostname
+	xforwardtick
+	Xforwardtick
+	01forwardtick
 	file-info->mtime
 	file-basename
 	file-mtime
@@ -210,6 +213,9 @@
 (define _xcall-with-input-process
   (__xcall-with-process open-input-process* close-input-port))
 
+(define _xcall-with-output-process
+  (__xcall-with-process open-output-process* close-output-port))
+
 (define _xcall-with-process
   (__xcall-with-process open-process* close-port))
 
@@ -343,6 +349,54 @@
 
 (define (hostname)
   (xbacktick "hostname"))
+
+
+;; the somewhat inverse of backtick: feed a string to a process.
+;; adapted COPY-PASTE from _backtick
+(define (_forwardtick status-ok? cont)
+  (let ((xcall (_xcall-with-output-process
+		status-ok?
+		(lambda (value s)
+		  s)
+		_error-exited-with-error-status)))
+    (lambda (cmd . args)
+      ;; nice usage for explicit "currying"
+      (lambda (str)
+	(xcall (list path: cmd
+		     arguments: args
+		     stdin-redirection: #t
+		     stdout-redirection: #f
+		     char-encoding: 'UTF-8)
+	       (lambda_
+		(display str _)))))))
+
+
+
+(define xforwardtick (_forwardtick zero? (lambda (out s) out)))
+(define Xforwardtick (_forwardtick true/1 (lambda (out s) out)))
+(define 01forwardtick (_forwardtick 01status? (lambda (out s) out)))
+
+
+(TEST
+ > ((xforwardtick "tr" "a" "e") "Hallo\n")
+ 0 ;; and prints "Hello" to stdout
+ > (%try ((xforwardtick "false") ""))
+ (exception
+  text:
+  "process exited with error status:\n256\n(path: \"false\" arguments: () stdin-redirection: #t stdout-redirection: #f ch...\n")
+ > ((Xforwardtick "false") "")
+ 256
+ > ((01forwardtick "false") "")
+ 256
+ > (%try ((Xforwardtick "falsewefwefef") ""))
+ (exception
+  text:
+  "No such file or directory\n(open-output-process\n '(path: \"falsewefwefef\" arguments: () stdin-redirection: #t stdout-redirect...\n)\n"))
+
+
+
+
+
 
 ;; where should that be moved to?
 (define file-info->mtime
