@@ -12,6 +12,15 @@
 	 more-oo
 	 test)
 
+(export (class Maybe
+	       (class Nothing)
+	       (class Just))
+	(macro Maybe:if)
+	(macro Maybe:cond)
+	Maybe)
+
+
+
 (class Maybe
        (subclass Nothing
 		 (struct constructor-name: _Nothing)
