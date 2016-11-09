@@ -66,23 +66,25 @@
 				       is-class?)
 				    forms)))
 		   `(begin
-		      (,(if is-class? `joo-class `joo-interface)
-		       ,decl
-		       ,@(if maybe-super-name
-			     (list (joo-extends-or-implements
-				    stx super-is-class? is-class?)
-				   maybe-super-name)
-			     '())
-		       ;; forms that are unrelated (didn't expand)
-		       ;; remain in the scope of the joo-* definition:
-		       ,@(map fst (filter (complement snd) forms*)))
+		      ,(sourcify
+			`(,(if is-class? `joo-class `joo-interface)
+			  ,decl
+			  ,@(if maybe-super-name
+				(list (joo-extends-or-implements
+				       stx super-is-class? is-class?)
+				      maybe-super-name)
+				'())
+			  ;; forms that are unrelated (didn't expand)
+			  ;; remain in the scope of the joo-* definition:
+			  ,@(map fst (filter (complement snd) forms*)))
+			stx)
 		      ;; forms that are expanded by jclass.scm are put
 		      ;; afterwards:
 		      ,@(map fst (filter snd forms*)))))))
 	(joo:parse-decl decl c c c))))
 
 
-(def (jclass:perhaps-expand-in-context expr
+(def (jclass:perhaps-expand-in-context expr ;; *should* always match |source?|
 				       maybe-super-name
 				       super-is-class?)
      -> (values-of any?
