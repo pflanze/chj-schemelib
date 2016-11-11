@@ -12,7 +12,7 @@
 	 cj-functional ;; contained in easy?
 	 (string-util-2 number->padded-string)
 	 (vector-util vector.value.pos)
-	 )
+	 english)
 
 
 
@@ -99,6 +99,9 @@
 
        (method (wday-shortstring v)
 	       (vector-ref rfc-2822:wdays (.integer-wday v)))
+
+       (method (wday-longstring v)
+	       (vector-ref english:weekdays (.integer-wday v)))
 
        (method (month-shortstring v)
 	       (vector-ref rfc-2822:months (.month-1 v)))
