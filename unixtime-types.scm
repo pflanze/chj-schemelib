@@ -55,7 +55,7 @@
 	       month-1
 	       year-1900
 	       integer-wday
-	       integer-yday
+	       yday
 	       integer-isdst
 	       ;; This is contained neither in what Perl's `localtime` returns nor
 	       ;; `struct tm` from time.h :
