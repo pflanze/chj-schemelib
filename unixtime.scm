@@ -17,9 +17,12 @@
 
 
 (def. (unixtime.gmtime-string v)
-  (rfc-2822-alike-string (unixtime.gmtime v) "GMT"))
+  (.rfc-2822-alike-string (unixtime.gmtime v) "GMT"))
 
 (def. unixtime.rfc-2822 (compose localtime.rfc-2822 unixtime.localtime))
+
+(def. (unixtime.localtime-string v)
+  (.rfc-2822-alike-string (unixtime.localtime v) #f #f))
 
 (TEST
  > (set-TZ! "Europe/Zurich")
@@ -29,6 +32,8 @@
  "Mon, 13 Feb 2012 10:44:33 GMT"
  > (.gmtime-string 1329129873)
  "Mon, 13 Feb 2012 10:44:33 GMT"
+ > (.localtime-string 1329129873)
+ "Mon, 13 Feb 2012 11:44:33"
  > (.rfc-2822 1329129873) ;; unlike gmtime, influenced by TZ
  "Mon, 13 Feb 2012 11:44:33 +0100"
  > (.rfc-2822 1529129873)

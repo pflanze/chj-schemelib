@@ -113,30 +113,30 @@
 				   (localtime.sec-paddedstring v))
 		    "")))
 
-       (def (rfc-2822-alike-string v maybe-zone-string
-				   #!optional (show-zone? #t))
-	    (string-append (localtime.wday-shortstring v)
-			   ", "
-			   (localtime.mday-string v)
-			   " "
-			   (localtime.month-shortstring v)
-			   " "
-			   (localtime.year-string v)
-			   " "
-			   (localtime.time-string v)
-			   (if show-zone? " " "")
-			   (if show-zone?
-			       (or maybe-zone-string
-				   (localtime.tzoffset-string v))
-			       "")))
+       (method (rfc-2822-alike-string v maybe-zone-string
+				      #!optional (show-zone? #t))
+	       (string-append (localtime.wday-shortstring v)
+			      ", "
+			      (localtime.mday-string v)
+			      " "
+			      (localtime.month-shortstring v)
+			      " "
+			      (localtime.year-string v)
+			      " "
+			      (localtime.time-string v)
+			      (if show-zone? " " "")
+			      (if show-zone?
+				  (or maybe-zone-string
+				      (localtime.tzoffset-string v))
+				  "")))
 
        (method (rfc-2822 v)
-	       (rfc-2822-alike-string v #f))
+	       (.rfc-2822-alike-string v #f))
 
        (method (gmtime-string v)
-	       (rfc-2822-alike-string v "GMT"))
+	       (.rfc-2822-alike-string v "GMT"))
 
        (method (localtime-string v)
-	       (rfc-2822-alike-string v #f #f)))
+	       (.rfc-2822-alike-string v #f #f)))
 
 
