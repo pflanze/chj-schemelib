@@ -15,6 +15,19 @@
 	 Maybe
 	 (cj-env current-unixtime))
 
+(export (method unixtime.gmtime-string
+		unixtime.rfc-2822
+		unixtime.localtime-string)
+	gmtime?
+	current-localtime
+	current-gmtime
+	leap-year?
+	year-days
+	#!optional
+	leap-years
+	leap-years-len)
+
+
 
 (def. (unixtime.gmtime-string v)
   (.rfc-2822-alike-string (unixtime.gmtime v) "GMT"))
@@ -97,4 +110,108 @@
  ;; > (.rfc-2822 (expt 2 32))
  ;; "Sun, 7 Feb 2106 02:28:16 -0400"
  )
+
+
+(def leap-years
+     ;; http://www.accuracyproject.org/leapyears.html
+     '#u16(1804
+	   1808
+	   1812
+	   1816
+	   1820
+	   1824
+	   1828
+	   1832
+	   1836
+	   1840
+	   1844
+	   1848
+	   1852
+	   1856
+	   1860
+	   1864
+	   1868
+	   1872
+	   1876
+	   1880
+	   1884
+	   1888
+	   1892
+	   1896
+	   1904
+	   1908
+	   1912
+	   1916
+	   1920
+	   1924
+	   1928
+	   1932
+	   1936
+	   1940
+	   1944
+	   1948
+	   1952
+	   1956
+	   1960
+	   1964
+	   1968
+	   1972
+	   1976
+	   1980
+	   1984
+	   1988
+	   1992
+	   1996
+	   2000
+	   2004
+	   2008
+	   2012
+	   2016
+	   2020
+	   2024
+	   2028
+	   2032
+	   2036
+	   2040
+	   2044
+	   2048
+	   2052
+	   2056
+	   2060
+	   2064
+	   2068
+	   2072
+	   2076
+	   2080
+	   2084
+	   2088
+	   2092
+	   2096))
+
+(def leap-years-len (u16vector-length leap-years))
+
+(def (leap-year? #(natural0? year))
+     (if (<= 1804 year 2096)
+	 ;; now fancy binsearch or:
+	 (let lp ((i 0))
+	   (if (< i leap-years-len)
+	       (let ((y (u16vector-ref leap-years i)))
+		 (if (= y year)
+		     #t
+		     (lp (+ i 1))))
+	       #f))
+	 (error "year out of range:" year)))
+
+(def (year-days #(natural0? year))
+     (if (leap-year? year)
+	 366
+	 365))
+
+(TEST
+ > (year-days 2096)
+ 366
+ > (year-days 2016)
+ 366
+ > (year-days 2015)
+ 365)
 
