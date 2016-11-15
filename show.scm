@@ -102,8 +102,10 @@
 
 (define. (unbound-global-exception.show e)
   ;;`(unbound-global-exception )  hmm or really simply?:
-  (unbound-global-exception-variable e)
-  )
+  `(unbound-global-exception ',(unbound-global-exception-variable e)))
+
+(define (unbound-global-exception var)
+  (error "(XX unbound-global-exception not implemented)" var))
 
 
 (define. (u8vector.show v)
