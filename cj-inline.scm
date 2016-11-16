@@ -14,6 +14,10 @@
 	 (cj-env *if-symbol-value)
 	 test)
 
+
+;; this now (unlike define-inline in cj-inline-1!) generates 3
+;; versions: foo-inline macro, foo-lambda macro, and foo as a normal
+;; function.
 (define-macro* (define-inline name+vars body0 . body)
   (match-list*
    name+vars
@@ -28,9 +32,11 @@
 		     vars))))
       (quasiquote-source
        (begin
+	 (define ,name+vars
+	   ,lambdacode)
 	 (define-macro* (,(symbol-append (source-code name) '-lambda))
 	   ,(list 'quasiquote-source lambdacode))
-	 (define-macro* ,name+vars
+	 (define-macro* (,(symbol-append (source-code name) '-inline) ,@vars)
 	   ,(list 'quasiquote-source templatecode))))))))
 
 ;; XX just how dangerously unsafe is this?
@@ -43,7 +49,7 @@
 	   (let ((proclambda (source:symbol-append proc '-lambda)))
 	     ;; XX could go safer than this by storing inline
 	     ;; definitions from define-inline
-	     (cond ((define-macro-star-maybe-ref (source-code proc))
+	     (cond ((define-macro-star-maybe-ref (symbol-append (source-code proc) '-inline))
 		    => (lambda (_)
 			 `(,proclambda)))
 		   (else
