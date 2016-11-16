@@ -9,6 +9,7 @@
 
 (require (cj-env define-if-not-defined)
 	 define-macro-star
+	 cj-inline
 	 test)
 
 (export (inline symboltable?)
