@@ -12,7 +12,7 @@
 	 (cj-source-quasiquote quasiquote-source)
 	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?
 		 wbtreeparameter*)
-	 (stream stream->list))
+	 (stream stream->list stream-fold))
 
 (export (joo-class wbcollection)
 	empty-wbcollection
@@ -130,10 +130,10 @@
  (def-wbcollection-method (add-multiple c items)
    (wbcollection-change c
 			$wbtreeparameter
-			(fold (lambda (item data)
-				(wbtree:add data item))
-			      $data
-			      items)))
+			(stream-fold (lambda (item data)
+				       (wbtree:add data item))
+				     $data
+				     items)))
 
  (def-wbcollection-method (delete c item)
    (wbcollection-change c
