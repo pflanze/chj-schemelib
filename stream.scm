@@ -61,7 +61,8 @@
 	stream-every
 	gen-infinite-stream
 	gen-stream
-	stream-min&max)
+	stream-min&max
+	stream-map/iota)
 
 
 (define (stream-filter/tail pred s tail)
@@ -1140,3 +1141,15 @@
  #(-3 9)
  > (.vector (stream-min&max '(3)))
  #(3 3))
+
+
+;; adapted (list-util-1 map/iota)
+(define (stream-map/iota fn lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (delay
+      (FV (lis)
+	  (if (null? lis) lis
+	      (cons (fn (car lis) i)
+		    (rec (cdr lis) (inc i))))))))
+
