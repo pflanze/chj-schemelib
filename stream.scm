@@ -34,7 +34,7 @@
 	show-stream-difference
 	stream-equal?
 	stream-filter
-	stream-fold-left
+	stream-fold-left stream-fold
 	stream-append-optimized
 	stream-append/2
 	stream-append
@@ -409,6 +409,9 @@
 		     z)))
 	    (else
 	     (error "stream-fold-left: improper stream, ending in:" p))))))
+
+;; still offer the same, just expecting it some times,  OK?
+(define stream-fold stream-fold-left)
 
 
 (TEST
