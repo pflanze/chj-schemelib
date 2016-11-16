@@ -41,6 +41,11 @@
 	joo:parse-decl)
 
 
+;; inline a local copy
+(define symboltable? (symboltable?-lambda))
+
+
+
 ;; We define a new |method| syntax, but it is locally scoped, not
 ;; exported (here, this time, unlike more-oo which has one definition
 ;; for method and then takes info from the context, and you see

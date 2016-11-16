@@ -194,6 +194,9 @@
  )
 
 
+;; inline a local copy
+(define symboltable? (symboltable?-lambda))
+
 (define (symboltable-eqv? a b)
   (if (and (symboltable? a) (symboltable? b))
       (or (eq? a b)
