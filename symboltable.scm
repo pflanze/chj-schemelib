@@ -40,6 +40,13 @@
 (TEST
  > (symboltable? empty-symboltable)
  #t
+ > (symboltable? 'foo)
+ #f)
+;; ^ keep that test separate only so that failures will be shown
+;; before passing buggy data to C (and risking endless loop) in the
+;; test below.
+
+(TEST
  > (symboltable-ref empty-symboltable 'ha 'not-found)
  not-found
  > (map (lambda (v)
