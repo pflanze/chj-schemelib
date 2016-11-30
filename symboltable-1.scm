@@ -294,7 +294,7 @@ int ___table_inc2_with_top(int n, int top) {
     (declare (standard-bindings)
 	     (extended-bindings)
 	     (not safe))
-    (if (symboltable? t)
+    (if (symboltable?-inline t)
 	(let ((res (##c-code "
 ___SCMOBJ t = ___ARG1;
 ___SCMOBJ key = ___ARG2;
