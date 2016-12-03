@@ -16,7 +16,9 @@
 (export (method vector.map-list
 		vector.map/iota-list
 		vectors.map-list
-		vectors.map/iota-list))
+		vectors.map/iota-list
+		vectors.rinterleave-list
+		vectors.interleave-list))
 
 
 (def dec (inline dec)) ;; didn't I have a macro for that? lost?
@@ -72,3 +74,39 @@
  (2 4 6 . foo)
  > (.map/iota-list (list (vector 2 3 4) (vector 1 -1 9)) + 'foo)
  (3 3 15 . foo))
+
+
+(def. (vectors.rinterleave-list vs)
+  (def tail '())
+  (if (null? vs)
+      (error "need at least one vector") ;; wouldn't have oo-dispatched here in any case
+      (let-pair ((v vs*) vs)
+		(let ((len (vector-length v)))
+		  (assert (every (lambda (v)
+				   (= (vector-length v) len))
+				 vs*))
+		  ;; ^ for now.
+		  (let lp ((i (dec len))
+			   (l tail))
+		    (if (>= i 0)
+			(let sub ((vs vs)
+				  (l l))
+			  (if (pair? vs)
+			      (sub (cdr vs)
+				   (cons (vector-ref (car vs) i)
+					 l))
+			      (lp (dec i)
+				  l)))
+			l))))))
+
+(def. (vectors.interleave-list vs)
+  (vectors.rinterleave-list (reverse vs)))
+
+(TEST
+ > (vectors.rinterleave-list (list (vector 'a 'b 'c) (vector 1 2 3)))
+ (1 a 2 b 3 c)
+ > (vectors.interleave-list (list (vector 'a 'b 'c) (vector 1 2 3)))
+ (a 1 b 2 c 3)
+ > (vectors.interleave-list (list (vector) (vector)))
+ ())
+
