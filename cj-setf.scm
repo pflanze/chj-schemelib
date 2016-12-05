@@ -12,6 +12,14 @@
 	 easy)
 
 
+(export vector-inc!
+	vector-dec!
+	vector-add!
+	(macro INC!
+	  DEC!
+	  SET!))
+
+
 ;; move to cj-env (to inc!, dec!)?
 
 (def (vector-inc! v i)
@@ -21,6 +29,10 @@
 (def (vector-dec! v i)
      (vector-set! v i
 		  (dec (vector-ref v i))))
+
+(def (vector-add! v i x)
+     (vector-set! v i
+		  (+ (vector-ref v i) x)))
 
 
 
