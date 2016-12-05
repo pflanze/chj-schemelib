@@ -20,7 +20,7 @@
 	  SET!))
 
 
-;; move to cj-env (to inc!, dec!)?
+;; move to cj-env (to inc!, dec!)? -- AH there is also oo-vector-lib.scm
 
 (def (vector-inc! v i)
      (vector-set! v i
