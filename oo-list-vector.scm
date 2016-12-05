@@ -12,7 +12,10 @@
 	 ;;(cj-functional list-of) ;; part of easy?
 	 test)
 
-(export list.every-second-vector)
+(export list.every-second-vector
+	list.map-vector
+	list.rmap-vector
+	list.rvector)
 
 
 (def inc (inline inc))
@@ -50,4 +53,49 @@
  > (list.every-second-vector '(1 b 2))
  #(1 2)
  )
+
+;; really def. ?.. well, above already.
+(def. (list.map-vector l fn)
+  (let* ((len (length l))
+	 (v (make-vector len)))
+    (let lp ((i 0)
+	     (l l))
+      (if (< i len)
+	  (let-pair ((a l*) l)
+		    (vector-set! v i (fn a))
+		    (lp (inc i)
+			l*))
+	  v))))
+
+(TEST
+ > (list.map-vector '(1 2 3) inc)
+ #(2 3 4))
+
+
+(def. (list.rmap-vector l fn)
+  (let* ((len (length l))
+	 (v (make-vector len)))
+    (let lp ((i (dec len))
+	     (l l))
+      (if (>= i 0)
+	  (let-pair ((a l*) l)
+		    (vector-set! v i (fn a))
+		    (lp (dec i)
+			l*))
+	  v))))
+
+(TEST
+ > (list.rmap-vector '(1 2 3) inc)
+ #(4 3 2))
+
+
+(def. (list.rvector l)
+  (list.rmap-vector l identity))
+
+(TEST
+ > (list.rvector '(1 2 3))
+ #(3 2 1))
+
+
+
 
