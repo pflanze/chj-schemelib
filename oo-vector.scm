@@ -11,7 +11,8 @@
 (require easy
 	 test)
 
-(export (method vector.filter/iota))
+(export (method vector.filter/iota
+		vector.for-each/iota))
 
 
 (def inc (inline inc))
@@ -37,4 +38,22 @@
  #(2 -4 8)
  > (.filter/iota (vector 2 -4 5 8) (lambda (v i) (even? i)))
  #(2 5))
+
+
+;; XX move to/merge with vector-util.scm: (vector-for-each proc vec) .. ?
+
+(def. (vector.for-each/iota v proc)
+  (let ((len (vector-length v)))
+    (for..< (i 0 len)
+	    (proc (vector-ref v i)
+		  i))))
+
+
+(TEST
+ > (def l '())
+ > (def v (vector 10 11 12))
+ > (.for-each/iota v (lambda (x i)
+		       (push! l (cons x i))))
+ > l
+ ((12 . 2) (11 . 1) (10 . 0)))
 
