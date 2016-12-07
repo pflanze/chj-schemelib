@@ -136,7 +136,10 @@
 		;; record timestamp
 		(table-set! load:mtime sourcefile
 			    (cons (file-mtime sourcefile)
-				  (inc! load:counter)))
+				  ;; don't have inc! yet
+				  (let ((c load:counter))
+				    (set! load:counter (+ c 1))
+				    c)))
 		
 		(let ((outfile (TEST:sourcepath->testfilepath sourcefile)))
 		  (cond ((table-ref TEST:outports outfile #f) => close-port))
