@@ -60,7 +60,9 @@
 	 cj-phasing
 	 cj-env-1
 	 cj-source
-	 simple-match-1)
+	 simple-match-1
+	 ;; (cj-io-util file-mtime) cycle
+	 )
 
 (export (macro TEST)
 	run-tests
@@ -97,6 +99,14 @@
  ;; to suppress double outputs:
  (define TEST:seen (make-table))
 
+ (define load:mtime (make-table)) ;; path (with .oX or .scm or nothing?) -> float
+
+ ;; XX duplicate from cj-io-util for dependency reasons
+ (define (file-mtime path)
+   (time->seconds
+    (file-info-last-modification-time
+     (file-info path))))
+ 
  ;; adapted version from Gambit lib/_eval.scm
  (define (orig-load path-or-settings)
    ;;(macro-force-vars (path-or-settings)
@@ -120,6 +130,9 @@
        (let ((path path-or-settings)
 	     (load*
 	      (lambda (sourcefile)
+		;; record timestamp
+		(table-set! load:mtime sourcefile (file-mtime sourcefile))
+		
 		(let ((outfile (TEST:sourcepath->testfilepath sourcefile)))
 		  (cond ((table-ref TEST:outports outfile #f) => close-port))
 		  (table-set! TEST:outports outfile)
