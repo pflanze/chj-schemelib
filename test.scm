@@ -99,9 +99,10 @@
  ;; to suppress double outputs:
  (define TEST:seen (make-table))
 
+ (define load:counter 0)
  (define load:mtime (make-table))
- ;; path (with .oX or .scm or nothing?) -> (pair-of float? float?),
- ;; (cons mtime (current-time))
+ ;; path (with .oX or .scm or nothing?) -> (pair-of float? natural?),
+ ;; (cons mtime load:counter)
 
  ;; XX duplicate from cj-io-util for dependency reasons
  (define (file-mtime path)
@@ -135,7 +136,7 @@
 		;; record timestamp
 		(table-set! load:mtime sourcefile
 			    (cons (file-mtime sourcefile)
-				  (time->seconds (current-time))))
+				  (inc! load:counter)))
 		
 		(let ((outfile (TEST:sourcepath->testfilepath sourcefile)))
 		  (cond ((table-ref TEST:outports outfile #f) => close-port))
