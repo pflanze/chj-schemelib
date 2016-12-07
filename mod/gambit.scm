@@ -6,7 +6,3 @@
 	 (compile-file path compile-options)))
 
 
-(define (file-mtime path)
-  (time->seconds (file-info-last-modification-time path)))
-
-
