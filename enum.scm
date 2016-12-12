@@ -29,13 +29,16 @@
        (with-gensyms
 	(V SUCCESS FAIL)
 	(let ((IF-PARSE (symbol-append "string.if->" name))
-	      (name? (symbol-append name "?")))
+	      (name? (symbol-append name "?"))
+	      (name-members (symbol-append name ":members")))
 	  `(begin
 	     ,@(map (lambda (sym)
 		      `(define-if-not-defined ,sym ',sym))
 		    syms)
+	     (define ,name-members
+	       ',syms)
 	     (define ,name?
-	       (symbols.predicate ',syms))
+	       (symbols.predicate ,name-members))
 	     (define (,IF-PARSE ,V ,SUCCESS ,FAIL)
 	       (cond ,@(map (lambda (sym)
 			      (assert* symbol? sym
