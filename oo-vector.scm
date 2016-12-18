@@ -12,7 +12,9 @@
 	 test)
 
 (export (method vector.filter/iota
-		vector.for-each/iota))
+		vector.for-each/iota
+		vector.first
+		vector.last))
 
 
 (def inc (inline inc))
@@ -56,4 +58,11 @@
 		       (push! l (cons x i))))
  > l
  ((12 . 2) (11 . 1) (10 . 0)))
+
+
+(def. (vector.first v)
+  (vector-ref v 0))
+
+(def. (vector.last v)
+  (vector-ref v (dec (vector-length v))))
 
