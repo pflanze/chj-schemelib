@@ -98,7 +98,11 @@
 
 (define. (error-exception.show e)
   `(error ,(error-exception-message e)
-	  ,@(map try-show (error-exception-parameters e))))
+	  ;; used to map try-show over it, but, even though correct,
+	  ;; it is ugly, since error arguments (usually?) are already
+	  ;; show'n "or so" (still have to examine correctly). Thus
+	  ;; just quote, OK?
+	  ,@(map (lambda_ `',_) (error-exception-parameters e))))
 
 (define. (unbound-global-exception.show e)
   ;;`(unbound-global-exception )  hmm or really simply?:
