@@ -14,6 +14,14 @@
 	 (cj-source-wraps source:symbol-append)
 	 (string-util strings-join))
 
+(export (macro define.)
+	(macro define-struct.)
+	nothing? ;; really?
+	#!optional
+	define-struct.-expand
+	(generic .typecheck!) ;; ?
+	)
+
 
 ;; Principle is to shadow previous definitions of the generic, and the
 ;; last one falls back on previous definitions. Which at the end will
