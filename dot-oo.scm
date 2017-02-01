@@ -17,6 +17,10 @@
 (export (macro define.)
 	(macro define-struct.)
 	nothing? ;; really?
+
+	;; XX should move?
+	(generic list.ref)
+	
 	#!optional
 	define-struct.-expand
 	(generic .typecheck!) ;; ?
@@ -127,12 +131,18 @@
 ;; failures or types that aren't reloaded (and memory usage) this
 ;; won't have any effect though.
 
+
+;; where should these be moved to?
+(define. (list.ref x y) (list-ref x y))
+
 (TEST
- > (define. (list.ref x y) (list-ref x y))
+ ;; why is this defined but can't find the source code? Aha in
+ ;; oo-vector-lib.scm.
+ > (define. (string.ref x y) (string-ref x y))
+
  ;; > (%try-error (.ref "foo" 1))
  ;; #(error "no method found for generic .ref for value:" "foo")
  ;; well, if this test suite is run again, it will find one.
- > (define. (string.ref x y) (string-ref x y))
  > (.ref "foo" 1)
  #\o
  > (.ref '(a b c) 1)
