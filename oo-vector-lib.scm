@@ -45,6 +45,7 @@
 	strings-append
 	pair-with-car-string?
 	pair-with-car-string.append
+	;; string.reverse is defined in oo-util
 
 	;; the remaining ones have more variants
 	vector.ref
@@ -75,6 +76,7 @@
 	vectors-append
 	pair-with-car-vector?
 	pair-with-car-vector.append
+	vector-reverse vector.reverse
 
 	f32vector.ref
 	f32vector.set!
@@ -104,6 +106,7 @@
 	f32vectors-append
 	pair-with-car-f32vector?
 	pair-with-car-f32vector.append
+	f32vector-reverse f32vector.reverse
 
 	f64vector.ref
 	f64vector.set!
@@ -133,6 +136,7 @@
 	f64vectors-append
 	pair-with-car-f64vector?
 	pair-with-car-f64vector.append
+	f64vector-reverse f64vector.reverse
 
 	u8vector.ref
 	u8vector.set!
@@ -162,6 +166,7 @@
 	u8vectors-append
 	pair-with-car-u8vector?
 	pair-with-car-u8vector.append
+	u8vector-reverse u8vector.reverse
 
 	s8vector.ref
 	s8vector.set!
@@ -191,6 +196,7 @@
 	s8vectors-append
 	pair-with-car-s8vector?
 	pair-with-car-s8vector.append
+	s8vector-reverse s8vector.reverse
 
 	u16vector.ref
 	u16vector.set!
@@ -220,6 +226,7 @@
 	u16vectors-append
 	pair-with-car-u16vector?
 	pair-with-car-u16vector.append
+	u16vector-reverse u16vector.reverse
 
 	s16vector.ref
 	s16vector.set!
@@ -249,6 +256,7 @@
 	s16vectors-append
 	pair-with-car-s16vector?
 	pair-with-car-s16vector.append
+	s16vector-reverse s16vector.reverse
 
 	u32vector.ref
 	u32vector.set!
@@ -278,6 +286,7 @@
 	u32vectors-append
 	pair-with-car-u32vector?
 	pair-with-car-u32vector.append
+	u32vector-reverse u32vector.reverse
 
 	s32vector.ref
 	s32vector.set!
@@ -307,6 +316,7 @@
 	s32vectors-append
 	pair-with-car-s32vector?
 	pair-with-car-s32vector.append
+	s32vector-reverse s32vector.reverse
 
 	u64vector.ref
 	u64vector.set!
@@ -336,6 +346,7 @@
 	u64vectors-append
 	pair-with-car-u64vector?
 	pair-with-car-u64vector.append
+	u64vector-reverse u64vector.reverse
 
 	s64vector.ref
 	s64vector.set!
@@ -365,6 +376,8 @@
 	s64vectors-append
 	pair-with-car-s64vector?
 	pair-with-car-s64vector.append
+	s64vector-reverse s64vector.reverse
+
 	)
 
 
@@ -416,7 +429,16 @@
 	 ;; could also write (def .sum (C .fold _ + 0)) but then it wouldn't
 	 ;; be properly extensible?
 	 (def. (VECTOR.sum v)
-	   (VECTOR.fold v + 0))))
+	   (VECTOR.fold v + 0))
+
+	 (def. (VECTOR.reverse v)
+	   (let* ((len (VECTOR-length v))
+		  (out (make-VECTOR len))
+		  (len-1 (dec len)))
+	     (for..< (i 0 len)
+		     (VECTOR-set! out i
+				  (VECTOR-ref v (- len-1 i))))
+	     out))))
    
    ;; Could abstract most code into a separate routine that takes a
    ;; make-vector argument, and uses object ops for the rest, but
@@ -593,4 +615,8 @@
  > (def (t v)
 	(assert (equal? v (string.u8vector (u8vector.string v)))))
  > (for-each (lambda (l) (t (random-u8vector (* l 13)))) (iota 7)))
+
+(TEST
+ > (.reverse (s32vector 43341 -3))
+ #s32(-3 43341))
 
