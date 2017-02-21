@@ -12,7 +12,8 @@
 (export (macro DEBUG)
 	(macro DEBUG*)
 	(macro T)
-	*debug* ;; well, by alias?
+	*debug* ;; well, by alias? Hey, have syntax that sets compile
+		;; time variables scoped by the compilation unit?
 	2>)
 
 ;; statements below that level remain quiet; #f means don't compile
