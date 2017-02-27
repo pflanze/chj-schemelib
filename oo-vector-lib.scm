@@ -35,6 +35,8 @@
 	string-for-each
 	string.for-each
 	string.map
+	string.map-list
+
 	strings-map
 	string-map
 	string-map*
@@ -66,6 +68,8 @@
 	vector-for-each
 	vector.for-each
 	vector.map
+	vector.map-list
+
 	vectors-map
 	vector-map
 	vector-map*
@@ -96,6 +100,8 @@
 	f32vector-for-each
 	f32vector.for-each
 	f32vector.map
+	f32vector.map-list
+
 	f32vectors-map
 	f32vector-map
 	f32vector-map*
@@ -126,6 +132,8 @@
 	f64vector-for-each
 	f64vector.for-each
 	f64vector.map
+	f64vector.map-list
+
 	f64vectors-map
 	f64vector-map
 	f64vector-map*
@@ -156,6 +164,8 @@
 	u8vector-for-each
 	u8vector.for-each
 	u8vector.map
+	u8vector.map-list
+
 	u8vectors-map
 	u8vector-map
 	u8vector-map*
@@ -186,6 +196,8 @@
 	s8vector-for-each
 	s8vector.for-each
 	s8vector.map
+	s8vector.map-list
+
 	s8vectors-map
 	s8vector-map
 	s8vector-map*
@@ -216,6 +228,8 @@
 	u16vector-for-each
 	u16vector.for-each
 	u16vector.map
+	u16vector.map-list
+
 	u16vectors-map
 	u16vector-map
 	u16vector-map*
@@ -246,6 +260,8 @@
 	s16vector-for-each
 	s16vector.for-each
 	s16vector.map
+	s16vector.map-list
+
 	s16vectors-map
 	s16vector-map
 	s16vector-map*
@@ -276,6 +292,8 @@
 	u32vector-for-each
 	u32vector.for-each
 	u32vector.map
+	u32vector.map-list
+
 	u32vectors-map
 	u32vector-map
 	u32vector-map*
@@ -306,6 +324,8 @@
 	s32vector-for-each
 	s32vector.for-each
 	s32vector.map
+	s32vector.map-list
+
 	s32vectors-map
 	s32vector-map
 	s32vector-map*
@@ -336,6 +356,8 @@
 	u64vector-for-each
 	u64vector.for-each
 	u64vector.map
+	u64vector.map-list
+
 	u64vectors-map
 	u64vector-map
 	u64vector-map*
@@ -366,6 +388,8 @@
 	s64vector-for-each
 	s64vector.for-each
 	s64vector.map
+	s64vector.map-list
+
 	s64vectors-map
 	s64vector-map
 	s64vector-map*
@@ -471,6 +495,16 @@
        (for..< (i 0 len)
 	       (VECTOR-set! res i (fn (VECTOR-ref v i))))
        res))
+
+   (def. (VECTOR.map-list v fn #!optional (tail '()))
+     (let* ((len (VECTOR-length v)))
+       (let lp ((l tail)
+		(i (dec len)))
+	 (if (negative? i)
+	     l
+	     (lp (cons (fn (VECTOR-ref v i))
+		       l)
+		 (dec i))))))
 
    ;; n-ary, non-oo version:
 
