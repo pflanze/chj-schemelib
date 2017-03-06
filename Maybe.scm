@@ -10,13 +10,17 @@
 
 (require easy
 	 more-oo
-	 test)
+	 test
+	 (if-let if-let*-expand
+		 if-let-expand))
 
 (export (class Maybe
 	       (class Nothing)
 	       (class Just))
 	(macro Maybe:if)
 	(macro Maybe:cond)
+	(macro Maybe:if-let*)
+	(macro Maybe:if-let)
 	Maybe)
 
 
@@ -135,4 +139,57 @@
  > (def Maybe-integer? (Maybe integer?))
  > (map Maybe-integer? (list (Nothing) 10 (Just 10)))
  (#t #f #t))
+
+
+(defmacro (Maybe:if-let* assignments yes #!optional no)
+  ;; return (Nothing) in "void" case? Doesn't make sense over #f. Just void?
+  (if-let*-expand `Maybe:cond assignments yes (or no `(void))))
+
+(defmacro (Maybe:if-let assignments yes #!optional no)
+  (if-let-expand `Maybe:cond assignments yes (or no `(void))))
+
+(TEST
+ > (%try (Maybe:if-let ((a 2)) 3))
+ (exception text: "v does not match Maybe?: 2\n")
+ > (%try (Maybe:if-let ((a #f)) 3 4))
+ (exception text: "v does not match Maybe?: #f\n")
+ > (Maybe:if-let ((a (Just 2))) a)
+ 2
+ > (Maybe:if-let ((a (Just 2))) a 4)
+ 2
+ > (Maybe:if-let ((a (Nothing))) a 4)
+ 4
+ > (Maybe:if-let ((a (Nothing))) a)
+ #!void
+ > (Maybe:if-let ((a (Just 2))
+		  (b (Just 3)))
+		 (list a b)
+		 4)
+ (2 3)
+ > (Maybe:if-let ((a (Just 2))
+		  (b (Nothing)))
+		 (list a b)
+		 5)
+ 5
+ > (Maybe:if-let ((a (Nothing))
+		  (b (Just 3)))
+		 (list a b)
+		 5)
+ 5
+ > (%try (Maybe:if-let ((z8wm5y6dp9 (Just 1))
+			(b z8wm5y6dp9))
+		       (list a b)
+		       5))
+ (exception text: "Unbound variable: z8wm5y6dp9\n")
+ > (%try (Maybe:if-let* ((z8wm5y6dp9 (Just 1))
+			 (b z8wm5y6dp9))
+			(list a b)
+			5))
+ (exception text: "v does not match Maybe?: 1\n")
+ >  (Maybe:if-let* ((z8wm5y6dp9 (Just 1))
+		    (b (Just (inc z8wm5y6dp9))))
+		   (list z8wm5y6dp9 b)
+		   5)
+ (1 2)
+ )
 
