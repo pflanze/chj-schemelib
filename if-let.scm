@@ -3,7 +3,10 @@
 
 (export (macro iflet)
 	(macro if-let*)
-	(macro if-let))
+	(macro if-let)
+	#!optional
+	if-let*-expand
+	if-let-expand)
 
 
 (defmacro (iflet bind+test yes #!optional no)
@@ -24,7 +27,7 @@
  4)
 
 
-(defmacro (if-let* #((source-of list?) assignments) yes #!optional no)
+(def (if-let*-expand COND #((source-of list?) assignments) yes no)
   (with-gensym
    NO
    `(let ((,NO (lambda () ,no)))
@@ -32,10 +35,14 @@
 		     (mcase assignment
 			    (`(`var `test-expr)
 			     (assert* symbol? var)
-			     `(cond (,test-expr => (lambda (,var) ,yes))
+			     `(,COND (,test-expr => (lambda (,var) ,yes))
 				    (else (,NO))))))
 		   yes
 		   (source-code assignments)))))
+
+(defmacro (if-let* assignments yes #!optional no)
+  (if-let*-expand `cond assignments yes no))
+
 
 (TEST
  > (if-let* ((a 2)) 3)
@@ -77,28 +84,33 @@
 ;; although should we keep that open? Or different forms for that?
 ;; Probably?)  but don't make the variables visible to "subsequent"
 ;; terms, only to `yes`
-(defmacro (if-let #((source-of list?) assignments) yes #!optional no)
-  (let* ((assignments* (source-code assignments))
-	 (assignments** (map (lambda (assignment)
-			       (mcase assignment
-				      (`(`var `test-expr)
-				       (assert* symbol? var
-						(lambda (var*)
-						  (values var test-expr (gensym var*)))))))
-			     assignments*)))
-    (with-gensym
-     NO
-     `(let ((,NO (lambda () ,no)))
-	,(fold-right (lambda-values
-		      ((var test-expr tmpvar) yes)
-		      `(cond (,test-expr => (lambda (,tmpvar) ,yes))
-			     (else (,NO))))
-		     `(let ,(map (lambda-values
-				  ((var test-expr tmpvar))
-				  `(,var ,tmpvar))
-				 assignments**)
-			,yes)
-		     assignments**)))))
+
+(def (if-let-expand COND #((source-of list?) assignments) yes no)
+     (let* ((assignments* (source-code assignments))
+	    (assignments** (map (lambda (assignment)
+				  (mcase assignment
+					 (`(`var `test-expr)
+					  (assert* symbol? var
+						   (lambda (var*)
+						     (values var test-expr (gensym var*)))))))
+				assignments*)))
+       (with-gensym
+	NO
+	`(let ((,NO (lambda () ,no)))
+	   ,(fold-right (lambda-values
+			 ((var test-expr tmpvar) yes)
+			 `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
+				(else (,NO))))
+			`(let ,(map (lambda-values
+				     ((var test-expr tmpvar))
+				     `(,var ,tmpvar))
+				    assignments**)
+			   ,yes)
+			assignments**)))))
+
+(defmacro (if-let assignments yes #!optional no)
+  ;; if no is #f, just pass it one as code, and it will result in #f, too ":)"
+  (if-let-expand `cond assignments yes no))
 
 (TEST
  > (if-let ((a 2)) 3)
@@ -109,6 +121,8 @@
  2
  > (if-let ((a #f)) a 4)
  4
+ > (if-let ((a #f)) a)
+ #f
  > (if-let ((a 2)
 	    (b 3))
 	   (list a b)
