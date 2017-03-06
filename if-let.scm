@@ -128,6 +128,17 @@
 	   (list a b)
 	   4)
  (2 3)
+ > (if-let ((a 2)
+	    (b #f))
+	   (list a b)
+	   5)
+ 5
+ > (if-let ((a #f)
+	    (b 3))
+	   (list a b)
+	   5)
+ 5
+
  > (%try (let ((x 10))
 	   (if-let ((GEN:a-10740 (and x (* x x)))
 		    (GEN:b-10741 (dec GEN:a-10740))
