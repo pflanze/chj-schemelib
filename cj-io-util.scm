@@ -26,6 +26,7 @@
 	eexist-exception?
 	eperm-exception?
 	read-lines
+	maybe-read-line
 	writeln
 	pathspec.xcontent
 	string.print-file
@@ -174,6 +175,12 @@
       (if (eof-object? line)
 	  tail
 	  (cons line (rec))))))
+
+(define (maybe-read-line . args)
+  (let ((v (apply read-line args)))
+    (if (eof-object? v)
+	#f
+	v)))
 
 
 (define (writeln obj)
