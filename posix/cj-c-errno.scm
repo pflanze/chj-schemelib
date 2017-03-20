@@ -100,7 +100,7 @@
 ; *** ERROR IN (stdin)@3.1 -- (pthread-attr-detachstate-set! #<pthread-attr* #2 0x82be300> 13): "Invalid argument"
 
 
-(define-inline (check-not-posix-exception v name argnames argvals&)
+(define (check-not-posix-exception v name argnames argvals&)
   ;; argvals& is a thunk returning a list of the arg vals
   (if (posix-exception? v)
       (throw-posix-exception v name argnames (argvals&))
@@ -129,7 +129,7 @@
 
 ;; 'wrapper function' to convert -errno values into posix-exception
 ;; values (but not throwing them):
-(define-inline (error-to-posix-exception val)
+(define (error-to-posix-exception val)
   (if (and (##fixnum? val) ;; for cases where c-lambda returns scheme-object
 	   (##fixnum.< val 0))
       (posix-exception (- val))
