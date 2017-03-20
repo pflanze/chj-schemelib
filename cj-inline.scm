@@ -32,7 +32,7 @@
 		     vars))))
       (quasiquote-source
        (begin
-	 (define ,name+vars
+	 (define ,name
 	   ,lambdacode)
 	 (define-macro* (,(symbol-append (source-code name) '-lambda))
 	   ,(list 'quasiquote-source lambdacode))
