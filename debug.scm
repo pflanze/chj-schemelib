@@ -14,7 +14,8 @@
 	(macro T)
 	*debug* ;; well, by alias? Hey, have syntax that sets compile
 		;; time variables scoped by the compilation unit?
-	2>)
+	2>
+	2force)
 
 ;; statements below that level remain quiet; #f means don't compile
 ;; debugging statements into the code at all
@@ -204,4 +205,8 @@
 	 ;; XX O_APPEND ?
 	 (current-error-port (open-output-file path))
 	 (current-error-port debug:default-port)))
+
+;; 'just a utility', to flush the port of an ongoing thing that used |2>|
+(def (2force)
+     (force-output (current-error-port)))
 
