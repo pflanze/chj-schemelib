@@ -61,8 +61,9 @@
 	 cj-env-1
 	 cj-source
 	 simple-match-1
-	 ;; (cj-io-util file-mtime) cycle
-	 cj-warn)
+	 ;; (cj-io-util file-mtime) -- cycle
+	 ;;cj-warn -- cycle
+	 )
 
 (export (macro TEST)
 	run-tests
@@ -75,6 +76,21 @@
 (define (complement fn)
   (lambda v
     (not (apply fn v))))
+
+;; modified copy (no hooks usage, sadly) from cj-warn to avoid
+;; circular dependency:
+(define (test:warn msg . objs)
+  (let ((port (current-error-port))
+	(separator " "))
+    (display msg port)
+    (let lp ((objs objs))
+      (cond ((null? objs)
+	     (newline port))
+	    ((pair? objs)
+	     (display separator port)
+	     (display (scm:object->string (car objs)) port)
+	     (lp (cdr objs)))
+	    (else (error "improper list:" objs))))))
 ;;/copy
 
 
@@ -470,8 +486,8 @@
 	       (loaded (filter loaded? files*))
 	       (not-loaded (filter (complement loaded?) files*)))
 	  (if (pair? not-loaded)
-	      (warn "These files are not loaded or don't contain TEST forms:\n"
-		    not-loaded))
+	      (test:warn "These files are not loaded or don't contain TEST forms:\n"
+			 not-loaded))
 	  (for-each test-file loaded))
 	;; otherwise run all loaded:
 	(for-each test-file (all-tests))))
