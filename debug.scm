@@ -7,17 +7,25 @@
 ;;;    terms of the GPL you can link it with any code produced by Categorical
 ;;;    Design Solutions Inc. from Quebec, Canada.
 
-(require easy)
+(require easy
+	 (cj-warn warn
+		  port-add-hook!))
+
 
 (export (macro DEBUG)
 	(macro DEBUG*)
 	(macro T)
-	(macro STOP-at-line)
-	(inline debug:stop-at-line)
+
 	*debug* ;; well, by alias? Hey, have syntax that sets compile
 		;; time variables scoped by the compilation unit?
 	2>
-	2force)
+	2force
+
+	warn-stop-on-line!
+	;; UNTESTED and useless?
+	(macro STOP-at-line)
+	(inline debug:stop-at-line))
+
 
 ;; statements below that level remain quiet; #f means don't compile
 ;; debugging statements into the code at all
@@ -226,3 +234,11 @@
 		 `(if *debug*
 		      (debug:stop-at-line ,n))
 		 `(##void)))))
+
+;; better:
+(def (warn-stop-on-line! n)
+     (port-add-hook! (current-error-port)
+		     (lambda (port)
+		       (let ((m (output-port-line (current-error-port))))
+			 (if (= m n)
+			     (error "reached error-port line " n))))))
