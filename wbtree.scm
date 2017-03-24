@@ -14,6 +14,9 @@
 	empty-wbtree?
 	wbtree? ;; CAREFUL, dangerous in optimized variant!
 	wbtreeparameter*
+	wbtreeparameter-equal? ;; why export it, should it be hidden?
+			       ;; But why is wbtreeparameter*
+			       ;; exported?
 
 	(struct wbtree) ;; XX but with _ prefix
 
@@ -54,14 +57,14 @@
 	wbtree-element
 	wbtree-size
 	wbtree-left
-	wbtree-right)
+	wbtree-right
 
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block)
-	 ;;(not safe)
-	 )
+	(declare (standard-bindings)
+		 (extended-bindings)
+		 (block)
+		 ;;(not safe)
+		 ))
 
 ;; Partially translated from code in ML shown in:
 ;;  Implementing Sets Efficiently in a Functional Language
@@ -90,6 +93,12 @@
 (def (wbtreeparameter* cmp)
      (wbtreeparameter cmp not-_wbtree?))
 
+;; (also a ~general thing ? Almost 'on x cmp'? 'on x eq?') 
+(def (wbtreeparameter-equal? a b)
+     (let-wbtreeparameter ((a-cmp a-element?) a)
+			  (let-wbtreeparameter ((b-cmp b-element?) b)
+					       (and (eq? a-cmp b-cmp)
+						    (eq? a-element? b-element?)))))
 
 
 (define (wbtreeparameter:wrap-in tp type? access)
