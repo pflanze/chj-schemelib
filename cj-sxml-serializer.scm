@@ -20,7 +20,8 @@
 		  sxml-element-attribute-ref
 		  sxml-element:add-attributes-unless-present)
 	 (stream stream-for-each)
-	 (test TEST))
+	 (test TEST)
+	 cj-warn)
 
 (export sxml>>html-fast
 	sxml>>xhtml-fast

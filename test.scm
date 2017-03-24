@@ -62,7 +62,7 @@
 	 cj-source
 	 simple-match-1
 	 ;; (cj-io-util file-mtime) cycle
-	 )
+	 cj-warn)
 
 (export (macro TEST)
 	run-tests

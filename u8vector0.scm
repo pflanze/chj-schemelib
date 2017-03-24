@@ -18,7 +18,8 @@
 	 (cj-source-util-2 assert)
 	 utf8 ;; or include? sigh.
 	 unclean
-	 (string-util-3 list.string-reverse))
+	 (string-util-3 list.string-reverse)
+	 cj-warn)
 
 
 (export u8vector0?

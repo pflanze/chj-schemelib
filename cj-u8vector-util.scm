@@ -1,6 +1,7 @@
 (require cj-math   ;; quotient-ceiling
 	 cj-let-named-star ;; let-named*
-	 (test TEST))
+	 (test TEST)
+	 cj-warn)
 
 (export  u8vector->hex-string
 	 u8vector->hex-string-lc
