@@ -559,9 +559,12 @@
 (define* (wbtree:stream-members t)
   (wbtree:stream-inorder-fold t cons '()))
 
-(define* (list->wbtree l)
-  (fold (lambda (x t)
-	  (wbtree:add t x))
+(define* (list->wbtree l #!optional ignore-duplicates?)
+  (fold (if ignore-duplicates?
+	    (lambda (x t)
+	      (wbtree:set t x))
+	    (lambda (x t)
+	      (wbtree:add t x)))
 	empty-wbtree
 	l))
 
