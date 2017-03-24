@@ -12,6 +12,8 @@
 (export (macro DEBUG)
 	(macro DEBUG*)
 	(macro T)
+	(macro STOP-at-line)
+	(inline debug:stop-at-line)
 	*debug* ;; well, by alias? Hey, have syntax that sets compile
 		;; time variables scoped by the compilation unit?
 	2>
@@ -210,3 +212,16 @@
 (def (2force)
      (force-output (current-error-port)))
 
+
+;; inline just to avoid ending up here? wait, happens anyway right?
+(def-inline (debug:stop-at-line n)
+  (let ((m (output-port-line (current-error-port))))
+    (if (>= m n)
+	(error "reached error-port line " m n))))
+;; UNTESTED
+(defmacro (STOP-at-line n)
+  (assert* natural? n
+	   (lambda (n)
+	     (if *debug*
+		 `(debug:stop-at-line ,n)
+		 `(##void)))))
