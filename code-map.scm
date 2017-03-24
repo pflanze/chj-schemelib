@@ -7,6 +7,7 @@
 
 
 (require test
+	 (string-util-3 string.replace-substring)
 	 easy-1)
 
 

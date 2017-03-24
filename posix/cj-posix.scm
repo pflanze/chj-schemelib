@@ -1,4 +1,5 @@
 (require (cj-env warn)
+	 cj-warn
 	 ;;(interrupts interrupt-install-handler! SIGCHLD)
 	 cj-c-util	  ;; {maybe-,}define-constant-from-C
 	 posix/cj-c-errno ;; including define/check and define/check->integer

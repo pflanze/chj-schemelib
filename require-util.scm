@@ -12,7 +12,8 @@
 	 (cj-io-util read-lines xcall-with-input-process)
 	 tsort
 	 Status
-	 (cj-functional complement))
+	 (cj-functional complement)
+	 (require path-string.relation))
 
 (export lib
 	mydb
