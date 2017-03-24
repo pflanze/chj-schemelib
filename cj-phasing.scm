@@ -1,5 +1,8 @@
 
-(require define-macro-star)
+(require dummy-module ;; XX stupid, just add it here so that I don't
+		      ;; have to add it everywhere, hack, finally
+		      ;; implement the d* module system.
+	 define-macro-star)
 
 ;; This used to be compile-time, which could be used both for the
 ;; result as well as the side effects. now be explicit about the
