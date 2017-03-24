@@ -19,7 +19,12 @@
 		table.hash
 		;; XX warning, .weak-keys and .weak-values not working
 		table.init
-		table.show)
+		table.show
+		table.ref 
+		table.set! 
+		table.delete!
+		table.push!)
+	
 	;; utilities:
 	(method table.list
 		table.keys
@@ -27,6 +32,7 @@
 		table.values
 		table.sorted-values)
 	list.table-maybe-function)
+
 
 
 ;; finally provide a nicer interface to creating tables
@@ -150,4 +156,60 @@
     (lambda (k #!optional get-table?)
       (if get-table? t
 	  (table-ref t k #f)))))
+
+
+
+(define. table.ref table-ref)
+(define. table.set! table-set!)
+(define. (table.delete! t key)
+  (table-set! t key))
+
+
+(define. (table.push! t key val)
+  (table-set! t key (cons val (table-ref t key '()))))
+
+(define table:nothing (gensym 'table-nothing))
+;; uh, allow access to table:nothing so that table.pop! can be called
+;; with no alternate but a |clean?| value.
+
+(define. table.pop!
+  (let ((nothing (box #f)))
+    (lambda (t key
+	  #!optional
+	  (alternate table:nothing) 
+	  (clean? #t))
+      (let ((l (table-ref t key nothing)))
+	(if (eq? l nothing)
+	    (if (eq? alternate table:nothing)
+		(error "table.pop!: key not found:" key)
+		alternate)
+	    (if (null? l)
+		(if (eq? alternate table:nothing)
+		    (error "table.pop!: empty list at key:" key)
+		    alternate)
+		(let-pair ((v r) l)
+			  (if (and clean? (null? r))
+			      (table-set! t key)
+			      (table-set! t key r))
+			  v)))))))
+
+(TEST
+ > (define t (make-table))
+ > (.push! t "a" 1)
+ > (.push! t "b" 1)
+ > (.push! t "a" 2)
+ > (.ref t "a")
+ (2 1)
+ > (.pop! t "a")
+ 2
+ > (.ref t "a")
+ (1)
+ > (%try (.pop! t "y"))
+ (exception text: "table.pop!: key not found: \"y\"\n")
+ > (.pop! t "a" 'n)
+ 1
+ > (.pop! t "a" 'n)
+ n
+ > (.list t)
+ (("b" 1)))
 
