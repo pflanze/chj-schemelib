@@ -198,10 +198,12 @@
 		   empty-wbtree))
 
 (def (list.wbcollection #(function? cmp)
-			l)
+			l
+			#!optional
+			ignore-duplicates?)
      (let (($wbtreeparameter (wbtreeparameter* cmp)))
        (wbcollection $wbtreeparameter
-		     (list->wbtree l))))
+		     (list->wbtree l ignore-duplicates?))))
 
 
 (TEST
@@ -220,6 +222,8 @@
      identity
      (& (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3)))))
  (wbtree-duplicate-exception 3 3)
+ > (.list (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3) #t))
+ (-2 1 2 3 3.3 9)
  > (def c (list.wbcollection number-cmp '(1 3 2 9 -2 3.3)))
  > (.contains? c 3)
  #t
