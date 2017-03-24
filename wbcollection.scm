@@ -172,8 +172,12 @@
  (def-wbcollection-method (union c1 c2)
    (wbtree:union $data c1 c2))
 
- (def-wbcollection-method (difference c)
-   (wbtree:difference $data))
+ (def-wbcollection-method (difference c1 c2)
+   (if (wbtreeparameter-equal? $wbtreeparameter (.param c2))
+       (wbcollection $wbtreeparameter
+		     (wbtree:difference $data (.data c2)))
+       (error "incompatible wbcollection parameters:"
+	      $wbtreeparameter (.param c2))))
 
  (def-wbcollection-method (intersection c1 c2)
    (wbtree:intersection $data c1 c2))
