@@ -136,7 +136,7 @@
 (define weight 2);;XXX how parametrize this too
 
 
-(define empty-wbtree 'empty-wbtree)
+(define empty-wbtree 'empty-wbtree) ;; XXX is this safe or not?
 (define (empty-wbtree? x)
   (eq? x empty-wbtree))
 
