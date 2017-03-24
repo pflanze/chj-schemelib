@@ -223,5 +223,6 @@
   (assert* natural? n
 	   (lambda (n)
 	     (if *debug*
-		 `(debug:stop-at-line ,n)
+		 `(if *debug*
+		      (debug:stop-at-line ,n))
 		 `(##void)))))
