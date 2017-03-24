@@ -7,6 +7,7 @@
 
 
 (require easy
+	 oo-vector-lib ;; should that be part of easy?
 	 (cj-url-encode hexdigit))
 
 ;; stupid name?

@@ -7,7 +7,8 @@
 
 
 (require easy
-	 cj-math)
+	 cj-math
+	 2d-shape)
 
 
 (declare (standard-bindings)

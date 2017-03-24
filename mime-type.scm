@@ -6,7 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require easy test cj-io-util)
+(require easy
+	 (string-quote perl-quote)
+	 test
+	 cj-io-util)
 
 (TEST
  ;; XX heh, eliminate |suffix| from lib?

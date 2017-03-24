@@ -61,6 +61,7 @@
 	 cj-env-1
 	 cj-source
 	 simple-match-1
+	 srfi-1
 	 ;; (cj-io-util file-mtime) -- cycle
 	 ;;cj-warn -- cycle
 	 )

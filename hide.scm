@@ -6,7 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require easy stream)
+(require easy
+	 oo-vector-lib ;; for .u8vector in u8vector.hide, right one?
+		       ;; also: string.u8vector, u8vector-map, u8vector.string
+	 stream)
 
 (def (8bits x)
      (bitwise-and x 255))

@@ -9,7 +9,8 @@
 (require easy
 	 srfi-1 ;; fold
 	 (list-util let-pair)
-	 more-oo)
+	 more-oo
+	 code-map)
 
 (declare (standard-bindings)
 	 (extended-bindings)
