@@ -53,13 +53,13 @@
  > (def fstable:test-path ".fstable:test-dir")
  > (if (not (file-exists? fstable:test-path)) (create-directory fstable:test-path))
  > (def t (fstable fstable:test-path))
- > (.set! t "a" "b")
- > (.ref t "a" 'nah)
+ > (fstable.set! t "a" "b")
+ > (fstable.ref t "a" 'nah)
  "b"
- > (.ref t "x" 'nah)
+ > (fstable.ref t "x" 'nah)
  nah
- > (.delete! t "a")
- > (.ref t "a" 'nah)
+ > (fstable.delete! t "a")
+ > (fstable.ref t "a" 'nah)
  nah
  > (delete-directory fstable:test-path))
 

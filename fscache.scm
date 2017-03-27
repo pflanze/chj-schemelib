@@ -35,11 +35,11 @@
 	   
 	   (lambda vals
 	     (let ((key (args->string vals)))
-	       (cond ((.ref table key #f)
+	       (cond ((fstable.ref table key #f)
 		      => string->value)
 		     (else
 		      (let ((val (apply args->value vals)))
-			(.set! table key (value->string val))
+			(fstable.set! table key (value->string val))
 			val)))))))
 
 	(def-method (delete* s)
@@ -52,7 +52,7 @@
 	   
 	   (lambda vals
 	     (let ((key (args->string vals)))
-	       (.possibly-delete! table key))))))
+	       (fstable.possibly-delete! table key))))))
 
 (TEST
  > (%try (create-directory ".test-fscache-dir/")) ;;XX should be part of it, please
