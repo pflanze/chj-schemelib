@@ -50,14 +50,22 @@
 	 (error "not a wbcollection:" orig)))
 
 
-(defmacro (def-wbcollection-method name+args . body)
-  (match* name+args
-	  ((name c . args)
+(defmacro (wbcollection-lambda args . body)
+  (match* args
+	  ((c . _rest)
 	   (quasiquote-source
-	    (def-method ,name+args
+	    (lambda ,args
 	      (let-wbcollection
 	       (($wbtreeparameter $data) ,c)
 	       ,@body))))))
+
+(defmacro (def-wbcollection-method name+args . body)
+  (match* name+args
+	  ((name . args)
+	   (quasiquote-source
+	    (def-method ,name
+	      (wbcollection-lambda ,args
+				   ,@body))))))
 
 
 (joo-class
@@ -169,21 +177,33 @@
  ;; wbtree:gt
  ;; wbtree:next
 
- (def-wbcollection-method (union c1 c2)
-   (wbtree:union $data c1 c2))
+ (def (wbcollection:binary-method f return-wbcollection?)
+      (wbcollection-lambda
+       (c1 c2)
+       (let-wbcollection
+	(($wbtreeparameter2 $data2) c2)
+	(if (wbtreeparameter-equal? $wbtreeparameter $wbtreeparameter2)
+	    (let ((res (f $wbtreeparameter $data $data2)))
+	      (if return-wbcollection?
+		  (wbcollection $wbtreeparameter
+				res)
+		  res))
+	    (error "incompatible wbcollection parameters:"
+		   $wbtreeparameter (.param c2))))))
+ 
+ (def-method union
+   (wbcollection:binary-method wbtree:union* #t))
 
- (def-wbcollection-method (difference c1 c2)
-   (if (wbtreeparameter-equal? $wbtreeparameter (.param c2))
-       (wbcollection $wbtreeparameter
-		     (wbtree:difference $data (.data c2)))
-       (error "incompatible wbcollection parameters:"
-	      $wbtreeparameter (.param c2))))
+ (def-method difference
+   (wbcollection:binary-method wbtree:difference* #t))
 
- (def-wbcollection-method (intersection c1 c2)
-   (wbtree:intersection $data c1 c2))
+ (def-method intersection
+   (wbcollection:binary-method wbtree:intersection* #t))
 
- (def-wbcollection-method (intersection-stream c1 c2)
-   (wbtrees:intersection-stream $data c1 c2))
+ (def-method intersection-stream
+   (wbcollection:binary-method (lambda (param d1 d2)
+				 (wbtrees:intersection-stream* param (list d1 d2)))
+			       #f))
 
  ;; wbtree->stream
  ;; wbtree:between
@@ -315,3 +335,26 @@
  (list.wbcollection number-cmp (list))
  )
 
+;; Set operations
+(TEST
+ > (def (binarytest fn l1 l2 post)
+	(let ((c (comp post
+		       (on (C list.wbcollection number-cmp _)
+			   fn))))
+	  (list (c l1 l2)
+		(c l2 l1))))
+ > (binarytest .difference '(1 2 3) '(2 3 4) wbcollection.list)
+ ((1) (4))
+ > (binarytest .difference '(1 2 3) '(2 4) wbcollection.list)
+ ((1 3) (4))
+ > (binarytest .union '(1 2 3) '(2 4) wbcollection.list)
+ ((1 2 3 4) (1 2 3 4))
+ > (binarytest .intersection '(1 2 3) '(2 4) wbcollection.list)
+ ((2) (2))
+ > (binarytest .intersection-stream '(1 2 3) '(2 4) promise?)
+ (#t #t)
+ > (binarytest .intersection-stream '(1 2 3) '(2 4) stream->list)
+ ((2) (2))
+ > (binarytest .intersection-stream '(1 2 3) '(2 3 4) stream->list)
+ ((2 3) (2 3))
+ )
