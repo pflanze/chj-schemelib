@@ -205,7 +205,9 @@
 				 (wbtrees:intersection-stream* param (list d1 d2)))
 			       #f))
 
- ;; wbtree->stream
+ ;; wbtree->stream -- have members-stream aka stream already; XX heh,
+ ;;   code duplication in wbtree already
+
  ;; wbtree:between
 
  (def-wbcollection-method (rank c item)
