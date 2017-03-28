@@ -242,4 +242,6 @@
 		       (let ((m (output-port-line (current-error-port))))
 			 ;; (= m n) is no good as can have multi-line warn statements
 			 (if (>= m n)
-			     (error "reached error-port line" n))))))
+			     (begin
+			       (2force)
+			       (error "reached error-port line" n)))))))
