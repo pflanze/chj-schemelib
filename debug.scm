@@ -8,6 +8,7 @@
 ;;;    Design Solutions Inc. from Quebec, Canada.
 
 (require easy
+	 named
 	 (cj-warn warn
 		  port-add-hook!))
 
@@ -238,10 +239,12 @@
 ;; better:
 (def (warn-stop-on-line! n)
      (port-add-hook! (current-error-port)
-		     (lambda (port)
-		       (let ((m (output-port-line (current-error-port))))
-			 ;; (= m n) is no good as can have multi-line warn statements
-			 (if (>= m n)
-			     (begin
-			       (2force)
-			       (error "reached error-port line" n)))))))
+		     (named self
+			    (lambda (port)
+			      (let ((m (output-port-line port)))
+				;; (= m n) is no good as can have multi-line warn statements
+				(if (>= m n)
+				    (begin
+				      (force-output port)
+				      (port-remove-hook! port self)
+				      (error "reached error-port line" n))))))))
