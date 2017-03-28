@@ -10,6 +10,7 @@
 	 (cj-env-1 scm:object->string))
 
 (export warn
+	displayln ;; move?
 	#!optional
 	port-add-hook!
 	port-remove-hook!
