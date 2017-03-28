@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -27,6 +27,13 @@
 
 (define gensym-count (make-parameter 0))
 ;; parameter not for thread safety, but for easy temporary override
+
+
+;; XX TODO: these are not actually safe when considering the
+;; possibility of loading already-compiled object files. How to solve?
+;; Either forced namespaces, or maintaining counter value as part of
+;; the build process.
+
 
 (define (gensym-count-next)
   (let ((v (gensym-count)))
