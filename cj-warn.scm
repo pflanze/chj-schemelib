@@ -12,6 +12,7 @@
 (export warn
 	#!optional
 	port-add-hook!
+	port-remove-hook!
 	newline/hooks
 	display/hooks
 	displayln/hooks)
@@ -24,6 +25,14 @@
 
 (define (port-add-hook! port proc)
   (table.push! cj-warn:hooks port proc))
+
+(define (port-remove-hook! port proc)
+  (let ((l (filter (lambda (h)
+		     (not (eq? h proc)))
+		   (table-ref cj-warn:hooks port '()))))
+    (if (null? l)
+	(table-set! cj-warn:hooks port)
+	(table-set! cj-warn:hooks port l))))
 
 (define (port-run-hooks! port)
   (if (not (zero? (table-length cj-warn:hooks))) ;; optim, fair?
