@@ -240,5 +240,6 @@
      (port-add-hook! (current-error-port)
 		     (lambda (port)
 		       (let ((m (output-port-line (current-error-port))))
-			 (if (= m n)
-			     (error "reached error-port line " n))))))
+			 ;; (= m n) is no good as can have multi-line warn statements
+			 (if (>= m n)
+			     (error "reached error-port line" n))))))
