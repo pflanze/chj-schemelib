@@ -48,6 +48,10 @@
 (define. (box.show v)
   `(box ,(.show (unbox v))))
 
+;; good or bad idea?
+(define. (void.show v)
+  `(void))
+
 
 ;; XX move? to predicates or rather cj-gambit-sys?
 (define (toplevel-procedure? v)
