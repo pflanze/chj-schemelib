@@ -254,5 +254,8 @@
 				      (force-output port)
 				      (port-remove-hook! port self)
 				      (if *single-step?*
-					  (step)
+					  (begin
+					    (displayln (list "reached error-port line" n)
+						       (console-port))
+					    (step))
 					  (error "reached error-port line" n)))))))))
