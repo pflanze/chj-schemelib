@@ -22,7 +22,9 @@
 	2>
 	2force
 
+	*single-step?* ;; 
 	warn-stop-on-line!
+	
 	;; UNTESTED and useless?
 	(macro STOP-at-line)
 	(inline debug:stop-at-line))
@@ -237,6 +239,10 @@
 		 `(##void)))))
 
 ;; better:
+
+
+(def *single-step?* #t)
+
 (def (warn-stop-on-line! n)
      (port-add-hook! (current-error-port)
 		     (named self
@@ -247,4 +253,6 @@
 				    (begin
 				      (force-output port)
 				      (port-remove-hook! port self)
-				      (error "reached error-port line" n))))))))
+				      (if *single-step?*
+					  (step)
+					  (error "reached error-port line" n)))))))))
