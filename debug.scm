@@ -13,7 +13,8 @@
 		  port-add-hook!))
 
 
-(export (macro DEBUG)
+(export STRING
+	(macro DEBUG)
 	(macro DEBUG*)
 	(macro T)
 
@@ -28,6 +29,23 @@
 	;; UNTESTED and useless?
 	(macro STOP-at-line)
 	(inline debug:stop-at-line))
+
+
+;; other lib?
+
+;; (def string.string identity) ;; huh really didn't do that so far?
+;; ok, bad, usually stringify, not this ? But, C++ does do this no? <<
+;; action. ?
+
+(def (STRING . vals)
+     (strings-append (map (lambda (v)
+			    (cond ((string? v)
+				   v)
+				  (else
+				   (.string v))))
+			  vals)))
+
+;; / other lib?
 
 
 ;; statements below that level remain quiet; #f means don't compile
@@ -255,7 +273,7 @@
 				      (port-remove-hook! port self)
 				      (if *single-step?*
 					  (begin
-					    (displayln (list "reached error-port line" n)
+					    (displayln (STRING "reached error-port line " n)
 						       (console-port))
 					    (step))
 					  (error "reached error-port line" n)))))))))
