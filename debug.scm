@@ -10,7 +10,8 @@
 (require easy
 	 named
 	 (cj-warn warn
-		  port-add-hook!))
+		  port-add-hook!)
+	 (oo-vector-lib strings-append))
 
 
 (export STRING
