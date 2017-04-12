@@ -447,3 +447,8 @@
 
 (define (symbol->keyword v)
   (string->keyword (symbol->string v)))
+
+
+;; ~sigh, Gambit already defines |fixnum?|
+(define bignum? ##bignum?)
+
