@@ -279,9 +279,9 @@
 
 (TEST
  > (formula '(+ 1 2))
- #(formula-opapplication
-   #(formula-op + #f 10 #t #t left)
-   (#(formula-constant 1) #(formula-constant 2)))
+ #((formula-opapplication)
+   #((formula-op) + #f 10 #t #t left)
+   (#((formula-constant) 1) #((formula-constant) 2)))
  )
 
 
