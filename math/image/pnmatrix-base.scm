@@ -107,6 +107,15 @@ size_t i= ___INT(___ARG2);
 ___RESULT= ___FIX(p[i]);
 " (@u8matrix.addr m) i)))))
 
+
+;; XX hmm, does that make sense? Only works for PNMs with 3 (or,
+;; worse, more!, hmm) channels.
+(define. (u8matrix.ref3 m i0 i1 #!optional (values values))
+  (values (u8matrix.ref m i0 i1 0)
+	  (u8matrix.ref m i0 i1 1)
+	  (u8matrix.ref m i0 i1 2)))
+
+
 (define. u8matrix.cset!
   (typed-lambda
    (#(u8matrix? m) #(size0? i0) #(size0? i1) #(size0? channel) #(size0? v))
