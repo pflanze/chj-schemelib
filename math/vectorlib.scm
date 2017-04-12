@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require easy)
+(require easy
+	 (cj-functional size0? size?))
 
 (declare (standard-bindings)
 	 (extended-bindings)
