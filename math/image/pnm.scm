@@ -81,7 +81,7 @@
 
 (define. (pnminfo.maxval v)
   (or (.maybe-maxval v)
-      (.expected-maxval (.format info))))
+      (.expected-maxval (.format v))))
 
 
 (define (Mr:read-pnm-body p info)
