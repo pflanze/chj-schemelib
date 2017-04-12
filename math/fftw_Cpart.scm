@@ -378,7 +378,7 @@ memcpy(p, body, lenbytes);
  > (define res (@make-Mr 3 2))
  > (MrfftwMr.copy-from-fftw! res mm)
  > res
- #(Mr 3 2 #(#f64(1. 4.) #f64(2. 5.) #f64(3. -6.)))
+ #((Mr) 3 2 #(#f64(1. 4.) #f64(2. 5.) #f64(3. -6.)))
  > (fftw.free mm)
 
  > (define mm (@make-fftwMc 2 3))
@@ -394,7 +394,7 @@ memcpy(p, body, lenbytes);
  > (define res (@make-Mc 2 3))
  > (McfftwMc.copy-from-fftw! res mm)
  > res
- #(Mc 2 3 #(#(Vc 3 #f64(1. 0. 2. 0. 3. 0.)) #(Vc 3 #f64(4. -3. 5. 0. -6. 0.))))
+ #((Mc) 2 3 #(#((Vc) 3 #f64(1. 0. 2. 0. 3. 0.)) #((Vc) 3 #f64(4. -3. 5. 0. -6. 0.))))
  > (fftw.free mm)
  )
 
