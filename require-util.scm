@@ -128,7 +128,7 @@
 
 (def (modulepaths-satisfying? paths) -> Status?
      (call/cc
-      (lambda (report)
+      (lambda (return)
 	(let* ((all-rs (map path-string.topo-relation paths)))
 	  ;; nw how. wat's already loaded  walk through.
 	  (let lp ((rs all-rs)
@@ -140,8 +140,7 @@
 		 (for-each
 		  (lambda (d)
 		    (unless (memq d loaded)
-			    (report (Failure
-				     (requires (.name r) d)))))
+			    (return (Failure (requires (.name r) d)))))
 		  (.deps r))
 		 (lp rs*
 		     (cons (.name r) loaded)))))))))
