@@ -8,8 +8,10 @@
 
 (require easy
 	 math/vectorlib ;; Mr ...
+	 math/image/effects/utils
 	 (math/mathlib fx.twice@)
 	 (math/vectorlib-1 view)
+	 constants
 	 )
 
 
@@ -30,19 +32,6 @@
   ;;(* (- (random-real) 0.5) 5)
   ;;XX rather  log something  pls  expt  wt.
   (* (random-sign) (log (random-real))))
-
-
-(define-inline (square@ x)
-  (declare (flonum) (not safe))
-  (fl* x x))
-
-(define-inline (freqmod@ x)
-  ;; 0..1 -> 0..1
-  (declare (flonum) (not safe))
-  (let* ((min (CONST (log 0.1)))
-	 (max (CONST (log 1.1)))
-	 (x* (log (+ x 0.1))))
-    (/ (- x* min) (- max min))))
 
 
 (define-inline (lowpass-attenuation-at@ x)

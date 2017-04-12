@@ -8,6 +8,7 @@
 
 (require easy
 	 (cj-math square)
+	 math/image/effects/utils
 	 ;;XX?:
 	 math/vectorlib)
 
