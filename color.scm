@@ -1,4 +1,4 @@
-;;; Copyright 2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,60 +7,62 @@
 
 
 (require easy test
+	 jclass
 	 rgb colorspaces)
 
 
 ;; color =================================================================
 
-(class colorstring
-       (struct #(string? value))
-       (method html-colorstring colorstring.value)
+(jclass (colorstring #(string? value))
 
-       (method maybe-stroke-color identity)
-       (method maybe-fill-color identity)
-       (method maybe-stroke-width false/1))
+	(def-method html-colorstring colorstring.value)
+
+	(def-method maybe-stroke-color identity)
+	(def-method maybe-fill-color identity)
+	(def-method maybe-stroke-width false/1))
+
 
 ;; change/parametrize when other solutions abound
 (def color? (either colorstring? rgb?))
+;; XX jinterface, but then have to change those above!
 
-;; add methods to existing class (monkey patching)
-(class rgb
-       (method maybe-stroke-color identity)
-       (method maybe-fill-color identity)
-       (method maybe-stroke-width false/1))
+
+;; (XX monkey patching)
+(def. rgb.maybe-stroke-color identity)
+(def. rgb.maybe-fill-color identity)
+(def. rgb.maybe-stroke-width false/1)
+
 
 ;; paintoptions ==========================================================
 
-(class colors
-       (struct #(color? stroke)
-	       #(color? fill))
-       (method maybe-stroke-color colors.stroke)
-       (method maybe-fill-color colors.fill)
-       (method maybe-stroke-width false/1))
+(jclass (colors #(color? stroke)
+		#(color? fill))
+
+	(def-method maybe-stroke-color colors.stroke)
+	(def-method maybe-fill-color colors.fill)
+	(def-method maybe-stroke-width false/1))
 
 ;; with stroke width, and optional keyword parameters
-(class paint
-       (struct #!key
+(jclass (paint #!key
 	       #((maybe color?) stroke-color)
 	       #((maybe color?) fill-color)
 	       #((maybe positive-real?) stroke-width))
-       (method maybe-stroke-color paint.stroke-color)
-       (method maybe-fill-color paint.fill-color)
-       (method maybe-stroke-width paint.stroke-width))
+
+	(def-method maybe-stroke-color paint.stroke-color)
+	(def-method maybe-fill-color paint.fill-color)
+	(def-method maybe-stroke-width paint.stroke-width))
 
 (def paintoptions?
      (either color? colors? paint?))
 
 ;; applying it ===========================================================
 
-(defstruct painted
-  #((improper-list-of paintoptions?) optionS)
-  value)
+(jclass (painted #((improper-list-of paintoptions?) optionS)
+		 value)
 
-;; delegates, now they're coming?..
-(def. (painted.start v)
-  (.start (painted.value v)))
+	(def-method* (start v)
+	  (.start value))
 
-(def. (painted.min+maxs/prev a b)
-  (.min+maxs/prev (painted.value a) b))
+	(def-method* (min+maxs/prev a b)
+	  (.min+maxs/prev value b)))
 
