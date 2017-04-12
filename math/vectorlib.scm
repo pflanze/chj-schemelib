@@ -1028,7 +1028,7 @@
 (define. Vb:Vc.map Vb:.map)
 
 (define (.set-at! res is xs)
-  (assert (equal? (.type res) (.type xs)))
+  (assert ((on .type equal?) res xs))
   (let ((ni (Vb.size is)))
     (assert (= ni (.size xs)))
     (assert (<= ni (.size res)))
