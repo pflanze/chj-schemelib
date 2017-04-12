@@ -1,3 +1,17 @@
+;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
+(require easy
+	 )
+
+(export (macro CC))
+
+
 ;; *simple* expression to C compiler
 
 ;; - no need for ctx, since, just any variable that isn't known to be fixed is a variable? (but, what about shadowing?)
