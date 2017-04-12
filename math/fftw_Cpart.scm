@@ -256,7 +256,7 @@ memcpy(p, body, lenbytes);
  > (fftw.free v)
  > (define m (@make-fftwMr 5 2))
  > (vector-ref (%try-error (fftw.size m)) 1)
- "does not match fftw-vector?:"
+ "v does not match fftw-vector?:"
  > (values->vector (fftw.sizes m))
  #(5 2)
  > (fftw.free m)
@@ -384,7 +384,7 @@ memcpy(p, body, lenbytes);
  > (define mm (@make-fftwMc 2 3))
  > (fftwMcMc.copy-to-fftw! mm (Mc (Vc 1 2 3) (Vc 4-3i 5 -6)))
  > (vector-ref (%try-error (fftwMr.ref mm 0 0)) 1)
- "does not match fftwMr?:"
+ "m does not match fftwMr?:"
  > (fftwMc.ref mm 0 0)
  1.+0.i
  > (fftwMc.ref mm 1 0)
