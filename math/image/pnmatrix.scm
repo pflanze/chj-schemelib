@@ -8,7 +8,7 @@
 
 (require easy
 	 posix/mmap
-	 math/image/pnmatrix-macros ;; pnmatrix:headsize  u1matrix ?
+	 math/image/pnmatrix-compiled ;; math/image/pnmatrix-macros ;; pnmatrix:headsize  u1matrix ?
 	 u8-parse
 	 math/image/pnmatrix-base)
 

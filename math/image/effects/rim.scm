@@ -11,7 +11,7 @@
 	 parallel
 	 math/image/pnmatrix
 	 math/mathlib
-	 math/image/pnmatrix-macros ;; pgm8.ref etc.
+	 math/image/pnmatrix-compiled ;; math/image/pnmatrix-macros ;; pgm8.ref etc.
 	 ;;XX?:
 	 ;; math/vectorlib
 	 )

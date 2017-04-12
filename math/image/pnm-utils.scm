@@ -8,6 +8,7 @@
 
 (require easy
 	 parallel
+	 math/image/pnmatrix-compiled
 	 math/image/pnm)
 
 (declare (standard-bindings)

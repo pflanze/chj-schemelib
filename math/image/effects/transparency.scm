@@ -8,7 +8,7 @@
 
 (require easy
 	 parallel
-	 math/image/pnmatrix-macros ;; pgm8.ref etc.
+	 math/image/pnmatrix-compiled ;; math/image/pnmatrix-macros ;; pgm8.ref etc.
 	 math/image/pnmatrix)
 
 ;; fake transparency  for now
