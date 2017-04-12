@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require easy)
+(require easy
+	 (cj-source-wraps source:symbol-append))
 
 ;; math formulas
 
@@ -23,7 +24,7 @@
   )
 
 (defmacro (defformula-op name . args)
-  `(def ,(source-symbol-append 'formula- name)
+  `(def ,(source:symbol-append 'formula- name)
 	(formula-op ',name ,@args)))
 
 (defformula-op + #f 10 #t #t 'left)
