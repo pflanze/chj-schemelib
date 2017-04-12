@@ -1,3 +1,15 @@
+;;; Copyright 2014-2017 by Christian Jaeger <ch@christianjaeger.ch>
+
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
+(require easy
+	 (math/mapfn mapfn)
+	 (math/image/visualize plot))
+
 ;;  	Total population (in thousands)) 	Population aged 0–14 (%) 	Population aged 15–64 (%) 	Population aged 65+ (%)
 ;; 1950 	2,072 	45.1 	52.3 	2.6
 ;; 1955 	2,386 	46.3 	50.8 	2.9
@@ -46,8 +58,7 @@
      (strings-join (map (lambda (p)
 			  (let-population-point
 			   ((year total a b c) p)
-			   ;; HEH add this to constructor instead!  To
-			   ;; types something X.:
+			   ;; XX add this to constructor instead
 			   (assert (< 99 (+ a b c) 101))
 			   (let ((percent (lambda (v)
 					    (inexact.round-at
@@ -68,6 +79,7 @@
 				    (.total p)))
 			    population-data)))
 
-;; (plot (list population zero/1) 1950 2010)
+(def (show-rwanda)
+     (plot (list population zero/1) 1950 2010))
 
 ;; now for labels...
