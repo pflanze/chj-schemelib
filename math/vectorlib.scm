@@ -7,6 +7,7 @@
 
 
 (require easy
+	 (math/info .type)
 	 (cj-functional size0? size?))
 
 (declare (standard-bindings)
