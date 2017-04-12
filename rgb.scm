@@ -215,15 +215,20 @@
 	(def. ,(prefixed "rgb8.") ,(prefixed "rgb01:"))))))
 
 
+(def (rgb:bound x)
+     (cond ((< x 0) 0)
+	   ((> x 1) 1)
+	   (else x)))
+
 (def (rgb01:op/2 op)
      (lambda (a b)
        (let-rgb01l
 	((r0 g0 b0) (.rgb01l a))
 	(let-rgb01l
 	 ((r1 g1 b1) (.rgb01l b))
-	 (rgb01l (op r0 r1)
-		 (op g0 g1)
-		 (op b0 b1))))))
+	 (rgb01l (rgb:bound (op r0 r1))
+		 (rgb:bound (op g0 g1))
+		 (rgb:bound (op b0 b1)))))))
 
 (def-rgb01 + (rgb01:op/2 +))
 (def-rgb01 - (rgb01:op/2 -))
