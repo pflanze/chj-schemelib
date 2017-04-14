@@ -521,5 +521,5 @@
  > (map/last? vector '())
  ()
  > (map/last? vector '(a b c))
- (#(a #f) #(b #f) #(c #t)))
+ (#(#f a) #(#f b) #(#t c)))
 

@@ -133,8 +133,8 @@
     (if (null? l)
 	l
 	(let ((r (cdr l)))
-	  (cons (fn (car l)
-		    (null? r))
+	  (cons (fn (null? r)
+		    (car l))
 		(map/last? fn r))))))
 
 ;; TEST see list-util.scm
