@@ -16,7 +16,8 @@
 	improper-map
 	mapS
 	r-list-split
-	list-split)
+	list-split
+	map/last?)
 
 
 ;; srfi-1 defines first, but not rest (nor head nor tail)
@@ -126,4 +127,15 @@
 
 ;; TEST see list-util.scm
 
+
+(define (map/last? fn l)
+  (let rec ((l l))
+    (if (null? l)
+	l
+	(let ((r (cdr l)))
+	  (cons (fn (car l)
+		    (null? r))
+		(map/last? fn r))))))
+
+;; TEST see list-util.scm
 

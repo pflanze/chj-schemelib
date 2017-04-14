@@ -517,3 +517,9 @@
  #t
  )
 
+(TEST
+ > (map/last? vector '())
+ ()
+ > (map/last? vector '(a b c))
+ (#(a #f) #(b #f) #(c #t)))
+
