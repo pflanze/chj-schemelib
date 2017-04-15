@@ -7,7 +7,14 @@
 
 
 (require easy
-	 test)
+	 test
+	 (cj-port with-output-to-string) ;; for test only
+	 )
+
+(export string-bag-length
+	string-bag->string
+	string-bag-display)
+
 
 ;; A "string-bag" is an improper list of strings and string-bags.
 ;; (vs. Rope?)
@@ -57,3 +64,19 @@
  > (string-bag->string '("a" ("b" () . "c")))
  "abc")
 
+
+(def (string-bag-display b #!optional (port (current-output-port)))
+     (let disp ((b b))
+       (xcond ((pair? b)
+	       (let-pair ((a b*) b)
+			 (disp a)
+			 (disp b*)))
+	      ((string? b)
+	       (display b port))
+	      ((null? b)
+	       (void)))))
+
+
+(TEST
+ > (with-output-to-string (& (string-bag-display '("a" ("b" () . "c")))))
+ "abc")
