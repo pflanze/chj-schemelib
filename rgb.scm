@@ -274,17 +274,6 @@
 
 ;; operations =================================================================
 
-;; XX why create 2 (3) bindings instead of just rgb. ?
-(defmacro (def-rgb01 name e)
-  (let ((prefixed (lambda (prefix)
-		    (source:symbol-append prefix name))))
-    `(begin
-       (def ,(prefixed "rgb01:") ,e)
-       (def. ,(prefixed "rgb01.") ,(prefixed "rgb01:"))
-       ;; it can also handle other types:
-       (def. ,(prefixed "rgb8.") ,(prefixed "rgb01:")))))
-
-
 (def (01-bound x)
      (cond ((< x 0) 0)
 	   ((> x 1) 1)
@@ -300,9 +289,9 @@
 		 (01-bound (op g0 g1))
 		 (01-bound (op b0 b1)))))))
 
-(def-rgb01 + (rgb01:op/2 +))
-(def-rgb01 - (rgb01:op/2 -))
-(def-rgb01 mean (rgb01:op/2 mean))
+(def. rgb.+ (rgb01:op/2 +))
+(def. rgb.- (rgb01:op/2 -))
+(def. rgb.mean (rgb01:op/2 mean))
 
 (def (rgb01:op/2+1 op)
      (lambda (a b c)
@@ -314,7 +303,7 @@
 		 (op g0 g1 c)
 		 (op b0 b1 c))))))
 
-(def-rgb01 mean-towards (rgb01:op/2+1 mean-towards))
+(def. rgb.mean-towards (rgb01:op/2+1 mean-towards))
 
 (def (rgb01:.op op)
      (lambda (a #(number? b))
@@ -323,13 +312,18 @@
 			 `(op (,_ a) b))
 			'(.r01l .g01l .b01l))))))
 
-(def-rgb01 .* (rgb01:.op *))
-(def-rgb01 ./ (rgb01:.op /))
+(def. rgb..* (rgb01:.op *))
+(def. rgb../ (rgb01:.op /))
 
 (TEST
  > (..* (rgb8 100 50 0) 2)
  ;; #(rgb01 40/51 20/51 0)
  #((rgb01l) .2548754380226136 .06379206392765045 -7.790527343750001e-5)
+
+ > (.+ (rgb8 255 128 0) (rgb8 10 10 10))
+ #((rgb01l) 1 .21889579733014106 .0029963123619556426)
+ > (.html-colorstring #)
+ "#FF8109"
 
  > (%try-error (..* (rgb8 100 200 0) 2))
  ;; #(error "does not match rgb:0..1?:" 80/51)
