@@ -12,7 +12,7 @@
 	 test-logic
 	 colorspaces
 	 (cj-source-wraps source:symbol-append)
-	 (rgb-util rgb:0..1?))
+	 (rgb-types rgb:0..1?))
 
 
 (def +/2 (lambda (a b) (+ a b)))
