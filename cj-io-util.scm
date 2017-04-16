@@ -16,7 +16,8 @@
 	 srfi-11
 	 srfi-1
 	 (posix/cj-posix posix:environ)
-	 (cj-functional list-of values-of))
+	 (cj-functional list-of values-of)
+	 string-bag)
 
 (export open-process*
 	open-input-process*
@@ -58,7 +59,9 @@
 	user-name-or-id->id
 	group-name-or-id->id
 	chown
-	possibly-create-directory)
+	possibly-create-directory
+	putfile
+	getfile)
 
 
 ;; handle setenv:-enriched process specs:
@@ -631,3 +634,14 @@
  #f
  > (delete-directory cj-io-util:testbase))
 
+
+(def (putfile path bag)
+     (call-with-output-file path
+       (lambda (port)
+	 (string-bag-display bag port))))
+
+
+(def (getfile path)
+     (call-with-input-file path
+       (lambda (port)
+	 (read-line port #f))))
