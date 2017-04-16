@@ -17,7 +17,9 @@
 	mapS
 	r-list-split
 	list-split
-	map/last?)
+	map/last?
+	reverse-map/tail
+	reverse-map)
 
 
 ;; srfi-1 defines first, but not rest (nor head nor tail)
@@ -138,4 +140,17 @@
 		(map/last? fn r))))))
 
 ;; TEST see list-util.scm
+
+
+(define (reverse-map/tail fn l tail)
+  (let lp ((out tail)
+	   (l l))
+    (if (null? l)
+	out
+	(lp (cons (fn (car l))
+		  out)
+	    (cdr l)))))
+
+(define (reverse-map fn l)
+  (reverse-map/tail fn l '()))
 

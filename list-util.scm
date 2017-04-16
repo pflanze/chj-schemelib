@@ -523,3 +523,8 @@
  > (map/last? vector '(a b c))
  (#(#f a) #(#f b) #(#t c)))
 
+(TEST
+ > (reverse-map inc '(1 2 3))
+ (4 3 2)
+ > (reverse-map/tail inc '(1 2 3) 'b)
+ (4 3 2 . b))
