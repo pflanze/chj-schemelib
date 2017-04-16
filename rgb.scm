@@ -274,15 +274,15 @@
 
 ;; operations =================================================================
 
+;; XX why create 2 (3) bindings instead of just rgb. ?
 (defmacro (def-rgb01 name e)
   (let ((prefixed (lambda (prefix)
-		    (source:symbol-append prefix name))))    
-    (no-pp-through
-     `(begin
-	(def ,(prefixed "rgb01:") ,e)
-	(def. ,(prefixed "rgb01.") ,(prefixed "rgb01:"))
-	;; it can also handle other types:
-	(def. ,(prefixed "rgb8.") ,(prefixed "rgb01:"))))))
+		    (source:symbol-append prefix name))))
+    `(begin
+       (def ,(prefixed "rgb01:") ,e)
+       (def. ,(prefixed "rgb01.") ,(prefixed "rgb01:"))
+       ;; it can also handle other types:
+       (def. ,(prefixed "rgb8.") ,(prefixed "rgb01:")))))
 
 
 (def (01-bound x)
