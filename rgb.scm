@@ -85,6 +85,7 @@
 	    255
 	    r))))
 
+
 (jclass rgb
 
 	(def-method (html-colorstring x)
@@ -176,6 +177,75 @@
 
 
 (TEST
+ > (.html-colorstring (rgb8 0 128 255))
+ "#0080FF"
+ > (.html-colorstring (.rgb01l (rgb8 0 128 255)))
+ "#0080FF"
+ > (.html-colorstring (rgb01t 1 0.5 0))
+ "#FF8000"
+ )
+
+;; parse =================================================================
+
+(def. (string.rgb8 s)
+
+  (def (conv element-i.i stretch)
+
+       (def (get-number i)
+	    (let ((ss (substring s (element-i.i i) (element-i.i (inc i)))))
+	      (def (err)
+		   (error "string.rgb8: expecting positive hex number:" s ss))
+	      (cond ((string->number ss 16)
+		     => (lambda (n)
+			  (if (negative? n)
+			      (err)
+			      (stretch n))))
+		    (else (err)))))
+
+       (if (char=? (string-ref s 0) #\#)
+	   (rgb8 (get-number 0)
+		 (get-number 1)
+		 (get-number 2))
+	   (error "html color strings need to start with character '#'")))
+
+  (case (string.length s)
+    ((7) (conv (lambda (element-i)
+		 (+ 1 (* element-i 2)))
+	       identity))
+    ((4) (conv (lambda (element-i)
+		 (+ 1 element-i))
+	       (lambda (n)
+		 (* 255 (/ n 15)))))
+    (else
+     (error "html color strings need to be of length 7 or 4"))))
+
+
+(TEST
+ > (.rgb8 "#FF00FF")
+ #((rgb8) 255 0 255)
+ > (%try (.rgb8 "# F00FF"))
+ (exception
+  text:
+  "string.rgb8: expecting positive hex number: \"# F00FF\" \" F\"\n")
+ > (%try (.rgb8 "#xF00FF"))
+ (exception
+  text:
+  "string.rgb8: expecting positive hex number: \"#xF00FF\" \"xF\"\n")
+ > (%try (.rgb8 "#-800FF"))
+ (exception
+  text:
+  "string.rgb8: expecting positive hex number: \"#-800FF\" \"-8\"\n")
+ > (.rgb8 "#F00080")
+ #((rgb8) 240 0 128)
+ > (.rgb8 "#88f")
+ #((rgb8) 136 136 255)
+ > (.html-colorstring #)
+ "#8888FF")
+
+
+;; tests =================================================================
+
+(TEST
  > (F (Lforall '(-1 0 1 2 253 254 255 255. 256)
 	       (lambda_ (= (01.uint8 (uint8.01 _)) _))))
  ;; failures are outside of number range, "though"
@@ -202,7 +272,7 @@
 
 
 
-;; now to the actual meat:
+;; operations =================================================================
 
 (defmacro (def-rgb01 name e)
   (let ((prefixed (lambda (prefix)
@@ -277,15 +347,4 @@
  > (F (stream-take (iter-stream (C ..* _ 0.9) (rgb01l 1 1 0.5)) 3))
  (#((rgb01l) 1 1 .5) #((rgb01l) .9 .9 .45) #((rgb01l) .81 .81 .405)))
 
-
-;; print as hex
-
-(TEST
- > (.html-colorstring (rgb8 0 128 255))
- "#0080FF"
- > (.html-colorstring (.rgb01l (rgb8 0 128 255)))
- "#0080FF"
- > (.html-colorstring (rgb01t 1 0.5 0))
- "#FF8000"
- )
 
