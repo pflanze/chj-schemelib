@@ -15,6 +15,17 @@
 	 (rgb-types rgb:0..1?))
 
 
+(def (01-bound x)
+     (cond ((< x 0) 0)
+	   ((> x 1) 1)
+	   (else x)))
+
+;; (def (01-bound-if x clip?)
+;;      (if clip?
+;; 	 (01-bound x)
+;; 	 x))
+
+
 (def +/2 (lambda (a b) (+ a b)))
 
 ;; call it mean or average ?
@@ -138,6 +149,11 @@
 		(jclass (rgb01l #(rgb:0..1? r01l)
 				#(rgb:0..1? g01l)
 				#(rgb:0..1? b01l))
+
+			(def (rgb01l/clipping r g b)
+			     (rgb01l (01-bound r)
+				     (01-bound g)
+				     (01-bound b)))
 
 			(def-method rgb01l identity)
 
@@ -274,43 +290,41 @@
 
 ;; operations =================================================================
 
-(def (01-bound x)
-     (cond ((< x 0) 0)
-	   ((> x 1) 1)
-	   (else x)))
-
 (def (rgb01:op/2 op)
-     (lambda (a b)
+     (lambda (a b #!optional #(boolean? clip?))
        (let-rgb01l
 	((r0 g0 b0) (.rgb01l a))
 	(let-rgb01l
 	 ((r1 g1 b1) (.rgb01l b))
-	 (rgb01l (01-bound (op r0 r1))
-		 (01-bound (op g0 g1))
-		 (01-bound (op b0 b1)))))))
+	 ((if clip? rgb01l/clipping rgb01l)
+	  (op r0 r1)
+	  (op g0 g1)
+	  (op b0 b1))))))
 
 (def. rgb.+ (rgb01:op/2 +))
 (def. rgb.- (rgb01:op/2 -))
 (def. rgb.mean (rgb01:op/2 mean))
 
 (def (rgb01:op/2+1 op)
-     (lambda (a b c)
+     (lambda (a b c #!optional #(boolean? clip?))
        (let-rgb01l
 	((r0 g0 b0) (.rgb01l a))
 	(let-rgb01l
 	 ((r1 g1 b1) (.rgb01l b))
-	 (rgb01l (op r0 r1 c)
-		 (op g0 g1 c)
-		 (op b0 b1 c))))))
+	 ((if clip? rgb01l/clipping rgb01l)
+	  (op r0 r1 c)
+	  (op g0 g1 c)
+	  (op b0 b1 c))))))
 
 (def. rgb.mean-towards (rgb01:op/2+1 mean-towards))
 
 (def (rgb01:.op op)
-     (lambda (a #(number? b))
+     (lambda (a #(number? b) #!optional #(boolean? clip?))
        (insert-result-of
-	`(rgb01l ,@(map (lambda_
-			 `(op (,_ a) b))
-			'(.r01l .g01l .b01l))))))
+	`((if clip? rgb01l/clipping rgb01l)
+	  ,@(map (lambda_
+		  `(op (,_ a) b))
+		 '(.r01l .g01l .b01l))))))
 
 (def. rgb..* (rgb01:.op *))
 (def. rgb../ (rgb01:.op /))
@@ -320,7 +334,10 @@
  ;; #(rgb01 40/51 20/51 0)
  #((rgb01l) .2548754380226136 .06379206392765045 -7.790527343750001e-5)
 
- > (.+ (rgb8 255 128 0) (rgb8 10 10 10))
+ > (%try (.+ (rgb8 255 128 0) (rgb8 10 10 10)))
+ (exception text: "r01l does not match rgb:0..1?: 1.003035109168291\n")
+ ;; Now the same with clipping:
+ > (.+ (rgb8 255 128 0) (rgb8 10 10 10) #t)
  #((rgb01l) 1 .21889579733014106 .0029963123619556426)
  > (.html-colorstring #)
  "#FF8109"
