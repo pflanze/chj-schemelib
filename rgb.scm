@@ -342,6 +342,16 @@
  > (.html-colorstring #)
  "#FF8109"
 
+ ;; Seeing the effect of the luminosity curve:
+ > (.html-colorstring (.+ (.rgb8 "#FF2000") (rgb8 20 20 20) #t))
+ "#FF2813"
+ > (.html-colorstring (.+ (.rgb8 "#FF4000") (rgb8 20 20 20) #t))
+ "#FF4413"
+ > (.html-colorstring (.+ (.rgb8 "#FF6000") (rgb8 20 20 20) #t))
+ "#FF6313"
+ > (.html-colorstring (.+ (.rgb8 "#FFF000") (rgb8 20 20 20) #t))
+ "#FFF113"
+
  > (%try-error (..* (rgb8 100 200 0) 2))
  ;; #(error "does not match rgb:0..1?:" 80/51)
  #(error "g01l does not match rgb:0..1?:" 1.1551609354972836)
