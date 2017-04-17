@@ -188,7 +188,7 @@
 
 (def joo:implementation-method-expander-forbidden
      (lambda (stx)
-       (source-error stx "method implementation not allowed in abstract class")))
+       (source-error stx "method implementation not allowed in interface")))
 
 
 ;; How to check for (eq? and, nah, actually only, although including
@@ -726,7 +726,7 @@
  > (with-exception-handler source-error-message
 			   (& (eval `(joo-interface joo_fooo
 						    (def-method (haha s))))))
- "method implementation not allowed in abstract class"
+ "method implementation not allowed in interface"
  > (with-exception-handler source-error-message
 			   (& (eval `(joo-interface (joo_fooo a b)
 						    (method (haha s))))))
