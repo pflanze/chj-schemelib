@@ -11,6 +11,10 @@
 	 (list-util-1 map/last?)
 	 string-bag)
 
+(export (method .json-string)
+	(method .json-string-bag)
+	json-display)
+
 ;; https://datatracker.ietf.org/doc/rfc4627/?include_text=1
 
 ;; JSON can represent four primitive types (strings, numbers, booleans,
@@ -133,4 +137,8 @@
 		       (json-null) #f (table '(a (122 "A")) '(b: 0)) #t))
  "[[1.44,\"a\"],null,false,{\"a\":[[122,\"A\"]],\"b\":[0]},true]")
 
+
+
+(def (json-display v #!optional (port (current-output-port)))
+     (string-bag-display (.json-string-bag v)))
 
