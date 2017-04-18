@@ -38,7 +38,8 @@
 (export (macro joo-class)
 	(macro joo-interface)
 	#!optional
-	joo:parse-decl)
+	joo:parse-decl
+	expand-forms-in-exprs)
 
 
 ;; XX move elsewhere? (Depends on symboltable! *And* )

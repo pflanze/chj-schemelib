@@ -7,7 +7,8 @@
 
 
 (require easy
-	 joo)
+	 joo
+	 (joo expand-forms-in-exprs))
 
 ;; more-oo-inspired syntax on top of joo
 
@@ -80,6 +81,8 @@
 		   ;; #t if it did expand
 		   boolean?)
 
+     ;; XX should use expand-forms-in-exprs from joo.scm to get more
+     ;; proper macro treatment
      (mcase expr
 	    (pair?
 	     (let-pair ((a r) (source-code expr))
