@@ -840,3 +840,15 @@
  > (.foo3 (boo 10 11 12))
  (11 12))
 
+
+;; Whether a class or interface "extends" or "implements" a particular
+;; 'parent' (not used within joo.scm).
+(def (joo-extends-or-implements stx super-is-class? is-class?)
+     (if super-is-class?
+	 (if is-class?
+	     `extends:
+	     (source-error stx "an interface cannot extend a class"))
+	 (if is-class?
+	     `implements:
+	     `extends:)))
+

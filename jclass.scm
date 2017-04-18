@@ -41,17 +41,6 @@
 ;; (Ok, XX clean up those stupid comments some time.)
 
 
-;; XX move to joo
-(def (joo-extends-or-implements stx super-is-class? is-class?)
-     (if super-is-class?
-	 (if is-class?
-	     `extends:
-	     (source-error stx "an interface cannot extend a class"))
-	 (if is-class?
-	     `implements:
-	     `extends:)))
-
-
 (def (jclass:expand stx
 		    is-class?
 		    args
