@@ -142,3 +142,31 @@
 (def (json-display v #!optional (port (current-output-port)))
      (string-bag-display (.json-string-bag v)))
 
+
+;; for kicks?, pointless?, dangerous...:
+
+(def. (symbol.json-string-bag v)
+  ;; XX not safe of course
+  (object->string (string-append "|"
+				 (symbol->string v)
+				 "|")))
+
+(def. symbol.json-string symbol.json-string-bag)
+
+;; (json-display '(def. (pair-or-null.json-string-bag v)
+;;   (list "["
+;; 	(list-join (map .json-string-bag v) ",")
+;; 	"]")))
+
+;;  ["|def.|", ["|pair-or-null.json-string-bag|","|v|"],
+;;   ["|list|","[",
+;;    ["|list-join|",["|map|","|.json-string-bag|","|v|"],","],
+;;    "]"]]
+
+;; or in the best case, with an alternative, even more hacky hack:
+
+;; ["def.",["pair-or-null.json-string-bag","v"],
+;;  ["list",["S","["],
+;;   ["list-join",["map",".json-string-bag","v"],","],
+;;   ["S","]"]]]
+
