@@ -41,6 +41,36 @@
 	joo:parse-decl)
 
 
+;; XX move elsewhere? (Depends on symboltable! *And* )
+
+;; Makeshift "manual" ##let-syntax. Only top-level exprs are expanded!
+;; (Should it be extended to enter ##begin forms?  Probably. Need to
+;; know what |begin| is bound to, though. Forever.)
+(def (expand-forms-in-exprs symtbl exprs)
+     (map (named redo
+		 (lambda (expr)
+		   (let ((expr* (source-code expr)))
+		     (if (pair? expr*)
+			 (let ((a (source-code (car expr*))))
+			   (cond ((and (symbol? a)
+				       (or (symboltable-ref symtbl a #f)
+					   ;; Need to expand other
+					   ;; macros, too, to handle
+					   ;; entries in their
+					   ;; expansions!
+					   (define-macro-star-maybe-ref a)))
+				  => (lambda (expand)
+				       ;; recurse until no macro
+				       ;; expander found anymore
+				       (redo (expand expr))))
+				 (else
+				  expr)))
+			 expr))))
+	  exprs))
+
+;; /move
+
+
 ;; inline a local copy
 (define symboltable? (symboltable?-lambda))
 
@@ -149,11 +179,12 @@
 			       `(,@pre
 				 (,(symbol-append 'let- class-name)
 				  (,(map (lambda (nam)
-					   (if (and (symboltable-ref used nam #f)
-						    (not
-						     (symboltable-ref bindvars nam #f)))
-					       nam
-					       '_))
+					   (let ((nam* (source-code nam)))
+					     (if (and (symboltable-ref used nam* #f)
+						      (not
+						       (symboltable-ref bindvars nam* #f)))
+						 nam
+						 '_)))
 					 maybe-fields)
 				   ,(car args))
 				  ,@body))))
@@ -178,7 +209,7 @@
      ;; (Future: could instead parse from joo-interface form, store
      ;; and use for checking in joo-class forms, whatever.)
      (lambda (stx)
-       (cj-sourcify-deep
+       (cj-possibly-sourcify-deep
 	`(begin)
 	stx)))
 
@@ -637,37 +668,34 @@
 				  (joo:make-predicate ,type-symbol))))
 
 
-		      ;; XX ##define-syntax is ugly, it leaves the scope
-		      ;; of the |begin| forms, and hence the original
-		      ;; joo-* forms. Replace by explicit parsing
-		      ;; (same-level only).
+		      ;; Can't use ##define-syntax, as it leaves the
+		      ;; scope of the |begin| forms, and hence the
+		      ;; original joo-* forms (would need
+		      ;; ##let-syntax). Use expand-forms-in-exprs
+		      ;; instead.
 
-		      ;; abstract methods
-		      (##define-syntax
-		       method
-		       ,(if (or interface? abstract?)
-			    `(joo:abstract-method-expander-for ',class-name)
-			    `joo:abstract-method-expander-forbidden))
-
-		      ;; implementations
-		      (##define-syntax
-		       def-method
-		       ,(if interface?
-			    `joo:implementation-method-expander-forbidden
-			    `(joo:implementation-method-expander-for ',class-name
-								     #f
-								     ,abstract?)))
-		      ;; with fields bound to variables
-		      (##define-syntax
-		       def-method*
-		       ,(if interface?
-			    `joo:implementation-method-expander-forbidden
-			    `(joo:implementation-method-expander-for
-			      ',class-name
-			      ',(joo:args->vars (joo-type.all-field-decls type))
-			      ,abstract?)))
-
-		      ,@defs)))))))
+		      ,@(expand-forms-in-exprs
+			 (symboltable*
+			  ;; abstract methods
+			  method: (if (or interface? abstract?)
+				      (joo:abstract-method-expander-for class-name)
+				      joo:abstract-method-expander-forbidden)
+			  ;; implementations
+			  def-method: (if interface?
+					  joo:implementation-method-expander-forbidden
+					  (joo:implementation-method-expander-for class-name
+										  #f
+										  abstract?))
+			  ;; with fields bound to variables
+			  def-method*:
+			  (if interface?
+			      joo:implementation-method-expander-forbidden
+			      (joo:implementation-method-expander-for
+			       class-name
+			       (joo:args->vars (joo-type.all-field-decls type))
+			       abstract?)))
+			 
+			 defs))))))))
 
        (joo:parse-decl decl
 		       (cc #f)
