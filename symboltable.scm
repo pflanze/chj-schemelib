@@ -11,14 +11,17 @@
 	 symboltable-1
 	 show ;; should it be possible to make things optional?!
 	 test
-	 cj-cmp)
+	 cj-cmp
+	 (dsssl sequential-pairs)
+	 (cj-env keyword->symbol))
 
 ;; re-export all exports from symboltable-1, plus
 (export (method symboltable.show)
 	symboltable->sortedlist
 	symboltable-sortedkeys
 	symboltable-eqv?
-	list->symbolcollection)
+	list->symbolcollection
+	symboltable*)
 
 
 (declare (standard-bindings)
@@ -262,3 +265,18 @@
 (TEST
  > (symboltable->sortedlist (list->symbolcollection '(a b c)))
  ((a . #t) (b . #t) (c . #t)))
+
+
+;; Nicer 'mass' constructor?  (*Could* change this into a macro and
+;; calculate the positions statically, i.e. turn into a |vector|
+;; call. Well?)
+(define (symboltable* . keywords+values)
+  (list->symboltable (map (lambda (k+v)
+			    (cons (keyword->symbol (car k+v))
+				  (cdr k+v)))
+			  (sequential-pairs keywords+values cons))))
+
+(TEST
+ > (.show (symboltable* b: 1 a: 2))
+ (symboltable (cons 'a 2) (cons 'b 1)))
+
