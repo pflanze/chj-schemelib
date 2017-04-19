@@ -35,17 +35,17 @@
 
 (TEST
  > (ordered-assoc 0 '((1 a) (2 b) (3 c)))
- #(before (1 a))
+ #((before) (1 a))
  > (ordered-assoc 1 '((1 a) (2 b) (3 c)))
- #(between (1 a) (2 b))
+ #((between) (1 a) (2 b))
  > (ordered-assoc 1.1 '((1 a) (2 b) (3 c)))
- #(between (1 a) (2 b))
+ #((between) (1 a) (2 b))
  > (ordered-assoc 2 '((1 a) (2 b) (3 c)))
- #(between (2 b) (3 c))
+ #((between) (2 b) (3 c))
  > (ordered-assoc 2.1 '((1 a) (2 b) (3 c)))
- #(between (2 b) (3 c))
+ #((between) (2 b) (3 c))
  > (ordered-assoc 3 '((1 a) (2 b) (3 c)))
- #(on-or-after (3 c))
+ #((on-or-after) (3 c))
  )
 
 (def (interpolate p1 p2 x)
