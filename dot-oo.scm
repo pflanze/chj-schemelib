@@ -116,7 +116,11 @@
 		     (macro-symbol-value-or ,method-table-name
 					    dot-oo:new-method-table)
 		     ',typename
-		     ,predicate
+		     ;; wrapper (1) to pick up definitions later in
+		     ;; scope (gah, perhaps solvable?), (2) to pick up
+		     ;; on redefinitions? Well, not sure whether that
+		     ;; should happen. XX
+		     (lambda (v) (,predicate v))
 		     ,name))
 
 		  ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
