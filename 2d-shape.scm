@@ -10,7 +10,9 @@
 	 srfi-1 ;; fold
 	 (list-util let-pair)
 	 more-oo
-	 code-map)
+	 code-map
+	 ;; for testing:
+	 (exceptions with-exceptions-to))
 
 (declare (standard-bindings)
 	 (extended-bindings)
