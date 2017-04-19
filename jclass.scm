@@ -33,14 +33,6 @@
 ;; inner layer of forms and run the same expander (recursively) on
 ;; found forms.
 
-;; Ah, interesting: *because* of ##define-syntax exiting begin scopes,
-;; I now also have to *move* nested jclass / jinterface forms out to
-;; the toplevel, wow. Ah won't actually help for the same
-;; reason. *Wow*. Eh ok it will actually help, not because of the
-;; nesting change but because the ordering is changed (and in line
-;; with the original nesting, I mean stuff remains with stuff now).
-;; (Ok, XX clean up those stupid comments some time.)
-
 
 (def (jclass:expand stx
 		    is-class?
@@ -50,36 +42,26 @@
      (let-pair
       ((decl forms) args)
       (let ((c (lambda (name _maybe-constructor-name _field-decls)
-		 (let ((forms* (map (C jclass:perhaps-expand-in-context
-				       _
-				       name
-				       is-class?)
-				    forms)))
-		   `(begin
-		      ,(sourcify
-			`(,(if is-class? `joo-class `joo-interface)
-			  ,decl
-			  ,@(if maybe-super-name
-				(list (joo-extends-or-implements
-				       stx super-is-class? is-class?)
-				      maybe-super-name)
-				'())
-			  ;; forms that are unrelated (didn't expand)
-			  ;; remain in the scope of the joo-* definition:
-			  ,@(map fst (filter (complement snd) forms*)))
-			stx)
-		      ;; forms that are expanded by jclass.scm are put
-		      ;; afterwards:
-		      ,@(map fst (filter snd forms*)))))))
+		 `(,(if is-class? `joo-class `joo-interface)
+		   ,decl
+		   ,@(if maybe-super-name
+			 (list (joo-extends-or-implements
+				stx super-is-class? is-class?)
+			       maybe-super-name)
+			 '())
+		   ,@(map (C jclass:perhaps-expand-in-context
+			     #f
+			     _
+			     name
+			     is-class?)
+			  forms)))))
 	(joo:parse-decl decl c c c))))
 
 
-(def (jclass:perhaps-expand-in-context expr ;; *should* always match |source?|
+(def (jclass:perhaps-expand-in-context require-match?
+				       expr
 				       maybe-super-name
 				       super-is-class?)
-     -> (values-of any?
-		   ;; #t if it did expand
-		   boolean?)
 
      ;; XX should use expand-forms-in-exprs from joo.scm to get more
      ;; proper macro treatment
@@ -91,33 +73,27 @@
 			     ;; wow have to check for expansion#
 			     ;; version, too. OMG
 			     ((jinterface expansion#jinterface) 
-			      (values (jclass:expand expr
-						     #f r
-						     maybe-super-name
-						     super-is-class?)
-				      #t))
+			      (jclass:expand expr
+					     #f r
+					     maybe-super-name
+					     super-is-class?))
 			     ((jclass expansion#jclass)
-			      (values (jclass:expand expr
-						     #t r
-						     maybe-super-name
-						     super-is-class?)
-				      #t))
-			     (else (values expr #f)))
+			      (jclass:expand expr
+					     #t r
+					     maybe-super-name
+					     super-is-class?))
+			     (else expr))
 			   (source-error expr "missing decl"))))
 	    (else
-	     (values expr #f))))
-
-(def (jclass:toplevel-expand stx is-class?)
-     (letv ((stx* did?) (jclass:perhaps-expand-in-context stx #f is-class?))
-	   (if did?
-	       stx*
-	       (source-error stx "BUG"))))
+	     (if require-match?
+		 (source-error expr "BUG")
+		 expr))))
 
 (defmacro (jinterface decl . forms)
-  (jclass:toplevel-expand stx #f))
+  (jclass:perhaps-expand-in-context #t stx #f #f))
 
 (defmacro (jclass decl . forms)
-  (jclass:toplevel-expand stx #t))
+  (jclass:perhaps-expand-in-context #t stx #f #t))
 
 ;; ^ XX btw double extends: or implements: keywords, how to handle?
 ;; Really \SCHEME[keyword arguments should handle duplicate argument
@@ -170,18 +146,32 @@
 
  ;; Test the inner syntax scoping thing:
  > (expansion#jclass (foo x y) (jclass (bar z)))
- (begin (joo-class (foo x y))
-	(begin (joo-class (bar z) extends: foo)))
+ (joo-class (foo x y)
+	    (joo-class (bar z) extends: foo))
  > (expansion#jclass (foo x y)
 		     (jclass (bar z) (def-method (meth s) 'bar))
 		     (def-method (meth s) 'foo))
- (begin
-   (joo-class (foo x y)
-	      (def-method (meth s) 'foo))
-   (begin
-     (joo-class (bar z) extends: foo
-		(def-method (meth s) 'bar))))
+ (joo-class
+  (foo x y)
+  (joo-class (bar z) extends: foo (def-method (meth s) 'bar))
+  (def-method (meth s) 'foo))
 
  ;; and on the earlier, actually executed, definition of foo:
  > (.meth (jclass_foo 10 11))
  21)
+
+
+;; Scoping: do not re-arrange stuff
+(TEST
+ > (jclass two
+	   (jclass (two1 x))
+	   ;; Yes, the scope of two being able to access syntactical
+	   ;; definitions in two1 is kinda weird, but well? It would
+	   ;; be odd if it would only work as |def.| after exiting the
+	   ;; two's scope.
+	   (def (t-two1 s)
+		(let-two1 ((x) s)
+			  x)))
+ > (t-two1 (two1 12))
+ 12)
+
