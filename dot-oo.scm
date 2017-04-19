@@ -12,7 +12,9 @@
 	 cj-match
 	 test
 	 (cj-source-wraps source:symbol-append)
-	 (string-util strings-join))
+	 (string-util strings-join)
+	 (cj-env-2 for..<)
+	 (cj-test %try))
 
 (export (macro define.)
 	(macro define-struct.)
@@ -26,17 +28,15 @@
 	(generic .typecheck!) ;; ?
 	)
 
+;; include method lookup table implementation
+(include "dot-oo--include.scm")
+;; Getting:
+;; (    dot-oo:method-key-maybe-ref-i
+;; 	dot-oo:method-type-maybe-ref-method
+;; 	dot-oo:method-table-set!
+;; 	dot-oo:new-method-table)
 
-;; Principle is to shadow previous definitions of the generic, and the
-;; last one falls back on previous definitions. Which at the end will
-;; be one that throws an exception.
 
-(define (dot-oo:no-method-found-for-generic genericname)
-  (lambda (obj . rest)
-    (error (string-append "no method found for generic "
-			  (object->string genericname)
-			  " for value:")
-	   obj)))
 
 ;; (XX lost the string-split that allowed to give me limits on the
 ;; number of result values. Working around using strings-join.)
@@ -79,43 +79,57 @@
  ;; XX I'm not testing "foo.bar.baz:boo".. what should it do then?...
  )
 
-;; should this be called |dot-oo:if-pred-then-run-else-run| ?
-(define (dot-oo:if-type-then-run-else-run type? then else)
-  (lambda (first . rest)
-    (if (type? first)
-	(apply then first rest)
-	(apply else first rest))))
+
+(define (dot-oo:make-generic genericname method-table)
+  (lambda (obj . rest)
+    (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
+	   => (lambda (method)
+		(apply method obj rest)))
+	  (else
+	   (error (string-append "no method found for generic "
+				 (object->string genericname)
+				 " for value:")
+		  obj)))))
+
 
 (both-times
- (define define.-template
+ (define define.-expand
    (lambda (name expr)
      (let ((namestr (possibly-sourcify (symbol->string (source-code name))
 				       name)))
        (letv ((prefixstr typenamestr genericnamestr)
 	      (dot-oo:split-prefix:typename.methodname namestr))
-	     (let ((genericname (string->symbol (string-append prefixstr
-							       genericnamestr)))
-		   (typename (string->symbol typenamestr)))
+	     (let* ((genericname (string->symbol (string-append prefixstr
+								genericnamestr)))
+		    (typename (string->symbol typenamestr))
+		    (predicate (source:symbol-append typename '?))
+		    ;; But predicate can change through redefinitions
+		    ;; on reload, use typename for table updates instead.
+		    (method-table-name
+		     (string->symbol (string-append "dot-oo-method-table#"
+						    genericnamestr))))
 	       `(begin
 		  (define ,name ,expr)
-		  (define-if-not-defined ,genericname
-		    (dot-oo:no-method-found-for-generic ',genericname))
-		  (set! ,genericname
-			(dot-oo:if-type-then-run-else-run
-			 ,(with-gensym
-			   V
-			   ;; [*]
-			   `(lambda (,V) (,(source:symbol-append typename '?) ,V)))
-			 ,name
-			 ,genericname)))))))))
+		  ;; Update (and possibly create) method table
+		  (define ,method-table-name
+		    (dot-oo:method-table-set!
+		     (macro-symbol-value-or ,method-table-name
+					    dot-oo:new-method-table)
+		     ',typename
+		     ,predicate
+		     ,name))
+
+		  ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
+		  (define ,genericname
+		    (dot-oo:make-generic ',genericname ,method-table-name)))))))))
 
 (define-macro* (define. first . rest)
   (mcase first
 	 (symbol?
-	  (define.-template first (xone rest)))
+	  (define.-expand first (xone rest)))
 	 (pair?
 	  (let ((first* (source-code first)))
-	    (define.-template (car first*)
+	    (define.-expand (car first*)
 	      `(typed-lambda ,(cdr first*)
 		 ,@rest))))))
 
