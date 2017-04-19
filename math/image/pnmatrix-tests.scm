@@ -9,6 +9,7 @@
 (require easy)
 
 (TEST
+ > (if (file-exists? "foo.ppm") (delete-file "foo.ppm"))
  > (define m (ppm8:create "foo" 1000 100))
  > (.ref m 0 0 0)
  0
