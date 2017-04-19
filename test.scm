@@ -289,21 +289,33 @@
 	     (source-error form "expect |>|, got" (cj-desourcify form))))))))))
 
  (define TEST:conv
-   (TEST:parse/ (lambda (expr rest)
-		  (cons expr rest))
-		(lambda (expr result maybe-namespace-form rest)
-		  (cons (cj-sourcify-deep
-			 `(TEST:check (let ((repl-result-history-ref
-					     TEST:repl-result-history-ref))
-					,@(if maybe-namespace-form
-					      (list maybe-namespace-form)
-					      (list))
-					,expr)
-				      ',result
-				      ',(source-location expr)
-				      TEST:equal?)
-			 expr)
-			rest)))))
+   (TEST:parse/
+    ;; fold-sideeffect
+    (lambda (expr rest)
+      (cons
+       ;; want to still allow # functionality. (Relying on
+       ;; ##repl-result-history-ref being the same (and safe) as
+       ;; repl-result-history-ref. Sick, hack over hack just because
+       ;; we don't have proper macros?)
+       `(##begin
+	 (##define repl-result-history-ref TEST:repl-result-history-ref)
+	 ,expr
+	 (##define repl-result-history-ref ##repl-result-history-ref))
+       rest))
+    ;; fold-test
+    (lambda (expr result maybe-namespace-form rest)
+      (cons (cj-sourcify-deep
+	     `(TEST:check (let ((repl-result-history-ref
+				 TEST:repl-result-history-ref))
+			    ,@(if maybe-namespace-form
+				  (list maybe-namespace-form)
+				  (list))
+			    ,expr)
+			  ',result
+			  ',(source-location expr)
+			  TEST:equal?)
+	     expr)
+	    rest)))))
 
 (define (TEST:check res expect loc TEST:equal?)
   (define-macro (inc! v)
