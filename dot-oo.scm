@@ -50,12 +50,23 @@
 		     ;; really prepend the dot? I'm still confused, torn.
 		     (string-append "." (strings-join rest ".")))))))
  
+ ;; The full name
+ ;; 
+ ;;   Vb:Vr.map
+ ;;
+ ;; yields the generic name
+ ;; 
+ ;;   Vb:.map
+ ;;
+ ;; with its own method table (one method table is only to contain the
+ ;; type checks and methods for one hole, the first argument; not the
+ ;; return type; return type yields a different generic name).
+
  (define (dot-oo:split-prefix:typename.methodname str)
    (define (cont prefix remainder)
      (letv ((typename methodname) (dot-oo:split-typename.methodname remainder))
-	   (values prefix
-		   typename
-		   methodname)))
+	   (values typename
+		   (string-append prefix methodname))))
    (let* ((parts (string-split (source-code str) #\:)))
      (if (= (length parts) 1)
 	 (cont "" str)
@@ -70,14 +81,16 @@
  #("foo" ".bar.baz")
  > (values->vector (dot-oo:split-typename.methodname "fix:foo.bar.baz"))
  #("fix:foo" ".bar.baz")
+
  > (values->vector (dot-oo:split-prefix:typename.methodname
 		    "fix:foo.bar.baz:boo"))
- #("fix:" "foo" ".bar.baz:boo")
+ #("foo" "fix:.bar.baz:boo")
  > (values->vector (dot-oo:split-prefix:typename.methodname
 		    "foo.bar.baz"))
- #("" "foo" ".bar.baz")
+ #("foo" ".bar.baz")
  ;; XX I'm not testing "foo.bar.baz:boo".. what should it do then?...
  )
+
 
 
 (define (dot-oo:make-generic genericname method-table)
@@ -97,14 +110,15 @@
    (lambda (name expr)
      (let ((namestr (possibly-sourcify (symbol->string (source-code name))
 				       name)))
-       (letv ((prefixstr typenamestr genericnamestr)
+       (letv ((typenamestr genericnamestr)
 	      (dot-oo:split-prefix:typename.methodname namestr))
-	     (let* ((genericname (string->symbol (string-append prefixstr
-								genericnamestr)))
+	     (let* ((genericname (string->symbol genericnamestr))
 		    (typename (string->symbol typenamestr))
 		    (predicate (source:symbol-append typename '?))
 		    ;; But predicate can change through redefinitions
-		    ;; on reload, use typename for table updates instead.
+		    ;; on reload, use typename for table updates
+		    ;; instead.
+		    (fulltypename (string->symbol (string-append typenamestr)))
 		    (method-table-name
 		     (string->symbol (string-append "dot-oo-method-table#"
 						    genericnamestr))))
