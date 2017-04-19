@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require easy)
+(require easy
+	 math/image/pnmatrix)
 
 (TEST
  > (if (file-exists? "foo.ppm") (delete-file "foo.ppm"))
