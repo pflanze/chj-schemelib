@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -64,7 +64,8 @@
 	 srfi-1
 	 ;; (cj-io-util file-mtime) -- cycle
 	 ;;cj-warn -- cycle
-	 )
+	 (list-util-1 map/tail)
+	 (string-util-4 string-empty?))
 
 (export (macro TEST)
 	run-tests
@@ -92,6 +93,28 @@
 	     (display (scm:object->string (car objs)) port)
 	     (lp (cdr objs)))
 	    (else (error "improper list:" objs))))))
+
+;; string-util-2:
+(define (string-ref* str i)
+  (if (negative? i)
+      (let ((len (string-length str)))
+	(string-ref str (+ len i)))
+      (string-ref str i)))
+(define (chomp str)
+  (if (string-empty? str)
+      str
+      (if (char=? (string-ref* str -1) #\newline) ;; Perl even ignores \r heh
+	  (substring str 0 (dec (string-length str)))
+	  str)))
+
+;; cj-io-util:
+(define (read-lines #!optional (p (current-input-port)) (tail '()))
+  (let rec ()
+    (let ((line (read-line p)))
+      (if (eof-object? line)
+	  tail
+	  (cons line (rec))))))
+
 ;;/copy
 
 
@@ -320,6 +343,36 @@
 	     expr)
 	    rest)))))
 
+
+;; Ignore mechanism:
+
+;; Plain text files, by default at .test-ignore.txt, contain one
+;; to-be-ignored warning or error message by line (well, the first
+;; line of the message is looked up only, so multi-line messages won't
+;; hurt; the first line contains the location, which is currently
+;; deemed the only reasonable anchor).
+
+(define current-test-ignores (make-parameter (make-table)))
+
+(define (test:read-ignore path tail)
+  (if (file-exists? path)
+      (call-with-input-file path
+	(lambda (port)
+	  (map/tail (lambda (line)
+		      (cons line #t))
+		    tail
+		    (read-lines port))))
+      tail))
+
+(define (test:read-ignores . paths)
+  (list->table (fold test:read-ignore
+		     '()
+		     (if (null? paths)
+			 '(".test-ignore.txt")
+			 paths))))
+
+
+;; Run at test time for each TEST form:
 (define (TEST:check res expect loc TEST:equal?)
   (define-macro (inc! v)
     `(set! ,v (inc ,v)))
@@ -328,9 +381,15 @@
 	      TEST:repl-history))
   (if (TEST:equal? res expect)
       (inc! TEST:count-success)
-      (begin
-	(inc! TEST:count-fail)
-	(location-warn loc "TEST failure, got" res))))
+      (let ((normalmsgstr
+	     (location-warn-to-string loc "TEST failure, got" res)))
+	(if (table-ref (current-test-ignores) (chomp normalmsgstr) #f)
+	    (begin
+	      (inc! TEST:count-fail-ignored)
+	      (location-warn* loc "TEST failure, got" res))
+	    (begin
+	      (inc! TEST:count-fail)
+	      (display normalmsgstr))))))
 
 (define (TEST:repl-result-history-ref n)
   (list-ref TEST:repl-history n))
@@ -454,69 +513,77 @@
 
 (define TEST:count-success #f)
 (define TEST:count-fail #f)
+(define TEST:count-fail-ignored #f)
 (define TEST:running #f)
 
 (define (run-tests #!key (verbose #t)
 		   #!rest files)
   (set! TEST:count-success 0)
   (set! TEST:count-fail 0)
+  (set! TEST:count-fail-ignored 0)
   (set! TEST:running #t)
-  (let ((test-file
-	 (lambda (file) ;; file is not normalized in case of manual input
-	   (if verbose
-	       (begin (display "Testing file ") (display file) (newline)))
-	   (let lp ((forms (test-forms-for file))
-		    (i 0))
-	     (if (null? forms)
-		 (void)
-		 (begin
-		   (if verbose
-		       (begin (display "TEST form no. ") (display i) (newline)))
-		   (eval (car forms))
-		   (lp (cdr forms)
-		       (inc i)))))))
-	(all-tests
-	 (lambda ()
-	   (let ((seen (make-table)))
-	     (let lp ((out '())
-		      (lis TEST#loaded))
-	       (if (null? lis)
-		   out
-		   (let ((a (car lis))
-			 (r (cdr lis)))
-		     (if (table-ref seen a #f)
-			 (lp out
-			     r)
-			 (begin
-			   (table-set! seen a #t)
-			   (lp (cons a out)
-			       r))))))))))
-    (if (pair? files)
-	;; first check if they are loaded
-	(let* ((files* (map perhaps-add-.scm files))
-	       (loaded* (list->table
-			 (map (lambda (f)
-				(cons f #t))
-			      TEST#loaded)))
-	       ;;^ loaded are normalized
-	       (loaded? (lambda (file)
-			  ;;(re test:path-normalize: heh I'm going to
-			  ;;lenghts to throw the loaded-check error in
-			  ;;tail position, then wrong paths will throw
-			  ;;exceptions from the middle of the code
-			  ;;anyway..)
-			  (table-ref loaded* (test:path-normalize file) #f)))
-	       (loaded (filter loaded? files*))
-	       (not-loaded (filter (complement loaded?) files*)))
-	  (if (pair? not-loaded)
-	      (test:warn
-	       "These files are not loaded or don't contain TEST forms:\n"
-	       not-loaded))
-	  (for-each test-file loaded))
-	;; otherwise run all loaded:
-	(for-each test-file (all-tests))))
+  
+  (parameterize
+   ((current-test-ignores (test:read-ignores)))
+   (let ((test-file
+	  (lambda (file) ;; file is not normalized in case of manual input
+	    (if verbose
+		(begin (display "Testing file ") (display file) (newline)))
+	    (let lp ((forms (test-forms-for file))
+		     (i 0))
+	      (if (null? forms)
+		  (void)
+		  (begin
+		    (if verbose
+			(begin
+			  (display "TEST form no. ") (display i) (newline)))
+		    (eval (car forms))
+		    (lp (cdr forms)
+			(inc i)))))))
+	 (all-tests
+	  (lambda ()
+	    (let ((seen (make-table)))
+	      (let lp ((out '())
+		       (lis TEST#loaded))
+		(if (null? lis)
+		    out
+		    (let ((a (car lis))
+			  (r (cdr lis)))
+		      (if (table-ref seen a #f)
+			  (lp out
+			      r)
+			  (begin
+			    (table-set! seen a #t)
+			    (lp (cons a out)
+				r))))))))))
+     (if (pair? files)
+	 ;; first check if they are loaded
+	 (let* ((files* (map perhaps-add-.scm files))
+		(loaded* (list->table
+			  (map (lambda (f)
+				 (cons f #t))
+			       TEST#loaded)))
+		;;^ loaded are normalized
+		(loaded? (lambda (file)
+			   ;;(re test:path-normalize: heh I'm going to
+			   ;;lenghts to throw the loaded-check error in
+			   ;;tail position, then wrong paths will throw
+			   ;;exceptions from the middle of the code
+			   ;;anyway..)
+			   (table-ref loaded* (test:path-normalize file) #f)))
+		(loaded (filter loaded? files*))
+		(not-loaded (filter (complement loaded?) files*)))
+	   (if (pair? not-loaded)
+	       (test:warn
+		"These files are not loaded or don't contain TEST forms:\n"
+		not-loaded))
+	   (for-each test-file loaded))
+	 ;; otherwise run all loaded:
+	 (for-each test-file (all-tests)))))
   (print (list TEST:count-success " success(es), "
-	       TEST:count-fail " failure(s)" "\n"))
+	       TEST:count-fail " failure(s), "
+	       TEST:count-fail-ignored " ignored failure(s)"
+	       "\n"))
   (set! TEST:running #f))
 
 
