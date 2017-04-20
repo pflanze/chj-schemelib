@@ -278,7 +278,7 @@
 
 (define. (pnmatrix.imagesc v #!optional invert?)
   (assert (not invert?))
-  (xxsystem "display" (.name (.info v))))
+  (xxsystem "display" (.name (vectorlib:info v))))
 
 
 (define. (pnmatrix.sizes m)

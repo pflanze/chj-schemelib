@@ -1294,23 +1294,23 @@
 
 
 ;; type 'with runtime info too' [wl  parametrized types  wl  whatever]
-(define (.info v)
+(define (vectorlib:info v)
   (vectorlib:type-of v #t))
 
 (TEST
- > (.info 5)
+ > (vectorlib:info 5)
  (make-integer fix) ;; yay
- > (.info 5+1/2i)
+ > (vectorlib:info 5+1/2i)
  (complex integer fractional) ;; hm still; well ok?
- > (.info '#(1 2))
+ > (vectorlib:info '#(1 2))
  (make-vector 2)
  ;; ^ without saying anything about what it contains; which is ok,
  ;; it's not a homogenous vector. Da.
- > (.info '#u8(1 2))
+ > (vectorlib:info '#u8(1 2))
  (make-u8vector 2)
- > (.info (Vc 1))
+ > (vectorlib:info (Vc 1))
  (make-Vc 1)
- > (.info (Mr (Vr 1) (Vr 2)))
+ > (vectorlib:info (Mr (Vr 1) (Vr 2)))
  (make-Mr 2 1)
  )
 
