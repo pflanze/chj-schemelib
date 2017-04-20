@@ -110,7 +110,9 @@
 
 
 (compile-time
- (define-macro (TEST . args) `(begin)) ;; why do I have to (re?)add these? did I clean that up and now readding I guess
+ (define-macro (TEST . args) `(begin))
+ ;; why do I have to (re?)add these? did I clean that up and now
+ ;; readding I guess
 
  (define TEST:outports (make-table))
  ;; to suppress double outputs:
@@ -263,7 +265,8 @@
 		  rest
 		  (() (understand-as-sideeffect))
 		  ((next . rest)
-		   ;; btw O(n^2) because of rest scanning for proper list right. should have match* for that right?.
+		   ;; btw O(n^2) because of rest scanning for proper
+		   ;; list right. should have match* for that right?.
 		   (let ((understand-as-test
 			  (lambda ()
 			    (fold-test expr next maybe-namespace-form
@@ -385,45 +388,52 @@
 	    (cont (u8vector->object v)))))))
 
 (define-macro* (TEST . forms)
-               (if (pair? forms)
-                   (let ((sourcefile (container->path (location-container (source-location (car forms))))))
-                     (if (not (string? sourcefile))
-                         (error "can only use TEST from a file -- not from this:" sourcefile))
-                     (let ((outfile (TEST:sourcepath->testfilepath sourcefile))
-                           (writeit (lambda (p)
-                                      (let ((loc (source-location (car forms)))
-                                            (code `(begin
-                                                     (define TEST:equal? equal?)
-                                                     (define TEST:repl-history '())
-						     (define (delete-repl-history!)
-						       (set! TEST:repl-history '()))
-                                                     ,@(TEST:conv forms stx))))
-                                        ;; normalize location-container here, too
-                                        (let ((location (make-location
-                                                          (test:path-normalize
-                                                            (container->path (location-container loc)))
-                                                          (location-position loc))))
-                                          (cond ((table-ref TEST:seen location #f)
-                                                 => (lambda (code0)
-                                                      (if (not (equal? code0 code))
-                                                          (error "multiple TEST expansion with differing results:" code0 code))))
-                                                (else
-                                                 (table-set! TEST:seen location code)
-                                                 (TEST:write-form (cj-sourcify-deep code stx) p))))))))
-                       (cond ((table-ref TEST:outports outfile #f)
-                              => writeit)
-                             (else
-                              (let ((p (open-output-file outfile)))
-                                (table-set! TEST:outports outfile p)
-                                (writeit p)))))
-                     ;; at runtime, just register the file to make running all tests work:
-                     ;; using Gambit namespaces here to ensure it works even if ##namespace is used somewhere
-                     `(set! TEST#loaded
-                            (cons ,(test:path-normalize
-                                     (container->path (location-container
-                                                        (source-location (car forms)))))
-                                  TEST#loaded)))
-               '(begin)))
+  (if (pair? forms)
+      (let ((sourcefile (container->path
+			 (location-container (source-location (car forms))))))
+	(if (not (string? sourcefile))
+	    (error "can only use TEST from a file -- not from this:"
+		   sourcefile))
+	(let ((outfile (TEST:sourcepath->testfilepath sourcefile))
+	      (writeit
+	       (lambda (p)
+		 (let ((loc (source-location (car forms)))
+		       (code `(begin
+				(define TEST:equal? equal?)
+				(define TEST:repl-history '())
+				(define (delete-repl-history!)
+				  (set! TEST:repl-history '()))
+				,@(TEST:conv forms stx))))
+		   ;; normalize location-container here, too
+		   (let ((location (make-location
+				    (test:path-normalize
+				     (container->path (location-container loc)))
+				    (location-position loc))))
+		     (cond ((table-ref TEST:seen location #f)
+			    => (lambda (code0)
+				 (if (not (equal? code0 code))
+				     (error "multiple TEST expansion with differing results:"
+					    code0 code))))
+			   (else
+			    (table-set! TEST:seen location code)
+			    (TEST:write-form
+			     (cj-sourcify-deep code stx)
+			     p))))))))
+	  (cond ((table-ref TEST:outports outfile #f)
+		 => writeit)
+		(else
+		 (let ((p (open-output-file outfile)))
+		   (table-set! TEST:outports outfile p)
+		   (writeit p)))))
+	;; at runtime, just register the file to make running all
+	;; tests work: using Gambit namespaces here to ensure it works
+	;; even if ##namespace is used somewhere
+	`(set! TEST#loaded
+	       (cons ,(test:path-normalize
+		       (container->path (location-container
+					 (source-location (car forms)))))
+		     TEST#loaded)))
+      '(begin)))
 
 (define-macro* (TEST-disabledXX . args)
   `(begin))
@@ -499,8 +509,9 @@
 	       (loaded (filter loaded? files*))
 	       (not-loaded (filter (complement loaded?) files*)))
 	  (if (pair? not-loaded)
-	      (test:warn "These files are not loaded or don't contain TEST forms:\n"
-			 not-loaded))
+	      (test:warn
+	       "These files are not loaded or don't contain TEST forms:\n"
+	       not-loaded))
 	  (for-each test-file loaded))
 	;; otherwise run all loaded:
 	(for-each test-file (all-tests))))
