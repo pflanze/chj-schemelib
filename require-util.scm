@@ -62,6 +62,16 @@
  > (path-string.modulename "lib/foo/bar.scm")
  foo/bar)
 
+(TEST
+ > (require:include? 'foo--include)
+ #t
+ > (require:include? 'foo--includes)
+ #f
+ > (require:include? 'foo-include)
+ #f
+ > (require:include? 'foo)
+ #f)
+
 
 
 (def (path-string.topo-relation p)
@@ -72,7 +82,7 @@
  > (path-string.topo-relation "lib/require-util.scm")
  #((topo-relation)
    require-util
-   (easy test tree-util cj-io-util tsort Status cj-functional))
+   (easy test tree-util cj-io-util tsort Status cj-functional require))
  ;; > (path-string.topo-relation "tsort.scm")
  ;; #((topo-relation) tsort (easy test alist))
  )

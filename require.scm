@@ -87,6 +87,13 @@
   (or (base-string.maybe-modulename (scm-stripsuffix p))
       (error "need relative path, got:" p)))
 
+;; "...--include.scm" should never be expected to have (or checked
+;; for) a require form
+(define (require:include? sym)
+  (let* ((str (symbol->string sym))
+	 (len (string-length str)))
+    (and (> len 9)
+	 (string=? (substring str (- len 9) len) "--include"))))
 
 
 (define modules-without-require-forms
@@ -129,7 +136,8 @@
 	(rec (cadr form)))
 
        (else
-	(if (memq mname modules-without-require-forms)
+	(if (or (require:include? mname)
+		(memq mname modules-without-require-forms))
 	    (relation mname '())
 	    (error "file does not have a require form as its first form:"
 		   p)))))))
