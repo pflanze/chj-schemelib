@@ -1027,7 +1027,7 @@
 (define. Vb:Vc.map Vb:.map)
 
 (define (.set-at! res is xs)
-  (assert ((on .type equal?) res xs))
+  (assert ((on vectorlib:type-of equal?) res xs))
   (let ((ni (Vb.size is)))
     (assert (= ni (.size xs)))
     (assert (<= ni (.size res)))
@@ -1230,7 +1230,7 @@
 ;; ============================================================================
 
 
-(define (.type v #!optional show-parameters?)
+(define (vectorlib:type-of v #!optional show-parameters?)
   ;; now now how: extensible, well, isn't, right?.
   ;; NOT fast btw.; and not 'R5RS conform'
   (let ((show (lambda (t . fns)
@@ -1256,8 +1256,8 @@
 		    ;; (be careful, just ~the rest (what would
 		    ;; non-complex numbers be that don't satisfy the
 		    ;; complex? predicate?))
-		    `(complex ,(.type (real-part v))
-			      ,(.type (imag-part v))))))
+		    `(complex ,(vectorlib:type-of (real-part v))
+			      ,(vectorlib:type-of (imag-part v))))))
 	   (string? (show 'string string-length))
 	   (u8vector? (show 'u8vector u8vector-length))
 	   (Vr? (show 'Vr .size))
@@ -1270,32 +1270,32 @@
 	   (vector? (show 'vector vector-length)))))
 
 (TEST
- > (.type 1)
+ > (vectorlib:type-of 1)
  integer ;; separate into fixnum and bignum ?
- > (.type 5.)
+ > (vectorlib:type-of 5.)
  real ;; NOT integer unlike what integer? says, ok?
- > (.type 1.2)
+ > (vectorlib:type-of 1.2)
  real
- > (.type 1.23234234)
+ > (vectorlib:type-of 1.23234234)
  real
- > (.type 1/2)
+ > (vectorlib:type-of 1/2)
  fractional
- > (.type 5+1i)
+ > (vectorlib:type-of 5+1i)
  (complex integer integer)
- > (.type 5.+1i)
+ > (vectorlib:type-of 5.+1i)
  (complex real integer)
- > (.type 5.+1.i)
+ > (vectorlib:type-of 5.+1.i)
  (complex real real)
- > (.type 5.+1/2i)
+ > (vectorlib:type-of 5.+1/2i)
  (complex real fractional)
- > (.type '#(1 2))
+ > (vectorlib:type-of '#(1 2))
  vector
  )
 
 
 ;; type 'with runtime info too' [wl  parametrized types  wl  whatever]
 (define (.info v)
-  (.type v #t))
+  (vectorlib:type-of v #t))
 
 (TEST
  > (.info 5)
