@@ -482,6 +482,7 @@
  )
 
 
+;; deprecated, use (map (applying fn) ..)
 (define (map-apply fn listoflists)
   (map (lambda (l)
 	 (apply fn l))
