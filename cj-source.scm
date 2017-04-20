@@ -43,6 +43,8 @@
 	 source-warn
 	 location-warn
 	 location-warn-to-string
+	 location-warn*
+	 location-warn-to-string*
 	 show-source-error
 	 source-error->string
 	 show-procedure-location
@@ -292,7 +294,8 @@
 	 (errstr "*** ERROR IN (just showing location) ")
 	 (msg "")
 	 (args '())
-	 (display display))
+	 (display display)
+	 non-highlighting?)
   (let ((cont
 	 (lambda (c maybe-p)
 	   (let ((cont
@@ -300,7 +303,9 @@
 		    (display (string-append
 			      errstr
 			      (scm:object->string c)
-			      "@"
+			      (if non-highlighting?
+				  " @ "
+				  "@")
 			      (scm:object->string line)
 			      "."
 			      (scm:object->string col)
@@ -347,15 +352,24 @@
 
 ;; At runtime use variant for locations instead of source-warn, since
 ;; locations can be quoted easily, unlike source code:
-(define (_location-warn display)
+(define (_location-warn display non-highlighting?)
+  ;; non-highlighting?==#t means it will *not* write a message in a
+  ;; way that emacs shows a window at that location (good for
+  ;; e.g. showing *known* test failures).
   (lambda (location message . args)
     (show-location-location location
-			    errstr: "*** WARNING IN "
+			    errstr: (if non-highlighting?
+					"*** Warning in "
+					"*** WARNING IN ")
 			    msg: message
 			    args: args
-			    display: display)))
-(define location-warn (_location-warn display))
-(define location-warn-to-string (_location-warn values))
+			    display: display
+			    non-highlighting?: non-highlighting?)))
+(define location-warn (_location-warn display #f))
+(define location-warn-to-string (_location-warn values #f))
+
+(define location-warn* (_location-warn display #t))
+(define location-warn-to-string* (_location-warn values #t))
 
 ;; test see in simple-match.scm
 
