@@ -295,11 +295,11 @@
 ;; todo finish (lost-on-tie?)
 
 
-(define (location-string l #!key non-highlighting? normalize?)
+(define (location-string l #!key non-highlighting? normalize)
   (let ((c (location-container l)))
     (string-append (scm:object->string
-		    (if (and normalize? (string? c))
-			(path-normalize c)
+		    (if (and normalize (string? c))
+			(normalize c)
 			c))
 		   (if non-highlighting?
 		       " @ "
@@ -316,13 +316,13 @@
 	 (args '())
 	 (display display)
 	 non-highlighting?
-	 normalize?)
+	 normalize)
   (display (string-append
 	    errstr
 	    (if maybe-l
 		(location-string maybe-l
 				 non-highlighting?: non-highlighting?
-				 normalize?: normalize?)
+				 normalize: normalize)
 		"(no-location-information)")
 	    " -- "
 	    msg
@@ -358,16 +358,22 @@
   ;; non-highlighting?==#t means it will *not* write a message in a
   ;; way that emacs shows a window at that location (good for
   ;; e.g. showing *known* test failures).
-  (lambda (location message . args)
-    (show-location-location location
-			    errstr: (if non-highlighting?
-					"*** Warning in "
-					"*** WARNING IN ")
-			    msg: message
-			    args: args
-			    display: display
-			    non-highlighting?: non-highlighting?
-			    normalize?: normalize?)))
+  (let ((cont
+	 (lambda (normalize location message args)
+	   (show-location-location location
+				   errstr: (if non-highlighting?
+					       "*** Warning in "
+					       "*** WARNING IN ")
+				   msg: message
+				   args: args
+				   display: display
+				   non-highlighting?: non-highlighting?
+				   normalize: normalize))))
+    (if normalize?
+	(lambda (location normalize message . args)
+	  (cont normalize location message args))
+	(lambda (location message . args)
+	  (cont #f location message args)))))
 (define location-warn (_location-warn display #f #f))
 (define location-warn-to-string (_location-warn values #f #f))
 
