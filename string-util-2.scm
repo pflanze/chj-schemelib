@@ -704,3 +704,13 @@
  #f
  )
 
+
+(TEST
+ > (string-first-line "")
+ ""
+ > (string-first-line "foo")
+ "foo"
+ > (string-first-line "foo\n")
+ "foo"
+ > (string-first-line "foo\nbar\n baz")
+ "foo")

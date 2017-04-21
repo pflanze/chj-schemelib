@@ -9,7 +9,8 @@
 (require)
 
 (export string-empty?
-	string-every)
+	string-every
+	string-first-line)
 
 
 (define (string-empty? str)
@@ -24,5 +25,16 @@
 	      (lp (inc i))
 	      #f)
 	  #t))))
+
+;; TEST see string-util-2
+
+(define (string-first-line str)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (if (< i len)
+	  (if (char=? (string-ref str i) #\newline)
+	      (substring str 0 i)
+	      (lp (inc i)))
+	  str))))
 
 ;; TEST see string-util-2
