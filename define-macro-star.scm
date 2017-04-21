@@ -93,6 +93,25 @@
  (define (define-macro-star-set! sym expander)
    (table-set! define-macro-star-cte sym expander)))
 
+(define (macro-star-expand-1 form)
+  (let ((form* (source-code form)))
+    (if (pair? form*)
+	(let ((a (source-code (car form*))))
+	  (if (symbol? a)
+	      (cond ((define-macro-star-maybe-ref a)
+		     => (lambda (expand)
+			  (expand form)))
+		    (else
+		     form))
+	      form))
+	form)))
+
+(define (macro-star-expand form)
+  (let ((form* (macro-star-expand-1 form)))
+    (if (eq? form form*)
+	form
+	(macro-star-expand form*))))
+
 
 (##define-syntax
  define-macro*
