@@ -374,21 +374,19 @@
 
 ;; Run at test time for each TEST form:
 (define (TEST:check res expect loc TEST:equal?)
-  (define-macro (inc! v)
-    `(set! ,v (inc ,v)))
   (set! TEST:repl-history
 	(cons res ;; or expect ?
 	      TEST:repl-history))
   (if (TEST:equal? res expect)
-      (inc! TEST:count-success)
+      (parameter-inc! TEST:count-success)
       (let ((normalmsgstr
 	     (location-warn-to-string loc "TEST failure, got" res)))
 	(if (table-ref (current-test-ignores) (chomp normalmsgstr) #f)
 	    (begin
-	      (inc! TEST:count-fail-ignored)
+	      (parameter-inc! TEST:count-fail-ignored)
 	      (location-warn* loc "TEST failure, got" res))
 	    (begin
-	      (inc! TEST:count-fail)
+	      (parameter-inc! TEST:count-fail)
 	      (display normalmsgstr))))))
 
 (define (TEST:repl-result-history-ref n)
@@ -511,80 +509,79 @@
 	   (lambda ()
 	     '())))))))
 
-(define TEST:count-success #f)
-(define TEST:count-fail #f)
-(define TEST:count-fail-ignored #f)
-(define TEST:running #f)
+(define TEST:count-success (make-parameter #f))
+(define TEST:count-fail (make-parameter #f))
+(define TEST:count-fail-ignored (make-parameter #f))
+(define TEST:running (make-parameter #f))
 
 (define (run-tests #!key (verbose #t)
 		   #!rest files)
-  (set! TEST:count-success 0)
-  (set! TEST:count-fail 0)
-  (set! TEST:count-fail-ignored 0)
-  (set! TEST:running #t)
-  
   (parameterize
-   ((current-test-ignores (test:read-ignores)))
-   (let ((test-file
-	  (lambda (file) ;; file is not normalized in case of manual input
-	    (if verbose
-		(begin (display "Testing file ") (display file) (newline)))
-	    (let lp ((forms (test-forms-for file))
-		     (i 0))
-	      (if (null? forms)
-		  (void)
-		  (begin
-		    (if verbose
-			(begin
-			  (display "TEST form no. ") (display i) (newline)))
-		    (eval (car forms))
-		    (lp (cdr forms)
-			(inc i)))))))
-	 (all-tests
-	  (lambda ()
-	    (let ((seen (make-table)))
-	      (let lp ((out '())
-		       (lis TEST#loaded))
-		(if (null? lis)
-		    out
-		    (let ((a (car lis))
-			  (r (cdr lis)))
-		      (if (table-ref seen a #f)
-			  (lp out
-			      r)
+   ((TEST:count-success 0)
+    (TEST:count-fail 0)
+    (TEST:count-fail-ignored 0)
+    (TEST:running #t)
+    (current-test-ignores (test:read-ignores)))
+   (begin
+     (let ((test-file
+	    (lambda (file) ;; file is not normalized in case of manual input
+	      (if verbose
+		  (begin (display "Testing file ") (display file) (newline)))
+	      (let lp ((forms (test-forms-for file))
+		       (i 0))
+		(if (null? forms)
+		    (void)
+		    (begin
+		      (if verbose
 			  (begin
-			    (table-set! seen a #t)
-			    (lp (cons a out)
-				r))))))))))
-     (if (pair? files)
-	 ;; first check if they are loaded
-	 (let* ((files* (map perhaps-add-.scm files))
-		(loaded* (list->table
-			  (map (lambda (f)
-				 (cons f #t))
-			       TEST#loaded)))
-		;;^ loaded are normalized
-		(loaded? (lambda (file)
-			   ;;(re test:path-normalize: heh I'm going to
-			   ;;lenghts to throw the loaded-check error in
-			   ;;tail position, then wrong paths will throw
-			   ;;exceptions from the middle of the code
-			   ;;anyway..)
-			   (table-ref loaded* (test:path-normalize file) #f)))
-		(loaded (filter loaded? files*))
-		(not-loaded (filter (complement loaded?) files*)))
-	   (if (pair? not-loaded)
-	       (test:warn
-		"These files are not loaded or don't contain TEST forms:\n"
-		not-loaded))
-	   (for-each test-file loaded))
-	 ;; otherwise run all loaded:
-	 (for-each test-file (all-tests)))))
-  (print (list TEST:count-success " success(es), "
-	       TEST:count-fail " failure(s), "
-	       TEST:count-fail-ignored " ignored failure(s)"
-	       "\n"))
-  (set! TEST:running #f))
+			    (display "TEST form no. ") (display i) (newline)))
+		      (eval (car forms))
+		      (lp (cdr forms)
+			  (inc i)))))))
+	   (all-tests
+	    (lambda ()
+	      (let ((seen (make-table)))
+		(let lp ((out '())
+			 (lis TEST#loaded))
+		  (if (null? lis)
+		      out
+		      (let ((a (car lis))
+			    (r (cdr lis)))
+			(if (table-ref seen a #f)
+			    (lp out
+				r)
+			    (begin
+			      (table-set! seen a #t)
+			      (lp (cons a out)
+				  r))))))))))
+       (if (pair? files)
+	   ;; first check if they are loaded
+	   (let* ((files* (map perhaps-add-.scm files))
+		  (loaded* (list->table
+			    (map (lambda (f)
+				   (cons f #t))
+				 TEST#loaded)))
+		  ;;^ loaded are normalized
+		  (loaded? (lambda (file)
+			     ;;(re test:path-normalize: heh I'm going to
+			     ;;lenghts to throw the loaded-check error in
+			     ;;tail position, then wrong paths will throw
+			     ;;exceptions from the middle of the code
+			     ;;anyway..)
+			     (table-ref loaded* (test:path-normalize file) #f)))
+		  (loaded (filter loaded? files*))
+		  (not-loaded (filter (complement loaded?) files*)))
+	     (if (pair? not-loaded)
+		 (test:warn
+		  "These files are not loaded or don't contain TEST forms:\n"
+		  not-loaded))
+	     (for-each test-file loaded))
+	   ;; otherwise run all loaded:
+	   (for-each test-file (all-tests))))
+     (print (list (TEST:count-success) " success(es), "
+		  (TEST:count-fail) " failure(s), "
+		  (TEST:count-fail-ignored) " ignored failure(s)"
+		  "\n")))))
 
 
 ;; testing TEST:
