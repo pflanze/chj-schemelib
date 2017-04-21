@@ -38,6 +38,7 @@
 	 cj-desourcify
 	 read-all-source
 	 source-error
+	 location-string
 	 show-location-location
 	 show-source-location
 	 source-warn
@@ -293,35 +294,35 @@
 ;; todo finish (lost-on-tie?)
 
 
+(define (location-string l #!optional non-highlighting?)
+  (let ((c (location-container l))
+	(maybe-p (location-position l)))
+    (string-append (scm:object->string c)
+		   (if non-highlighting?
+		       " @ "
+		       "@")
+		   ;; XX can maybe-p ever be a #f ?
+		   (maybe-position-string maybe-p))))
+
+
 ;; yes, kinda lame name (historic). Show the location that a location object points to.
 (define (show-location-location
-	 l
+	 maybe-l
 	 #!key
 	 (errstr "*** ERROR IN (just showing location) ")
 	 (msg "")
 	 (args '())
 	 (display display)
 	 non-highlighting?)
-  (let ((cont
-	 (lambda (c maybe-p)
-	   (display (string-append
-		     errstr
-		     (scm:object->string c)
-		     (if non-highlighting?
-			 " @ "
-			 "@")
-		     (maybe-position-string maybe-p)
-		     " -- "
-		     msg
-		     (scm:objects->string args prepend: ": ")
-		     "\n")))))
-    (if l
-	(if (location? l)
-	    (cont (location-container l)
-		  (location-position l))
-	    (error "not a location object:" l))
-	(cont '(no-location-information)
-	      #f))))
+  (display (string-append
+	    errstr
+	    (if maybe-l
+		(location-string maybe-l non-highlighting?)
+		"(no-location-information)")
+	    " -- "
+	    msg
+	    (scm:objects->string args prepend: ": ")
+	    "\n")))
 
 (define (show-source-location
 	 s
