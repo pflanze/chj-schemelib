@@ -294,15 +294,16 @@
 ;; todo finish (lost-on-tie?)
 
 
-(define (location-string l #!optional non-highlighting?)
-  (let ((c (location-container l))
-	(maybe-p (location-position l)))
-    (string-append (scm:object->string c)
+(define (location-string l #!key non-highlighting? normalize?)
+  (let ((c (location-container l)))
+    (string-append (scm:object->string
+		    (if (and normalize? (string? c))
+			(path-normalize c)
+			c))
 		   (if non-highlighting?
 		       " @ "
 		       "@")
-		   ;; XX can maybe-p ever be a #f ?
-		   (maybe-position-string maybe-p))))
+		   (position-string (location-position l)))))
 
 
 ;; yes, kinda lame name (historic). Show the location that a location object points to.
@@ -317,7 +318,7 @@
   (display (string-append
 	    errstr
 	    (if maybe-l
-		(location-string maybe-l non-highlighting?)
+		(location-string maybe-l non-highlighting?: non-highlighting?)
 		"(no-location-information)")
 	    " -- "
 	    msg
