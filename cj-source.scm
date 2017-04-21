@@ -36,8 +36,8 @@
 	 cj-desourcify
 	 read-all-source
 	 source-error
-	 pos:line
-	 pos:col
+	 position-line
+	 position-col
 	 show-location-location
 	 show-source-location
 	 source-warn
@@ -282,9 +282,9 @@
 ;;   (raise (make-source-error source message args)))
 ;; todo finish (lost-on-tie?)
 
-(define (pos:line pos)
+(define (position-line pos)
   (+ 1 (bitwise-and pos 65535)))
-(define (pos:col pos)
+(define (position-col pos)
   (+ 1 (quotient pos 65536)))
 
 ;; yes, kinda lame name (historic). Show the location that a location object points to.
@@ -315,8 +315,8 @@
 			      "\n")))))
 	     (if maybe-p
 		 (let ((p maybe-p))
-		   (cont (pos:line p)
-			 (pos:col p)))
+		   (cont (position-line p)
+			 (position-col p)))
 		 (cont "?"
 		       "?"))))))
     (if l
