@@ -26,6 +26,8 @@
 	 position?
 	 position-line
 	 position-column
+	 position-string
+	 maybe-position-string
 	 make-position
 	 make-location
 	 make-source
@@ -36,8 +38,6 @@
 	 cj-desourcify
 	 read-all-source
 	 source-error
-	 position-line
-	 position-col
 	 show-location-location
 	 show-source-location
 	 source-warn
@@ -150,6 +150,16 @@
 (define position-column
   (position-check (lambda (pos)
 		    (+ 1 (quotient pos 65536)))))
+
+(define (position-string pos)
+  (string-append (scm:object->string (position-line pos))
+		 "."
+		 (scm:object->string (position-column pos))))
+
+(define (maybe-position-string maybe-pos)
+  (if maybe-pos
+      (position-string maybe-pos)
+      "?.?"))
 
 
 (define (make-position line column)
@@ -282,6 +292,7 @@
 ;;   (raise (make-source-error source message args)))
 ;; todo finish (lost-on-tie?)
 
+
 ;; yes, kinda lame name (historic). Show the location that a location object points to.
 (define (show-location-location
 	 l
@@ -293,27 +304,17 @@
 	 non-highlighting?)
   (let ((cont
 	 (lambda (c maybe-p)
-	   (let ((cont
-		  (lambda (line col)
-		    (display (string-append
-			      errstr
-			      (scm:object->string c)
-			      (if non-highlighting?
-				  " @ "
-				  "@")
-			      (scm:object->string line)
-			      "."
-			      (scm:object->string col)
-			      " -- "
-			      msg
-			      (scm:objects->string args prepend: ": ")
-			      "\n")))))
-	     (if maybe-p
-		 (let ((p maybe-p))
-		   (cont (position-line p)
-			 (position-col p)))
-		 (cont "?"
-		       "?"))))))
+	   (display (string-append
+		     errstr
+		     (scm:object->string c)
+		     (if non-highlighting?
+			 " @ "
+			 "@")
+		     (maybe-position-string maybe-p)
+		     " -- "
+		     msg
+		     (scm:objects->string args prepend: ": ")
+		     "\n")))))
     (if l
 	(if (location? l)
 	    (cont (location-container l)
