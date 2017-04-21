@@ -282,11 +282,6 @@
 ;;   (raise (make-source-error source message args)))
 ;; todo finish (lost-on-tie?)
 
-(define (position-line pos)
-  (+ 1 (bitwise-and pos 65535)))
-(define (position-col pos)
-  (+ 1 (quotient pos 65536)))
-
 ;; yes, kinda lame name (historic). Show the location that a location object points to.
 (define (show-location-location
 	 l
