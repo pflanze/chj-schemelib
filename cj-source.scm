@@ -46,6 +46,7 @@
 	 location-warn-to-string
 	 location-warn*
 	 location-warn-to-string*
+	 location-warn-to-string/normalize
 	 show-source-error
 	 source-error->string
 	 show-procedure-location
@@ -314,11 +315,14 @@
 	 (msg "")
 	 (args '())
 	 (display display)
-	 non-highlighting?)
+	 non-highlighting?
+	 normalize?)
   (display (string-append
 	    errstr
 	    (if maybe-l
-		(location-string maybe-l non-highlighting?: non-highlighting?)
+		(location-string maybe-l
+				 non-highlighting?: non-highlighting?
+				 normalize?: normalize?)
 		"(no-location-information)")
 	    " -- "
 	    msg
@@ -350,7 +354,7 @@
 
 ;; At runtime use variant for locations instead of source-warn, since
 ;; locations can be quoted easily, unlike source code:
-(define (_location-warn display non-highlighting?)
+(define (_location-warn display non-highlighting? normalize?)
   ;; non-highlighting?==#t means it will *not* write a message in a
   ;; way that emacs shows a window at that location (good for
   ;; e.g. showing *known* test failures).
@@ -362,12 +366,15 @@
 			    msg: message
 			    args: args
 			    display: display
-			    non-highlighting?: non-highlighting?)))
-(define location-warn (_location-warn display #f))
-(define location-warn-to-string (_location-warn values #f))
+			    non-highlighting?: non-highlighting?
+			    normalize?: normalize?)))
+(define location-warn (_location-warn display #f #f))
+(define location-warn-to-string (_location-warn values #f #f))
 
-(define location-warn* (_location-warn display #t))
-(define location-warn-to-string* (_location-warn values #t))
+(define location-warn* (_location-warn display #t #f))
+(define location-warn-to-string* (_location-warn values #t #f))
+
+(define location-warn-to-string/normalize (_location-warn values #f #t))
 
 ;; test see in simple-match.scm
 
