@@ -15,6 +15,21 @@
 (define (dec n)
   (- n 1))
 
+
+(define (parameter-inc! p)
+  (p (inc (p))))
+
+(define (parameter-dec! p)
+  (p (dec (p))))
+
+(define (parameter-add! p x)
+  (p (+ (p) x)))
+
+(define (parameter-update! p fn)
+  (p (fn (p))))
+
+
+
 (define (list-join lis val #!optional (tail '()))
   ;; copy to avoid circular dependency
   (define (null-list? l)
