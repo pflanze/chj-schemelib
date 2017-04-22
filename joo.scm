@@ -27,7 +27,7 @@
 	 (srfi-1 cons* take drop)
 	 ;; ^ btw so many times, fold etc., should this be with easy?
 	 (cj-struct struct-tag.name)
-	 dot-oo ;; actually still using define-struct. currently
+	 (dot-oo define-struct.-expand)
 	 symboltable
 	 (cj-source source-quote source-dequote)
 	 cj-seen
