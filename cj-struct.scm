@@ -199,6 +199,7 @@
 	  ;; the prefix for the accessors when falling back to generic access:
 	  generic-accessor-prefix ;; including name if wished, and even the separator !
 	  constructor-name
+	  constructor-stx ;; for location info for constructor call (e.g. on type failures)
 	  unsafe-constructor-name
 	  predicate-name
 	  predicate-code ;; mostly for joo.scm
@@ -289,9 +290,10 @@
        ,@(let ((construct
 		(lambda (LAMBDA constructor-name)
 		  `(define ,constructor-name
-		     (,LAMBDA ,args*
-			 (##vector ,tag-binding
-				   ,@fields*))))))
+		     ,(possibly-sourcify `(,LAMBDA ,args*
+					      (##vector ,tag-binding
+							,@fields*))
+					 constructor-stx)))))
 	   `(,(construct LAMBDA
 			 constructor-name)
 	     ,@(if unsafe-constructor-name
@@ -401,8 +403,8 @@
 				 (C (gensym)))
 			     `(let ((,V ,inp)
 				    (,C (lambda ,(map (lambda (v+f+i)
-						   (vector-ref v+f+i 0))
-						 real-v+f+i-s)
+							(vector-ref v+f+i 0))
+						      real-v+f+i-s)
 					  ,(rec (cdr vars+inp-s)))))
 				(if (,',predicate-name ,V)
 				    (,C
