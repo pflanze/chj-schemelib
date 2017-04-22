@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -120,14 +120,61 @@
       #f))
 
 
+;; alternative representation that allows column to be omitted:
+(define (make-position* line maybe-column)
+  (if (<= 0 line)
+      (if (or (not maybe-column)
+	      (<= 0 maybe-column))
+	  (vector 'position* line maybe-column)
+	  (error "column out of range:" maybe-column))
+      (error "line out of range:" line)))
+(define (position*? v)
+  (and (vector? v)
+       (= (vector-length v) 3)
+       (eq? (vector-ref v 0) 'position*)))
+(define (@position*-line l)
+  (vector-ref l 1))
+(define (@position*-maybe-column l)
+  (vector-ref l 2))
+
+(define (make-location* container position)
+  (if (position*? position)
+      (vector 'location* container position)
+      (error "not a position* object:" position)))
+(define (location*? v)
+  (and (vector? v)
+       (= (vector-length v) 3)
+       (eq? (vector-ref v 0) 'location*)))
+(define (@location*-container l)
+  (vector-ref l 1))
+(define (@location*-position l)
+  (vector-ref l 2))
+
+
+
 (define (location? o)
   ;; well.
   (and (vector? o)
        (= (vector-length o) 2)))
 
+;; unlike location*?, this also accepts location? objects, and unlike
+;; location?, this also accepts location*? objects as long as they
+;; have a column (are usable in the location API):
+(define (location?* v)
+  (or (location? v)
+      (and (location*? v)
+	   (@position*-maybe-column (@location*-position v))
+	   #t)))
+
 (define location-check (check location? "location"))
 
-(define location-container (location-check ##locat-container))
+(define (location-container v)
+  (cond ((location? v)
+	 (##locat-container v))
+	((location*? v)
+	 (@location*-container v))
+	(else
+	 (error "not a location object:" v))) )
 
 (define (container->path container)
   (if (with-exception-catcher (lambda (e) #f) 
@@ -136,9 +183,13 @@
           container)
     container))
 
-
-;; he does it yet more nested (not sure it's warranted here):
-(define location-position (location-check ##locat-position))
+(define (location-position v)
+  (cond ((location? v)
+	 (##locat-position v))
+	((location*? v)
+	 (@location*-position v))
+	(else
+	 (error "not a location object:" v))))
 
 (define (position? o)
   ;; hmm
@@ -146,12 +197,34 @@
 
 (define position-check (check position? "position"))
 
-(define position-line
-  (position-check (lambda (pos)
-		    (+ 1 (bitwise-and pos 65535)))))
-(define position-column
-  (position-check (lambda (pos)
-		    (+ 1 (quotient pos 65536)))))
+(define (position-line v)
+  (cond ((position? v)
+	 (+ 1 (bitwise-and v 65535)))
+	((position*? v)
+	 (@position*-line v))
+	(else
+	 (error "not a position object:" v))))
+
+(define (position-column v)
+  (cond ((position? v)
+	 ;; XX should use bit shift instead
+	 (+ 1 (quotient v 65536)))
+	((position*? v)
+	 (or (@position*-maybe-column v)
+	     (error "position-column: position* does not contain column:" v)))
+	(else
+	 (error "not a position object:" v))))
+
+;; copy-paste
+(define (position-maybe-column v)
+  (cond ((position? v)
+	 ;; XX should use bit shift instead
+	 (+ 1 (quotient v 65536)))
+	((position*? v)
+	 (@position*-maybe-column v))
+	(else
+	 (error "not a position object:" v))))
+
 
 (define (position-string pos)
   (string-append (scm:object->string (position-line pos))
@@ -295,7 +368,7 @@
 ;; todo finish (lost-on-tie?)
 
 
-(define (location-string l #!key non-highlighting? normalize)
+(define (location-string l #!key non-highlighting? normalize omit-column?)
   (let ((c (location-container l)))
     (string-append (scm:object->string
 		    (if (and normalize (string? c))
@@ -304,7 +377,10 @@
 		   (if non-highlighting?
 		       " @ "
 		       "@")
-		   (position-string (location-position l)))))
+		   (let ((pos (location-position l)))
+		     (if omit-column?
+			 (object->string (position-line pos))
+			 (position-string pos))))))
 
 
 ;; yes, kinda lame name (historic). Show the location that a location object points to.
