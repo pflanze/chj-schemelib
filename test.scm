@@ -55,6 +55,9 @@
 ;; "Repl" history is supported; it can be cleaned by running
 ;; (delete-repl-history!).
 
+;; There's an ignore mechanism, documentation see "Ignore mechanism:"
+;; below.
+
 
 (require define-macro-star
 	 cj-phasing
@@ -114,6 +117,29 @@
       (if (eof-object? line)
 	  tail
 	  (cons line (rec))))))
+
+;; can't use string-starts-with? from string-util-2.scm
+(define (test:string-starts-with? str substr)
+  (let ((len0 (string-length str))
+	(len1 (string-length substr)))
+    (and (>= len0 len1)
+	 (string=? (substring str 0 len1) substr))))
+
+;; > (test:string-starts-with? "foo" "f")
+;; #t
+;; > (test:string-starts-with? "foo" "o")
+;; #f
+;; > (test:string-starts-with? "foo" "foo")
+;; #t
+;; > (test:string-starts-with? "foo" "foo1")
+;; #f
+;; > (test:string-starts-with? "foo1" "foo")
+;; #t
+
+;; string-util-3:
+(define (substring* str i)
+  (substring str i (string-length str)))
+
 
 ;;/copy
 
@@ -325,21 +351,26 @@
        ;; we don't have proper macros?)
        `(##begin
 	 (##define repl-result-history-ref TEST:repl-result-history-ref)
+	 (test:current-test-location ',(source-location expr))
 	 ,expr
 	 (##define repl-result-history-ref ##repl-result-history-ref))
        rest))
     ;; fold-test
     (lambda (expr result maybe-namespace-form rest)
       (cons (cj-sourcify-deep
-	     `(TEST:check (let ((repl-result-history-ref
-				 TEST:repl-result-history-ref))
-			    ,@(if maybe-namespace-form
-				  (list maybe-namespace-form)
-				  (list))
-			    ,expr)
-			  ',result
-			  ',(source-location expr)
-			  TEST:equal?)
+	     `(TEST:check
+	       (begin
+		 (test:current-test-location
+		  ',(source-location expr))
+		 (let ((repl-result-history-ref
+			TEST:repl-result-history-ref))
+		   ,@(if maybe-namespace-form
+			 (list maybe-namespace-form)
+			 (list))
+		   ,expr))
+	       ',result
+	       ',(source-location expr)
+	       TEST:equal?)
 	     expr)
 	    rest)))))
 
@@ -352,16 +383,164 @@
 ;; hurt; the first line contains the location, which is currently
 ;; deemed the only reasonable anchor).
 
+;; Examples:
+
+;; *** WARNING IN "lib/list-util.scm"@515.4 -- TEST failure, got: (a b)
+;; ERROR "lib/typed-list.scm"@277
+
+;; The WARNING lines can just be copied verbatim (and optionally the
+;; path changed into a relative one). For errors, the location of the
+;; test form which leads to the error has to be retrieved, by walking
+;; the stack. There's no need to give the column for error locations
+;; (it is ignored if given). Note that when ignoring an error, the
+;; remainder of the TEST form in which it occurs is skipped!
+
+
+;; Table of "*** WARNING IN ..." strings (first line only) to ignore
+;; warnings, and "ERROR ..locationinfo.." strings to ignore
+;; errors. Both cases have file locations normalized (well, just
+;; path-expand'ed).
 (define current-test-ignores (make-parameter (make-table)))
+
+(define (test:ignore-warning? str)
+  (table-ref (current-test-ignores)
+	     (string-first-line str)
+	     #f))
+
+(define (test:error-location-string l base)
+  (string-append "ERROR "
+		 (location-string
+		  l
+		  normalize: (lambda (p)
+			       (path-expand p base))
+		  omit-column?: #t)))
+
+(define (test:warning-location-string l rest base)
+  (string-append "*** WARNING IN "
+		 (location-string
+		  l
+		  normalize: (lambda (p)
+			       (path-expand p base)))
+		 " -- " rest))
+
+(define (test:ignore-error? l base)
+  (table-ref (current-test-ignores)
+	     (test:error-location-string l base)
+	     #f))
+
+
+(define (test:read-ignore-parse line)
+  ;; XX move this parsing stuff to an early lib, really? !
+  (let* ((err (lambda (msg)
+		;; XX show location
+		(error (string-append "invalid format of ignore file line ("
+				      msg "):")
+		       line)))
+
+	 (_-read-string-expect
+	  (lambda (allow-eof?)
+	    (lambda (p str)
+	      (let ((len (string-length str)))
+		(let lp ((i 0))
+		  (if (< i len)
+		      (let ((c (read-char p)))
+			(if (eof-object? c)
+			    (if allow-eof?
+				#f
+				(err (string-append
+				      "premature end of string, expecting: "
+				      str)))
+			    (let ((c-expected (string-ref str i)))
+			      (if (char=? c c-expected)
+				  (lp (inc i))
+				  (err (string-append
+					"expecting "
+					(object->string c-expected)
+					", got"
+					(object->string c)))))))
+		      (void)))))))
+
+	 (read-string-expect
+	  (_-read-string-expect #f))
+
+	 (maybe-read-string-expect
+	  (_-read-string-expect #t))
+
+	 (read-until
+	  (lambda (p pred)
+	    (let lp ((cs '()))
+	      (let ((c (read-char p)))
+		(if (pred c)
+		    (list->string (reverse cs))
+		    (lp (cons c cs)))))))
+
+	 (ra (lambda (tag str)
+	       (call-with-input-string
+		str
+		(lambda (p)
+		  (let* ((loc-file (read p))
+			 (@ (read-string-expect p "@"))
+			 (loc-ended? #f)
+			 (loc-line
+			  (string->number
+			   (read-until
+			    p (lambda (c)
+				(if (eq? c #\space)
+				    (begin
+				      (set! loc-ended? #t)
+				      #t)
+				    (or (eof-object? c)
+					(eq? c #\.)))))))
+			 (maybe-loc-col
+			  (if loc-ended? #f
+			      (string->number (read-until
+					       p (lambda (c)
+						   (or (eof-object? c)
+						       (eq? c #\space)))))))
+			 (maybe-rest
+			  ;; would want to accept "--message", too?
+			  ;; But, strip space in normal case? But,
+			  ;; lookahead ugly (even uglier than
+			  ;; |loc-ended?| above?). Oh well, kiss I
+			  ;; guess?
+			  (if (maybe-read-string-expect p "-- ")
+			      (read-line p)
+			      #f)))
+		    (list tag loc-file loc-line maybe-loc-col maybe-rest)))))))
+    (cond ((test:string-starts-with? line "*** WARNING IN ")
+	   (ra 'warning (substring* line 15)))
+	  ((test:string-starts-with? line "ERROR ")
+	   (ra 'error (substring* line 6)))
+	  (else
+	   (err "does not start with '*** WARNING IN ' or 'ERROR '")))))
+
+;; and back to string...
+(define (test:read-ignore-string base)
+  (lambda (tag loc-file loc-line loc-col maybe-rest)
+    (let ((l (make-location* loc-file (make-position* loc-line loc-col))))
+      (case tag
+	((error) (test:error-location-string l base))
+	((warning) (test:warning-location-string l maybe-rest base))
+	(else (error "bug"))))))
+
+;; TESTs see end of file
+
 
 (define (test:read-ignore path tail)
   (if (file-exists? path)
-      (call-with-input-file path
-	(lambda (port)
-	  (map/tail (lambda (line)
-		      (cons line #t))
-		    tail
-		    (read-lines port))))
+      (let ((tostring
+	     (test:read-ignore-string
+	      ;; (path-directory path) ah that won't work, relative or ""
+	      ;; XX fix this mess, what location where ?
+	      (current-directory))))
+	(call-with-input-file path
+	  (lambda (port)
+	    (map/tail (lambda (line)
+			(cons (apply tostring
+				     (test:read-ignore-parse line))
+			      #t))
+		      tail
+		      (read-lines port)))))
       tail))
 
 (define (test:read-ignores . paths)
@@ -379,15 +558,15 @@
 	      TEST:repl-history))
   (if (TEST:equal? res expect)
       (parameter-inc! TEST:count-success)
-      (let ((normalmsgstr
-	     (location-warn-to-string loc "TEST failure, got" res)))
-	(if (table-ref (current-test-ignores) (chomp normalmsgstr) #f)
-	    (begin
-	      (parameter-inc! TEST:count-fail-ignored)
-	      (location-warn* loc "TEST failure, got" res))
-	    (begin
-	      (parameter-inc! TEST:count-fail)
-	      (display normalmsgstr))))))
+      (if (test:ignore-warning?
+	   (location-warn-to-string/normalize
+	    loc path-expand "TEST failure, got" res))
+	  (begin
+	    (parameter-inc! TEST:count-fail-ignored)
+	    (location-warn* loc "TEST failure, got" res))
+	  (begin
+	    (parameter-inc! TEST:count-fail)
+	    (location-warn loc "TEST failure, got" res)))))
 
 (define (TEST:repl-result-history-ref n)
   (list-ref TEST:repl-history n))
@@ -513,15 +692,19 @@
 (define TEST:count-fail (make-parameter #f))
 (define TEST:count-fail-ignored (make-parameter #f))
 (define TEST:running (make-parameter #f))
+(define test:current-test-location (make-parameter #f))
+(define test:current-orig-handler (make-parameter #f))
 
 (define (run-tests #!key (verbose #t)
 		   #!rest files)
   (parameterize
-   ((TEST:count-success 0)
+   ((test:current-test-location #f)
+    (TEST:count-success 0)
     (TEST:count-fail 0)
     (TEST:count-fail-ignored 0)
     (TEST:running #t)
-    (current-test-ignores (test:read-ignores)))
+    (current-test-ignores (test:read-ignores))
+    (test:current-orig-handler (current-exception-handler)))
    (begin
      (let ((test-file
 	    (lambda (file) ;; file is not normalized in case of manual input
@@ -535,7 +718,49 @@
 		      (if verbose
 			  (begin
 			    (display "TEST form no. ") (display i) (newline)))
-		      (eval (car forms))
+
+		      (cond
+		       ((call/cc
+			 (lambda (error-exit)
+			   (with-exception-handler
+			    (lambda (e)
+			      (let ((l (test:current-test-location)))
+				(if (test:ignore-error?
+				     l
+				     ;; XX CWD always right? Really
+				     ;; what CWD was when loaded file,
+				     ;; right?
+				     (current-directory))
+				    (continuation-capture
+				     (lambda (ctx)
+				       (error-exit (vector e ctx l))))
+				    ((test:current-orig-handler) e))))
+			    (lambda ()
+			      (eval (car forms))
+			      #f))))
+			=> (lambda (e.ctx.l)
+			     (parameter-inc! TEST:count-fail-ignored)
+			     ;; XXX + how many tests are being
+			     ;; skipped by this?
+			     (let ((e (vector-ref e.ctx.l 0))
+				   (ctx (vector-ref e.ctx.l 1))
+				   (l (vector-ref e.ctx.l 2)))
+			       (display
+				(string-append
+				 "aborting in "
+				 (location-string l
+						  non-highlighting?: #t)
+				 ":\n"))
+			       (display
+				(string-append
+				 "*** Error in "
+				 (location-string
+				  (##continuation-locat ctx)
+				  non-highlighting?: #t)
+				 " -- "))
+			       (display-exception e)
+			       (newline)))))
+
 		      (lp (cdr forms)
 			  (inc i)))))))
 	   (all-tests
@@ -600,4 +825,20 @@
  > '>4 ;; (dito)
  > 5
  5)
+
+
+;; ignore file parser:
+(TEST
+ > (test:read-ignore-parse "*** WARNING IN \"/home/foo/lib/test.scm\"@623.4 -- TEST failure, got: >2")
+ (warning "/home/foo/lib/test.scm" 623 4 "TEST failure, got: >2")
+ > (apply (test:read-ignore-string "/base") #)
+ "*** WARNING IN \"/home/foo/lib/test.scm\"@623.4 -- TEST failure, got: >2"
+ > (test:read-ignore-parse "ERROR \"lib/test.scm\"@623.4")
+ (error "lib/test.scm" 623 4 #f)
+ > (apply (test:read-ignore-string "/base") #)
+ "ERROR \"/base/lib/test.scm\"@623"
+ > (test:read-ignore-parse "ERROR \"/home/foo/lib/test.scm\"@623")
+ (error "/home/foo/lib/test.scm" 623 #f #f)
+ > (test:read-ignore-parse "ERROR \"lib/test.scm\"@623 -- 4")
+ (error "lib/test.scm" 623 #f "4"))
 
