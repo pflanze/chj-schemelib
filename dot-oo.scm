@@ -14,7 +14,8 @@
 	 (cj-source-wraps source:symbol-append)
 	 (string-util strings-join)
 	 (cj-env-2 for..<)
-	 (cj-test %try))
+	 (cj-test %try)
+	 (cj-struct define-struct-expand))
 
 (export (macro define.)
 	(macro define-struct.)

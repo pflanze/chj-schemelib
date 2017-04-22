@@ -42,7 +42,8 @@
 	@struct-tag?
 	struct-tag-allocate!
 	maybe-struct-tag->metadata
-	struct-tag->metadata)
+	struct-tag->metadata
+	define-struct-expand)
 
 
 ;; A struct is a vector with an object in slot 0 that unambiguously
