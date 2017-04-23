@@ -8,7 +8,7 @@
 
 (require cj-source
 	 cj-match
-	 )
+	 (scheme-meta self-quoting?))
 
 (define (maybe-if-form-1ary-head v then)
   (and (pair? v)
@@ -64,10 +64,6 @@
 (define assert:syntax-forms
   (append '(if unless and or)
 	  assert:stopping-syntax-forms))
-
-(both-times
- (define self-quoting?
-   (either string? char? number? boolean?)))
 
 (define (assert:possibly-symbolize v)
   (let ((v* (source-code v)))
