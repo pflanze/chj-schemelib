@@ -41,7 +41,7 @@
 		    super-is-class?)
      (let-pair
       ((decl forms) args)
-      (let ((c (lambda (name _maybe-constructor-name _field-decls)
+      (let ((c (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
 		 `(,(if is-class? `joo-class `joo-interface)
 		   ,decl
 		   ,@(if maybe-super-name

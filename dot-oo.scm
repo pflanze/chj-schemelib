@@ -212,7 +212,7 @@
  (define dot.oo:have-no-typecheck
    '(symbol? fixnum? string? boolean? number? integer? complex?)))
 
-(define (define-struct.-expand name defs)
+(define (define-struct.-expand constructor-stx name defs)
   (with-gensyms
    (V V*)
    `(begin
@@ -245,6 +245,7 @@
 		      FN)))
 	      name
 	      separator: "."
+	      constructor-stx: constructor-stx
 
 	      ;; don't override constructor-name or
 	      ;; unsafe-constructor-name if provided by user
@@ -289,7 +290,7 @@
 	,V))))
 
 (define-macro* (define-struct. name . defs)
-  (define-struct.-expand name defs))
+  (define-struct.-expand stx name defs))
 
 
 ;; need this often enough I guess:

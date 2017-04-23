@@ -520,6 +520,7 @@
 		     cont-renamedconstructor
 		     cont-samename
 		     cont-abstract)
+     (def constructor-stx decl) ;; for location info of the constructor call
      (mcase decl
 	    (`(`class-name+perhaps-constructor-name* . `field-decls)
 	     (mcase class-name+perhaps-constructor-name*
@@ -527,19 +528,22 @@
 		    ;; separate constructor (XX hm, allow #f, too?,
 		    ;; i.e. fields but no constructor)
 		    (`(`class-name `constructor-name)
-		     (cont-renamedconstructor class-name
+		     (cont-renamedconstructor constructor-stx
+					      class-name
 					      constructor-name
 					      field-decls))
 
 		    ;; constructor has the same name as the class
 		    (symbol?
 		     (let ((n (source-code class-name+perhaps-constructor-name*)))
-		       (cont-samename class-name+perhaps-constructor-name*
+		       (cont-samename constructor-stx
+				      class-name+perhaps-constructor-name*
 				      class-name+perhaps-constructor-name*
 				      field-decls)))))
 	    (symbol?
 	     ;; no constructor at all, and no fields either
-	     (cont-abstract decl
+	     (cont-abstract constructor-stx
+			    decl
 			    #f
 			    `()))))
 
@@ -556,7 +560,7 @@
      (let ((cc
 	    (lambda (abstract?)
 	      ;; parsed decl:
-	      (lambda (class-name* maybe-constructor-name* field-decls)
+	      (lambda (constructor-stx class-name* maybe-constructor-name* field-decls)
 		;; if maybe-constructor-name is #f, that means, no
 		;; constructor at all (abstract class or interface)
 
@@ -623,6 +627,7 @@
 		   `(begin
 		      ,(if maybe-constructor-name
 			   (define-struct.-expand
+			     constructor-stx ;; for location info only
 			     class-name
 			     (cons* predicate-code:
 				    (lambda (predicate-symbol tag-symbol add-offset numfields)
