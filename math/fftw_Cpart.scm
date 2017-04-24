@@ -12,6 +12,8 @@
 	 parallel
 	 math/fftw_Cpart-macros)
 
+;; Dependency: apt-get install libfftw3-dev
+
 ;; @ means unsafe:
 ;; @ at the end of an identifier [or before inputs in the type?] means
 ;; the input is treated unsafely.
