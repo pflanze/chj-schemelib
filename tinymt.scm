@@ -31,7 +31,7 @@
 
 
 (c-declare "
-#include \"../src/TinyMT/tinymt/tinymt32.c\"
+#include \"TinyMT/tinymt/tinymt32.c\"
 ")
 
 (def size-of-tinymt32_t (##c-code "___RESULT= ___FIX(sizeof(tinymt32_t));"))
