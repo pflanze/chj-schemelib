@@ -7,7 +7,18 @@
 
 
 (require easy
+	 test
 	 (math/vectorlib-1 view))
+
+(export show-fn
+	view-fn plot
+	u32vector:histogram
+	u32vector.function
+	histogram
+	#!optional
+	;; ?
+	min+max-values
+	min+max-values-values)
 
 
 (define (min+max-values v mima)
@@ -104,4 +115,81 @@
 	    show-fn))
 
 (define plot view-fn)
+
+
+;; --- Utils ------------------------------------------------------------
+;; Do these belong here? (Or a place like math/integral? Mess)
+
+(def (u32vector:histogram xs ;; #((list-of real?) xs) ;; stream-min&max checks too
+			  #!optional
+			  (num-buckets 100))
+     (let* ((v (make-u32vector num-buckets))
+	    (imax (dec num-buckets))
+	    (xminmax (stream-min&max xs))
+	    (xmin (fst xminmax))
+	    (xmax (snd xminmax))
+	    (d (- xmax xmin))
+	    (slot (lambda (x)
+		    (let ((i (integer (* (/ (- x xmin) d) num-buckets))))
+		      ;; XX *can* it happen that we land outside the
+		      ;; range?
+		      (if (< i 0)
+			  0
+			  (if (>= i num-buckets)
+			      imax
+			      i))))))
+       (for-each (lambda (x)
+		   (u32vector-inc! v (slot x)))
+		 xs)
+       v))
+
+(TEST
+ > (u32vector:histogram '(10 30) 3)
+ #u32(1 0 1)
+ > (u32vector:histogram '(10 30 28) 3)
+ #u32(1 0 2)
+ > (u32vector:histogram '(28 10 30) 3)
+ #u32(1 0 2)
+ > (u32vector:histogram '(28 10 30 -5) 3)
+ #u32(1 1 2)
+ > (u32vector:histogram '(28 10 30 -5 1 2) 3)
+ #u32(3 1 2)
+ )
+
+;; provide a function taking 0..1 for the position in the vector and
+;; returning the value in the vector (XX with linear(?)
+;; interpolation). I *had* this some where!
+;; Use OO and a |vector*?| ? Or generate in vector-util ?
+(def. (u32vector.function v)
+  (let* ((len (u32vector-length v))
+	 ;; heh copy-paste? no not completely, x is 0..1 here
+	 (slot (lambda (x)
+		 (let ((i (integer (+ 0.5 (* x len)))))
+		   ;; XX *can* it happen that we land outside the
+		   ;; range?
+		   (if (< i 0)
+		       0
+		       (if (>= i len)
+			   (dec len)
+			   i))))))
+    (lambda (x)
+      ;; XX (optionally) interpolate
+      (u32vector-ref v (slot x)))))
+
+(TEST
+ > (def f (histogram '(28 10 30 -5 1 2) 3))
+ > (f 0)
+ 3
+ > (f 0.1)
+ 3
+ > (f 0.2)
+ 1
+ > (f 0.8)
+ 2)
+
+
+(def (histogram xs
+		#!optional
+		(num-buckets 100))
+     (.function (u32vector:histogram xs num-buckets)))
 
