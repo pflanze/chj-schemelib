@@ -139,7 +139,7 @@
 		     ,name))
 
 		  ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
-		  (define ,genericname
+		  (define-if-not-defined ,genericname
 		    (dot-oo:make-generic ',genericname ,method-table-name)))))))))
 
 (define-macro* (define. first . rest)
