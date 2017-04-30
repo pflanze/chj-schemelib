@@ -305,11 +305,28 @@
  (lambda (a b . c)
    'hello 'world))
 
-(define-macro* (define-typed name+args . body)
-  (let ((name+args_ (source-code name+args)))
+(define-macro* (define-typed frst+args . body)
+  (let ((frst+args_ (source-code frst+args)))
     (let-pair
-     ((name args) name+args_)
-     `(define ,name (typed-lambda ,args ,@body)))))
+     ((frst args) frst+args_)
+     ;; allow frst to be a list, too, for curried definition; and make
+     ;; sure that level allows typing, too:
+     `(,(if (pair? (source-code frst))
+	    `define-typed
+	    `define)
+       ,frst
+       (typed-lambda ,args ,@body)))))
+
+(TEST
+ > (define-typed ((f #(string? s)) #(number? x))
+     (list s x))
+ > ((f "a") 7)
+ ("a" 7)
+ > (%try-error ((f 'a) 7))
+ #(error "s does not match string?:" a)
+ > (%try-error ((f "a") "7"))
+ #(error "x does not match number?:" "7"))
+
 
 ;; (TEST
 ;;  > (require (cj-symbol)
