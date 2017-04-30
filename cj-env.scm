@@ -126,6 +126,36 @@
 (define-macro* (on access cmp)
   `(first-then 2 ,access ,cmp))
 
+
+;; Hack only because can't analyze code yet :(
+
+(define on/registry-table
+  (make-table weak-keys: #t))
+
+(define (on/registry-add! fn access cmp)
+  (table-set! on/registry-table fn (cons access cmp))
+  fn)
+
+(define (on/registry? v)
+  (and (procedure? v)
+       (table-ref on/registry-table v #f)))
+
+(define (on/registry-ref v)
+  (table-ref on/registry-table v))
+
+(define (on/registry-maybe-ref v)
+  (table-ref on/registry-table v #f))
+
+(define-macro* (on/registry access cmp)
+  (let ((ACCESS (gensym 'access))
+	(CMP (gensym 'cmp)))
+    `(let ((,ACCESS ,access)
+	   (,CMP ,cmp))
+       (on/registry-add! (first-then 2 ,ACCESS ,CMP)
+			 ,ACCESS ,CMP))))
+
+;;/hack.
+
 ;; +- the same code that is in define-macro*.scm (using path-directory)
 ;; Can't unify because of bootstrapping, right?
 (define-macro* (path-normalize/origin=source path)
