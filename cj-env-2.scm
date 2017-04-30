@@ -6,10 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (cj-match);?
-	 (cj-symbol);?
-	 (test)
+(require define-macro-star
+	 (cj-match mcase)
+	 cj-symbol
+	 test
 	 ;; ?
 	 C
 	 (cj-env-1))
