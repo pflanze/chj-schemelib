@@ -11,6 +11,8 @@
 	 (scheme-meta self-quoting)
 	 (cj-gambit-sys procedure-name)
 	 (srfi-11 values? values->list)
+	 ;; dot-oo depends on cj-env already, and we want to add on/registry.show :
+	 (cj-env on/registry? on/registry-ref)
 	 test)
 
 
@@ -118,4 +120,11 @@
 
 (define. (u8vector.show v)
   `(u8vector ,@(u8vector->list v)))
+
+(define. (on/registry.show v)
+  (let* ((p (on/registry-ref v))
+	 (access (car p))
+	 (cmp (cdr p)))
+    `(on/registry ,(.show access)
+		  ,(.show cmp))))
 
