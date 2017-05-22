@@ -9,7 +9,7 @@
 (require easy
 	 srfi-1 ;; fold
 	 (list-util let-pair)
-	 more-oo
+	 jclass
 	 code-map
 	 ;; for testing:
 	 (exceptions with-exceptions-to))
@@ -26,268 +26,268 @@
 (def (almost=/max-abs-diff max-abs-diff)
      (cut almost= <> <> max-abs-diff))
 
-(class 2d-shape
-       ;; generic .min+maxs/prev 
-       (method (min+maxs/prev v min+max)
-	       (fold 2d-point.min+maxs/prev
-		     min+max
-		     (.points v)))
+(jclass 2d-shape
+
+	(def-method (min+maxs/prev v min+max)
+	  (fold 2d-point.min+maxs/prev
+		min+max
+		(.points v)))
        
-       (subclass 2d-point
-		 (struct #(real? x)
-			 #(real? y))
+	(jclass (2d-point #(real? x)
+			  #(real? y))
 
-		 (def (_point-op op)
-		      (lambda (a b)
-			(let-2d-point ((a0 a1) a)
-				      (let-2d-point ((b0 b1) b)
-						    (2d-point (op a0 b0)
-							      (op a1 b1))))))
-		 (method + (_point-op +))
-		 (method - (_point-op -))
-		 (method .* (_point-op *))
-		 (method ./ (_point-op /))
+		(def (_point-op op)
+		     (lambda (a b)
+		       (let-2d-point ((a0 a1) a)
+				     (let-2d-point ((b0 b1) b)
+						   (2d-point (op a0 b0)
+							     (op a1 b1))))))
+		(def-method + (_point-op +))
+		(def-method - (_point-op -))
+		(def-method .* (_point-op *))
+		(def-method ./ (_point-op /))
 
-		 (method (x/y p)
-			 (let-2d-point ((x y) p)
-				       (/ x y)))
+		(def-method (x/y p)
+		  (let-2d-point ((x y) p)
+				(/ x y)))
 
-		 (method (rot90 p)
-			 (let-2d-point ((x y) p)
-				       (2d-point (- y) x)))
+		(def-method (rot90 p)
+		  (let-2d-point ((x y) p)
+				(2d-point (- y) x)))
 
-		 (method (= a b)
-			 (let-2d-point ((a0 a1) a)
-				       (let-2d-point ((b0 b1) b)
-						     (and (= a0 b0)
-							  (= a1 b1)))))
+		(def-method (= a b)
+		  (let-2d-point ((a0 a1) a)
+				(let-2d-point ((b0 b1) b)
+					      (and (= a0 b0)
+						   (= a1 b1)))))
 
-		 (method (almost= a b max-abs-diff)
-			 (def almost= (almost=/max-abs-diff max-abs-diff))
-			 (let-2d-point ((a0 a1) a)
-				       (let-2d-point ((b0 b1) b)
-						     (and (almost= a0 b0)
-							  (almost= a1 b1)))))
+		(def-method (almost= a b max-abs-diff)
+		  (def almost= (almost=/max-abs-diff max-abs-diff))
+		  (let-2d-point ((a0 a1) a)
+				(let-2d-point ((b0 b1) b)
+					      (and (almost= a0 b0)
+						   (almost= a1 b1)))))
 
-		 (method (< a b)
-			 (let-2d-point ((a0 a1) a)
-				       (let-2d-point ((b0 b1) b)
-						     (or (< a0 b0)
-							 (and (not (< b0 a0))
-							      (< a1 b1))))))
+		(def-method (< a b)
+		  (let-2d-point ((a0 a1) a)
+				(let-2d-point ((b0 b1) b)
+					      (or (< a0 b0)
+						  (and (not (< b0 a0))
+						       (< a1 b1))))))
 
 
-		 (method min+maxs/prev
-			 (lambda (p min+max)
-			   (let-2d-point
-			    ((p0 p1) p)
-			    (let-pair
-			     ((mi ma) min+max)
-			     (let-2d-point
-			      ((mi0 mi1) mi)
-			      (let-2d-point
-			       ((ma0 ma1) ma)
+		(def-method min+maxs/prev
+		  (lambda (p min+max)
+		    (let-2d-point
+		     ((p0 p1) p)
+		     (let-pair
+		      ((mi ma) min+max)
+		      (let-2d-point
+		       ((mi0 mi1) mi)
+		       (let-2d-point
+			((ma0 ma1) ma)
 
-			       (cons (2d-point (min p0 mi0)
-					       (min p1 mi1))
-				     (2d-point (max p0 ma0)
-					       (max p1 ma1)))))))))
+			(cons (2d-point (min p0 mi0)
+					(min p1 mi1))
+			      (2d-point (max p0 ma0)
+					(max p1 ma1)))))))))
 
-		 (method (start p)
-			 p)
+		(def-method (start p)
+		  p)
 
-		 (method (distance^2 p)
-			 ;; distance from root
-			 (let-2d-point ((x y) p)
-				       (+ (square x) (square y))))
+		(def-method (distance^2 p)
+		  ;; distance from root
+		  (let-2d-point ((x y) p)
+				(+ (square x) (square y))))
 
-		 ;; should this be called magnitude ?
-		 (method (distance p)
-			 (sqrt (2d-point.distance^2 p)))
+		;; should this be called magnitude ?
+		(def-method (distance p)
+		  (sqrt (2d-point.distance^2 p)))
 
-		 ;; also see 2d-point.polar (2d-polar.scm)
-		 (method (angle p)
-			 (let-2d-point ((x y) p)
-				       (atan y x))))
+		;; also see 2d-point.polar (2d-polar.scm)
+		(def-method (angle p)
+		  (let-2d-point ((x y) p)
+				(atan y x))))
 
-       ;; hmm partial COPY-PASTE from above, how to avoid?
-       (subclass partial-2d-point
-		 (struct #((maybe real?) x)
-			 #((maybe real?) y))
-		 ;; No requirement that at least one dimension is set?
-		 (defenum partial-2d-point-kind
-		   full
-		   x-given
-		   y-given
-		   empty)
-		 (method (partial-kind v)
-			 (let-partial-2d-point
-			  ((x y) v)
-			  (cond (x (cond (y 'full)
-					 (else 'x-given)))
-				(y 'y-given)
-				(else
-				 'empty))))
-		 (method (2d-point v)
-			 (let-partial-2d-point
-			  ((x y) v)
-			  (2d-point x y))))
+	;; hmm partial COPY-PASTE from above, how to avoid?
+	(jclass (partial-2d-point #((maybe real?) x)
+				  #((maybe real?) y))
 
-       (subclass 2d-line
-		 (struct #(2d-point? from)
+		;; No requirement that at least one dimension is set?
+		(defenum partial-2d-point-kind
+		  full
+		  x-given
+		  y-given
+		  empty)
+
+		(def-method (partial-kind v)
+		  (let-partial-2d-point
+		   ((x y) v)
+		   (cond (x (cond (y 'full)
+				  (else 'x-given)))
+			 (y 'y-given)
+			 (else
+			  'empty))))
+		(def-method (2d-point v)
+		  (let-partial-2d-point
+		   ((x y) v)
+		   (2d-point x y))))
+
+	(jclass (2d-line #(2d-point? from)
 			 #(2d-point? to))
 
-		 (method (start v)
-			 (2d-line.from v))
+		(def-method (start v)
+		  (2d-line.from v))
 
-		 (method (points v)
-			 (list (2d-line.from v)
-			       (2d-line.to v)))
+		(def-method (points v)
+		  (list (2d-line.from v)
+			(2d-line.to v)))
 
-		 (method (diff v)
-			 (let-2d-line
-			  ((from to) v)
-			  (2d-point.- to from)))
+		(def-method (diff v)
+		  (let-2d-line
+		   ((from to) v)
+		   (2d-point.- to from)))
 
-		 (method (slope v)
-			 (let-2d-point
-			  ((x y) (2d-line.diff v))
-			  (if (zero? x)
-			      (if (zero? y)
-				  (error "can't calculate slope of line ending in same point as origin"
-					 v)
-				  (/ y (exact.inexact x)))
-			      (/ y x)))))
+		(def-method (slope v)
+		  (let-2d-point
+		   ((x y) (2d-line.diff v))
+		   (if (zero? x)
+		       (if (zero? y)
+			   (error "can't calculate slope of line ending in same point as origin"
+				  v)
+			   (/ y (exact.inexact x)))
+		       (/ y x)))))
 
-       (subclass 2d-path
-		 (struct #((list-of 2d-point?) points)
+	(jclass (2d-path #((list-of 2d-point?) points)
 			 #!optional
 			 #(boolean? closed?))
-		 (method (points-add v #(2d-point? p)) ;; prepend, cons. hm.
-			 (let-2d-path ((ps closed?) v)
-				      (2d-path (cons p ps)
-					       closed?)))
-		 (method (start v)
-			 (car (2d-path.points v))))
 
-       (subclass 2d-window ;; an untilted rectangle
-		 (struct #(2d-point? mi)
-			 #(2d-point? ma))
+		(def-method (points-add v #(2d-point? p)) ;; prepend, cons. hm.
+		  (let-2d-path ((ps closed?) v)
+			       (2d-path (cons p ps)
+					closed?)))
+		(def-method (start v)
+		  (car (2d-path.points v))))
 
-		 (method (start v)
-			 (2d-window.mi v))
+	;; an untilted rectangle
+	(jclass (2d-window #(2d-point? mi)
+			   #(2d-point? ma))
 
-		 (method (points v)
-			 (let-2d-window
-			  ((mi ma) v)
-			  (let-2d-point
-			   ((x0 y0) mi)
-			   (let-2d-point
-			    ((x1 y1) ma)
-			    (list mi
-				  (2d-point x1 y0)
-				  ma
-				  (2d-point x0 y1))))))
+		(def-method (start v)
+		  (2d-window.mi v))
 
-		 (method (range v)
-			 (let-2d-window
-			  ((mi ma) v)
-			  (.- ma mi)))
+		(def-method (points v)
+		  (let-2d-window
+		   ((mi ma) v)
+		   (let-2d-point
+		    ((x0 y0) mi)
+		    (let-2d-point
+		     ((x1 y1) ma)
+		     (list mi
+			   (2d-point x1 y0)
+			   ma
+			   (2d-point x0 y1))))))
 
-		 ;; hm, rename this to x/y like the method for
-		 ;; 2d-point, or vice versa?
-		 (method (proportions v) ;; div by zero for zero dy !
-			 (let-2d-window
-			  ((mi ma) v)
-			  (let-2d-point
-			   ((x0 y0) mi)
-			   (let-2d-point
-			    ((x1 y1) ma)
+		(def-method (range v)
+		  (let-2d-window
+		   ((mi ma) v)
+		   (.- ma mi)))
 
-			    (let* ((dx (- x1 x0))
-				   (dy (- y1 y0))
-				   (our-dx/dy (/ dx dy)))
-			      our-dx/dy)))))
-		 (method x/y 2d-window.proportions)
+		;; hm, rename this to x/y like the method for
+		;; 2d-point, or vice versa?
+		(def-method (proportions v) ;; div by zero for zero dy !
+		  (let-2d-window
+		   ((mi ma) v)
+		   (let-2d-point
+		    ((x0 y0) mi)
+		    (let-2d-point
+		     ((x1 y1) ma)
 
-		 (method (fit-to-proportions v #((complement zero?) dx/dy) clip?)
-			 (let-2d-window
-			  ((mi ma) v)
-			  (let-2d-point
-			   ((x0 y0) mi)
-			   (let-2d-point
-			    ((x1 y1) ma)
+		     (let* ((dx (- x1 x0))
+			    (dy (- y1 y0))
+			    (our-dx/dy (/ dx dy)))
+		       our-dx/dy)))))
 
-			    (let* ((dx (- x1 x0))
-				   (dy (- y1 y0))
-				   (our-dx/dy (/ dx dy))
+		(def-method x/y 2d-window.proportions)
 
-				   (_fit
-				    (lambda (dx dy dx/dy x0 x1 y0 y1 2d-point)
-				      (let* ((new-dx (* dy dx/dy))
-					     (x-offset (/ (- dx new-dx) 2)))
-					(2d-window
-					 (2d-point (+ x0 x-offset) y0)
-					 (2d-point (- x1 x-offset) y1)))))
-				   (fit
-				    (lambda (prop)
-				      (_fit dx dy prop x0 x1 y0 y1
-					    2d-point)))
-				   (flip-fit
-				    (lambda (prop)
-				      (_fit dy dx prop y0 y1 x0 x1
-					    (flip 2d-point)))))
+		(def-method (fit-to-proportions v #((complement zero?) dx/dy) clip?)
+		  (let-2d-window
+		   ((mi ma) v)
+		   (let-2d-point
+		    ((x0 y0) mi)
+		    (let-2d-point
+		     ((x1 y1) ma)
 
-			      ;; use abs so that negative proportions
-			      ;; will work
-			      (let ((too-wide? (> (abs our-dx/dy) (abs dx/dy))))
-				(if too-wide?
-				    (if clip?
-					(fit dx/dy)
-					(flip-fit (/ dx/dy)))
-				    (if clip?
-					(flip-fit (/ dx/dy))
-					(fit dx/dy))))))))))
+		     (let* ((dx (- x1 x0))
+			    (dy (- y1 y0))
+			    (our-dx/dy (/ dx dy))
 
-       (subclass 2d-square
-		 (struct #(2d-point? start)
-			 #(2d-point? vector))
+			    (_fit
+			     (lambda (dx dy dx/dy x0 x1 y0 y1 2d-point)
+			       (let* ((new-dx (* dy dx/dy))
+				      (x-offset (/ (- dx new-dx) 2)))
+				 (2d-window
+				  (2d-point (+ x0 x-offset) y0)
+				  (2d-point (- x1 x-offset) y1)))))
+			    (fit
+			     (lambda (prop)
+			       (_fit dx dy prop x0 x1 y0 y1
+				     2d-point)))
+			    (flip-fit
+			     (lambda (prop)
+			       (_fit dy dx prop y0 y1 x0 x1
+				     (flip 2d-point)))))
 
-		 (method (points s)
-			 (let-2d-square
-			  ((p v) s)
-			  (let ((v90 (.rot90 v))
-				(p2 (.+ p v)))
-			    (list p
-				  p2
-				  (.+ p2 v90)
-				  (.+ p v90)))))
+		       ;; use abs so that negative proportions
+		       ;; will work
+		       (let ((too-wide? (> (abs our-dx/dy) (abs dx/dy))))
+			 (if too-wide?
+			     (if clip?
+				 (fit dx/dy)
+				 (flip-fit (/ dx/dy)))
+			     (if clip?
+				 (flip-fit (/ dx/dy))
+				 (fit dx/dy))))))))))
 
-		 (method (< a b)
-			 (let-2d-square
-			  ((as av) a)
-			  (let-2d-square
-			   ((bs bv) b)
-			   (if (2d-point.< as bs)
-			       #t
-			       (if (2d-point.< bs as)
-				   #f
-				   (2d-point.< av bv))))))
-		 ;;XXX? vs the one above ?
-		 ;; (method (< a b)
-		 ;;   (if (null? a)
-		 ;;       (begin
-		 ;; 	(assert (null? b))
-		 ;; 	#f)
-		 ;;       (or (2d-point.< (car a) (car b))
-		 ;; 	  (and (not (2d-point.< (car b) (car a)))
-		 ;; 	       (2d-square.< (cdr a) (cdr b))))))
+	(jclass (2d-square #(2d-point? start)
+			   #(2d-point? vector))
+
+		(def-method (points s)
+		  (let-2d-square
+		   ((p v) s)
+		   (let ((v90 (.rot90 v))
+			 (p2 (.+ p v)))
+		     (list p
+			   p2
+			   (.+ p2 v90)
+			   (.+ p v90)))))
+
+		(def-method (< a b)
+		  (let-2d-square
+		   ((as av) a)
+		   (let-2d-square
+		    ((bs bv) b)
+		    (if (2d-point.< as bs)
+			#t
+			(if (2d-point.< bs as)
+			    #f
+			    (2d-point.< av bv))))))
+
+		;;XXX? vs the one above ?
+		;; (def-method (< a b)
+		;;   (if (null? a)
+		;;       (begin
+		;; 	(assert (null? b))
+		;; 	#f)
+		;;       (or (2d-point.< (car a) (car b))
+		;; 	  (and (not (2d-point.< (car b) (car a)))
+		;; 	       (2d-square.< (cdr a) (cdr b))))))
 
 	  
-		 (method (canonical s)
-			 (let-2d-square ((s v) s)
-					;; now stupidly have to add, well
-					(canonical-2d-square s (2d-point.+ s v))))))
+		(def-method (canonical s)
+		  (let-2d-square ((s v) s)
+				 ;; now stupidly have to add, well
+				 (canonical-2d-square s (2d-point.+ s v))))))
 
 
 
