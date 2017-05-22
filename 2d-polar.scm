@@ -8,7 +8,8 @@
 
 (require easy
 	 cj-math
-	 2d-shape)
+	 2d-shape
+	 jclass)
 
 
 (declare (standard-bindings)
@@ -18,14 +19,12 @@
 
 (def 90° (* 0.5 pi))
 
-(class 2d-polar
-       (struct #(real? angle)
-	       #(real? distance))
-       (method (point v)
-	       (let-2d-polar
-		((angle distance) v)
-		(2d-point (* distance (cos angle))
-			  (* distance (sin angle))))))
+(jclass (2d-polar #(real? angle)
+		  #(real? distance))
+
+	(def-method* (point v)
+	  (2d-point (* distance (cos angle))
+		    (* distance (sin angle)))))
 
 (TEST
  > (.point (2d-polar 0 0))
