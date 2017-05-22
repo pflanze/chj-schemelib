@@ -51,8 +51,13 @@
 		  (let-2d-point ((x y) p)
 				(/ x y)))
 
-		(def-method* (rot90 p)
+		;; left
+		(def-method* (rot90l p)
 		  (2d-point (- y) x))
+
+		;; right
+		(def-method* (rot90r p)
+		  (2d-point y (- x)))
 
 		(def-method (= a b)
 		  (let-2d-point ((a0 a1) a)
@@ -237,7 +242,7 @@
 			   #(2d-point? vector))
 
 		(def-method* (points s)
-		  (let ((v90 (.rot90 vector))
+		  (let ((v90 (.rot90l vector))
 			(p2 (.+ start vector)))
 		    (list start
 			  p2
@@ -275,12 +280,14 @@
 
 (TEST
  > (define a (2d-point 10 1))
- > (define b (.rot90 a))
+ > (define b (.rot90l a))
  > b
  #((2d-point) -1 10)
- > (define c (.rot90 b))
- > (define d (.rot90 c))
- > (.rot90 d)
+ > (.rot90r a)
+ #((2d-point) 1 -10)
+ > (define c (.rot90l b))
+ > (define d (.rot90l c))
+ > (.rot90l d)
  #((2d-point) 10 1)
  ;; almost= :
  > (def a (2d-point 1 2))
@@ -519,7 +526,7 @@
    (let-2d-point
     ((x2 y2) p2)
     (let* ((d (2d-point.- p2 p1))
-	   (d90 (2d-point.rot90 d))
+	   (d90 (2d-point.rot90l d))
 	   (p3 (2d-point.+ p2 d90))
 	   (p4 (2d-point.+ p1 d90)))
       (if (< x1 x2)
