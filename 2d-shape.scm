@@ -44,8 +44,18 @@
 							     (op a1 b1))))))
 		(def-method + (_point-op +))
 		(def-method - (_point-op -))
-		(def-method .* (_point-op *))
-		(def-method ./ (_point-op /))
+
+		(def (_point-op* op)
+		     (let ((vecop (_point-op op)))
+		       (lambda (a b)
+			 ;; b could either be a scalar or a vector
+			 (if (2d-point? b)
+			     (vecop a b)
+			     (let-2d-point ((a0 a1) a)
+					   (2d-point (op a0 b)
+						     (op a1 b)))))))
+		(def-method .* (_point-op* *))
+		(def-method ./ (_point-op* /))
 
 		(def-method (x/y p)
 		  (let-2d-point ((x y) p)
@@ -283,8 +293,18 @@
  > (define b (.rot90l a))
  > b
  #((2d-point) -1 10)
+ > (..* b 2)
+ #((2d-point) -2 20)
+ > (..* b a)
+ #((2d-point) -10 10)
+ > (../ b a)
+ #((2d-point) -1/10 10)
+ > (../ b 2)
+ #((2d-point) -1/2 5)
+
  > (.rot90r a)
  #((2d-point) 1 -10)
+
  > (define c (.rot90l b))
  > (define d (.rot90l c))
  > (.rot90l d)
