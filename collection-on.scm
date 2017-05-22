@@ -17,7 +17,10 @@
 (require easy
 	 wbtree
 	 show ;; included in easy?
-	 test)
+	 test
+	 ;; XX UNFINISHED, REMOVE?
+	 (wbcollection wbcollection-lambda
+		       wbcollection-change))
 
 
 (export (class collection-on)
