@@ -20,6 +20,8 @@
 	dsssl-apply)
 
 
+;; also see chop in stream.scm
+
 (def (sequential-pairs lis
 		       pair-cons
 		       #!optional
