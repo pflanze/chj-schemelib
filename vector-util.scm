@@ -29,6 +29,7 @@
 	vector.insert
 	vector-every
 	vector-of
+	vector-of/length
 	;; note: not oo, just curried:
 	vector.value.pos)
 
@@ -221,6 +222,13 @@
 (define (vector-of t?)
   (lambda (v)
     (and (vector? v)
+	 (vector-every t? v))))
+
+;; vgl. u8vector-of-length, but here we want a type check as well
+(define (vector-of/length t? len)
+  (lambda (v)
+    (and (vector? v)
+	 (= (vector-length v) len)
 	 (vector-every t? v))))
 
 (TEST
