@@ -9,7 +9,10 @@
 	 (md5 md5:digest)
 	 jclass
 	 (cj-path path-string?)
-	 tempfile)
+	 tempfile
+	 ;; XX HACK: only to ensure vector.ref is defined first, so
+	 ;; that our specialization is not going to be overridden
+	 (oo-vector-lib vector.ref))
 
 (def fstable:digest md5:digest)
 
