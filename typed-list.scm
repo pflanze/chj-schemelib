@@ -115,7 +115,7 @@
 				 (inc (.length rst))
 				 fst
 				 rst)
-		(error "typed-list: value does not meed predicate:"
+		(error "typed-list: value does not meet predicate:"
 		       fst
 		       (or (maybe-procedure-name pred)
 			   (maybe-decompile pred))))))
@@ -211,9 +211,9 @@
  > (.reverse-list (typed-list number? ))
  ()
  > (%try-error (.list (.cons (.cons (typed-list number?) "10") 11)))
- #(error "typed-list: value does not meed predicate:" "10" number?)
+ #(error "typed-list: value does not meet predicate:" "10" number?)
  > (%try-error (.list (.cons (.cons (typed-list number?) 10) "11")))
- #(error "typed-list: value does not meed predicate:" "11" number?)
+ #(error "typed-list: value does not meet predicate:" "11" number?)
  > (=> (typed-list number?) (.cons 10) (.cons 11) (.list))
  (11 10))
 
@@ -264,7 +264,7 @@
  > (.show (.improper-prepend z 3))
  (typed-list number? 3)
  > (%try-error (.show (.improper-prepend z '(a))))
- #(error "typed-list: value does not meed predicate:" a number?))
+ #(error "typed-list: value does not meet predicate:" a number?))
 
 (TEST
  > (.show (.prepend z '(1 2)))
