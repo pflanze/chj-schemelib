@@ -19,6 +19,7 @@
 	mydb
 	check-load.scm
 	loadorder-in-dirs
+	dependency-graph-in
 
 	#!optional
 	path-string.topo-relation
@@ -130,6 +131,27 @@
      (loadorder-in-dirs "lib"))
 (def (mydb)
      (loadorder-in-dirs '("lib" "mydb")))
+
+;; Dependency graph
+
+;; dependencies as a string bag describing 'dot' code; run as
+;; e.g. (print (dependency-graph-in "lib")) then pass the output to
+;; e.g. "dot -Tpng output.dot > output.png"
+(def (dependency-graph-in . dirpaths)
+     (def show (comp object->string symbol.string))
+     (list "digraph {\n"
+	   (map (lambda (modulepath)
+		  (path-string.relation
+		   modulepath
+		   (lambda (name names)
+		     (list "  "
+			   (show name) " -> { "
+			   (map (lambda (name)
+				  (list (show name) " "))
+				names)
+			   "}\n"))))
+		(modulepaths-in-dirs dirpaths))
+	   "}\n"))
 
 
 ;; a single-dependency representation
