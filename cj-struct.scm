@@ -502,15 +502,26 @@
 ;; see also |define-struct.| in dot-oo
 
 
+
+;; Differentiate between "Scheme vectors" and those mis-used for
+;; objects now:
+
+(define (vector? v)
+  (and (##vector? v)
+       (if (>= (##vector-length v) 1)
+	   (not (struct-tag? (##vector-ref v 0)))
+	   #t)))
+
 ;; Generic struct ops:
 
+;; alternative names: "object?", "instance?"
 (define (struct? v)
   ;; XX also check that the length of the vector matches the
   ;; corresponding class? or not since that would fail with
   ;; multiversioning?
-  (and (vector? v)
-       (>= (vector-length v) 1)
-       (struct-tag? (vector-ref v 0))))
+  (and (##vector? v)
+       (>= (##vector-length v) 1)
+       (struct-tag? (##vector-ref v 0))))
 
 (define (struct-of pred)
   (lambda (v)
