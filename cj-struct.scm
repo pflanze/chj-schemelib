@@ -62,7 +62,7 @@
 
 (define (struct-metadata? v)
   (and (vector? v)
-       (> (vector-length v) 1)
+       (fx> (vector-length v) 1)
        (eq? (vector-ref v 0) struct-metadata:tag)))
 
 (define (make-struct-metadata-accessor slot-number)
@@ -508,7 +508,7 @@
 
 (define (vector? v)
   (and (##vector? v)
-       (if (>= (##vector-length v) 1)
+       (if (fx>= (##vector-length v) 1)
 	   (not (struct-tag? (##vector-ref v 0)))
 	   #t)))
 
@@ -520,7 +520,7 @@
   ;; corresponding class? or not since that would fail with
   ;; multiversioning?
   (and (##vector? v)
-       (>= (##vector-length v) 1)
+       (fx>= (##vector-length v) 1)
        (struct-tag? (##vector-ref v 0))))
 
 (define (struct-of pred)
