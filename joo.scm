@@ -359,10 +359,10 @@
 			(standard-bindings)
 			(extended-bindings)
 			(not safe))
-	       (and (vector? v)
+	       (and (##vector? v)
 		    ;; do *not* restrict length
-		    (fx>= (vector-length v) 1)
-		    (joo:struct-tag.member-of? (vector-ref v 0)
+		    (fx>= (##vector-length v) 1)
+		    (joo:struct-tag.member-of? (##vector-ref v 0)
 					       (joo-type.members s)))))
 
 ;; a constructor that also updates the parent's member tables (XX

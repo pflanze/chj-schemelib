@@ -61,9 +61,9 @@
 (define-if-not-defined struct-metadata:tag (list 'struct-metadata))
 
 (define (struct-metadata? v)
-  (and (vector? v)
-       (fx> (vector-length v) 1)
-       (eq? (vector-ref v 0) struct-metadata:tag)))
+  (and (##vector? v)
+       (fx> (##vector-length v) 1)
+       (eq? (##vector-ref v 0) struct-metadata:tag)))
 
 (define (make-struct-metadata-accessor slot-number)
   (lambda (v)
@@ -306,9 +306,9 @@
 			    add-offset numfields)
 	    `(define ,predicate-name
 	       (lambda (v)
-		 (and (vector? v)
-		      (= (vector-length v) ,(add-offset numfields))
-		      (eq? (vector-ref v 0)
+		 (and (##vector? v)
+		      (= (##vector-length v) ,(add-offset numfields))
+		      (eq? (##vector-ref v 0)
 			   ,tag-binding)))))
        (define ,error-name
 	 (lambda (v)
