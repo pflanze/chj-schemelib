@@ -107,6 +107,8 @@
      (lambda ()
        ,expr))))
 
+(define future-value thread-join!)
+
 
 (define-macro* (CA . forms)
   (let* ((_? (lambda (v)
