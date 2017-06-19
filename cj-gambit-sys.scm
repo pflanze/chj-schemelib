@@ -26,6 +26,8 @@
 	maybe-decompile
 	maybe-procedure-name
 
+	repl
+
 	;; utilities:
 	vectorlike-bytecopy!
 	vectorlike-byteequal?
@@ -437,3 +439,7 @@ memset(obj+offset,value,numbytes);
   (if (procedure? v)
       (##procedure-name v)
       (error "not a procedure:" v)))
+
+(define (repl)
+  (##repl))
+
