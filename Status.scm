@@ -17,7 +17,7 @@
 ;; Result with a result (still representing Success*).
 
 (require easy
-	 more-oo
+	 jclass
 	 (dot-oo void/1)
 	 test
 	 Maybe)
@@ -46,16 +46,14 @@
 	_Success)
 
 ;; how do Perl6 or so call them?
-(class Status
-       (subclass Success*
-		 (subclass Success
-			   (struct constructor-name: _Success))
-		 (subclass Result
-			   (struct value)))
-       (subclass Failure
-		 ;; could call this .reason, but perhaps should stay
-		 ;; compatible with Maybe ?
-		 (struct value)))
+(jinterface Status
+	    (jinterface Success*
+			(jclass ((Success _Success)))
+			(jclass (Result value)))
+
+	    ;; could call .value .reason, but perhaps should stay
+	    ;; compatible with Maybe ?
+	    (jclass (Failure value)))
 
 ;; optimization:
 (def __Success (_Success))
