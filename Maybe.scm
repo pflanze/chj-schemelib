@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-;; Also see Status.scm
+;; Also see Result.scm
 
 (require easy
 	 jclass

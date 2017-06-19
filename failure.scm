@@ -1,4 +1,4 @@
-;;; Copyright 2015 by Christian Jaeger, ch at christianjaeger ch
+;;; Copyright 2015-2017 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,9 +11,13 @@
 ;; |fail| is basically error without throwing it (plus a 'kind' field,
 ;; and its message does not need the end ":").
 
+;; (Can't use |error| for naming, even though this is inconsistent
+;; with the naming of Error in Result.scm now. Sigh.)
+
+
 (require easy
 	 more-oo
-	 (Status Failure)
+	 (Result Error)
 	 test)
 
 (export failure
@@ -68,5 +72,5 @@
 
 
 (def (fail #(symbol? kind) #(string? msg) . args)
-     (Failure (failure kind msg args)))
+     (Error (failure kind msg args)))
 

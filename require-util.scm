@@ -11,7 +11,7 @@
 	 (tree-util flatten)
 	 (cj-io-util read-lines xcall-with-input-process)
 	 tsort
-	 Status
+	 Result
 	 (cj-functional complement)
 	 (require path-string.relation))
 
@@ -83,7 +83,7 @@
  > (path-string.topo-relation "lib/require-util.scm")
  #((topo-relation)
    require-util
-   (easy test tree-util cj-io-util tsort Status cj-functional require))
+   (easy test tree-util cj-io-util tsort Result cj-functional require))
  ;; > (path-string.topo-relation "tsort.scm")
  ;; #((topo-relation) tsort (easy test alist))
  )
@@ -158,7 +158,7 @@
 (class requires
        (struct name dependency))
 
-(def (modulepaths-satisfying? paths) -> Status?
+(def (modulepaths-satisfying? paths) -> Result?
      (call/cc
       (lambda (return)
 	(let* ((all-rs (map path-string.topo-relation paths)))
@@ -166,25 +166,25 @@
 	  (let lp ((rs all-rs)
 		   (loaded '()))
 	    (if (null? rs)
-		(Success)
+		(Ok #t) ;; bah, had this nice (Success) before.
 		(let-pair
 		 ((r rs*) rs)
 		 (for-each
 		  (lambda (d)
 		    (unless (memq d loaded)
-			    (return (Failure (requires (.name r) d)))))
+			    (return (Error (requires (.name r) d)))))
 		  (.deps r))
 		 (lp rs*
 		     (cons (.name r) loaded)))))))))
 
 (TEST
  > (modulepaths-satisfying? '("lib/Maybe.scm" "lib/easy.scm"))
- #((Failure) #((requires) Maybe easy))
+ #((Error) #((requires) Maybe easy))
  > (modulepaths-satisfying? '("lib/easy-1.scm" "lib/Maybe.scm"))
- #((Failure) #((requires) easy-1 define-macro-star))
+ #((Error) #((requires) easy-1 define-macro-star))
  > (modulepaths-satisfying? '("lib/cj-source.scm"
 			      "lib/define-macro-star.scm"))
- #((Success)))
+ #((Ok) #t))
 
 
 (def default-load.scm-path ".gambc/load.scm")

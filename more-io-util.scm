@@ -12,7 +12,7 @@
 	 (cj-env-2 future)
 	 (cj-io-util open-process*)
 	 (cj-path path-string?)
-	 (Status Result Failure)
+	 (Result Ok Error)
 	 test)
 
 (export (class command)
@@ -82,8 +82,8 @@
        (thread-join! f) ;; should exceptions be suppressed here?
        (let ((s (process-status p)))
 	 (if (ok? s)
-	     (Result res)
-	     (Failure s)))))
+	     (Ok res)
+	     (Error s)))))
 
 (def (string-writer #(string? s))
      (lambda (p)
@@ -99,12 +99,12 @@
 		string-reader
 		(string-writer "Hallo")
 		zero?)
- #((Result) "Hbllo")
+ #((Ok) "Hbllo")
  > (process-run (command "tr" "a" "b")
 		string-reader
 		(string-writer "Hallo")
 		(complement zero?))
- #((Failure) 0)
+ #((Error) 0)
  ;; BTW status codes should have their own type, too, right. Then we
  ;; would see it perfectly well-informed here, too !
  )
