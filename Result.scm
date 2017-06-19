@@ -31,7 +31,7 @@
 
 (jclass Result
 
-	(def-method (if v yes no)
+	(def-method (if-Ok v yes no)
 	  (cond ((Ok? v)
 		 (yes (Ok.value v)))
 		((Error? v)
@@ -67,6 +67,22 @@
   (#t #f #t #((Error) 13)))
  > (Error.value (.value (Error (Error 13))))
  13)
+
+
+
+(TEST
+ > (.if-Ok (Ok '()) (lambda_ 'ok) (lambda_ 'fail))
+ ok
+ > (.if-Ok (Ok '()) identity (lambda_ 'fail))
+ ()
+ > (.if-Ok (Error 'foo) (lambda_ 'ok) (lambda_ 'fail))
+ fail
+ > (.if-Ok (Error 'foo) (lambda_ 'ok) identity)
+ foo
+ ;; > (.if-Ok (Error 'foo) (lambda_ 'ok))
+ ;; #!void
+ ;; no, don't allow this, OK?
+ )
 
 
 (defmacro (if-Ok t
