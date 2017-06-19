@@ -105,10 +105,38 @@
   `(thread-start!
     (make-thread
      (lambda ()
-       ,expr))))
+       ,expr)
+     'future)))
+
+(define (future? v)
+  (and (thread? v)
+       (eq? (thread-name v) 'future)))
+;; there's no ##thread-name, sigh
 
 ;; future-value, future-join (, future-wait)
-(define future-force thread-join!)
+(define @future-force thread-join!)
+
+(define (future-force v)
+  (if (future? v)
+      (@future-force v)
+      (error "not a future:" v)))
+
+(TEST
+ > (define f (future 12))
+ > (define g (thread-start! (make-thread (lambda () 13))))
+ > (future? f)
+ #t
+ > (future? g)
+ #f
+ > (@future-force f)
+ 12
+ > (@future-force g)
+ 13
+ > (future-force f)
+ 12
+ > (with-exception-catcher error-exception-message (lambda () (future-force g)))
+ "not a future:")
+
 
 
 (define-macro* (CA . forms)
