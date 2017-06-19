@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,14 +9,14 @@
 ;; Also see Status.scm
 
 (require easy
-	 more-oo
+	 jclass
 	 test
 	 (if-let if-let*-expand
 		 if-let-expand))
 
-(export (class Maybe
-	       (class Nothing)
-	       (class Just))
+(export (jclass Maybe
+		(jclass Nothing)
+		(jclass Just))
 	(macro Maybe:if)
 	(macro Maybe:cond)
 	(macro Maybe:if-let*)
@@ -25,15 +25,14 @@
 
 
 
-(class Maybe
-       (subclass Nothing
-		 (struct constructor-name: _Nothing)
-		 (method (maybe-value s)
-			 #f))
+(jinterface Maybe
+	    (jclass ((Nothing _Nothing))
+		    (def-method (maybe-value s)
+		      #f))
 
-       (subclass Just
-		 (struct value)
-		 (method maybe-value Just.value)))
+	    (jclass (Just value)
+		    (def-method maybe-value Just.value)))
+
 
 ;; optimization:
 (def __Nothing (_Nothing))
