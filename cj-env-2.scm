@@ -107,7 +107,8 @@
      (lambda ()
        ,expr))))
 
-(define future-value thread-join!)
+;; future-value, future-join (, future-wait)
+(define future-force thread-join!)
 
 
 (define-macro* (CA . forms)
