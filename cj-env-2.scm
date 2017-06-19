@@ -14,6 +14,9 @@
 	 C
 	 (cj-env-1))
 
+(declare (block)(standard-bindings)(extended-bindings))
+
+
 
 ;; that which cj-standarddeclares.scm was.
 ;; no args yet, perhaps later..

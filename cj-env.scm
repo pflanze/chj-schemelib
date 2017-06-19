@@ -13,6 +13,9 @@
 	 ;; require this?: (understand it as part of bundle?)
 	 cj-env-1)
 
+(declare (block)(standard-bindings)(extended-bindings))
+
+
 ;; various small bits that I don't know where to put
 
 ;; (include "cj-env-1.scm") already in test.scm
