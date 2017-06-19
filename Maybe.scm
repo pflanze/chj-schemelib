@@ -86,6 +86,26 @@
 	     (lambda ()
 	       ,(or else `(void)))))
 
+
+;; once again (where did I have something like this?):
+;; This never returns `(begin), which might be what you want ('usually
+;; always'?)
+(def (rest->begin rest)
+     (trif-one rest
+	       identity
+	       (C cons `begin _)
+	       (& `(void))))
+
+(TEST
+ > (rest->begin '())
+ (void)
+ > (rest->begin '(a))
+ a
+ > (rest->begin '(a b))
+ (begin a b))
+
+
+
 (defmacro (Maybe:cond t+then #!optional else)
   (mcase t+then
 	 (`(`t => `then)
@@ -94,8 +114,8 @@
 		     (lambda ()
 		       ,(if else
 			    (mcase else
-				   (`(else `else)
-				    else))
+				   (`(else . `rest)
+				    (rest->begin rest)))
 			    `(void)))))))
 
 (TEST
@@ -110,9 +130,11 @@
  > (def (f* x)
 	(Maybe:if (psqrt x)
 		  (inc it)))
+ > (def counter 0)
  > (def (g x)
 	(Maybe:cond ((psqrt x) => inc)
-		    (else 'n)))
+		    (else (inc! counter)
+			  'n)))
  > (def (g* x)
 	(Maybe:cond ((psqrt x) => inc)))
  > (map (lambda (x)
@@ -124,6 +146,8 @@
  ((3 3 3 3)
   (4 4 4 4)
   (n n #!void #!void))
+ > counter
+ 1
  > (%try-error (Maybe:cond ((sqrt 4) => inc)))
  #(error "v does not match Maybe?:" 2))
 
