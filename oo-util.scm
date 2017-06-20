@@ -3,6 +3,7 @@
 	 dot-oo;; included in easy?
 	 (cj-math integer)
 	 (string-util-2 string-reverse)
+	 (cj-functional list-of)
 	 cj-env)
 
 
@@ -34,7 +35,9 @@
 (define. keyword.symbol keyword->symbol)
 (define. symbol.keyword symbol->keyword)
 
-(define. list.string list->string) ;;hm not in general? but hm 'actually' ok? not?
+(define char-list? (list-of char?))
+
+(define. char-list.string list->string)
 
 (define. string.list string->list)
 
