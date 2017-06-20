@@ -25,13 +25,19 @@
 
 
 
-(jinterface Maybe
-	    (jclass ((Nothing _Nothing))
-		    (def-method (maybe-value s)
-		      #f))
+(jclass Maybe
 
-	    (jclass (Just value)
-		    (def-method maybe-value Just.value)))
+	(def-method (if-Just v then else)
+	  (if (Just? v)
+	      (then (Just.value v))
+	      (else)))
+	    
+	(jclass ((Nothing _Nothing))
+		(def-method (maybe-value s)
+		  #f))
+
+	(jclass (Just value)
+		(def-method maybe-value Just.value)))
 
 
 ;; optimization:
@@ -66,25 +72,36 @@
  13)
 
 
-(def-inline (if-Maybe #(Maybe? v) then else)
-  (if (Just? v)
-      (then (Just.value v))
-      (else)))
-
 (TEST
- > (%try-error (if-Maybe 'foo 1 2))
- #(error "v does not match Maybe?:" foo))
+ > (%try-error (.if-Just 'foo (lambda_ 1) (lambda_ 2)))
+ #(error "no method found for generic .if-Just for value:" foo))
 
 
+(def (Maybe:error v)
+     (error "not a Maybe:" v))
+
+;; XX rename to if-Just (for consistency with Result.scm)?
 (defmacro (Maybe:if t
 		    then
 		    #!optional
 		    else)
-  `(if-Maybe ,t
-	     (lambda (it)
-	       ,then)
-	     (lambda ()
-	       ,(or else `(void)))))
+  `(let ((it-Maybe ,t))
+     (cond ((Just? it-Maybe)
+	    (let ((it (Just.value it-Maybe)))
+	      ,then))
+	   ((Nothing? it-Maybe)
+	    ,(or else `(void)))
+	   (else
+	    (Maybe:error it-Maybe)))))
+
+(TEST
+ > (Maybe:if (Just 1) it 'no)
+ 1
+ > (Maybe:if (Nothing) it 'no)
+ no
+ > (%try-error (Maybe:if 'foo 1 2))
+ #(error "not a Maybe:" foo))
+
 
 
 ;; once again (where did I have something like this?):
@@ -105,18 +122,40 @@
  (begin a b))
 
 
-
+;; Stupid, only allowing one test, why. Should extend, similar to
+;; Maybe:or, ah wait, Result:or. Anyway, similar to cond.
 (defmacro (Maybe:cond t+then #!optional else)
-  (mcase t+then
-	 (`(`t => `then)
-	  `(if-Maybe ,t
-		     ,then
-		     (lambda ()
-		       ,(if else
-			    (mcase else
-				   (`(else . `rest)
-				    (rest->begin rest)))
-			    `(void)))))))
+  (let ((else* (if else
+		   (mcase else
+			  (`(else . `rest)
+			   (rest->begin rest)))
+		   `(void))))
+    (mcase t+then
+	   (`(`t => `then)
+	    (with-gensym V
+			 `(let ((,V ,t))
+			    (cond ((Just? ,V)
+				   (,then (Just.value ,V)))
+				  ((Nothing? ,V)
+				   ,else*)
+				  (else
+				   (Maybe:error ,V))))))
+	   (`(`t . `rest)
+	    ;; actually introduces |it| like, well, Maybe:if
+	    `(Maybe:if ,t
+		       ,(rest->begin rest)
+		       ,else*)))))
+
+(TEST
+ > (Maybe:cond ((Nothing) => 'no))
+ #!void
+ > (Maybe:cond ((Nothing) => 'no) (else 'fail))
+ fail
+ > (Maybe:cond ((Just 2) it) (else 'fail))
+ 2
+ > (Maybe:cond ((Just 3) => identity) (else 'fail))
+ 3
+ )
 
 (TEST
  > (def (psqrt x)
@@ -149,7 +188,7 @@
  > counter
  1
  > (%try-error (Maybe:cond ((sqrt 4) => inc)))
- #(error "v does not match Maybe?:" 2))
+ #(error "not a Maybe:" 2))
 
 
 (def (Maybe pred)
@@ -173,9 +212,9 @@
 
 (TEST
  > (%try (Maybe:if-let ((a 2)) 3))
- (exception text: "v does not match Maybe?: 2\n")
+ (exception text: "not a Maybe: 2\n")
  > (%try (Maybe:if-let ((a #f)) 3 4))
- (exception text: "v does not match Maybe?: #f\n")
+ (exception text: "not a Maybe: #f\n")
  > (Maybe:if-let ((a (Just 2))) a)
  2
  > (Maybe:if-let ((a (Just 2))) a 4)
@@ -208,7 +247,7 @@
 			 (b z8wm5y6dp9))
 			(list a b)
 			5))
- (exception text: "v does not match Maybe?: 1\n")
+ (exception text: "not a Maybe: 1\n")
  >  (Maybe:if-let* ((z8wm5y6dp9 (Just 1))
 		    (b (Just (inc z8wm5y6dp9))))
 		   (list z8wm5y6dp9 b)
