@@ -21,7 +21,6 @@
 	string.set!
 	string.length
 	string.list
-	list.string
 	string.null?
 	;; string-inc!
 	;; string-set!
@@ -430,7 +429,10 @@
        ;; is to be used with a struct.
        (def. VECTOR.append VECTOR-append))
    (def. VECTOR.list VECTOR->list)
-   (def. list.VECTOR list->VECTOR)
+   (IF (not (eq? 'VECTOR 'string))
+       ;; list.string is not OK, use char-list.string from
+       ;; oo-util.scm instead.
+       (def. list.VECTOR list->VECTOR))
 
    ;; XX already have |string-empty?|
    (def. (VECTOR.null? v)
