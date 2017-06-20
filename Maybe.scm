@@ -30,7 +30,7 @@
 	;; name if-present instead?
 	(def-method (if-Just v then else)
 	  (if (Just? v)
-	      (then (Just.value v))
+	      (then (@Just.value v))
 	      (else)))
 	    
 	(jclass ((Nothing _Nothing))
@@ -53,7 +53,7 @@
 	  (map (C _ v) (list Maybe? Nothing? Just?
 			     (lambda (v)
 			       (if (Just? v)
-				   (Just.value v)
+				   (@Just.value v)
 				   'n)))))
 	(list #f
 	      (values)
@@ -88,7 +88,7 @@
 		    else)
   `(let ((it-Maybe ,t))
      (cond ((Just? it-Maybe)
-	    (let ((it (Just.value it-Maybe)))
+	    (let ((it (@Just.value it-Maybe)))
 	      ,then))
 	   ((Nothing? it-Maybe)
 	    ,(or else `(void)))
@@ -136,7 +136,7 @@
 	    (with-gensym V
 			 `(let ((,V ,t))
 			    (cond ((Just? ,V)
-				   (,then (Just.value ,V)))
+				   (,then (@Just.value ,V)))
 				  ((Nothing? ,V)
 				   ,else*)
 				  (else
@@ -196,7 +196,7 @@
      (lambda (v)
        (or (Nothing? v)
 	   (and (Just? v)
-		(pred (Just.value v))))))
+		(pred (@Just.value v))))))
 
 (TEST
  > (def Maybe-integer? (Maybe integer?))
