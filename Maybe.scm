@@ -27,6 +27,7 @@
 
 (jclass Maybe
 
+	;; name if-present instead?
 	(def-method (if-Just v then else)
 	  (if (Just? v)
 	      (then (Just.value v))
@@ -80,7 +81,7 @@
 (def (Maybe:error v)
      (error "not a Maybe:" v))
 
-;; XX rename to if-Just (for consistency with Result.scm)?
+;; XX rename to if-Just (for consistency with Result.scm)? (or if-present ?)
 (defmacro (Maybe:if t
 		    then
 		    #!optional
