@@ -175,6 +175,9 @@
 
 ;; Predicates
 
+;; XX just call |Result|, for consistency with |Maybe|? Difficult
+;; times. (Have type constructors ucfirst, value constructors
+;; lcfirst?)
 (def (Result-of pred-result pred-failure)
      (lambda (v)
        (or (and (Ok? v)
