@@ -16,7 +16,8 @@
 	 test)
 
 
-(export (method show)
+(export (method .show)
+	(method .show-string)
 	try-show
 	#!optional
 	toplevel-procedure?
@@ -127,4 +128,8 @@
 	 (cmp (cdr p)))
     `(on/registry ,(.show access)
 		  ,(.show cmp))))
+
+
+(define. (any.show-string v)
+  (object->string (.show v)))
 
