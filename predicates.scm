@@ -56,6 +56,7 @@
 	;; and the new meat:
 	function?
 	predicate?
+	thunk?
 	throwing
 	function-of
 	procedure-of
@@ -74,6 +75,10 @@
 
 ;; a function that takes any value and returns a boolean.
 (define predicate? function?)
+
+;; a procedure that takes no arguments
+(define thunk? procedure?)
+
 
 ;; XX this must be part of cj-typed of course if it is to be a
 ;; non-noop
