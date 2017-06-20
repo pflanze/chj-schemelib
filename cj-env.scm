@@ -30,14 +30,16 @@
 
 ;; an if that only accepts booleans:
 
-(define-macro* (If test yes no)
+(define-macro* (If test yes #!optional no)
   (let ((V (gensym 'v)))
     `(##let ((,V ,test))
 	    (##if (##eq? ,V #t)
 		  ,yes
-		  (##if (##eq? ,V #f)
-			,no
-			(If-error ,V))))))
+		  ,@(if no
+			`((##if (##eq? ,V #f)
+				,no
+				(If-error ,V)))
+			'())))))
 
 (define (If-error v)
   (error "If: expecting boolean, got:" v))
