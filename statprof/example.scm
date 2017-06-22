@@ -1,11 +1,10 @@
-#!/usr/bin/env gsi-script
-
-(load "statprof.scm")
+(require statprof
+	 statprof/ring)
 
 (define (main)
 
   (profile-start!)
-  (load "ring.scm")
+  (ring 10000)
   (profile-stop!)
 
   (write-profile-report "ring"))

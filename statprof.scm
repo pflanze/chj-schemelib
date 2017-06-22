@@ -4,11 +4,12 @@
 
 ;; $Id: statprof.scm,v 1.9 2005/03/14 07:35:49 guillaume Exp $
 
-;; public:
-;;  (profile-start!)
-;;  (profile-stop!)
-;;  (write-profile-report string:subdirectory)
-;;  (run-with-profile thunk #!optional (profile-name "profile"))
+(require)
+
+(export (profile-start!)
+	(profile-stop!)
+	(write-profile-report string:subdirectory)
+	(run-with-profile thunk #!optional (profile-name "profile")))
 
 ;; ----------------------------------------------------------------------------
 ;; Profiling & interruption handling

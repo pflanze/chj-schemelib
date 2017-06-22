@@ -1,4 +1,4 @@
-; file: "ring.scm"
+(require)
 
 (declare (standard-bindings))
 
@@ -68,4 +68,3 @@
 	(joes-challenge n m))
       (error "invalid arg to ring")))
 
-(ring 10000)
