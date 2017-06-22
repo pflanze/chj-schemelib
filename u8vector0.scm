@@ -18,7 +18,7 @@
 	 (cj-source-util-2 assert)
 	 utf8 ;; or include? sigh.
 	 unclean
-	 (string-util-3 list.string-reverse)
+	 (string-util-3 char-list.string-reverse)
 	 cj-warn)
 
 
@@ -187,7 +187,7 @@ ___RESULT= ___FIX(res);
 			      (warn "utf-8 decoding error, skipping over bad sequence")
 			      ;; XX or should we die anyway?
 			      (lp i* l n)))))
-	      (list.string-reverse l))))))
+	      (char-list.string-reverse l))))))
 
 (def. u8vector.utf8-parse (<>.utf8-parse u8vector? u8vector-length))
 
