@@ -24,9 +24,9 @@
      (let redo ((l (string.list s)))
        (case (first l)
 	 ((#\0) (redo (rest l)))
-	 ((#\x) (string->number (list.string (filter (lambda (c)
-						       (not (char=? c #\_)))
-						     (rest l)))
+	 ((#\x) (string->number (list->string (filter (lambda (c)
+							(not (char=? c #\_)))
+						      (rest l)))
 				16))
 	 (else #f))))
 
