@@ -51,9 +51,9 @@
 	  #f))))
 
 (define (dot-oo:method-type-maybe-ref-method vec n obj)
-  (let ((end (+ n n)))
+  (let ((end (fx+ n n)))
     (let lp ((i n))
-      (if (< i end)
+      (if (fx< i end)
 	  (if ((vector-ref vec i) obj)
 	      (vector-ref vec (fx+ i n))
 	      (lp (fx.inc i)))
