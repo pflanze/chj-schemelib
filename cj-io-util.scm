@@ -15,7 +15,7 @@
 	 (alist <alist>)
 	 srfi-11
 	 srfi-1
-	 (posix/cj-posix posix:environ)
+	 posix/cj-posix ;; posix:environ open close read write seek etc.
 	 (cj-functional list-of values-of)
 	 string-bag)
 
@@ -61,7 +61,8 @@
 	chown
 	possibly-create-directory
 	putfile
-	getfile)
+	getfile
+	partial-copy-file)
 
 
 ;; handle setenv:-enriched process specs:
@@ -645,3 +646,30 @@
      (call-with-input-file path
        (lambda (port)
 	 (read-line port #f))))
+
+
+;; unlike Gambit's copy-file this copies a part of the file, also, it
+;; doesn't request any data outside the given range (which may be
+;; important if there are read errors). For now only use one buffer,
+;; assume we can deal with that?
+;; XX Oh, should it use Result.scm instead of exceptions?
+(def (partial-copy-file #(path-string? from-path)
+			#(path-string? to-path)
+			#(natural0? from-byte)
+			#(natural0? to-byte))
+     (let* ((len (-> natural0? (- to-byte from-byte)))
+	    (buf (make-u8vector len))
+	    (in (posix:open from-path (bitwise-or O_RDONLY)))
+	    ;; XX option for permissions?
+	    (out (posix:open to-path (bitwise-or O_CREAT O_WRONLY) #o666)))
+       ;; XX error condition file too short? wait would EXTEND it? or
+       ;; RDONLY prevents this?
+       (posix:lseek in from-byte SEEK_SET)
+       (let ((nread (posix:read-u8vector in buf len)))
+	 (posix:close in)
+	 ;; XX another error condition, file too short or (forever!) EINTR
+	 (assert (= nread len))
+	 ;; XX another EINTR case?
+	 (assert (= (posix:write-u8vector out buf len) len))
+	 (posix:close out))))
+
