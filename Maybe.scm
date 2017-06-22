@@ -27,18 +27,18 @@
 
 (jclass Maybe
 
-	;; name if-present instead?
-	(def-method (if-Just v then else)
-	  (if (Just? v)
-	      (then (@Just.value v))
-	      (else)))
-	    
 	(jclass ((Nothing _Nothing))
 		(def-method (maybe-value s)
 		  #f))
 
 	(jclass (Just value)
-		(def-method maybe-value Just.value)))
+		(def-method maybe-value Just.value))
+
+	;; name if-present instead?
+	(def-method (if-Just v then els)
+	  (if (Just? v)
+	      (then (@Just.value v))
+	      (els))))
 
 
 ;; optimization:
@@ -52,9 +52,11 @@
  > (map (lambda (v)
 	  (map (C _ v) (list Maybe? Nothing? Just?
 			     (lambda (v)
-			       (if (Just? v)
-				   (@Just.value v)
-				   'n)))))
+			       (with-exception-catcher
+				error-exception-message
+				(& (.if-Just v
+					     identity
+					     (& 'n))))))))
 	(list #f
 	      (values)
 	      (Nothing)
@@ -62,8 +64,8 @@
 	      (Just #f)
 	      (Just (Nothing))
 	      (Just (Just 13))))
- ((#f #f #f n)
-  (#f #f #f n)
+ ((#f #f #f "no method found for generic .if-Just for value:")
+  (#f #f #f "no method found for generic .if-Just for value:")
   (#t #t #f n)
   (#t #f #t 1)
   (#t #f #t #f)
