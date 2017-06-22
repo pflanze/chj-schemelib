@@ -1,6 +1,7 @@
 
 (require cj-env
 	 dot-oo
+	 (oo-util char-list?) ;; XX should that be in predicates.scm?
 	 (unclean make-unclean-string)
 	 (list-util let-pair))
 
@@ -18,7 +19,7 @@
 	string.drop
 	string.take
 	string.any
-	list.string-reverse
+	char-list.string-reverse
 	substring*)
 
 
@@ -165,7 +166,7 @@
 ;; (should this be in a list or string lib? string since list is the
 ;; default type in lisps.)
 
-(define. (list.string-reverse l #!optional (len (length l)))
+(define. (char-list.string-reverse l #!optional (len (length l)))
   (let ((out (make-unclean-string len)))
     (let lp ((i (dec len))
 	     (l l))
