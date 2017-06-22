@@ -4,7 +4,10 @@
 
 ;; $Id: statprof.scm,v 1.9 2005/03/14 07:35:49 guillaume Exp $
 
-(require)
+(require slib-sort
+	 (cj-env on)
+	 (srfi-11 lambda-values fst)
+	 (oo-vector-lib vector.sum))
 
 (export (profile-start!)
 	(profile-stop!)
@@ -221,18 +224,23 @@
        (statprof:sexp->html
         `(html
           (body
-           ,@(map (lambda (bucket)
-                    (let ((file-path (string-append
-                                      directory-name
-                                      (path-strip-directory (car bucket))
-                                      ".html")))
-                      `(p (a href: ,file-path ,file-path)
-                          " ["
-                          ,(statprof:round%
-                            (/ (apply + (vector->list (cdr bucket)))
-                               statprof:*total*))
-                          " %]")))
-                  statprof:*buckets*))))))))
+           ,@(map (lambda-values
+		   ((total bucket))
+		   (let ((file-path (string-append
+				     directory-name
+				     (path-strip-directory (car bucket))
+				     ".html")))
+		     `(p (a href: ,file-path ,file-path)
+			 " ["
+			 ,(statprof:round%
+			   (/ total
+			      statprof:*total*))
+			 " %]")))
+		  (sort (map (lambda (bucket)
+			       (values (vector.sum (cdr bucket))
+				       bucket))
+			     statprof:*buckets*)
+			(on fst >))))))))))
 
 (define (statprof:round% n)
   (/ (round
