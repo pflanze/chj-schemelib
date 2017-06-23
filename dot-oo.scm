@@ -29,6 +29,8 @@
 	(generic .typecheck!) ;; ?
 	)
 
+(include "cj-standarddeclares.scm")
+
 ;; include method lookup table implementation
 (include "dot-oo--include.scm")
 ;; Getting:
