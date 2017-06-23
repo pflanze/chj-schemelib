@@ -41,6 +41,7 @@
 	joo:parse-decl
 	expand-forms-in-exprs)
 
+(include "cj-standarddeclares.scm")
 
 ;; XX move elsewhere? (Depends on symboltable! *And* )
 

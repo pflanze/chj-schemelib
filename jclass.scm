@@ -10,6 +10,9 @@
 	 joo
 	 (joo expand-forms-in-exprs))
 
+(include "cj-standarddeclares.scm")
+
+
 ;; more-oo-inspired syntax on top of joo
 
 

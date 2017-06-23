@@ -45,6 +45,8 @@
 	struct-tag->metadata
 	define-struct-expand)
 
+(include "cj-standarddeclares.scm")
+
 
 ;; A struct is a vector with an object in slot 0 that unambiguously
 ;; determines the struct type, implemented by using allocated,
