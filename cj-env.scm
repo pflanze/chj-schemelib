@@ -50,16 +50,23 @@
    (and (integer? x)
 	(positive? x))))
 
+;; XX move to predicates.scm ?:
+
 (define (natural0? x)
   (and (integer? x)
        (not (negative? x))))
 
+(define (fxnatural? v)
+  (and (fixnum? v)
+       (fxpositive? v)))
+
+(define (fxnatural0? v)
+  (and (fixnum? v)
+       (not (fxnegative? v))))
+
 (define (positive-real? x)
   (and (real? x)
        (positive? x)))
-
-
-;; move to some other lib?
 
 ;; 'Machine' integer types (predicates)
 
