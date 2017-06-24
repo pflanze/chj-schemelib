@@ -100,6 +100,7 @@
   '( ;; cj-source
     ;; define-macro-star
     ;; dummy-module
+    cj-standarddeclares
     vector-util-1
     cj-env-1
 
