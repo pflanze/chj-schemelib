@@ -8,7 +8,8 @@
 (require wbtree
 	 define-macro-star
 	 (cj-env IF)
-	 test)
+	 test
+	 (cj-test %try))
 
 (define wbtreeparameter-string
   (wbtreeparameter string-cmp
@@ -127,17 +128,21 @@
  > (define e (with-exception-catcher identity (lambda () ($s(wbtree:add t "da")))))
  > (wbtree-duplicate-exception? e)
  #t
- > (wbtree-duplicate-exception-element e)
+ > (wbtree-duplicate-exception-old-element e)
  "da"
 
  > ($s(wbtree:members t))
  ("a" "b" "c" "d" "da" "e")
  ;; aha ye: uniq:
- > ($s(wbtreesort '("def" "abc" "a" "a" "f")))
+ > ($s (wbtreesort '("def" "abc" "a" "a" "f") #t))
  ("a" "abc" "def" "f")
+ > (%try ($s (wbtreesort '("def" "abc" "a" "a" "f"))))
+ (exception
+  text:
+  "This object was raised: #((wbtree-duplicate-exception) \"a\" \"a\")\n")
  > (define t-input '("def" "abc" "a" "a" "f" "n" "abe" "abba" "berta" "zwerg" "Zwerg"))
- > ($sdefine t (list->wbtree t-input))
-)
+ > ($sdefine t (list->wbtree t-input #t))
+ )
 
 (IF use-wbtrees-as-leafs?
     (TEST
@@ -306,7 +311,7 @@
  > (define* (prandomwbtree *s n)
      (letv ((l rest) (stream-rtake+rest (unbox *s) n))
 	   (set-box! *s rest)
-	   (list->wbtree l)))
+	   (list->wbtree l #t)))
  > ($sdefine t1 (prandomwbtree *stringstream1 10000))
  > ($sdefine t2 (prandomwbtree *stringstream1 10000))
  > ($sdefine t3 (prandomwbtree *stringstream1 10000))
