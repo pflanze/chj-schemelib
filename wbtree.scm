@@ -577,8 +577,8 @@
 	empty-wbtree
 	l))
 
-(define* (wbtreesort l)
-  (wbtree:members (list->wbtree l)))
+(define* (wbtreesort l #!optional ignore-duplicates?)
+  (wbtree:members (list->wbtree l ignore-duplicates?)))
 
 
 ;; fun fold_union t1 t2 = inorder_fold(reverse_add,t1,t2)
