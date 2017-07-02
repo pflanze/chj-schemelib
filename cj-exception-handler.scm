@@ -38,3 +38,4 @@
 	#t)
       #f))
 
+(cj-exception-handler:activate-if-primordial!)
