@@ -28,6 +28,7 @@
 	eperm-exception?
 	read-lines
 	maybe-read-line
+	xread-line
 	writeln
 	pathspec.xcontent
 	string.print-file
@@ -180,10 +181,18 @@
 	  tail
 	  (cons line (rec))))))
 
-(define (maybe-read-line . args)
-  (let ((v (apply read-line args)))
+(define (maybe-read-line p . args)
+  (let ((v (apply read-line p args)))
     (if (eof-object? v)
 	#f
+	v)))
+
+;; would preferably use read-line as the name, but, better don't
+;; confuse Scheme users.
+(define (xread-line p . args)
+  (let ((v (apply read-line p args)))
+    (if (eof-object? v)
+	(error "xread-line: got EOF reading from " p)
 	v)))
 
 
