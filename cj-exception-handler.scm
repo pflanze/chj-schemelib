@@ -15,11 +15,17 @@
 (define current-exception (make-parameter #f))
 
 (define (cj-exception-handler e)
-  (parameterize ((current-exception e))
-		;; now this is of course a little pointless since now
-		;; the error is reported here. And e accessible
-		;; anyway. TODO, how?
-		(primordial-exception-handler e)))
+  ;; Show every object with a serial number handle first, so that it
+  ;; can be accessed as the original value.
+  ;; (XX BAD: immediate objects are never freed from the serialization
+  ;; table, right? But, shouldn't that be handled there instead?)
+  (let ((p (console-port)))
+    ;; right it's the console-port ?
+    (display "cj-exception-handler: exception #" p)
+    (display (object->serial-number e) p)
+    (newline p)
+    ;; (Call previous handler instead of the primordial one ?)
+    (primordial-exception-handler e)))
 
 
 (define (cj-exception-handler:activate!)
