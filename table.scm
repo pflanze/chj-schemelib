@@ -22,7 +22,7 @@
 		table.show
 		table.ref 
 		table.set! 
-		table.delete!
+		table.delete! table-delete!
 		table.push!)
 	
 	;; utilities:
@@ -164,6 +164,7 @@
 (define. (table.delete! t key)
   (table-set! t key))
 
+(define table-delete! table.delete!)
 
 (define. (table.push! t key val)
   (table-set! t key (cons val (table-ref t key '()))))
