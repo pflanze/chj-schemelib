@@ -20,9 +20,14 @@
 	 (cj-inline inline-through-decompile))
 
 
-(export safe-fx#+
-	safe-fx#-
-	safe-fx#*
+(export (macros safe-fx#+
+		safe-fx#-
+		safe-fx#*
+		safe-fx#=
+		safe-fx#positive?
+		safe-fx#negative?
+		safe-fx#zero?
+		)
 	safe-fx#inc
 	safe-fx#dec
 	(macros use-safe-fx
@@ -45,6 +50,28 @@
   `(let ()
      (declare (safe))
      (fx* ,@args)))
+
+(define-macro* (safe-fx#= . args)
+  `(let ()
+     (declare (safe))
+     (fx= ,@args)))
+
+(define-macro* (safe-fx#positive? . args)
+  `(let ()
+     (declare (safe))
+     (fxpositive? ,@args)))
+
+(define-macro* (safe-fx#negative? . args)
+  `(let ()
+     (declare (safe))
+     (fxnegative? ,@args)))
+
+(define-macro* (safe-fx#zero? . args)
+  `(let ()
+     (declare (safe))
+     (fxzero? ,@args)))
+
+
 
 
 ;; (define (safe-fx#inc x)
