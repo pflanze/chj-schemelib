@@ -29,7 +29,9 @@
 	(macro define-typed)
 	(macro ->)
 	;; indirectly: ->-error
-
+	(macros cj-typed-disable
+		cj-typed-enable)
+	
 	#!optional
 	typed-body-parse)
 
@@ -294,16 +296,61 @@
    (type-check pair? a (type-check number? c (##begin (-> foo? hello))))))
 
 
+
+;; ==== disabling type checks =============
+
 (define-macro* (detyped-lambda args . body)
-  `(lambda ,(args-detype args)
+  `(##lambda ,(args-detype args)
      ,@(typed-body-parse stx body
 			 (lambda (pred body)
 			   body))))
 
 (TEST
  > (expansion#detyped-lambda (a #(pair? b) . c) 'hello 'world)
- (lambda (a b . c)
-   'hello 'world))
+ (##lambda (a b . c)
+      'hello 'world)
+ > (expansion#detyped-lambda (a . #(pair? b)) -> integer? 'hello 'world)
+ (##lambda (a . b)
+      'hello 'world)
+ )
+
+;; With a directive
+
+(define-macro* (cj-typed-disabled#typed-lambda args . body)
+  `(##lambda ,(args-detype args)
+	,@(typed-body-parse stx body
+			    (lambda (pred body)
+			      body))))
+
+
+(define-macro* (cj-typed-disable)
+  `(##namespace ("cj-typed-disabled#" typed-lambda)))
+
+(define-macro* (cj-typed-enable)
+  `(##namespace ("" typed-lambda)))
+
+
+(TEST
+ > (begin
+     (cj-typed-enable)
+     (let ((a (typed-lambda (#(pair? x)) x)))
+       (%try-error (a 1))))
+ #(error "x does not match pair?:" 1)
+ > (begin
+     (cj-typed-disable)
+     (let ((a (typed-lambda (#(pair? x)) x)))
+       (%try-error (a 2))))
+ 2
+ > (begin
+     (cj-typed-enable)
+     (let ((a (typed-lambda (#(pair? x)) x)))
+       (%try-error (a 3))))
+ #(error "x does not match pair?:" 3)
+ )
+
+
+;; ==========================================
+
 
 (define-macro* (define-typed frst+args . body)
   (let ((frst+args_ (source-code frst+args)))
