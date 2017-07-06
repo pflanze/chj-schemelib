@@ -236,17 +236,15 @@
 
 
 (def (joo:struct-tag.member-of? t members)
-     (cond (((inline @maybe-struct-tag-name) t)
-	    => (lambda (tag-name)
-		 ;; XX did I go to the dark side by using unsafe op
-		 ;; here?
-		 (cond ((@symboltable-ref members
-					  tag-name
-					  #f)
-			=> (lambda (tag)
-			     (eq? t tag)))
-		       (else #f))))
-	   (else #f)))
+     (let ((tag-name ((inline @maybe-struct-tag-name) t)))
+       (and tag-name
+	    ;; XX did I go to the dark side by using unsafe op
+	    ;; here?
+	    (let ((tag (@symboltable-ref members
+					 tag-name
+					 #f)))
+	      (and tag
+		   (eq? t tag))))))
 
 
 ;; using more-oo here as infrastructure for our coding, but not for
