@@ -16,14 +16,16 @@
 
 (require define-macro-star
 	 test
-	 cj-test)
+	 cj-test
+	 (cj-inline inline-through-decompile))
 
 
 (export safe-fx#+
 	safe-fx#-
 	safe-fx#inc
 	safe-fx#dec
-	(macro use-safe-fx))
+	(macros use-safe-fx
+		inline-safe-fx))
 
 
 ;; Any faster way (this does superfluous type checks if used in a not
@@ -64,6 +66,18 @@
 
 (define-macro* (use-safe-fx . ops)
   `(##namespace ("safe-fx#" ,@ops)))
+
+(define-macro* (inline-safe-fx . ops)
+  (let ((ops (if (null? ops)
+		 '(+ - inc dec)
+		 ops)))
+    `(begin
+       ,@(map (lambda (op*)
+		(let ((op (string->symbol
+			   (string-append "safe-fx#"
+					  (symbol->string (source-code op*))))))
+		  `(define ,op (inline-through-decompile ,op))))
+	      ops))))
 
 
 ;; Testing
