@@ -238,9 +238,11 @@
 (def (joo:struct-tag.member-of? t members)
      (cond (((inline @maybe-struct-tag-name) t)
 	    => (lambda (tag-name)
-		 (cond ((symboltable-ref members
-					 tag-name
-					 #f)
+		 ;; XX did I go to the dark side by using unsafe op
+		 ;; here?
+		 (cond ((@symboltable-ref members
+					  tag-name
+					  #f)
 			=> (lambda (tag)
 			     (eq? t tag)))
 		       (else #f))))
