@@ -22,6 +22,7 @@
 
 (export safe-fx#+
 	safe-fx#-
+	safe-fx#*
 	safe-fx#inc
 	safe-fx#dec
 	(macros use-safe-fx
@@ -37,6 +38,11 @@
 (define (safe-fx#- a b)
   (declare (safe))
   (fx- a b))
+
+(define (safe-fx#* a b)
+  (declare (safe))
+  (fx* a b))
+
 
 ;; (define (safe-fx#inc x)
 ;;   (let ((v (fx+ x 1)))
