@@ -31,17 +31,20 @@
 
 ;; Any faster way (this does superfluous type checks if used in a not
 ;; safe context)? How about ASM?
-(define (safe-fx#+ a b)
-  (declare (safe))
-  (fx+ a b))
+(define-macro* (safe-fx#+ . args)
+  `(let ()
+     (declare (safe))
+     (fx+ ,@args)))
 
-(define (safe-fx#- a b)
-  (declare (safe))
-  (fx- a b))
+(define-macro* (safe-fx#- . args)
+  `(let ()
+     (declare (safe))
+     (fx- ,@args)))
 
-(define (safe-fx#* a b)
-  (declare (safe))
-  (fx* a b))
+(define-macro* (safe-fx#* . args)
+  `(let ()
+     (declare (safe))
+     (fx* ,@args)))
 
 
 ;; (define (safe-fx#inc x)
