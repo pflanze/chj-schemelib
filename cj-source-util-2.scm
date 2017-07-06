@@ -125,7 +125,7 @@
 	`(if ,(car es)
 	     ,(rec (cdr es))
 	     (source-error (source-dequote ',(source-quote (car es)))
-			   "xand: got false")))))
+			   "assert-and: got false")))))
 
 ;; > (assert-and 1 (= 3 4) 5)
 ;; *** ERROR IN (console)@86.1 -- This object was raised: #<source-error #7 source: #(#(source1) (#(#(source1) = (console) 983125) #(#(source1) 3 (console) 1114197) #(#(source1) 4 (console) 1245269)) (console) 917589) message: "xand: got false" args: ()>
