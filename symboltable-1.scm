@@ -17,6 +17,7 @@
 	empty-symboltable ;; treat as read-only, please!
 	symboltable-length
 	symboltable-ref ;; with required alternative value if missing
+	@symboltable-ref
 	symboltable-xref ;; exception
 	symboltable-maybe-ref
 	symboltable-contains?
@@ -286,15 +287,12 @@ int ___table_inc2_with_top(int n, int top) {
 
 (IF use-implementation-in-c?
     
-(begin
-  (symboltable-init-scope)
+    (begin
+      (symboltable-init-scope)
 
-  ;;  (define-typed (symboltable-ref:c #(symboltable? t) key alternate-value)
-  (define (symboltable-ref:c t key alternate-value)
-    (declare (standard-bindings)
-	     (extended-bindings)
-	     (not safe))
-    (if (symboltable?-inline t)
+      ;;  (define-typed (symboltable-ref:c #(symboltable? t) key alternate-value)
+
+      (define (@symboltable-ref:c t key alternate-value)
 	(let ((res (##c-code "
 ___SCMOBJ t = ___ARG1;
 ___SCMOBJ key = ___ARG2;
@@ -357,15 +355,27 @@ end:
 			     t key alternate-value)))
 	  (if (eq? res symboltable-ref:c:invalid-type)
 	      (error "invalid type")
-	      res))
-	(error "not a symboltable:" t)))
+	      res)))
 
-  (define symboltable-ref symboltable-ref:c) ;; choose
-  )
+      (define (symboltable-ref:c t key alternate-value)
+	(declare (standard-bindings)
+		 (extended-bindings)
+		 (not safe))
+	(if (symboltable?-inline t)
+	    (let ()
+	      (declare (not inline);; <-no effect, huh; this one does:
+		       (inlining-limit 0))
+	      (@symboltable-ref:c t key alternate-value))
+	    (error "not a symboltable:" t)))
 
-(begin ;; not compile
-  (define symboltable-ref:c symboltable-ref:scheme) ;; fake
-  (define symboltable-ref symboltable-ref:scheme)))
+      (define symboltable-ref symboltable-ref:c) ;; choose
+      (define @symboltable-ref @symboltable-ref:c)
+      )
+
+    (begin					    ;; not compile
+      (define symboltable-ref:c symboltable-ref:scheme) ;; fake
+      (define symboltable-ref symboltable-ref:scheme)
+      (define @symboltable-ref symboltable-ref)))
 
 (define symboltable:nothing (gensym 'nothing))
 
