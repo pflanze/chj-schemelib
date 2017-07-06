@@ -43,19 +43,6 @@
  #t
  )
 
-(define assert:possibly-symbolize-procedures
-  ;; XX basically just want to know if it's a toplevel procedure. sgh.
-  '(
-    ;; R5RS hmm
-    = > < >= <= cons car cdr vector vector-ref list list-ref
-    length vector-length f64vector-length u8vector-length f32vector-length
-    pair? null? zero? negative?
-    eq? eqv? equal?
-    ;; own
-    /= inc dec quotient + - * / arithmetic-shift square sqrt log expt
-    eql?
-    .type .info
-    ))
 
 (define assert:stopping-syntax-forms
   ;; forms that stop from recursing inside
@@ -67,24 +54,8 @@
 
 (define (assert:possibly-symbolize v)
   (if (procedure? v)
-      (let lp ((ss assert:possibly-symbolize-procedures))
-	(if (null? ss)
-	    (or (##procedure-name v) ;; could use that from the start...? well.
-		v)
-	    (let ((sym (car ss))
-		  (_else (lambda () (lp (cdr ss)))))
-	      (cond ((with-exception-catcher
-		      (lambda (e)
-			(if (unbound-global-exception? e)
-			    #f
-			    (raise e)))
-		      (lambda ()
-			(eval sym)))
-		     => (lambda (symv)
-			  (if (eq? v symv)
-			      sym
-			      (_else))))
-		    (else (_else))))))
+      (or (##procedure-name v)
+	  v)
       (if (self-quoting? v)
 	  v
 	  `(quote ,v))))
