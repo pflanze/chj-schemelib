@@ -10,6 +10,17 @@
 	 cj-match
 	 (scheme-meta self-quoting?))
 
+(export (macros assert
+		assert-quietly
+		assert-and
+		V)
+	pp-through-source
+	no-pp-through-source
+	source-map
+	(macros with-source
+		with-source*))
+
+
 (define (maybe-if-form-1ary-head v then)
   (and (pair? v)
        (pair? (cdr v))
@@ -112,6 +123,14 @@
        (error ,(string-append "assertment failure: "
 			      (scm:object->string (cj-desourcify expr)))
 	      ,(assert-replace-expand expr))))
+
+(define (assert-quietly:error)
+  (error "assertment failure"))
+
+(define-macro* (assert-quietly expr)
+  `(##if (##not ,expr)
+	 (assert-quietly:error)))
+
 
 ;; > (define a 'a)
 ;; > (assert (eq? a 'b))
