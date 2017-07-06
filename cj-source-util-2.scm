@@ -66,29 +66,28 @@
 	  assert:stopping-syntax-forms))
 
 (define (assert:possibly-symbolize v)
-  (let ((v* (source-code v)))
-    (if (procedure? v*)
-	(let lp ((ss assert:possibly-symbolize-procedures))
-	  (if (null? ss)
-	      (or (##procedure-name v) ;; could use that from the start...? well.
-		  v)
-	      (let ((sym (car ss))
-		    (_else (lambda () (lp (cdr ss)))))
-		(cond ((with-exception-catcher
-			(lambda (e)
-			  (if (unbound-global-exception? e)
-			      #f
-			      (raise e)))
-			(lambda ()
-			  (eval sym)))
-		       => (lambda (symv)
-			    (if (eq? v* symv)
-				sym
-				(_else))))
-		      (else (_else))))))
-	(if (self-quoting? v)
-	    v
-	    `(quote ,v)))))
+  (if (procedure? v)
+      (let lp ((ss assert:possibly-symbolize-procedures))
+	(if (null? ss)
+	    (or (##procedure-name v) ;; could use that from the start...? well.
+		v)
+	    (let ((sym (car ss))
+		  (_else (lambda () (lp (cdr ss)))))
+	      (cond ((with-exception-catcher
+		      (lambda (e)
+			(if (unbound-global-exception? e)
+			    #f
+			    (raise e)))
+		      (lambda ()
+			(eval sym)))
+		     => (lambda (symv)
+			  (if (eq? v symv)
+			      sym
+			      (_else))))
+		    (else (_else))))))
+      (if (self-quoting? v)
+	  v
+	  `(quote ,v))))
 
 (compile-time
  (define (assert-replace-expand e)
