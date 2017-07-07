@@ -207,6 +207,7 @@
 	  predicate-code ;; mostly for joo.scm
 	  let*-name
 	  let-name
+	  let-fallback?
 	  tag
 	  tag-prefix
 	  #!rest args*)
@@ -405,30 +406,31 @@
 				 (C (gensym)))
 			     `(let ((,V ,inp)
 				    (,C (lambda ,(map (lambda (v+f+i)
-							(vector-ref v+f+i 0))
-						      real-v+f+i-s)
+						   (vector-ref v+f+i 0))
+						 real-v+f+i-s)
 					  ,(rec (cdr vars+inp-s)))))
 				(if (,',predicate-name ,V)
 				    (,C
 				     ,@(map (lambda (v+f+i)
 					      `(vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
 					    real-v+f+i-s))
-				    ;; (,',error-name ,V)
-				    ;; or, in a setting with generics, fall back to the dynamic dispatches:
-				    ;; (,C
-				    ;;  ,@(map (lambda (v+f+i)
-				    ;; 	      `(,(generic-accessor-for-field (vector-ref v+f+i 1))
-				    ;; 		,V))
-				    ;; 	    real-v+f+i-s))
-				    
-				    ;; No, joo would match the first
-				    ;; branch, and it would do the
-				    ;; same thing anyway, no? So just
-				    ;; give an error, OK? XX: inline C
-				    ;; above directly now (save a lambda,
-				    ;; still worthwhile for
-				    ;; interpreted mode)?
-				    (,',error-name ,V))))
+				    ,(if ,let-fallback?
+					 ;; use type-name.field-name
+					 ;; style accessors for cases
+					 ;; when those work even if
+					 ;; the type check fails
+					 `(,C
+					   ,@(map (lambda (v+f+i)
+						    `(,(generic-accessor-for-field (vector-ref v+f+i 1))
+						      ,V))
+						  real-v+f+i-s))
+					 ;; by default, it's just a
+					 ;; type error (e.g. joo's
+					 ;; type predicates already
+					 ;; allow for subtyping and
+					 ;; the vector-ref approach
+					 ;; works in that case, too)
+					 `(,',error-name ,V)))))
 			   (source-error vars*
 					 "invalid number of variables")))))))))))
        (define-macro* (,let-name vars+inp . body)
