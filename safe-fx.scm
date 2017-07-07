@@ -27,6 +27,10 @@
 		safe-fx#positive?
 		safe-fx#negative?
 		safe-fx#zero?
+		safe-fx#<
+		safe-fx#>
+		safe-fx#<=
+		safe-fx#>=
 		)
 	safe-fx#inc
 	safe-fx#dec
@@ -72,6 +76,27 @@
      (fxzero? ,@args)))
 
 
+(define-macro* (safe-fx#< . args)
+  `(let ()
+     (declare (safe))
+     (fx< ,@args)))
+
+(define-macro* (safe-fx#> . args)
+  `(let ()
+     (declare (safe))
+     (fx> ,@args)))
+
+(define-macro* (safe-fx#<= . args)
+  `(let ()
+     (declare (safe))
+     (fx<= ,@args)))
+
+(define-macro* (safe-fx#>= . args)
+  `(let ()
+     (declare (safe))
+     (fx>= ,@args)))
+
+
 
 
 ;; (define (safe-fx#inc x)
@@ -98,6 +123,7 @@
 (define (safe-fx#dec x)
   (declare (safe))
   (fx- x 1))
+
 
 
 (define-macro* (use-safe-fx . ops)
