@@ -131,7 +131,7 @@
 
 (define-macro* (inline-safe-fx . ops)
   (let ((ops (if (null? ops)
-		 '(+ - inc dec)
+		 '(inc dec)
 		 ops)))
     `(begin
        ,@(map (lambda (op*)
