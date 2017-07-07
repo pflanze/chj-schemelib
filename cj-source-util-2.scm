@@ -11,7 +11,7 @@
 	 (scheme-meta self-quoting?))
 
 (export (macros assert
-		assert-quietly
+		assert-privately
 		assert-and
 		V)
 	pp-through-source
@@ -124,12 +124,16 @@
 			      (scm:object->string (cj-desourcify expr)))
 	      ,(assert-replace-expand expr))))
 
-(define (assert-quietly:error)
+(define (assert-privately:error)
   (error "assertment failure"))
 
-(define-macro* (assert-quietly expr)
+;; An assert that does *not* show values or expression (you can get
+;; that from the continuation if you've got access to that). This is
+;; also necessary when macros are being used in expr (with the current
+;; macro expansion system it's not possible to handle these, uh).
+(define-macro* (assert-privately expr)
   `(##if (##not ,expr)
-	 (assert-quietly:error)))
+	 (assert-privately:error)))
 
 
 ;; > (define a 'a)
