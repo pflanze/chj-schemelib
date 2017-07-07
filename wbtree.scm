@@ -150,7 +150,7 @@
   (eq? x empty-wbtree))
 
 (compile-time
- (define use-wbtrees-as-leafs? #t))
+ (define use-wbtrees-as-leafs? #f))
 
 (IF use-wbtrees-as-leafs?
 
@@ -164,7 +164,11 @@
 	)
       (define (wbtree? v)
 	(or (_wbtree? v)
-	    (empty-wbtree? v))))
+	    (empty-wbtree? v)))
+
+      ;; XXX todo: wbtree-left / wbtree-left* and probably more are
+      ;; missing here now, fix that some time.
+      )
 
     (begin ;; optimized variant
       (define-struct wbtree
