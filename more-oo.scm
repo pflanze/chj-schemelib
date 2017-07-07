@@ -7,6 +7,7 @@
 
 
 (require easy-1
+	 test cj-test
 	 cj-env
 	 dot-oo
 	 (cj-source-wraps source:symbol-append)
@@ -18,6 +19,7 @@
 	(macro struct)
 	(macro method)
 	(macro let.)
+	(macro let.-static)
 	#!optional
 	(struct more-oo-class-ctx)
 	current-more-oo-class-ctx
@@ -129,6 +131,28 @@
   (bar baz:.bar)))
 
 
+(def (let-dot:accessor/prefix v prefix)
+     (let ((vstr (symbol.string v)))
+       (if (or (string-contains? vstr ":")
+	       (string-contains? vstr "."))
+	   v ;; really? ":" as trigger for not prefixing the prefix?
+	   (source:symbol-append
+	    prefix
+	    v))))
+
+(TEST
+ > (map (lambda (v)
+	  (list (let-dot:var v)
+		(let-dot:accessor/prefix v '@mypref.)))
+	'(foo
+	  .bar
+	  baz:.bar))
+ ((foo @mypref.foo)
+  (bar .bar)
+  (bar baz:.bar)))
+
+
+
 (defmacro (let. var-or-accessors+e . body)
   ;; heh, does such a great name call for speed-optimized access?
   (mcase var-or-accessors+e
@@ -152,4 +176,36 @@
  ("foo" foo:)
  > (let ((foo:.bar .string))
      (let. ((foo:.bar) 'foo) bar))
+ "foo")
+
+
+(defmacro (let.-static prefix+var-or-accessors+e . body)
+  (mcase prefix+var-or-accessors+e
+	 (`(`prefix `var-or-accessors `e)
+	  (assert* symbol? prefix
+		   (lambda (prefix)
+		     (with-gensym
+		      V
+		      `(##let ((,V ,e))
+			      (##let ,(source-map
+				       (lambda (var-or-accessor)
+					 (assert*
+					  symbol? var-or-accessor
+					  (lambda (sym)
+					    `(,(let-dot:var sym)
+					      (,(let-dot:accessor/prefix sym prefix)
+					       ,V)))))
+				       var-or-accessors)
+				     ,@body))))))))
+
+(TEST
+ > (def (t v)
+	(let.-static (symbol. (string keyword) v)
+		     (list string keyword)))
+ > (t 'foo)
+ ("foo" foo:)
+ > (%try (t "foo"))
+ (exception text: "(Argument 1) SYMBOL expected\n(symbol->string \"foo\")\n")
+ > (let ((foo:.bar .string))
+     (let.-static (balabala (foo:.bar) 'foo) bar))
  "foo")
