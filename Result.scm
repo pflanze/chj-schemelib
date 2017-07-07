@@ -91,7 +91,7 @@
 		 else)
   `(let ((it-Result ,t))
      (if (Ok? it-Result)
-	 (let ((it (Ok.value it-Result)))
+	 (let ((it (@Ok.value it-Result)))
 	   ,then)
 	 ,@(if else
 	       (list `(let ((it (Error.value it-Result)))
