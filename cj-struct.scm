@@ -428,7 +428,7 @@
 				    ;; above directly now (save a lambda,
 				    ;; still worthwhile for
 				    ;; interpreted mode)?
-				    (,',error-name))))
+				    (,',error-name ,V))))
 			   (source-error vars*
 					 "invalid number of variables")))))))))))
        (define-macro* (,let-name vars+inp . body)
