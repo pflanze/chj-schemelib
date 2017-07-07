@@ -157,6 +157,8 @@
     (begin ;; original variant, i.e. 'type-safe'
       (define-struct wbtree
 	predicate-name: _wbtree?
+	let-fallback?: #t
+
 	element	;; element
 	size	;; int
 	left	;; wbtree
@@ -176,6 +178,7 @@
 	prefix: "_"
 	generic-accessor-prefix: "wbtree-"
 	let*-name: let*-wbtree
+	let-fallback?: #t
 
 	element	;; element
 	size	;; int
