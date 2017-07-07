@@ -415,11 +415,20 @@
 					    real-v+f+i-s))
 				    ;; (,',error-name ,V)
 				    ;; or, in a setting with generics, fall back to the dynamic dispatches:
-				    (,C
-				     ,@(map (lambda (v+f+i)
-					      `(,(generic-accessor-for-field (vector-ref v+f+i 1))
-						,V))
-					    real-v+f+i-s)))))
+				    ;; (,C
+				    ;;  ,@(map (lambda (v+f+i)
+				    ;; 	      `(,(generic-accessor-for-field (vector-ref v+f+i 1))
+				    ;; 		,V))
+				    ;; 	    real-v+f+i-s))
+				    
+				    ;; No, joo would match the first
+				    ;; branch, and it would do the
+				    ;; same thing anyway, no? So just
+				    ;; give an error, OK? XX: inline C
+				    ;; above directly now (save a lambda,
+				    ;; still worthwhile for
+				    ;; interpreted mode)?
+				    (,',error-name))))
 			   (source-error vars*
 					 "invalid number of variables")))))))))))
        (define-macro* (,let-name vars+inp . body)
