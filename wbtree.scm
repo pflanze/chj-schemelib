@@ -150,13 +150,13 @@
   (eq? x empty-wbtree))
 
 (compile-time
- (define use-wbtrees-as-leafs? #f))
+ (define use-wbtrees-as-leafs? #t))
 
 (IF use-wbtrees-as-leafs?
 
-    (begin ;; original variant
+    (begin ;; original variant, i.e. 'type-safe'
       (define-struct wbtree
-	;; constructor-name: _make-wbtree
+	predicate-name: _wbtree?
 	element	;; element
 	size	;; int
 	left	;; wbtree
