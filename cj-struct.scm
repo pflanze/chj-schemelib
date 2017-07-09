@@ -519,11 +519,18 @@
 ;; Differentiate between "Scheme vectors" and those mis-used for
 ;; objects now:
 
-(define (vector? v)
+;; (Offer in private namespace to make it accessible in standard
+;; declaration mode, see in and keep in sync with
+;; cj-standarddeclares.scm !)
+
+(define (cj-struct#vector? v)
   (and (##vector? v)
        (if (fx>= (##vector-length v) 1)
 	   (not (struct-tag? (##vector-ref v 0)))
 	   #t)))
+
+(define vector? cj-struct#vector?)
+
 
 ;; Generic struct ops:
 
