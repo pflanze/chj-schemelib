@@ -46,7 +46,7 @@
 	)
 
 
-(declare (block)(standard-bindings)(extended-bindings))
+(include "cj-standarddeclares.scm")
 ;; do NOT declare fixnum and not safe; this would break number
 ;; calculations overflowing fixnums.
 

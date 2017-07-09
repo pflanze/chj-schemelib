@@ -15,9 +15,7 @@
 	 )
 
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../../../cj-standarddeclares.scm")
 
 ;; matrix of random values?
 

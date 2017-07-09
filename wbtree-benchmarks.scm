@@ -3,11 +3,9 @@
 	 (cj-env IF)
 	 test)
 
-(declare (standard-bindings)
-         (extended-bindings)
-         (block)
-	 ;;(not safe)
-         )
+(include "cj-standarddeclares.scm")
+;;(not safe)
+         
 
 ;; tests and benchmarks:
 

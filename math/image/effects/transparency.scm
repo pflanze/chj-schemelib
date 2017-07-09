@@ -13,9 +13,7 @@
 
 ;; fake transparency  for now
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../../../cj-standarddeclares.scm")
 
 ;; hm  we don't have a map yet hum  hm hum echt?
 ;;gsrg  for forever   b jo  b  hu f

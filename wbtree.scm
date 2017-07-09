@@ -60,11 +60,9 @@
 	wbtree-right)
 
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block)
-	 ;;(not safe)
-	 )
+(include "cj-standarddeclares.scm")
+;;(not safe)
+
 
 ;; Partially translated from code in ML shown in:
 ;;  Implementing Sets Efficiently in a Functional Language

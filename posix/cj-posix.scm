@@ -154,7 +154,7 @@
 
 ;; (compile #t)
 
-(declare (block)(standard-bindings)(extended-bindings))
+(include "../cj-standarddeclares.scm")
 
 ;; Syntax used in this module:
 ;; - from cj-c-errno:

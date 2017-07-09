@@ -1,6 +1,6 @@
 (require)
 
-(declare (block)(standard-bindings)(extended-bindings))
+(include "../cj-standarddeclares.scm")
 
 
 ; (declare (fixnum)

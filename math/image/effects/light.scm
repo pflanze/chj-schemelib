@@ -14,9 +14,7 @@
 
 ;; create light effect
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../../../cj-standarddeclares.scm")
 
 ;; light functions
 

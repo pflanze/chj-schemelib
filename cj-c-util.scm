@@ -22,7 +22,7 @@
 
 
 
-(declare (block)(standard-bindings)(extended-bindings))
+(include "cj-standarddeclares.scm")
 
 ;; XX move to one of the string libs?
 (define (substring-after str ch)

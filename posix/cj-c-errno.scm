@@ -47,7 +47,7 @@
 ;; calls, and use a special type to differentiate safely and
 ;; comfortably. (We cache the values to minimize gc overhead.)
 
-(declare (block)(standard-bindings)(extended-bindings))
+(include "../cj-standarddeclares.scm")
 
 (define-structure posix-exception
   errno)

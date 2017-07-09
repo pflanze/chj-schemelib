@@ -13,9 +13,7 @@
 	 math/image/pnmatrix-base)
 
 
-(declare (block)
-	 (standard-bindings)
-	 (extended-bindings))
+(include "../../cj-standarddeclares.scm")
 
 ;; PNM matrices
 

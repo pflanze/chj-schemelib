@@ -20,7 +20,7 @@
 
 ; adapted from the chicken md5 egg by christian at pflanze mine nu
 
-(declare (block)(standard-bindings)(extended-bindings))
+(include "cj-standarddeclares.scm")
 
 (c-declare "
  /*

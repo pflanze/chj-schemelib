@@ -10,9 +10,7 @@
 	 (cc CC)
 	 math/vectorlib)
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../cj-standarddeclares.scm")
 
 
 ;; === write PNM/PGM

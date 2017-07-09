@@ -5,9 +5,7 @@
 	english:the-natural
 	english:weekdays)
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (fixnum))
+(include "cj-standarddeclares.scm")
 
 
 (def (english:numerize singular-str #(natural0? n))

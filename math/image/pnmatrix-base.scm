@@ -12,9 +12,7 @@
 	 math/image/pnmatrix-macros ;; pnmatrix:headsize pnmatrixtypes ..
 	 )
 
-(declare (block)
-	 (standard-bindings)
-	 (extended-bindings))
+(include "../../cj-standarddeclares.scm")
 
 
 (define. (pnminfo.bpc info)

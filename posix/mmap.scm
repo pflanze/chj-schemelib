@@ -11,7 +11,7 @@
 	 ;;cj-env-2
 	 )
 
-(declare (block)(standard-bindings)(extended-bindings))
+(include "../cj-standarddeclares.scm")
 
 
 (c-declare "

@@ -19,9 +19,7 @@
 
 ;; add rim around text or line drawings
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../../../cj-standarddeclares.scm")
 
 
 ;; (define (addrim in #!optional out)

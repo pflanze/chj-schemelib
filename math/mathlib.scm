@@ -9,9 +9,7 @@
 (require easy
 	 test)
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../cj-standarddeclares.scm")
 
 
 (define (twice x)

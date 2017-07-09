@@ -20,12 +20,7 @@
 	 digit->hexchar)
 
 
-(declare
- (standard-bindings)
- (extended-bindings)
- (block)
- ;;(fixnum)(not safe)
- )
+(include "cj-standarddeclares.scm")
 
 
 ;; ---- hex encoding (16 bits per char) -----

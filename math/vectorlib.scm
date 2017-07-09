@@ -9,9 +9,7 @@
 (require easy
 	 (cj-functional size0? size?))
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../cj-standarddeclares.scm")
 
 ;; using prefixes before "." for input types ("dispatch"), before ":"
 ;; for output types (selection of intent?). ok? (When both are needed,

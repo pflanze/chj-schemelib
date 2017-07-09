@@ -18,9 +18,7 @@
 		noparallel-for-all))
 
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "cj-standarddeclares.scm")
 
 ;; needs to be a '*' for, i.e. |to| needs to be known in advance so
 ;; that it can divide work (supposedly equally) in advance.

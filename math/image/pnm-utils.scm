@@ -11,9 +11,7 @@
 	 math/image/pnmatrix-compiled
 	 math/image/pnm)
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "../../cj-standarddeclares.scm")
 
 (define. (ppm8.decolorize m)
   (letv ((s0 s1) (.sizes m))

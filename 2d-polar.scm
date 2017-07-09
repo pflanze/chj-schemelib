@@ -12,9 +12,7 @@
 	 jclass)
 
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "cj-standarddeclares.scm")
 
 
 (def 90° (* 0.5 pi))

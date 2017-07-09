@@ -14,9 +14,8 @@
 
 
 ;; just for performance
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (fixnum))
+(include "cj-standarddeclares.scm")
+
 (define (inc x)
   (+ x 1))
 (define (dec n)

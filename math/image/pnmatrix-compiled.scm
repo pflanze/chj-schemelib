@@ -9,9 +9,7 @@
 (require easy
 	 math/image/pnmatrix-macros)
 
-(declare (block)
-	 (standard-bindings)
-	 (extended-bindings))
+(include "../../cj-standarddeclares.scm")
 
 (define-pnmatrix-types)
 

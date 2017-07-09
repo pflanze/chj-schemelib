@@ -14,9 +14,7 @@
 	 ;; for testing:
 	 (exceptions with-exceptions-to))
 
-(declare (standard-bindings)
-	 (extended-bindings)
-	 (block))
+(include "cj-standarddeclares.scm")
 
 
 (def (almost= x y max-abs-diff)

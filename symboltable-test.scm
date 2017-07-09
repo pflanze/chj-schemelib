@@ -304,10 +304,8 @@
  )
 
 (define (bench-symbol len n)
-  (declare (standard-bindings)
-	   (extended-bindings)
-	   (fixnum)
-	   (not safe))
+  (include "cj-standarddeclares.scm")
+  (declare (not safe))
   (letv ((m t gaps) (mkmapping+symboltable 1000 len))
 	(let ((nongaps (map car m)))
 	  (let ((b (lambda (l)

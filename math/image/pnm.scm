@@ -9,9 +9,7 @@
 (require easy
 	 (u8-parse mk-read-all read-u8-integer read-u8-u8line read-u8-word))
 
-(declare (block)
-	 (standard-bindings)
-	 (extended-bindings))
+(include "../../cj-standarddeclares.scm")
 
 ;;XX move to cj-alist or so?
 
