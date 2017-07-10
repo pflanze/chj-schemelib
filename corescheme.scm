@@ -26,8 +26,8 @@
 	 Maybe
 	 show)
 
-(export corescheme-literal-atom?
-	corescheme-literal?
+(export corescheme:literal-atom?
+	corescheme:literal?
 	(jclass cs-var)
 	(jclass cs-expr
 		(subclasses cs-literal
@@ -50,24 +50,24 @@
 
 ;; Core Scheme representation
 
-(def corescheme-literal-atom?
+(def corescheme:literal-atom?
      ;; XX should null? be part here? Not asking because it's a list
      ;; thing, but because, could be user defined? ?
      (either number? string? boolean? symbol? keyword? null?))
 
 ;; XX really accept lists and vectors as literals?
-(def (corescheme-literal? x)
-     ((either corescheme-literal-atom?
+(def (corescheme:literal? x)
+     ((either corescheme:literal-atom?
 	      ;; scheme has improper ones, yes
 	      (both pair?
-		    (improper-list-of corescheme-literal?))
-	      (vector-of corescheme-literal?)) x))
+		    (improper-list-of corescheme:literal?))
+	      (vector-of corescheme:literal?)) x))
 
 (jclass (cs-var #((perhaps-source-of symbol?) name)
 		#(natural0? id)))
 
 (jclass cs-expr
-	(jclass (cs-literal #(corescheme-literal? val)))
+	(jclass (cs-literal #(corescheme:literal? val)))
 
 	(jclass (cs-lambda #((improper-list-of cs-var?) vars)
 			   #(cs-expr? expr)))
@@ -227,7 +227,7 @@
 		    (comp return-normal-value cs-ref))
 		   (else
 		    (source-error expr "undefined variable"))))
-      (corescheme-literal-atom?
+      (corescheme:literal-atom?
        (%return-normal (cs-literal expr)))
       (pair?
        (let-pair
