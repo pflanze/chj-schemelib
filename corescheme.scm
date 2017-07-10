@@ -39,7 +39,7 @@
 			    cs-if
 			    cs-set!
 			    cs-letrec))
-	source.cs-ast
+	(method source.cs-ast)
 	
 	#!optional
 	cs-id
@@ -377,13 +377,14 @@
 			     #f)))
  (typed-list cs-var? (cs-var 'even? 1)))
 
-(def (source.cs-ast expr
-		    #!optional
-		    (get-ctx default-scheme-env)
-		    (realmode? #t)) -> cs-expr?
+(def. (source.cs-ast expr
+		     #!optional
+		     (get-ctx default-scheme-env)
+		     (realmode? #t))
+  -> cs-expr?
 
-		    (fst (parameterize ((cs-id 0))
-				       (_cs expr (get-ctx) realmode?))))
+  (fst (parameterize ((cs-id 0))
+		     (_cs expr (get-ctx) realmode?))))
 
 
 (TEST
