@@ -18,34 +18,34 @@
 
 (def. (corescheme-lambda.scheme v)
   (let-corescheme-lambda ((vars expr) v)
-		 `(lambda ,(map .name vars)
-		    ,@(map .scheme
-			   (if (corescheme-begin? expr)
-			       (.body expr)
-			       (list expr))))))
+			 `(lambda ,(map .name vars)
+			    ,@(map .scheme
+				   (if (corescheme-begin? expr)
+				       (.body expr)
+				       (list expr))))))
 
 (def. (corescheme-app.scheme v)
   (let-corescheme-app ((proc args) v)
-	      `(,(.scheme proc)
-		,@(map .scheme args))))
+		      `(,(.scheme proc)
+			,@(map .scheme args))))
 
 (def. corescheme-ref.scheme (comp .name .var))
 
 (def. (corescheme-def.scheme v)
   (let-corescheme-def ((var val) v)
-	      `(define ,(.name var)
-		 ,(.scheme val))))
+		      `(define ,(.name var)
+			 ,(.scheme val))))
 
 (def. (corescheme-begin.scheme v)
   `(begin ,@(map .scheme (.body v))))
 
 (def. (corescheme-if.scheme v)
   (let-corescheme-if ((test then else) v)
-	     `(if ,(.scheme test)
-		  ,(.scheme then)
-		  ,@(if else
-			(list (.scheme else))
-			'()))))
+		     `(if ,(.scheme test)
+			  ,(.scheme then)
+			  ,@(if else
+				(list (.scheme else))
+				'()))))
 
 (def. (corescheme-set!.scheme v)
   `(set! ,(.name var)
@@ -79,7 +79,7 @@
 	(qcheck
 	 (source-code
 	  (quote-source
-	   (;; source and expected result from corescheme-back in pairs
+	   ( ;; source and expected result from corescheme-back in pairs
 	    ((let* ((x 4) (y x))
 	       (begin 2 x))
 	     .

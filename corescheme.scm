@@ -64,35 +64,35 @@
 	      (vector-of corescheme:literal?)) x))
 
 (jclass (corescheme-var #((perhaps-source-of symbol?) name)
-		#(natural0? id)))
+			#(natural0? id)))
 
 (jclass corescheme-expr
 	(jclass (corescheme-literal #(corescheme:literal? val)))
 
 	(jclass (corescheme-lambda #((improper-list-of corescheme-var?) vars)
-			   #(corescheme-expr? expr)))
+				   #(corescheme-expr? expr)))
        
 	(jclass (corescheme-app #(corescheme-expr? proc)
-			#((list-of corescheme-expr?) args)))
+				#((list-of corescheme-expr?) args)))
        
 	(jclass (corescheme-ref #(corescheme-var? var)))
 
 	(jclass (corescheme-def #(corescheme-var? var)
-			#(corescheme-expr? val)))
+				#(corescheme-expr? val)))
 
 	(jclass (corescheme-begin #((list-of corescheme-expr?) body)))
        
 	(jclass (corescheme-if #(corescheme-expr? test)
-		       #(corescheme-expr? then)
-		       ;; should the missing-else case be encoded as
-		       ;; explicit (void) ?
-		       #((maybe corescheme-expr?) else)))
+			       #(corescheme-expr? then)
+			       ;; should the missing-else case be encoded as
+			       ;; explicit (void) ?
+			       #((maybe corescheme-expr?) else)))
        
 	(jclass (corescheme-set! #(corescheme-var? var)
-			 #(corescheme-expr? val)))
+				 #(corescheme-expr? val)))
 
 	(jclass (corescheme-letrec #((list-of corescheme-var?) vars)
-			   #((list-of corescheme-expr?) exprs))))
+				   #((list-of corescheme-expr?) exprs))))
 
 
 (defparameter current-corescheme-id #f)
@@ -130,8 +130,8 @@
 
 
 (def (_source->corescheme:begin rest
-		#(corescheme-ctx? ctx)
-		#(boolean? realmode?))
+				#(corescheme-ctx? ctx)
+				#(boolean? realmode?))
      -> (if realmode? corescheme-expr? corescheme-ctx?)
 
      (if (one? rest)
@@ -199,8 +199,8 @@
 
 
 (def (_source->corescheme expr
-	  #(corescheme-ctx? ctx)
-	  #(boolean? realmode?))
+			  #(corescheme-ctx? ctx)
+			  #(boolean? realmode?))
      -> (if realmode? corescheme-expr? corescheme-ctx?)
 
      (def (if-ctx-var sym *then *else)
@@ -237,12 +237,12 @@
 	  (lambda (var)
 	    (%return-normal
 	     (corescheme-app (corescheme-ref var)
-		     (map (comp fst
-				;; dropping ctx changes; XX
-				;; interesting: this is where ##begin
-				;; would be invalid ~?
-				(C _source->corescheme _ ctx realmode?))
-			  r)))))
+			     (map (comp fst
+					;; dropping ctx changes; XX
+					;; interesting: this is where ##begin
+					;; would be invalid ~?
+					(C _source->corescheme _ ctx realmode?))
+				  r)))))
 	 (else
 	  (mcase
 	   expr
@@ -260,9 +260,9 @@
 			      ;; XX really letrec behaviour?
 			      (if realmode?
 				  (corescheme-def what*
-					  (if realmode?
-					      (fst (_source->corescheme expr ctx* realmode?))
-					      (corescheme-dummy)))
+						  (if realmode?
+						      (fst (_source->corescheme expr ctx* realmode?))
+						      (corescheme-dummy)))
 				  ctx*)))))
 		   (pair?
 		    (let-pair
@@ -274,10 +274,10 @@
 			   (let* ((args* (improper-map new-corescheme-var! args))
 				  (ctx** (.improper-prepend ctx* args*)))
 			     (corescheme-def var*
-				     (corescheme-lambda
-				      args*
-				      (fst ;; dropping ctx changes
-				       (_source->corescheme:begin rest ctx** realmode?)))))
+					     (corescheme-lambda
+					      args*
+					      (fst ;; dropping ctx changes
+					       (_source->corescheme:begin rest ctx** realmode?)))))
 			   ctx*))))))
 	   (`(let `binds . `body)
 	    (assert*
@@ -323,7 +323,7 @@
 		      (fold (lambda (v+e expr)
 			      (corescheme-app
 			       (corescheme-lambda (list (fst v+e))
-					  expr)
+						  expr)
 			       (list (snd v+e))))
 			    (fst ;; dropping ctx changes
 			     (_source->corescheme:begin body ctx realmode?))
@@ -358,13 +358,13 @@
 	    (%return-normal
 	     ;; dropping ctx changes
 	     (corescheme-if (fst (_source->corescheme test ctx realmode?))
-		    (fst (_source->corescheme then ctx realmode?))
-		    #f)))
+			    (fst (_source->corescheme then ctx realmode?))
+			    #f)))
 	   (`(if `test `then `else)
 	    (%return-normal
 	     (corescheme-if (fst (_source->corescheme test ctx realmode?))
-		    (fst (_source->corescheme then ctx realmode?))
-		    (fst (_source->corescheme else ctx realmode?)))))
+			    (fst (_source->corescheme then ctx realmode?))
+			    (fst (_source->corescheme else ctx realmode?)))))
 	   (else
 	    (source-error a
 			  "undefined variable in function position")))))))))
@@ -378,9 +378,9 @@
  (typed-list corescheme-var? (corescheme-var 'even? 1)))
 
 (def. (source.corescheme expr
-		     #!optional
-		     (get-ctx default-scheme-env)
-		     (realmode? #t))
+			 #!optional
+			 (get-ctx default-scheme-env)
+			 (realmode? #t))
   -> corescheme-expr?
 
   (fst (parameterize ((current-corescheme-id 0))
@@ -414,24 +414,24 @@
  > (cs/empty '(let ((x 4))
 		(begin x 2)))
  (corescheme-app (corescheme-lambda
-	  (list (corescheme-var 'x 1))
-	  (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
-	 (list (corescheme-literal 4)))
+		  (list (corescheme-var 'x 1))
+		  (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
+		 (list (corescheme-literal 4)))
  > (catching (& (source.corescheme '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
  > (cs/empty '(let ((x 4) (y 5)) (begin x 2)))
  (corescheme-app (corescheme-lambda
-	  (list (corescheme-var 'x 1) (corescheme-var 'y 2))
-	  (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
-	 (list (corescheme-literal 4) (corescheme-literal 5)))
+		  (list (corescheme-var 'x 1) (corescheme-var 'y 2))
+		  (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
+		 (list (corescheme-literal 4) (corescheme-literal 5)))
  > (cs/empty '(let* ((x 4) (y x)) (begin x 2)))
  (corescheme-app (corescheme-lambda
-	  (list (corescheme-var 'x 1))
-	  (corescheme-app (corescheme-lambda
-		   (list (corescheme-var 'y 2))
-		   (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
-		  (list (corescheme-ref (corescheme-var 'x 1)))))
-	 (list (corescheme-literal 4)))
+		  (list (corescheme-var 'x 1))
+		  (corescheme-app (corescheme-lambda
+				   (list (corescheme-var 'y 2))
+				   (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
+				  (list (corescheme-ref (corescheme-var 'x 1)))))
+		 (list (corescheme-literal 4)))
 
 
  > (def (cs/default c)
@@ -439,12 +439,12 @@
 
  > (cs/default '(+ - * /))
  (corescheme-app (corescheme-ref (corescheme-var '+ 1))
-	 (list (corescheme-ref (corescheme-var '- 2))
-	       (corescheme-ref (corescheme-var '* 3))
-	       (corescheme-ref (corescheme-var '/ 4))))
+		 (list (corescheme-ref (corescheme-var '- 2))
+		       (corescheme-ref (corescheme-var '* 3))
+		       (corescheme-ref (corescheme-var '/ 4))))
  > (cs/default '(lambda (n) (* n n)))
  (corescheme-lambda
   (list (corescheme-var 'n 10))
   (corescheme-app (corescheme-ref (corescheme-var '* 3))
-	  (list (corescheme-ref (corescheme-var 'n 10)) (corescheme-ref (corescheme-var 'n 10))))))
+		  (list (corescheme-ref (corescheme-var 'n 10)) (corescheme-ref (corescheme-var 'n 10))))))
 
