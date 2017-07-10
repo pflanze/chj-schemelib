@@ -32,8 +32,8 @@
 		safe-fx#<=
 		safe-fx#>=
 		)
-	safe-fx#inc
-	safe-fx#dec
+	(inline safe-fx#inc
+		safe-fx#dec)
 	(macros use-safe-fx
 		inline-safe-fx))
 
@@ -116,11 +116,11 @@
 ;; otherwise, when using an inc in another place and it produces a
 ;; bignum, we're going to have a problem again. Moo.
 
-(define (safe-fx#inc x)
+(define-inline (safe-fx#inc x)
   (declare (safe))
   (fx+ x 1))
 
-(define (safe-fx#dec x)
+(define-inline (safe-fx#dec x)
   (declare (safe))
   (fx- x 1))
 
@@ -138,7 +138,7 @@
 		(let ((op (string->symbol
 			   (string-append "safe-fx#"
 					  (symbol->string (source-code op*))))))
-		  `(define ,op (inline-through-decompile ,op))))
+		  `(define ,op (inline ,op))))
 	      ops))))
 
 
