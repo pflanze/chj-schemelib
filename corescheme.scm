@@ -20,24 +20,24 @@
 ;; - systematic (property or tracing based?) tests
 
 (require easy
-	 more-oo
+	 jclass
 	 typed-list
 	 typed-alist
 	 Maybe)
 
 (export corescheme-literal-atom?
 	corescheme-literal?
-	(class cs-var)
-	(class cs-expr
-	       (subclass cs-literal)
-	       (subclass cs-lambda)
-	       (subclass cs-app)
-	       (subclass cs-ref)
-	       (subclass cs-def)
-	       (subclass cs-begin)
-	       (subclass cs-if)
-	       (subclass cs-set!)
-	       (subclass cs-letrec))
+	(jclass cs-var)
+	(jclass cs-expr
+		(subclasses cs-literal
+			    cs-lambda
+			    cs-app
+			    cs-ref
+			    cs-def
+			    cs-begin
+			    cs-if
+			    cs-set!
+			    cs-letrec))
 	source.cs-ast
 	
 	#!optional
@@ -62,46 +62,36 @@
 		    (improper-list-of corescheme-literal?))
 	      (vector-of corescheme-literal?)) x))
 
-(class cs-var
-       (struct #((perhaps-source-of symbol?) name)
-	       #(natural0? id)))
+(jclass (cs-var #((perhaps-source-of symbol?) name)
+		#(natural0? id)))
 
-(class cs-expr
-       (subclass cs-literal
-		 (struct #(corescheme-literal? val)))
+(jclass cs-expr
+	(jclass (cs-literal #(corescheme-literal? val)))
 
-       (subclass cs-lambda
-		 (struct #((improper-list-of cs-var?) vars)
-			 #(cs-expr? expr)))
+	(jclass (cs-lambda #((improper-list-of cs-var?) vars)
+			   #(cs-expr? expr)))
        
-       (subclass cs-app
-		 (struct #(cs-expr? proc)
-			 #((list-of cs-expr?) args)))
+	(jclass (cs-app #(cs-expr? proc)
+			#((list-of cs-expr?) args)))
        
-       (subclass cs-ref
-		 (struct #(cs-var? var)))
+	(jclass (cs-ref #(cs-var? var)))
 
-       (subclass cs-def
-		 (struct #(cs-var? var)
+	(jclass (cs-def #(cs-var? var)
+			#(cs-expr? val)))
+
+	(jclass (cs-begin #((list-of cs-expr?) body)))
+       
+	(jclass (cs-if #(cs-expr? test)
+		       #(cs-expr? then)
+		       ;; should the missing-else case be encoded as
+		       ;; explicit (void) ?
+		       #((maybe cs-expr?) else)))
+       
+	(jclass (cs-set! #(cs-var? var)
 			 #(cs-expr? val)))
 
-       (subclass cs-begin
-		 (struct #((list-of cs-expr?) body)))
-       
-       (subclass cs-if
-		 (struct #(cs-expr? test)
-			 #(cs-expr? then)
-			 ;; should the missing-else case be encoded as
-			 ;; explicit (void) ?
-			 #((maybe cs-expr?) else)))
-       
-       (subclass cs-set!
-		 (struct #(cs-var? var)
-			 #(cs-expr? val)))
-
-       (subclass cs-letrec
-		 (struct #((list-of cs-var?) vars)
-			 #((list-of cs-expr?) exprs))))
+	(jclass (cs-letrec #((list-of cs-var?) vars)
+			   #((list-of cs-expr?) exprs))))
 
 
 (defparameter cs-id #f)
