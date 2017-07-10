@@ -28,24 +28,24 @@
 
 (export corescheme:literal-atom?
 	corescheme:literal?
-	(jclass cs-var)
-	(jclass cs-expr
-		(subclasses cs-literal
-			    cs-lambda
-			    cs-app
-			    cs-ref
-			    cs-def
-			    cs-begin
-			    cs-if
-			    cs-set!
-			    cs-letrec))
+	(jclass corescheme-var)
+	(jclass corescheme-expr
+		(subclasses corescheme-literal
+			    corescheme-lambda
+			    corescheme-app
+			    corescheme-ref
+			    corescheme-def
+			    corescheme-begin
+			    corescheme-if
+			    corescheme-set!
+			    corescheme-letrec))
 	(method source.corescheme)
 	
 	#!optional
-	cs-id
-	cs-next-id!
-	new-cs-var!
-	cs-ctx?
+	corescheme-id
+	corescheme-next-id!
+	new-corescheme-var!
+	corescheme-ctx?
 	default-scheme-env)
 
 ;; Core Scheme representation
@@ -63,76 +63,76 @@
 		    (improper-list-of corescheme:literal?))
 	      (vector-of corescheme:literal?)) x))
 
-(jclass (cs-var #((perhaps-source-of symbol?) name)
+(jclass (corescheme-var #((perhaps-source-of symbol?) name)
 		#(natural0? id)))
 
-(jclass cs-expr
-	(jclass (cs-literal #(corescheme:literal? val)))
+(jclass corescheme-expr
+	(jclass (corescheme-literal #(corescheme:literal? val)))
 
-	(jclass (cs-lambda #((improper-list-of cs-var?) vars)
-			   #(cs-expr? expr)))
+	(jclass (corescheme-lambda #((improper-list-of corescheme-var?) vars)
+			   #(corescheme-expr? expr)))
        
-	(jclass (cs-app #(cs-expr? proc)
-			#((list-of cs-expr?) args)))
+	(jclass (corescheme-app #(corescheme-expr? proc)
+			#((list-of corescheme-expr?) args)))
        
-	(jclass (cs-ref #(cs-var? var)))
+	(jclass (corescheme-ref #(corescheme-var? var)))
 
-	(jclass (cs-def #(cs-var? var)
-			#(cs-expr? val)))
+	(jclass (corescheme-def #(corescheme-var? var)
+			#(corescheme-expr? val)))
 
-	(jclass (cs-begin #((list-of cs-expr?) body)))
+	(jclass (corescheme-begin #((list-of corescheme-expr?) body)))
        
-	(jclass (cs-if #(cs-expr? test)
-		       #(cs-expr? then)
+	(jclass (corescheme-if #(corescheme-expr? test)
+		       #(corescheme-expr? then)
 		       ;; should the missing-else case be encoded as
 		       ;; explicit (void) ?
-		       #((maybe cs-expr?) else)))
+		       #((maybe corescheme-expr?) else)))
        
-	(jclass (cs-set! #(cs-var? var)
-			 #(cs-expr? val)))
+	(jclass (corescheme-set! #(corescheme-var? var)
+			 #(corescheme-expr? val)))
 
-	(jclass (cs-letrec #((list-of cs-var?) vars)
-			   #((list-of cs-expr?) exprs))))
+	(jclass (corescheme-letrec #((list-of corescheme-var?) vars)
+			   #((list-of corescheme-expr?) exprs))))
 
 
-(defparameter cs-id #f)
+(defparameter corescheme-id #f)
 
-(def (cs-next-id!)
+(def (corescheme-next-id!)
      ;; forever the same  too.
-     (let ((newid (inc (cs-id))))
-       (cs-id newid)
+     (let ((newid (inc (corescheme-id))))
+       (corescheme-id newid)
        newid))
 
-(def (new-cs-var! name)
-     (cs-var name (cs-next-id!)))
+(def (new-corescheme-var! name)
+     (corescheme-var name (corescheme-next-id!)))
 
 ;; ctx:Maybe-ref
 (modimport/prefix ctx: (<typed-alist> symbol?
-				      cs-var.name
+				      corescheme-var.name
 				      (on source-code eq?)
-				      cs-var?))
+				      corescheme-var?))
 
 
 ;; -- XX why typed-list not typed-alist ??? Ah because typed-alist is
 ;; a naked data structure? (Or at least doesn't currently offer a
 ;; predicate for it?)
-;; > empty-cs-ctx
-;; #((typed-list-null) #<procedure #2 cs-var?>)
+;; > empty-corescheme-ctx
+;; #((typed-list-null) #<procedure #2 corescheme-var?>)
 ;; Nah, could do it.
-(def cs-ctx? (typed-list-of cs-var?))
-(def empty-cs-ctx (typed-list cs-var?))
+(def corescheme-ctx? (typed-list-of corescheme-var?))
+(def empty-corescheme-ctx (typed-list corescheme-var?))
 
-(def (default-scheme-env) -> cs-ctx?
+(def (default-scheme-env) -> corescheme-ctx?
      (list->typed-list
-      cs-var?
-      (map new-cs-var!
+      corescheme-var?
+      (map new-corescheme-var!
 	   '(+ - * / cons car cdr zero? null?))))
 
 
 (def (_cs:begin rest
-		#(cs-ctx? ctx)
+		#(corescheme-ctx? ctx)
 		#(boolean? realmode?))
-     -> (if realmode? cs-expr? cs-ctx?)
+     -> (if realmode? corescheme-expr? corescheme-ctx?)
 
      (if (one? rest)
 	 (_cs (car rest) ctx realmode?)
@@ -141,44 +141,44 @@
 	 ;; backwards. Walk code twice, thus implement dry/real mode
 	 ;; in this translation stage (cs) everywhere.
 	 (let ((ctx*
-		;; protect cs-id from changes, and force
+		;; protect corescheme-id from changes, and force
 		;; exceptions in case anyone requests them
 		;; still
 		(parameterize
-		 ((cs-id (cs-id)))
+		 ((corescheme-id (corescheme-id)))
 		 (fold (lambda (r ctx)
 			 (_cs r ctx #f))
 		       ctx
 		       rest))))
 	   (if realmode?
-	       (cs-begin
+	       (corescheme-begin
 		(map (C _cs _ ctx* realmode?)
 		     rest))
 	       ctx*))))
 
 (TEST
- > (def (t-_cs:begin v #!optional (get-env (lambda () empty-cs-ctx)))
-	(values (parameterize ((cs-id 0))
+ > (def (t-_cs:begin v #!optional (get-env (lambda () empty-corescheme-ctx)))
+	(values (parameterize ((corescheme-id 0))
 			      (_cs:begin v (get-env) #t))
-		(parameterize ((cs-id 0))
+		(parameterize ((corescheme-id 0))
 			      (_cs:begin v (get-env) #f))))
  > (.show (t-_cs:begin '((define a 1) (define b 2))))
- (values (cs-begin
-	  (list (cs-def (cs-var 'a 1) (cs-literal 1))
-		(cs-def (cs-var 'b 2) (cs-literal 2))))
-	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
+ (values (corescheme-begin
+	  (list (corescheme-def (corescheme-var 'a 1) (corescheme-literal 1))
+		(corescheme-def (corescheme-var 'b 2) (corescheme-literal 2))))
+	 (typed-list corescheme-var? (corescheme-var 'b 2) (corescheme-var 'a 1)))
  > (.show (t-_cs:begin '((define a 1) (define b a))))
- (values (cs-begin
-	  (list (cs-def (cs-var 'a 1) (cs-literal 1))
-		(cs-def (cs-var 'b 2) (cs-ref (cs-var 'a 1)))))
-	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
+ (values (corescheme-begin
+	  (list (corescheme-def (corescheme-var 'a 1) (corescheme-literal 1))
+		(corescheme-def (corescheme-var 'b 2) (corescheme-ref (corescheme-var 'a 1)))))
+	 (typed-list corescheme-var? (corescheme-var 'b 2) (corescheme-var 'a 1)))
  > (.show (t-_cs:begin '((define a b) (define b a))))
  ;; this might be invalid Scheme, but valid Ocaml; XXX: ah, actually
  ;; ambiguous?, if b was defined earlier, that one is used instead!
- (values (cs-begin
-	  (list (cs-def (cs-var 'a 1) (cs-ref (cs-var 'b 2)))
-		(cs-def (cs-var 'b 2) (cs-ref (cs-var 'a 1)))))
-	 (typed-list cs-var? (cs-var 'b 2) (cs-var 'a 1)))
+ (values (corescheme-begin
+	  (list (corescheme-def (corescheme-var 'a 1) (corescheme-ref (corescheme-var 'b 2)))
+		(corescheme-def (corescheme-var 'b 2) (corescheme-ref (corescheme-var 'a 1)))))
+	 (typed-list corescheme-var? (corescheme-var 'b 2) (corescheme-var 'a 1)))
  > (.show (.take (snd (t-_cs:begin '((define (odd? n)
 				       (if (zero? n)
 					   #f
@@ -188,10 +188,10 @@
 					   #t
 					   (odd? (- n 1)))))
 				   default-scheme-env)) 3))
- (typed-list cs-var?
-	     (cs-var 'even? 11)
-	     (cs-var 'odd? 10)
-	     (cs-var '+ 1)))
+ (typed-list corescheme-var?
+	     (corescheme-var 'even? 11)
+	     (corescheme-var 'odd? 10)
+	     (corescheme-var '+ 1)))
 
 
 (defmacro (%return-normal e)
@@ -199,9 +199,9 @@
 
 
 (def (_cs expr
-	  #(cs-ctx? ctx)
+	  #(corescheme-ctx? ctx)
 	  #(boolean? realmode?))
-     -> (if realmode? cs-expr? cs-ctx?)
+     -> (if realmode? corescheme-expr? corescheme-ctx?)
 
      (def (if-ctx-var sym *then *else)
 	  (cond
@@ -224,11 +224,11 @@
 
       (symbol?
        (Maybe:cond ((ctx:Maybe-ref ctx (source-code expr)) =>
-		    (comp return-normal-value cs-ref))
+		    (comp return-normal-value corescheme-ref))
 		   (else
 		    (source-error expr "undefined variable"))))
       (corescheme:literal-atom?
-       (%return-normal (cs-literal expr)))
+       (%return-normal (corescheme-literal expr)))
       (pair?
        (let-pair
 	((a r) (source-code expr))
@@ -236,7 +236,7 @@
 	 ((ctx:Maybe-ref ctx (source-code a)) =>
 	  (lambda (var)
 	    (%return-normal
-	     (cs-app (cs-ref var)
+	     (corescheme-app (corescheme-ref var)
 		     (map (comp fst
 				;; dropping ctx changes; XX
 				;; interesting: this is where ##begin
@@ -249,32 +249,32 @@
 
 	   (`(quote `val)
 	    (%return-normal
-	     (cs-literal val)))
+	     (corescheme-literal val)))
 	   (`(define `what . `rest)
 	    (mcase what
 		   (symbol?
 		    (mcase rest
 			   (`(`expr)
-			    (let* ((what* (new-cs-var! what))
+			    (let* ((what* (new-corescheme-var! what))
 				   (ctx* (.cons ctx what*)))
 			      ;; XX really letrec behaviour?
 			      (if realmode?
-				  (cs-def what*
+				  (corescheme-def what*
 					  (if realmode?
 					      (fst (_cs expr ctx* realmode?))
-					      (cs-dummy)))
+					      (corescheme-dummy)))
 				  ctx*)))))
 		   (pair?
 		    (let-pair
 		     ((var args) (source-code what))
-		     (let* ((var* (new-cs-var! var))
+		     (let* ((var* (new-corescheme-var! var))
 			    (ctx* (.cons ctx var*)))
 		       (if realmode?
 			   ;; XX copypaste from above, see improper-* usage
-			   (let* ((args* (improper-map new-cs-var! args))
+			   (let* ((args* (improper-map new-corescheme-var! args))
 				  (ctx** (.improper-prepend ctx* args*)))
-			     (cs-def var*
-				     (cs-lambda
+			     (corescheme-def var*
+				     (corescheme-lambda
 				      args*
 				      (fst ;; dropping ctx changes
 				       (_cs:begin rest ctx** realmode?)))))
@@ -290,12 +290,12 @@
 				     (`(`var `expr)
 				      (values var expr))))
 			    (source-code binds)))
-		      (vs (map (comp new-cs-var! fst) v+e-s))
+		      (vs (map (comp new-corescheme-var! fst) v+e-s))
 		      (es (map (comp* fst (C _cs _ ctx realmode?) snd) v+e-s))
 		      (ctx* (.improper-prepend ctx vs)))
 		 (%return-normal
-		  (cs-app
-		   (cs-lambda
+		  (corescheme-app
+		   (corescheme-lambda
 		    vs
 		    (fst ;; dropping ctx changes
 		     (_cs:begin body ctx* realmode?)))
@@ -321,8 +321,8 @@
 		     ;; around it
 		     (%return-normal
 		      (fold (lambda (v+e expr)
-			      (cs-app
-			       (cs-lambda (list (fst v+e))
+			      (corescheme-app
+			       (corescheme-lambda (list (fst v+e))
 					  expr)
 			       (list (snd v+e))))
 			    (fst ;; dropping ctx changes
@@ -334,7 +334,7 @@
 		      (mcase
 		       b
 		       (`(`var `expr)
-			(let ((var* (new-cs-var! var)))
+			(let ((var* (new-corescheme-var! var)))
 			  (lp bs*
 			      (.cons ctx var*)
 			      (cons var* vars)
@@ -349,20 +349,20 @@
 			       exprs)))))))))))
 	   (`(lambda `vars . `rest)
 	    (%return-normal
-	     (let* ((vars* (improper-map new-cs-var! vars))
+	     (let* ((vars* (improper-map new-corescheme-var! vars))
 		    (ctx* (.improper-prepend ctx vars*)))
-	       (cs-lambda vars* (_cs:begin rest ctx* realmode?)))))
+	       (corescheme-lambda vars* (_cs:begin rest ctx* realmode?)))))
 	   (`(begin . `rest)
 	    (_cs:begin rest ctx realmode?))
 	   (`(if `test `then)
 	    (%return-normal
 	     ;; dropping ctx changes
-	     (cs-if (fst (_cs test ctx realmode?))
+	     (corescheme-if (fst (_cs test ctx realmode?))
 		    (fst (_cs then ctx realmode?))
 		    #f)))
 	   (`(if `test `then `else)
 	    (%return-normal
-	     (cs-if (fst (_cs test ctx realmode?))
+	     (corescheme-if (fst (_cs test ctx realmode?))
 		    (fst (_cs then ctx realmode?))
 		    (fst (_cs else ctx realmode?)))))
 	   (else
@@ -371,19 +371,19 @@
 
 
 (TEST
- > (.show (parameterize ((cs-id 0))
+ > (.show (parameterize ((corescheme-id 0))
 			(_cs '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
-			     empty-cs-ctx ;; (default-scheme-env)
+			     empty-corescheme-ctx ;; (default-scheme-env)
 			     #f)))
- (typed-list cs-var? (cs-var 'even? 1)))
+ (typed-list corescheme-var? (corescheme-var 'even? 1)))
 
 (def. (source.corescheme expr
 		     #!optional
 		     (get-ctx default-scheme-env)
 		     (realmode? #t))
-  -> cs-expr?
+  -> corescheme-expr?
 
-  (fst (parameterize ((cs-id 0))
+  (fst (parameterize ((corescheme-id 0))
 		     (_cs expr (get-ctx) realmode?))))
 
 
@@ -399,52 +399,52 @@
 		    (orig-handler e)))
 	      thunk)))))
 
- > (def (empty-environment) empty-cs-ctx)
+ > (def (empty-environment) empty-corescheme-ctx)
  > (def (cs/empty c)
 	(.show (source.corescheme c empty-environment)))
 
  > (cs/empty '(define x 2))
- (cs-def (cs-var 'x 1) (cs-literal 2))
+ (corescheme-def (corescheme-var 'x 1) (corescheme-literal 2))
  > (cs/empty '(lambda x 2))
- (cs-lambda (cs-var 'x 1) (cs-literal 2))
+ (corescheme-lambda (corescheme-var 'x 1) (corescheme-literal 2))
  > (catching (& (source.corescheme '(f x))))
  "undefined variable in function position"
  > (catching (& (source.corescheme '(begin x 2))))
  "undefined variable"
  > (cs/empty '(let ((x 4))
 		(begin x 2)))
- (cs-app (cs-lambda
-	  (list (cs-var 'x 1))
-	  (cs-begin (list (cs-ref (cs-var 'x 1)) (cs-literal 2))))
-	 (list (cs-literal 4)))
+ (corescheme-app (corescheme-lambda
+	  (list (corescheme-var 'x 1))
+	  (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
+	 (list (corescheme-literal 4)))
  > (catching (& (source.corescheme '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
  > (cs/empty '(let ((x 4) (y 5)) (begin x 2)))
- (cs-app (cs-lambda
-	  (list (cs-var 'x 1) (cs-var 'y 2))
-	  (cs-begin (list (cs-ref (cs-var 'x 1)) (cs-literal 2))))
-	 (list (cs-literal 4) (cs-literal 5)))
+ (corescheme-app (corescheme-lambda
+	  (list (corescheme-var 'x 1) (corescheme-var 'y 2))
+	  (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
+	 (list (corescheme-literal 4) (corescheme-literal 5)))
  > (cs/empty '(let* ((x 4) (y x)) (begin x 2)))
- (cs-app (cs-lambda
-	  (list (cs-var 'x 1))
-	  (cs-app (cs-lambda
-		   (list (cs-var 'y 2))
-		   (cs-begin (list (cs-ref (cs-var 'x 1)) (cs-literal 2))))
-		  (list (cs-ref (cs-var 'x 1)))))
-	 (list (cs-literal 4)))
+ (corescheme-app (corescheme-lambda
+	  (list (corescheme-var 'x 1))
+	  (corescheme-app (corescheme-lambda
+		   (list (corescheme-var 'y 2))
+		   (corescheme-begin (list (corescheme-ref (corescheme-var 'x 1)) (corescheme-literal 2))))
+		  (list (corescheme-ref (corescheme-var 'x 1)))))
+	 (list (corescheme-literal 4)))
 
 
  > (def (cs/default c)
 	(.show (source.corescheme c default-scheme-env)))
 
  > (cs/default '(+ - * /))
- (cs-app (cs-ref (cs-var '+ 1))
-	 (list (cs-ref (cs-var '- 2))
-	       (cs-ref (cs-var '* 3))
-	       (cs-ref (cs-var '/ 4))))
+ (corescheme-app (corescheme-ref (corescheme-var '+ 1))
+	 (list (corescheme-ref (corescheme-var '- 2))
+	       (corescheme-ref (corescheme-var '* 3))
+	       (corescheme-ref (corescheme-var '/ 4))))
  > (cs/default '(lambda (n) (* n n)))
- (cs-lambda
-  (list (cs-var 'n 10))
-  (cs-app (cs-ref (cs-var '* 3))
-	  (list (cs-ref (cs-var 'n 10)) (cs-ref (cs-var 'n 10))))))
+ (corescheme-lambda
+  (list (corescheme-var 'n 10))
+  (corescheme-app (corescheme-ref (corescheme-var '* 3))
+	  (list (corescheme-ref (corescheme-var 'n 10)) (corescheme-ref (corescheme-var 'n 10))))))
 

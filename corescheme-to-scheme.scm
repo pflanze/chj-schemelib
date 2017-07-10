@@ -7,8 +7,8 @@
 	 test-logic)
 
 
-(def. (cs-literal.scheme v)
-  (let-cs-literal
+(def. (corescheme-literal.scheme v)
+  (let-corescheme-literal
    ((val) v)
    (cond (((either symbol? keyword? null?)
 	   (source-code val))
@@ -16,49 +16,49 @@
 	 (else
 	  val))))
 
-(def. (cs-lambda.scheme v)
-  (let-cs-lambda ((vars expr) v)
+(def. (corescheme-lambda.scheme v)
+  (let-corescheme-lambda ((vars expr) v)
 		 `(lambda ,(map .name vars)
 		    ,@(map .scheme
-			   (if (cs-begin? expr)
+			   (if (corescheme-begin? expr)
 			       (.body expr)
 			       (list expr))))))
 
-(def. (cs-app.scheme v)
-  (let-cs-app ((proc args) v)
+(def. (corescheme-app.scheme v)
+  (let-corescheme-app ((proc args) v)
 	      `(,(.scheme proc)
 		,@(map .scheme args))))
 
-(def. cs-ref.scheme (comp .name .var))
+(def. corescheme-ref.scheme (comp .name .var))
 
-(def. (cs-def.scheme v)
-  (let-cs-def ((var val) v)
+(def. (corescheme-def.scheme v)
+  (let-corescheme-def ((var val) v)
 	      `(define ,(.name var)
 		 ,(.scheme val))))
 
-(def. (cs-begin.scheme v)
+(def. (corescheme-begin.scheme v)
   `(begin ,@(map .scheme (.body v))))
 
-(def. (cs-if.scheme v)
-  (let-cs-if ((test then else) v)
+(def. (corescheme-if.scheme v)
+  (let-corescheme-if ((test then else) v)
 	     `(if ,(.scheme test)
 		  ,(.scheme then)
 		  ,@(if else
 			(list (.scheme else))
 			'()))))
 
-(def. (cs-set!.scheme v)
+(def. (corescheme-set!.scheme v)
   `(set! ,(.name var)
 	 ,(.scheme val)))
 
-;; cs-letrec
+;; corescheme-letrec
 
 
 ;; change to <failing-on> for debugging
 (modimport/prefix failing: <failing-off>)
 
 (TEST
- > (def (cs-back source)
+ > (def (corescheme-back source)
 	(.scheme
 	 (source.corescheme source default-scheme-env)))
  > (def t-scheme-code
@@ -69,7 +69,7 @@
 	   (failing:equal? (eval source)
 			   (eval result))
 	   ;; and does the compiler actually give the given result?
-	   (failing:source-equal? (cs-back source)
+	   (failing:source-equal? (corescheme-back source)
 				  result))))
  > (def t-scheme-code*
 	(lambda (v)
@@ -79,7 +79,7 @@
 	(qcheck
 	 (source-code
 	  (quote-source
-	   (;; source and expected result from cs-back in pairs
+	   (;; source and expected result from corescheme-back in pairs
 	    ((let* ((x 4) (y x))
 	       (begin 2 x))
 	     .
