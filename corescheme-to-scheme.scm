@@ -7,7 +7,7 @@
 	 test-logic)
 
 
-(def. (cs-literal.scheme-code v)
+(def. (cs-literal.scheme v)
   (let-cs-literal
    ((val) v)
    (cond (((either symbol? keyword? null?)
@@ -16,40 +16,40 @@
 	 (else
 	  val))))
 
-(def. (cs-lambda.scheme-code v)
+(def. (cs-lambda.scheme v)
   (let-cs-lambda ((vars expr) v)
 		 `(lambda ,(map .name vars)
-		    ,@(map .scheme-code
+		    ,@(map .scheme
 			   (if (cs-begin? expr)
 			       (.body expr)
 			       (list expr))))))
 
-(def. (cs-app.scheme-code v)
+(def. (cs-app.scheme v)
   (let-cs-app ((proc args) v)
-	      `(,(.scheme-code proc)
-		,@(map .scheme-code args))))
+	      `(,(.scheme proc)
+		,@(map .scheme args))))
 
-(def. cs-ref.scheme-code (comp .name .var))
+(def. cs-ref.scheme (comp .name .var))
 
-(def. (cs-def.scheme-code v)
+(def. (cs-def.scheme v)
   (let-cs-def ((var val) v)
 	      `(define ,(.name var)
-		 ,(.scheme-code val))))
+		 ,(.scheme val))))
 
-(def. (cs-begin.scheme-code v)
-  `(begin ,@(map .scheme-code (.body v))))
+(def. (cs-begin.scheme v)
+  `(begin ,@(map .scheme (.body v))))
 
-(def. (cs-if.scheme-code v)
+(def. (cs-if.scheme v)
   (let-cs-if ((test then else) v)
-	     `(if ,(.scheme-code test)
-		  ,(.scheme-code then)
+	     `(if ,(.scheme test)
+		  ,(.scheme then)
 		  ,@(if else
-			(list (.scheme-code else))
+			(list (.scheme else))
 			'()))))
 
-(def. (cs-set!.scheme-code v)
+(def. (cs-set!.scheme v)
   `(set! ,(.name var)
-	 ,(.scheme-code val)))
+	 ,(.scheme val)))
 
 ;; cs-letrec
 
@@ -59,7 +59,7 @@
 
 (TEST
  > (def (cs-back source)
-	(.scheme-code
+	(.scheme
 	 (source.corescheme source default-scheme-env)))
  > (def t-scheme-code
 	(lambda (source result)
