@@ -129,7 +129,7 @@
 	   '(+ - * / cons car cdr zero? null?))))
 
 
-(def (_cs:begin rest
+(def (_source->corescheme:begin rest
 		#(corescheme-ctx? ctx)
 		#(boolean? realmode?))
      -> (if realmode? corescheme-expr? corescheme-ctx?)
@@ -159,9 +159,9 @@
 (TEST
  > (def (t-_cs:begin v #!optional (get-env (lambda () empty-corescheme-ctx)))
 	(values (parameterize ((current-corescheme-id 0))
-			      (_cs:begin v (get-env) #t))
+			      (_source->corescheme:begin v (get-env) #t))
 		(parameterize ((current-corescheme-id 0))
-			      (_cs:begin v (get-env) #f))))
+			      (_source->corescheme:begin v (get-env) #f))))
  > (.show (t-_cs:begin '((define a 1) (define b 2))))
  (values (corescheme-begin
 	  (list (corescheme-def (corescheme-var 'a 1) (corescheme-literal 1))
@@ -277,7 +277,7 @@
 				     (corescheme-lambda
 				      args*
 				      (fst ;; dropping ctx changes
-				       (_cs:begin rest ctx** realmode?)))))
+				       (_source->corescheme:begin rest ctx** realmode?)))))
 			   ctx*))))))
 	   (`(let `binds . `body)
 	    (assert*
@@ -298,7 +298,7 @@
 		   (corescheme-lambda
 		    vs
 		    (fst ;; dropping ctx changes
-		     (_cs:begin body ctx* realmode?)))
+		     (_source->corescheme:begin body ctx* realmode?)))
 		   es))))))
 	   (`(let* `binds . `body)
 	    ;; XX dedup code with let ?
@@ -326,7 +326,7 @@
 					  expr)
 			       (list (snd v+e))))
 			    (fst ;; dropping ctx changes
-			     (_cs:begin body ctx realmode?))
+			     (_source->corescheme:begin body ctx realmode?))
 			    (map values vars exprs)))
 
 		     (let-pair
@@ -351,9 +351,9 @@
 	    (%return-normal
 	     (let* ((vars* (improper-map new-corescheme-var! vars))
 		    (ctx* (.improper-prepend ctx vars*)))
-	       (corescheme-lambda vars* (_cs:begin rest ctx* realmode?)))))
+	       (corescheme-lambda vars* (_source->corescheme:begin rest ctx* realmode?)))))
 	   (`(begin . `rest)
-	    (_cs:begin rest ctx realmode?))
+	    (_source->corescheme:begin rest ctx realmode?))
 	   (`(if `test `then)
 	    (%return-normal
 	     ;; dropping ctx changes
