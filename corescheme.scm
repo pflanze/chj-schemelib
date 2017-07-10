@@ -42,7 +42,7 @@
 	(method source.corescheme)
 	
 	#!optional
-	corescheme-id
+	current-corescheme-id
 	corescheme-next-id!
 	new-corescheme-var!
 	corescheme-ctx?
@@ -95,12 +95,12 @@
 			   #((list-of corescheme-expr?) exprs))))
 
 
-(defparameter corescheme-id #f)
+(defparameter current-corescheme-id #f)
 
 (def (corescheme-next-id!)
      ;; forever the same  too.
-     (let ((newid (inc (corescheme-id))))
-       (corescheme-id newid)
+     (let ((newid (inc (current-corescheme-id))))
+       (current-corescheme-id newid)
        newid))
 
 (def (new-corescheme-var! name)
@@ -141,11 +141,11 @@
 	 ;; backwards. Walk code twice, thus implement dry/real mode
 	 ;; in this translation stage (cs) everywhere.
 	 (let ((ctx*
-		;; protect corescheme-id from changes, and force
+		;; protect current-corescheme-id from changes, and force
 		;; exceptions in case anyone requests them
 		;; still
 		(parameterize
-		 ((corescheme-id (corescheme-id)))
+		 ((current-corescheme-id (current-corescheme-id)))
 		 (fold (lambda (r ctx)
 			 (_cs r ctx #f))
 		       ctx
@@ -158,9 +158,9 @@
 
 (TEST
  > (def (t-_cs:begin v #!optional (get-env (lambda () empty-corescheme-ctx)))
-	(values (parameterize ((corescheme-id 0))
+	(values (parameterize ((current-corescheme-id 0))
 			      (_cs:begin v (get-env) #t))
-		(parameterize ((corescheme-id 0))
+		(parameterize ((current-corescheme-id 0))
 			      (_cs:begin v (get-env) #f))))
  > (.show (t-_cs:begin '((define a 1) (define b 2))))
  (values (corescheme-begin
@@ -371,7 +371,7 @@
 
 
 (TEST
- > (.show (parameterize ((corescheme-id 0))
+ > (.show (parameterize ((current-corescheme-id 0))
 			(_cs '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
 			     empty-corescheme-ctx ;; (default-scheme-env)
 			     #f)))
@@ -383,7 +383,7 @@
 		     (realmode? #t))
   -> corescheme-expr?
 
-  (fst (parameterize ((corescheme-id 0))
+  (fst (parameterize ((current-corescheme-id 0))
 		     (_cs expr (get-ctx) realmode?))))
 
 
