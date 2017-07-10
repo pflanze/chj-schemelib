@@ -39,7 +39,7 @@
 			    cs-if
 			    cs-set!
 			    cs-letrec))
-	(method source.cs-ast)
+	(method source.corescheme)
 	
 	#!optional
 	cs-id
@@ -377,7 +377,7 @@
 			     #f)))
  (typed-list cs-var? (cs-var 'even? 1)))
 
-(def. (source.cs-ast expr
+(def. (source.corescheme expr
 		     #!optional
 		     (get-ctx default-scheme-env)
 		     (realmode? #t))
@@ -401,15 +401,15 @@
 
  > (def (empty-environment) empty-cs-ctx)
  > (def (cs/empty c)
-	(.show (source.cs-ast c empty-environment)))
+	(.show (source.corescheme c empty-environment)))
 
  > (cs/empty '(define x 2))
  (cs-def (cs-var 'x 1) (cs-literal 2))
  > (cs/empty '(lambda x 2))
  (cs-lambda (cs-var 'x 1) (cs-literal 2))
- > (catching (& (source.cs-ast '(f x))))
+ > (catching (& (source.corescheme '(f x))))
  "undefined variable in function position"
- > (catching (& (source.cs-ast '(begin x 2))))
+ > (catching (& (source.corescheme '(begin x 2))))
  "undefined variable"
  > (cs/empty '(let ((x 4))
 		(begin x 2)))
@@ -417,7 +417,7 @@
 	  (list (cs-var 'x 1))
 	  (cs-begin (list (cs-ref (cs-var 'x 1)) (cs-literal 2))))
 	 (list (cs-literal 4)))
- > (catching (& (source.cs-ast '(let ((x 4) (y x)) (begin x 2)))))
+ > (catching (& (source.corescheme '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
  > (cs/empty '(let ((x 4) (y 5)) (begin x 2)))
  (cs-app (cs-lambda
@@ -435,7 +435,7 @@
 
 
  > (def (cs/default c)
-	(.show (source.cs-ast c default-scheme-env)))
+	(.show (source.corescheme c default-scheme-env)))
 
  > (cs/default '(+ - * /))
  (cs-app (cs-ref (cs-var '+ 1))
