@@ -17,7 +17,8 @@
 (require define-macro-star
 	 test
 	 cj-test
-	 (cj-inline inline-through-decompile))
+	 (cj-inline inline-through-decompile)
+	 (string-util-3 string.replace-substring))
 
 
 (export (macros safe-fx#+
@@ -155,10 +156,17 @@
  #t
  > (fixnum? (inc max-fixnum))
  #f
- > (%try (safe-fx:test 10 max-fixnum))
- (exception text: "FIXNUM overflow\n(fx+ 2305843009213693951 1)\n")
- > (%try (safe-fx:test (/ max-fixnum 2) (/ max-fixnum 2)))
- (exception text: "(Argument 1) FIXNUM expected\n(fx+ 2305843009213693951/2 1)\n")
- > (%try (safe-fx:test (arithmetic-shift max-fixnum 1) (arithmetic-shift max-fixnum 1)))
- (exception text: "(Argument 1) FIXNUM expected\n(fx+ 4611686018427387902 1)\n"))
+ > (def (fixup v r)
+	(if (eq? (car v) 'exception)
+	    (string.replace-substring (third v)
+				      (number->string r)
+				      "BIGVAL")
+	    v))
+ > (fixup (%try (safe-fx:test 10 max-fixnum)) max-fixnum)
+ "FIXNUM overflow\n(fx+ BIGVAL 1)\n"
+ > (fixup (%try (safe-fx:test (/ max-fixnum 2) (/ max-fixnum 2))) max-fixnum)
+ "(Argument 1) FIXNUM expected\n(fx+ BIGVAL/2 1)\n"
+ > (fixup (%try (safe-fx:test (arithmetic-shift max-fixnum 1) (arithmetic-shift max-fixnum 1)))
+	  (arithmetic-shift max-fixnum 1))
+ "(Argument 1) FIXNUM expected\n(fx+ BIGVAL 1)\n")
 
