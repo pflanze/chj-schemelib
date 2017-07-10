@@ -23,7 +23,8 @@
 	 jclass
 	 typed-list
 	 typed-alist
-	 Maybe)
+	 Maybe
+	 show)
 
 (export corescheme-literal-atom?
 	corescheme-literal?
