@@ -2,7 +2,9 @@
 
 (require easy
 	 corescheme
-	 (failing <failing-on> <failing-off>))
+	 (failing <failing-on> <failing-off>)
+	 test
+	 test-logic)
 
 
 (def. (cs-literal.scheme-code v)
