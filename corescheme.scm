@@ -135,7 +135,7 @@
      -> (if realmode? corescheme-expr? corescheme-ctx?)
 
      (if (one? rest)
-	 (_cs (car rest) ctx realmode?)
+	 (_source->corescheme (car rest) ctx realmode?)
      
 	 ;; ctx changes need to be reflected both forward and
 	 ;; backwards. Walk code twice, thus implement dry/real mode
@@ -147,12 +147,12 @@
 		(parameterize
 		 ((current-corescheme-id (current-corescheme-id)))
 		 (fold (lambda (r ctx)
-			 (_cs r ctx #f))
+			 (_source->corescheme r ctx #f))
 		       ctx
 		       rest))))
 	   (if realmode?
 	       (corescheme-begin
-		(map (C _cs _ ctx* realmode?)
+		(map (C _source->corescheme _ ctx* realmode?)
 		     rest))
 	       ctx*))))
 
@@ -198,7 +198,7 @@
   `(return-normal (& ,e)))
 
 
-(def (_cs expr
+(def (_source->corescheme expr
 	  #(corescheme-ctx? ctx)
 	  #(boolean? realmode?))
      -> (if realmode? corescheme-expr? corescheme-ctx?)
@@ -241,7 +241,7 @@
 				;; dropping ctx changes; XX
 				;; interesting: this is where ##begin
 				;; would be invalid ~?
-				(C _cs _ ctx realmode?))
+				(C _source->corescheme _ ctx realmode?))
 			  r)))))
 	 (else
 	  (mcase
@@ -261,7 +261,7 @@
 			      (if realmode?
 				  (corescheme-def what*
 					  (if realmode?
-					      (fst (_cs expr ctx* realmode?))
+					      (fst (_source->corescheme expr ctx* realmode?))
 					      (corescheme-dummy)))
 				  ctx*)))))
 		   (pair?
@@ -291,7 +291,7 @@
 				      (values var expr))))
 			    (source-code binds)))
 		      (vs (map (comp new-corescheme-var! fst) v+e-s))
-		      (es (map (comp* fst (C _cs _ ctx realmode?) snd) v+e-s))
+		      (es (map (comp* fst (C _source->corescheme _ ctx realmode?) snd) v+e-s))
 		      (ctx* (.improper-prepend ctx vs)))
 		 (%return-normal
 		  (corescheme-app
@@ -345,7 +345,7 @@
 				;; ((y (begin (define x ..))) ..) is
 				;; disallowed; "can't" (shouldn't?)
 				;; carry over ctx changes.
-				(_cs expr ctx realmode?))
+				(_source->corescheme expr ctx realmode?))
 			       exprs)))))))))))
 	   (`(lambda `vars . `rest)
 	    (%return-normal
@@ -357,14 +357,14 @@
 	   (`(if `test `then)
 	    (%return-normal
 	     ;; dropping ctx changes
-	     (corescheme-if (fst (_cs test ctx realmode?))
-		    (fst (_cs then ctx realmode?))
+	     (corescheme-if (fst (_source->corescheme test ctx realmode?))
+		    (fst (_source->corescheme then ctx realmode?))
 		    #f)))
 	   (`(if `test `then `else)
 	    (%return-normal
-	     (corescheme-if (fst (_cs test ctx realmode?))
-		    (fst (_cs then ctx realmode?))
-		    (fst (_cs else ctx realmode?)))))
+	     (corescheme-if (fst (_source->corescheme test ctx realmode?))
+		    (fst (_source->corescheme then ctx realmode?))
+		    (fst (_source->corescheme else ctx realmode?)))))
 	   (else
 	    (source-error a
 			  "undefined variable in function position")))))))))
@@ -372,7 +372,7 @@
 
 (TEST
  > (.show (parameterize ((current-corescheme-id 0))
-			(_cs '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
+			(_source->corescheme '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
 			     empty-corescheme-ctx ;; (default-scheme-env)
 			     #f)))
  (typed-list corescheme-var? (corescheme-var 'even? 1)))
@@ -384,7 +384,7 @@
   -> corescheme-expr?
 
   (fst (parameterize ((current-corescheme-id 0))
-		     (_cs expr (get-ctx) realmode?))))
+		     (_source->corescheme expr (get-ctx) realmode?))))
 
 
 (TEST
