@@ -6,6 +6,9 @@
 ;;;    (at your option) any later version.
 
 
+
+;; XX reimplement on top of bag.scm
+
 (require easy
 	 test
 	 (cj-port with-output-to-string) ;; for test only
