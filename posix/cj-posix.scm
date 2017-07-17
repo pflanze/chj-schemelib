@@ -18,6 +18,8 @@
 	 ;;cj-struct
 	 dot-oo
 
+	 (cj-symbol string->uninterned-symbol)
+
 	 ;; it also does (include "cj-c-types.scm")
 	 )
 
@@ -685,7 +687,7 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 			      ((WRONLY output) gambit-port-direction-out)
 			      ((RDWR input-output) gambit-port-direction-inout)
 			      (else (error "invalid direction specifyer:" direction)))
-			    (list (string->symbol (string-append "fd-" (number->string fd))))
+			    (list (string->uninterned-symbol (string-append "fd-" (number->string fd))))
 			    fd
 			    (or settings '())))
 	(else
