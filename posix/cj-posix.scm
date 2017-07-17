@@ -676,6 +676,11 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 (define gambit-port-direction-out 2)
 (define gambit-port-direction-inout 3)
 
+;; XX there is a problem with this: when using (fd->port foo-r
+;; 'RDONLY) where foo-r is the read end of a posix:pipe,
+;; (read-subu8vector foo-buf 0 foo-buflen foo-port) will still block
+;; on reading after the sending process closed the port (and exited),
+;; whereas posix:read-u8vector works as expected.
 (define (fd->port fd direction #!optional settings)
   (cond ((and (##fixnum? fd)
 	      (symbol? direction)
