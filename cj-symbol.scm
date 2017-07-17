@@ -50,7 +50,7 @@
   (and (symbol? v)
        (not (uninterned-symbol? v))))
 
-(define string->uninterned-symbol
+(define unsafe-string->uninterned-symbol
   (symbol-value-or
    '##make-uninterned-symbol
    (lambda ()
@@ -59,6 +59,23 @@
       ;; XX that would be a problem though? signal
       ;; error?
       false/0))))
+
+(define (string->uninterned-symbol str)
+  (if (string? str)
+      (unsafe-string->uninterned-symbol str)
+      (error "string->uninterned-symbol: need string, got:" str)))
+
+(TEST
+ > (%try-error (string->uninterned-symbol 'inc))
+ #(error "string->uninterned-symbol: need string, got:" inc)
+ ;; > (string->uninterned-symbol "inc")
+ ;; #:inc  -- ah fails since equal? returns #f
+ > (symbol? (string->uninterned-symbol "inc"))
+ #t
+ > (interned-symbol? (string->uninterned-symbol "inc"))
+ #f
+ > (symbol->string (string->uninterned-symbol "inc"))
+ "inc")
 
 
 (define (cj-gensym? v)
