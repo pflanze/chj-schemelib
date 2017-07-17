@@ -53,6 +53,7 @@
 	filedescriptors-second
 
 	_pipe pipe
+	pipe-values
 	_socketpair socketpair
 	;;many more constants...
  
@@ -493,6 +494,13 @@ ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
        (if (= r 0)
 	   v
 	   r)))))
+
+
+;; For use with srfi-11, could alternatively write a let-s32vector macro, though.
+(define (posix:pipe-values)
+  (let ((v (posix:pipe)))
+    (values (s32vector-ref v 0)
+	    (s32vector-ref v 1))))
 
 
 (define/check posix:_close posix:close (fd)

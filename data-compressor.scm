@@ -25,13 +25,6 @@
 
 
 
-;;XX move to lib?
-(def (posix:pipe-values)
-     (let ((v (posix:pipe)))
-       (values (s32vector-ref v 0)
-	       (s32vector-ref v 1))))
-
-
 ;; Compression levels:
 ;; 1= fastest, 9= best compression (default for gzip and xz is 6, for
 ;; lzop 3; xz starts natively at 0)
