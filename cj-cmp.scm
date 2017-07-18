@@ -179,6 +179,13 @@
  lt
  > (u8vector-cmp (u8vector 1 2 3) (u8vector 1 2))
  gt
+ ;; it really looks from the beginning, should call it
+ ;; |u8vector-bigendian-cmp|?  Well, lexicographic comparison,
+ ;; just. Really like strings. :
+ > (u8vector-cmp (u8vector 1) (u8vector 1 0))
+ lt
+ > (u8vector-cmp (u8vector 1 2) (u8vector 2 1))
+ lt
  )
 
 (define (generic-cmp v1 v2)
