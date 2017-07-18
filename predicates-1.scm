@@ -31,6 +31,8 @@
 	exact-real?
 	exact-integer?
 	exact-number?
+	exact-natural?
+	exact-natural0?
 	pair-or-null?
 	pair-with-car
 	nonempty-string?
@@ -39,7 +41,7 @@
 	string-of
 	nonempty-string-of
 	natural0-string? ;; do these two really
-	natural-string? ;; belong here (in a neutral predicates lib)?
+	natural-string?	 ;; belong here (in a neutral predicates lib)?
 	string-of-length
 	u8vector-of-length
 	improper-every	  ;; XX move
@@ -102,6 +104,11 @@
 (define exact-integer? (both integer? exact?))
 
 (define exact-number? (both number? exact?))
+
+(define exact-natural? (both natural? exact?))
+
+(define exact-natural0? (both natural0? exact?))
+
 
 (TEST
  > (exact-real? 3+2i)
@@ -175,7 +182,7 @@
   (nonempty-string-of char-digit?))
 
 (define natural-string?
-  (both (nonempty-string-of char-digit?)
+  (both natural0-string?
 	(complement (string-of (lambda (v) (char=? v #\0))))))
 
 (TEST
