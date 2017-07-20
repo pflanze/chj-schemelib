@@ -45,7 +45,11 @@
 	struct-tag->metadata
 	define-struct-expand)
 
-(include "cj-standarddeclares.scm")
+;;(include "cj-standarddeclares.scm")
+;; no, as that would disable the modification to |vector?|
+(declare (block)
+	 (standard-bindings)
+	 (extended-bindings))
 
 
 ;; A struct is a vector with an object in slot 0 that unambiguously
