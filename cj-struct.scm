@@ -529,7 +529,7 @@
 	   (not (struct-tag? (##vector-ref v 0)))
 	   #t)))
 
-(define vector? cj-struct#vector?)
+(set! vector? cj-struct#vector?)
 
 
 ;; Generic struct ops:
