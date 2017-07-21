@@ -1,4 +1,5 @@
-(require (cj-env warn)
+(require define-macro-star
+	 (cj-env warn)
 	 cj-warn
 	 ;;(interrupts interrupt-install-handler! SIGCHLD)
 	 cj-c-util	  ;; {maybe-,}define-constant-from-C
@@ -829,13 +830,14 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 
 ;; thumb eh dumb name? "*-buffer"
 
-(define-macro (c-function-address name-str)
-  `(let ((adr (@make-addressbox)))
-     (##c-code ,(string-append "
+(define-macro* (c-function-address name-str)
+  (sourcify `(let ((adr (@make-addressbox)))
+	       (##c-code ,(string-append "
 void (**p) (void) = (void*) ___BODY(___ARG1);
-*p= (void (*) (void)) " name-str ";")
+*p= (void (*) (void)) " (source-code name-str) ";")
+			 adr)
 	       adr)
-     adr))
+	    name-str))
 
 (define &write (c-function-address "write"))
 (define &read (c-function-address "read"))
