@@ -237,7 +237,7 @@
 
 (def (joo:struct-tag.member-of? t members)
      (declare (not safe)) ;; <-- XX safe?
-     (let ((tag-name ((inline @maybe-struct-tag-name) t)))
+     (let ((tag-name (@maybe-struct-tag-name t)))
        (and tag-name
 	    ;; XX did I go to the dark side by using unsafe op
 	    ;; here?

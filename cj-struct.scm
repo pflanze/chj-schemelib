@@ -13,7 +13,9 @@
 	 (cj-symbol with-gensyms)
 	 named
 	 (cj-env define-if-not-defined) ;; in macro expansion
-	 (predicates-1 list-of-length))
+	 (predicates-1 list-of-length)
+	 (cj-inline-1 define-inline) ;; cj-inline would give cycle
+	 )
 
 (export (macro define-struct)
 	(macro define-struct*)
@@ -87,7 +89,7 @@
 
 (define-if-not-defined cj-struct:type->metadata (make-table test: eq?))
 
-(define (@maybe-struct-tag-name v)
+(define-inline (@maybe-struct-tag-name v)
   (declare (block)
 	   (standard-bindings)
 	   (extended-bindings)
