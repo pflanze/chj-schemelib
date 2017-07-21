@@ -5,7 +5,8 @@
 	 char-util
 	 cj-env-2
 	 (cj-ffi symbol->string*)
-	 posix/cj-c-errno_Cpart)
+	 posix/cj-c-errno_Cpart
+	 test)
 
 
 ;; (compile #t)
@@ -138,10 +139,11 @@
 
 (define (string-strip-until-last-chars str chars)
   (last (string-split str (char-one-of?/ chars))))
+
 (TEST
  > (string-strip-until-last-chars "abc:de_f:g_ha" ":_")
- "ha"
- )
+ "ha")
+
 
 
 ;; an additional utility macro, for those cases where the return value
@@ -195,3 +197,16 @@
 	      ,@argnames)))))
       (else
        (source-error returntype "unknown return type")))))
+
+
+;; and some tests for strerror; probably fail on some OSes, though,
+;; fix please...
+(TEST
+ > (strerror 9)
+ "Bad file descriptor"
+ > (strerror 1)
+ "Operation not permitted"
+ > (strerror 0)
+ "Success"
+ > (strerror -1)
+ "Unknown error -1")
