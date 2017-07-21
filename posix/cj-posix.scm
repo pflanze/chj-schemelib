@@ -178,6 +178,7 @@
 /* #include <sys/stat.h>  for constants like O_DIRECT? no doesn't help */
 #include <pwd.h>
 #include <grp.h>
+#include <sys/stat.h>
 ")
 
 
