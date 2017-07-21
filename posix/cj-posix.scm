@@ -391,7 +391,7 @@ ___result= ___FAL;
 		   scheme-object
 		   "
 #ifdef WCOREDUMP
-___result=WCOREDUMP(___BODY(___arg1)) ? ___TRU : ___FAL;
+___result=WCOREDUMP(*(___BODY(___arg1))) ? ___TRU : ___FAL;
 #else
 ___result=___FIX(-1000); /*shouldn't happen*/
 #endif
