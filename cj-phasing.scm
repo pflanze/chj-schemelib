@@ -13,18 +13,15 @@
 	   ,@body)))
 
 
-;; compile-time and both-times are the same now as long as runtime
-;; macros are being built into the binary: if we want the macros that
-;; need the compile-time stuff to be available at runtime (and I use
-;; define-macro* for everything now), then everything has to be
-;; both-times.
+;; Note that macros that are available at runtime will need
+;; the use of both-times, not compile-time!
 
 (define-macro* (compile-time . body)
   (let ((code
 	 `(begin
 	    ,@body)))
     (eval code)
-    code))
+    `(void)))
 
 (define-macro* (both-times . body)
   (let ((code
