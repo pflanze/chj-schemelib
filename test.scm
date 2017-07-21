@@ -601,7 +601,7 @@
 ;; anyway, and using something like (map cj-desourcify (test-forms-for
 ;; "file")) is a better way to inspect the saved tests.
 
-(compile-time
+(both-times
  (define (TEST:write-form s p)
    (let* ((v (object->u8vector s))
 	  (len (u8vector-length v)))
