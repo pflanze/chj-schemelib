@@ -10,7 +10,7 @@
 	 simple-match-1)
 
 ;; looses location information; see cj-inline-2 which overrides it
-;; with a version tha uses quasiquote-source.
+;; with a version that uses quasiquote-source.
 
 (define-macro* (define-inline name+vars body0 . body)
   (match-list*
