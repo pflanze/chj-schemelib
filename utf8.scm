@@ -26,10 +26,55 @@
 
 ;; These are defined in Gambit's c_intf.c, but in no header file, so:
 (c-declare "
-___UCS_4 ___UTF_8_get(___UTF_8STRING *ptr);
-int ___UTF_8_bytes(___UCS_4 c);
-void ___UTF_8_put(___UTF_8STRING *ptr,
-                  ___UCS_4 c);
+extern \"C\" {
+
+___UCS_4 _Z12___UTF_8_getPPc
+   ___P((___UTF_8STRING *ptr),
+        (ptr)
+___UTF_8STRING *ptr;);
+
+int _Z14___UTF_8_bytesj
+   ___P((___UCS_4 c),
+        (c)
+___UCS_4 c;);
+
+void _Z12___UTF_8_putPPcj
+   ___P((___UTF_8STRING *ptr,
+         ___UCS_4 c),
+        (ptr,
+         c)
+___UTF_8STRING *ptr;
+___UCS_4 c;);
+
+}
+
+static
+ ___UCS_4 ___UTF_8_get
+   ___P((___UTF_8STRING *ptr),
+        (ptr)
+___UTF_8STRING *ptr;) {
+    return _Z12___UTF_8_getPPc(ptr);
+}
+
+static
+int ___UTF_8_bytes
+   ___P((___UCS_4 c),
+        (c)
+___UCS_4 c;) {
+    return _Z14___UTF_8_bytesj(c);
+}
+
+static
+void ___UTF_8_put
+   ___P((___UTF_8STRING *ptr,
+         ___UCS_4 c),
+        (ptr,
+         c)
+___UTF_8STRING *ptr;
+___UCS_4 c;) {
+    return _Z12___UTF_8_putPPcj(ptr,c);
+}
+
 ")
 
 
