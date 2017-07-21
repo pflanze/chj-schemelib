@@ -23,6 +23,16 @@
 ;; It is present in many character sets, including .. the Universal
 ;; Character Set (or Unicode)
 
+
+;; These are defined in Gambit's c_intf.c, but in no header file, so:
+(c-declare "
+___UCS_4 ___UTF_8_get(___UTF_8STRING *ptr);
+int ___UTF_8_bytes(___UCS_4 c);
+void ___UTF_8_put(___UTF_8STRING *ptr,
+                  ___UCS_4 c);
+")
+
+
 (def (ucs4-codepoint? v)
      (and (natural0? v) ;; be careful about the null value! valid in
 			;; UCS-4 but not necessarily in strings.
