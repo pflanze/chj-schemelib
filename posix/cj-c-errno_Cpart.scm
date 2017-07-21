@@ -25,6 +25,6 @@ if (!buf) {
     /* XX let it segfault if malloc fails? */
 }
 
-___result= strerror_r(___arg1, buf, buflen);
+___result= ___CAST(unsigned char*, strerror_r(___arg1, buf, buflen));
 "))
 
