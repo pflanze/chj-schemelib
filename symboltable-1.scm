@@ -311,41 +311,43 @@ if (unlikely(! ___keyp(key))) {
     goto end;
 }
 
-___SCMOBJ vec = t;
-___WORD vlen = ___INT(___VECTORLENGTH(vec));
-/* when compiling with -O3, the length retrieval might be merged
-   with the one from ___tablep */
+{
+    ___SCMOBJ vec = t;
+    ___WORD vlen = ___INT(___VECTORLENGTH(vec));
+    /* when compiling with -O3, the length retrieval might be merged
+       with the one from ___tablep */
 
-___WORD id = ___key_id(key);
-// (define-inline (symboltable:vector-length->size^ vlen)
-//    (fx- (fxlength vlen) 2))
-___WORD sizepot = ___fxlength(vlen)  - 2;
-// (define-inline (symboltable:size^->mask size^)
-//   (dec (fxarithmetic-shift 1 size^)))
-___WORD mask = (1 << sizepot)-1;
-___WORD slot = id & mask;
+    ___WORD id = ___key_id(key);
+    // (define-inline (symboltable:vector-length->size^ vlen)
+    //    (fx- (fxlength vlen) 2))
+    ___WORD sizepot = ___fxlength(vlen)  - 2;
+    // (define-inline (symboltable:size^->mask size^)
+    //   (dec (fxarithmetic-shift 1 size^)))
+    ___WORD mask = (1 << sizepot)-1;
+    ___WORD slot = id & mask;
 
-// printf(\"vlen=%ld, id=%ld, sizepot=%ld, mask=%ld, slot=%ld\\n\", vlen,id,sizepot,mask,slot);
-
-___WORD i= (slot << 1) + TABLE_BASE_I;
-lp: {
-    ___SCMOBJ key2 = ___VECTORREF(vec,___FIX(i));
-    // printf(\"   lp:  i=%ld, key2=%ld\\n\", i,key2);
-    if (unlikely (key2 == ___FAL)) {
-        ___RESULT= alternate_value;
-    } else {
-/*
-	if (unlikely(! ___keyp(key2))) {
-	    ___RESULT= ___error_invalid_type;
-	    goto end;
+    // printf(\"vlen=%ld, id=%ld, sizepot=%ld, mask=%ld, slot=%ld\\n\", vlen,id,sizepot,mask,slot);
+    
+    ___WORD i= (slot << 1) + TABLE_BASE_I;
+    lp: {
+	___SCMOBJ key2 = ___VECTORREF(vec,___FIX(i));
+	// printf(\"   lp:  i=%ld, key2=%ld\\n\", i,key2);
+	if (unlikely (key2 == ___FAL)) {
+	    ___RESULT= alternate_value;
+	} else {
+    /*
+	    if (unlikely(! ___keyp(key2))) {
+		___RESULT= ___error_invalid_type;
+		goto end;
+	    }
+    */
+	    if (key2 == key) { // XX only works for interned symbols!
+		___RESULT= ___VECTORREF(vec,___FIX(i+1));
+	    } else {
+		i= ___table_inc2_with_top(i, vlen);
+		goto lp;
+	    }
 	}
-*/
-        if (key2 == key) { // XX only works for interned symbols!
-            ___RESULT= ___VECTORREF(vec,___FIX(i+1));
-        } else {
-            i= ___table_inc2_with_top(i, vlen);
-            goto lp;
-        }
     }
 }
 end:
