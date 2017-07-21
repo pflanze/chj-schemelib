@@ -96,7 +96,7 @@
 
 ;; TESTs see simple-match.scm
 
-(compile-time
+(both-times
  (define (assert*-expand desourcify
 			 gen-full-desourcify/1
 			 pred

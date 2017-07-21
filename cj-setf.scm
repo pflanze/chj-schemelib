@@ -36,7 +36,7 @@
 
 
 
-(compile-time
+(both-times
  (def (substitute-ref-to sym* op!)
       (assert*
        symbol? sym*

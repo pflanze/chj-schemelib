@@ -158,7 +158,7 @@
 (define TEST#loaded #f) (set! TEST#loaded '())
 
 
-(compile-time
+(both-times
  (define-macro (TEST . args) `(begin))
  ;; why do I have to (re?)add these? did I clean that up and now
  ;; readding I guess

@@ -9,7 +9,7 @@
 (require (define-macro-star)
 	 (cj-phasing))
 
-(compile-time
+(both-times
  (define *CONSTs* (make-table)))
 
 (define-macro* (CONST e)

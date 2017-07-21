@@ -14,12 +14,12 @@
 	 
 
 
-(compile-time
+(both-times
  (define (partial-apply:expand nam args body)
    (assert* symbol? nam
 	    (lambda (nam*)
 	      `(begin
-		 (compile-time
+		 (both-times
 		  (define ,(symbol-append "arity#" nam*)
 		    ',(schemedefinition-arity:pattern->template args)))
 		 (define ,(cons nam args)
@@ -29,7 +29,7 @@
   (let-pair ((nam args) (source-code nam+args))
 	    (partial-apply:expand nam args body)))
 
-(compile-time
+(both-times
  (define (partial-apply:pa suppress-thunk? fnname args)
    (assert*
     symbol? fnname

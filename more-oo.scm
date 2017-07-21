@@ -27,7 +27,7 @@
 
 ;; * add class and subclass syntax
 
-(compile-time
+(both-times ;; or would compile-time work ?
 
  (def compile-time:class-ctx '())
 

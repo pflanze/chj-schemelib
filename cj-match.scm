@@ -35,7 +35,7 @@
 
 ;; clause 'data type':
 
-(compile-time
+(both-times
  
  (define clause:parse
    (lambda (clause)
@@ -103,7 +103,7 @@
 
 ;; for now, only recognize unquotes in the top level of clause-test
 
-(compile-time
+(both-times
  (define (extract-variables args*) ;; (values applicable-clause pos+var-s)
    (let rec ((args* args*)
 	     (pos 0))
@@ -134,7 +134,7 @@
    ((1 . b) (2 . c)))
  )
 
-(compile-time
+(both-times
  
  (define cj-match:equal? source-equal?)
 
@@ -175,7 +175,7 @@
    (if (cj-match:equal? (list a b c) MYV) (begin (run b)) REM))
  )
 
-(compile-time
+(both-times
 
  (define clauses->check
    (lambda (group V rem)
@@ -213,7 +213,7 @@
  #t
  )
 
-(compile-time
+(both-times
  (define handle-op-group
    (lambda (input opgroup message-string)
      ;; XX assumes that there is only one group; should move V* V LEN up
@@ -312,7 +312,7 @@
 		       "only list matching is implemented")))))))
 
 
-(compile-time
+(both-times
  (define (match-expand stx input clauses message-string)
    ;; group according to type of datum
    (let* ((clausegroups
@@ -378,7 +378,7 @@
 
 ;; Wrapper that goes back to a more 'traditional' syntax (?):
 
-(compile-time
+(both-times
 
  ;; can't use improper-fold-right* since (unquote x) and (quasiquote x) can
  ;; be in tail position.
@@ -525,7 +525,7 @@
  (list 'quasiquote ,a)
  )
 
-(compile-time
+(both-times
  (define (matchl-expand stx input clauses message-string)
    (match-expand
     stx
@@ -564,7 +564,7 @@
 
 ;; also check and dispatch for other types than lists:
 
-(compile-time
+(both-times
  (define-struct mcaseclauses
    list
    other

@@ -71,7 +71,7 @@
 	  v
 	  `(quote ,v))))
 
-(compile-time
+(both-times
  (define (assert-replace-expand e)
    (mcase e
 	  (pair?
