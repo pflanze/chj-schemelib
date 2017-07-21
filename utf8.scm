@@ -26,6 +26,7 @@
 
 ;; These are defined in Gambit's c_intf.c, but in no header file, so:
 (c-declare "
+#ifdef __cplusplus
 extern \"C\" {
 
 ___UCS_4 _Z12___UTF_8_getPPc
@@ -74,7 +75,27 @@ ___UTF_8STRING *ptr;
 ___UCS_4 c;) {
     return _Z12___UTF_8_putPPcj(ptr,c);
 }
+#else
 
+ ___UCS_4 ___UTF_8_get
+   ___P((___UTF_8STRING *ptr),
+        (ptr)
+___UTF_8STRING *ptr;);
+
+int ___UTF_8_bytes
+   ___P((___UCS_4 c),
+        (c)
+___UCS_4 c;);
+
+void ___UTF_8_put
+   ___P((___UTF_8STRING *ptr,
+         ___UCS_4 c),
+        (ptr,
+         c)
+___UTF_8STRING *ptr;
+___UCS_4 c;);
+
+#endif
 ")
 
 
