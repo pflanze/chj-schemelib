@@ -183,8 +183,8 @@ ___RESULT= ___FIX(p-base);"
 
 (def (@u8vector-utf8-get! u8vec i+res) ;; i+res = (u32vector i* codepoint)
      (##c-code "
-___UCS_4 *i_res= ___CAST(___U32*, ___BODY(___ARG2));
-___UTF_8STRING base= ___CAST(___U8*, ___BODY(___ARG1));
+___UCS_4 *i_res= ___CAST(___UCS_4*, ___BODY(___ARG2));
+___UTF_8STRING base= ___CAST(___UTF_8STRING, ___BODY(___ARG1));
 ___UTF_8STRING p= &(base[i_res[0]]);
 
 ___UCS_4 c= ___UTF_8_get(&p);
