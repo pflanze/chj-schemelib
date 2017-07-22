@@ -21,7 +21,7 @@ static ___UTF_8STRING buf = NULL;
 	    UTF-8-string
 	    "
 if (!buf) {
-    buf= malloc(buflen);
+    buf= ___CAST(___UTF_8STRING, malloc(buflen));
     /* XX let it segfault if malloc fails? */
 }
 
