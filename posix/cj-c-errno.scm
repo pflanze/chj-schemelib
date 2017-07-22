@@ -36,9 +36,7 @@
 ;;  )
 
 
-;; cj 
-
-;; Infrastructure for deadling with posix style errno based error
+;; Infrastructure for dealing with posix style errno based error
 ;; handling.
 
 ;; One cannot simply access errno *after* a call has returned to
