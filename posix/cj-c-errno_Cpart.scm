@@ -25,7 +25,11 @@ if (!buf) {
     /* XX let it segfault if malloc fails? */
 }
 
-strerror_r(___arg1, buf, buflen);
-___result= buf;
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+    strerror_r(___arg1, buf, buflen);
+    ___result= buf;
+#else
+    ___result= strerror_r(___arg1, buf, buflen);
+#endif
 "))
 
