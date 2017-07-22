@@ -208,5 +208,7 @@
  "Operation not permitted"
  > (strerror 0)
  "Success"
- > (strerror -1)
- "Unknown error -1")
+ ;; > (strerror -1)
+ ;; "Unknown error -1"
+ ;; or "", depending on 'installation'.
+ )
