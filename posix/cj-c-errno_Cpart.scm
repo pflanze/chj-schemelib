@@ -13,18 +13,18 @@
 #include <stdlib.h>
 
 static const size_t buflen= 1024;
-static char* buf = NULL;
+static ___UTF_8STRING buf = NULL;
 ")
 
 (define strerror
   (c-lambda (int)
-	    ISO-8859-1-string
+	    UTF-8-string
 	    "
 if (!buf) {
     buf= malloc(buflen);
     /* XX let it segfault if malloc fails? */
 }
 
-___result= ___CAST(unsigned char*, strerror_r(___arg1, buf, buflen));
+___result= ___CAST(___UTF_8STRING, strerror_r(___arg1, buf, buflen));
 "))
 
