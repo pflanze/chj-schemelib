@@ -148,8 +148,8 @@ ___RESULT=___FIX(___UTF_8_bytes(___INT(___ARG1)));"
 (def (@u8vector-utf8-put! u8vec i c) ;; returns new i
      (##c-code "
 size_t i= ___INT(___ARG2);
-char *base= ___CAST(char*, ___BODY(___ARG1));
-char *p= &(base[i]);
+___UTF_8STRING base= ___CAST(___UTF_8STRING , ___BODY(___ARG1));
+___UTF_8STRING p= &(base[i]);
 ___UTF_8_put(&p, ___INT(___ARG3));
 ___RESULT= ___FIX(p-base);"
 	       u8vec i c))
@@ -184,8 +184,8 @@ ___RESULT= ___FIX(p-base);"
 (def (@u8vector-utf8-get! u8vec i+res) ;; i+res = (u32vector i* codepoint)
      (##c-code "
 ___UCS_4 *i_res= ___CAST(___U32*, ___BODY(___ARG2));
-___U8 *base= ___CAST(___U8*, ___BODY(___ARG1));
-___U8 *p= &(base[i_res[0]]);
+___UTF_8STRING base= ___CAST(___U8*, ___BODY(___ARG1));
+___UTF_8STRING p= &(base[i_res[0]]);
 
 ___UCS_4 c= ___UTF_8_get(&p);
 
