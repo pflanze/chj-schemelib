@@ -1,6 +1,8 @@
 (require test
 	 cj-env	;;XX update what exactly?
 	 cj-typed
+	 ;;(predicates-1 exact-natural0?) actually not necessary,
+	 ;;   c-lambda will check
 	 )
 
 ;; (compile #t)
@@ -36,9 +38,13 @@
 	vectorlike-byteset!
 	vectorlike-bytefill!
 
-	u32:peek
+	u32:wordaddr-peek
+	u8:wordaddr-peek
+	u8:wordaddr-poke
+
 	u8:peek
-	u8:poke
+	u32:peek
+	u64:peek
 	
 	#!optional
 	check-mem-allocated
@@ -50,12 +56,17 @@
 	@vectorlike-bytefill!
 	copy-to-body@!
 	copy-from-body@!
+	memcpy-to-object
 	)
 
 
 (include "cj-standarddeclares.scm")
 ;; do NOT declare fixnum and not safe; this would break number
 ;; calculations overflowing fixnums.
+
+(c-declare "#include <string.h>")
+
+
 
 ;; (define (mem-allocated? obj)
 ;;   (##c-code "___RESULT= ___BOOLEAN(___MEM_ALLOCATED(___ARG1));" obj))
@@ -197,6 +208,40 @@ memcpy(p, body, lenbytes);
   ((typed-lambda (#(size0? len))
 		 (copy-from-body@! wordaddr v len))
    (or len (u8vector-length v))))
+
+
+;; =============================================================================
+
+;; Finally proper bignum address based peek
+
+
+(define memcpy-to-object
+  (c-lambda (scheme-object unsigned-int64 unsigned-int64)
+	    int
+	    "memcpy((void*)___BODY(___arg1), (void*)___arg2, (size_t)___arg3);"))
+
+(define-typed (u8:peek addr #!optional (len 1))
+  (let ((out (make-u8vector len 77)))
+    ;; Still missing an address type, or even size_t. Just allow for
+    ;; 64 bits, and all is fine? (Let it wrap around, even, fine?)
+    (memcpy-to-object out addr len)
+    out))
+
+(define-typed (u32:peek addr #!optional (len 1))
+  (let ((out (make-u32vector len 77)))
+    ;; Still missing an address type, or even size_t. Just allow for
+    ;; 64 bits, and all is fine? (Let it wrap around, even, fine?)
+    (memcpy-to-object out addr (* len 4))
+    out))
+
+(define-typed (u64:peek addr #!optional (len 1))
+  (let ((out (make-u64vector len 77)))
+    ;; Still missing an address type, or even size_t. Just allow for
+    ;; 64 bits, and all is fine? (Let it wrap around, even, fine?)
+    (memcpy-to-object out addr (* len 8))
+    out))
+
+
 
 ;; =============================================================================
 
@@ -358,8 +403,6 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
 ; 3213213123223412412341234212312321412423123123123
 ; it's like this :)
 
-
-(c-declare "#include <string.h>")
 
 ;; ATTENTION: make sure offsets and numbytes are fixnums!
 (define (@vectorlike-bytecopy! to to-offset from from-offset numbytes)
