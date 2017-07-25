@@ -5,16 +5,16 @@
 
 ;; (compile #t)
 
-(export addressword-peek
+(export wordaddress-peek
 	body-address
-	body-addressword
+	body-wordaddress
 	;;check-mem-allocated
 	max-fixnum
 	min-fixnum
 	mem-address
-	mem-addressword
+	mem-wordaddress
 	mem-allocated?
-	;;mk-addressword->address
+	;;mk-wordaddress->address
 	subtype
 	word-size
 	word-width
@@ -72,14 +72,14 @@
 
 
 ;;(doesn't gambit have some internal for this already? no, that was foreign objects.)
-(define (mem-addressword obj) ;; actually returns the *word* address, not byte address; this way we can always return a fixnum, which may be negative.
+(define (mem-wordaddress obj) ;; actually returns the *word* address, not byte address; this way we can always return a fixnum, which may be negative.
   (##c-code
    "___RESULT= ___MEM_ALLOCATED(___ARG1)
              ? (___ARG1 &~ ___CAST(___WORD,3)) /* creates a fixnum */
              : ___FAL;"
    obj))
 
-(define (body-addressword obj)
+(define (body-wordaddress obj)
   (##c-code
    "___RESULT= ___MEM_ALLOCATED(___ARG1)
              ? (((___WORD)___BODY(___ARG1)) &~ ___CAST(___WORD,3)) /* well is a fixnum already anyway */
@@ -112,7 +112,7 @@
  #t
  )
 
-(define (mk-addressword->address fn)
+(define (mk-wordaddress->address fn)
   (lambda (obj)
     (declare (mostly-fixnum))
     (cond ((fn obj)
@@ -123,22 +123,22 @@
 		       (+ max-fixnum a)))))
 	  (else #f))))
 
-(define mem-address (mk-addressword->address mem-addressword))
+(define mem-address (mk-wordaddress->address mem-wordaddress))
 
-(define body-address (mk-addressword->address body-addressword))
+(define body-address (mk-wordaddress->address body-wordaddress))
 
 
-(define (addressword-peek addressword) ;; returns the bytes of the whole word at given position
-  (if (##fixnum? addressword)
+(define (wordaddress-peek wordaddress) ;; returns the bytes of the whole word at given position
+  (if (##fixnum? wordaddress)
       (let ((v (##make-u8vector word-size)))
 	(##c-code
 	 "
 *((___WORD*)___BODY(___ARG1)) = *((___WORD*)(___INT(___ARG2)*___WS));
 ___RESULT=___VOID;"
 	 v
-	 addressword)
+	 wordaddress)
 	v)
-      (error "not a fixnum:" addressword)))
+      (error "not a fixnum:" wordaddress)))
 
 ;; Can't use the ___HEADER macro, since this only works for tSUBTYPED, not for pairs.
 
