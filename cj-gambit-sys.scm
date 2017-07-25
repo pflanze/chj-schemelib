@@ -171,7 +171,7 @@ memcpy(p, body, lenbytes);
     (u32vector-set! v (dec numwords) 1234567880)
     (copy-to-body@! v addr (* numwords 4))
     (assert (= (u32vector-ref v numwords) 1777777777))
-    (assert (/= (u32vector-ref v (dec numwords)) 1234567880))
+    (assert (not (= (u32vector-ref v (dec numwords)) 1234567880)))
     (u32vector-shrink! v numwords)
     v))
 
@@ -181,7 +181,7 @@ memcpy(p, body, lenbytes);
 ;;     (u8vector-set! v (dec len) 42)
 ;;     (copy-to-body@! v addr len)
 ;;     (assert (= (u8vector-ref v len) 78))
-;;     (assert (/= (u8vector-ref v (dec len)) 42))
+;;     (assert (not (= (u8vector-ref v (dec len)) 42)))
 ;;     (u8vector-shrink! v len)
 ;;     v))
 
