@@ -168,24 +168,6 @@ ___RESULT= (*pp== SAFETYMARKER) ? ___TRU : ___FAL;
 " addr bodybytes))
 
 
-(define (copy-to-body@! v addr lenbytes)
-  (##c-code "
-char* body= ___CAST(char*, ___BODY(___ARG1));
-char* p= ___CAST(char*, ___ARG2);
-size_t lenbytes= ___INT(___ARG3);
-memcpy(body, p, lenbytes);
-" v addr lenbytes)
-  (void))
-
-(define (copy-from-body@! addr v lenbytes)
-  (##c-code "
-char* body= ___CAST(char*, ___BODY(___ARG1));
-char* p= ___CAST(char*, ___ARG2);
-size_t lenbytes= ___INT(___ARG3);
-memcpy(p, body, lenbytes);
-" v addr lenbytes)
-  (void))
-
 
 (define-struct. fftwVr
   constructor-name: _fftwVr

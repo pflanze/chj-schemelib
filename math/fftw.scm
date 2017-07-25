@@ -22,41 +22,6 @@
 			   (* x y sizeof-REAL))))
 
 
-;;XX move
-
-(define (u32:peek addr numwords)
-  (let ((v ;; (make-u32vector (+ numwords 1) 111111)
-	 (##make-u32vector (+ numwords 1))))
-    (u32vector-set! v numwords       1777777777)
-    (u32vector-set! v (dec numwords) 1234567880)
-    (copy-to-body@! v addr (* numwords 4))
-    (assert (= (u32vector-ref v numwords) 1777777777))
-    (assert (/= (u32vector-ref v (dec numwords)) 1234567880))
-    (u32vector-shrink! v numwords)
-    v))
-
-;; (define (u8:peek addr len)
-;;   (let ((v (##make-u8vector (+ len 1))))
-;;     (u8vector-set! v len 78)
-;;     (u8vector-set! v (dec len) 42)
-;;     (copy-to-body@! v addr len)
-;;     (assert (= (u8vector-ref v len) 78))
-;;     (assert (/= (u8vector-ref v (dec len)) 42))
-;;     (u8vector-shrink! v len)
-;;     v))
-
-(define (u8:peek addr len)
-  (let ((v (##make-u8vector len)))
-    (copy-to-body@! v addr len)
-    v))
-
-(define-typed (u8:poke addr #(u8vector? v) #!optional len)
-  ((typed-lambda (#(size0? len))
-		 (copy-from-body@! addr v len))
-   (or len (u8vector-length v))))
-
-;;/move
-
 
 (define-struct. fftwcontext
   in

@@ -1,5 +1,6 @@
 (require test
 	 cj-env	;;XX update what exactly?
+	 cj-typed
 	 )
 
 ;; (compile #t)
@@ -35,6 +36,10 @@
 	vectorlike-byteset!
 	vectorlike-bytefill!
 
+	u32:peek
+	u8:peek
+	u8:poke
+	
 	#!optional
 	check-mem-allocated
 	check-vector-like
@@ -43,6 +48,8 @@
 	@vectorlike-byteref
 	@vectorlike-byteset!
 	@vectorlike-bytefill!
+	copy-to-body@!
+	copy-from-body@!
 	)
 
 
@@ -134,6 +141,61 @@ ___RESULT=___VOID;"
       (error "not a fixnum:" addressword)))
 
 ;; Can't use the ___HEADER macro, since this only works for tSUBTYPED, not for pairs.
+
+
+;; =============================================================================
+;; peek for byte addresses
+
+(define (copy-to-body@! v addr lenbytes)
+  (##c-code "
+char* body= ___CAST(char*, ___BODY(___ARG1));
+char* p= ___CAST(char*, ___ARG2);
+size_t lenbytes= ___INT(___ARG3);
+memcpy(body, p, lenbytes);
+" v addr lenbytes)
+  (void))
+
+(define (copy-from-body@! addr v lenbytes)
+  (##c-code "
+char* body= ___CAST(char*, ___BODY(___ARG1));
+char* p= ___CAST(char*, ___ARG2);
+size_t lenbytes= ___INT(___ARG3);
+memcpy(p, body, lenbytes);
+" v addr lenbytes)
+  (void))
+
+(define (u32:peek addr numwords)
+  (let ((v ;; (make-u32vector (+ numwords 1) 111111)
+	 (##make-u32vector (+ numwords 1))))
+    (u32vector-set! v numwords       1777777777)
+    (u32vector-set! v (dec numwords) 1234567880)
+    (copy-to-body@! v addr (* numwords 4))
+    (assert (= (u32vector-ref v numwords) 1777777777))
+    (assert (/= (u32vector-ref v (dec numwords)) 1234567880))
+    (u32vector-shrink! v numwords)
+    v))
+
+;; (define (u8:peek addr len)
+;;   (let ((v (##make-u8vector (+ len 1))))
+;;     (u8vector-set! v len 78)
+;;     (u8vector-set! v (dec len) 42)
+;;     (copy-to-body@! v addr len)
+;;     (assert (= (u8vector-ref v len) 78))
+;;     (assert (/= (u8vector-ref v (dec len)) 42))
+;;     (u8vector-shrink! v len)
+;;     v))
+
+(define (u8:peek addr len)
+  (let ((v (##make-u8vector len)))
+    (copy-to-body@! v addr len)
+    v))
+
+(define-typed (u8:poke addr #(u8vector? v) #!optional len)
+  ((typed-lambda (#(size0? len))
+		 (copy-from-body@! addr v len))
+   (or len (u8vector-length v))))
+
+;; =============================================================================
 
 
 ;; NOTE: for me, (subtype (cons 1 2)) returns 0, same as vector. All
