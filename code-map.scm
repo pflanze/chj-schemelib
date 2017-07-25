@@ -86,9 +86,9 @@
  > (code-map-substrings
     ((<X> '(s32 s8))
      (<Y> '(signed-32 signed-8)))
-    (def. (<X>vector.doit x) (cons "hello" '<Y>)))
+    (def. (<X>vector.doit x) (cons "hello<X> <Y>" '<Y>)))
  > (.doit (s8vector 1))
- ("hello" . signed-8)
+ ("hellos8 signed-8" . signed-8)
  > (.doit (s32vector 1))
- ("hello" . signed-32))
+ ("hellos32 signed-32" . signed-32))
 
