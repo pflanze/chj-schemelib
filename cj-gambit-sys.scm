@@ -144,55 +144,58 @@ ___RESULT=___VOID;"
 
 
 ;; =============================================================================
-;; peek for byte addresses
 
-(define (copy-to-body@! v addr lenbytes)
+;; still also for word addresses, or so (dangerously undefined!, and
+;; actually always assumes 4-byte words, even on 64 bit architectures,
+;; right?)
+
+(define-typed (copy-to-body@! v #(fixnum? wordaddr) #(fixnum? lenbytes))
   (##c-code "
 char* body= ___CAST(char*, ___BODY(___ARG1));
 char* p= ___CAST(char*, ___ARG2);
 size_t lenbytes= ___INT(___ARG3);
 memcpy(body, p, lenbytes);
-" v addr lenbytes)
+" v wordaddr lenbytes)
   (void))
 
-(define (copy-from-body@! addr v lenbytes)
+(define-typed (copy-from-body@! #(fixnum? wordaddr) v #(fixnum? lenbytes))
   (##c-code "
 char* body= ___CAST(char*, ___BODY(___ARG1));
 char* p= ___CAST(char*, ___ARG2);
 size_t lenbytes= ___INT(___ARG3);
 memcpy(p, body, lenbytes);
-" v addr lenbytes)
+" v wordaddr lenbytes)
   (void))
 
-(define (u32:peek addr numwords)
+(define (u32:wordaddr-peek wordaddr numwords)
   (let ((v ;; (make-u32vector (+ numwords 1) 111111)
 	 (##make-u32vector (+ numwords 1))))
     (u32vector-set! v numwords       1777777777)
     (u32vector-set! v (dec numwords) 1234567880)
-    (copy-to-body@! v addr (* numwords 4))
+    (copy-to-body@! v wordaddr (* numwords 4))
     (assert (= (u32vector-ref v numwords) 1777777777))
     (assert (not (= (u32vector-ref v (dec numwords)) 1234567880)))
     (u32vector-shrink! v numwords)
     v))
 
-;; (define (u8:peek addr len)
+;; (define (u8:wordaddr-peek wordaddr len)
 ;;   (let ((v (##make-u8vector (+ len 1))))
 ;;     (u8vector-set! v len 78)
 ;;     (u8vector-set! v (dec len) 42)
-;;     (copy-to-body@! v addr len)
+;;     (copy-to-body@! v wordaddr len)
 ;;     (assert (= (u8vector-ref v len) 78))
 ;;     (assert (not (= (u8vector-ref v (dec len)) 42)))
 ;;     (u8vector-shrink! v len)
 ;;     v))
 
-(define (u8:peek addr len)
+(define (u8:wordaddr-peek wordaddr len)
   (let ((v (##make-u8vector len)))
-    (copy-to-body@! v addr len)
+    (copy-to-body@! v wordaddr len)
     v))
 
-(define-typed (u8:poke addr #(u8vector? v) #!optional len)
+(define-typed (u8:wordaddr-poke wordaddr #(u8vector? v) #!optional len)
   ((typed-lambda (#(size0? len))
-		 (copy-from-body@! addr v len))
+		 (copy-from-body@! wordaddr v len))
    (or len (u8vector-length v))))
 
 ;; =============================================================================
