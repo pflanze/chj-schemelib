@@ -56,7 +56,7 @@
 	@vectorlike-bytefill!
 	copy-to-body@!
 	copy-from-body@!
-	memcpy-to-object
+	@memcpy-to-object
 	)
 
 
@@ -215,7 +215,7 @@ memcpy(p, body, lenbytes);
 ;; Finally proper bignum address based peek
 
 
-(define memcpy-to-object
+(define @memcpy-to-object
   (c-lambda (scheme-object unsigned-int64 unsigned-int64)
 	    int
 	    "memcpy((void*)___BODY(___arg1), (void*)___arg2, (size_t)___arg3);"))
@@ -224,21 +224,21 @@ memcpy(p, body, lenbytes);
   (let ((out (make-u8vector len 77)))
     ;; Still missing an address type, or even size_t. Just allow for
     ;; 64 bits, and all is fine? (Let it wrap around, even, fine?)
-    (memcpy-to-object out addr len)
+    (@memcpy-to-object out addr len)
     out))
 
 (define-typed (u32:peek addr #!optional (len 1))
   (let ((out (make-u32vector len 77)))
     ;; Still missing an address type, or even size_t. Just allow for
     ;; 64 bits, and all is fine? (Let it wrap around, even, fine?)
-    (memcpy-to-object out addr (* len 4))
+    (@memcpy-to-object out addr (* len 4))
     out))
 
 (define-typed (u64:peek addr #!optional (len 1))
   (let ((out (make-u64vector len 77)))
     ;; Still missing an address type, or even size_t. Just allow for
     ;; 64 bits, and all is fine? (Let it wrap around, even, fine?)
-    (memcpy-to-object out addr (* len 8))
+    (@memcpy-to-object out addr (* len 8))
     out))
 
 
