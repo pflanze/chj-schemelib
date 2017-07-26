@@ -23,9 +23,10 @@
 		((either symbol? string?)
 		 (S (fold (lambda (replacement code*)
 			    (let-pair ((subsymbol newsubsymbol) replacement)
-				      (.replace-substrings code*
-							   (symbol.string subsymbol)
-							   (symbol.string newsubsymbol))))
+				      (.replace-substrings
+				       code*
+				       (symbol.string subsymbol)
+				       (symbol.string (source-code newsubsymbol)))))
 			  code*
 			  replacements)))
 		(pair?
