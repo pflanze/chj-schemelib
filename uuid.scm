@@ -18,18 +18,19 @@
 
 (defmodule (<uuid>
 	    #!key
-	    (#(exact-natural? uuid-string-length) 27))
+	    ;; uuid-string-length:
+	    (#(exact-natural? length) 27))
 
   (export random-uuid
 	  uuid?)
 
   (def uuid?
-       (both (string-of-length uuid-string-length)
+       (both (string-of-length length)
 	     (string-of char-alphanumeric?)))
 
   (def random-uuid
        (let ((*s (atomic-box (make-realrandom-alphanumeric-string-stream
-			      uuid-string-length))))
+			      length))))
 	 (lambda ()
 	   (atomic-box.update!
 	    *s
