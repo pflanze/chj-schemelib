@@ -10,7 +10,8 @@
 	 posix/mmap
 	 math/image/pnmatrix-compiled ;; math/image/pnmatrix-macros ;; pnmatrix:headsize  u1matrix ?
 	 u8-parse
-	 math/image/pnmatrix-base)
+	 math/image/pnmatrix-base
+	 (cj-gambit-sys u8:wordaddr-poke))
 
 
 (include "../../cj-standarddeclares.scm")
@@ -132,7 +133,7 @@
       (posix:close fd)
       (let* ((str (.pnmatrix-head-string info))
 	     (v (string->u8vector str)))
-	(u8:poke start v))
+	(u8:wordaddr-poke start v))
       ;; copypaste:_
       ((bpc.pnmatrix-constructor (.bpc info))
        (.pnmatrixtype info)
