@@ -7,30 +7,34 @@
 
 
 (require easy
-	 (predicates string-of-length)
+	 (predicates string-of-length exact-natural?)
 	 (char-util char-alphanumeric?)
 	 ;; and side effects:
 	 (realrandom make-realrandom-alphanumeric-string-stream)
 	 atomic-box)
 
-(export random-uuid
-	uuid?)
 
+(export <uuid>)
 
-(def random-uuid-length 27)
+(defmodule (<uuid>
+	    #!key
+	    (#(exact-natural? uuid-string-length) 27))
 
-(def uuid?
-     (both (string-of-length random-uuid-length)
-	   (string-of char-alphanumeric?)))
+  (export random-uuid
+	  uuid?)
 
-(def random-uuid
-     (let ((*s (atomic-box (make-realrandom-alphanumeric-string-stream
-			    random-uuid-length))))
-       (lambda ()
-	 (atomic-box.update!
-	  *s
-	  (lambda (s)
-	    (let-pair ((a s*) (force s))
-		      (values s* (-> uuid? a))))))))
+  (def uuid?
+       (both (string-of-length uuid-string-length)
+	     (string-of char-alphanumeric?)))
+
+  (def random-uuid
+       (let ((*s (atomic-box (make-realrandom-alphanumeric-string-stream
+			      uuid-string-length))))
+	 (lambda ()
+	   (atomic-box.update!
+	    *s
+	    (lambda (s)
+	      (let-pair ((a s*) (force s))
+			(values s* (-> uuid? a)))))))))
 
 
