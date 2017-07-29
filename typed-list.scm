@@ -71,12 +71,17 @@
 		(def-method (remove l f)
 		  (typed-list-pair.filter l (complement f)))
 
-		(def-method (the l)
+		(def-method (the l
+				 #!optional
+				 (none (& (error "no element")))
+				 (more (& (error "more than one element"))))
 		  (let-typed-list-pair
 		   ((_ len v _) l)
 		   (if (= len 1)
 		       v
-		       (error "more than one element"))))
+		       (if (= len 0)
+			   (none)
+			   (more)))))
 
 		(def-method* (null l)
 		  (typed-list-null pred)))
