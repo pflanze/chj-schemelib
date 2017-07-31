@@ -685,15 +685,18 @@
 		      ,@(expand-forms-in-exprs
 			 (symboltable*
 			  ;; abstract methods
-			  method: (if (or interface? abstract?)
-				      (joo:abstract-method-expander-for class-name)
-				      joo:abstract-method-expander-forbidden)
+			  method:
+			  (if (or interface? abstract?)
+			      (joo:abstract-method-expander-for class-name)
+			      joo:abstract-method-expander-forbidden)
 			  ;; implementations
-			  def-method: (if interface?
-					  joo:implementation-method-expander-forbidden
-					  (joo:implementation-method-expander-for class-name
-										  #f
-										  abstract?))
+			  def-method:
+			  (if interface?
+			      joo:implementation-method-expander-forbidden
+			      (joo:implementation-method-expander-for
+			       class-name
+			       #f
+			       abstract?))
 			  ;; with fields bound to variables
 			  def-method*:
 			  (if interface?
