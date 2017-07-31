@@ -39,7 +39,7 @@
 	(macro joo-interface)
 	#!optional
 	joo:parse-decl
-	expand-forms-in-exprs)
+	macro-expand/symtbl)
 
 (include "cj-standarddeclares.scm")
 
@@ -48,27 +48,24 @@
 ;; Makeshift "manual" ##let-syntax. Only top-level exprs are expanded!
 ;; (Should it be extended to enter ##begin forms?  Probably. Need to
 ;; know what |begin| is bound to, though. Forever.)
-(def (expand-forms-in-exprs symtbl exprs)
-     (map (named redo
-		 (lambda (expr)
-		   (let ((expr* (source-code expr)))
-		     (if (pair? expr*)
-			 (let ((a (source-code (car expr*))))
-			   (cond ((and (symbol? a)
-				       (or (symboltable-ref symtbl a #f)
-					   ;; Need to expand other
-					   ;; macros, too, to handle
-					   ;; entries in their
-					   ;; expansions!
-					   (define-macro-star-maybe-ref a)))
-				  => (lambda (expand)
-				       ;; recurse until no macro
-				       ;; expander found anymore
-				       (redo (expand expr))))
-				 (else
-				  expr)))
-			 expr))))
-	  exprs))
+(def (macro-expand/symtbl expr symtbl) ;; note, *also* uses define-macro-star defs
+     (let ((expr* (source-code expr)))
+       (if (pair? expr*)
+	   (let ((a (source-code (car expr*))))
+	     (cond ((and (symbol? a)
+			 (or (symboltable-ref symtbl a #f)
+			     ;; Need to expand other
+			     ;; macros, too, to handle
+			     ;; entries in their
+			     ;; expansions!
+			     (define-macro-star-maybe-ref a)))
+		    => (lambda (expand)
+			 ;; recurse until no macro
+			 ;; expander found anymore
+			 (macro-expand/symtbl (expand expr) symtbl)))
+		   (else
+		    expr)))
+	   expr)))
 
 ;; /move
 
@@ -679,34 +676,34 @@
 		      ;; Can't use ##define-syntax, as it leaves the
 		      ;; scope of the |begin| forms, and hence the
 		      ;; original joo-* forms (would need
-		      ;; ##let-syntax). Use expand-forms-in-exprs
+		      ;; ##let-syntax). Use macro-expand/symtbl
 		      ;; instead.
 
-		      ,@(expand-forms-in-exprs
-			 (symboltable*
-			  ;; abstract methods
-			  method:
-			  (if (or interface? abstract?)
-			      (joo:abstract-method-expander-for class-name)
-			      joo:abstract-method-expander-forbidden)
-			  ;; implementations
-			  def-method:
-			  (if interface?
-			      joo:implementation-method-expander-forbidden
-			      (joo:implementation-method-expander-for
-			       class-name
-			       #f
-			       abstract?))
-			  ;; with fields bound to variables
-			  def-method*:
-			  (if interface?
-			      joo:implementation-method-expander-forbidden
-			      (joo:implementation-method-expander-for
-			       class-name
-			       (joo:args->vars (joo-type.all-field-decls type))
-			       abstract?)))
-			 
-			 defs))))))))
+		      ,@(map (C macro-expand/symtbl
+				_
+				(symboltable*
+				 ;; abstract methods
+				 method:
+				 (if (or interface? abstract?)
+				     (joo:abstract-method-expander-for class-name)
+				     joo:abstract-method-expander-forbidden)
+				 ;; implementations
+				 def-method:
+				 (if interface?
+				     joo:implementation-method-expander-forbidden
+				     (joo:implementation-method-expander-for
+				      class-name
+				      #f
+				      abstract?))
+				 ;; with fields bound to variables
+				 def-method*:
+				 (if interface?
+				     joo:implementation-method-expander-forbidden
+				     (joo:implementation-method-expander-for
+				      class-name
+				      (joo:args->vars (joo-type.all-field-decls type))
+				      abstract?))))
+			     defs))))))))
 
        (joo:parse-decl decl
 		       (cc #f)
