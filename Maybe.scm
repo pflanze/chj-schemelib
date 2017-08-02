@@ -29,7 +29,9 @@
 
 	(jclass ((Nothing _Nothing))
 		(def-method (maybe-value s)
-		  #f))
+		  #f)
+		(def-method (show s)
+		  `(Nothing)))
 
 	(jclass (Just value)
 		(def-method maybe-value Just.value))
