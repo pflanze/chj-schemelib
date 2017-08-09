@@ -8,16 +8,17 @@
 	current-realunixtime)
 
 
+;; for representing time points (absolute) only
 (jclass (realunixtime #(real? real))
 
 	(def-method* (integer r)
 	  (integer real))
 
-	(def-method (+ r #(realunixtime? x))
-	  (.real-update r (C + _ (realunixtime.real x))))
+	(def-method (+ r #(real? x))
+	  (.real-update r (C + _ x)))
 
-	(def-method (- r #(realunixtime? x))
-	  (.real-update r (C - _ (realunixtime.real x)))))
+	(def-method* (- r #(realunixtime? x))
+	  (- real (realunixtime.real x))))
 
 
 (def (current-realunixtime)
