@@ -13,11 +13,11 @@
 	(def-method* (integer r)
 	  (integer real))
 
-	(def-method (+ r #(real? x))
-	  (.real-update r (C + _ x)))
+	(def-method (+ r #(realunixtime? x))
+	  (.real-update r (C + _ (realunixtime.real x))))
 
-	(def-method (- r #(real? x))
-	  (.real-update r (C - _ x))))
+	(def-method (- r #(realunixtime? x))
+	  (.real-update r (C - _ (realunixtime.real x)))))
 
 
 (def (current-realunixtime)
