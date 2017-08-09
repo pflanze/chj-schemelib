@@ -1,25 +1,23 @@
-;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 (require easy
-	 (cj-env-2 current-unixtime))
+	 jclass)
 
-(export (class realunixtime)
-	(methods integer + -)
+(export (jclass realunixtime
+		(methods integer + -))
 	current-realunixtime)
 
 
-(class realunixtime
-       (struct #(real? real))
+(jclass (realunixtime #(real? real))
 
-       (method (integer r)
-	       (let-realunixtime ((v) r)
-				 (integer v)))
+	(def-method* (integer r)
+	  (integer real))
 
-       (method (+ r #(real? x))
-	       (.real-update r (C + _ x)))
+	(def-method (+ r #(real? x))
+	  (.real-update r (C + _ x)))
 
-       (method (- r #(real? x))
-	       (.real-update r (C - _ x))))
+	(def-method (- r #(real? x))
+	  (.real-update r (C - _ x))))
 
 
 (def (current-realunixtime)
