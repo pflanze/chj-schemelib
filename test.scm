@@ -725,15 +725,18 @@
 			   (with-exception-handler
 			    (lambda (e)
 			      (let ((l (test:current-test-location)))
-				(if (test:ignore-error?
-				     l
-				     ;; XX CWD always right? Really
-				     ;; what CWD was when loaded file,
-				     ;; right?
-				     (current-directory))
+				(if (and l
+					 (test:ignore-error?
+					  l
+					  ;; XX CWD always right? Really
+					  ;; what CWD was when loaded file,
+					  ;; right?
+					  (current-directory)))
+				    ;; ignore it
 				    (continuation-capture
 				     (lambda (ctx)
 				       (error-exit (vector e ctx l))))
+				    ;; repl or whatever
 				    ((test:current-orig-handler) e))))
 			    (lambda ()
 			      (eval (car forms))
