@@ -53,9 +53,15 @@
 (define (TEST-expand test-check)
   (named self
 	 (lambda (l)
+	   (define (sideeffect e rest)
+	     (source-error e "local-TEST: side-effects not currently supported"))
 	   (mcase l
 		  (null?
 		   '())
+		  (`(> `e)
+		   (sideeffect e '()))
+		  (`(> `e > . `_rest)
+		   (sideeffect e (cddr (source-code l))))
 		  (`(> `e `res . `rest)
 		   (cons `(,test-check ,e ,res)
 			 (self rest)))))))
