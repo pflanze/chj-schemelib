@@ -1,9 +1,10 @@
 
 (require easy-1
-	 dot-oo;; included in easy?
+	 dot-oo ;; included in easy?
 	 (cj-math integer)
 	 (string-util-2 string-reverse)
 	 (cj-functional list-of)
+	 (srfi-11 values->vector values->list) ;; included in easy?
 	 cj-env)
 
 
@@ -11,6 +12,8 @@
 (define. exact.inexact exact->inexact) ;; ah, use the above?
 
 (define. values.vector values->vector)
+
+(define. values.list values->list)
 
 (define. number.string number->string)
 (define. string.maybe-number string->number)
