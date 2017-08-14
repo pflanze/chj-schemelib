@@ -782,7 +782,9 @@
 			      (table-set! seen a #t)
 			      (lp (cons a out)
 				  r))))))))))
+
        (if (pair? files)
+
 	   ;; first check if they are loaded
 	   (let* ((files* (map perhaps-add-.scm files))
 		  (loaded* (list->table
@@ -799,13 +801,17 @@
 			     (table-ref loaded* (test:path-normalize file) #f)))
 		  (loaded (filter loaded? files*))
 		  (not-loaded (filter (complement loaded?) files*)))
+
 	     (if (pair? not-loaded)
 		 (test:warn
 		  "These files are not loaded or don't contain TEST forms:\n"
 		  not-loaded))
+
 	     (for-each test-file loaded))
+
 	   ;; otherwise run all loaded:
 	   (for-each test-file (all-tests))))
+
      (print (list (TEST:count-success) " success(es), "
 		  (TEST:count-fail) " failure(s), "
 		  (TEST:count-fail-ignored) " ignored failure(s)"
