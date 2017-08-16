@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -37,6 +37,7 @@
 
 (export (macro joo-class)
 	(macro joo-interface)
+	(macro def.*) ;; XX should I provide |define.*|, too?
 	#!optional
 	joo:parse-decl
 	macro-expand/symtbl)
@@ -131,6 +132,63 @@
 
 
 
+;; def-method* and def.* body expansion
+(def (joo:body* class-name
+		fields
+		bind
+		rest) ;; -> list?
+     (let* ((used (list->symbolcollection
+		       (joo:body-symbols rest)))
+		(bindvars* (joo:args->vars bind))
+		(bindvars (list->symbolcollection
+			   (map source-code bindvars*)))
+		(args (cdr bindvars*)))
+	   (letv ((pre body)
+		  ;; Also have to parse rest for "->"
+		  ;; syntax *UH*, that's bad? Well the ->
+		  ;; is part of the binds thing,
+		  ;; basically, but still, XX should
+		  ;; really provide proper parsers!
+		  ;; (S-expr *is* just a layer in the
+		  ;; syntax parsing. Really.)
+		  (if (and (pair? rest)
+			   (eq? (source-code (car rest)) '->)
+			   (pair? (cdr rest)))
+		      (values (take rest 2)
+			      (drop rest 2))
+		      (values '()
+			      rest)))
+		 `(,@pre
+		   (,(symbol-append 'let- class-name)
+		    (,(map (lambda (nam)
+			     (let ((nam* (source-code nam)))
+			       (if (and (symboltable-ref used nam* #f)
+					(not
+					 (symboltable-ref bindvars nam* #f)))
+				   nam
+				   '_)))
+			   fields)
+		     ,(car args))
+		    ,@body)))))
+
+
+(defmacro (def.* bind . rest)
+  (assert* pair? bind
+	   (lambda-pair
+	    ((class-name.method bindvars))
+	    (letv ((class-name-str _method)
+		   (dot-oo:split-prefix:typename.methodname
+		    (symbol.string (source-code class-name.method))))
+
+		  (let ((class-name (string.symbol class-name-str)))
+		    `(def. ,bind
+		       ,@(joo:body* class-name
+				    (joo-type.all-field-names
+				     (eval (joo:joo-type-symbol class-name)))
+				    bind
+				    rest)))))))
+
+
 ;; def-method and def-method*
 (def (joo:implementation-method-expander-for
       class-name
@@ -149,49 +207,15 @@
 	  (mcase
 	   bind
 	   (pair?
-	    (let ((rest*
-		   (if (and maybe-fields
-			    ;; only non-abstract classes have let-
-			    ;; forms
-			    (not abstract?))
-		       (let* ((used (list->symbolcollection
-				     (joo:body-symbols rest)))
-			      (bindvars* (joo:args->vars bind))
-			      (bindvars (list->symbolcollection
-					 (map source-code bindvars*)))
-			      (args (cdr bindvars*)))
-			 (letv ((pre body)
-				;; Also have to parse rest for "->"
-				;; syntax *UH*, that's bad? Well the ->
-				;; is part of the binds thing,
-				;; basically, but still, XX should
-				;; really provide proper parsers!
-				;; (S-expr *is* just a layer in the
-				;; syntax parsing. Really.)
-				(if (and (pair? rest)
-					 (eq? (source-code (car rest)) '->)
-					 (pair? (cdr rest)))
-				    (values (take rest 2)
-					    (drop rest 2))
-				    (values '()
-					    rest)))
-			       `(,@pre
-				 (,(symbol-append 'let- class-name)
-				  (,(map (lambda (nam)
-					   (let ((nam* (source-code nam)))
-					     (if (and (symboltable-ref used nam* #f)
-						      (not
-						       (symboltable-ref bindvars nam* #f)))
-						 nam
-						 '_)))
-					 maybe-fields)
-				   ,(car args))
-				  ,@body))))
-		       rest)))
-	      (let-pair ((name args) (source-code bind))
-			`(def. (,(source.symbol-append class-name. name)
-				,@args)
-			   ,@rest*))))
+	    (let-pair ((name args) (source-code bind))
+		      `(def. (,(source.symbol-append class-name. name)
+			      ,@args)
+			 ,@(if (and maybe-fields
+				    ;; only non-abstract classes have let-
+				    ;; forms
+				    (not abstract?))
+			       (joo:body* class-name maybe-fields bind rest)
+			       rest))))
 	   (symbol?
 	    (if maybe-fields
 		;; or simply do not do it, or parse lambda if that's
@@ -258,7 +282,7 @@
 	       #((maybe struct-tag?) maybe-struct-tag)
 	       ;; #f means no cj-struct (i.e. same as above)
 	       #(boolean? interface?)
-	       #(;;(if interface? false? (maybe joo-type?))  sigh, I
+	       #( ;;(if interface? false? (maybe joo-type?))  sigh, I
 		 ;; remembered right afterwards: doesn't work in the
 		 ;; code used for setters; fix this in cj-struct?
 		 ;; (~ugh, and heh, C++/Java style object field
@@ -343,6 +367,9 @@
 		       ;; everything up. For now. (Would have to
 		       ;; write a proper abstraction, parser.)
 		       (joo-type.field-decls s)))
+
+       (method (all-field-names s)
+	       (joo:args->vars (joo-type.all-field-decls s)))
 
        ;; is `s` a `t` ?
        (method (is-a? s #(joo-type? t))
@@ -701,7 +728,7 @@
 				     joo:implementation-method-expander-forbidden
 				     (joo:implementation-method-expander-for
 				      class-name
-				      (joo:args->vars (joo-type.all-field-decls type))
+				      (joo-type.all-field-names type)
 				      abstract?))))
 			     defs))))))))
 
@@ -855,11 +882,20 @@
 		(list x y z))
 	      (def-method* (baz x y) -> pair?
 		(list x y z)))
- > (.bar (fooagain2 10 (cons 1 2) 'f) 11)
+ > (def myfooagain2 (fooagain2 10 (cons 1 2) 'f))
+ > (.bar myfooagain2 11)
  (#((fooagain2) 10 (1 . 2) f) 11 f)
- > (.baz (fooagain2 10 (cons 1 2) 'f) 11)
+ > (.baz myfooagain2 11)
  (#((fooagain2) 10 (1 . 2) f) 11 f)
  )
+
+;; def.*
+(TEST
+ > (def.* (fooagain2.testdefstar _)
+     y)
+ > (.testdefstar myfooagain2)
+ (1 . 2))
+
 
 ;; def-method* and inheritance, or, test the let-<classname> feature
 ;; with inheritance for the first tiem:
