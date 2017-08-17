@@ -1,4 +1,4 @@
-;;; Copyright 2013 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -89,11 +89,13 @@
 (define-macro* (repeat n . body)
   (with-gensyms
    (LP C)
-   `(let ,LP ((,C ,n))
+   `(let ,LP ((,C ,n)
+	      (res (void)))
 	 (if (positive? ,C)
-	     (begin
-	       ,@body
-	       (,LP (dec ,C)))))))
+	     (,LP (dec ,C)
+		  (begin
+		    ,@body))
+	     res))))
 
 (define-macro* (unless test form)
   `(if (not ,test)
