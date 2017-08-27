@@ -389,7 +389,7 @@
 		    ;; do *not* restrict length
 		    (fx>= (##vector-length v) 1)
 		    (joo:struct-tag.member-of? (##vector-ref v 0)
-					       (joo-type.members s)))))
+					       (@joo-type.members s)))))
 
 ;; a constructor that also updates the parent's member tables (XX
 ;; *could* also ensure singletons here (keyed on tag), should I ?)
