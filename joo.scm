@@ -29,6 +29,7 @@
 	 (cj-struct struct-tag.name)
 	 (dot-oo define-struct.-expand)
 	 symboltable
+	 (symboltable symboltable-declare @symboltable-ref:c-inline)
 	 (cj-source source-quote source-dequote)
 	 cj-seen
 	 (improper-list improper-list->list)
@@ -255,6 +256,7 @@
 ;; (Wat xactly?))
 
 
+(symboltable-declare)
 
 (def (joo:struct-tag.member-of? t members)
      (declare (not safe)) ;; <-- XX safe?

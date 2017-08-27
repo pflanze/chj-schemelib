@@ -37,6 +37,10 @@
 	symboltable-set
 	symboltable-remove
 	symboltable-copy ;; clone
+
+	#!optional
+	(macro (symboltable-declare))
+	(inline @symboltable-ref:c)
 	)
 
 (include "cj-standarddeclares.scm")
@@ -225,8 +229,16 @@
 
 (define symboltable-ref:c:invalid-type (gensym))
 
+(define-macro* (symboltable-declare)
+  (if (mod:compiled?)
+      `(c-declare "
+___SCMOBJ symboltable_1__symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ alternate_value);
+")
+      `(begin)))
+
 (define-macro* (symboltable-init-scope)
   `(begin
+     (symboltable-declare)
      (c-declare "
 #define likely(expr) __builtin_expect(expr, 1)
 #define unlikely(expr) __builtin_expect(expr, 0)
