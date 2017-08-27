@@ -260,11 +260,11 @@
      (declare (not safe)) ;; <-- XX safe?
      (let ((tag-name (@maybe-struct-tag-name t)))
        (and tag-name
-	    ;; XX did I go to the dark side by using unsafe op
-	    ;; here?
-	    (let ((tag (@symboltable-ref members
-					 tag-name
-					 #f)))
+	    ;; XX did I go to the dark side by using unsafe op here?
+	    ;; -- also, assumes symboltable-1.scm is compiled.
+	    (let ((tag (@symboltable-ref:c-inline members
+						  tag-name
+						  #f)))
 	      (and tag
 		   (eq? t tag))))))
 
