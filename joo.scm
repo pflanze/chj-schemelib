@@ -554,7 +554,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v);
       `(begin)))
 
 
-(c-declare "
+(IF (mod:compiled?)
+    (c-declare "
 // now hand-rewrite and -inline everything here. XX super evil.
 
 // This one should be moved back to cj-struct if I wanted to do more
@@ -594,19 +595,21 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
             struct_tag_member_ofP(___VECTORREF(v,___FIX(0)),
                                   joo_type_members(s)) : ___FAL;
 }
-")
+"))
 
 (defmacro (%joo:make-predicate type-symbol)
-  (with-gensym
-   V
-   (if (mod:compiled?)
-       (quasiquote-source
-	(lambda (,V)
-	  (##c-code "___RESULT=  joo__joo_type_covers_instanceP(___ARG1, ___ARG2);"
-		    ,type-symbol ,V)))
-       (quasiquote-source
-	(lambda (,V)
-	  (joo-type.covers-instance? ,type-symbol ,V))))))
+  (IF (mod:compiled?)
+      (with-gensym
+       V
+       (if (mod:compiled?)
+	   (quasiquote-source
+	    (lambda (,V)
+	      (##c-code "___RESULT=  joo__joo_type_covers_instanceP(___ARG1, ___ARG2);"
+			,type-symbol ,V)))
+	   (quasiquote-source
+	    (lambda (,V)
+	      (joo-type.covers-instance? ,type-symbol ,V)))))
+      `(joo:make-predicate ,type-symbol)))
 
 ;; / optimization
 
