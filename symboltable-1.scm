@@ -290,28 +290,23 @@ int ___table_inc2_with_top(int n, int top) {
 
       ;;  (define-typed (symboltable-ref:c #(symboltable? t) key alternate-value)
 
-      (define (@symboltable-ref:c t key alternate-value)
-	(let ((res (##c-code "
-___SCMOBJ t = ___ARG1;
-___SCMOBJ key = ___ARG2;
-___SCMOBJ alternate_value = ___ARG3;
-
+      (c-declare "
 #define ___key_id(v) ___INT(___VECTORREF(v,___FIX(1)))
 // lol same
 
-/* can't check table type anymore easily since its head is a movable object now
-if (unlikely(! ___tablep(t))) {
-    ___RESULT= ___error_invalid_type;
-    goto end;
-}
-*/
+___SCMOBJ symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ alternate_value) {
+    ___WORD ___temp; /* used by ___keyp */
 
-if (unlikely(! ___keyp(key))) {
-    ___RESULT= ___error_invalid_type;
-    goto end;
-}
+    /* can't check table type anymore easily since its head is a movable object now
+    if (unlikely(! ___tablep(t))) {
+	return ___error_invalid_type;
+    }
+    */
 
-{
+    if (unlikely(! ___keyp(key))) {
+	return ___error_invalid_type;
+    }
+
     ___SCMOBJ vec = t;
     ___WORD vlen = ___INT(___VECTORLENGTH(vec));
     /* when compiling with -O3, the length retrieval might be merged
@@ -327,22 +322,21 @@ if (unlikely(! ___keyp(key))) {
     ___WORD slot = id & mask;
 
     // printf(\"vlen=%ld, id=%ld, sizepot=%ld, mask=%ld, slot=%ld\\n\", vlen,id,sizepot,mask,slot);
-    
+
     ___WORD i= (slot << 1) + TABLE_BASE_I;
     lp: {
 	___SCMOBJ key2 = ___VECTORREF(vec,___FIX(i));
 	// printf(\"   lp:  i=%ld, key2=%ld\\n\", i,key2);
 	if (unlikely (key2 == ___FAL)) {
-	    ___RESULT= alternate_value;
+	    return alternate_value;
 	} else {
     /*
 	    if (unlikely(! ___keyp(key2))) {
-		___RESULT= ___error_invalid_type;
-		goto end;
+		return ___error_invalid_type;
 	    }
     */
 	    if (key2 == key) { // XX only works for interned symbols!
-		___RESULT= ___VECTORREF(vec,___FIX(i+1));
+		return ___VECTORREF(vec,___FIX(i+1));
 	    } else {
 		i= ___table_inc2_with_top(i, vlen);
 		goto lp;
@@ -350,8 +344,10 @@ if (unlikely(! ___keyp(key))) {
 	}
     }
 }
-end:
-"
+")
+      
+      (define-inline (@symboltable-ref:c t key alternate-value)
+	(let ((res (##c-code "___RESULT= symboltable_ref (___ARG1, ___ARG2, ___ARG3);"
 			     t key alternate-value)))
 	  (if (eq? res symboltable-ref:c:invalid-type)
 	      (error "invalid type")
