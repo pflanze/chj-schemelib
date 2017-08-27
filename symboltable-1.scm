@@ -294,7 +294,7 @@ int ___table_inc2_with_top(int n, int top) {
 #define ___key_id(v) ___INT(___VECTORREF(v,___FIX(1)))
 // lol same
 
-___SCMOBJ symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ alternate_value) {
+___SCMOBJ symboltable_1__symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ alternate_value) {
     ___WORD ___temp; /* used by ___keyp */
 
     /* can't check table type anymore easily since its head is a movable object now
@@ -347,7 +347,7 @@ ___SCMOBJ symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ alternate_value
 ")
       
       (define-inline (@symboltable-ref:c t key alternate-value)
-	(let ((res (##c-code "___RESULT= symboltable_ref (___ARG1, ___ARG2, ___ARG3);"
+	(let ((res (##c-code "___RESULT= symboltable_1__symboltable_ref (___ARG1, ___ARG2, ___ARG3);"
 			     t key alternate-value)))
 	  (if (eq? res symboltable-ref:c:invalid-type)
 	      (error "invalid type")
