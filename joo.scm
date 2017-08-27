@@ -34,7 +34,9 @@
 	 cj-seen
 	 (improper-list improper-list->list)
 	 (tree-util flatten)
-	 (cj-typed args-detype))
+	 (cj-typed args-detype)
+	 cj-source-quasiquote ;; all in the name of optimization
+	 )
 
 (export (macro joo-class)
 	(macro joo-interface)
@@ -534,9 +536,80 @@
 		     '() ;; does not implement anything
 		     '()))
 
+;; this:
 (def (joo:make-predicate type)
      (lambda (v)
        (joo-type.covers-instance? type v)))
+
+;; shall now be optimized as:
+
+(defmacro (%joo-declare)
+  (if (mod:compiled?)
+      `(c-declare "
+#ifndef __JOO___ /* necessary? */
+#define __JOO___
+___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v);
+#endif
+")
+      `(begin)))
+
+
+(c-declare "
+// now hand-rewrite and -inline everything here. XX super evil.
+
+// This one should be moved back to cj-struct if I wanted to do more
+// such hacking.  XX also evil since also needs to be kept in sync of course.
+static
+___SCMOBJ maybe_struct_tag_name(___SCMOBJ v) {
+    ___SCMOBJ ___temp;
+    // (and (pair? v) (null? (cdr v)) (let ((t (car v))) (and (symbol? t) t)))
+    if (___PAIRP(v) && ___NULLP(___CDR(v))) {
+        ___SCMOBJ t= ___CAR(v);
+        return ___SYMBOLP(t) ? t : ___FAL;
+    } else {
+        return ___FAL;
+    }
+}
+
+static
+___SCMOBJ struct_tag_member_ofP(___SCMOBJ t, ___SCMOBJ members) {
+    ___SCMOBJ tag_name= maybe_struct_tag_name(t);
+    if (tag_name == ___FAL) {
+        return ___FAL;
+    } else {
+        ___SCMOBJ tag= symboltable_1__symboltable_ref(members, tag_name, ___FAL);
+        return (tag == ___FAL) ? ___FAL : ((t == tag) ? ___TRU : ___FAL);
+    }
+}
+
+static
+___SCMOBJ joo_type_members(___SCMOBJ v) {
+    return ___VECTORREF(v, ___FIX(8)); // XX evil, keep in sync with @joo-type.members
+}
+
+___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
+    ___SCMOBJ ___temp;
+    return (___VECTORP(v)
+            && (___VECTORLENGTH(v) >= 1)) ?
+            struct_tag_member_ofP(___VECTORREF(v,___FIX(0)),
+                                  joo_type_members(s)) : ___FAL;
+}
+")
+
+(defmacro (%joo:make-predicate type-symbol)
+  (with-gensym
+   V
+   (if (mod:compiled?)
+       (quasiquote-source
+	(lambda (,V)
+	  (##c-code "___RESULT=  joo__joo_type_covers_instanceP(___ARG1, ___ARG2);"
+		    ,type-symbol ,V)))
+       (quasiquote-source
+	(lambda (,V)
+	  (joo-type.covers-instance? ,type-symbol ,V))))))
+
+;; / optimization
+
 
 (def joo-object?
      (joo:make-predicate joo-type:joo-object))
@@ -653,6 +726,7 @@
 		   ((eval `(lambda (v) (set! ,type-symbol v))) type)
 
 		   `(begin
+		      (%joo-declare)
 		      ,(if maybe-constructor-name
 			   (define-struct.-expand
 			     constructor-stx ;; for location info only
@@ -699,7 +773,7 @@
 					       (assert (eq? predicate-symbol*
 							    predicate-symbol)))
 					   predicate-symbol*)
-				  (joo:make-predicate ,type-symbol))))
+				  (%joo:make-predicate ,type-symbol))))
 
 
 		      ;; Can't use ##define-syntax, as it leaves the
