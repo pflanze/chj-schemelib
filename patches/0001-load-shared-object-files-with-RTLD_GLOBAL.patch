@@ -1,0 +1,27 @@
+From 4d4a1d8e5fd57efa722a09d7f115d4d51ed0e96f Mon Sep 17 00:00:00 2001
+From: Christian Jaeger <ch@christianjaeger.ch>
+Date: Sun, 27 Aug 2017 02:32:39 +0100
+Subject: [PATCH] load shared object files with RTLD_GLOBAL
+
+to enable access via the FFI to C functions from other object files
+loaded later
+---
+ lib/os_dyn.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/os_dyn.c b/lib/os_dyn.c
+index d18257c..28cdb38 100644
+--- a/lib/os_dyn.c
++++ b/lib/os_dyn.c
+@@ -253,7 +253,7 @@ void **linker;)
+ #ifdef USE_dlopen
+ 
+ #ifdef RTLD_NOW
+-  p->descr = dlopen (cpath, RTLD_NOW);
++  p->descr = dlopen (cpath, RTLD_NOW|RTLD_GLOBAL);
+ #else
+   p->descr = dlopen (cpath, 1);
+ #endif
+-- 
+1.7.10.4
+
