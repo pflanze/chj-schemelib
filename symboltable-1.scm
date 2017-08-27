@@ -10,6 +10,7 @@
 (require (cj-env define-if-not-defined)
 	 define-macro-star
 	 cj-inline
+	 cj-source-quasiquote
 	 test)
 
 (export (inline symboltable?)
@@ -40,7 +41,8 @@
 
 	#!optional
 	(macro (symboltable-declare))
-	(inline @symboltable-ref:c)
+	;; fake inline; requires symboltable-declare !
+	(macro @symboltable-ref-inline)
 	)
 
 (include "cj-standarddeclares.scm")
@@ -358,12 +360,16 @@ ___SCMOBJ symboltable_1__symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ 
 }
 ")
       
-      (define-inline (@symboltable-ref:c t key alternate-value)
-	(let ((res (##c-code "___RESULT= symboltable_1__symboltable_ref (___ARG1, ___ARG2, ___ARG3);"
-			     t key alternate-value)))
-	  (if (eq? res symboltable-ref:c:invalid-type)
-	      (error "invalid type")
-	      res)))
+      (define-macro* (@symboltable-ref:c-lambda)
+	(quasiquote-source
+	 (lambda (t key alternate-value)
+	   (let ((res (##c-code "___RESULT= symboltable_1__symboltable_ref (___ARG1, ___ARG2, ___ARG3);"
+				t key alternate-value)))
+	     (if (eq? res symboltable-ref:c:invalid-type)
+		 (error "invalid type")
+		 res)))))
+
+      (define @symboltable-ref:c (@symboltable-ref:c-lambda))
 
       (define (symboltable-ref:c t key alternate-value)
 	(declare (standard-bindings)
@@ -371,16 +377,20 @@ ___SCMOBJ symboltable_1__symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ 
 		 (not safe))
 	(if (symboltable?-inline t)
 	    (let ()
-	      (declare (not inline);; <-no effect, huh; this one does:
+	      (declare (not inline) ;; <-no effect, huh; this one does:
 		       (inlining-limit 0))
 	      (@symboltable-ref:c t key alternate-value))
 	    (error "not a symboltable:" t)))
 
       (define symboltable-ref symboltable-ref:c) ;; choose
       (define @symboltable-ref @symboltable-ref:c)
-      )
+      (define-macro* (@symboltable-ref-inline t key alternate-value)
+	(if (mod:compiled?)
+	    `((@symboltable-ref:c-lambda) ,t ,key ,alternate-value)
+	    `(@symboltable-ref ,t ,key ,alternate-value))))
+    
 
-    (begin					    ;; not compile
+    (begin						;; not compile
       (define symboltable-ref:c symboltable-ref:scheme) ;; fake
       (define symboltable-ref symboltable-ref:scheme)
       (define @symboltable-ref symboltable-ref)))

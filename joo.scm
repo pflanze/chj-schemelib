@@ -29,7 +29,7 @@
 	 (cj-struct struct-tag.name)
 	 (dot-oo define-struct.-expand)
 	 symboltable
-	 (symboltable symboltable-declare @symboltable-ref:c-inline)
+	 (symboltable symboltable-declare @symboltable-ref-inline)
 	 (cj-source source-quote source-dequote)
 	 cj-seen
 	 (improper-list improper-list->list)
@@ -266,9 +266,9 @@
        (and tag-name
 	    ;; XX did I go to the dark side by using unsafe op here?
 	    ;; -- also, assumes symboltable-1.scm is compiled.
-	    (let ((tag (@symboltable-ref:c-inline members
-						  tag-name
-						  #f)))
+	    (let ((tag (@symboltable-ref-inline members
+						tag-name
+						#f)))
 	      (and tag
 		   (eq? t tag))))))
 
