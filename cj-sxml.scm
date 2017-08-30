@@ -2,7 +2,8 @@
 	 (stream stream-map stream-filter)
 	 Maybe
 	 (stream-Maybe stream-mapfilter
-		       stream-mapfilter/tail))
+		       stream-mapfilter/tail)
+	 (list-util let-pair))
 
 (export maybe-sxml-element-attribute-alist
 
@@ -49,10 +50,28 @@
 	string-count-trailing-chars)
 
 
+(include "cj-standarddeclares.scm")
+
+
+(define (sxml-attributes-empty? v)
+  (or (not v)
+      (null? v)
+      (let-pair ((a r) v)
+		(and (eq? a '@)
+		     (null? r)))))
+
+(TEST
+ > (map sxml-attributes-empty? '(() #f (@) ((a 1)) (@ (a 1))))
+ (#t #t #t #f #f))
+
+
 (define (sxml-element name atts body)
-  (cons name (if (and atts (not (null? atts)))
-		 (cons (cons '@ atts) body)
-		 body)))
+  (cons name (if (sxml-attributes-empty? atts)
+		 body
+		 (cons (if (eq? (car atts) '@)
+			   atts
+			   (cons '@ atts))
+		       body))))
 
 (TEST
  > (sxml-element 'foo #f (list "foo"))
@@ -61,7 +80,10 @@
  (foo "foo")
  > (sxml-element 'foo '((baz "ha")) (list "foo"))
  (foo (@ (baz "ha")) "foo")
- )
+ ;; Is it really a good idea to overload it for @ like this?
+ > (sxml-element 'foo '(@ (baz "ha")) (list "foo"))
+ (foo (@ (baz "ha")) "foo"))
+
 
 (define (sxml-element? l)
   (and (##pair? l)
@@ -467,15 +489,15 @@
   (with-sxml-element/else
    doc
    (lambda (name attrs body)
-     `(,name
-       ,attrs
-       ,@ (stream-mapfilter
-	   (lambda (v)
-	     (if (and (string? v)
-		      (string-all-whitespace? v))
-		 (Nothing)
-		 (Just (sxml-strip-whitespace v))))
-	   body)))
+     (sxml-element name
+		   attrs
+		   (stream-mapfilter
+		    (lambda (v)
+		      (if (and (string? v)
+			       (string-all-whitespace? v))
+			  (Nothing)
+			  (Just (sxml-strip-whitespace v))))
+		    body)))
    (lambda ()
      (if (and (string? doc)
 	      (string-all-whitespace? doc))
