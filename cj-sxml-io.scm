@@ -1,9 +1,18 @@
-(require list-util)
+(require list-util
+	 (cj-io-util xcall-with-input-process))
 
-;; (define (get-xml-file path)
-;;   )
-;; actually can't use current xml-to-sexpr (directly). Can't do path to stdout.
-;; anyway.
+(export get-xml-file
+	get-sxml-file)
+
+
+(define (get-xml-file path)
+  (let ((res (xcall-with-input-process
+	      (list path: "xml-to-sexpr" 
+		    arguments: (list "--expand-entities" "--stdout" "--" path))
+	      read-all)))
+    (if (one? res)
+	(car res)
+	res)))
 
 (define (get-sxml-file path)
   ;; xone? or
