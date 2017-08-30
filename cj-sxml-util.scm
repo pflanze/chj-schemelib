@@ -1,10 +1,7 @@
 
-; cj Tue, 02 Aug 2005 22:52:37 +0200
-
-(require
- ;;keyword-util does not have a module file.
- (cj-env *do-times)  ;;   keyword->symbol i've recreated here
- (srfi-1 reverse!))
+(require (cj-env *do-times) ;;   keyword->symbol i've recreated here
+	 ;;keyword-util does not have a module file.
+	 (srfi-1 reverse!))
 
 (export keyed->sxml
 	sxml->keyed)
@@ -20,23 +17,13 @@
   well. But that might make sml->keyed unsuitable for production of
   function code. Maybe more functions for dealing with this will
   follow in the future.")
-'(doc "---function docs inlined!---")
-
 
 (include "cj-standarddeclares.scm")
 
 
-; (define (keyed->sxml lis)
-;   '(doc
-;     (desc "turn a tree using DSSSL keyword parameter style to SXML (@ ..) association list style.")
-;     (args (lis pair-nil "tree using DSSSL keyword parameter style."))
-;     (return pair-nil "SXML tree"))
-  
-;   )
-
 (define (null-list? v)
-  (cond ((##pair? v) #f)
-	((##null? v) #t)
+  (cond ((pair? v) #f)
+	((null? v) #t)
 	(else (error "type error, expected list:" v))))
 
 (define (@keyword->symbol v)
@@ -48,7 +35,7 @@
   '(args (lis pair "tree using DSSSL keyword parameter style."))
   '(return list "SXML tree")
 
-  (if (##pair? lis) ;; this check should be handled by the type framework
+  (if (pair? lis) ;; this check should be handled by the type framework
       ;; Timings using the test below have shown that using iteration
       ;; and set-cdr! (with everything in the loop, no set! to the
       ;; outside, that would really spoil performance) is only
@@ -58,76 +45,88 @@
       ;; recursion with values and call-with-current-continuation is
       ;; last by *far*. I'm settling on reverse!. Note that copying
       ;; reverse! from srfi-1 to here would make a speedup of 20%!
-      (let ((head (##car lis)))
-	(let iter ((l (##cdr lis))
+      (let ((head (car lis)))
+	(let iter ((l (cdr lis))
 		   (attrs '())
 		   (args '()))
 	  (if (null-list? l)
-	      (cons head (if (##null? attrs)
+	      (cons head (if (null? attrs)
 			     (reverse! args)
-			     (##cons (##cons '@ (reverse! attrs)) (reverse! args))))
-	      (let ((v (##car l))
-		    (r (##cdr l)))
-		(if (##keyword? v)
-		    (if (##pair? r)
-			(iter (##cdr r)
-			      (##cons (##list (@keyword->symbol v) (##car r)) attrs)
+			     (cons (cons '@ (reverse! attrs)) (reverse! args))))
+	      (let ((v (car l))
+		    (r (cdr l)))
+		(if (keyword? v)
+		    (if (pair? r)
+			(iter (cdr r)
+			      (cons (list (@keyword->symbol v) (car r)) attrs)
 			      args)
-			(error "keyed->sxml: missing value after keyword argument:" lis))
+			(error "keyed->sxml: missing value after keyword argument:"
+			       lis))
 		    (iter r
 			  attrs
-			  (##cons (if (##pair? v)
-				      (keyed->sxml v)
-				      v) args)))))))
+			  (cons (if (pair? v)
+				    (keyed->sxml v)
+				    v) args)))))))
       (error "keyed->sxml: expected non-null list:" lis)))
 
 
 (define-macro (hide . rest)
-  '(begin)) ;; we have to hide the docs here since the define afterwards (or other stuff like defines) wouldn't work. 
+  '(begin)) ;; we have to hide the docs here since the define
+	    ;; afterwards (or other stuff like defines) wouldn't work.
 
 (define (sxml->keyed lis)
   (hide
    '(desc "turn an SXML tree to DSSSL keyword parameter style. "
-	 "NOTE that this is experimental and may loose some information. "
-	 ;;"The output may share pairs with the input." not currently as map is used.
-	 "NOTE: non-sxml lists around sxml tags are not supported yet."
-	 )
-  '(args (lis pair "SXML tree"))
-  '(return list "tree in keyword parameter style")
-  )
+	  "NOTE that this is experimental and may loose some information. "
+	  ;; "The output may share pairs with the input." -- not
+	  ;; currently as map is used.
+	  "NOTE: non-sxml lists around sxml tags are not supported yet."
+	  )
+   '(args (lis pair "SXML tree"))
+   '(return list "tree in keyword parameter style")
+   )
   
   (define (map-rest lis)
     (map (lambda(v)
 	   (if (pair? v)
-	       (sxml->keyed v) ;; todo: non-sxml lists around sxml tags not supported yet.  And btw: should I still support giving atoms to the conversion functions as well?
+	       (sxml->keyed v)
+	       ;; ^ XX: non-sxml lists around sxml tags not supported
+	       ;; yet.  And btw: should I still support giving atoms
+	       ;; to the conversion functions as well?
 	       v))
 	 lis))
-  (if (##pair? lis) ;; this check should be handled by the type framework
-      (if (pair? (##cdr lis))
-	  (let ((head (##car lis))
-		(maybe-attrs (##cadr lis))) ;;todo: are attrs *always" at the second position?
+  (if (pair? lis)
+      (if (pair? (cdr lis))
+	  (let ((head (car lis))
+		(maybe-attrs (cadr lis)))
 	    (cons head
 		  (if (and (pair? maybe-attrs)
 			   (eq? (car maybe-attrs) '@))
-		      ;; turn ((key val)..) to key: val ..  todo: iirc SXML attr lists can have more than one value per key (sublists can be longer than length 2), so the conversion will be lossy. check what we'll be missing.
+		      ;; turn ((key val)..) to key: val ..  todo: iirc
+		      ;; SXML attr lists can have more than one value
+		      ;; per key (sublists can be longer than length
+		      ;; 2), so the conversion will be lossy. check
+		      ;; what we'll be missing.
 		      (let recur ((l (cdr maybe-attrs)))
 			(if (null-list? l)
 			    ;; process subtags in the body of the tag:
 			    (map-rest (cddr lis))
-			    (let ((v (##car l)))
+			    (let ((v (car l)))
 			      (if (and (pair? v)
 				       (pair? (cdr v)))
 				  (let ((key (car v))
 					(val (cadr v)))
-				    (cons (symbol->keyword key) (cons val (recur (cdr l)))))
-				  (error "sxml->keyed: entry in attribute list is not a list of length >=2:" v)))))
+				    (cons (symbol->keyword key)
+					  (cons val (recur (cdr l)))))
+				  (error "sxml->keyed: entry in attribute list is not a list of length >=2:"
+					 v)))))
 		      (map-rest (cdr lis)))))
 	  lis)
       (error "sxml->keyed: expected non-null list:" lis)))
 
 
 
-;; ------ speed test: ---------------
+;; speed test:
 
 (define test-doc-keyed
   '(doc
