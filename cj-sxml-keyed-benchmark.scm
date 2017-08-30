@@ -1,4 +1,4 @@
-(require cj-sxml-util)
+(require cj-sxml-keyed)
 
 (define test-doc-keyed
   '(doc
