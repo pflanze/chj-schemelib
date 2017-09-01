@@ -81,6 +81,8 @@
 		      (rec l*)))
 	tail)))
 
+(define list-filter-map filter-map)
+
 (define list-second second)
 (define list-third third)
 (define list-fourth fourth)
@@ -112,6 +114,9 @@
 
    (define. (lazy-pair-or-null.map s f . ss)
      (apply stream-map f s ss))
+
+   (define. (lazy-pair-or-null.filter-map s f . ss)
+     (apply stream-filter-map f s ss))
 
    (define. (lazy-pair-or-null.improper-map func s)
      (stream-improper-map func s))
