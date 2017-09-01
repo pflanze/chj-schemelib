@@ -62,7 +62,8 @@
 	gen-infinite-stream
 	gen-stream
 	stream-min&max
-	stream-map/iota)
+	stream-map/iota
+	stream-sum)
 
 
 (define (stream-filter/tail pred s tail)
@@ -1160,3 +1161,6 @@
 	      (cons (fn (car lis) i)
 		    (rec (cdr lis) (inc i))))))))
 
+
+(define (stream-sum s)
+  (stream-fold + 0 s))

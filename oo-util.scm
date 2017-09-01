@@ -292,3 +292,6 @@
 
 (define. (lazy-pair-or-null.map/iota lis fn)
   (stream-map/iota fn lis))
+
+(define. lazy-pair-or-null.sum stream-sum)
+
