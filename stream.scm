@@ -433,6 +433,8 @@
 )
 
 
+;; only copy s1 if s2 is actually something; can't do this by default
+;; since it would force early evaluation of the first element of s2
 (define (stream-append-optimized s1 s2)
   (if (null? (force s2))
       s1
