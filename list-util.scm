@@ -408,6 +408,7 @@
 	(else
 	 (error "not a list:" v))))
 
+;; careful: keep in sync with stream-xone
 (define (xone x #!optional (fail (lambda (e)
 				   (error "expected one item, but:" e x))))
   (if (pair? x)

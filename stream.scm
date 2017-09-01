@@ -1072,7 +1072,7 @@
  b
  )
 
-;; adapted version of |xone|
+;; adapted version of |xone| -- copy-paste, keep in sync!
 (define (stream-xone x #!optional (fail (lambda (e)
 					  (error "expected one item, but:" e x))))
   (FV (x)
