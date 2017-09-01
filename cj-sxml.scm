@@ -3,7 +3,8 @@
 	 Maybe
 	 (stream-Maybe stream-mapfilter
 		       stream-mapfilter/tail)
-	 (list-util let-pair))
+	 (list-util let-pair)
+	 cj-typed)
 
 (export maybe-sxml-element-attribute-alist
 
@@ -15,6 +16,7 @@
 	sxml-element-attribute-ref
 	sxml-element-attributes
 	sxml-element-name
+	sxml-element-of-name
 	sxml-element-body
 	sxml-element-bodytext
 	sxml-element-match-pathlist
@@ -85,9 +87,12 @@
  (foo (@ (baz "ha")) "foo"))
 
 
+;; Should we provide a symbol predicate that checks for it being a
+;; valid XML name, and/or not being @? XX
+
 (define (sxml-element? l)
-  (and (##pair? l)
-       (##symbol? (##car l))))
+  (and (pair? l)
+       (symbol? (##car l))))
 
 
 (define (sxml-element-name element)
@@ -105,6 +110,11 @@
 		     (lambda (name atts body)
 		       ;; flatten body?
 		       (sxml-element name atts (fold fn tail body)))))
+
+(define-typed (sxml-element-of-name #(symbol? name))
+  (lambda (v)
+    (and (sxml-element? v)
+	 (eq? (sxml-element-name v) name))))
 
 (define (@with-sxml-element-attributes/else element yes no)
   (let ((2ndpair (cdr element)))
