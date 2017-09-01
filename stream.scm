@@ -357,6 +357,14 @@
    (stream-difference s1 s2 equal?)
    n))
 
+(define (show-list-difference s1 s2
+				#!key
+				(equal? equal?)
+				(n 2))
+  (show-stream-*-difference
+   (list-difference s1 s2 equal?)
+   n))
+
 
 (define (stream-equal? s1 s2 #!optional (equal? equal?))
   (no-difference? (stream-difference s1 s2 equal?)))
