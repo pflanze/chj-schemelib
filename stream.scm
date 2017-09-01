@@ -28,8 +28,8 @@
 	stream-take
 	stream-sublist
 	stream-length
-	(struct stream-difference-at)
-	(struct stream-no-difference)
+	(struct difference-at)
+	(struct no-difference)
 	stream-difference
 	show-stream-difference
 	stream-equal?
@@ -300,12 +300,12 @@
 	     (error "stream->list: improper stream, ending in:" p))))))
 
 
-(define-struct stream-difference-at
-  constructor-name: stream-difference-at
+(define-struct difference-at
+  constructor-name: difference-at
   n s1 s2)
 
-(define-struct stream-no-difference
-  constructor-name: stream-no-difference
+(define-struct no-difference
+  constructor-name: no-difference
   n)
 
 (define (show-stream-*-difference d #!optional (takelen 2))
@@ -320,31 +320,34 @@
 		  (if (null? (force rest))
 		      start
 		      (append start '(...)))))))
-    (cond ((stream-no-difference? d)
+    (cond ((no-difference? d)
 	   d)
 	  (else
-	   (let-stream-difference-at
+	   (let-difference-at
 	    ((n s1 s2) d)
 	    (list n: n
 		  s1: (show s1)
 		  s2: (show s2)))))))
 
-(define (stream-difference s1 s2 #!optional (equal? equal?))
-  (let lp ((n 0)
-	   (s1 s1)
-	   (s2 s2))
-    (FV (s1 s2)
-	(define (differs)
-	  (stream-difference-at n s1 s2))
-	(if (null? s1)
-	    (if (null? s2)
-		(stream-no-difference n)
-		(differs))
-	    (if (null? s2)
-		(differs)
-		(if (equal? (car s1) (car s2))
-		    (lp (inc n) (cdr s1) (cdr s2))
-		    (differs)))))))
+(define-strict-and-lazy
+  list-difference
+  stream-difference
+  (lambda (s1 s2 #!optional (equal? equal?))
+    (let lp ((n 0)
+	     (s1 s1)
+	     (s2 s2))
+      (FV (s1 s2)
+	  (define (differs)
+	    (difference-at n s1 s2))
+	  (if (null? s1)
+	      (if (null? s2)
+		  (no-difference n)
+		  (differs))
+	      (if (null? s2)
+		  (differs)
+		  (if (equal? (car s1) (car s2))
+		      (lp (inc n) (cdr s1) (cdr s2))
+		      (differs))))))))
 
 (define (show-stream-difference s1 s2
 				#!key
@@ -356,7 +359,10 @@
 
 
 (define (stream-equal? s1 s2 #!optional (equal? equal?))
-  (stream-no-difference? (stream-difference s1 s2 equal?)))
+  (no-difference? (stream-difference s1 s2 equal?)))
+
+(define (list-equal? s1 s2 #!optional (equal? equal?))
+  (no-difference? (list-difference s1 s2 equal?)))
 
 (TEST
  > (stream-equal? '() '())
@@ -370,6 +376,21 @@
  > (stream-equal? '(a) '(a b))
  #f
  > (stream-equal? '(a b) '(a b))
+ #t
+ > (list-equal? '(a) '(a b))
+ #f
+ > (list-equal? '(a b) '(a b))
+ #t
+ > (def a1 (cons 'a (delay (list))))
+ > (def a2 (cons 'a (delay (list 'b))))
+ > (def b (cons 'a (delay (list 'b))))
+ > (stream-equal? a1 b)
+ #f
+ > (stream-equal? a2 b)
+ #t
+ > (with-exception-catcher type-exception? (lambda () (list-equal? a1 b) 'f))
+ #t
+ > (with-exception-catcher type-exception? (lambda () (list-equal? a2 b) 'f))
  #t
  )
 
@@ -1145,9 +1166,9 @@
 		     s*)))
 
 (TEST
- > (.vector (stream-min&max '(3 5 9 -3 7)))
+ > (values->vector (stream-min&max '(3 5 9 -3 7)))
  #(-3 9)
- > (.vector (stream-min&max '(3)))
+ > (values->vector (stream-min&max '(3)))
  #(3 3))
 
 
