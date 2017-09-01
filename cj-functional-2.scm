@@ -19,10 +19,13 @@
 	     (res start))
     (if (null? exprs)
 	res
-	(next (cdr exprs)
-	      (mcase (car exprs)
-		     (`(`call . `rest)
-		      `(,call ,res ,@rest)))))))
+	(let-pair ((expr exprs*) exprs)
+		  (next exprs*
+			(mcase expr
+			       (`(`call . `rest)
+				`(,call ,res ,@rest))
+			       (symbol?
+				`(,expr ,res))))))))
 
 (TEST
  > (=>-expand 'input '((foo-set 1) (bar-set 2)))
@@ -39,7 +42,10 @@
 
 (TEST
  > ((=>* (inc)) 10)
- 11)
+ 11
+ > ((=>* inc inc) 10)
+ 12
+ )
 
 
 ;; bah, copy-paste except for the last line
@@ -48,10 +54,13 @@
 	     (res start))
     (if (null? exprs)
 	res
-	(next (cdr exprs)
-	      (mcase (car exprs)
-		     (`(`call . `rest)
-		      `(,call ,@rest ,res)))))))
+	(let-pair ((expr exprs*) exprs)
+		  (next exprs*
+			(mcase expr
+			       (`(`call . `rest)
+				`(,call ,@rest ,res))
+			       (symbol?
+				`(,expr ,res))))))))
 
 
 ;; dito
@@ -72,5 +81,8 @@
        (take 2))
  (2 4)
  > ((=>>* (inc)) 10)
- 11)
+ 11
+ > ((=>>* inc (inc) inc inc) 10)
+ 14
+ )
 
