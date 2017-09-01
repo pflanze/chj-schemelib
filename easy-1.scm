@@ -153,15 +153,15 @@
 	       `(if (one? ,V)
 		    (car ,V)
 		    ,error-expr))))
-      `(xxone ,expr)))
+      `(xone ,expr)))
 
 (TEST
  > (%try-error (the '()))
- #(error "expected one item, but got:" not-found ())
+ #(error "expected one item, but:" not-found ())
  > (%try-error (the '(1)))
  1
  > (%try-error (the '(1 2)))
- #(error "expected one item, but got:" found-too-many (1 2))
+ #(error "expected one item, but:" found-too-many (1 2))
 
  > (the '() 'nope)
  nope

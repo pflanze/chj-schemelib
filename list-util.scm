@@ -32,8 +32,8 @@
 	split-at*
 	rxtake-while
 	one?
-	xone
-	xxone ;; deprecated, use xone
+	xone ;; also see |the| in easy-1
+	xxone ;; deprecated, use xone (or the)
 	trif-one
 	trif-one/
 	make-list/tail
