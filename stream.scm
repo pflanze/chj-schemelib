@@ -13,7 +13,8 @@
 	 list-util
 	 cj-cmp
 	 srfi-11
-	 cj-typed)
+	 cj-typed
+	 cut)
 
 (export stream-filter/tail
 	stream-for-each
@@ -64,7 +65,19 @@
 	gen-stream
 	stream-min&max
 	stream-map/iota
-	stream-sum)
+	stream-sum
+
+	stream-first
+	stream-second
+	stream-third
+	stream-fourth
+	stream-fifth
+	stream-sixth
+	stream-seventh
+	stream-eighth
+	stream-ninth
+	stream-tenth
+	)
 
 
 (define (stream-filter/tail pred s tail)
@@ -1197,3 +1210,16 @@
 
 (define (stream-sum s)
   (stream-fold + 0 s))
+
+
+(define (stream-first v)
+  (first (force v)))
+(define stream-second (cut stream-ref <> 2))
+(define stream-third (cut stream-ref <> 3))
+(define stream-fourth (cut stream-ref <> 4))
+(define stream-fifth (cut stream-ref <> 5))
+(define stream-sixth (cut stream-ref <> 6))
+(define stream-seventh (cut stream-ref <> 7))
+(define stream-eighth (cut stream-ref <> 8))
+(define stream-ninth (cut stream-ref <> 9))
+(define stream-tenth (cut stream-ref <> 10))
