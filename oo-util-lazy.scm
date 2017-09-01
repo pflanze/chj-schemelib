@@ -81,6 +81,16 @@
 		      (rec l*)))
 	tail)))
 
+(define list-second second)
+(define list-third third)
+(define list-fourth fourth)
+(define list-fifth fifth)
+(define list-sixth sixth)
+(define list-seventh seventh)
+(define list-eighth eighth)
+(define list-ninth ninth)
+(define list-tenth tenth)
+
 (code-map-substrings
  ((lazy- '(lazy- ||))
   (stream- '(stream- list-)))
@@ -182,6 +192,18 @@
      (stream-map/iota fn lis))
 
    (define. lazy-pair-or-null.sum stream-sum)
+
+   ;; srfi-1
+
+   (define. lazy-pair-or-null.second stream-second)
+   (define. lazy-pair-or-null.third stream-third)
+   (define. lazy-pair-or-null.fourth stream-fourth)
+   (define. lazy-pair-or-null.fifth stream-fifth)
+   (define. lazy-pair-or-null.sixth stream-sixth)
+   (define. lazy-pair-or-null.seventh stream-seventh)
+   (define. lazy-pair-or-null.eighth stream-eighth)
+   (define. lazy-pair-or-null.ninth stream-ninth)
+   (define. lazy-pair-or-null.tenth stream-tenth)
    ))
 
 
