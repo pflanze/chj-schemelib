@@ -11,7 +11,8 @@
 	 cj-sxml
 	 cj-env  ;; natural0?, should be moved
 	 cj-functional ;; compose
-	 test)
+	 test
+	 cj-typed)
 
 
 ;; Simple XPath alike matching for SXML.
@@ -32,7 +33,13 @@
 ;; Does need a list or stream to be given, individual sxml-elements
 ;; are not ok.
 
-(define (ssxpath-match path l #!optional (context '()))
+(define (list-not-element? v)
+  (FV (v)
+      (if (pair? v)
+	  (not (symbol? (car v)))
+	  (null? v))))
+
+(define-typed (ssxpath-match path #(list-not-element? l) #!optional (context '()))
   (if (null? path)
       l
       (let-pair
@@ -94,6 +101,10 @@
 	       (else
 		(error "invalid element in path:" pathhead)))))))
 
+(define-typed (ssxpath-match* path #(sxml-element? element) #!optional (context '()))
+  (ssxpath-match path (list element) context))
+
+
 (TEST
  > (define sm (compose stream->list ssxpath-match))
  > (sm '() '((a (b))))
@@ -153,6 +164,10 @@
  )
 
 (define (ssxpath path)
-  (lambda (v)
-    (ssxpath-match path v)))
+  (lambda (l)
+    (ssxpath-match path l)))
+
+(define (ssxpath* path)
+  (lambda (element)
+    (ssxpath-match* path element)))
 
