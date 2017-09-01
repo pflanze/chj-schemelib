@@ -39,7 +39,7 @@
    (make-unbound 'define-module))
 
  ;; lib
- (define source-xxone
+ (define source-xone
    (lambda (x) (xone x (lambda (e) (source-error x "expecting one item")))))
  ;; /lib
 
@@ -108,7 +108,7 @@
 					,@rest2))))
 				  ((symbol? bind*)
 				   ;; variable definition
-				   (return-definition bind (source-xxone rest2)))
+				   (return-definition bind (source-xone rest2)))
 				  (else
 				   (source-error
 				    bind
