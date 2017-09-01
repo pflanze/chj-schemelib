@@ -618,9 +618,12 @@
  ;; > (strings-append '("" 1))
  ;; *** ERROR IN map -- (Argument 1) STRING expected
  ;; (string-length 1)
- > (.append '("" "bar"))
+
+ ;; Can't use .append any more since list.append overrides it now
+ > (pair-with-car-string.append '("" "bar"))
  "bar"
- > (.append (map .u8vector '("FOO" "BAR")))
+ ;; and ditto:
+ > (pair-with-car-u8vector.append (map .u8vector '("FOO" "BAR")))
  #u8(70 79 79 66 65 82)
  > (.sum (.u8vector "AB"))
  131
