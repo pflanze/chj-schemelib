@@ -295,3 +295,18 @@
 
 (define. lazy-pair-or-null.sum stream-sum)
 
+
+
+(TEST
+ > (.car (.cdr (stream-iota 10)))
+ 1
+ > (sum (iota 10))
+ 45
+ > (.sum (stream-iota 10))
+ 45
+ > (.sum (.map (stream-iota 10) inc))
+ 55
+ ;; add more extensive testing..
+ )
+
+
