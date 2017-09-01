@@ -14,6 +14,7 @@
 	 (cj-env-1 dec inc identity)
 	 (string-util-1 string-split)
 	 (improper-list improper-length)
+	 ;;(cj-env-2 xcase) ah, cycle
 	 )
 
 (export (macro let-pair
@@ -32,7 +33,7 @@
 	rxtake-while
 	one?
 	xone
-	xxone
+	xxone ;; deprecated, use xone
 	trif-one
 	trif-one/
 	make-list/tail
@@ -407,7 +408,8 @@
 	(else
 	 (error "not a list:" v))))
 
-(define (xone x #!optional (fail (lambda_ #f)))
+(define (xone x #!optional (fail (lambda (e)
+				   (error "expected one item, but:" e x))))
   (if (pair? x)
       (if (null? (cdr x))
 	  (car x)
@@ -416,9 +418,9 @@
 		'not-found
 		'improper-list))))
 
+;; just for backwards compat
 (define (xxone x)
-  (xone x (lambda (e)
-	   (error "expected one item, but got:" e x))))
+  (xone x))
 
 (define (trif-one x then/1 toomany/1 none/0)
   (if (pair? x)
