@@ -1073,18 +1073,16 @@
  )
 
 ;; adapted version of |xone|
-(define (stream-xone x #!optional (fail (lambda_ #f)))
+(define (stream-xone x #!optional (fail (lambda (e)
+					  (error "expected one item, but:" e x))))
   (FV (x)
       (if (pair? x)
-	  (if (null? (force (cdr x)))
+	  (if (null? (cdr x))
 	      (car x)
 	      (fail 'found-too-many))
-	  (fail 'not-found))))
-
-;; dito
-(define (stream-xxone x)
-  (stream-xone x (lambda (e)
-		   (error "expected one item, but got:" e x))))
+	  (fail (if (null? x)
+		    'not-found
+		    'improper-list)))))
 
 
 ;; adapted from srfi-1: (copyright: see srfi-1.scm)
