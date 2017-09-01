@@ -23,6 +23,8 @@
 	stream-map/tail
 	stream-map1
 	stream-map
+	stream-filter-map/tail
+	stream-filter-map
 	stream-improper-map
 	stream->list
 	stream-drop
@@ -191,6 +193,24 @@
  > (F (stream-map vector (stream-iota) '(a b c)))
  (#(0 a) #(1 b) #(2 c))
  )
+
+
+(define (stream-filter-map/tail func s tail)
+  ;; maybe with an adjusted error message?..
+  (stream-fold-right (lambda (val tail)
+		       (let ((r (func val)))
+			 (if r
+			     (cons r tail)
+			     tail)))
+		     tail
+		     s))
+
+;; only for 1 argument for now
+
+(define (stream-filter-map f s . ss)
+  (if (null? ss)
+      (stream-filter-map/tail f s '())
+      (error "stream-filter-map with multiple arguments not implemented yet")))
 
 
 (define (stream-improper-map func s)
