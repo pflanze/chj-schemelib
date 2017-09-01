@@ -36,6 +36,7 @@
 	stream-filter
 	stream-fold-left stream-fold
 	stream-append-optimized
+	list-append-optimized
 	stream-append/2
 	stream-append
 	stream-iota
@@ -469,6 +470,11 @@
   (if (null? (force s2))
       s1
       (stream-append s1 s2)))
+
+(define (list-append-optimized s1 s2)
+  (if (null? (force s2)) ;; force or not here?
+      s1
+      (append s1 s2)))
 
 (define (stream-append/2 s1 s2)
   (let lp ((s s1))
