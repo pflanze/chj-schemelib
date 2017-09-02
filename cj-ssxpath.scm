@@ -65,7 +65,7 @@
 	       ((eq? pathhead '*)
 		(rec (stream-filter sxml-element? lbodies)))
 	       ((eq? pathhead '@)
-		(rec (stream-map sxml-element-attributes l)))
+		(rec (stream-filter-map sxml-element-attributes l)))
 	       ((symbol? pathhead)
 		(rec (stream-fold-right
 		      (lambda (v rest)
