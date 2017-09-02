@@ -12,7 +12,12 @@
 	 cj-env  ;; natural0?, should be moved
 	 cj-functional ;; compose
 	 test
-	 cj-typed)
+	 cj-typed
+	 (oo-vector-lib strings-append))
+
+(export ssxpath-matches ;; on single elements; auto-curring
+	ssxpath-matches* ;; on lists of elements; auto-curring
+	)
 
 
 ;; Simple XPath alike matching for SXML.
@@ -39,7 +44,7 @@
 	  (not (symbol? (car v)))
 	  (null? v))))
 
-(define-typed (ssxpath-match path #(list-not-element? l) #!optional (context '()))
+(define-typed (_ssxpath-matches* path #(list-not-element? l) context)
   (if (null? path)
       l
       (let-pair
@@ -57,9 +62,9 @@
 			   bodies
 			   l))
 	      (rec (lambda (l*)
-		     (ssxpath-match path*
-				    l*
-				    (cons pathhead context)))))
+		     (_ssxpath-matches* path*
+					l*
+					(cons pathhead context)))))
 	 (cond ((eq? pathhead '/)
 		(rec bodies))
 	       ((eq? pathhead '*)
@@ -86,33 +91,109 @@
 		;; XX hm hacky?
 		(let* ((bodies (stream->list bodies)))
 		  (and (every string? bodies) ;; XX too narrow?
-		       (equal? (apply string-append bodies)
-			       pathhead))))
+		       (string=? (strings-append bodies)
+				 pathhead))))
 	       ((pair? pathhead)
 		;; filtering
 		(rec (stream-filter
 		      (lambda (v)
-			(let ((res (ssxpath-match pathhead
-						  (list v)
-						  (cons pathhead context))))
-			  (assert (boolean? res))
-			  res))
+			;; XX relying on it returning a boolean
+			;; (thankfully stream-filter is now
+			;; restrictive), i.e. the hack above
+			(_ssxpath-matches* pathhead
+					   (list v)
+					   (cons pathhead context)))
 		      l)))
 	       (else
 		(error "invalid element in path:" pathhead)))))))
 
-(define-typed (ssxpath-match* path #(sxml-element? element) #!optional (context '()))
-  (ssxpath-match path (list element) context))
+(define cj-ssxpath:nothing (box 'nothing))
+;; avoiding gensym makes ccache work better!... (and box really
+;; guarantees uniqueness; unlike list which might not, who knows)
+
+
+(define-typed (_ssxpath-matches path #(sxml-element? element) context)
+  (_ssxpath-matches* path (list element) context))
+
+;; auto-currying:
+
+(define (ssxpath-matches path
+			 #!optional
+			 (element cj-ssxpath:nothing)
+			 (context '()))
+  (if (eq? element cj-ssxpath:nothing)
+      (lambda (element #!optional (context '()))
+	(_ssxpath-matches path element context))
+      (_ssxpath-matches path element context)))
+
+(define (ssxpath-matches* path
+			  #!optional
+			  (elements cj-ssxpath:nothing)
+			  (context '()))
+  (if (eq? elements cj-ssxpath:nothing)
+      (lambda (elements #!optional (context '()))
+	(_ssxpath-matches* path elements context))
+      (_ssxpath-matches* path elements context)))
+
+
+;; and boolean-returning variants:
+
+(define (ssxpath:->boolean v)
+  (FV (v)
+      (not (or (null? v)
+	       (not v)))))
+
+(define (ssxpath-matches? path
+			 #!optional
+			 (element cj-ssxpath:nothing)
+			 (context '()))
+  (if (eq? element cj-ssxpath:nothing)
+      (lambda (element #!optional (context '()))
+	(ssxpath:->boolean (_ssxpath-matches path element context)))
+      (ssxpath:->boolean (_ssxpath-matches path element context))))
+
+(define (ssxpath-matches*? path
+			   #!optional
+			   (elements cj-ssxpath:nothing)
+			   (context '()))
+  (if (eq? elements cj-ssxpath:nothing)
+      (lambda (elements #!optional (context '()))
+	(ssxpath:->boolean (_ssxpath-matches* path elements context)))
+      (ssxpath:->boolean (_ssxpath-matches* path elements context))))
+
+
 
 
 (TEST
- > (define sm (compose stream->list ssxpath-match))
+ > (define sm (compose stream->list ssxpath-matches*))
  > (sm '() '((a (b))))
  ((a (b)))
+ ;; auto-currying:
+ > ((ssxpath-matches* '()) '((a (b))))
+ ((a (b)))
+ ;; boolean variants:
+ > ((ssxpath-matches*? '()) '((a (b))))
+ #t
+ > ((ssxpath-matches*? '(a)) '((a (b))))
+ #t
+ > ((ssxpath-matches*? '(x)) '((a (b))))
+ #f
+ ;; pass single element instead of list:
+ > (%try-error (sm '() '(a (b))))
+ #(error "l does not match list-not-element?:" (a (b)))
  > (sm '(b) '((a (b))))
  ()
  > (sm '(a) '((a (b)) (d (e)) (a (c))))
  ((a (b)) (a (c)))
+ ;; which is the same as either:
+ > (stream->list (ssxpath-matches* '(a) '((a (b)) (d (e)) (a (c)))))
+ ((a (b)) (a (c)))
+ > (stream->list ((ssxpath-matches* '(a)) '((a (b)) (d (e)) (a (c)))))
+ ((a (b)) (a (c)))
+ ;; /same
+ > (%try-error ((ssxpath-matches '(a)) '((a (b)) (d (e)) (a (c)))))
+ #(error "element does not match sxml-element?:" ((a (b)) (d (e)) (a (c))))
+
  > (sm '(a /) '((a (b)) (d (e)) (a (c))))
  ((b) (c))
  > (sm '(a b /) '((a (b "world")) (a (b (c)))))
@@ -139,13 +220,20 @@
  > (sm '(p 0 /) '((p "hello" " world") (p "etc.")))
  ("hello" " world")
 
- ;; boolean hack feature
- > (ssxpath-match '(p 0 "hello world") '((p "hello" " world") (p "etc.")))
+ ;; boolean hack feature --- huh overload of result type, how exactly?
+ > (ssxpath-matches* '(p 0 "hello world") '((p "hello" " world") (p "etc.")))
  #t
- > (ssxpath-match '(p 1 "hello world") '((p "hello" " world") (p "etc.")))
+ > (ssxpath-matches* '(p 1 "hello world") '((p "hello" " world") (p "etc.")))
  #f
- > (ssxpath-match '(p 1 "etc.") '((p "hello" " world") (p "etc.")))
+ > (ssxpath-matches* '(p 1 "etc.") '((p "hello" " world") (p "etc.")))
  #t
+
+ ;; and actually asking for booleans:
+ > (ssxpath-matches*? '(p 0 "hello world") '((p "hello" " world") (p "etc.")))
+ #t
+ > (ssxpath-matches*? '(p 1 "hello world") '((p "hello" " world") (p "etc.")))
+ #f
+ 
  ;; sub-match feature
  > (sm '(body * (a @ href "hah"))
        '((body (p "hm " (a (@ (href "hah"))) ".")
@@ -162,12 +250,4 @@
 		  "."))))
  ("one")
  )
-
-(define (ssxpath path)
-  (lambda (l)
-    (ssxpath-match path l)))
-
-(define (ssxpath* path)
-  (lambda (element)
-    (ssxpath-match* path element)))
 
