@@ -76,7 +76,7 @@
   (let rec ((l lis))
     (if (pair? l)
 	(let-pair ((a l*) l)
-		  (if (pred a)
+		  (If (pred a)
 		      (cons a (rec l*))
 		      (rec l*)))
 	tail)))

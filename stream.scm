@@ -88,7 +88,7 @@
       (let ((s (force s)))
 	(cond ((pair? s)
 	       (let ((a (force (car s))))
-		 (if (pred a)
+		 (If (pred a)
 		     (cons a
 			   (rec (cdr s)))
 		     (rec (cdr s)))))
@@ -438,20 +438,7 @@
 
 
 (define (stream-filter pred s #!optional (tail '()))
-  (let lp ((s s))
-    (delay
-      (let ((p (force s)))
-	(cond ((null? p)
-	       tail)
-	      ((pair? p)
-	       (let ((a (car p))
-		     (r (cdr p)))
-		 (if (pred a)
-		     (cons a
-			   (lp r))
-		     (lp r))))
-	      (else
-	       (error "stream-filter: improper stream, ending in:" p)))))))
+  (stream-filter/tail pred s tail))
 
 (TEST
  > (stream->list (stream-filter even? '(1 2 3 4 5 6 29 38 36)))
