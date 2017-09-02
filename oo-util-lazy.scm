@@ -83,6 +83,7 @@
 
 (define list-filter-map filter-map)
 
+(define list-first first)
 (define list-second second)
 (define list-third third)
 (define list-fourth fourth)
