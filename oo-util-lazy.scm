@@ -68,7 +68,7 @@
 (define list-sum sum)
 (define list-append append)
 (define list-append/2 append)
-(define list-xone xone)
+;;(define list-xone xone)
 (define list-min&max stream-min&max) ;; XX add non-forcing instead? consistency forever? evil now
 (define list-map map)
 ;;(define list-filter filter) ah, no
@@ -186,8 +186,6 @@
      (stream-drop-while pred l))
 
    (define. lazy-pair-or-null.ref stream-ref)
-
-   (define. lazy-pair-or-null.xone stream-xone)
 
    (define. (lazy-pair-or-null.every lis1 pred . lists)
      (apply stream-every pred lis1 lists))

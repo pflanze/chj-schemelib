@@ -60,7 +60,6 @@
 	stream-zip2
 	stream-drop-while
 	stream-ref
-	stream-xone
 	;; stream-%cars+cdrs
 	stream-every
 	gen-infinite-stream
@@ -1091,19 +1090,6 @@
  > (stream-ref '(a b) 1)
  b
  )
-
-;; adapted version of |xone| -- copy-paste, keep in sync!
-(define (stream-xone x #!optional (fail (lambda (e)
-					  (error "expected one item, but:" e x))))
-  (FV (x)
-      (if (pair? x)
-	  (if (null? (cdr x))
-	      (car x)
-	      (fail 'found-too-many))
-	  (fail (if (null? x)
-		    'not-found
-		    'improper-list)))))
-
 
 ;; adapted from srfi-1: (copyright: see srfi-1.scm)
 

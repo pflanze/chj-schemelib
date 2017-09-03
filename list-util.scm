@@ -15,7 +15,7 @@
 	 (string-util-1 string-split)
 	 (improper-list improper-length)
 	 ;;(cj-env-2 xcase) ah, cycle
-	 )
+	 (lazy FV))
 
 (export (macro let-pair
 	  let-pair*
@@ -404,25 +404,56 @@
   (cond ((null? v)
 	 #f)
 	((pair? v)
-	 (null? (cdr v)))
+	 (or (null? (cdr v))
+	     (null? (force (cdr v)))))
+	((promise? v)
+	 (one? (force v)))
 	(else
 	 (error "not a list:" v))))
 
-;; careful: keep in sync with stream-xone
 (define (xone x #!optional (fail (lambda (e)
 				   (error "expected one item, but:" e x))))
-  (if (pair? x)
-      (if (null? (cdr x))
-	  (car x)
-	  (fail 'found-too-many))
-      (fail (if (null? x)
-		'not-found
-		'improper-list))))
+  (FV (x)
+      (if (pair? x)
+	  (if (null? (force (cdr x)))
+	      (car x)
+	      (fail 'found-too-many))
+	  (fail (if (null? x)
+		    'not-found
+		    'improper-list)))))
+
+(TEST
+ > (def (t v)
+	(list (%try-error (one? v))
+	      (xone v identity)))
+ > (t (delay (list 1 2)))
+ (#f found-too-many)
+ > (t (delay (list 2)))
+ (#t 2)
+ > (t (delay '()))
+ (#f not-found)
+ > (t (delay (cons 1 (delay (cons 2 (delay '()))))))
+ (#f found-too-many)
+ > (t (delay (cons 1 (delay (delay '())))))
+ (#t 1)
+ > (t (delay (cons 1 (delay '()))))
+ (#t 1)
+ > (t (delay (cons 1 (delay 2))))
+ ;; improper-list ah, doesn't check for that case, oh well should be fine:
+ (#f found-too-many)
+ > (t (cons 1 (delay '())))
+ (#t 1)
+ > (t (delay 1))
+ (#(error "not a list:" 1) improper-list)
+ > (t (cons 1  '()))
+ (#t 1))
+
 
 ;; just for backwards compat
 (define (xxone x)
   (xone x))
 
+;; XX change to handle streams, too?
 (define (trif-one x then/1 toomany/1 none/0)
   (if (pair? x)
       (if (null? (cdr x))
