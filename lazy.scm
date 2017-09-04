@@ -19,6 +19,8 @@
 	force1 ;; useless?
 	)
 
+(possibly-use-debuggable-promise)
+
 
 ;; provide delay force promise? no-delay force1
 

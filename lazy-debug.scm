@@ -6,12 +6,15 @@
 ;;;    (at your option) any later version.
 
 
-(require (lazy))
+(require lazy
+	 debuggable-promise)
 
 (export F
 	F1
 	F*)
 
+
+(possibly-use-debuggable-promise)
 
 ;; make copy forcing everything
 (define (F s)
