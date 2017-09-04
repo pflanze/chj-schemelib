@@ -17,7 +17,11 @@
 	evaluated-promise-value
 	)
 
-(include "cj-standarddeclares.scm")
+;; (include "cj-standarddeclares.scm")
+;; nope, since that contains namespacing for "cj-struct#vector?" and we don't have that yet.
+(declare (block)
+	 (standard-bindings)
+	 (extended-bindings))
 
 
 ;; Debugging infrastructure for lazy code:
