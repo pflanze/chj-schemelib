@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,15 +8,19 @@
 
 (require define-macro-star
 	 simple-match
-	 debuggable-promise)
+	 debuggable-promise
+	 ;; well, just for convenience?:
+	 lazy-1)
 
 (export promise?
-	@promise-evaluated?
-	@promise-value
 	(macro no-delay)
 	(macro FV)
+	;; re-export just for convenience:
+	@promise-evaluated?
+	@promise-value
+
 	#!optional
-	force1 ;; useless?
+	;; force1 ;; used in F*, but need to fix it in general.
 	)
 
 (possibly-use-debuggable-promise)
@@ -28,16 +32,6 @@
 
 ;; XX implement replacement?:
 ;; (define force1 ##force);; (not really the same thing! ##force does recursive force, so F* will not show nested <P>'s with this--use debuggable-promise if this is needed)
-
-(define (@promise-evaluated? v)
-  (##not (##eq? (##vector-ref v 1) v)))
-
-(define (@promise-value v)
-  (##vector-ref v 1))
-;; > (define v (delay 1))
-;; > (##vector-ref v 1)  
-;; #<promise #3>
-;; ahaaa, that's why he does this circular ref thing??
 
 
 ;; simple way to switch off a |delay|. And maybe makes for good
