@@ -17,7 +17,7 @@
 	      (define. (,(source:symbol-append 'promise method-name) v)
 		(,method-name (force v)))))
 	   '(
-	     .length ;; vs. stream.length which only works on streams
+	     .length ;; vs. istream.length which only works on streams
 	     .car
 	     .cdr
 	     .first
@@ -25,13 +25,29 @@
 	     ;; .cadr
 	     ;; .cddr  ah won't work, need to dispatch to deeper-forcing ones
 	     ;; .ref ;; hmm there is a list.ref, will be slow
-	     ;;.equal nope, instead stream.equal? can work
+	     ;;.equal nope, instead istream.equal? can work
 	     ))))
+
+
+
+;; Types: don't want to use list?, as that's inefficient and for
+;; stream even worse. Thus don't want to name it stream? for
+;; confusion, also, list.foo is bad since it both suggests it does
+;; something it doesn't do and can't actually without redefinining
+;; list?, hence i prefix, OK? For insecure, immediate, or so.
+
+(define ilist? pair-or-null?)
+
+(define (istream? v)
+  ;; *only* for lazy inputs
+  (and (promise? v)
+       (ilist? (force v))))
+
 
 ;; methods after forcing:
 
-(define. pair-or-null.length improper-length)
-;;(define. pair-or-null.list identity) ;; well... dangerous.
+(define. ilist.length improper-length)
+;;(define. ilist.list identity) ;; well... dangerous.
 
 (define. pair.car car)
 (define. pair.cdr cdr)
@@ -47,12 +63,6 @@
 
 
 ;; lazy-to-lazy methods:
-
-(define (stream? v)
-  ;; *only* for lazy inputs
-  (and (promise? v)
-       (pair-or-null? (force v))))
-
 
 ;; XX should we just fall back on one generic method (hey, like in
 ;; fperl!), that forces then dispatches to the eager method, I mean,
@@ -98,124 +108,124 @@
 (define list-tenth tenth)
 
 (code-map-substrings
- ((lazy- '(lazy- ||))
+ ((istream. '(istream. ilist.))
   (stream- '(stream- list-)))
  (begin
 
-   (define. (stream.filter/tail s pred tail)
+   (define. (istream.filter/tail s pred tail)
      (stream-filter/tail pred s tail))
 
-   (define. (stream.for-each s proc . ss)
+   (define. (istream.for-each s proc . ss)
      (apply stream-for-each proc s ss))
 
-   (define. (stream.fold-right l fn start)
+   (define. (istream.fold-right l fn start)
      (stream-fold-right fn start l))
 
    ;; stream:fold-right  -- hmm, bad name anyway
 
-   (define. (stream.map/tail s func tail)
+   (define. (istream.map/tail s func tail)
      (stream-map/tail func s tail))
 
-   (define. (stream.map s f . ss)
+   (define. (istream.map s f . ss)
      (apply stream-map f s ss))
 
-   (define. (stream.filter-map s f . ss)
+   (define. (istream.filter-map s f . ss)
      (apply stream-filter-map f s ss))
 
-   (define. (stream.improper-map func s)
+   (define. (istream.improper-map func s)
      (stream-improper-map func s))
 
-   (define. (stream.list s)
+   (define. (istream.list s)
      (stream->list s))
 
-   (define. stream.drop
+   (define. istream.drop
      stream-drop)
 
-   (define. stream.take stream-take)
+   (define. istream.take stream-take)
 
-   (define. stream.sublist stream-sublist)
+   (define. istream.sublist stream-sublist)
 
-   (define. stream.length stream-length) ;; XX should really be a stream-improper-length !
+   (define. istream.length stream-length) ;; XX should really be a stream-improper-length !
 
-   (define. stream.difference stream-difference)
+   (define. istream.difference stream-difference)
 
-   (define. stream.show-difference show-stream-difference)
+   (define. istream.show-difference show-stream-difference)
 
-   (define. stream.equal? stream-equal?)
+   (define. istream.equal? stream-equal?)
 
-   (define. (stream.filter s pred #!optional (tail '()))
+   (define. (istream.filter s pred #!optional (tail '()))
      (stream-filter pred s tail))
 
-   (define. (stream.fold l fn start)
+   (define. (istream.fold l fn start)
      (stream-fold fn start l))
 
-   (define. stream.append-optimized stream-append-optimized)
+   (define. istream.append-optimized stream-append-optimized)
 
-   (define. stream.append/2 stream-append/2)
+   (define. istream.append/2 stream-append/2)
 
-   (define. stream.append stream-append)
+   (define. istream.append stream-append)
 
-   (define. (stream.union s less? . ss)
+   (define. (istream.union s less? . ss)
      (apply stream-union less? s ss))
 
-   (define. (stream.uniq s equal? #!optional (tail '()))
+   (define. (istream.uniq s equal? #!optional (tail '()))
      (stream-uniq equal? s tail))
 
-   (define. (stream.uniq-count s equal? #!optional (tail '()))
+   (define. (istream.uniq-count s equal? #!optional (tail '()))
      (stream-uniq-count equal? s tail))
 
-   (define. (stream.cmp-union s cmp . ss)
+   (define. (istream.cmp-union s cmp . ss)
      (apply cmp-stream-union cmp s ss))
 
-   (define. (stream.group s equal? #!optional (tail '()))
+   (define. (istream.group s equal? #!optional (tail '()))
      (stream-group equal? s tail))
 
-   (define. (stream.cmp-group s cmp #!optional (tail '()))
+   (define. (istream.cmp-group s cmp #!optional (tail '()))
      (cmp-stream-group cmp s tail))
 
-   (define. (stream.chop/map s n f #!optional (tail '()))
+   (define. (istream.chop/map s n f #!optional (tail '()))
      (stream-chop/map n s f tail))
 
-   (define. (stream.chop n s #!optional (tail '()))
+   (define. (istream.chop n s #!optional (tail '()))
      (stream-chop n s tail))
 
-   (define. (stream.zip s . ss)
+   (define. (istream.zip s . ss)
      (apply stream-zip s ss))
 
-   (define. (stream.zip2 s1 s2)
+   (define. (istream.zip2 s1 s2)
      (stream-zip2 s1 s2))
 
-   (define. (stream.drop-while l pred)
+   (define. (istream.drop-while l pred)
      (stream-drop-while pred l))
 
-   (define. stream.ref stream-ref)
+   (define. istream.ref stream-ref)
 
-   (define. (stream.every lis1 pred . lists)
+   (define. (istream.every lis1 pred . lists)
      (apply stream-every pred lis1 lists))
 
-   (define. stream.min&max stream-min&max)
+   (define. istream.min&max stream-min&max)
    ;; are these evil, since |min| and |max| assume n-ary interfaces?:
    ;; (At least it should be unambiguous though as only work on
    ;; numbers, not lists, as elements.)
-   (define. stream.min stream-min)
-   (define. stream.max stream-max)
+   (define. istream.min stream-min)
+   (define. istream.max stream-max)
 
-   (define. (stream.map/iota lis fn)
+   (define. (istream.map/iota lis fn)
      (stream-map/iota fn lis))
 
-   (define. stream.sum stream-sum)
+   (define. istream.sum stream-sum)
 
    ;; srfi-1
 
-   (define. stream.second stream-second)
-   (define. stream.third stream-third)
-   (define. stream.fourth stream-fourth)
-   (define. stream.fifth stream-fifth)
-   (define. stream.sixth stream-sixth)
-   (define. stream.seventh stream-seventh)
-   (define. stream.eighth stream-eighth)
-   (define. stream.ninth stream-ninth)
-   (define. stream.tenth stream-tenth)
+   (define. istream.second stream-second)
+   (define. istream.third stream-third)
+   (define. istream.fourth stream-fourth)
+   (define. istream.fifth stream-fifth)
+   (define. istream.sixth stream-sixth)
+   (define. istream.seventh stream-seventh)
+   (define. istream.eighth stream-eighth)
+   (define. istream.ninth stream-ninth)
+   (define. istream.tenth stream-tenth)
    ))
 
 
