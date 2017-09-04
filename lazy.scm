@@ -9,11 +9,30 @@
 (require (define-macro-star)
 	 (simple-match))
 
+(export promise?
+	@promise-evaluated?
+	@promise-value
+	(macro no-delay)
+	(macro FV)
+	#!optional
+	force1 ;; useless?
+	)
+
 
 ;; provide delay force promise? no-delay force1
 
 (define promise? ##promise?)
 (define force1 ##force);; (not really the same thing! ##force does recursive force, so F* will not show nested <P>'s with this--use debuggable-promise if this is needed)
+
+(define (@promise-evaluated? v)
+  (##not (##eq? (##vector-ref v 1) v)))
+
+(define (@promise-value v)
+  (##vector-ref v 1))
+;; > (define v (delay 1))
+;; > (##vector-ref v 1)  
+;; #<promise #3>
+;; ahaaa, that's why he does this circular ref thing??
 
 
 ;; simple way to switch off a |delay|. And maybe makes for good
