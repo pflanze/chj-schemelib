@@ -7,8 +7,9 @@
 
 (require define-macro-star)
 
-(export (macro use-debuggable-promise)
-	(##namespace ("debuggable#" delay force promise?))
+(export (macro possibly-use-debuggable-promise) ;; see docs below
+	(macro delay)
+	;; (##namespace ("debuggable#" delay force promise?))
 	;; and debuggable-promise in "" namespace
 
 	promise-evaluated?
@@ -20,13 +21,21 @@
 
 ;; Debugging infrastructure for lazy code:
 
-(define-macro* (use-debuggable-promise)
-  `(##namespace ("debuggable#" delay force promise?)))
+;; use whenever you use cj-standarddeclares.scm in a module that
+;; should see the global change that happens via loading of
+;; debuggable-promise-everywhere:
+(define-macro* (possibly-use-debuggable-promise)
+  `(begin
+     (set! force force)
+     (set! promise? promise?)
+     (set! make-promise make-promise)))
+
+
 
 
 (define debuggable-promise-tag (list 'debuggable-promise))
 
-(define (debuggable#make-promise thunk-or-value evaluated? capturectx)
+(define (make-debuggable-promise thunk-or-value evaluated? capturectx)
   (vector debuggable-promise-tag
 	  thunk-or-value evaluated? capturectx))
 
@@ -44,16 +53,21 @@
 (define (@debuggable-promise-capturectx v) (##vector-ref v 3))
 
 
-(define-macro* (debuggable#delay body0 . body)
-  (define capturectx (gensym 'capturectx))
-  `((let ()
-      (##namespace (""))
-      continuation-capture)
-    (lambda (,capturectx)
-      (debuggable#make-promise
-       (##lambda () ,body0 ,@body)
-       #f
-       ,capturectx))))
+
+(define (debuggable#make-promise thunk)
+  (continuation-capture
+   (lambda (cont)
+     (make-debuggable-promise
+      thunk
+      #f
+      cont))))
+
+(define-macro* (delay body0 . body)
+  `(make-promise
+    (##lambda () ,body0 ,@body)))
+
+(define make-promise ##make-promise)
+;; ^ changed by debuggable-promise-everywhere
 
 
 (define (debuggable#force v)

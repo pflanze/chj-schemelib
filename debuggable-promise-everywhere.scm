@@ -8,11 +8,9 @@
 (require define-macro-star
 	 debuggable-promise)
 
-(export delay force promise?)
+(export force promise? make-promise)
 
 
-(define-macro* (delay . rest)
-  `(debuggable#delay ,@rest))
-
-(define force debuggable#force)
-(define promise? debuggable#promise?)
+(set! force debuggable#force)
+(set! promise? debuggable#promise?)
+(set! make-promise debuggable#make-promise)
