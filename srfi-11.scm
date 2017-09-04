@@ -35,7 +35,7 @@
 	5th
 	values?
 	values-equal?
-	)
+	values-map)
 
 
 (define-macro* (let*-values bindforms* . body)
@@ -428,3 +428,7 @@
  > (values-equal? (values 1 2) 3)
  #f
  )
+
+(define (values-map fn v)
+  ;; there's no ##make-values, so:
+  (apply values (map fn (values->list v))))
