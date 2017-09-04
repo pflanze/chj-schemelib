@@ -28,7 +28,6 @@
 	split-preferred
 	rappend
 	for-each* ;; for-each*/2, but what sense did this name have?
-	for-each/i
 	split-at*
 	rxtake-while
 	one?
@@ -281,25 +280,6 @@
  )
 
 
-;; for-each that also passes the index, analogous to map/iota
-;; XX ah, should rename map/iota to map/i ? Or here?
-
-(define (for-each/i proc l)
-  (let lp ((l l)
-	   (i 0))
-    (if (null? l)
-	(void)
-	(let-pair ((v l) l)
-		  (proc v i)
-		  (lp l (inc i))))))
-
-(TEST
- > (define r '())
- > (for-each/i (lambda (v i) (push! r (list v i))) '(a b c))
- #!void
- > r
- ((c 2) (b 1) (a 0)))
-
 
 ;; a split-at that doesn't die when requesting a split behind the end
 ;; of the list
@@ -539,7 +519,13 @@
 		    (vector-set! v i val))
 		  '(a b c d))
  > v
- #(a b c d #f))
+ #(a b c d #f)
+ ;; and another test I wrote, now moved here (superfluous?):
+ > (define r '())
+ > (for-each/iota (lambda (v i) (push! r (list v i))) '(a b c))
+ #!void
+ > r
+ ((c 2) (b 1) (a 0)) )
 
 
 (define (butlast l)
