@@ -17,7 +17,7 @@
 		(F (cdr s)))
 	  s))))
 
-(define (F* s)
+(define (F1 s)
   (let F ((s s))
     (cond ((promise? s)
 	   (vector '<P>
