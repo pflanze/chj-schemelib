@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -10,9 +10,7 @@
 
 ;; Debugging infrastructure for lazy code:
 
-(##namespace ("debuggable#"))
-(##include "~~lib/gambit#.scm")
-(##namespace ("debuggable#" delay force))
+(##namespace ("debuggable#" delay @force1 force1 force promise?))
 
 (define-type debuggable-promise
   promise
@@ -40,12 +38,9 @@
 (define (force v)
   (if (debuggable-promise? v)
       (force (@force1 v))
-      v))
+      (##force v)))
 
 (define (promise? v)
-  (debuggable-promise? v))
-
-(##namespace (""));; well. whatever jazz would use, if at all.
-(##namespace ("debuggable#" delay force1 force promise? repl-within-debuggable))
-
+  (or (##promise? v)
+      (debuggable-promise? v)))
 
