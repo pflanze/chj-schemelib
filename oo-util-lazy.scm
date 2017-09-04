@@ -46,6 +46,15 @@
   (and (promise? v)
        (ilist? (force v))))
 
+(define (possibly-lazy-null? v)
+  (or (null? v)
+      (and (promise? v)
+	   (null? (force v)))))
+
+(define (lazy-null? v)
+  (and (promise? v)
+       (null? (force v))))
+
 
 ;; methods after forcing:
 
@@ -167,6 +176,7 @@
    (define. istream.append/2 stream-append/2)
 
    (define. istream.append stream-append)
+   ;; also see {lazy-,}null.append below
 
    (define. (istream.union s less? . ss)
      (apply stream-union less? s ss))
@@ -232,6 +242,22 @@
    ))
 
 
+
+(define. (null.append a b . r)
+  (if (null? r)
+      b
+      (if (null? b)
+	  (apply append r)
+	  (apply append b r))))
+
+(define. (lazy-null.append a b . r)
+  (if (null? r)
+      b
+      (if (null? b)
+	  (apply stream-append r)
+	  (apply stream-append b r))))
+
+
 (TEST
  > (.car (.cdr (stream-iota 10)))
  1
@@ -247,6 +273,15 @@
  9
  > (.max (stream-iota 10 5))
  14
+ > (def l '(a))
+ > (eq? (.append '() l) l)
+ #t
+ > (.append '(b) l)
+ (b a)
+ > (.list (.append (stream-iota 2) l))
+ (0 1 a)
+ > (eq? (.append (stream-iota 0) l) l)
+ #t
 
  ;; add more extensive testing..
  )
