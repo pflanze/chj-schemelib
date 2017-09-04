@@ -14,7 +14,8 @@
 	 cj-cmp
 	 srfi-11
 	 cj-typed
-	 cut)
+	 cut
+	 debuggable-promise)
 
 (export stream-filter/tail
 	stream-for-each
@@ -81,6 +82,8 @@
 	stream-ninth
 	stream-tenth
 	)
+
+(possibly-use-debuggable-promise)
 
 
 (define (stream-filter/tail pred s tail)
