@@ -7,10 +7,16 @@
 
 (require define-macro-star)
 
+(export (macro debuggable-promise)
+	(##namespace ("debuggable#" delay @force1 force1 force promise?)))
+
 
 ;; Debugging infrastructure for lazy code:
 
-(##namespace ("debuggable#" delay @force1 force1 force promise?))
+(define-macro* (debuggable-promise)
+  `(##namespace ("debuggable#" delay @force1 force1 force promise?)))
+
+(debuggable-promise)
 
 (define-type debuggable-promise
   promise
