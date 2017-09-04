@@ -7,46 +7,66 @@
 
 (require define-macro-star)
 
-(export (macro debuggable-promise)
-	(##namespace ("debuggable#" delay @force1 force1 force promise?)))
+(export (macro use-debuggable-promise)
+	(##namespace ("debuggable#" delay force promise?))
+	;; and debuggable-promise in "" namespace
+	)
+
+(include "cj-standarddeclares.scm")
 
 
 ;; Debugging infrastructure for lazy code:
 
-(define-macro* (debuggable-promise)
-  `(##namespace ("debuggable#" delay @force1 force1 force promise?)))
+(define-macro* (use-debuggable-promise)
+  `(##namespace ("debuggable#" delay force promise?)))
 
-(debuggable-promise)
 
-(define-type debuggable-promise
-  promise
-  capturectx)
+(define debuggable-promise-tag (list 'debuggable-promise))
 
-(define-macro* (delay expr)
+(define (debuggable#make-promise thunk-or-value evaluated? capturectx)
+  (vector debuggable-promise-tag
+	  thunk-or-value evaluated? capturectx))
+
+(define (debuggable-promise? v)
+  (and (vector? v)
+       (fx= (##vector-length v) 4)
+       (eq? (##vector-ref v 0) debuggable-promise-tag)))
+
+(define (@debuggable-promise-thunk-or-value v) (##vector-ref v 1))
+(define (@debuggable-promise-thunk-or-value-set! v val) (##vector-set! v 1 val))
+
+(define (@debuggable-promise-evaluated? v) (##vector-ref v 2))
+(define (@debuggable-promise-evaluated?-set! v val) (##vector-set! v 2 val))
+
+(define (@debuggable-promise-capturectx v) (##vector-ref v 3))
+
+
+(define-macro* (debuggable#delay body0 . body)
   (define capturectx (gensym 'capturectx))
   `((let ()
       (##namespace (""))
       continuation-capture)
     (lambda (,capturectx)
-      (debuggable#make-debuggable-promise
-       (##delay
-	,expr)
+      (debuggable#make-promise
+       (##lambda () ,body0 ,@body)
+       #f
        ,capturectx))))
 
-(define (@force1 v)
-  (##force (debuggable-promise-promise v)))
 
-(define (force1 v)
+(define (debuggable#force v)
   (if (debuggable-promise? v)
-      (@force1 v)
-      v))
-
-(define (force v)
-  (if (debuggable-promise? v)
-      (force (@force1 v))
+      (let ((tv (@debuggable-promise-thunk-or-value v)))
+	(if (@debuggable-promise-evaluated? v)
+	    tv
+	    ;; forgot, is it OK to shift values like this (short-cut
+	    ;; future evaluation of multi-layer promises)? just try..
+	    (let ((val (debuggable#force (tv))))
+	      (@debuggable-promise-thunk-or-value-set! v val)
+	      (@debuggable-promise-evaluated?-set! v #t)
+	      val)))
       (##force v)))
 
-(define (promise? v)
+(define (debuggable#promise? v)
   (or (##promise? v)
       (debuggable-promise? v)))
 
