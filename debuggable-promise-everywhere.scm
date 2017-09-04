@@ -8,9 +8,6 @@
 (require define-macro-star
 	 debuggable-promise)
 
-(export force promise? make-promise)
+(export make-promise)
 
-
-(set! force debuggable#force)
-(set! promise? debuggable#promise?)
 (set! make-promise debuggable#make-promise)

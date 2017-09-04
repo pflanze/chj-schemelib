@@ -6,8 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (simple-match))
+(require define-macro-star
+	 simple-match
+	 debuggable-promise)
 
 (export promise?
 	@promise-evaluated?
@@ -21,8 +22,10 @@
 
 ;; provide delay force promise? no-delay force1
 
-(define promise? ##promise?)
-(define force1 ##force);; (not really the same thing! ##force does recursive force, so F* will not show nested <P>'s with this--use debuggable-promise if this is needed)
+;; (define promise? ##promise?)  now in debuggable-promise / debuggable-promise-everywhere
+
+;; XX implement replacement?:
+;; (define force1 ##force);; (not really the same thing! ##force does recursive force, so F* will not show nested <P>'s with this--use debuggable-promise if this is needed)
 
 (define (@promise-evaluated? v)
   (##not (##eq? (##vector-ref v 1) v)))

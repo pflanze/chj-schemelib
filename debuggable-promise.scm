@@ -26,9 +26,10 @@
 ;; debuggable-promise-everywhere:
 (define-macro* (possibly-use-debuggable-promise)
   `(begin
-     (set! force force)
-     (set! promise? promise?)
-     (set! make-promise make-promise)))
+     (set! make-promise make-promise)
+     ;; instead of via updateable linking, can just 'set' directly,
+     ;; since they work for both kinds of promises:
+     (##namespace ("debuggable#" force promise?))))
 
 
 
@@ -83,9 +84,13 @@
 	      val)))
       (##force v)))
 
+(define force debuggable#force)
+
 (define (debuggable#promise? v)
   (or (##promise? v)
       (debuggable-promise? v)))
+
+(define promise? debuggable#promise?)
 
 
 (define (promise-evaluated? v)
