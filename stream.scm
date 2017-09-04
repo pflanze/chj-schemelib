@@ -65,6 +65,8 @@
 	gen-infinite-stream
 	gen-stream
 	stream-min&max
+	stream-min
+	stream-max
 	stream-map/iota
 	stream-sum
 
@@ -1178,10 +1180,16 @@
   (let-pair
    ((a s*) (force s))
    (stream-fold-left (lambda-values (v (lo hi))
-			       (values (min v lo)
-				       (max v hi)))
+				    (values (min v lo)
+					    (max v hi)))
 		     (values a a)
 		     s*)))
+
+(define (stream-min s)
+  (fst (stream-min&max s)))
+
+(define (stream-max s)
+  (snd (stream-min&max s)))
 
 (TEST
  > (values->vector (stream-min&max '(3 5 9 -3 7)))

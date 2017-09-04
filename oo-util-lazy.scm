@@ -70,6 +70,9 @@
 (define list-append/2 append)
 ;;(define list-xone xone)
 (define list-min&max stream-min&max) ;; XX add non-forcing instead? consistency forever? evil now
+(define list-min stream-min)
+(define list-max stream-max)
+
 (define list-map map)
 ;;(define list-filter filter) ah, no
 (define (list-filter pred lis #!optional (tail '()))
@@ -191,6 +194,11 @@
      (apply stream-every pred lis1 lists))
 
    (define. lazy-pair-or-null.min&max stream-min&max)
+   ;; are these evil, since |min| and |max| assume n-ary interfaces?:
+   ;; (At least it should be unambiguous though as only work on
+   ;; numbers, not lists, as elements.)
+   (define. lazy-pair-or-null.min stream-min)
+   (define. lazy-pair-or-null.max stream-max)
 
    (define. (lazy-pair-or-null.map/iota lis fn)
      (stream-map/iota fn lis))
@@ -222,6 +230,11 @@
  55
  > (.sum (.map (stream-iota 10) inc))
  55
+ > (.max '(1 9 4))
+ 9
+ > (.max (stream-iota 10 5))
+ 14
+
  ;; add more extensive testing..
  )
 
