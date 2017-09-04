@@ -17,7 +17,7 @@
 	      (define. (,(source:symbol-append 'promise method-name) v)
 		(,method-name (force v)))))
 	   '(
-	     .length ;; vs. lazy-pair-or-null.length which only works on streams
+	     .length ;; vs. stream.length which only works on streams
 	     .car
 	     .cdr
 	     .first
@@ -25,7 +25,7 @@
 	     ;; .cadr
 	     ;; .cddr  ah won't work, need to dispatch to deeper-forcing ones
 	     ;; .ref ;; hmm there is a list.ref, will be slow
-	     ;;.equal nope, instead lazy-pair-or-null.equal? can work
+	     ;;.equal nope, instead stream.equal? can work
 	     ))))
 
 ;; methods after forcing:
@@ -42,13 +42,13 @@
 
 (define. list.list identity)
 ;; ^ but actual forcing of a stream happens by dispatching to
-;; lazy-pair-or-null.list (which should have, and has, priority,
+;; stream.list (which should have, and has, priority,
 ;; hence, this one is only called for non-lazy inputs).
 
 
 ;; lazy-to-lazy methods:
 
-(define (lazy-pair-or-null? v)
+(define (stream? v)
   ;; *only* for lazy inputs
   (and (promise? v)
        (pair-or-null? (force v))))
@@ -102,120 +102,120 @@
   (stream- '(stream- list-)))
  (begin
 
-   (define. (lazy-pair-or-null.filter/tail s pred tail)
+   (define. (stream.filter/tail s pred tail)
      (stream-filter/tail pred s tail))
 
-   (define. (lazy-pair-or-null.for-each s proc . ss)
+   (define. (stream.for-each s proc . ss)
      (apply stream-for-each proc s ss))
 
-   (define. (lazy-pair-or-null.fold-right l fn start)
+   (define. (stream.fold-right l fn start)
      (stream-fold-right fn start l))
 
    ;; stream:fold-right  -- hmm, bad name anyway
 
-   (define. (lazy-pair-or-null.map/tail s func tail)
+   (define. (stream.map/tail s func tail)
      (stream-map/tail func s tail))
 
-   (define. (lazy-pair-or-null.map s f . ss)
+   (define. (stream.map s f . ss)
      (apply stream-map f s ss))
 
-   (define. (lazy-pair-or-null.filter-map s f . ss)
+   (define. (stream.filter-map s f . ss)
      (apply stream-filter-map f s ss))
 
-   (define. (lazy-pair-or-null.improper-map func s)
+   (define. (stream.improper-map func s)
      (stream-improper-map func s))
 
-   (define. (lazy-pair-or-null.list s)
+   (define. (stream.list s)
      (stream->list s))
 
-   (define. lazy-pair-or-null.drop
+   (define. stream.drop
      stream-drop)
 
-   (define. lazy-pair-or-null.take stream-take)
+   (define. stream.take stream-take)
 
-   (define. lazy-pair-or-null.sublist stream-sublist)
+   (define. stream.sublist stream-sublist)
 
-   (define. lazy-pair-or-null.length stream-length) ;; XX should really be a stream-improper-length !
+   (define. stream.length stream-length) ;; XX should really be a stream-improper-length !
 
-   (define. lazy-pair-or-null.difference stream-difference)
+   (define. stream.difference stream-difference)
 
-   (define. lazy-pair-or-null.show-difference show-stream-difference)
+   (define. stream.show-difference show-stream-difference)
 
-   (define. lazy-pair-or-null.equal? stream-equal?)
+   (define. stream.equal? stream-equal?)
 
-   (define. (lazy-pair-or-null.filter s pred #!optional (tail '()))
+   (define. (stream.filter s pred #!optional (tail '()))
      (stream-filter pred s tail))
 
-   (define. (lazy-pair-or-null.fold l fn start)
+   (define. (stream.fold l fn start)
      (stream-fold fn start l))
 
-   (define. lazy-pair-or-null.append-optimized stream-append-optimized)
+   (define. stream.append-optimized stream-append-optimized)
 
-   (define. lazy-pair-or-null.append/2 stream-append/2)
+   (define. stream.append/2 stream-append/2)
 
-   (define. lazy-pair-or-null.append stream-append)
+   (define. stream.append stream-append)
 
-   (define. (lazy-pair-or-null.union s less? . ss)
+   (define. (stream.union s less? . ss)
      (apply stream-union less? s ss))
 
-   (define. (lazy-pair-or-null.uniq s equal? #!optional (tail '()))
+   (define. (stream.uniq s equal? #!optional (tail '()))
      (stream-uniq equal? s tail))
 
-   (define. (lazy-pair-or-null.uniq-count s equal? #!optional (tail '()))
+   (define. (stream.uniq-count s equal? #!optional (tail '()))
      (stream-uniq-count equal? s tail))
 
-   (define. (lazy-pair-or-null.cmp-union s cmp . ss)
+   (define. (stream.cmp-union s cmp . ss)
      (apply cmp-stream-union cmp s ss))
 
-   (define. (lazy-pair-or-null.group s equal? #!optional (tail '()))
+   (define. (stream.group s equal? #!optional (tail '()))
      (stream-group equal? s tail))
 
-   (define. (lazy-pair-or-null.cmp-group s cmp #!optional (tail '()))
+   (define. (stream.cmp-group s cmp #!optional (tail '()))
      (cmp-stream-group cmp s tail))
 
-   (define. (lazy-pair-or-null.chop/map s n f #!optional (tail '()))
+   (define. (stream.chop/map s n f #!optional (tail '()))
      (stream-chop/map n s f tail))
 
-   (define. (lazy-pair-or-null.chop n s #!optional (tail '()))
+   (define. (stream.chop n s #!optional (tail '()))
      (stream-chop n s tail))
 
-   (define. (lazy-pair-or-null.zip s . ss)
+   (define. (stream.zip s . ss)
      (apply stream-zip s ss))
 
-   (define. (lazy-pair-or-null.zip2 s1 s2)
+   (define. (stream.zip2 s1 s2)
      (stream-zip2 s1 s2))
 
-   (define. (lazy-pair-or-null.drop-while l pred)
+   (define. (stream.drop-while l pred)
      (stream-drop-while pred l))
 
-   (define. lazy-pair-or-null.ref stream-ref)
+   (define. stream.ref stream-ref)
 
-   (define. (lazy-pair-or-null.every lis1 pred . lists)
+   (define. (stream.every lis1 pred . lists)
      (apply stream-every pred lis1 lists))
 
-   (define. lazy-pair-or-null.min&max stream-min&max)
+   (define. stream.min&max stream-min&max)
    ;; are these evil, since |min| and |max| assume n-ary interfaces?:
    ;; (At least it should be unambiguous though as only work on
    ;; numbers, not lists, as elements.)
-   (define. lazy-pair-or-null.min stream-min)
-   (define. lazy-pair-or-null.max stream-max)
+   (define. stream.min stream-min)
+   (define. stream.max stream-max)
 
-   (define. (lazy-pair-or-null.map/iota lis fn)
+   (define. (stream.map/iota lis fn)
      (stream-map/iota fn lis))
 
-   (define. lazy-pair-or-null.sum stream-sum)
+   (define. stream.sum stream-sum)
 
    ;; srfi-1
 
-   (define. lazy-pair-or-null.second stream-second)
-   (define. lazy-pair-or-null.third stream-third)
-   (define. lazy-pair-or-null.fourth stream-fourth)
-   (define. lazy-pair-or-null.fifth stream-fifth)
-   (define. lazy-pair-or-null.sixth stream-sixth)
-   (define. lazy-pair-or-null.seventh stream-seventh)
-   (define. lazy-pair-or-null.eighth stream-eighth)
-   (define. lazy-pair-or-null.ninth stream-ninth)
-   (define. lazy-pair-or-null.tenth stream-tenth)
+   (define. stream.second stream-second)
+   (define. stream.third stream-third)
+   (define. stream.fourth stream-fourth)
+   (define. stream.fifth stream-fifth)
+   (define. stream.sixth stream-sixth)
+   (define. stream.seventh stream-seventh)
+   (define. stream.eighth stream-eighth)
+   (define. stream.ninth stream-ninth)
+   (define. stream.tenth stream-tenth)
    ))
 
 
