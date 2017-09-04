@@ -13,6 +13,9 @@
 	 (srfi-11 values? values->list)
 	 ;; dot-oo depends on cj-env already, and we want to add on/registry.show :
 	 (cj-env on/registry? on/registry-ref)
+	 debuggable-promise
+	 ;; ^ now we have to always load it. But, have
+	 ;; debuggable-promise-everywhere now which is optional.
 	 test)
 
 
@@ -128,6 +131,25 @@
 	 (cmp (cdr p)))
     `(on/registry ,(.show access)
 		  ,(.show cmp))))
+
+
+
+;; 
+(define. (debuggable-promise.show v)
+  (if (debuggable-promise? v)
+      (if (@debuggable-promise-evaluated? v)
+	  (.show (@debuggable-promise-thunk-or-value v))
+	  `(debuggable-promise ,(object->serial-number v)))
+      ;; shouldn't happen 'usually' (ever this question, unsafe direct call)
+      (error "not a debuggable-promise:" v)))
+
+(define. (##promise.show v)
+  (if (debuggable-promise? v)
+      (if (@promise-evaluated? v)
+	  (.show (@promise-value v))
+	  v)
+      ;; shouldn't happen 'usually' (ever this question, unsafe direct call)
+      (error "not a ##promise:" v)))
 
 
 (define. (any.show-string v)
