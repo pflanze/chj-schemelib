@@ -69,6 +69,7 @@
 	stream-min
 	stream-max
 	stream-map/iota
+	stream-filter/iota
 	stream-sum
 
 	stream-first
@@ -1210,6 +1211,19 @@
 	  (if (null? lis) lis
 	      (cons (fn (car lis) i)
 		    (rec (cdr lis) (inc i))))))))
+
+;; adapted (list-util-1 filter/iota)
+(define (stream-filter/iota pred lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (delay
+      (FV (lis)
+	  (if (null? lis) lis
+	      (let ((a (car lis))
+		    (r (rec (cdr lis) (inc i))))
+		(if (pred (car lis) i)
+		    (cons a r)
+		    r)))))))
 
 
 (define (stream-sum s)

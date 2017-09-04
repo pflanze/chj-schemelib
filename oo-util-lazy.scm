@@ -4,6 +4,7 @@
 	 ;; oo-util ;; ?
 	 (cj-source-quasiquote quasiquote-source)
 	 stream ;; (only optionally? (lazily? well.))
+	 list-util-1
 	 (code-map code-map-substrings)
 	 (oo-vector-lib sum)
 	 debuggable-promise
@@ -105,6 +106,9 @@
 		      (cons a (rec l*))
 		      (rec l*)))
 	tail)))
+
+(define list-map/iota map/iota)
+(define list-filter/iota filter/iota)
 
 (define list-filter-map filter-map)
 
@@ -225,6 +229,9 @@
 
    (define. (istream.map/iota lis fn)
      (stream-map/iota fn lis))
+
+   (define. (istream.filter/iota lis pred)
+     (stream-filter/iota pred lis))
 
    (define. istream.sum stream-sum)
 
