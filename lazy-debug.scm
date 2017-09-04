@@ -8,15 +8,25 @@
 
 (require (lazy))
 
+(export F
+	F1
+	F*)
 
+
+;; make copy forcing everything
 (define (F s)
   (let F ((s s))
-    (let ((s (force s)))
-      (if (pair? s)
-	  (cons (F (car s))
-		(F (cdr s)))
-	  s))))
+    (let ((s* (force s)))
+      (if (eq? s* s)
+	  s
+	  (if (pair? s*)
+	      (cons (F (car s*))
+		    (F (cdr s*)))
+	      s*)))))
 
+;; make copy forcing everything, but show <P> wherever there was a
+;; promise (and one level at that for each). XX force1 is not
+;; consistently implemented now.
 (define (F1 s)
   (let F ((s s))
     (cond ((promise? s)
@@ -28,4 +38,19 @@
 		 (F (cdr s))))
 	  (else
 	   s))))
+
+;; only copy what was already evaluated
+(define (F* s)
+  (let F ((s s))
+    (if (promise? s)
+	(if (promise-evaluated? s)
+	    (let ((s* (evaluated-promise-value s)))
+	      (if (eq? s* s)
+		  s
+		  (if (pair? s*)
+		      (cons (F (car s*))
+			    (F (cdr s*)))
+		      s*)))
+	    s)
+	s)))
 
