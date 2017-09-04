@@ -15,9 +15,6 @@
 (define promise? ##promise?)
 (define force1 ##force);; (not really the same thing! ##force does recursive force, so F* will not show nested <P>'s with this--use debuggable-promise if this is needed)
 
-;; for debugging uncomment:
-;(include "debuggable-promise.scm")
-
 
 ;; simple way to switch off a |delay|. And maybe makes for good
 ;; documentation of places where it's not clear whether delaying or
