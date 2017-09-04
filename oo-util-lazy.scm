@@ -6,7 +6,10 @@
 	 stream ;; (only optionally? (lazily? well.))
 	 (code-map code-map-substrings)
 	 (oo-vector-lib sum)
+	 debuggable-promise
 	 )
+
+(possibly-use-debuggable-promise)
 
 ;; Methods on lazy data
 
