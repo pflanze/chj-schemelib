@@ -10,6 +10,9 @@
 (export (macro use-debuggable-promise)
 	(##namespace ("debuggable#" delay force promise?))
 	;; and debuggable-promise in "" namespace
+
+	promise-evaluated?
+	evaluated-promise-value
 	)
 
 (include "cj-standarddeclares.scm")
@@ -70,3 +73,25 @@
   (or (##promise? v)
       (debuggable-promise? v)))
 
+
+(define (promise-evaluated? v)
+  (cond ((##promise? v)
+	 (@promise-evaluated? v))
+	((debuggable-promise? v)
+	 (@debuggable-promise-evaluated? v))
+	(else
+	 (error "not a promise:" v))))
+
+(define (evaluated-promise-value v)
+  (define (err)
+    (error "promise not evaluated:" v))
+  (cond ((##promise? v)
+	 (if (@promise-evaluated? v)
+	     (@promise-value v)
+	     (err)))
+	((debuggable-promise? v)
+	 (if (@debuggable-promise-evaluated? v)
+	     (@debuggable-promise-thunk-or-value v)
+	     (err)))
+	(else
+	 (error "not a promise:" v))))
