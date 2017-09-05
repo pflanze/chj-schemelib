@@ -34,18 +34,31 @@
 (define-macro* (=> start . exprs)
   (=>-expand start exprs))
 
-(define-macro* (=>* . exprs)
+(define-macro* (=>* expr0 . exprs)
   (with-gensym
    V
-   `(lambda (,V)
-      ,(=>-expand V exprs))))
+   (if (symbol? (source-code expr0))
+       `(##lambda ,V
+	     ,(=>-expand `(##apply ,expr0 ,V) exprs))
+       ;; otherwise can't support multiple values:
+       `(##lambda (,V)
+	     ,(=>-expand V (cons expr0 exprs))))))
 
 (TEST
  > ((=>* (inc)) 10)
  11
  > ((=>* inc inc) 10)
  12
- )
+ ;; multiple arguments:
+ > ((=>* + inc))
+ 1
+ > ((=>* + inc) 2 3)
+ 6
+ > (with-exception-catcher wrong-number-of-arguments-exception?
+			   (& ((=>* (+) inc) 2 3)))
+ #t
+ > ((=>* (+) inc) 2)
+ 3)
 
 
 ;; bah, copy-paste except for the last line
@@ -67,11 +80,18 @@
 (define-macro* (=>> start . exprs)
   (=>>-expand start exprs))
 
-(define-macro* (=>>* . exprs)
+(define-macro* (=>>* expr0 . exprs)
   (with-gensym
    V
-   `(lambda (,V)
-      ,(=>>-expand V exprs))))
+   (if (symbol? (source-code expr0))
+       `(##lambda ,V
+	     ,(=>>-expand `(##apply ,expr0 ,V) exprs))
+       ;; otherwise can't support multiple values:
+       `(##lambda (,V)
+	     ,(=>>-expand V (cons expr0 exprs))))))
+
+;; it's actually REALLY all copy-paste except for =>>-expand call,
+;; which is a function, bah.todo.
 
 
 (TEST
@@ -84,5 +104,15 @@
  11
  > ((=>>* inc (inc) inc inc) 10)
  14
- )
+ ;; multiple arguments:
+ > (with-exception-catcher divide-by-zero-exception?
+			   (& ((=>>* + (/ 2)))))
+ #t
+ > ((=>>* + (/ 2)) 2 3)
+ 2/5
+ > (with-exception-catcher wrong-number-of-arguments-exception?
+			   (& ((=>>* (+) inc) 2 3)))
+ #t
+ > ((=>>* (+) inc) 2)
+ 3)
 
