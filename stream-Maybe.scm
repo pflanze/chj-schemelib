@@ -11,6 +11,8 @@
 	stream-mapfilter)
 
 
+;; Also see stream-filter-map etc. in stream.scm !
+
 ;; only 1-ary for now
 (define-strict-and-lazy
   mapfilter/tail

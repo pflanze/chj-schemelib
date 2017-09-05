@@ -287,6 +287,7 @@
  )
 
 
+;; Also see stream-mapfilter/tail etc. in stream-Maybe.scm !
 (define (stream-filter-map/tail func s tail)
   ;; maybe with an adjusted error message?..
   (stream-fold-right (lambda (val tail)
@@ -297,6 +298,7 @@
 		     tail
 		     s))
 
+;; Also see stream-mapfilter etc. in stream-Maybe.scm !
 (define-strict-and-lazy
   filter-map/iota
   stream-filter-map/iota
@@ -322,6 +324,7 @@
 
 ;; only for 1 argument for now
 
+;; Also see stream-mapfilter etc. in stream-Maybe.scm !
 (define (stream-filter-map f s . ss)
   (if (null? ss)
       (stream-filter-map/tail f s '())
