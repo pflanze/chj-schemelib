@@ -17,7 +17,8 @@
 	 cut
 	 debuggable-promise
 	  ;; tests:
-	 (lazy-debug F))
+	 (lazy-debug F)
+	 show)
 
 (export stream-filter/tail
 	stream-for-each
@@ -65,7 +66,7 @@
 	stream-unfold
 	stream-unfold2
 	stream-zip
-	stream-zip2
+	zip2 stream-zip2
 	stream-drop-while
 	stream-ref
 	;; stream-%cars+cdrs
@@ -1162,20 +1163,26 @@
 
 
 ;; Variant that delivers values tuples
-(define (stream-zip2 l1 l2)
-  (delay
-    (FV (l1 l2)
-	(if (or (null? l1)
-		(null? l2))
-	    '()
-	    (cons (values (car l1)
-			  (car l2))
-		  (stream-zip2 (cdr l1)
-			       (cdr l2)))))))
+(define-strict-and-lazy
+  zip2
+  stream-zip2
+  (named rec
+	 (lambda (l1 l2)
+	   (DELAY
+	    (FV (l1 l2)
+		(if (or (null? l1)
+			(null? l2))
+		    '()
+		    (cons (values (car l1)
+				  (car l2))
+			  (rec (cdr l1)
+			       (cdr l2)))))))))
 
 (TEST
  > (F (stream-map values->vector (stream-zip2 (stream-iota) (list "a" "b"))))
- (#(0 "a") #(1 "b")))
+ (#(0 "a") #(1 "b"))
+ > (.show (zip2 '(1 2) '(a b)))
+ (list (values 1 'a) (values 2 'b)))
 
 
 (define (stream-drop-while pred l)
