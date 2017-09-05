@@ -95,10 +95,10 @@
 (define list-min&max stream-min&max) ;; XX add non-forcing instead? consistency forever? evil now
 (define list-min stream-min)
 (define list-max stream-max)
+(define list-for-each for-each)
 
 (define list-map map)
-;;(define list-filter filter) ah, no
-(define (list-filter pred lis #!optional (tail '()))
+(define (list-filter/tail pred lis tail)
   (let rec ((l lis))
     (if (pair? l)
 	(let-pair ((a l*) l)
@@ -106,14 +106,26 @@
 		      (cons a (rec l*))
 		      (rec l*)))
 	tail)))
+;;(define list-filter filter) ah, no
+(define (list-filter pred lis #!optional (tail '()))
+  (list-filter/tail pred lis tail))
 
+(define list-improper-map improper-map)
+(define list-map/tail map/tail)
 (define list-map/iota map/iota)
 (define list-filter/iota filter/iota)
+(define list-fold fold)
+(define list-fold-right fold-right)
 (define list-fold-right/iota fold-right/iota)
 (define list-fold-right/iota+rest fold-right/iota+rest)
 (define list-filter-map/iota filter-map/iota)
-
 (define list-filter-map filter-map)
+(define list-zip zip)
+(define list-zip2 zip2)
+(define list-drop-while drop-while)
+(define list-chop chop)
+(define list-chop/map chop/map)
+(define list-every every)
 
 (define list-first first)
 (define list-second second)
@@ -125,6 +137,8 @@
 (define list-eighth eighth)
 (define list-ninth ninth)
 (define list-tenth tenth)
+
+(define list->list identity)
 
 (code-map-substrings
  ((istream. '(istream. ilist.))
