@@ -110,6 +110,7 @@
 (define list-map/iota map/iota)
 (define list-filter/iota filter/iota)
 (define list-fold-right/iota fold-right/iota)
+(define list-filter-map/iota filter-map/iota)
 
 (define list-filter-map filter-map)
 
@@ -237,6 +238,9 @@
    (define. (istream.fold-right/iota s kons tail)
      (stream-fold-right/iota kons tail s))
 
+   (define. (istream.filter-map/iota s func . rest)
+     (apply stream-filter-map/iota func s rest))
+
    (define. istream.sum stream-sum)
 
    ;; srfi-1
@@ -293,6 +297,10 @@
  (0 1 a)
  > (eq? (.append (stream-iota 0) l) l)
  #t
+ > (.filter-map/iota '(1 a 3 b) (lambda (v i) (and (even? i) (inc v))))
+ (2 4)
+ > (F (.filter-map/iota (stream-iota 4) (lambda (v i) (and (even? i) (inc v)))))
+ (1 3)
 
  ;; add more extensive testing..
  )

@@ -27,6 +27,7 @@
 	stream-map1
 	stream-map
 	stream-filter-map/tail
+	filter-map/iota stream-filter-map/iota
 	stream-filter-map
 	stream-improper-map
 	stream->list
@@ -212,6 +213,29 @@
 			     tail)))
 		     tail
 		     s))
+
+(define-strict-and-lazy
+  filter-map/iota
+  stream-filter-map/iota
+  aliases: ((_fold-right/iota fold-right/iota stream-fold-right/iota))
+  (lambda (func s #!key (tail '()))
+    ;; maybe with an adjusted error message?..
+    (_fold-right/iota (lambda (val tail i)
+			(let ((r (func val i)))
+			  (if r
+			      (cons r tail)
+			      tail)))
+		      tail
+		      s)))
+
+(TEST
+ > (promise? (stream-filter-map/iota (lambda (v i) (and (even? i) (inc v))) '(1 2 3 4)))
+ #t
+ > (F (stream-filter-map/iota (lambda (v i) (and (even? i) (inc v))) '(1 2 3 4)))
+ (2 4)
+ > (filter-map/iota (lambda (v i) (and (even? i) (inc v))) '(1 a 3 b))
+ (2 4))
+
 
 ;; only for 1 argument for now
 
@@ -1234,8 +1258,8 @@
   (lambda (kons/3 tail s)
     (let rec ((s s)
 	      (i 0))
-      (delay
-	(let ((s (force s)))
+      (DELAY
+	(let ((s (FORCE s))) ;; force?
 	  (cond ((null? s)
 		 tail)
 		((pair? s)
@@ -1247,7 +1271,9 @@
 		 (error "fold-right/iota: improper stream:" s))))))))
 
 (TEST
- > (F (stream-fold-right/iota(lambda (v tail i) (vector v tail i)) '(the rest) '(a b c)))
+ > (promise? (stream-fold-right/iota vector '(the rest) '(a b c)))
+ #t
+ > (fold-right/iota vector '(the rest) '(a b c))
  #(a #(b #(c (the rest) 2) 1) 0))
 
 
