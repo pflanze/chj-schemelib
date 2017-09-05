@@ -15,7 +15,9 @@
 	 srfi-11
 	 cj-typed
 	 cut
-	 debuggable-promise)
+	 debuggable-promise
+	  ;; tests:
+	 (lazy-debug F))
 
 (export stream-filter/tail
 	stream-for-each
@@ -70,6 +72,7 @@
 	stream-max
 	stream-map/iota
 	stream-filter/iota
+	fold-right/iota stream-fold-right/iota
 	stream-sum
 
 	stream-first
@@ -1224,6 +1227,28 @@
 		(if (pred (car lis) i)
 		    (cons a r)
 		    r)))))))
+
+(define-strict-and-lazy
+  fold-right/iota
+  stream-fold-right/iota
+  (lambda (kons/3 tail s)
+    (let rec ((s s)
+	      (i 0))
+      (delay
+	(let ((s (force s)))
+	  (cond ((null? s)
+		 tail)
+		((pair? s)
+		 (kons/3 (car s)
+			 (rec (cdr s)
+			      (fx+ i 1))
+			 i))
+		(else
+		 (error "fold-right/iota: improper stream:" s))))))))
+
+(TEST
+ > (F (stream-fold-right/iota(lambda (v tail i) (vector v tail i)) '(the rest) '(a b c)))
+ #(a #(b #(c (the rest) 2) 1) 0))
 
 
 (define (stream-sum s)

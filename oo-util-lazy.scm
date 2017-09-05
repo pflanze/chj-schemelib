@@ -109,6 +109,7 @@
 
 (define list-map/iota map/iota)
 (define list-filter/iota filter/iota)
+(define list-fold-right/iota fold-right/iota)
 
 (define list-filter-map filter-map)
 
@@ -232,6 +233,9 @@
 
    (define. (istream.filter/iota lis pred)
      (stream-filter/iota pred lis))
+
+   (define. (istream.fold-right/iota s kons tail)
+     (stream-fold-right/iota kons tail s))
 
    (define. istream.sum stream-sum)
 
