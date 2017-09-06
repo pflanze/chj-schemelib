@@ -833,7 +833,7 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 (define-macro* (c-function-address name-str)
   (sourcify `(let ((adr (@make-addressbox)))
 	       (##c-code ,(string-append "
-void (**p) (void) = (void*) ___BODY(___ARG1);
+void (**p) (void) = (void (**) (void)) ___BODY(___ARG1);
 *p= (void (*) (void)) " (source-code name-str) ";")
 			 adr)
 	       adr)
