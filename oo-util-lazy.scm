@@ -120,6 +120,10 @@
 (define list-fold-right/iota+rest fold-right/iota+rest)
 (define list-filter-map/iota filter-map/iota)
 (define list-filter-map filter-map)
+
+(define list-mapfilter/tail stream-mapfilter/tail)
+(define list-mapfilter stream-mapfilter)
+
 (define list-zip zip)
 (define list-zip2 zip2)
 (define list-drop-while drop-while)
@@ -165,6 +169,12 @@
    (define. (istream.filter-map s f . ss)
      (apply stream-filter-map f s ss))
 
+   (define. (istream.mapfilter/tail l fn tail)
+     (stream-mapfilter/tail fn tail l))
+
+   (define. (istream.mapfilter l fn . rest)
+     (apply stream-mapfilter fn l rest))
+   
    (define. (istream.improper-map func s)
      (stream-improper-map func s))
 
