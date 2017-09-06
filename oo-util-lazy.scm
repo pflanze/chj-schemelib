@@ -110,6 +110,7 @@
 (define list-map/iota map/iota)
 (define list-filter/iota filter/iota)
 (define list-fold-right/iota fold-right/iota)
+(define list-fold-right/iota+rest fold-right/iota+rest)
 (define list-filter-map/iota filter-map/iota)
 
 (define list-filter-map filter-map)
@@ -237,6 +238,9 @@
 
    (define. (istream.fold-right/iota s kons tail)
      (stream-fold-right/iota kons tail s))
+
+   (define. (istream.fold-right/iota+rest s func tail)
+     (stream-fold-right/iota+rest func tail s))
 
    (define. (istream.filter-map/iota s func . rest)
      (apply stream-filter-map/iota func s rest))

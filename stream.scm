@@ -28,6 +28,10 @@
 	stream-map
 	stream-filter-map/tail
 	filter-map/iota stream-filter-map/iota
+	stream-map/iota
+	stream-filter/iota
+	fold-right/iota stream-fold-right/iota
+	fold-right/iota+rest stream-fold-right/iota+rest
 	stream-filter-map
 	stream-improper-map
 	stream->list
@@ -71,9 +75,6 @@
 	stream-min&max
 	stream-min
 	stream-max
-	stream-map/iota
-	stream-filter/iota
-	fold-right/iota stream-fold-right/iota
 	stream-sum
 
 	stream-first
@@ -168,6 +169,87 @@
 		   (rec (cdr s))))
 	    (else
 	     (error "stream-fold-right: improper stream:" s))))))
+
+
+
+;; adapted (list-util-1 map/iota)
+(define (stream-map/iota fn lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (delay
+      (FV (lis)
+	  (if (null? lis) lis
+	      (cons (fn (car lis) i)
+		    (rec (cdr lis) (inc i))))))))
+
+;; adapted (list-util-1 filter/iota)
+(define (stream-filter/iota pred lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (delay
+      (FV (lis)
+	  (if (null? lis) lis
+	      (let ((a (car lis))
+		    (r (rec (cdr lis) (inc i))))
+		(if (pred (car lis) i)
+		    (cons a r)
+		    r)))))))
+
+(define-strict-and-lazy
+  fold-right/iota
+  stream-fold-right/iota
+  (lambda (kons/3 tail s)
+    (let rec ((s s)
+	      (i 0))
+      (DELAY
+       (let ((s (FORCE s))) ;; force?
+	 (cond ((null? s)
+		tail)
+	       ((pair? s)
+		(let-pair ((a r) s)
+			  (kons/3 a
+				  (rec r
+				       (fx+ i 1))
+				  i)))
+	       (else
+		(error "fold-right/iota: improper stream:" s))))))))
+
+(define-strict-and-lazy
+  fold-right/iota+rest
+  stream-fold-right/iota+rest
+  (lambda (kons/3 tail s)
+    (let rec ((s s)
+	      (i 0))
+      (DELAY
+       (let ((s (FORCE s))) ;; force?
+	 (cond ((null? s)
+		tail)
+	       ((pair? s)
+		(let-pair ((a r) s)
+			  (kons/3 a
+				  (rec r
+				       (fx+ i 1))
+				  i
+				  r)))
+	       (else
+		(error "fold-right/iota+rest: improper stream:" s))))))))
+
+(TEST
+ > (promise? (stream-fold-right/iota vector '(the rest) '(a b c)))
+ #t
+ > (fold-right/iota vector '(the rest) '(a b c))
+ #(a #(b #(c (the rest) 2) 1) 0)
+ > (fold-right/iota+rest vector '(the rest) '(a b c))
+ #(a
+   #(b
+     #(c
+       (the rest)
+       2
+       ())
+     1
+     (c))
+   0
+   (b c)))
 
 
 (define (stream-map/tail func s tail)
@@ -1227,54 +1309,6 @@
  #(-3 9)
  > (values->vector (stream-min&max '(3)))
  #(3 3))
-
-
-;; adapted (list-util-1 map/iota)
-(define (stream-map/iota fn lis)
-  (let rec ((lis lis)
-	    (i 0))
-    (delay
-      (FV (lis)
-	  (if (null? lis) lis
-	      (cons (fn (car lis) i)
-		    (rec (cdr lis) (inc i))))))))
-
-;; adapted (list-util-1 filter/iota)
-(define (stream-filter/iota pred lis)
-  (let rec ((lis lis)
-	    (i 0))
-    (delay
-      (FV (lis)
-	  (if (null? lis) lis
-	      (let ((a (car lis))
-		    (r (rec (cdr lis) (inc i))))
-		(if (pred (car lis) i)
-		    (cons a r)
-		    r)))))))
-
-(define-strict-and-lazy
-  fold-right/iota
-  stream-fold-right/iota
-  (lambda (kons/3 tail s)
-    (let rec ((s s)
-	      (i 0))
-      (DELAY
-	(let ((s (FORCE s))) ;; force?
-	  (cond ((null? s)
-		 tail)
-		((pair? s)
-		 (kons/3 (car s)
-			 (rec (cdr s)
-			      (fx+ i 1))
-			 i))
-		(else
-		 (error "fold-right/iota: improper stream:" s))))))))
-
-(TEST
- > (promise? (stream-fold-right/iota vector '(the rest) '(a b c)))
- #t
- > (fold-right/iota vector '(the rest) '(a b c))
- #(a #(b #(c (the rest) 2) 1) 0))
 
 
 (define (stream-sum s)
