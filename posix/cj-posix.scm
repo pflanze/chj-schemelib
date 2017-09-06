@@ -659,13 +659,13 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 
 
 (define/check->integer "execv" posix:_execv posix:execv
-  ((ISO-8859-1-string path) ;; XX?
-   (nonnull-ISO-8859-1-string-list argv))
+  ((UTF-8-string path)
+   (nonnull-UTF-8-string-list argv))
   int)
 
 (define/check->integer "execvp" posix:_execvp posix:execvp
-  ((ISO-8859-1-string path)
-   (nonnull-ISO-8859-1-string-list argv))
+  ((UTF-8-string path)
+   (nonnull-UTF-8-string-list argv))
   int)
 
 (define (posix:exec cmd . args)
@@ -877,13 +877,13 @@ void (**p) (void) = (void (**) (void)) ___BODY(___ARG1);
 (define/check posix:_open posix:open (pathname flags #!optional mode)
   (error-to-posix-exception
    (if mode
-       ((c-lambda (ISO-8859-1-string
+       ((c-lambda (UTF-8-string
 		   int
 		   mode_t)
 		  int
 		  "___result= open(___arg1,___arg2,___arg3);
                    if(___result<0) ___result=-errno;") pathname flags mode)
-       ((c-lambda (ISO-8859-1-string
+       ((c-lambda (UTF-8-string
 		   int)
 		  int
 		  "___result= open(___arg1,___arg2);
@@ -898,11 +898,11 @@ void (**p) (void) = (void (**) (void)) ___BODY(___ARG1);
 ;; all including an error mechanism if conversion fails..
 
 (define/check->integer "chroot" posix:_chroot posix:chroot
-  ((ISO-8859-1-string path)) ;;;;TODO WELLL
+  ((UTF-8-string path))
   int)
 
 (define/check->integer "chdir" posix:_chdir posix:chdir
-  ((ISO-8859-1-string path)) ;; dito
+  ((UTF-8-string path))
   int)
 
 (define/check->integer "fchdir" posix:_fchdir posix:fchdir
@@ -910,12 +910,12 @@ void (**p) (void) = (void (**) (void)) ___BODY(___ARG1);
   int)
 
 (define/check->integer "mkdir" posix:_mkdir posix:mkdir
-  ((ISO-8859-1-string path) ;;dito. (and const here)
+  ((UTF-8-string path)
    (mode_t mode))
   int)
 
 (define/check->integer "rmdir" posix:_rmdir posix:rmdir
-  ((ISO-8859-1-string path)) ;;dito. (and const here)
+  ((UTF-8-string path))
   int)
 
 
@@ -1056,7 +1056,7 @@ if (___result<0) {
 
 (define/check posix:_truncate posix:truncate (pathname length)
   (error-to-posix-exception
-   ((c-lambda (ISO-8859-1-string ;;XXX BAH!
+   ((c-lambda (UTF-8-string
 	       off_t)
 	      int
 	      "___result= truncate(___arg1,___arg2);
@@ -1073,8 +1073,8 @@ if (___result<0) {
 
 (define/check posix:_symlink posix:symlink (oldpath newpath)
   (error-to-posix-exception
-   ((c-lambda (ISO-8859-1-string ;;XXX "Bah"?
-	       ISO-8859-1-string)
+   ((c-lambda (UTF-8-string
+	       UTF-8-string)
 	      int
 	      "___result= symlink(___arg1,___arg2);
                if(___result<0) ___result=-errno;") oldpath newpath)))
@@ -1082,15 +1082,14 @@ if (___result<0) {
 
 (define/check posix:_unlink posix:unlink (path)
   (error-to-posix-exception
-   ((c-lambda (ISO-8859-1-string ;; dito
-	       )
+   ((c-lambda (UTF-8-string)
 	      int
 	      "___result= unlink(___arg1);
                if(___result<0) ___result=-errno;") path)))
 
 (define/check posix:_chown posix:chown (path owner group)
   (error-to-posix-exception
-   ((c-lambda (ISO-8859-1-string ;; dito
+   ((c-lambda (UTF-8-string
 	       uid_t
 	       gid_t)
 	      int
@@ -1110,13 +1109,13 @@ if (___result<0) {
   shell)
 
 (c-define (posix_passwd n p u g ge d sh)
-	  (ISO-8859-1-string
-	   ISO-8859-1-string
+	  (UTF-8-string
+	   UTF-8-string
 	   uid_t
 	   gid_t
-	   ISO-8859-1-string
-	   ISO-8859-1-string
-	   ISO-8859-1-string)
+	   UTF-8-string
+	   UTF-8-string
+	   UTF-8-string)
 	  scheme-object
 	  "posix_passwd" ""
 	  (posix-passwd n p u g ge d sh))
@@ -1127,8 +1126,7 @@ if (___result<0) {
 
 (define (posix:getpwnam name)
   ;; returns maybe value
-  (let* ((res ((c-lambda (ISO-8859-1-string ;; dito
-			  )
+  (let* ((res ((c-lambda (UTF-8-string)
 			 scheme-object
 			 "
 struct passwd* p;
@@ -1167,8 +1165,8 @@ if (p) {
   mem)
 
 (c-define (posix_group n p g m)
-	  (ISO-8859-1-string
-	   ISO-8859-1-string
+	  (UTF-8-string
+	   UTF-8-string
 	   gid_t
 	   nonnull-UTF-8-string-list)
 	  scheme-object
@@ -1177,8 +1175,7 @@ if (p) {
 
 (define (posix:getgrnam name)
   ;; returns maybe value
-  (let* ((res ((c-lambda (ISO-8859-1-string ;; dito
-			  )
+  (let* ((res ((c-lambda (UTF-8-string)
 			 scheme-object
 			 "
 struct group* p;
