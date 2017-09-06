@@ -4,6 +4,7 @@
 	 ;; oo-util ;; ?
 	 (cj-source-quasiquote quasiquote-source)
 	 stream ;; (only optionally? (lazily? well.))
+	 stream-Maybe ;; (ah well, more dependencies)
 	 list-util-1
 	 (code-map code-map-substrings)
 	 (oo-vector-lib sum)
@@ -243,6 +244,8 @@
      (stream-drop-while pred l))
 
    (define. istream.ref stream-ref)
+
+   (define. istream.Maybe-ref stream-Maybe-ref)
 
    (define. (istream.every lis1 pred . lists)
      (apply stream-every pred lis1 lists))
