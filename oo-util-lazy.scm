@@ -45,8 +45,21 @@
 
 (define (istream? v)
   ;; *only* for lazy inputs
-  (and (promise? v)
-       (ilist? (force v))))
+  (or (and (promise? v)
+	   (ilist? (force v)))
+      (and (pair? v)
+	   (let ((r (cdr v)))
+	     (and (promise? r)
+		  (ilist? (force r)))))))
+
+(TEST
+ > (istream? (delay (cons 1 (delay '()))))
+ #t
+ > (istream? (cons 1 (delay '())))
+ #t
+ > (istream? (cons* 1 2 (delay '())))
+ #f)
+
 
 (define (possibly-lazy-null? v)
   (or (null? v)
