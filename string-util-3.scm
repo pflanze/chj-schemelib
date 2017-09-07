@@ -20,7 +20,9 @@
 	string.take
 	string.any
 	char-list.string-reverse
-	substring*)
+	substring*
+	string.natural0
+	string.natural)
 
 
 ;; (define-macro* (for var seq . body)
@@ -190,4 +192,55 @@
 (TEST
  > (substring* "foo-bar" 3)
  "-bar")
+
+
+(define. (string.natural0 s #!optional (base 10))
+  (assert (<= base 10)) ;; for now
+  (let ((len (string.length s))
+	(base- (dec base)))
+    (let lp ((n 0)
+	     (i 0))
+      (if (< i len)
+	  (let* ((c (string.ref s i))
+		 (d (- (char.integer c) (char.integer #\0))))
+	    (if (<= 0 d base-)
+		(lp (+ d (* n base))
+		    (inc i))
+		(error "invalid character for an integer number string of base:"
+		       c s base)))
+	  n))))
+
+(define. (string.natural s #!optional (base 10))
+  (let ((v (string.natural0 s base)))
+    (if (zero? v)
+	(error "not a natural number:" s)
+	v)))
+
+(TEST
+ > (%try-error (.natural "0"))
+ #(error "not a natural number:" "0")
+ > (.natural "1")
+ 1
+ > (%try-error (.natural "-1"))
+ #(error "invalid character for an integer number string of base:" #\- "-1" 10)
+ > (%try-error (.natural " 1"))
+ #(error "invalid character for an integer number string of base:" #\space " 1" 10)
+ > (.natural0 "0")
+ 0
+ > (.natural0 "10")
+ 10
+ > (.natural "13409")
+ 13409
+ > (.natural "0666")
+ 666
+ > (.natural "0666" 8)
+ 438
+ > #o666
+ 438
+ > (.natural "666" 8)
+ 438
+ > (%try-error (.natural "666" 2))
+ #(error "invalid character for an integer number string of base:" #\6 "666" 2)
+ > (.natural "001001" 2)
+ 9)
 
