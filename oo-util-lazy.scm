@@ -58,6 +58,21 @@
        (null? (force v))))
 
 
+;; move to an iseq.scm ?
+
+(define (iseq? v)
+  (FV (v)
+      (ilist? v)))
+
+(define (iseq-of pred)
+  (lambda (v)
+    (FV (v)
+	(if (pair? v)
+	    (pred (car v))
+	    (null? v)))))
+
+
+
 ;; methods after forcing:
 
 (define. ilist.length improper-length)

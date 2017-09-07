@@ -11,7 +11,8 @@
 	 cj-typed
 	 dot-oo
 	 symboltable-1
-	 (cj-env keyword->symbol))
+	 (cj-env keyword->symbol)
+	 lazy)
 
 
 (export box-of
