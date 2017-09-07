@@ -24,6 +24,7 @@
 	sxml-element-search-subelement-with-name/attribute/value
 	sxml-element:add-attributes-unless-present
 	sxml-element?
+	sxml?
 	sxml-elements-match-subpathlist
 	sxml-strip-whitespace
 	sxml-whitespace?
@@ -93,6 +94,17 @@
 (define (sxml-element? l)
   (and (pair? l)
        (symbol? (##car l))))
+
+
+(define (sxml? v)
+  (or (pair? v)
+      (null? v)
+      (string? v)
+      ;;(boolean? v) hmm?
+      ;;(symbol? v) for pre-serialized fragments, XXX finally do something proper for that!
+      ;; (procedure? v) want that here? Only allow in bodies?
+      ;; promise?: also only allow in bodies?
+      ))
 
 
 (define (sxml-element-name element)
