@@ -15,7 +15,7 @@
 (require easy
 	 (srfi-1 last-pair append!)
 	 cj-env	;; warn, for debgging  ah and now thunk
-	 (cj-sxml sxml-element?
+	 (cj-sxml sxml-element? sxml-begin? sxml-begin
 		  with-sxml-element-attributes/else
 		  sxml-element-attribute-ref
 		  sxml-element:add-attributes-unless-present)
@@ -140,14 +140,6 @@
 
 
 ;; ----------------------------------------------------------------------
-
-;; XX and move these:
-(define (sxml-begin? l)
-  (and (pair? l)
-       (eq? (##car l) '##begin)))
-
-(define sxml-begin (lambda vals `(##begin ,@vals)))
-
 
 
 (def (@sxml-attributes l)

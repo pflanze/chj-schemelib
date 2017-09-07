@@ -25,6 +25,8 @@
 	sxml-element:add-attributes-unless-present
 	sxml-element?
 	sxml?
+	sxml-begin?
+	sxml-begin
 	sxml-elements-match-subpathlist
 	sxml-strip-whitespace
 	sxml-whitespace?
@@ -105,6 +107,14 @@
       ;; (procedure? v) want that here? Only allow in bodies?
       ;; promise?: also only allow in bodies?
       ))
+
+(define (sxml-begin? l)
+  (and (pair? l)
+       (eq? (##car l) '##begin)))
+
+(define sxml-begin (lambda vals `(##begin ,@vals)))
+
+
 
 
 (define (sxml-element-name element)
