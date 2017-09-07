@@ -14,7 +14,7 @@
 	sxml-attributes.ref
 	sxml-attributes.maybe-ref
 	sxml-element-attribute-ref
-	sxml-element-attributes
+	sxml-element-maybe-attributes
 	sxml-element-name
 	sxml-element-of-name
 	sxml-element-body
@@ -170,7 +170,7 @@
 				     (lambda ()
 				       #f)))
 
-(define (sxml-element-attributes element)
+(define (sxml-element-maybe-attributes element)
   (with-sxml-element-attributes/else element
 				     (lambda (v)
 				       v)
