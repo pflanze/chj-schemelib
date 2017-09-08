@@ -32,6 +32,7 @@
 	rxtake-while
 	one?
 	xone ;; also see |the| in easy-1
+	xone/fail
 	maybe-xone
 	trif-one
 	trif-one/
@@ -391,9 +392,8 @@
 	(else
 	 (error "not a list:" v))))
 
-(define (xone x #!optional (fail (lambda (e)
-				   (error "expected one item, but:" e
-					  (force x)))))
+;; can't use cj-inline yet (circular dependency)
+(define (xone/fail x fail)
   (FV (x)
       (if (pair? x)
 	  (if (null? (force (cdr x)))
@@ -403,6 +403,12 @@
 		    'not-found
 		    'improper-list)))))
 
+(define (xone x)
+  (xone/fail x
+	     (lambda (e)
+	       (error "expected one item, but:" e
+		      (force x)))))
+
 (TEST
  > (%try-error (xone (delay '())))
  #(error "expected one item, but:" not-found ())
@@ -410,7 +416,7 @@
  #(error "expected one item, but:" found-too-many (a b))
  > (def (t v)
 	(list (%try-error (one? v))
-	      (xone v identity)))
+	      (xone/fail v identity)))
  > (t (delay (list 1 2)))
  (#f found-too-many)
  > (t (delay (list 2)))
@@ -435,12 +441,12 @@
 
 
 (define (maybe-xone v)
-  (xone v (lambda (e)
-	    (case e
-	      ((not-found) #f)
-	      (else
-	       (error "expected one item or none, but:" e
-		      (force v)))))))
+  (xone/fail v (lambda (e)
+		 (case e
+		   ((not-found) #f)
+		   (else
+		    (error "expected one item or none, but:" e
+			   (force v)))))))
 
 (TEST
  > (maybe-xone '())
