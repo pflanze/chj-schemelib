@@ -58,7 +58,6 @@
 	#!optional
 	do-iter ;; ?
 	list->chunked-lists ;; XX move?
-	stream-rtake+rest ;; XX move?
 	)
 
 ;; pseudorandom sources
@@ -119,21 +118,6 @@
 				   (make-range/base (char->integer #\a)
 						    26)))
 
-;; combined stream-take and stream-drop, but eager, returning the take
-;; in reverse order
-(define (stream-rtake+rest s n #!optional (tail '()))
-  (let lp ((s s)
-	   (res tail)
-	   (n n))
-    (cond ((zero? n)
-	   (values res s))
-	  ((negative? n) ;; yes  "should-could" be moved out to the outer scope
-	   (error "negative n:" n))
-	  (else
-	   (FV (s)
-	       (lp (cdr s)
-		   (cons (car s) res)
-		   (dec n)))))))
 
 (TEST
  > (let* ((s (pseudorandomsource->a-z-stream (make-pseudorandomsource 11 12))))
