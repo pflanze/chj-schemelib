@@ -341,6 +341,19 @@
 
 
 (TEST
+ > (.first (cons 1 2))
+ 1
+ > (.first (delay (cons 1 2)))
+ 1
+ > (.car (cons 1 2))
+ 1
+ > (.car (delay (cons 1 2)))
+ 1
+ > (.cdr (cons 1 2))
+ 2
+ > (.cdr (delay (cons 1 2)))
+ 2
+
  > (.car (.cdr (stream-iota 10)))
  1
  > (.sum (iota 10))
