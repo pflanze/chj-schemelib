@@ -18,8 +18,8 @@
 	complement
 	compose
 	maybe-compose
-	either
-	(macro %either)
+	either (macro %either)
+	neither (macro %neither)
 	both
 	all-of
 	right-associate
@@ -68,7 +68,6 @@
     (cond ((apply g x) => f)
 	  (else #f))))
 
-;; name?
 (define (either . fs)
   (if (null? fs)
       (lambda x
@@ -79,6 +78,7 @@
 		     (or (apply f x)
 			 (apply r x))))
 		 (apply either fs*)))))
+
 (TEST
  > ((either symbol? string?) "foo")
  #t
@@ -112,6 +112,43 @@
  #t
  ;; test shortcutting?
  )
+
+
+(define (neither . fs)
+  (complement (apply either fs)))
+
+(define-macro* (%neither . fs)
+  (with-gensym
+   V
+   `(lambda (,V)
+      (not (or ,@(map (lambda (f)
+			`(,f ,V))
+		      fs))))))
+
+(TEST ;; copy of test cases above
+ > ((neither symbol? string?) "foo")
+ #f
+ > ((neither symbol? string?) 'bar)
+ #f
+ > ((neither symbol? string?) 0)
+ #t
+ > ((neither symbol? number? string?) 0)
+ #f
+ ;; test shortcutting?
+ )
+
+(TEST ;; copy of test cases above
+ > ((%neither symbol? string?) "foo")
+ #f
+ > ((%neither symbol? string?) 'bar)
+ #f
+ > ((%neither symbol? string?) 0)
+ #t
+ > ((%neither symbol? number? string?) 0)
+ #f
+ ;; test shortcutting?
+ )
+
 
 
 ;; name ok?
