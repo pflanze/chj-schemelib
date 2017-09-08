@@ -17,7 +17,8 @@
 	 (cj-test %try)
 	 (cj-struct define-struct-expand))
 
-(export (macro define.)
+(export (macro method-table-for)
+	(macro define.)
 	(macro define-struct.)
 	nothing? ;; really?
 
@@ -109,6 +110,10 @@
 
 
 (both-times
+ (define (generic-name-string.method-table-name str)
+   (string->symbol (string-append "dot-oo-method-table#"
+				  str)))
+ 
  (define define.-expand
    (lambda (name expr)
      (let ((namestr (possibly-sourcify (symbol->string (source-code name))
@@ -122,9 +127,8 @@
 		    ;; on reload, use typename for table updates
 		    ;; instead.
 		    (fulltypename (string->symbol (string-append typenamestr)))
-		    (method-table-name
-		     (string->symbol (string-append "dot-oo-method-table#"
-						    genericnamestr))))
+		    (method-table-name (generic-name-string.method-table-name
+					genericnamestr)))
 	       `(begin
 		  (define ,name ,expr)
 		  ;; Update (and possibly create) method table
@@ -143,6 +147,12 @@
 		  ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
 		  (define-if-not-defined ,genericname
 		    (dot-oo:make-generic ',genericname ,method-table-name)))))))))
+
+
+(define-macro* (method-table-for generic-name-sym)
+  (generic-name-string.method-table-name
+   (symbol->string (source-code generic-name-sym))))
+
 
 (define-macro* (define. first . rest)
   (mcase first
