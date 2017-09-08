@@ -392,7 +392,8 @@
 	 (error "not a list:" v))))
 
 (define (xone x #!optional (fail (lambda (e)
-				   (error "expected one item, but:" e x))))
+				   (error "expected one item, but:" e
+					  (force x)))))
   (FV (x)
       (if (pair? x)
 	  (if (null? (force (cdr x)))
@@ -403,6 +404,10 @@
 		    'improper-list)))))
 
 (TEST
+ > (%try-error (xone (delay '())))
+ #(error "expected one item, but:" not-found ())
+ > (%try-error (xone (delay '(a b))))
+ #(error "expected one item, but:" found-too-many (a b))
  > (def (t v)
 	(list (%try-error (one? v))
 	      (xone v identity)))
