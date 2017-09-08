@@ -32,7 +32,6 @@
 	rxtake-while
 	one?
 	xone ;; also see |the| in easy-1
-	xxone ;; deprecated, use xone (or the)
 	trif-one
 	trif-one/
 	make-list/tail
@@ -433,10 +432,6 @@
  > (t (cons 1  '()))
  (#t 1))
 
-
-;; just for backwards compat
-(define (xxone x)
-  (xone x))
 
 ;; XX change to handle streams, too?
 (define (trif-one x then/1 toomany/1 none/0)
