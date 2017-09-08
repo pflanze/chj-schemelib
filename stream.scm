@@ -415,13 +415,14 @@
 (define-strict-and-lazy
   reverse/tail
   stream-reverse/tail
-  (named lp (lambda (s tail)
-	      (FV (s)
-		  (if (null? s)
-		      tail
-		      (let-pair ((a r) s)
-				(lp r
-				    (cons a tail))))))))
+  (named reverse/tail
+	 (lambda (s tail)
+	   (FV (s)
+	       (if (null? s)
+		   tail
+		   (let-pair ((a r) s)
+			     (reverse/tail r
+					   (cons a tail))))))))
 
 (TEST
  > (reverse/tail '(a b c) '(1 2))
