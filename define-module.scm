@@ -40,7 +40,7 @@
 
  ;; lib
  (define source-xone
-   (lambda (x) (xone x (lambda (e) (source-error x "expecting one item")))))
+   (lambda (x) (xone/fail x (lambda (e) (source-error x "expecting one item")))))
  ;; /lib
 
  ;; % for (mutable/)mutated-from-inside data structures?
