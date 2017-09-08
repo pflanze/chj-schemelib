@@ -38,7 +38,7 @@
 	stream->list
 	stream-drop
 	stream-take
-	stream-rtake&rest
+	list-rtake&rest stream-rtake&rest
 	stream-sublist
 	stream-length
 	(struct difference-at)
@@ -390,19 +390,22 @@
 
 ;; combined stream-take and stream-drop, but eager, returning the take
 ;; in reverse order
-(define (stream-rtake&rest s n #!optional (tail '()))
-  (let lp ((s s)
-	   (res tail)
-	   (n n))
-    (cond ((zero? n)
-	   (values res s))
-	  ((negative? n) ;; yes  "should-could" be moved out to the outer scope
-	   (error "negative n:" n))
-	  (else
-	   (FV (s)
-	       (lp (cdr s)
-		   (cons (car s) res)
-		   (dec n)))))))
+(define-strict-and-lazy
+  list-rtake&rest
+  stream-rtake&rest
+  (lambda (s n #!optional (tail '()))
+    (let lp ((s s)
+	     (res tail)
+	     (n n))
+      (cond ((zero? n)
+	     (values res s))
+	    ((negative? n) ;; yes  "should-could" be moved out to the outer scope
+	     (error "negative n:" n))
+	    (else
+	     (FV (s)
+		 (lp (cdr s)
+		     (cons (car s) res)
+		     (dec n))))))))
 ;; (tests see test-lib.scm)
 
 
