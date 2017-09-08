@@ -160,6 +160,9 @@
 (define list-chop/map chop/map)
 (define list-every every)
 
+(define list-reverse reverse)
+(define list-reverse/tail reverse/tail)
+
 (define list-first first)
 (define list-second second)
 (define list-third third)
@@ -302,6 +305,11 @@
 
    (define. istream.sum stream-sum)
 
+   (define. istream.rtake&rest stream-rtake&rest)
+   (define. istream.reverse stream-reverse)
+   (define. istream.reverse/tail stream-reverse/tail)
+   (define. istream.split-at stream-split-at)
+
    ;; srfi-1
 
    (define. istream.second stream-second)
@@ -361,6 +369,14 @@
  > (F (.filter-map/iota (stream-iota 4) (lambda (v i) (and (even? i) (inc v)))))
  (1 3)
 
+ > (.reverse/tail '(a b c) '(1 2))
+ (c b a 1 2)
+ > (.reverse '(a b c))
+ (c b a)
+ > (.list (.rtake&rest '(a b c d) 2))
+ ((b a) (c d))
+ > (.list (.split-at '(a b c d) 2))
+ ((a b) (c d))
  ;; add more extensive testing..
  )
 
