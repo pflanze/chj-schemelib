@@ -32,6 +32,7 @@
 	rxtake-while
 	one?
 	xone ;; also see |the| in easy-1
+	maybe-xone
 	trif-one
 	trif-one/
 	make-list/tail
@@ -431,6 +432,23 @@
  (#(error "not a list:" 1) improper-list)
  > (t (cons 1  '()))
  (#t 1))
+
+
+(define (maybe-xone v)
+  (xone v (lambda (e)
+	    (case e
+	      ((not-found) #f)
+	      (else
+	       (error "expected one item or none, but:" e
+		      (force v)))))))
+
+(TEST
+ > (maybe-xone '())
+ #f
+ > (maybe-xone '(a))
+ a
+ > (%try-error (maybe-xone (iota 2)))
+ #(error "expected one item or none, but:" found-too-many (0 1)))
 
 
 ;; XX change to handle streams, too?
