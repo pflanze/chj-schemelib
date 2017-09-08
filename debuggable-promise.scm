@@ -6,6 +6,7 @@
 ;;;    (at your option) any later version.
 
 (require define-macro-star
+	 (cj-struct-tag struct-tag-allocate! struct-metadata)
 	 lazy-1)
 
 (export (macro possibly-use-debuggable-promise) ;; see docs below
@@ -39,7 +40,9 @@
 
 
 
-(define debuggable-promise-tag (list 'debuggable-promise))
+(define-if-not-defined
+   debuggable-promise-tag
+   (struct-tag-allocate! 'debuggable-promise (struct-metadata 'make-debuggable-promise)))
 
 (define (make-debuggable-promise thunk-or-value evaluated? capturectx)
   (vector debuggable-promise-tag

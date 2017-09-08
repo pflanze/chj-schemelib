@@ -24,13 +24,19 @@
        #define _XOPEN_SOURCE
        #include <time.h>
        #include <stdlib.h>
+
+/* then that still doesn't work on Debian stretch any more, huh. Did
+   the header file include order change? Would that break it? So.. :
+*/
+
+char *strptime(const char *s, const char *format, struct tm *tm);
 ")
 
 
 (def (strptime #(u8vector0? in) #(u8vector0? format))
      -> (values-of (maybe localtime?)
-		   ;;XX size_t?
-		   natural0?)
+     		   ;;XX size_t?
+     		   natural0?)
 
      (let* ((out (localtime 1 2 3 4 5 6 7 8 9 10))
 	    (res (##c-code "

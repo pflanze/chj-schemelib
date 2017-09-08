@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -60,7 +60,7 @@
 				     (alloc-optim-cons s
 						       (F (car s))
 						       (F (cdr s))))
-				    ((vector? s)
+				    ((##vector? s) ;; include cj-structs, too!
 				     (alloc-optim-vector s (vector-map F s)))
 				    ((values? s)
 				     (alloc-optim-values s (values-map F s)))
@@ -147,4 +147,15 @@
  #t
  )
 
+
+;; (TEST
+;;  ;; optim is actually potentially very worthwhile since it keeps
+;;  ;; cj-struct / joo objects valid because it shares eq? relationship
+;;  ;; of the type tags:
+;;  > (jclass (ssxpath-match-context a b c))
+;;  > (def v (ssxpath-match-context 'a 'b (delay 'c)))
+;;  > (eq? (F v) v)
+;;  #f
+;;  > (eq? (vector-ref (F v) 0) (vector-ref v 0))
+;;  #t)
 

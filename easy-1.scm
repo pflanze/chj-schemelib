@@ -144,14 +144,15 @@
   (if error-expr
       (with-gensym
        V
-       `(let ((,V ,expr))
+       `(let* ((,V ,expr)
+	       (it (force ,V)))
 	  ,(if too-many-error-expr
-	       `(cond ((one? ,V) (car ,V))
-		      ((null? ,V) ,error-expr)
+	       `(cond ((one? it) (car it))
+		      ((null? it) ,error-expr)
 		      (else
 		       ,too-many-error-expr))
-	       `(if (one? ,V)
-		    (car ,V)
+	       `(if (one? it)
+		    (car it)
 		    ,error-expr))))
       `(xone ,expr)))
 

@@ -14,7 +14,7 @@
 	sxml-attributes.ref
 	sxml-attributes.maybe-ref
 	sxml-element-attribute-ref
-	sxml-element-attributes
+	sxml-element-maybe-attributes
 	sxml-element-name
 	sxml-element-of-name
 	sxml-element-body
@@ -24,6 +24,9 @@
 	sxml-element-search-subelement-with-name/attribute/value
 	sxml-element:add-attributes-unless-present
 	sxml-element?
+	sxml?
+	sxml-begin?
+	sxml-begin
 	sxml-elements-match-subpathlist
 	sxml-strip-whitespace
 	sxml-whitespace?
@@ -95,6 +98,25 @@
        (symbol? (##car l))))
 
 
+(define (sxml? v)
+  (or (pair? v)
+      (null? v)
+      (string? v)
+      ;;(boolean? v) hmm?
+      ;;(symbol? v) for pre-serialized fragments, XXX finally do something proper for that!
+      ;; (procedure? v) want that here? Only allow in bodies?
+      ;; promise?: also only allow in bodies?
+      ))
+
+(define (sxml-begin? l)
+  (and (pair? l)
+       (eq? (##car l) '##begin)))
+
+(define sxml-begin (lambda vals `(##begin ,@vals)))
+
+
+
+
 (define (sxml-element-name element)
   (with-sxml-element element
 		     (lambda (name attrs body)
@@ -148,7 +170,7 @@
 				     (lambda ()
 				       #f)))
 
-(define (sxml-element-attributes element)
+(define (sxml-element-maybe-attributes element)
   (with-sxml-element-attributes/else element
 				     (lambda (v)
 				       v)

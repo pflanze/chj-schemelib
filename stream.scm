@@ -15,7 +15,10 @@
 	 srfi-11
 	 cj-typed
 	 cut
-	 debuggable-promise)
+	 debuggable-promise
+	  ;; tests:
+	 (lazy-debug F)
+	 show)
 
 (export stream-filter/tail
 	stream-for-each
@@ -25,11 +28,20 @@
 	stream-map1
 	stream-map
 	stream-filter-map/tail
+	filter-map/iota stream-filter-map/iota
+	stream-map/iota
+	stream-filter/iota
+	fold-right/iota stream-fold-right/iota
+	fold-right/iota+rest stream-fold-right/iota+rest
 	stream-filter-map
 	stream-improper-map
 	stream->list
 	stream-drop
 	stream-take
+	list-rtake&rest stream-rtake&rest
+	reverse/tail stream-reverse/tail
+	stream-reverse
+	list-split-at stream-split-at
 	stream-sublist
 	stream-length
 	(struct difference-at)
@@ -58,7 +70,7 @@
 	stream-unfold
 	stream-unfold2
 	stream-zip
-	stream-zip2
+	zip2 stream-zip2
 	stream-drop-while
 	stream-ref
 	;; stream-%cars+cdrs
@@ -68,7 +80,6 @@
 	stream-min&max
 	stream-min
 	stream-max
-	stream-map/iota
 	stream-sum
 
 	stream-first
@@ -165,6 +176,87 @@
 	     (error "stream-fold-right: improper stream:" s))))))
 
 
+
+;; adapted (list-util-1 map/iota)
+(define (stream-map/iota fn lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (delay
+      (FV (lis)
+	  (if (null? lis) lis
+	      (cons (fn (car lis) i)
+		    (rec (cdr lis) (inc i))))))))
+
+;; adapted (list-util-1 filter/iota)
+(define (stream-filter/iota pred lis)
+  (let rec ((lis lis)
+	    (i 0))
+    (delay
+      (FV (lis)
+	  (if (null? lis) lis
+	      (let ((a (car lis))
+		    (r (rec (cdr lis) (inc i))))
+		(if (pred (car lis) i)
+		    (cons a r)
+		    r)))))))
+
+(define-strict-and-lazy
+  fold-right/iota
+  stream-fold-right/iota
+  (lambda (kons/3 tail s)
+    (let rec ((s s)
+	      (i 0))
+      (DELAY
+       (let ((s (FORCE s))) ;; force?
+	 (cond ((null? s)
+		tail)
+	       ((pair? s)
+		(let-pair ((a r) s)
+			  (kons/3 a
+				  (rec r
+				       (fx+ i 1))
+				  i)))
+	       (else
+		(error "fold-right/iota: improper stream:" s))))))))
+
+(define-strict-and-lazy
+  fold-right/iota+rest
+  stream-fold-right/iota+rest
+  (lambda (kons/3 tail s)
+    (let rec ((s s)
+	      (i 0))
+      (DELAY
+       (let ((s (FORCE s))) ;; force?
+	 (cond ((null? s)
+		tail)
+	       ((pair? s)
+		(let-pair ((a r) s)
+			  (kons/3 a
+				  (rec r
+				       (fx+ i 1))
+				  i
+				  r)))
+	       (else
+		(error "fold-right/iota+rest: improper stream:" s))))))))
+
+(TEST
+ > (promise? (stream-fold-right/iota vector '(the rest) '(a b c)))
+ #t
+ > (fold-right/iota vector '(the rest) '(a b c))
+ #(a #(b #(c (the rest) 2) 1) 0)
+ > (fold-right/iota+rest vector '(the rest) '(a b c))
+ #(a
+   #(b
+     #(c
+       (the rest)
+       2
+       ())
+     1
+     (c))
+   0
+   (b c)))
+
+
 (define (stream-map/tail func s tail)
   ;; maybe with an adjusted error message?..
   (stream-fold-right (lambda (val tail)
@@ -199,6 +291,7 @@
  )
 
 
+;; Also see stream-mapfilter/tail etc. in stream-Maybe.scm !
 (define (stream-filter-map/tail func s tail)
   ;; maybe with an adjusted error message?..
   (stream-fold-right (lambda (val tail)
@@ -209,8 +302,33 @@
 		     tail
 		     s))
 
+;; Also see stream-mapfilter etc. in stream-Maybe.scm !
+(define-strict-and-lazy
+  filter-map/iota
+  stream-filter-map/iota
+  aliases: ((_fold-right/iota fold-right/iota stream-fold-right/iota))
+  (lambda (func s #!key (tail '()))
+    ;; maybe with an adjusted error message?..
+    (_fold-right/iota (lambda (val tail i)
+			(let ((r (func val i)))
+			  (if r
+			      (cons r tail)
+			      tail)))
+		      tail
+		      s)))
+
+(TEST
+ > (promise? (stream-filter-map/iota (lambda (v i) (and (even? i) (inc v))) '(1 2 3 4)))
+ #t
+ > (F (stream-filter-map/iota (lambda (v i) (and (even? i) (inc v))) '(1 2 3 4)))
+ (2 4)
+ > (filter-map/iota (lambda (v i) (and (even? i) (inc v))) '(1 a 3 b))
+ (2 4))
+
+
 ;; only for 1 argument for now
 
+;; Also see stream-mapfilter etc. in stream-Maybe.scm !
 (define (stream-filter-map f s . ss)
   (if (null? ss)
       (stream-filter-map/tail f s '())
@@ -272,6 +390,61 @@
 		      (error "stream-take: improper stream:" p))))))
       (error "stream-take: negative k:" k)))
 
+
+;; combined stream-take and stream-drop, but eager, returning the take
+;; in reverse order
+(define-strict-and-lazy
+  list-rtake&rest
+  stream-rtake&rest
+  (lambda (s n #!optional (tail '()))
+    (let lp ((s s)
+	     (res tail)
+	     (n n))
+      (cond ((zero? n)
+	     (values res s))
+	    ((negative? n) ;; yes  "should-could" be moved out to the outer scope
+	     (error "negative n:" n))
+	    (else
+	     (FV (s)
+		 (lp (cdr s)
+		     (cons (car s) res)
+		     (dec n))))))))
+;; (tests see test-lib.scm)
+
+
+(define-strict-and-lazy
+  reverse/tail
+  stream-reverse/tail
+  (named reverse/tail
+	 (lambda (s tail)
+	   (FV (s)
+	       (if (null? s)
+		   tail
+		   (let-pair ((a r) s)
+			     (reverse/tail r
+					   (cons a tail))))))))
+
+(TEST
+ > (reverse/tail '(a b c) '(1 2))
+ (c b a 1 2)
+ > (stream-reverse/tail (stream-iota 5) '(1 2))
+ (4 3 2 1 0 1 2))
+
+(define (stream-reverse s)
+  (stream-reverse/tail s '()))
+
+
+(define (rtake&->take& f)
+  (lambda (s n #!optional (tail '()))
+    (letv ((rtak res) (f s n))
+	  (values (reverse/tail rtak tail) res))))
+
+;; Don't call it stream-take&rest, srfi-1 has it with a better name,
+;; split-at, already; but it doesn't take a tail argument. And reverse
+;; might be more efficient than the repeated values (well, just in
+;; Gambit, stupid?)
+(define list-split-at (rtake&->take& list-rtake&rest))
+(define stream-split-at (rtake&->take& stream-rtake&rest))
 
 
 (define (stream-sublist s si ei)
@@ -1052,20 +1225,26 @@
 
 
 ;; Variant that delivers values tuples
-(define (stream-zip2 l1 l2)
-  (delay
-    (FV (l1 l2)
-	(if (or (null? l1)
-		(null? l2))
-	    '()
-	    (cons (values (car l1)
-			  (car l2))
-		  (stream-zip2 (cdr l1)
-			       (cdr l2)))))))
+(define-strict-and-lazy
+  zip2
+  stream-zip2
+  (named rec
+	 (lambda (l1 l2)
+	   (DELAY
+	    (FV (l1 l2)
+		(if (or (null? l1)
+			(null? l2))
+		    '()
+		    (cons (values (car l1)
+				  (car l2))
+			  (rec (cdr l1)
+			       (cdr l2)))))))))
 
 (TEST
  > (F (stream-map values->vector (stream-zip2 (stream-iota) (list "a" "b"))))
- (#(0 "a") #(1 "b")))
+ (#(0 "a") #(1 "b"))
+ > (.show (zip2 '(1 2) '(a b)))
+ (list (values 1 'a) (values 2 'b)))
 
 
 (define (stream-drop-while pred l)
@@ -1199,17 +1378,6 @@
  #(-3 9)
  > (values->vector (stream-min&max '(3)))
  #(3 3))
-
-
-;; adapted (list-util-1 map/iota)
-(define (stream-map/iota fn lis)
-  (let rec ((lis lis)
-	    (i 0))
-    (delay
-      (FV (lis)
-	  (if (null? lis) lis
-	      (cons (fn (car lis) i)
-		    (rec (cdr lis) (inc i))))))))
 
 
 (define (stream-sum s)

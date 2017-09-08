@@ -4,6 +4,8 @@
 	 ;; oo-util ;; ?
 	 (cj-source-quasiquote quasiquote-source)
 	 stream ;; (only optionally? (lazily? well.))
+	 stream-Maybe ;; (ah well, more dependencies)
+	 list-util-1
 	 (code-map code-map-substrings)
 	 (oo-vector-lib sum)
 	 debuggable-promise
@@ -43,8 +45,21 @@
 
 (define (istream? v)
   ;; *only* for lazy inputs
-  (and (promise? v)
-       (ilist? (force v))))
+  (or (and (promise? v)
+	   (ilist? (force v)))
+      (and (pair? v)
+	   (let ((r (cdr v)))
+	     (and (promise? r)
+		  (ilist? (force r)))))))
+
+(TEST
+ > (istream? (delay (cons 1 (delay '()))))
+ #t
+ > (istream? (cons 1 (delay '())))
+ #t
+ > (istream? (cons* 1 2 (delay '())))
+ #f)
+
 
 (define (possibly-lazy-null? v)
   (or (null? v)
@@ -54,6 +69,21 @@
 (define (lazy-null? v)
   (and (promise? v)
        (null? (force v))))
+
+
+;; move to an iseq.scm ?
+
+(define (iseq? v)
+  (FV (v)
+      (ilist? v)))
+
+(define (iseq-of pred)
+  (lambda (v)
+    (FV (v)
+	(if (pair? v)
+	    (pred (car v))
+	    (null? v)))))
+
 
 
 ;; methods after forcing:
@@ -94,10 +124,10 @@
 (define list-min&max stream-min&max) ;; XX add non-forcing instead? consistency forever? evil now
 (define list-min stream-min)
 (define list-max stream-max)
+(define list-for-each for-each)
 
 (define list-map map)
-;;(define list-filter filter) ah, no
-(define (list-filter pred lis #!optional (tail '()))
+(define (list-filter/tail pred lis tail)
   (let rec ((l lis))
     (if (pair? l)
 	(let-pair ((a l*) l)
@@ -105,8 +135,33 @@
 		      (cons a (rec l*))
 		      (rec l*)))
 	tail)))
+;;(define list-filter filter) ah, no
+(define (list-filter pred lis #!optional (tail '()))
+  (list-filter/tail pred lis tail))
 
+(define list-improper-map improper-map)
+(define list-map/tail map/tail)
+(define list-map/iota map/iota)
+(define list-filter/iota filter/iota)
+(define list-fold fold)
+(define list-fold-right fold-right)
+(define list-fold-right/iota fold-right/iota)
+(define list-fold-right/iota+rest fold-right/iota+rest)
+(define list-filter-map/iota filter-map/iota)
 (define list-filter-map filter-map)
+
+(define list-mapfilter/tail stream-mapfilter/tail)
+(define list-mapfilter stream-mapfilter)
+
+(define list-zip zip)
+(define list-zip2 zip2)
+(define list-drop-while drop-while)
+(define list-chop chop)
+(define list-chop/map chop/map)
+(define list-every every)
+
+(define list-reverse reverse)
+(define list-reverse/tail reverse/tail)
 
 (define list-first first)
 (define list-second second)
@@ -118,6 +173,8 @@
 (define list-eighth eighth)
 (define list-ninth ninth)
 (define list-tenth tenth)
+
+(define list->list identity)
 
 (code-map-substrings
  ((istream. '(istream. ilist.))
@@ -144,6 +201,12 @@
    (define. (istream.filter-map s f . ss)
      (apply stream-filter-map f s ss))
 
+   (define. (istream.mapfilter/tail l fn tail)
+     (stream-mapfilter/tail fn tail l))
+
+   (define. (istream.mapfilter l fn . rest)
+     (apply stream-mapfilter fn l rest))
+   
    (define. (istream.improper-map func s)
      (stream-improper-map func s))
 
@@ -213,6 +276,8 @@
 
    (define. istream.ref stream-ref)
 
+   (define. istream.Maybe-ref stream-Maybe-ref)
+
    (define. (istream.every lis1 pred . lists)
      (apply stream-every pred lis1 lists))
 
@@ -226,7 +291,24 @@
    (define. (istream.map/iota lis fn)
      (stream-map/iota fn lis))
 
+   (define. (istream.filter/iota lis pred)
+     (stream-filter/iota pred lis))
+
+   (define. (istream.fold-right/iota s kons tail)
+     (stream-fold-right/iota kons tail s))
+
+   (define. (istream.fold-right/iota+rest s func tail)
+     (stream-fold-right/iota+rest func tail s))
+
+   (define. (istream.filter-map/iota s func . rest)
+     (apply stream-filter-map/iota func s rest))
+
    (define. istream.sum stream-sum)
+
+   (define. istream.rtake&rest stream-rtake&rest)
+   (define. istream.reverse stream-reverse)
+   (define. istream.reverse/tail stream-reverse/tail)
+   (define. istream.split-at stream-split-at)
 
    ;; srfi-1
 
@@ -259,6 +341,19 @@
 
 
 (TEST
+ > (.first (cons 1 2))
+ 1
+ > (.first (delay (cons 1 2)))
+ 1
+ > (.car (cons 1 2))
+ 1
+ > (.car (delay (cons 1 2)))
+ 1
+ > (.cdr (cons 1 2))
+ 2
+ > (.cdr (delay (cons 1 2)))
+ 2
+
  > (.car (.cdr (stream-iota 10)))
  1
  > (.sum (iota 10))
@@ -282,7 +377,19 @@
  (0 1 a)
  > (eq? (.append (stream-iota 0) l) l)
  #t
+ > (.filter-map/iota '(1 a 3 b) (lambda (v i) (and (even? i) (inc v))))
+ (2 4)
+ > (F (.filter-map/iota (stream-iota 4) (lambda (v i) (and (even? i) (inc v)))))
+ (1 3)
 
+ > (.reverse/tail '(a b c) '(1 2))
+ (c b a 1 2)
+ > (.reverse '(a b c))
+ (c b a)
+ > (.list (.rtake&rest '(a b c d) 2))
+ ((b a) (c d))
+ > (.list (.split-at '(a b c d) 2))
+ ((a b) (c d))
  ;; add more extensive testing..
  )
 

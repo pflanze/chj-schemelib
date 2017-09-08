@@ -58,7 +58,6 @@
 	#!optional
 	do-iter ;; ?
 	list->chunked-lists ;; XX move?
-	stream-rtake+rest ;; XX move?
 	)
 
 ;; pseudorandom sources
@@ -119,27 +118,12 @@
 				   (make-range/base (char->integer #\a)
 						    26)))
 
-;; combined stream-take and stream-drop, but eager, returning the take
-;; in reverse order
-(define (stream-rtake+rest s n #!optional (tail '()))
-  (let lp ((s s)
-	   (res tail)
-	   (n n))
-    (cond ((zero? n)
-	   (values res s))
-	  ((negative? n) ;; yes  "should-could" be moved out to the outer scope
-	   (error "negative n:" n))
-	  (else
-	   (FV (s)
-	       (lp (cdr s)
-		   (cons (car s) res)
-		   (dec n)))))))
 
 (TEST
  > (let* ((s (pseudorandomsource->a-z-stream (make-pseudorandomsource 11 12))))
-     (let*-values (((l1 r1) (stream-rtake+rest s 10))
-		   ((l2 r2) (stream-rtake+rest r1 12))
-		   ((l r) (stream-rtake+rest s 22)))
+     (let*-values (((l1 r1) (stream-rtake&rest s 10))
+		   ((l2 r2) (stream-rtake&rest r1 12))
+		   ((l r) (stream-rtake&rest s 22)))
 		  (list (equal? l1 (reverse (F (stream-take s 10))))
 			(equal? l2 (reverse (F (stream-take (stream-drop s 10) 12))))
 			(equal? l (append l2 l1))
@@ -147,7 +131,7 @@
  (#t #t #t #f))
 
 (define (charstream:string charstream len)
-  (let-values (((l r) (stream-rtake+rest charstream len)))
+  (let-values (((l r) (stream-rtake&rest charstream len)))
 	      (values r (list->string l))))
 
 (define (charstream+lenstream->string-stream chars lens)

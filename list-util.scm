@@ -28,12 +28,12 @@
 	split-preferred
 	rappend
 	for-each* ;; for-each*/2, but what sense did this name have?
-	for-each/i
 	split-at*
 	rxtake-while
 	one?
 	xone ;; also see |the| in easy-1
-	xxone ;; deprecated, use xone (or the)
+	xone/fail
+	maybe-xone
 	trif-one
 	trif-one/
 	make-list/tail
@@ -281,25 +281,6 @@
  )
 
 
-;; for-each that also passes the index, analogous to map/iota
-;; XX ah, should rename map/iota to map/i ? Or here?
-
-(define (for-each/i proc l)
-  (let lp ((l l)
-	   (i 0))
-    (if (null? l)
-	(void)
-	(let-pair ((v l) l)
-		  (proc v i)
-		  (lp l (inc i))))))
-
-(TEST
- > (define r '())
- > (for-each/i (lambda (v i) (push! r (list v i))) '(a b c))
- #!void
- > r
- ((c 2) (b 1) (a 0)))
-
 
 ;; a split-at that doesn't die when requesting a split behind the end
 ;; of the list
@@ -411,8 +392,8 @@
 	(else
 	 (error "not a list:" v))))
 
-(define (xone x #!optional (fail (lambda (e)
-				   (error "expected one item, but:" e x))))
+;; can't use cj-inline yet (circular dependency)
+(define (xone/fail x fail)
   (FV (x)
       (if (pair? x)
 	  (if (null? (force (cdr x)))
@@ -422,10 +403,20 @@
 		    'not-found
 		    'improper-list)))))
 
+(define (xone x)
+  (xone/fail x
+	     (lambda (e)
+	       (error "expected one item, but:" e
+		      (force x)))))
+
 (TEST
+ > (%try-error (xone (delay '())))
+ #(error "expected one item, but:" not-found ())
+ > (%try-error (xone (delay '(a b))))
+ #(error "expected one item, but:" found-too-many (a b))
  > (def (t v)
 	(list (%try-error (one? v))
-	      (xone v identity)))
+	      (xone/fail v identity)))
  > (t (delay (list 1 2)))
  (#f found-too-many)
  > (t (delay (list 2)))
@@ -449,9 +440,22 @@
  (#t 1))
 
 
-;; just for backwards compat
-(define (xxone x)
-  (xone x))
+(define (maybe-xone v)
+  (xone/fail v (lambda (e)
+		 (case e
+		   ((not-found) #f)
+		   (else
+		    (error "expected one item or none, but:" e
+			   (force v)))))))
+
+(TEST
+ > (maybe-xone '())
+ #f
+ > (maybe-xone '(a))
+ a
+ > (%try-error (maybe-xone (iota 2)))
+ #(error "expected one item or none, but:" found-too-many (0 1)))
+
 
 ;; XX change to handle streams, too?
 (define (trif-one x then/1 toomany/1 none/0)
@@ -539,7 +543,13 @@
 		    (vector-set! v i val))
 		  '(a b c d))
  > v
- #(a b c d #f))
+ #(a b c d #f)
+ ;; and another test I wrote, now moved here (superfluous?):
+ > (define r '())
+ > (for-each/iota (lambda (v i) (push! r (list v i))) '(a b c))
+ #!void
+ > r
+ ((c 2) (b 1) (a 0)) )
 
 
 (define (butlast l)

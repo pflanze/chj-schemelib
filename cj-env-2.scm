@@ -14,6 +14,23 @@
 	 C
 	 (cj-env-1))
 
+(export (macro for..<)
+	(macro for..<*)
+	current-unixtime
+	(macro xcase)
+	(macro xcond)
+	(macro string-match)
+	(macro repeat)
+	(macro unless)
+	-e
+	append-newline
+	(macro future)
+	future?
+	@future-force
+	future-force
+	(macro CA))
+
+
 (declare (block)(standard-bindings)(extended-bindings))
 
 
@@ -82,6 +99,36 @@
 (define-macro* (xcond . cases)
   `(cond ,@cases
 	 (else (error "no match"))))
+
+
+(define-macro* (string-match expr . cases)
+  (with-gensym
+   V
+   `(let ((,V ,expr))
+      (cond ,@(map (lambda (c)
+		     (mcase c
+			    (`(else . `body)
+			     c)
+			    (`(`string-expr . `body)
+			     `((string=? ,string-expr ,V)
+			       ,@body))))
+		   cases)))))
+
+(TEST
+ > (string-match (string-append "foo" "bar")
+		 ("foobar" 1)
+		 (else 'no))
+ 1
+ > (string-match (string-append "foo" "bar")
+		 ("foobarr" 1)
+		 ((string-append "foob" "ar") 2)
+		 (else 'no))
+ 2
+ > (string-match (string-append "foo" "bar")
+		 ((string-append "foob" "r") 2)
+		 (else 'no))
+ no)
+
 
 
 ;; does that really warrant a persistent name?
