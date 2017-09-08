@@ -309,7 +309,7 @@
 				(make-pseudorandomsource 32349 25288)
 				(make-range 3 15))))
  > (define* (prandomwbtree *s n)
-     (letv ((l rest) (stream-rtake+rest (unbox *s) n))
+     (letv ((l rest) (stream-rtake&rest (unbox *s) n))
 	   (set-box! *s rest)
 	   (list->wbtree l #t)))
  > ($sdefine t1 (prandomwbtree *stringstream1 10000))

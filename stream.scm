@@ -38,7 +38,7 @@
 	stream->list
 	stream-drop
 	stream-take
-	stream-rtake+rest
+	stream-rtake&rest
 	stream-sublist
 	stream-length
 	(struct difference-at)
@@ -390,7 +390,7 @@
 
 ;; combined stream-take and stream-drop, but eager, returning the take
 ;; in reverse order
-(define (stream-rtake+rest s n #!optional (tail '()))
+(define (stream-rtake&rest s n #!optional (tail '()))
   (let lp ((s s)
 	   (res tail)
 	   (n n))

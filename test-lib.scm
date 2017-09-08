@@ -121,9 +121,9 @@
 
 (TEST
  > (let* ((s (pseudorandomsource->a-z-stream (make-pseudorandomsource 11 12))))
-     (let*-values (((l1 r1) (stream-rtake+rest s 10))
-		   ((l2 r2) (stream-rtake+rest r1 12))
-		   ((l r) (stream-rtake+rest s 22)))
+     (let*-values (((l1 r1) (stream-rtake&rest s 10))
+		   ((l2 r2) (stream-rtake&rest r1 12))
+		   ((l r) (stream-rtake&rest s 22)))
 		  (list (equal? l1 (reverse (F (stream-take s 10))))
 			(equal? l2 (reverse (F (stream-take (stream-drop s 10) 12))))
 			(equal? l (append l2 l1))
@@ -131,7 +131,7 @@
  (#t #t #t #f))
 
 (define (charstream:string charstream len)
-  (let-values (((l r) (stream-rtake+rest charstream len)))
+  (let-values (((l r) (stream-rtake&rest charstream len)))
 	      (values r (list->string l))))
 
 (define (charstream+lenstream->string-stream chars lens)
