@@ -39,6 +39,9 @@
 	stream-drop
 	stream-take
 	list-rtake&rest stream-rtake&rest
+	reverse/tail stream-reverse/tail
+	stream-reverse
+	list-split-at stream-split-at
 	stream-sublist
 	stream-length
 	(struct difference-at)
@@ -408,6 +411,39 @@
 		     (dec n))))))))
 ;; (tests see test-lib.scm)
 
+
+(define-strict-and-lazy
+  reverse/tail
+  stream-reverse/tail
+  (named lp (lambda (s tail)
+	      (FV (s)
+		  (if (null? s)
+		      tail
+		      (let-pair ((a r) s)
+				(lp r
+				    (cons a tail))))))))
+
+(TEST
+ > (reverse/tail '(a b c) '(1 2))
+ (c b a 1 2)
+ > (stream-reverse/tail (stream-iota 5) '(1 2))
+ (4 3 2 1 0 1 2))
+
+(define (stream-reverse s)
+  (stream-reverse/tail s '()))
+
+
+(define (rtake&->take& f)
+  (lambda (s n #!optional (tail '()))
+    (letv ((rtak res) (f s n))
+	  (values (reverse/tail rtak tail) res))))
+
+;; Don't call it stream-take&rest, srfi-1 has it with a better name,
+;; split-at, already; but it doesn't take a tail argument. And reverse
+;; might be more efficient than the repeated values (well, just in
+;; Gambit, stupid?)
+(define list-split-at (rtake&->take& list-rtake&rest))
+(define stream-split-at (rtake&->take& stream-rtake&rest))
 
 
 (define (stream-sublist s si ei)
