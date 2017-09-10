@@ -74,9 +74,7 @@
    (lambda ()
      (symbol-value-or
       '##string->uninterned-symbol
-      ;; XX that would be a problem though? signal
-      ;; error?
-      false/0))))
+      (lambda args (error "could not find uninterned symbol constructor"))))))
 
 (define (string->uninterned-symbol str)
   (if (string? str)
@@ -113,7 +111,7 @@
 
 (define (cj-gensym-maybe-name v)
   (if (cj-gensym? v)
-      ;; XX what string libraries do we have available at this
+      ;; what string libraries do we have available at this
       ;; point? assume that none?
       (let* ((str (symbol->string v))
 	     (len (string-length str))
@@ -247,6 +245,6 @@
       (assert*1 symbol? ,V
 		(lambda (,V*)
 		  (case ,V*
-		    ;; XXX should check clauses for whether they really
+		    ;; XX should check clauses for whether they really
 		    ;; check for symbols...
 		    ,@clauses))))))
