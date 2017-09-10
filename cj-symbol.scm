@@ -12,6 +12,24 @@
 	 (cj-env-1 inc)
 	 (cj-env on symbol-value-or))
 
+(export symbol<?
+	gensym
+	interned-symbol?
+	unsafe-string->uninterned-symbol
+	string->uninterned-symbol
+	gensym?
+	syntax-equal?
+	syntax-equal?*
+	(macro with-gensyms)
+	(macro with-gensym)
+	(macro symbol-case)
+	
+	#!optional
+	cj-gensym?
+	cj-gensym-maybe-name
+	gensym-count
+	make-syntax-equal?)
+
 ;; COPY to avoid circular dependency on: (cj-functional false/0)
 (define (false/0)
   #f)
