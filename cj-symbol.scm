@@ -110,7 +110,7 @@
  #f)
 
 
-(define (any-gensym? v)
+(define (gensym? v)
   (or (uninterned-symbol? v)
       (cj-gensym? v)))
 
@@ -152,7 +152,7 @@
 	      (else
 	       (equal? a b)))))))
 
-(define syntax-equal? (make-syntax-equal? any-gensym?))
+(define syntax-equal? (make-syntax-equal? gensym?))
 (define syntax-equal?* (make-syntax-equal? symbol?))
 
 (TEST
