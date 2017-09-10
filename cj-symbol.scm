@@ -101,9 +101,15 @@
        (let* ((s (symbol->string v))
 	      (len (string-length s))
 	      (plen (string-length gensym-prefix)))
-	 (and (> len plen)
+	 (and (fx> len (fx+ plen 1))
 	      (string=? (substring s 0 plen)
 			gensym-prefix)))))
+
+(TEST
+ > (cj-gensym? '|GEN:-|)
+ #f
+ > (cj-gensym? '|GEN:-1|)
+ #t)
 
 (define (cj-gensym-maybe-name v)
   (if (cj-gensym? v)
@@ -190,26 +196,26 @@
  #t
  > (syntax-equal?* '(a b "c") '(a b "c"))
  #t
- > (syntax-equal? '(a GEN:b "c") '(a GEN:b "c"))
+ > (syntax-equal? '(a GEN:b- "c") '(a GEN:b- "c"))
  #t
- > (syntax-equal? '(a GEN:b "c") '(a GEN:x "c"))
+ > (syntax-equal? '(a GEN:b- "c") '(a GEN:x- "c"))
  #t
- > (syntax-equal?* '(a GEN:b "c") '(a GEN:x "c"))
+ > (syntax-equal?* '(a GEN:b- "c") '(a GEN:x- "c"))
  #t
- > (syntax-equal? '(a GEN:b "c") '(a #:g23 "c"))
+ > (syntax-equal? '(a GEN:b- "c") '(a #:g23 "c"))
  #t
- > (syntax-equal? '(a GEN:b GEN:c "c") '(a #:g23 #:g23 "c"))
+ > (syntax-equal? '(a GEN:b- GEN:c- "c") '(a #:g23 #:g23 "c"))
  #t
- > (syntax-equal? '(a GEN:b GEN:b "c") '(a #:g23 #:g23 "c"))
+ > (syntax-equal? '(a GEN:b- GEN:b- "c") '(a #:g23 #:g23 "c"))
  #f
- > (syntax-equal? '(a GEN:b GEN:c "c") (let ((v (##gensym))) `(a ,v ,v "c")))
+ > (syntax-equal? '(a GEN:b- GEN:c- "c") (let ((v (##gensym))) `(a ,v ,v "c")))
  #f
- > (syntax-equal? '(a GEN:b GEN:b "c") (let ((v (##gensym))) `(a ,v ,v "c")))
+ > (syntax-equal? '(a GEN:b- GEN:b- "c") (let ((v (##gensym))) `(a ,v ,v "c")))
  #t
 
- > (syntax-equal? '(GEN:a GEN:b GEN:c) '(GEN:a GEN:c GEN:b))
+ > (syntax-equal? '(GEN:a- GEN:b- GEN:c-) '(GEN:a- GEN:c- GEN:b-))
  #t
- > (syntax-equal? '(GEN:a GEN:b GEN:b GEN:c) '(GEN:a GEN:c GEN:b GEN:b))
+ > (syntax-equal? '(GEN:a- GEN:b- GEN:b- GEN:c-) '(GEN:a- GEN:c- GEN:b- GEN:b-))
  #f
  
  > (syntax-equal?* '(a b c) '(a c b))
