@@ -8,12 +8,13 @@
 
 (require test
 	 (list-util let-pair)
-	 (srfi-11 letv)
+	 (srfi-11 letv values->vector)
 	 (cj-env-1 inc)
 	 define-nested
 	 slib-sort
 	 cj-symbol
-	 (predicates-1 true?))
+	 (predicates-1 true?)
+	 named)
 
 (export (macro pop!)
 	group-by
@@ -24,6 +25,7 @@
 	cartesian-product
 	all-equal?
 	sublist
+	list-starts-with?/equal? list-starts-with?
 	
 	#!optional
 	shiftmap ;; ?
@@ -279,4 +281,42 @@
  > (%error? (sublist l -1 1))
  #t
  )
+
+
+;; like string-starts-with?, but returns the remainder, too? (And,
+;; taking a comparison predicate.) All the beginnings of a parser
+;; combinator library, really...
+;; Q: how does Haskell keep uniformity when going vector representation?
+
+(define (list-starts-with?/equal? equal?)
+  (named starts-with?
+	 (lambda (l matchl)
+	   (if (null? l)
+	       (values (null? matchl)
+		       l)
+	       (if (null? matchl)
+		   (values #t
+			   l)
+		   (let-pair ((m matchl*) matchl)
+			     (let-pair ((a l*) l)
+				       (if (equal? m a) ;; reverse arg order?
+					   (starts-with? l* matchl*)
+					   (values #f
+						   l)))))))))
+
+(define list-starts-with? (list-starts-with?/equal? equal?))
+
+(TEST
+ > (values->vector (list-starts-with? '(a b c d) '(a b)))
+ #(#t (c d))
+ > (values->vector (list-starts-with? '(a b c d) '(a b x)))
+ #(#f (c d))
+ > (values->vector (list-starts-with? '(a b c d) '()))
+ #(#t (a b c d))
+ > (values->vector (list-starts-with? '(a b) '(a b x)))
+ #(#f ())
+ > (values->vector (list-starts-with? '(a b) '(a b)))
+ #(#t ())
+ > (values->vector (list-starts-with? '(a b) '(a x)))
+ #(#f (b)))
 
