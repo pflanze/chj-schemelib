@@ -11,7 +11,9 @@
 	 cj-inline-1
 	 test
 	 ;; require this?: (understand it as part of bundle?)
-	 cj-env-1)
+	 cj-env-1
+	 symbol-append
+	 (cj-source show-procedure-location))
 
 (declare (block)(standard-bindings)(extended-bindings))
 
@@ -388,6 +390,22 @@
 	,thunk
 	#f)
       (source-error sym "not a symbol")))
+
+
+(define-macro* (show-def expr)
+  (let ((expr* (source-code expr)))
+    `(show-procedure-location
+      ,(if (symbol? expr*)
+	   ;; XX A tiny bit evil: checks macro expander
+	   ;; *first*. I.e. relies on current fact that if macro
+	   ;; expander is defined then there's also a macro and it can
+	   ;; never be unbound in the toplevel. Other way around would
+	   ;; be more future safe?
+	   (if (define-macro-star-maybe-ref expr*)
+	       (symbol-append "expander#" (source-code expr))
+	       expr)
+	   expr))))
+
 
 (define-macro* (define-if-not-defined name expr)
   (assert* symbol? name
