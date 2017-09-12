@@ -36,7 +36,7 @@
 	 (tree-util flatten)
 	 (cj-typed args-detype)
 	 cj-source-quasiquote ;; all in the name of optimization
-	 )
+	 debuggable-promise)
 
 (export (macro joo-class)
 	(macro joo-interface)
@@ -46,6 +46,7 @@
 	macro-expand/symtbl)
 
 (include "cj-standarddeclares.scm")
+(possibly-use-debuggable-promise)
 
 ;; XX move elsewhere? (Depends on symboltable! *And* )
 

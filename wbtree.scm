@@ -8,7 +8,8 @@
 
 (require cj-struct
 	 (cj-env IF compile-time)
-	 define-strict-and-lazy)
+	 define-strict-and-lazy
+	 debuggable-promise)
 
 (export empty-wbtree
 	empty-wbtree?
@@ -61,6 +62,8 @@
 
 
 (include "cj-standarddeclares.scm")
+(possibly-use-debuggable-promise)
+
 ;;(not safe)
 
 

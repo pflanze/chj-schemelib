@@ -4,7 +4,8 @@
 	 (stream-Maybe stream-mapfilter
 		       stream-mapfilter/tail)
 	 (list-util let-pair)
-	 cj-typed)
+	 cj-typed
+	 debuggable-promise)
 
 (export maybe-sxml-element-attribute-alist
 
@@ -56,6 +57,7 @@
 
 
 (include "cj-standarddeclares.scm")
+(possibly-use-debuggable-promise)
 
 
 (define (sxml-attributes-empty? v)

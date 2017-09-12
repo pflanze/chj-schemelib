@@ -12,7 +12,8 @@
 	 test
 	 ;; ?
 	 C
-	 (cj-env-1))
+	 (cj-env-1)
+	 debuggable-promise)
 
 (export (macro for..<)
 	(macro for..<*)
@@ -32,6 +33,7 @@
 
 
 (declare (block)(standard-bindings)(extended-bindings))
+(possibly-use-debuggable-promise)
 
 
 

@@ -7,9 +7,11 @@
 
 
 (require easy
-	 (cj-functional size0? size?))
+	 (cj-functional size0? size?)
+	 debuggable-promise)
 
 (include "../cj-standarddeclares.scm")
+(possibly-use-debuggable-promise)
 
 ;; using prefixes before "." for input types ("dispatch"), before ":"
 ;; for output types (selection of intent?). ok? (When both are needed,
