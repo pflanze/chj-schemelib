@@ -16,6 +16,7 @@
 ;; just for performance
 (include "cj-standarddeclares.scm")
 
+(##namespace ("string-util-1#" inc dec))
 (define (inc x)
   (+ x 1))
 (define (dec n)

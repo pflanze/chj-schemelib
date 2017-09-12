@@ -31,6 +31,7 @@
 	void?)
 
 ;; COPY to avoid circular dep -----  XX move here instead?
+(##namespace ("scheme-meta#" inc vector-every vector-of))
 
 (define inc (##lambda (n) (+ n 1)))
 
