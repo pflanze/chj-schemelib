@@ -15,9 +15,11 @@
 	 (string-util strings-join)
 	 (cj-env-2 for..<)
 	 (cj-test %try)
-	 (cj-struct define-struct-expand))
+	 (cj-struct define-struct-expand)
+	 C)
 
 (export (macro method-table-for)
+	(macro show-methods)
 	(macro define.)
 	(macro define-struct.)
 	nothing? ;; really?
@@ -152,6 +154,9 @@
 (define-macro* (method-table-for generic-name-sym)
   (generic-name-string.method-table-name
    (symbol->string (source-code generic-name-sym))))
+
+(define-macro* (show-methods generic-name-sym)
+  `(dot-oo:show-method-table (method-table-for ,generic-name-sym)))
 
 
 (define-macro* (define. first . rest)

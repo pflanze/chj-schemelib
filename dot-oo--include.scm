@@ -263,3 +263,13 @@
 (define (dot-oo:new-method-table)
   (box '#()))
 
+
+(define (dot-oo:show-method-table t)
+  (let* ((v (unbox t))
+	 (n (arithmetic-shift (vector-length v) -2)))
+    (unfold (C >= _ n)
+	    (lambda (i)
+	      (list (vector-ref v i)
+		    (vector-ref v (+ i n))
+		    (vector-ref v (+ i (* 2 n)))))
+	    inc 0)))
