@@ -201,9 +201,9 @@
 
 (define (right-associate fn lis error)
   (if (null? lis)
-      (error "got no element, need two")
+      (error "got no element")
       (if (null? (cdr lis))
-	  (error "got only one element, need two")
+	  (car lis)
 	  (let rec ((lis lis))
 	    (let* ((lis* (cdr lis))
 		   (lis** (cdr lis*)))
@@ -246,12 +246,12 @@
 	  (with-exception-catcher error-exception-message
 				  (lambda () (_ 'comp (list 'c) error))))
 	(list syntax:right-associate syntax:left-associate))
- ("got only one element, need two" "got only one element, need two")
+ (c c)
  > (map (lambda (_)
 	  (with-exception-catcher error-exception-message
 				  (lambda () (_ 'comp (list) error))))
 	(list syntax:right-associate syntax:left-associate))
- ("got no element, need two" "got no element, need two")
+ ("got no element" "got no element")
  )
 
 (define-macro* (RA op . exprs)
