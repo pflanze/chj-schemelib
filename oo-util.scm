@@ -43,7 +43,9 @@
 
 (define. char-list.string list->string)
 
-(define. (char-list.show l)
+(define char-list+? (both pair? (list-of char?)))
+
+(define. (char-list+.show l)
   `(.list ,(char-list.string l)))
 
 (define. string.list string->list)
