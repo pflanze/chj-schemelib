@@ -247,7 +247,7 @@
   (with-gensyms
    (V V*)
    `(let ((,V ,expr))
-      (assert*1 symbol? ,V
+      (assert* symbol? ,V
 		(lambda (,V*)
 		  (case ,V*
 		    ;; XX should check clauses for whether they really

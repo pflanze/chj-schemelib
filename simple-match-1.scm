@@ -125,7 +125,7 @@
 		  pred val yes-cont no-cont))
 
 ;; only remove location information 1 level (uh, better names?)
-(define-macro* (assert*1 pred val #!optional yes-cont no-cont)
+(define-macro* (assert* pred val #!optional yes-cont no-cont)
   (assert*-expand 'source-code
 		  (lambda (V* V)
 		    `(cj-desourcify ,V*))

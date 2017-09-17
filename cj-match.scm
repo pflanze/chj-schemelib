@@ -49,15 +49,15 @@
  (define clause:test-parse
    ;; (values constructor apply? rest)
    (lambda (clause)
-     (assert*1 pair? (clause:test clause)
+     (assert* pair? (clause:test clause)
 	       (lambda (test)
-		 (assert*1 symbol? (car test)
+		 (assert* symbol? (car test)
 			   (lambda (hd)
 			     (case hd
 			       ((apply)
-				(assert*1 pair? (cdr test)
+				(assert* pair? (cdr test)
 					  (lambda (test)
-					    (assert*1 symbol? (car test)
+					    (assert* symbol? (car test)
 						      (lambda_
 						       (values _
 							       #t
