@@ -5,7 +5,8 @@
 	 (string-util-2 string-reverse)
 	 (cj-functional list-of)
 	 (srfi-11 values->vector values->list) ;; included in easy?
-	 cj-env)
+	 cj-env
+	 show)
 
 
 (define inexact exact->inexact)
@@ -41,6 +42,9 @@
 (define char-list? (list-of char?))
 
 (define. char-list.string list->string)
+
+(define. (char-list.show l)
+  `(.list ,(char-list.string l)))
 
 (define. string.list string->list)
 
