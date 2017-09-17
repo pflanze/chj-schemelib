@@ -9,6 +9,7 @@
 (require define-macro-star
 	 test
 	 cj-struct
+	 list-util
 	 (cj-env-2 xcase)
 	 stream
 	 weak-srfi-1
