@@ -186,7 +186,7 @@
 	(values reals
 		(map cdr
 		     (sort pairlis (on car <))))
-	(let-pair*
+	(let*-pair
 	 (((v lis*) lis)
 	  ((r reals*) (force reals)))
 	 (lp reals*
@@ -235,7 +235,7 @@
 		(xs xs)
 		(val val))
 	 (if (positive? i)
-	     (let-pair*
+	     (let*-pair
 	      (((x1 xs*) (force xs))
 	       ((x2 xs*) (force xs*)))
 	      (test-lib:burn-time! x1)

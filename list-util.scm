@@ -18,7 +18,7 @@
 	 (lazy FV))
 
 (export (macro let-pair
-	  let-pair*
+	  let*-pair
 	  lambda-pair
 	  with-pair)
 	fold-right/last
@@ -56,7 +56,7 @@
 		 (,r (cdr ,V)))
 	     ,@body))))))))
 
-(define-macro* (let-pair* bindforms . body)
+(define-macro* (let*-pair bindforms . body)
   (let rec ((bindforms bindforms))
     (match-list*
      bindforms
