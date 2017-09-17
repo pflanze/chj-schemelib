@@ -118,7 +118,7 @@
 					      " predicate")
 			      ,(gen-full-desourcify/1 V* V)))))))
 
-(define-macro* (assert* pred val #!optional yes-cont no-cont)
+(define-macro* (assert-desourcified* pred val #!optional yes-cont no-cont)
   (assert*-expand 'cj-desourcify
 		  (lambda (V* V)
 		    V)
@@ -131,13 +131,13 @@
 		    `(cj-desourcify ,V*))
 		  pred val yes-cont no-cont))
 
-;; different from assert* in two ways (1) pass the unwrapped result in
+;; different from assert-desourcified* in two ways (1) pass the unwrapped result in
 ;; 'the same variable as' v instead of expecting a function, (2) evals
 ;; the input first.
 (define-macro* (assert** pred var #!optional yes-expr no-expr)
-  (assert* symbol? var
+  (assert-desourcified* symbol? var
 	   (lambda (_)
-	    `(assert* ,pred (eval ,var)
+	    `(assert-desourcified* ,pred (eval ,var)
 		      (lambda (,var)
 			,yes-expr)
 		      ,@(if (source-code no-expr)
