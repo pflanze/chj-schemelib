@@ -239,7 +239,7 @@
 ;; following avoids a bit of overhead and will be a tad simpler to
 ;; write. Premature opt?
 (def ((parse1#capture-char-of-class #(char-list+? chars))
-      #(isqe? l))
+      #(iseq? l))
      -> parse1:char-capturing-result?
      (if (null? l)
 	 (parse1-error (char-class-unexpected-eof chars))
