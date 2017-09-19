@@ -27,6 +27,7 @@
 	mem-bytes
 
 	maybe-decompile
+	decompile
 	maybe-procedure-name
 
 	repl
@@ -542,6 +543,12 @@ memset(obj+offset,value,numbytes);
 	(and (not (procedure? v*))
 	     v*))
       (error "not a procedure:" v)))
+
+
+(define (decompile v)
+  (or (maybe-decompile v)
+      (error "can't decompile:" v)))
+
 
 (define (maybe-procedure-name v)
   (if (procedure? v)
