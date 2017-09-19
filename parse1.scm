@@ -204,6 +204,73 @@
 (def parse1:->non-capturing-or-any-capturing-parser? procedure?)
 
 
+
+;; Macros put early so they can be used in "Parsers" section without
+;; having to reorder everything (the procedures, >> and >>=, are
+;; forward visible):
+
+;; XX should use generic monad syntax... improvement even if
+;; parametrized!
+
+(defmacro (parse1#mdo . parser-exprs)
+  (if (one? parser-exprs)
+      ;; this would not call parse1#>> at all, and hence not do early
+      ;; type checking, hence: (XX: can this be turned off via
+      ;; cj-typed-disable ? Probably not. Solve.)
+      (let ((e (car parser-exprs)))
+	(cj-sourcify-deep
+	 `(-> parse1:non-capturing-or-any-capturing-parser?
+	      ,e)
+	 e))
+      `(LA parse1#>> ,@parser-exprs)))
+
+(defmacro (parse1#mlet* binds . body)
+  (assert*
+   pair-or-null? binds
+   (lambda (binds*)
+     (let rec ((binds binds*))
+       (if (null? binds)
+	   `(parse1#mdo ,@body)
+	   (let-pair ((bind binds*) binds)
+		     (mcase bind
+			    (`(`var `parser-expr)
+			     (cj-sourcify-deep
+			      `(parse1#>>= ,parser-expr
+					   (lambda (,var)
+					     ,(rec binds*)))
+			      ;; *slightly* evil as the bind
+			      ;; expression isn't (directly) the one
+			      ;; doing the call, but, better than
+			      ;; using mlet's context (and using
+			      ;; parser-expr's location would be
+			      ;; wrong):
+			      bind)))))))))
+
+(defmacro (parse1#mlet binds . body)
+  (assert*
+   pair-or-null? binds
+   (lambda (binds*)
+     (let rec ((binds binds*)
+	       (vars (map (mcase-lambda
+			   (`(`v `parser-expr)
+			    (gensym (source-code v))))
+			  binds*)))
+       (if (null? binds)
+	   `(parse1#mdo ,@body)
+	   (let*-pair (((bind binds*) binds)
+		       ((var vars*) vars))
+		      (mcase bind
+			     (`(`var `parser-expr)
+			      (cj-sourcify-deep
+			       `(parse1#>>= ,parser-expr
+					    (lambda (,var)
+					      ,(rec binds*
+						    vars*)))
+			       ;; dito (see mlet*)
+			       bind)))))))))
+
+
+
 ;; Parsers
 
 (def (parse1#at-end? #(iseq? l))
@@ -337,18 +404,8 @@
 
      (p2 (p1 l)))
 
-
-(defmacro (parse1#mdo . parser-exprs)
-  (if (one? parser-exprs)
-      ;; this would not call parse1#>> at all, and hence not do early
-      ;; type checking, hence: (XX: can this be turned off via
-      ;; cj-typed-disable ? Probably not. Solve.)
-      (let ((e (car parser-exprs)))
-	(cj-sourcify-deep
-	 `(-> parse1:non-capturing-or-any-capturing-parser?
-	      ,e)
-	 e))
-      `(LA parse1#>> ,@parser-exprs)))
+;; (Also see macro parse1#mdo, defined at the top for use in first
+;; parser section.)
 
 
 ;; XX tempted to do this via binary operator and |LA|, too, but then
@@ -496,55 +553,7 @@
      (values val l))
 
 
-
-;; XX should use generic monad syntax... improvement even if
-;; parametrized!
-
-(defmacro (parse1#mlet* binds . body)
-  (assert*
-   pair-or-null? binds
-   (lambda (binds*)
-     (let rec ((binds binds*))
-       (if (null? binds)
-	   `(parse1#mdo ,@body)
-	   (let-pair ((bind binds*) binds)
-		     (mcase bind
-			    (`(`var `parser-expr)
-			     (cj-sourcify-deep
-			      `(parse1#>>= ,parser-expr
-					   (lambda (,var)
-					     ,(rec binds*)))
-			      ;; *slightly* evil as the bind
-			      ;; expression isn't (directly) the one
-			      ;; doing the call, but, better than
-			      ;; using mlet's context (and using
-			      ;; parser-expr's location would be
-			      ;; wrong):
-			      bind)))))))))
-
-(defmacro (parse1#mlet binds . body)
-  (assert*
-   pair-or-null? binds
-   (lambda (binds*)
-     (let rec ((binds binds*)
-	       (vars (map (mcase-lambda
-			   (`(`v `parser-expr)
-			    (gensym (source-code v))))
-			  binds*)))
-       (if (null? binds)
-	   `(parse1#mdo ,@body)
-	   (let*-pair (((bind binds*) binds)
-		       ((var vars*) vars))
-		      (mcase bind
-			     (`(`var `parser-expr)
-			      (cj-sourcify-deep
-			       `(parse1#>>= ,parser-expr
-					    (lambda (,var)
-					      ,(rec binds*
-						    vars*)))
-			       ;; dito (see mlet*)
-			       bind)))))))))
-
+;; (Also see mlet and mlet* defined at the top.)
 
 
 (TEST
