@@ -462,9 +462,17 @@
 	   (let-pair ((bind binds*) binds)
 		     (mcase bind
 			    (`(`var `parser-expr)
-			     `(parse1#>>= ,parser-expr
-					 (lambda (,var)
-					   ,(rec binds*)))))))))))
+			     (cj-sourcify-deep
+			      `(parse1#>>= ,parser-expr
+					   (lambda (,var)
+					     ,(rec binds*)))
+			      ;; *slightly* evil as the bind
+			      ;; expression isn't (directly) the one
+			      ;; doing the call, but, better than
+			      ;; using mlet's context (and using
+			      ;; parser-expr's location would be
+			      ;; wrong):
+			      bind)))))))))
 
 (defmacro (parse1#mlet binds . body)
   (assert*
@@ -481,10 +489,13 @@
 		       ((var vars*) vars))
 		      (mcase bind
 			     (`(`var `parser-expr)
-			      `(parse1#>>= ,parser-expr
-					  (lambda (,var)
-					    ,(rec binds*
-						  vars*)))))))))))
+			      (cj-sourcify-deep
+			       `(parse1#>>= ,parser-expr
+					    (lambda (,var)
+					      ,(rec binds*
+						    vars*)))
+			       ;; dito (see mlet*)
+			       bind)))))))))
 
 
 
