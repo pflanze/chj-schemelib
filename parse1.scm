@@ -2,10 +2,9 @@
 	 jclass
 	 (list-util-2 list-starts-with?)
 	 debuggable-promise
+	 (oo-util-lazy iseq?)
+	 (oo-util char-list.show char-list+?)
 	 test
-	 (oo-util char-list.show)
-	 ;; ^ just to point it out (relying on many such (transitive)
-	 ;; imports anyway)
 	 char-util
 	 )
 
@@ -123,25 +122,31 @@
 
 (jclass parse1-failure
 
-	(jclass (list-match-failure match at-input input)
+	(jclass (list-match-failure #(iseq? match)
+				    #(iseq? at-input)
+				    #(iseq? input))
 		(def-method* (message _)
 		  "input does not start with string"))
 
-	(jclass (all-options-failure failures input)
+	(jclass (all-options-failure failures #(iseq? input))
 		(def-method* (message _)
 		  "none of the options matched"))
 
-	(jclass (char-class-match-failure chars input)
+	(jclass (char-class-match-failure #(char-list+? chars) #(iseq? input))
 		(def-method* (message _)
 		  "input does not start with a char out of"))
 
-	(jclass (repeat-failure n m i failure input)
+	(jclass (repeat-failure #(exact-natural0? n)
+				#(exact-natural0? m)
+				#(exact-natural0? i)
+				#(parse1-failure? failure)
+				#(iseq? input))
 		(def-method* (message _)
 		  "match should repeat n..m times but fails on the i-th repetition"))
 
 	(jclass parse1-unexpected-eof
 
-		(jclass (char-class-unexpected-eof chars)
+		(jclass (char-class-unexpected-eof #(char-list+? chars))
 			(def-method* (message _)
 			  "unexpected end of input while expecting a char out of"))))
 
@@ -175,26 +180,27 @@
 
 ;; Parsers
 
-(def (parse1#at-end? l)
+(def (parse1#at-end? #(iseq? l))
      -> parse1:boolean-capturing-result?
      (values (null? l) l))
 
-(def (parse1#point l)
+(def (parse1#point #(iseq? l))
      -> parse1:input-capturing-result?
      (values l l))
 
-(def (parse1#rest l)
+(def (parse1#rest #(iseq? l))
      -> parse1:input-capturing-result?
      (values l '()))
 
-(def (parse1#anything l)
+(def (parse1#anything #(iseq? l))
      -> parse1:non-capturing-result?
      (cdr l))
 
 
 ;; Parser generators
 
-(def ((parse1#char-of-class #(char-list+? chars)) l)
+(def ((parse1#char-of-class #(char-list+? chars))
+      #(iseq? l))
      -> parse1:non-capturing-result?
      (if (null? l)
 	 (parse1-error (char-class-unexpected-eof chars))
@@ -206,7 +212,8 @@
 ;; while parse1#capture could be used with parse1:char-of-class, the
 ;; following avoids a bit of overhead and will be a tad simpler to
 ;; write. Premature opt?
-(def ((parse1#capture-char-of-class #(char-list+? chars)) l)
+(def ((parse1#capture-char-of-class #(char-list+? chars))
+      #(isqe? l))
      -> parse1:char-capturing-result?
      (if (null? l)
 	 (parse1-error (char-class-unexpected-eof chars))
@@ -216,11 +223,13 @@
 		       (parse1-error (char-class-match-failure chars l))))))
 
 
-(def ((parse1#match-list? templ) l)
+(def ((parse1#match-list? #(iseq? templ))
+      #(iseq? l))
      -> parse1:boolean-capturing-result?
      (list-starts-with? l templ))
 
-(def ((parse1#match-list templ) l)
+(def ((parse1#match-list #(iseq? templ))
+      #(iseq? l))
      -> iseq?
      (letv ((b l*) (list-starts-with? l templ))
 	   (if b l*
@@ -255,7 +264,8 @@
 ;; Parser combinators
 
 (def ((parse1#>> #(parse1:non-capturing-parser? p1)
-		 #(parse1:non-capturing-or-any-capturing-parser? p2)) l)
+		 #(parse1:non-capturing-or-any-capturing-parser? p2))
+      #(iseq? l))
      -> parse1:non-capturing-or-any-capturing-result?
      ;; ^ which one is determined by parser2 (which could be a
      ;; narrower type than any?, though)
@@ -275,7 +285,8 @@
 ;; run-time n-ary function for now.
 
 (def ((parse1#either . #((list-of parse1:non-capturing-or-any-capturing-parser?)
-			ps)) l)
+			ps))
+      #(iseq? l))
      -> parse1:non-capturing-or-any-capturing-result?
      ;; ^ same as the widest return type of all the ps
 
@@ -304,7 +315,8 @@
 ;; somewhat unsafe hand-optimzation via mutation:
 
 ;; like "*" in regexes; parser must be non-capturing
-(def ((parse1#any #(parse1:non-capturing-parser? p)) l)
+(def ((parse1#any #(parse1:non-capturing-parser? p))
+      #(iseq? l))
      (on-parse1-error
       (lambda (e) l)
       (& 
@@ -323,7 +335,7 @@
 		    #(exact-natural0? m)
 		    #(parse1:non-capturing-parser? parser))
      (assert (<= n m)) ;; or let it fail at parse time?
-     (lambda (l)
+     (lambda (#(iseq? l))
        (def i 0)
        (on-parse1-error
 	(lambda (e)
@@ -345,7 +357,8 @@
 
 ;; Parser combinators and extractors for capture:
 
-(def ((parse1#capture #(parse1:non-capturing-parser? p)) l)
+(def ((parse1#capture #(parse1:non-capturing-parser? p))
+      #(iseq? l))
      -> parse1:input-capturing-result?
 
      (let ((l* (p l)))
@@ -398,14 +411,14 @@
 
 (def ((parse1#>>= #(parse1:any-capturing-parser? p)
 		  #(parse1:->non-capturing-or-any-capturing-parser? receiver))
-      l)
+      #(iseq? l))
      (letv ((val l*) (p l))
 	   ((receiver val) l*)))
 
 
 ;; ... and injecting them:
 
-(def ((parse1#return val) l)
+(def ((parse1#return val) #(iseq? l))
      (values val l))
 
 
