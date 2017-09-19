@@ -12,7 +12,7 @@
 	 srfi-11
 	 ;; ^ TODO: move the stuff in srfi-11.scm that's not from
 	 ;; srfi-11 to values.scm
-	 (list-util-3 ..) ;; make part of easy?
+	 (list-range ..) ;; make part of easy?
 	 )
 
 (export zip-values
