@@ -16,6 +16,7 @@
 	 (oo-vector-lib strings-append)
 	 debuggable-promise
 	 predicates
+	 (oo-util-lazy iseq-of)
 	 test
 	 )
 
