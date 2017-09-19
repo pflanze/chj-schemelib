@@ -1,6 +1,6 @@
 (require easy
 	 jclass
-	 (list-util-2 list-starts-with?)
+	 (list-util-3 list-starts-with?)
 	 debuggable-promise
 	 (oo-util-lazy iseq?)
 	 (oo-util char-list.show char-list+?)
