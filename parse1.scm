@@ -291,7 +291,16 @@
 
 
 (defmacro (parse1#mdo . parser-exprs)
-  `(LA parse1#>> ,@parser-exprs))
+  (if (one? parser-exprs)
+      ;; this would not call parse1#>> at all, and hence not do early
+      ;; type checking, hence: (XX: can this be turned off via
+      ;; cj-typed-disable ? Probably not. Solve.)
+      (let ((e (car parser-exprs)))
+	(cj-sourcify-deep
+	 `(-> parse1:non-capturing-or-any-capturing-parser?
+	      ,e)
+	 e))
+      `(LA parse1#>> ,@parser-exprs)))
 
 
 ;; XX tempted to do this via binary operator and |LA|, too, but then
