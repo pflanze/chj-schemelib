@@ -15,6 +15,9 @@
  parse1#at-end?
  parse1#point
  parse1#rest
+ parse1#whitespace
+ parse1#whitespace*
+ parse1#whitespace+
 
  ;; Parser generators
  parse1#anything
@@ -24,6 +27,11 @@
  parse1#match-list
  parse1#match-string?
  parse1#match-string
+
+ parse1#match-pred
+ parse1#match*-pred
+ parse1#match+-pred
+
  parse1#match-while
  parse1#capture-while
  parse1#maybe-capture-until
@@ -56,6 +64,9 @@
 			at-end?
 			point
 			rest
+			whitespace
+			whitespace*
+			whitespace+
 
 			;; Parser generators
 			anything
@@ -65,6 +76,9 @@
 			match-list
 			match-string?
 			match-string
+			match-pred
+			match*-pred
+			match+-pred
 			match-while
 			capture-while
 			maybe-capture-until
@@ -148,11 +162,19 @@
 		(def-method* (message _)
 		  "match should repeat n..m times but fails on the i-th repetition"))
 
+	(jclass (match-pred-failure #(function? pred) #(iseq? input))
+		(def-method* (message _)
+		  "failure expecting an item satisfying pred"))
+
 	(jclass parse1-unexpected-eof
 
 		(jclass (char-class-unexpected-eof #(char-list+? chars))
 			(def-method* (message _)
-			  "unexpected end of input while expecting a char out of"))))
+			  "unexpected end of input while expecting a char out of"))
+
+		(jclass (match-pred-unexpected-eof #(function? pred))
+			(def-method* (message _)
+			  "unexpected end of input while expecting an item satisfying pred"))))
 
 
 (def parse1:non-capturing-result?
@@ -251,6 +273,32 @@
      (letv ((b l*) (char-list-starts-with-string? l templ))
 	   (if b l*
 	       (parse1-error (list-match-failure templ l* l)))))
+
+
+(def ((parse1#match-pred #(function? pred))
+      #(iseq? l))
+     -> iseq?
+     (if (null? l)
+	 (parse1-error (match-pred-unexpected-eof pred))
+	 (let-pair ((a l*) l)
+		   (if (pred a)
+		       l*
+		       (parse1-error (match-pred-failure pred l))))))
+
+(def ((parse1#match*-pred #(function? pred))
+      #(iseq? l))
+     -> iseq?
+     (let lp ((l l))
+       (if (null? l)
+	   l
+	   (let-pair ((a l*) l)
+		     (if (pred a)
+			 (lp l*)
+			 l)))))
+
+(def (parse1#match+-pred #(function? pred))
+     (parse1#mdo (parse1#match-pred pred)
+		 (parse1#match*-pred pred)))
 
 
 (def ((parse1#match-while pred) l)
@@ -603,4 +651,44 @@
  > ((p parse1#point) "123 abc")
  (values "abc" (.list "abc")))
 
+
+
+;; Utilities
+
+(def parse1#whitespace (PARSE1 (match-pred char-whitespace?)))
+(def parse1#whitespace* (PARSE1 (any whitespace)))
+(def parse1#whitespace+ (PARSE1 (many whitespace)))
+
+
+(TEST
+ > (def (p parser)
+	(comp* .string
+	       parser
+	       .list))
+ > (with-exception-catcher .show (& ((p (PARSE1 whitespace)) "Hello World")))
+ (match-pred-failure char-whitespace? (.list "Hello World"))
+ > ((p (PARSE1 whitespace)) " World")
+ "World"
+ > ((p (PARSE1 whitespace)) " \n\r \tWorld")
+ "\n\r \tWorld"
+ > (with-exception-catcher .show (& ((p (PARSE1 whitespace)) "")))
+ (match-pred-unexpected-eof char-whitespace?)
+
+ > ((p (PARSE1 whitespace*)) "Hello World")
+ "Hello World"
+ > ((p (PARSE1 whitespace*)) " World")
+ "World"
+ > ((p (PARSE1 whitespace*)) " \n\r \tWorld")
+ "World"
+ > ((p (PARSE1 whitespace*)) "")
+ ""
+
+ > (with-exception-catcher .show (& ((p (PARSE1 whitespace+)) "Hello World")))
+ (match-pred-failure char-whitespace? (.list "Hello World"))
+ > ((p (PARSE1 whitespace+)) " World")
+ "World"
+ > ((p (PARSE1 whitespace+)) " \n\r \tWorld")
+ "World"
+ > (with-exception-catcher .show (& ((p (PARSE1 whitespace+)) "")))
+ (match-pred-unexpected-eof char-whitespace?))
 
