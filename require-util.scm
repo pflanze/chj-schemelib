@@ -201,7 +201,8 @@
 (def load.scm-extract-forms-no
      '((include)
        (quote)
-       (define)))
+       (define)
+       (no-load)))
 
 (def (load.scm-extract sexpr tail)
      (mcase
