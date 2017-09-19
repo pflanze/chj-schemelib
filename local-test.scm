@@ -8,6 +8,7 @@
 
 (require test
 	 define-macro-star
+	 (cj-match mcase)
 	 (cj-env named)
 	 (cj-source cj-sourcify-deep source-location))
 
