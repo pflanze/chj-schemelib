@@ -1,6 +1,6 @@
 (require easy
 	 jclass
-	 (list-util-3 list-starts-with?)
+	 (list-util-3 list-starts-with? char-list-starts-with-string?)
 	 debuggable-promise
 	 (oo-util-lazy iseq?)
 	 (oo-util char-list.show char-list+?)
@@ -22,6 +22,8 @@
  parse1#capture-char-of-class
  parse1#match-list?
  parse1#match-list
+ parse1#match-string?
+ parse1#match-string
  parse1#match-while
  parse1#capture-while
  parse1#maybe-capture-until
@@ -61,6 +63,8 @@
 			capture-char-of-class
 			match-list?
 			match-list
+			match-string?
+			match-string
 			match-while
 			capture-while
 			maybe-capture-until
@@ -232,6 +236,19 @@
       #(iseq? l))
      -> iseq?
      (letv ((b l*) (list-starts-with? l templ))
+	   (if b l*
+	       (parse1-error (list-match-failure templ l* l)))))
+
+
+(def ((parse1#match-string? #(string? templ))
+      #(iseq? l))
+     -> parse1:boolean-capturing-result?
+     (char-list-starts-with-string? l templ))
+
+(def ((parse1#match-string #(string? templ))
+      #(iseq? l))
+     -> iseq?
+     (letv ((b l*) (char-list-starts-with-string? l templ))
 	   (if b l*
 	       (parse1-error (list-match-failure templ l* l)))))
 
