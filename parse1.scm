@@ -119,11 +119,11 @@
 ;; that take other parsers as arguments.
 
 
-(defparameter parse1:current-backtrack #f)
+(defparameter parse1:current-backtrack (lambda (e)
+					 ((current-exception-handler) e)))
 
 (def (parse1-error e)
-     ((or (parse1:current-backtrack)
-	  (current-exception-handler)) e))
+     ((parse1:current-backtrack) e))
 
 (def (on-parse1-error continue thunk)
      (continuation-capture
