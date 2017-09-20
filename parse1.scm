@@ -467,12 +467,12 @@
 ;; run-time n-ary function for now.
 
 (def ((parse1#either . #((list-of parse1:non-capturing-or-any-capturing-parser?)
-			ps))
+			 parsers))
       #(iseq? l))
      -> parse1:non-capturing-or-any-capturing-result?
      ;; ^ same as the widest return type of all the ps
 
-     (let lp ((ps ps)
+     (let lp ((ps parsers)
 	      (failures '()))
        (if (null? ps)
 	   (parse1-error (all-options-failure failures l))
