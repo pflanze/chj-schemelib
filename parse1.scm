@@ -214,6 +214,11 @@
 
   (jclass parse1-unexpected-eof
 
+	  (jclass (generic-unexpected-eof #(symbol? kind))
+		  (def-method* (exception-message _)
+		    (list "unexpected end of input while expecting"
+			  kind)))
+
 	  (jclass (char-class-unexpected-eof #(char-list+? chars))
 		  (def-method* (exception-message _)
 		    (list "unexpected end of input while expecting a char out of"
@@ -335,7 +340,9 @@
 
 (def (parse1#anything #(iseq? l))
      -> parse1:non-capturing-result?
-     (cdr l))
+     (if (null? l)
+	 (parse1-error (generic-unexpected-eof 'anything))
+	 (cdr l)))
 
 
 ;; Parser generators
@@ -753,4 +760,14 @@
  "World"
  > (with-exception-catcher .message-string (& ((p (PARSE1 whitespace+)) "")))
  "unexpected end of input while expecting an item satisfying pred: char-whitespace?")
+
+
+(TEST
+ > (def p (comp* .show (PARSE1 anything) .list))
+ > (p "Hello")
+ (.list "ello")
+ > (p "o")
+ (list)
+ > (with-exception-catcher .show (& (p "")))
+ (generic-unexpected-eof 'anything))
 
