@@ -330,18 +330,22 @@
 
 ;; Parsers
 
+;; returns whether we are at eof
 (def (parse1#at-end? #(iseq? l))
      -> parse1:boolean-capturing-result?
      (values (null? l) l))
 
+;; returns the rest but does not consume it
 (def (parse1#point #(iseq? l))
      -> parse1:input-capturing-result?
      (values l l))
 
+;; consumes the rest
 (def (parse1#rest #(iseq? l))
      -> parse1:input-capturing-result?
      (values l '()))
 
+;; like "." in regexes
 (def (parse1#anything #(iseq? l))
      -> parse1:non-capturing-result?
      (if (null? l)
