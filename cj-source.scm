@@ -37,7 +37,7 @@
 	 cj-possibly-sourcify-deep
 	 cj-desourcify
 	 read-all-source
-	 source-error
+	 (type source-error)
 	 location-string
 	 show-location-location
 	 show-source-location
