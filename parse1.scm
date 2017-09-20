@@ -39,7 +39,7 @@
  parse1#maybe-capture-until
 
  ;; Parser combinators
- parse1#either
+ parse1#meither
  parse1#>>
  (macro parse1#mdo)
  parse1#any
@@ -86,7 +86,7 @@
 			maybe-capture-until
 
 			;; Parser combinators
-			either
+			meither
 			>>
 			mdo
 			any
@@ -481,7 +481,7 @@
 ;; perhaps that's what the user expects to be reported. So, leave via
 ;; run-time n-ary function for now.
 
-(def ((parse1#either . #((list-of parse1:non-capturing-or-any-capturing-parser?)
+(def ((parse1#meither . #((list-of parse1:non-capturing-or-any-capturing-parser?)
 			 parsers))
       #(iseq? l))
      -> parse1:non-capturing-or-any-capturing-result?
@@ -577,8 +577,8 @@
 	  (.list "foo baz")))
  (exception text: "This object was raised: #((list-match-failure) (#\\f #\\o #\\o #\\b) (#\\space #\\b #\\a #\\z) (#\\f #\\o #\\o #\\space #\\b #\\a #\\z))\n")
   
- > (def p (PARSE1 (capture (either (match-list (.list "foo"))
-				   (match-list (.list "bar"))))))
+ > (def p (PARSE1 (capture (meither (match-list (.list "foo"))
+				    (match-list (.list "bar"))))))
  > (.show (p (.list "foo baz")))
  (values (.list "foo") (.list " baz"))
  > (.show (p (.list "bar baz")))
@@ -591,8 +591,8 @@
  
  > (def p (PARSE1 (capture
 		   (mdo
-		    (either (match-list (.list "H"))
-			    (match-list (.list "h")))
+		    (meither (match-list (.list "H"))
+			     (match-list (.list "h")))
 		    (match-list (.list "ello World"))))))
  > (.show (p (.list "Hello World!")))
  (values (.list "Hello World") (.list "!"))
