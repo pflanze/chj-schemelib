@@ -4,6 +4,7 @@
 	 debuggable-promise
 	 (oo-util-lazy iseq?)
 	 (oo-util char-list.show char-list+?)
+	 (cj-port with-output-to-string)
 	 test
 	 char-util
 	 )
@@ -28,9 +29,9 @@
  parse1#match-string?
  parse1#match-string
 
- parse1#match-pred
+ parse1#match-pred/desc (macro parse1#match-pred)
  parse1#match*-pred
- parse1#match+-pred
+ parse1#match+-pred/desc (macro parse1#match+-pred)
 
  parse1#match-while
  parse1#capture-while
@@ -76,9 +77,9 @@
 			match-list
 			match-string?
 			match-string
-			match-pred
+			match-pred/desc match-pred
 			match*-pred
-			match+-pred
+			match+-pred/desc match+-pred
 			match-while
 			capture-while
 			maybe-capture-until
@@ -119,8 +120,13 @@
 ;; that take other parsers as arguments.
 
 
-(defparameter parse1:current-backtrack (lambda (e)
-					 ((current-exception-handler) e)))
+(defparameter parse1:current-backtrack
+  (lambda (e)
+    ;; XX do the equivalent of (apply error (.message e)) instead?
+    ;;   but have to figure out how not to force huge streams? Or
+    ;;   perhaps even better, limit .show size. (Or make .show lazy?
+    ;;   No then I never can add detection of shared tails / cycles.)
+    ((current-exception-handler) e)))
 
 (def (parse1-error e)
      ((parse1:current-backtrack) e))
@@ -138,43 +144,92 @@
 
 
 
-(jclass parse1-failure
+;; XX lib huh
+(def (sexpr->string s)
+     (with-output-to-string (& (write s))))
 
-	(jclass (list-match-failure #(iseq? match)
-				    #(iseq? at-input)
-				    #(iseq? input))
-		(def-method* (message _)
-		  "input does not start with string"))
 
-	(jclass (all-options-failure failures #(iseq? input))
-		(def-method* (message _)
-		  "none of the options matched"))
+(jinterface
+ parse1-failure-interface
 
-	(jclass (char-class-match-failure #(char-list+? chars) #(iseq? input))
-		(def-method* (message _)
-		  "input does not start with a char out of"))
+ ;; message to be fed to .show or used in an application of |error| or
+ ;; similar.
+ (method (message _) -> list?)
+ ;; and one as string, perhaps cut shorter:
+ (method (message-string s) -> string?)
 
-	(jclass (repeat-failure #(exact-natural0? n)
-				#(exact-natural0? m)
-				#(exact-natural0? i)
-				#(parse1-failure? failure)
-				#(iseq? input))
-		(def-method* (message _)
-		  "match should repeat n..m times but fails on the i-th repetition"))
+ (jclass
+  parse1-failure
 
-	(jclass (match-pred-failure #(function? pred) #(iseq? input))
-		(def-method* (message _)
-		  "failure expecting an item satisfying pred"))
+  ;; XX should move to lib
+  (def-method (message-string s)
+    (let-pair ((m0 ms) (.message s))
+	      (string-append
+	       m0 ": "
+	       (strings-append
+		(let rec ((ms ms))
+		  (if (null? ms)
+		      ms
+		      (let-pair
+		       ((m ms) ms)
+		       (cons*
+			(sexpr->string (.show m))
+			(if (null? ms)
+			    ""
+			    (if (keyword? m)
+				" " ;; XX also only do this in
+				;; even positions, sigh
+				", "))
+			(rec ms)))))))))
 
-	(jclass parse1-unexpected-eof
 
-		(jclass (char-class-unexpected-eof #(char-list+? chars))
-			(def-method* (message _)
-			  "unexpected end of input while expecting a char out of"))
+  (jclass (list-match-failure #(iseq? match)
+			      #(iseq? at-input)
+			      #(iseq? input))
+	  (def-method* (message _)
+	    (list "input does not start with string"
+		  match: match
+		  at-input: at-input
+		  input: input)))
 
-		(jclass (match-pred-unexpected-eof #(function? pred))
-			(def-method* (message _)
-			  "unexpected end of input while expecting an item satisfying pred"))))
+  (jclass (all-options-failure failures #(iseq? input))
+	  (def-method* (message _)
+	    (list "none of the options matched"
+		  failures: failures
+		  input: input)))
+
+  (jclass (char-class-match-failure #(char-list+? chars) #(iseq? input))
+	  (def-method* (message _)
+	    (list "input does not start with a char out of"
+		  chars: chars
+		  input: input)))
+
+  (jclass (repeat-failure #(exact-natural0? n)
+			  #(exact-natural0? m)
+			  #(exact-natural0? i)
+			  #(parse1-failure? failure)
+			  #(iseq? input))
+	  (def-method* (message _)
+	    (list "match should repeat n..m times but fails on the i-th repetition"
+		  n: n m: m i: i failure: failure input: input)))
+
+  (jclass (match-pred-failure #(function? pred) desc #(iseq? input))
+	  (def-method* (message _)
+	    (list "failure expecting an item satisfying pred"
+		  (if desc desc: pred:) (if desc desc pred)
+		  input: input)))
+
+  (jclass parse1-unexpected-eof
+
+	  (jclass (char-class-unexpected-eof #(char-list+? chars))
+		  (def-method* (message _)
+		    (list "unexpected end of input while expecting a char out of"
+			  chars: chars)))
+
+	  (jclass (match-pred-unexpected-eof #(function? pred) desc)
+		  (def-method* (message _)
+		    (list "unexpected end of input while expecting an item satisfying pred"
+			  (if desc desc: pred:) (if desc desc pred)))))))
 
 
 (def parse1:non-capturing-result?
@@ -342,15 +397,15 @@
 	       (parse1-error (list-match-failure templ l* l)))))
 
 
-(def ((parse1#match-pred #(function? pred))
+(def ((parse1#match-pred/desc #(function? pred) desc)
       #(iseq? l))
      -> iseq?
      (if (null? l)
-	 (parse1-error (match-pred-unexpected-eof pred))
+	 (parse1-error (match-pred-unexpected-eof pred desc))
 	 (let-pair ((a l*) l)
 		   (if (pred a)
 		       l*
-		       (parse1-error (match-pred-failure pred l))))))
+		       (parse1-error (match-pred-failure pred desc l))))))
 
 (def ((parse1#match*-pred #(function? pred))
       #(iseq? l))
@@ -363,9 +418,12 @@
 			 (lp l*)
 			 l)))))
 
-(def (parse1#match+-pred #(function? pred))
-     (parse1#mdo (parse1#match-pred pred)
+(def (parse1#match+-pred/desc #(function? pred) desc)
+     (parse1#mdo (parse1#match-pred/desc pred desc)
 		 (parse1#match*-pred pred)))
+
+(defmacro (parse1#match-pred arg) `(parse1#match-pred/desc ,arg ',arg))
+(defmacro (parse1#match+-pred arg) `(parse1#match+-pred/desc ,arg ',arg))
 
 
 (def ((parse1#match-while pred) l)
@@ -674,14 +732,15 @@
 	(comp* .string
 	       parser
 	       .list))
- > (with-exception-catcher .show (& ((p (PARSE1 whitespace)) "Hello World")))
- (match-pred-failure char-whitespace? (.list "Hello World"))
- > ((p (PARSE1 whitespace)) " World")
+ > (with-exception-catcher .message-string
+			   (& ((p (PARSE1 whitespace)) "Hello World")))
+ "failure expecting an item satisfying pred: desc: 'char-whitespace?, input: (.list \"Hello World\")"
+  > ((p (PARSE1 whitespace)) " World")
  "World"
  > ((p (PARSE1 whitespace)) " \n\r \tWorld")
  "\n\r \tWorld"
- > (with-exception-catcher .show (& ((p (PARSE1 whitespace)) "")))
- (match-pred-unexpected-eof char-whitespace?)
+ > (with-exception-catcher .message-string (& ((p (PARSE1 whitespace)) "")))
+ "unexpected end of input while expecting an item satisfying pred: desc: 'char-whitespace?"
 
  > ((p (PARSE1 whitespace*)) "Hello World")
  "Hello World"
@@ -692,12 +751,13 @@
  > ((p (PARSE1 whitespace*)) "")
  ""
 
- > (with-exception-catcher .show (& ((p (PARSE1 whitespace+)) "Hello World")))
- (match-pred-failure char-whitespace? (.list "Hello World"))
+ > (with-exception-catcher .message-string
+			   (& ((p (PARSE1 whitespace+)) "Hello World")))
+ "failure expecting an item satisfying pred: desc: 'char-whitespace?, input: (.list \"Hello World\")"
  > ((p (PARSE1 whitespace+)) " World")
  "World"
  > ((p (PARSE1 whitespace+)) " \n\r \tWorld")
  "World"
- > (with-exception-catcher .show (& ((p (PARSE1 whitespace+)) "")))
- (match-pred-unexpected-eof char-whitespace?))
+ > (with-exception-catcher .message-string (& ((p (PARSE1 whitespace+)) "")))
+ "unexpected end of input while expecting an item satisfying pred: desc: 'char-whitespace?")
 
