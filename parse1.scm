@@ -150,8 +150,11 @@
  parse1-failure-interface
 
  ;; message to be fed to write-exception-message from
- ;; cj-exception-handler (it will always give a message here):
+ ;; cj-exception-handler:
  (method (maybe-exception-message _) -> list?)
+ ;; same as maybe-exception-message (which will always give a message
+ ;; here, too):
+ (method (exception-message _) -> list?)
 
  (jclass
   parse1-failure
@@ -162,6 +165,7 @@
   (def-method (message-string v)
     (with-output-to-string
       (& (write-exception-message (.maybe-exception-message v)))))
+
 
   (jclass (list-match-failure #(iseq? match)
 			      #(iseq? at-input)
