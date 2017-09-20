@@ -167,8 +167,18 @@
 			      #(iseq? at-input)
 			      #(iseq? input))
 	  (def-method* (exception-message _)
-	    (list "input does not start with string"
+	    (list "input does not start with list"
 		  match: (.show match)
+		  at-input: (.show at-input)
+		  ;; ^ try to take position or something instead
+		  input: (.show input))))
+
+  (jclass (string-match-failure #(string? match)
+				#(iseq? at-input)
+				#(iseq? input))
+	  (def-method* (exception-message _)
+	    (list "input does not start with string"
+		  match: match
 		  at-input: (.show at-input)
 		  ;; ^ try to take position or something instead
 		  input: (.show input))))
@@ -377,7 +387,7 @@
      -> iseq?
      (letv ((b l*) (char-list-starts-with-string? l templ))
 	   (if b l*
-	       (parse1-error (list-match-failure templ l* l)))))
+	       (parse1-error (string-match-failure templ l* l)))))
 
 
 (def ((parse1#match-pred/desc #(function? pred) desc)
