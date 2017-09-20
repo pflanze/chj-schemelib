@@ -383,6 +383,13 @@
 			 (position-string pos))))))
 
 
+(define (display/maybe-port val maybe-port)
+  (display val (or maybe-port (current-output-port))))
+
+(define (1st-argument/2 val maybe-port)
+  val)
+
+
 ;; yes, kinda lame name (historic). Show the location that a location object points to.
 (define (show-location-location
 	 maybe-l
@@ -390,22 +397,23 @@
 	 (errstr "*** ERROR IN (just showing location) ")
 	 (msg "")
 	 (args '())
-	 (display display)
+	 (display/maybe-port display/maybe-port)
 	 non-highlighting?
 	 normalize
-	 (port (current-output-port)))
-  (display (string-append
-	    errstr
-	    (if maybe-l
-		(location-string maybe-l
-				 non-highlighting?: non-highlighting?
-				 normalize: normalize)
-		"(no-location-information)")
-	    " -- "
-	    msg
-	    (scm:objects->string args prepend: ": ")
-	    "\n")
-	   port))
+	 maybe-port)
+  (display/maybe-port
+   (string-append
+    errstr
+    (if maybe-l
+	(location-string maybe-l
+			 non-highlighting?: non-highlighting?
+			 normalize: normalize)
+	"(no-location-information)")
+    " -- "
+    msg
+    (scm:objects->string args prepend: ": ")
+    "\n")
+   maybe-port))
 
 (define (show-source-location
 	 s
@@ -413,16 +421,16 @@
 	 (errstr "*** ERROR IN (just showing location) ")
 	 (msg "")
 	 (args '())
-	 (display display)
-	 (port (current-output-port)))
+	 (display/maybe-port display/maybe-port)
+	 maybe-port)
   (show-location-location (if (##source? s)
 			      (##source-locat s)
 			      #f)
 			  errstr: errstr
 			  msg: msg
 			  args: args
-			  display: display
-			  port: port))
+			  display/maybe-port: display/maybe-port
+			  maybe-port: maybe-port))
 
 
 ;; analog to source-error:
@@ -434,7 +442,7 @@
 
 ;; At runtime use variant for locations instead of source-warn, since
 ;; locations can be quoted easily, unlike source code:
-(define (_location-warn display non-highlighting? normalize?)
+(define (_location-warn display/maybe-port non-highlighting? normalize?)
   ;; non-highlighting?==#t means it will *not* write a message in a
   ;; way that emacs shows a window at that location (good for
   ;; e.g. showing *known* test failures).
@@ -446,7 +454,7 @@
 					       "*** WARNING IN ")
 				   msg: message
 				   args: args
-				   display: display
+				   display/maybe-port: display/maybe-port
 				   non-highlighting?: non-highlighting?
 				   normalize: normalize))))
     (if normalize?
@@ -454,29 +462,29 @@
 	  (cont normalize location message args))
 	(lambda (location message . args)
 	  (cont #f location message args)))))
-(define location-warn (_location-warn display #f #f))
-(define location-warn-to-string (_location-warn values #f #f))
+(define location-warn (_location-warn display/maybe-port #f #f))
+(define location-warn-to-string (_location-warn 1st-argument/2 #f #f))
 
-(define location-warn* (_location-warn display #t #f))
-(define location-warn-to-string* (_location-warn values #t #f))
+(define location-warn* (_location-warn display/maybe-port #t #f))
+(define location-warn-to-string* (_location-warn 1st-argument/2 #t #f))
 
-(define location-warn-to-string/normalize (_location-warn values #f #t))
+(define location-warn-to-string/normalize (_location-warn 1st-argument/2 #f #t))
 
 ;; test see in simple-match.scm
 
-(define (show-source-error e #!optional (port (current-output-port)))
+(define (show-source-error e #!optional maybe-port)
   (show-source-location (source-error-source e)
 			errstr: "*** ERROR IN syntax, "
 			msg: (source-error-message e)
 			args: (source-error-args e)
-			port: port))
+			maybe-port: maybe-port))
 
 (define (source-error->string e)
   (show-source-location (source-error-source e)
 			errstr: "*** ERROR IN syntax, "
 			msg: (source-error-message e)
 			args: (source-error-args e)
-			display: values))
+			display/maybe-port: 1st-argument/2))
 
 (define (show-procedure-location p)
   (if (procedure? p)
@@ -484,7 +492,7 @@
 			      errstr: "*** DEFINED IN "
 			      msg: "as"
 			      args: (list p)
-			      display: display)
+			      display/maybe-port: display/maybe-port)
       (error "not a procedure:" p)))
 
 
