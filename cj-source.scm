@@ -392,7 +392,8 @@
 	 (args '())
 	 (display display)
 	 non-highlighting?
-	 normalize)
+	 normalize
+	 (port (current-output-port)))
   (display (string-append
 	    errstr
 	    (if maybe-l
@@ -403,7 +404,8 @@
 	    " -- "
 	    msg
 	    (scm:objects->string args prepend: ": ")
-	    "\n")))
+	    "\n")
+	   port))
 
 (define (show-source-location
 	 s
@@ -411,14 +413,16 @@
 	 (errstr "*** ERROR IN (just showing location) ")
 	 (msg "")
 	 (args '())
-	 (display display))
+	 (display display)
+	 (port (current-output-port)))
   (show-location-location (if (##source? s)
 			      (##source-locat s)
 			      #f)
 			  errstr: errstr
 			  msg: msg
 			  args: args
-			  display: display))
+			  display: display
+			  port: port))
 
 
 ;; analog to source-error:
@@ -460,11 +464,12 @@
 
 ;; test see in simple-match.scm
 
-(define (show-source-error e)
+(define (show-source-error e #!optional (port (current-output-port)))
   (show-source-location (source-error-source e)
 			errstr: "*** ERROR IN syntax, "
 			msg: (source-error-message e)
-			args: (source-error-args e)))
+			args: (source-error-args e)
+			port: port))
 
 (define (source-error->string e)
   (show-source-location (source-error-source e)
