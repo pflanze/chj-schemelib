@@ -401,6 +401,8 @@
 ;; errors. Both cases have file locations normalized (well, just
 ;; path-expand'ed).
 (define current-test-ignores (make-parameter (make-table)))
+;; ^ can't use define-if-not-defined easily since its definition
+;; (cj-env) has some dependencies, also tests
 
 (define (test:ignore-warning? str)
   (table-ref (current-test-ignores)
