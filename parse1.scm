@@ -107,7 +107,7 @@
 ;; returning the remainder of the sequence after the match.
 
 ;; A capturing parser is a function taking a sequence and returning
-;; the parse1#capture-while (which could be anything, for example a subsequence,
+;; the capture (which could be anything, for example a subsequence,
 ;; boolean, ...) and the remainder of the sequence after the capture.
 
 ;; A parser failure is reported as a call to (parse1-backtrack),
