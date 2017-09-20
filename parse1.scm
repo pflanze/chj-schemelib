@@ -5,6 +5,7 @@
 	 (oo-util-lazy iseq?)
 	 (oo-util char-list.show char-list+?)
 	 (cj-port with-output-to-string)
+	 (cj-exception-handler write-exception-message)
 	 test
 	 char-util
 	 )
@@ -144,92 +145,74 @@
 
 
 
-;; XX lib huh
-(def (sexpr->string s)
-     (with-output-to-string (& (write s))))
-
 
 (jinterface
  parse1-failure-interface
 
- ;; message to be fed to .show or used in an application of |error| or
- ;; similar.
- (method (message _) -> list?)
- ;; and one as string, perhaps cut shorter:
- (method (message-string s) -> string?)
+ ;; message to be fed to write-exception-message from
+ ;; cj-exception-handler (it will always give a message here):
+ (method (maybe-exception-message _) -> list?)
 
  (jclass
   parse1-failure
 
-  ;; XX should move to lib
-  (def-method (message-string s)
-    (let-pair ((m0 ms) (.message s))
-	      (string-append
-	       m0 ": "
-	       (strings-append
-		(let rec ((ms ms))
-		  (if (null? ms)
-		      ms
-		      (let-pair
-		       ((m ms) ms)
-		       (cons*
-			(sexpr->string (.show m))
-			(if (null? ms)
-			    ""
-			    (if (keyword? m)
-				" " ;; XX also only do this in
-				;; even positions, sigh
-				", "))
-			(rec ms)))))))))
+  (def-method (maybe-exception-message v)
+    (.exception-message v))
 
+  (def-method (message-string v)
+    (with-output-to-string
+      (& (write-exception-message (.maybe-exception-message v)))))
 
   (jclass (list-match-failure #(iseq? match)
 			      #(iseq? at-input)
 			      #(iseq? input))
-	  (def-method* (message _)
+	  (def-method* (exception-message _)
 	    (list "input does not start with string"
-		  match: match
-		  at-input: at-input
-		  input: input)))
+		  match: (.show match)
+		  at-input: (.show at-input)
+		  ;; ^ try to take position or something instead
+		  input: (.show input))))
 
   (jclass (all-options-failure failures #(iseq? input))
-	  (def-method* (message _)
+	  (def-method* (exception-message _)
 	    (list "none of the options matched"
-		  failures: failures
-		  input: input)))
+		  failures: (map .exception-message failures)
+		  input: (.show input))))
 
   (jclass (char-class-match-failure #(char-list+? chars) #(iseq? input))
-	  (def-method* (message _)
+	  (def-method* (exception-message _)
 	    (list "input does not start with a char out of"
 		  chars: chars
-		  input: input)))
+		  input: (.show input))))
 
   (jclass (repeat-failure #(exact-natural0? n)
 			  #(exact-natural0? m)
 			  #(exact-natural0? i)
 			  #(parse1-failure? failure)
 			  #(iseq? input))
-	  (def-method* (message _)
+	  (def-method* (exception-message _)
 	    (list "match should repeat n..m times but fails on the i-th repetition"
-		  n: n m: m i: i failure: failure input: input)))
+		  n: n m: m i: i
+		  failure: (.exception-message failure)
+		  input: (.show input))))
 
   (jclass (match-pred-failure #(function? pred) desc #(iseq? input))
-	  (def-method* (message _)
+	  (def-method* (exception-message _)
 	    (list "failure expecting an item satisfying pred"
-		  (if desc desc: pred:) (if desc desc pred)
-		  input: input)))
+		  (if desc desc pred)
+		  input: (.show input))))
 
   (jclass parse1-unexpected-eof
 
 	  (jclass (char-class-unexpected-eof #(char-list+? chars))
-		  (def-method* (message _)
+		  (def-method* (exception-message _)
 		    (list "unexpected end of input while expecting a char out of"
-			  chars: chars)))
+			  chars)))
 
 	  (jclass (match-pred-unexpected-eof #(function? pred) desc)
-		  (def-method* (message _)
+		  (def-method* (exception-message _)
 		    (list "unexpected end of input while expecting an item satisfying pred"
-			  (if desc desc: pred:) (if desc desc pred)))))))
+			  (or desc (.show pred))))))))
 
 
 (def parse1:non-capturing-result?
@@ -734,13 +717,13 @@
 	       .list))
  > (with-exception-catcher .message-string
 			   (& ((p (PARSE1 whitespace)) "Hello World")))
- "failure expecting an item satisfying pred: desc: 'char-whitespace?, input: (.list \"Hello World\")"
+ "failure expecting an item satisfying pred: char-whitespace? input: (.list \"Hello World\")"
   > ((p (PARSE1 whitespace)) " World")
  "World"
  > ((p (PARSE1 whitespace)) " \n\r \tWorld")
  "\n\r \tWorld"
  > (with-exception-catcher .message-string (& ((p (PARSE1 whitespace)) "")))
- "unexpected end of input while expecting an item satisfying pred: desc: 'char-whitespace?"
+ "unexpected end of input while expecting an item satisfying pred: char-whitespace?"
 
  > ((p (PARSE1 whitespace*)) "Hello World")
  "Hello World"
@@ -753,11 +736,11 @@
 
  > (with-exception-catcher .message-string
 			   (& ((p (PARSE1 whitespace+)) "Hello World")))
- "failure expecting an item satisfying pred: desc: 'char-whitespace?, input: (.list \"Hello World\")"
+ "failure expecting an item satisfying pred: char-whitespace? input: (.list \"Hello World\")"
  > ((p (PARSE1 whitespace+)) " World")
  "World"
  > ((p (PARSE1 whitespace+)) " \n\r \tWorld")
  "World"
  > (with-exception-catcher .message-string (& ((p (PARSE1 whitespace+)) "")))
- "unexpected end of input while expecting an item satisfying pred: desc: 'char-whitespace?")
+ "unexpected end of input while expecting an item satisfying pred: char-whitespace?")
 
