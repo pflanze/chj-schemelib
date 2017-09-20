@@ -122,10 +122,10 @@
 
 (defparameter parse1:current-backtrack
   (lambda (e)
-    ;; XX do the equivalent of (apply error (.message e)) instead?
-    ;;   but have to figure out how not to force huge streams? Or
-    ;;   perhaps even better, limit .show size. (Or make .show lazy?
-    ;;   No then I never can add detection of shared tails / cycles.)
+    ;; there's no ##make-error-exception but could just (error
+    ;; (.message-string e)). But then really go with typed exceptions
+    ;; and instead turn them to .message-string or so upon entering
+    ;; the repl.
     ((current-exception-handler) e)))
 
 (def (parse1-error e)
