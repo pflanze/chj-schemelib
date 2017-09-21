@@ -13,7 +13,8 @@
 	 tsort
 	 Result
 	 (cj-functional complement)
-	 (require path-string.relation))
+	 (require path-string.relation)
+	 (cj-source read-all-source))
 
 (export lib
 	mydb
@@ -83,7 +84,7 @@
  > (path-string.topo-relation "lib/require-util.scm")
  #((topo-relation)
    require-util
-   (easy test tree-util cj-io-util tsort Result cj-functional require))
+   (easy test tree-util cj-io-util tsort Result cj-functional require cj-source))
  ;; > (path-string.topo-relation "tsort.scm")
  ;; #((topo-relation) tsort (easy test alist))
  )
@@ -256,8 +257,9 @@
 		  tail))))))))
 
 (def (load.scm-files #!optional (load-path default-load.scm-path))
-     (map (C string-append _ ".scm")
-	  (load.scm-extract (cons 'begin (call-with-input-file load-path read-all))
+     (map (lambda (path*)
+	    (string-append (source-code path*) ".scm"))
+	  (load.scm-extract (cons 'begin (call-with-input-file load-path read-all-source))
 			    '())))
 
 (def (check-load.scm #!optional (all? #t) (load-path default-load.scm-path))
