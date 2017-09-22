@@ -40,6 +40,7 @@
  parse1#maybe-capture-until
 
  ;; Parser combinators
+ parse1#optional
  parse1#meither
  parse1#>>
  (macro parse1#mdo)
@@ -88,6 +89,7 @@
 			maybe-capture-until
 
 			;; Parser combinators
+			optional
 			meither
 			>>
 			mdo
@@ -468,6 +470,15 @@
 
 ;; Parser combinators
 
+
+(def ((parse1#optional #(parse1:non-capturing-parser? p))
+      #(iseq? l))
+     -> parse1:non-capturing-result?
+     (on-parse1-error
+      (lambda (e) l)
+      (& (p l))))
+
+
 (def ((parse1#>> #(parse1:non-capturing-parser? p1)
 		 #(parse1:non-capturing-or-any-capturing-parser? p2))
       #(iseq? l))
@@ -786,5 +797,14 @@
  > (with-exception-catcher .show (& (p "")))
  (generic-unexpected-eof 'anything)
  > (.show ((PARSE1 nothing) (.list "foo")))
- (.list "foo"))
+ (.list "foo")
+ > (def p (comp* .show (PARSE1 (optional whitespace)
+			       (optional (match-pred char-alpha?))
+			       (optional (match-pred char-alpha?))) .list))
+ > (p "Hello")
+ (.list "llo")
+ > (p " Hello")
+ (.list "llo")
+ > (p "H ello")
+ (.list " ello"))
 
