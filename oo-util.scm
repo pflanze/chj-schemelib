@@ -6,7 +6,10 @@
 	 (cj-functional list-of)
 	 (srfi-11 values->vector values->list) ;; included in easy?
 	 cj-env
-	 show)
+	 show
+	 debuggable-promise)
+
+(possibly-use-debuggable-promise)
 
 
 (define inexact exact->inexact)
@@ -49,6 +52,18 @@
   `(.list ,(char-list.string l)))
 
 (define. string.list string->list)
+
+;; XX where to move these? don't want to depend on stream.scm?
+(define (string->stream s)
+  (let ((len (string-length s)))
+    (let rec ((i 0))
+      (delay
+	(if (< i len)
+	    (cons (string-ref s i)
+		  (rec (fx+ i 1)))
+	    '())))))
+
+(define. string.stream string->stream)
 
 (define. char.integer char->integer)
 (define. integer.char integer->char)
