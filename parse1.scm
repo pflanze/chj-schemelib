@@ -358,13 +358,15 @@
 ;; returns whether we are at eof
 (def (parse1#at-end? #(iseq? l))
      -> parse1:boolean-capturing-result?
-     (values (null? l) l))
+     (FV (l)
+	 (values (null? l) l)))
 
 ;; like "$" in regexes (fails unless at eof)
 (def (parse1#the-end #(iseq? l))
      -> parse1:non-capturing-result?
-     (if (null? l) l
-	 (parse1-error (expecting-eof-failure l))))
+     (FV (l)
+	 (if (null? l) l
+	     (parse1-error (expecting-eof-failure l)))))
 
 ;; returns the rest but does not consume it
 (def (parse1#point #(iseq? l))
@@ -379,9 +381,10 @@
 ;; like "." in regexes
 (def (parse1#anything #(iseq? l))
      -> parse1:non-capturing-result?
-     (if (null? l)
-	 (parse1-error (generic-unexpected-eof 'anything))
-	 (cdr l)))
+     (FV (l)
+	 (if (null? l)
+	     (parse1-error (generic-unexpected-eof 'anything))
+	     (cdr l))))
 
 ;; zero-width match (beware of endless loops!)
 (def (parse1#nothing #(iseq? l))
@@ -394,12 +397,13 @@
 (def ((parse1#char-of-class #(char-list+? chars))
       #(iseq? l))
      -> parse1:non-capturing-result?
-     (if (null? l)
-	 (parse1-error (char-class-unexpected-eof chars))
-	 (let-pair ((a l*) l)
-		   (if (memq a chars)
-		       l*
-		       (parse1-error (char-class-match-failure chars l))))))
+     (FV (l)
+	 (if (null? l)
+	     (parse1-error (char-class-unexpected-eof chars))
+	     (let-pair ((a l*) l)
+		       (if (memq a chars)
+			   l*
+			   (parse1-error (char-class-match-failure chars l)))))))
 
 ;; while parse1#capture could be used with parse1:char-of-class, the
 ;; following avoids a bit of overhead and will be a tad simpler to
@@ -407,12 +411,13 @@
 (def ((parse1#capture-char-of-class #(char-list+? chars))
       #(iseq? l))
      -> parse1:char-capturing-result?
-     (if (null? l)
-	 (parse1-error (char-class-unexpected-eof chars))
-	 (let-pair ((a l*) l)
-		   (if (memq a chars)
-		       (values a l*)
-		       (parse1-error (char-class-match-failure chars l))))))
+     (FV (l)
+	 (if (null? l)
+	     (parse1-error (char-class-unexpected-eof chars))
+	     (let-pair ((a l*) l)
+		       (if (memq a chars)
+			   (values a l*)
+			   (parse1-error (char-class-match-failure chars l)))))))
 
 
 (def ((parse1#match-list? #(iseq? templ))
@@ -444,23 +449,25 @@
 (def ((parse1#match-pred/desc #(function? pred) desc)
       #(iseq? l))
      -> iseq?
-     (if (null? l)
-	 (parse1-error (match-pred-unexpected-eof pred desc))
-	 (let-pair ((a l*) l)
-		   (if (pred a)
-		       l*
-		       (parse1-error (match-pred-failure pred desc l))))))
+     (FV (l)
+      (if (null? l)
+	  (parse1-error (match-pred-unexpected-eof pred desc))
+	  (let-pair ((a l*) l)
+		    (if (pred a)
+			l*
+			(parse1-error (match-pred-failure pred desc l)))))))
 
 (def ((parse1#match*-pred #(function? pred))
       #(iseq? l))
      -> iseq?
      (let lp ((l l))
-       (if (null? l)
-	   l
-	   (let-pair ((a l*) l)
-		     (if (pred a)
-			 (lp l*)
-			 l)))))
+       (FV (l)
+	   (if (null? l)
+	       l
+	       (let-pair ((a l*) l)
+			 (if (pred a)
+			     (lp l*)
+			     l))))))
 
 (def (parse1#match+-pred/desc #(function? pred) desc)
      (parse1#mdo (parse1#match-pred/desc pred desc)
@@ -472,22 +479,22 @@
 
 (def ((parse1#match-while pred) l)
      -> parse1:non-capturing-result?
-     (drop-while pred l))
+     (.drop-while l pred))
 
 
 (def ((parse1#capture-while pred) l)
      -> (values-of iseq? iseq?)
-     (values (take-while pred l)
-	     (drop-while pred l)))
+     (values (.take-while l pred)
+	     (.drop-while l pred)))
 
 
 (def ((parse1#maybe-capture-until pred skip-end-marker?) l)
      -> (values-of (maybe iseq?) iseq?)
-     (cond ((find-tail pred l)
+     (cond ((.find-tail l pred)
 	    => (lambda (tail)
-		 (values (take-while (complement pred) l)
+		 (values (.take-while l (complement pred))
 			 (if skip-end-marker?
-			     (cdr tail)
+			     (cdr (force tail))
 			     tail))))
 	   (else
 	    (values #f
@@ -670,12 +677,14 @@
      -> parse1:input-capturing-result?
 
      (let ((l* (p l)))
-       (values (let rec ((l l))
-		 (if (or (null? l) (eq? l l*))
-		     '()
-		     (let-pair ((a r) l)
-			       (cons a (rec r)))))
-	       l*)))
+       (FV (l*)
+	   (values (let rec ((l l))
+		     (FV (l)
+			 (if (or (null? l) (eq? l l*))
+			     '()
+			     (let-pair ((a r) l)
+				       (cons a (rec r))))))
+		   l*))))
 
 
 
@@ -705,11 +714,11 @@
 		    (meither (match-list (.list "H"))
 			     (match-list (.list "h")))
 		    (match-list (.list "ello World"))))))
- > (.show (p (.list "Hello World!")))
+ > (.show (F (p (.stream "Hello World!"))))
  (values (.list "Hello World") (.list "!"))
  > (.show (p (.list "hello World!")))
  (values (.list "hello World") (.list "!"))
- > (with-exception-catcher .show (& (p (.list "hello world!"))))
+ > (with-exception-catcher (comp .show F) (& (p (.stream "hello world!"))))
  (list-match-failure (.list "ello World")
 		     (.list "world!")
 		     (.list "ello world!")))
@@ -742,18 +751,19 @@
  (values "¿Hello" (.list "rlds!"))
 
  ;; accept multiple instances of the char class:
- > (.show ((PARSE1 (mlet ((v (capture-while char-alpha?)))
-			 (match-list (.list " W"))
-			 (any (char-of-class '(#\r #\o #\d #\l)))
-			 ;; (^ XX could optimize)
-			 (return (.string (cons #\¿ v)))))
-	   (.list "Hello Worlds!")))
+ > (.show (F ((PARSE1 (mlet ((v (capture-while char-alpha?)))
+			    (match-list (.list " W"))
+			    (any (char-of-class '(#\r #\o #\d #\l)))
+			    ;; (^ XX could optimize)
+			    (return (.string (cons #\¿ v)))))
+	      (.stream "Hello Worlds!"))))
  (values "¿Hello" (.list "s!"))
 
  > (def (p n m)
 	(comp* .show
+	       F
 	       (PARSE1 (capture (repeat n m (char-of-class (.list "abcde")))))
-	       .list))
+	       .stream))
  > ((p 0 0) "ab")
  (values (list) (.list "ab"))
  > ((p 0 1) "ab")
@@ -776,7 +786,7 @@
  (values (.list "ab") (.list "xy"))
  > ((p 2 4) "abxy")
  (values (.list "ab") (.list "xy"))
- > (with-exception-catcher .show (& ((p 3 4) "abxy")))
+ > (with-exception-catcher (comp .show F) (& ((p 3 4) "abxy")))
  (repeat-failure 3 4
 		 3
 		 (char-class-match-failure (.list "abcde") (.list "xy"))
@@ -784,25 +794,26 @@
 
 
  > (def p (comp* .show
+		 F
 		 (PARSE1 (capture (many (char-of-class (.list "ab")))))
-		 .list))
+		 .stream))
  > (p "abcd")
  (values (.list "ab") (.list "cd"))
  > (p "axbcd")
  (values (.list "a") (.list "xbcd"))
- > (with-exception-catcher .show (& (p "xbcd")))
+ > (with-exception-catcher (comp .show F) (& (p "xbcd")))
  ;; even though this is in parse1:many, only report parse1#char-of-class
  ;; failure? XX add wrapper?
  (char-class-match-failure (.list "ab") (.list "xbcd"))
  
  
- > (.show ((PARSE1
-	    (mlet* ((a (capture-while char-alpha?))
-		    (b (capture-while char-numeric?)))
-		   (match-list (.list " W"))
-		   (return (values (.string (cons #\¿ a))
-				   (.string b)))))
-	   (.list "Hello31 Worlds!")))
+ > (.show (F ((PARSE1
+	       (mlet* ((a (capture-while char-alpha?))
+		       (b (capture-while char-numeric?)))
+		      (match-list (.list " W"))
+		      (return (values (.string (cons #\¿ a))
+				      (.string b)))))
+	      (.stream "Hello31 Worlds!"))))
  (values (values "¿Hello" "31") (.list "orlds!"))
  )
 
@@ -820,6 +831,7 @@
  > (def (p rest-or-point)
 	(comp*
 	 .show
+	 F
 	 (PARSE1
 	  (mlet ((num (capture (match-while char-numeric?))))
 		(match-while char-whitespace?)
@@ -827,7 +839,7 @@
 		     (return (.string num))
 		     (mlet ((r rest-or-point))
 			   (return (.string r))))))
-	 .list))
+	 .stream))
  > ((p parse1#rest) "123")
  (values "123" (list))
  > ((p parse1#rest) "123 ")
@@ -850,8 +862,8 @@
  > (def (p parser)
 	(comp* .string
 	       parser
-	       .list))
- > (with-exception-catcher .message-string
+	       .stream))
+ > (with-exception-catcher (comp .message-string F)
 			   (& ((p (PARSE1 whitespace)) "Hello World")))
  "failure expecting an item satisfying pred: char-whitespace? input: (.list \"Hello World\")"
   > ((p (PARSE1 whitespace)) " World")
@@ -870,7 +882,7 @@
  > ((p (PARSE1 whitespace*)) "")
  ""
 
- > (with-exception-catcher .message-string
+ > (with-exception-catcher (comp .message-string F)
 			   (& ((p (PARSE1 whitespace+)) "Hello World")))
  "failure expecting an item satisfying pred: char-whitespace? input: (.list \"Hello World\")"
  > ((p (PARSE1 whitespace+)) " World")
