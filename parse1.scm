@@ -294,6 +294,13 @@
 ;; XX should use generic monad syntax... improvement even if
 ;; parametrized!
 
+
+;; Hack to enable to retrieve context information upon return type
+;; failures (will be obsolete once functions are inspectable for
+;; return types)
+(defmacro (parse1#%>> a b)
+  `(parse1#>> ,a ,b ',(source-location stx)))
+
 (defmacro (parse1#mdo . parser-exprs)
   (if (one? parser-exprs)
       ;; this would not call parse1#>> at all, and hence not do early
@@ -304,7 +311,7 @@
 	 `(-> parse1:non-capturing-or-any-capturing-parser?
 	      ,e)
 	 e))
-      `(LA parse1#>> ,@parser-exprs)))
+      `(LA parse1#%>> ,@parser-exprs)))
 
 (defmacro (parse1#mlet* binds . body)
   (assert*
@@ -516,7 +523,9 @@
 
 
 (def ((parse1#>> #(parse1:non-capturing-parser? p1)
-		 #(parse1:non-capturing-or-any-capturing-parser? p2))
+		 #(parse1:non-capturing-or-any-capturing-parser? p2)
+		 #!optional
+		 ctx)
       #(iseq? l))
      -> parse1:non-capturing-or-any-capturing-result?
      ;; ^ which one is determined by parser2 (which could be a
