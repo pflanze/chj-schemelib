@@ -15,6 +15,7 @@
  
  ;; Parsers
  parse1#at-end?
+ parse1#the-end
  parse1#point
  parse1#rest
  parse1#whitespace
@@ -66,6 +67,7 @@
 	  (##namespace ("parse1#"
 			;; Parsers
 			at-end?
+			the-end
 			point
 			rest
 			whitespace
@@ -220,6 +222,11 @@
 		  (if desc desc pred)
 		  input: (.show input))))
 
+  (jclass (expecting-eof-failure #(iseq? input))
+	  (def-method* (exception-message _)
+	    (list "expecting end of input"
+		  input: (.show input))))
+  
   (jclass parse1-unexpected-eof
 
 	  (jclass (generic-unexpected-eof #(symbol? kind))
@@ -338,6 +345,12 @@
 (def (parse1#at-end? #(iseq? l))
      -> parse1:boolean-capturing-result?
      (values (null? l) l))
+
+;; like "$" in regexes (fails unless at eof)
+(def (parse1#the-end #(iseq? l))
+     -> parse1:non-capturing-result?
+     (if (null? l) l
+	 (parse1-error (expecting-eof-failure l))))
 
 ;; returns the rest but does not consume it
 (def (parse1#point #(iseq? l))
@@ -806,5 +819,22 @@
  > (p " Hello")
  (.list "llo")
  > (p "H ello")
- (.list " ello"))
+ (.list " ello")
+
+ > (def p (comp* .show (PARSE1 (optional whitespace)
+			       (mlet ((c (capture
+					  (optional (match-pred char-alpha?)))))
+				     (optional (match-pred char-alpha?))
+				     the-end
+				     (return c))) .list))
+ > (with-exception-catcher .show (& (p "Hel")))
+ (expecting-eof-failure (.list "l"))
+ > (p " He")
+ (values (.list "H") (list))
+ > (p "He")
+ (values (.list "H") (list))
+ > (p "H")
+ (values (.list "H") (list))
+ > (p "")
+ (values (list) (list)))
 
