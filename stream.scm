@@ -37,6 +37,7 @@
 	stream-improper-map
 	stream->list
 	stream->string
+	source-stream->string
 	stream-drop
 	stream-take
 	list-rtake&rest stream-rtake&rest
@@ -376,6 +377,23 @@
 			(string-set! str i a)
 			(lp r (fx+ i 1))))))
     str))
+
+;; copy-paste of stream->string with the addition of source-code
+;; handling
+(define (source-stream->string s #!optional track-source?)
+  (let* ((len (stream-length s))
+	 (str (make-string len)))
+    (let lp ((s s)
+	     (i 0))
+      (FV (s)
+	  (if (fx< i len)
+	      (let-pair ((a r) s)
+			(string-set! str i (source-code a))
+			(lp r (fx+ i 1))))))
+    (if (and track-source?
+	     (fx> len 0))
+	(possibly-sourcify str (car (force s)))
+	str)))
 
 
 (define (stream-drop s k)
