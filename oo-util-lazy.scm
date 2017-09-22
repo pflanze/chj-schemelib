@@ -41,16 +41,19 @@
 ;; something it doesn't do and can't actually without redefinining
 ;; list?, hence i prefix, OK? For insecure, immediate, or so.
 
-(define ilist? pair-or-null?)
+(define (ilist? v)
+  (or (null? v)
+      (and (pair? v)
+	   (pair-or-null? (cdr v)))))
 
 (define (istream? v)
   ;; *only* for lazy inputs
   (or (and (promise? v)
-	   (ilist? (force v)))
+	   (pair-or-null? (force v)))
       (and (pair? v)
 	   (let ((r (cdr v)))
 	     (and (promise? r)
-		  (ilist? (force r)))))))
+		  (pair-or-null? (force r)))))))
 
 (TEST
  > (istream? (delay (cons 1 (delay '()))))
@@ -60,6 +63,64 @@
  > (istream? (cons* 1 2 (delay '())))
  #f)
 
+(define (ilist-of pred)
+  (lambda (v)
+    (or (null? v)
+	(and (pair? v)
+	     (let-pair ((a r) v)
+		       (and (pred a)
+			    (pair-or-null? r)))))))
+
+(define (istream-of pred)
+  (lambda (v)
+    ;; *only* for lazy inputs
+    (or (and (promise? v)
+	     (FV (v)
+		 (or (null? v)
+		     (and (pair? v)
+			  (pred (car v))))))
+	(and (pair? v)
+	     (let ((r (cdr v)))
+	       (and (promise? r)
+		    (pred (car (force r)))))))))
+
+(define char-ilist? (ilist-of char?))
+(define char-istream? (istream-of char?))
+
+(TEST
+ > (char-istream? '())
+ #f ;; because there's *no* indication of lazyness
+ > (char-ilist? '())
+ #t
+ > (char-istream? '(#\H #\i))
+ #f
+ > (char-ilist? '(#\H #\i))
+ #t
+ > (char-istream? '(#\H 1))
+ #f
+ > (char-ilist? '(#\H 1))
+ #t
+ ;; ^ well, decided that this is good enough.
+
+ > (char-ilist? (delay (cons #\H (delay (cons #\i '())))))
+ #f
+ > (char-istream? (delay (cons #\H (delay (cons #\i '())))))
+ #t
+ > (char-ilist? (cons #\H (delay (cons #\i '()))))
+ #f
+ > (char-istream? (cons #\H (delay (cons #\i '()))))
+ #t
+
+ > (char-ilist? (delay (cons #\H (delay 1))))
+ #f
+ > (char-istream? (delay (cons #\H (delay 1))))
+ #t
+
+ > (char-ilist? '(1 #\H))
+ #f
+ > (char-istream? (delay (cons 1 (delay (cons #\H '())))))
+ #f
+ )
 
 (define (possibly-lazy-null? v)
   (or (null? v)
@@ -75,7 +136,7 @@
 
 (define (iseq? v)
   (FV (v)
-      (ilist? v)))
+      (pair-or-null? v)))
 
 (define (iseq-of pred)
   (lambda (v)
@@ -318,6 +379,8 @@
    (define. istream.reverse/tail stream-reverse/tail)
    (define. istream.split-at stream-split-at)
 
+   (define. char-istream.string stream->string)
+
    ;; srfi-1
 
    (define. istream.second stream-second)
@@ -398,6 +461,12 @@
  ((b a) (c d))
  > (.list (.split-at '(a b c d) 2))
  ((a b) (c d))
+
+ > (.string '(#\H #\i))
+ "Hi"
+ > (.string (delay (cons #\H (delay (cons #\i '())))))
+ "Hi"
+
  ;; add more extensive testing..
  )
 
