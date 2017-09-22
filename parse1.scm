@@ -401,7 +401,7 @@
 	 (if (null? l)
 	     (parse1-error (char-class-unexpected-eof chars))
 	     (let-pair ((a l*) l)
-		       (if (memq a chars)
+		       (if (memq (source-code a) chars)
 			   l*
 			   (parse1-error (char-class-match-failure chars l)))))))
 
@@ -415,9 +415,11 @@
 	 (if (null? l)
 	     (parse1-error (char-class-unexpected-eof chars))
 	     (let-pair ((a l*) l)
-		       (if (memq a chars)
-			   (values a l*)
-			   (parse1-error (char-class-match-failure chars l)))))))
+		       (let ((a (source-code a)))
+			 (if (memq a chars)
+			     (values a l*)
+			     (parse1-error
+			      (char-class-match-failure chars l))))))))
 
 
 (def ((parse1#match-list? #(iseq? templ))
@@ -453,7 +455,7 @@
       (if (null? l)
 	  (parse1-error (match-pred-unexpected-eof pred desc))
 	  (let-pair ((a l*) l)
-		    (if (pred a)
+		    (if (pred (source-code a))
 			l*
 			(parse1-error (match-pred-failure pred desc l)))))))
 
@@ -465,7 +467,7 @@
 	   (if (null? l)
 	       l
 	       (let-pair ((a l*) l)
-			 (if (pred a)
+			 (if (pred (source-code a))
 			     (lp l*)
 			     l))))))
 
