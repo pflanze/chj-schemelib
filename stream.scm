@@ -36,6 +36,7 @@
 	stream-filter-map
 	stream-improper-map
 	stream->list
+	stream->string
 	stream-drop
 	stream-take
 	list-rtake&rest stream-rtake&rest
@@ -362,6 +363,20 @@
 	     ;; (don't keep a reference to the stream head to avoid
 	     ;; memory retention!)
 	     (error "stream->list: improper stream, ending in:" p))))))
+
+
+(define (stream->string s)
+  (let* ((len (stream-length s))
+	 (str (make-string len)))
+    (let lp ((s s)
+	     (i 0))
+      (FV (s)
+	  (if (fx< i len)
+	      (let-pair ((a r) s)
+			(string-set! str i a)
+			(lp r (fx+ i 1))))))
+    str))
+
 
 (define (stream-drop s k)
   (if (>= k 0)
