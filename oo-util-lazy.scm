@@ -232,6 +232,9 @@
 
 (define source-list->string source-stream->string) ;; slight inefficiency
 
+(define list-length>= stream-length>=)
+(define list-length> stream-length>)
+
 (define list-first first)
 (define list-second second)
 (define list-third third)
@@ -387,6 +390,9 @@
 
    (define. char-istream.string stream->string)
    (define. source-char-istream.string source-stream->string)
+
+   (define. istream.length> stream-length>)
+   (define. istream.length>= stream-length>=)
 
    ;; srfi-1
 
