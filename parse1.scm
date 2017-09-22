@@ -2,7 +2,7 @@
 	 jclass
 	 (list-util-3 list-starts-with? char-list-starts-with-string?)
 	 debuggable-promise
-	 (oo-util-lazy iseq?)
+	 oo-util-lazy
 	 (oo-util char-list.show char-list+?)
 	 (cj-port with-output-to-string)
 	 (cj-exception-handler write-exception-message)
@@ -156,6 +156,38 @@
 	 (thunk)))))
 
 
+;; give a ".show"-like view (evaluatable) that's most useful for
+;; inspection
+
+(def show-parse1-input-maxlen 12)
+
+(def. (iseq.show-parse1-input s)
+  (if (stream-length> s show-parse1-input-maxlen)
+      `(cons*
+	,@(map .show (.list (.take s show-parse1-input-maxlen)))
+	'...
+	(serial-number->object
+	 ,(object->serial-number (.drop s show-parse1-input-maxlen))))
+      (.show s)))
+
+;; (def. (char-istream.show-parse1-input s)
+;;   )
+
+(def (parse1:input prefix l)
+     (FV (l)
+	 (if (pair? l)
+	     (show-source-location (car l))))
+     l)
+
+(def. (source-char-istream.show-parse1-input s)
+  (let ((long? (stream-length> s show-parse1-input-maxlen)))
+    `(parse1:input ,(.string
+		     (if long?
+			 (.take s show-parse1-input-maxlen)
+			 s))
+		   ,@(if long? `(...) `())
+		   (serial-number->object ,(object->serial-number s)))))
+
 
 
 (jinterface
@@ -185,9 +217,8 @@
 	  (def-method* (exception-message _)
 	    (list "input does not start with list"
 		  match: (.show match)
-		  at-input: (.show at-input)
-		  ;; ^ try to take position or something instead
-		  input: (.show input))))
+		  at-input: (.show-parse1-input at-input)
+		  input: (.show-parse1-input input))))
 
   (jclass (string-match-failure #(string? match)
 				#(iseq? at-input)
@@ -195,21 +226,20 @@
 	  (def-method* (exception-message _)
 	    (list "input does not start with string"
 		  match: match
-		  at-input: (.show at-input)
-		  ;; ^ try to take position or something instead
-		  input: (.show input))))
+		  at-input: (.show-parse1-input at-input)
+		  input: (.show-parse1-input input))))
 
   (jclass (all-options-failure failures #(iseq? input))
 	  (def-method* (exception-message _)
 	    (list "none of the options matched"
 		  failures: (map .exception-message failures)
-		  input: (.show input))))
+		  input: (.show-parse1-input input))))
 
   (jclass (char-class-match-failure #(char-list+? chars) #(iseq? input))
 	  (def-method* (exception-message _)
 	    (list "input does not start with a char out of"
 		  chars: chars
-		  input: (.show input))))
+		  input: (.show-parse1-input input))))
 
   (jclass (repeat-failure #(exact-natural0? n)
 			  #(exact-natural0? m)
@@ -220,18 +250,18 @@
 	    (list "match should repeat n..m times but fails on the i-th repetition"
 		  n: n m: m i: i
 		  failure: (.exception-message failure)
-		  input: (.show input))))
+		  input: (.show-parse1-input input))))
 
   (jclass (match-pred-failure #(function? pred) desc #(iseq? input))
 	  (def-method* (exception-message _)
 	    (list "failure expecting an item satisfying pred"
 		  (if desc desc pred)
-		  input: (.show input))))
+		  input: (.show-parse1-input input))))
 
   (jclass (expecting-eof-failure #(iseq? input))
 	  (def-method* (exception-message _)
 	    (list "expecting end of input"
-		  input: (.show input))))
+		  input: (.show-parse1-input input))))
   
   (jclass parse1-unexpected-eof
 
