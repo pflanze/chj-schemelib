@@ -122,6 +122,10 @@
  #f
  )
 
+(define source-char-ilist? (ilist-of (source-of char?)))
+(define source-char-istream? (istream-of (source-of char?)))
+
+
 (define (possibly-lazy-null? v)
   (or (null? v)
       (and (promise? v)
@@ -225,6 +229,8 @@
 
 (define list-reverse reverse)
 (define list-reverse/tail reverse/tail)
+
+(define source-list->string source-stream->string) ;; slight inefficiency
 
 (define list-first first)
 (define list-second second)
@@ -380,6 +386,7 @@
    (define. istream.split-at stream-split-at)
 
    (define. char-istream.string stream->string)
+   (define. source-char-istream.string source-stream->string)
 
    ;; srfi-1
 
