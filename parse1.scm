@@ -48,8 +48,11 @@
  parse1#any
  parse1#many
  parse1#repeat
+ parse1#capture-any
+ parse1#capture-many
+ parse1#capture-repeat
 
- ;; Parser combinators and extractors for capture:
+ ;; Parser combinators and extractors for capturing
  parse1#capture
  parse1#>>=
  parse1#return
@@ -98,6 +101,9 @@
 			any
 			many
 			repeat
+			capture-any
+			capture-many
+			capture-repeat
 
 			;; Parser combinators and extractors for capture:
 			capture
@@ -263,6 +269,14 @@
 
 (def parse1:input-capturing-result?
      (values-of iseq? iseq?))
+
+(def parse1:results-capturing-result?
+     (values-of iseq?
+		;; ^ (stream-of any?) (or (stream-of T?) where T? is
+		;; the type returned by the parser parameter) instead
+		;; of (stream-of T2?)  where T2? is the type of the
+		;; input elements (often char?).
+		iseq?))
 
 
 (def parse1:non-capturing-parser? procedure?)
@@ -582,8 +596,65 @@
 
 ;; ^ XX add variants that return how many times they matched?
 
+;; Variants that capture a list of all results of the matches
 
-;; Parser combinators and extractors for capture:
+(def (parse1#capture-any #(parse1:any-capturing-parser? p)
+			 #!optional
+			 (#(iseq? tail) '()))
+     (named rec
+	    (lambda (#(iseq? l)) -> parse1:results-capturing-result?
+	      ;; not optimized here, will be slowish
+	      (on-parse1-error
+	       (lambda (e) (values tail l))
+	       (& 
+		(let*-values (((v l*) (p l))
+			      ((vs l**) (rec l*)))
+		  (values (cons v vs)
+			  l**)))))))
+
+
+(def (parse1#capture-many #(parse1:any-capturing-parser? p)
+			  #!optional
+			  (#(iseq? tail) '()))
+     (PARSE1 (mlet ((v0 p)
+		    (vs (any p tail)))
+		   (return (cons v0 vs)))))
+
+
+(def (parse1#capture-repeat #(exact-natural0? n)
+			    #(exact-natural0? m)
+			    #(parse1:any-capturing-parser? p)
+			    #!optional
+			    (#(iseq? tail) '()))
+     (assert (<= n m)) ;; or let it fail at parse time?
+     (lambda (#(iseq? l)) -> parse1:results-capturing-result?
+
+	(def (parse/ rec l i)
+	     (let*-values (((v l*) (p l))
+			   ((vs l**) (rec l* (fx+ i 1))))
+	       (values (cons v vs)
+		       l**)))
+
+	(let rec ((l l)
+		  (i 0))
+	  (if (< i n)
+	      (parse/ rec l i)
+
+	      ;; Entering the part that does only stop, not backtrack
+	      ;; upon failure.  Unlike in parse1#repeat, to allow for
+	      ;; lazy results in the future, do not optimize here?
+	      (let rec ((l l)
+			(i i))
+		(if (< i m)
+		    (on-parse1-error
+		     (lambda (e) (values tail l))
+		     (& (parse/ rec l i)))
+		    
+		    (values tail l)))))))
+
+
+
+;; Parser combinators and extractors for capturing:
 
 (def ((parse1#capture #(parse1:non-capturing-parser? p))
       #(iseq? l))
@@ -836,5 +907,52 @@
  > (p "H")
  (values (.list "H") (list))
  > (p "")
- (values (list) (list)))
+ (values (list) (list))
 
+ > (def p (comp* .show (PARSE1 (capture-any
+				(mdo whitespace+
+				     (capture
+				      (many (match-pred char-alpha?))))))
+		 .list))
+ > (p "")
+ (values (list) (list))
+ > (p " ")
+ (values (list) (.list " "))
+ > (p "a")
+ (values (list) (.list "a"))
+ > (p " abc0")
+ (values (list (.list "abc"))
+	 (.list "0"))
+ > (p " abc def 0 ghi")
+ (values (list (.list "abc") (.list "def"))
+	 (.list " 0 ghi"))
+
+ > (def p (comp* .show
+		 (PARSE1
+		  (capture-any
+		   (mdo whitespace+
+			(capture-repeat 2 4
+					(capture (match-pred char-alpha?))))))
+		 .list))
+ > (p "")
+ (values (list) (list))
+ > (p " ")
+ (values (list) (.list " "))
+ > (p "a")
+ (values (list) (.list "a"))
+ > (p " abc0")
+ (values (list (list (.list "a") (.list "b") (.list "c")))
+	 (.list "0"))
+ > (p " abc def 0 ghi")
+ (values (list (list (.list "a") (.list "b") (.list "c"))
+	       (list (.list "d") (.list "e") (.list "f")))
+	 (.list " 0 ghi"))
+ > (p " ab0")
+ (values (list (list (.list "a") (.list "b"))) (.list "0"))
+ > (p " abcdef0")
+ (values (list (list (.list "a") (.list "b") (.list "c") (.list "d")))
+	 (.list "ef0"))
+ > (p " abcd ef0")
+ (values (list (list (.list "a") (.list "b") (.list "c") (.list "d"))
+	       (list (.list "e") (.list "f")))
+	 (.list "0")))
