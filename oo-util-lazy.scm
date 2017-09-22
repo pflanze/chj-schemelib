@@ -155,6 +155,8 @@
 
 (define list-zip zip)
 (define list-zip2 zip2)
+(define list-find-tail find-tail)
+(define list-take-while take-while)
 (define list-drop-while drop-while)
 (define list-chop chop)
 (define list-chop/map chop/map)
@@ -270,6 +272,12 @@
 
    (define. (istream.zip2 s1 s2)
      (stream-zip2 s1 s2))
+
+   (define. (istream.find-tail l pred)
+     (stream-find-tail pred l))
+
+   (define. (istream.take-while l pred)
+     (stream-take-while pred l))
 
    (define. (istream.drop-while l pred)
      (stream-drop-while pred l))

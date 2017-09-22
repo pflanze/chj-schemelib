@@ -71,7 +71,10 @@
 	stream-unfold2
 	stream-zip
 	zip2 stream-zip2
+	stream-find-tail
+	stream-take-while
 	stream-drop-while
+	
 	stream-ref
 	;; stream-%cars+cdrs
 	stream-every
@@ -1246,6 +1249,24 @@
  > (.show (zip2 '(1 2) '(a b)))
  (list (values 1 'a) (values 2 'b)))
 
+
+;; adapted copies from SRFI-1
+(define (stream-find-tail pred list)
+  (let lp ((list list))
+    (FV (list)
+	(and (not (null-list? list))
+	     (if (pred (car list)) list
+		 (lp (cdr list)))))))
+
+(define (stream-take-while pred lis)
+  (let recur ((lis lis))
+    (delay
+      (FV (lis)
+	  (if (null-list? lis) '()
+	      (let ((x (car lis)))
+		(if (pred x)
+		    (cons x (recur (cdr lis)))
+		    '())))))))
 
 (define (stream-drop-while pred l)
   (let lp ((l l))
