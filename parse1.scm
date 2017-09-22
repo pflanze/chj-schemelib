@@ -48,9 +48,9 @@
  parse1#any
  parse1#many
  parse1#repeat
- parse1#capture-any
- parse1#capture-many
- parse1#capture-repeat
+ parse1#capturing-any
+ parse1#capturing-many
+ parse1#capturing-repeat
 
  ;; Parser combinators and extractors for capturing
  parse1#capture
@@ -101,9 +101,9 @@
 			any
 			many
 			repeat
-			capture-any
-			capture-many
-			capture-repeat
+			capturing-any
+			capturing-many
+			capturing-repeat
 
 			;; Parser combinators and extractors for capture:
 			capture
@@ -596,36 +596,45 @@
 
 ;; ^ XX add variants that return how many times they matched?
 
-;; Variants that capture a list of all results of the matches
+;; Variants that capture a list of all results of the matches.
 
-(def (parse1#capture-any #(parse1:any-capturing-parser? p)
-			 #!optional
-			 (#(iseq? tail) '()))
+;; NOTE that with e.g.
+;;
+;;   (def P1 (capture (any p1)))
+;;   (def P2 (capturing-any p2))
+;;
+;; P1 is *not* the same as P2. p1 must be a non-capturing parser, P1
+;; captures a list of the input items. p2 must be a capturing parser,
+;; P2 returns a list of all the results returned by p2.
+
+(def (parse1#capturing-any #(parse1:any-capturing-parser? p)
+			   #!optional
+			   (#(iseq? tail) '()))
      (named rec
 	    (lambda (#(iseq? l)) -> parse1:results-capturing-result?
-	      ;; not optimized here, will be slowish
-	      (on-parse1-error
-	       (lambda (e) (values tail l))
-	       (& 
-		(let*-values (((v l*) (p l))
-			      ((vs l**) (rec l*)))
-		  (values (cons v vs)
-			  l**)))))))
+	       ;; not optimized here, will be slowish
+	       (on-parse1-error
+		(lambda (e) (values tail l))
+		(& 
+		 (let*-values (((v l*) (p l))
+			       ((vs l**) (rec l*)))
+		   (values (cons v vs)
+			   l**)))))))
 
 
-(def (parse1#capture-many #(parse1:any-capturing-parser? p)
-			  #!optional
-			  (#(iseq? tail) '()))
+(def (parse1#capturing-many #(parse1:any-capturing-parser? p)
+			    #!optional
+			    (#(iseq? tail) '()))
      (PARSE1 (mlet ((v0 p)
 		    (vs (any p tail)))
 		   (return (cons v0 vs)))))
 
 
-(def (parse1#capture-repeat #(exact-natural0? n)
-			    #(exact-natural0? m)
-			    #(parse1:any-capturing-parser? p)
-			    #!optional
-			    (#(iseq? tail) '()))
+(def (parse1#capturing-repeat #(exact-natural0? n)
+			      #(exact-natural0? m)
+			      #(parse1:any-capturing-parser? p)
+			      #!optional
+			      (#(iseq? tail) '()))
      (assert (<= n m)) ;; or let it fail at parse time?
      (lambda (#(iseq? l)) -> parse1:results-capturing-result?
 
@@ -909,7 +918,7 @@
  > (p "")
  (values (list) (list))
 
- > (def p (comp* .show (PARSE1 (capture-any
+ > (def p (comp* .show (PARSE1 (capturing-any
 				(mdo whitespace+
 				     (capture
 				      (many (match-pred char-alpha?))))))
@@ -929,10 +938,10 @@
 
  > (def p (comp* .show
 		 (PARSE1
-		  (capture-any
+		  (capturing-any
 		   (mdo whitespace+
-			(capture-repeat 2 4
-					(capture (match-pred char-alpha?))))))
+			(capturing-repeat 2 4
+					  (capture (match-pred char-alpha?))))))
 		 .list))
  > (p "")
  (values (list) (list))
