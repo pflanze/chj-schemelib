@@ -23,6 +23,7 @@
 
  ;; Parser generators
  parse1#anything
+ parse1#nothing
  parse1#char-of-class
  parse1#capture-char-of-class
  parse1#match-list?
@@ -72,6 +73,7 @@
 
 			;; Parser generators
 			anything
+			nothing
 			char-of-class
 			capture-char-of-class
 			match-list?
@@ -351,6 +353,11 @@
      (if (null? l)
 	 (parse1-error (generic-unexpected-eof 'anything))
 	 (cdr l)))
+
+;; zero-width match (beware of endless loops!)
+(def (parse1#nothing #(iseq? l))
+     -> parse1:non-capturing-result?
+     l)
 
 
 ;; Parser generators
@@ -777,5 +784,7 @@
  > (p "o")
  (list)
  > (with-exception-catcher .show (& (p "")))
- (generic-unexpected-eof 'anything))
+ (generic-unexpected-eof 'anything)
+ > (.show ((PARSE1 nothing) (.list "foo")))
+ (.list "foo"))
 
