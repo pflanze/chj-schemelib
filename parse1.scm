@@ -102,7 +102,7 @@
 			mlet*
 			mlet
 			mIf))
-	  ,@body))
+	  (mdo ,@body)))
 
 
 ;; A non-capturing parser is a function taking a sequence and
