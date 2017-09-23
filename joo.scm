@@ -632,10 +632,10 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		    ;; separate constructor (XX hm, allow #f, too?,
 		    ;; i.e. fields but no constructor)
-		    (`(`class-name `constructor-name)
+		    (`(`class-name `maybe-constructor-name)
 		     (cont-renamedconstructor constructor-stx
 					      class-name
-					      constructor-name
+					      maybe-constructor-name
 					      field-decls))
 
 		    ;; constructor has the same name as the class
