@@ -173,20 +173,24 @@
 ;; (def. (char-istream.show-parse1-input s)
 ;;   )
 
-(def (parse1:input prefix l)
-     (FV (l)
-	 (if (pair? l)
-	     (show-source-location (car l))))
-     l)
+(def (stream# no prefix)
+     (let ((l (serial-number->object no)))
+       (FV (l)
+	   (if (pair? l)
+	       (show-source-location (car l))))
+       l))
 
 (def. (source-char-istream.show-parse1-input s)
   (let ((long? (stream-length> s show-parse1-input-maxlen)))
-    `(parse1:input ,(.string
-		     (if long?
-			 (.take s show-parse1-input-maxlen)
-			 s))
-		   ,@(if long? `(...) `())
-		   (serial-number->object ,(object->serial-number s)))))
+    `(stream#
+      ,(object->serial-number s)
+      ,(if long?
+	   (string-append
+	    (.string (.take s show-parse1-input-maxlen))
+	    ;; Gambit escapes the unicode ellipsis symbol
+	    ;; in string syntax, hence just:
+	    "...")
+	   (.string s)))))
 
 
 
