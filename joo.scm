@@ -754,6 +754,12 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		   `(begin
 		      (%joo-declare)
+		      ;; XX TODO: in the case of a class definition
+		      ;; with fields but no constructor, we would
+		      ;; still like to be able to use def-method*, but
+		      ;; currently can't as let-classname is defined
+		      ;; by define-struct.-expand. Split that out so
+		      ;; that we can.
 		      ,(if maybe-constructor-name
 			   (define-struct.-expand
 			     constructor-stx ;; for location info only
