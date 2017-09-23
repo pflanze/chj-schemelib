@@ -219,57 +219,64 @@
       (& (write-exception-message (.maybe-exception-message v)))))
 
 
-  (jclass (list-match-failure #(iseq? match)
-			      #(iseq? at-input)
-			      #(iseq? input))
-	  (def-method* (exception-message _)
-	    (list "input does not start with list"
-		  match: (.show match)
-		  at-input: (.show-parse1-input at-input)
-		  input: (.show-parse1-input input))))
 
-  (jclass (string-match-failure #(string? match)
-				#(iseq? at-input)
-				#(iseq? input))
-	  (def-method* (exception-message _)
-	    (list "input does not start with string"
-		  match: match
-		  at-input: (.show-parse1-input at-input)
-		  input: (.show-parse1-input input))))
+  (jclass
+   ((parse1/input-failure _parse1/input-failure) #(iseq? input))
 
-  (jclass (all-options-failure failures #(iseq? input))
-	  (def-method* (exception-message _)
-	    (list "none of the options matched"
-		  failures: (map .exception-message failures)
-		  input: (.show-parse1-input input))))
+   (def-method* (_exception-message _)
+     (list input: (.show-parse1-input input)))
 
-  (jclass (char-class-match-failure #(char-list+? chars) #(iseq? input))
-	  (def-method* (exception-message _)
-	    (list "input does not start with a char out of"
-		  chars: chars
-		  input: (.show-parse1-input input))))
+   
+   (jclass (list-match-failure #(iseq? match)
+			       #(iseq? at-input))
+	   (def-method* (exception-message _)
+	     (cons* "input does not start with list"
+		    match: (.show match)
+		    at-input: (.show-parse1-input at-input)
+		    (parse1/input-failure._exception-message _))))
 
-  (jclass (repeat-failure #(exact-natural0? n)
-			  #(exact-natural0? m)
-			  #(exact-natural0? i)
-			  #(parse1-failure? failure)
-			  #(iseq? input))
-	  (def-method* (exception-message _)
-	    (list "match should repeat n..m times but fails on the i-th repetition"
-		  n: n m: m i: i
-		  failure: (.exception-message failure)
-		  input: (.show-parse1-input input))))
+   (jclass (string-match-failure #(string? match)
+				 #(iseq? at-input))
+	   (def-method* (exception-message _)
+	     (cons* "input does not start with string"
+		    match: match
+		    at-input: (.show-parse1-input at-input)
+		    (parse1/input-failure._exception-message _))))
 
-  (jclass (match-pred-failure #(function? pred) desc #(iseq? input))
-	  (def-method* (exception-message _)
-	    (list "failure expecting an item satisfying pred"
-		  (if desc desc pred)
-		  input: (.show-parse1-input input))))
+   (jclass (all-options-failure failures)
+	   (def-method* (exception-message _)
+	     (cons* "none of the options matched"
+		    failures: (map .exception-message failures)
+		    (parse1/input-failure._exception-message _))))
 
-  (jclass (expecting-eof-failure #(iseq? input))
-	  (def-method* (exception-message _)
-	    (list "expecting end of input"
-		  input: (.show-parse1-input input))))
+   (jclass (char-class-match-failure #(char-list+? chars))
+	   (def-method* (exception-message _)
+	     (cons* "input does not start with a char out of"
+		    chars: chars
+		    (parse1/input-failure._exception-message _))))
+
+   (jclass (repeat-failure #(exact-natural0? n)
+			   #(exact-natural0? m)
+			   #(exact-natural0? i)
+			   #(parse1-failure? failure))
+	   (def-method* (exception-message _)
+	     (cons* "match should repeat n..m times but fails on the i-th repetition"
+		    n: n m: m i: i
+		    failure: (.exception-message failure)
+		    (parse1/input-failure._exception-message _))))
+
+   (jclass (match-pred-failure #(function? pred) desc)
+	   (def-method* (exception-message _)
+	     (cons* "failure expecting an item satisfying pred"
+		    (if desc desc pred)
+		    (parse1/input-failure._exception-message _))))
+
+   (jclass (expecting-eof-failure)
+	   (def-method* (exception-message _)
+	     (cons* "expecting end of input"
+		    (parse1/input-failure._exception-message _)))))
+
+  
   
   (jclass parse1-unexpected-eof
 
@@ -448,7 +455,7 @@
 	     (let-pair ((a l*) l)
 		       (if (memq (source-code a) chars)
 			   l*
-			   (parse1-error (char-class-match-failure chars l)))))))
+			   (parse1-error (char-class-match-failure l chars)))))))
 
 ;; while parse1#capture could be used with parse1:char-of-class, the
 ;; following avoids a bit of overhead and will be a tad simpler to
@@ -477,7 +484,7 @@
      -> iseq?
      (letv ((b l*) (list-starts-with? l templ))
 	   (if b l*
-	       (parse1-error (list-match-failure templ l* l)))))
+	       (parse1-error (list-match-failure l templ l*)))))
 
 
 (def ((parse1#match-string? #(string? templ))
@@ -490,7 +497,7 @@
      -> iseq?
      (letv ((b l*) (char-list-starts-with-string? l templ))
 	   (if b l*
-	       (parse1-error (string-match-failure templ l* l)))))
+	       (parse1-error (string-match-failure l templ l*)))))
 
 
 (def ((parse1#match-pred/desc #(function? pred) desc)
@@ -502,7 +509,7 @@
 	  (let-pair ((a l*) l)
 		    (if (pred (source-code a))
 			l*
-			(parse1-error (match-pred-failure pred desc l)))))))
+			(parse1-error (match-pred-failure l pred desc)))))))
 
 (def ((parse1#match*-pred #(function? pred))
       #(iseq? l))
@@ -591,7 +598,7 @@
      (let lp ((ps parsers)
 	      (failures '()))
        (if (null? ps)
-	   (parse1-error (all-options-failure failures l))
+	   (parse1-error (all-options-failure l failures))
 	   (let-pair ((p ps*) ps)
 		     (on-parse1-error
 		      (lambda (e) (lp ps* (cons e failures)))
@@ -639,7 +646,7 @@
 	(lambda (e)
 	  (if (fx<= i n)
 	      (parse1-error
-	       (repeat-failure n m i e l))
+	       (repeat-failure l n m i e))
 	      l))
 	(&
 	 (let lp ()
@@ -744,7 +751,7 @@
 
  > (%try ((PARSE1 (capture (match-list (.list "foob"))))
 	  (.list "foo baz")))
- (exception text: "This object was raised: #((list-match-failure) (#\\f #\\o #\\o #\\b) (#\\space #\\b #\\a #\\z) (#\\f #\\o #\\o #\\space #\\b #\\a #\\z))\n")
+ (exception text: "This object was raised: #((list-match-failure) (#\\f #\\o #\\o #\\space #\\b #\\a #\\z) (#\\f #\\o #\\o #\\b) (#\\space #\\b #\\a #\\z))\n")
   
  > (def p (PARSE1 (capture (meither (match-list (.list "foo"))
 				    (match-list (.list "bar"))))))
@@ -754,9 +761,9 @@
  (values (.list "bar") (.list " baz"))
  > (with-exception-catcher .show (& (p (.list "buz baz"))))
  (all-options-failure
-  (list (list-match-failure (.list "bar") (.list "uz baz") (.list "buz baz"))
-	(list-match-failure (.list "foo") (.list "buz baz") (.list "buz baz")))
-  (.list "buz baz"))
+  (.list "buz baz")
+  (list (list-match-failure (.list "buz baz") (.list "bar") (.list "uz baz"))
+	(list-match-failure (.list "buz baz") (.list "foo") (.list "buz baz"))))
  
  > (def p (PARSE1 (capture
 		   (mdo
@@ -768,9 +775,9 @@
  > (.show (p (.list "hello World!")))
  (values (.list "hello World") (.list "!"))
  > (with-exception-catcher (comp .show F) (& (p (.stream "hello world!"))))
- (list-match-failure (.list "ello World")
-		     (.list "world!")
-		     (.list "ello world!")))
+ (list-match-failure (.list "ello world!")
+		     (.list "ello World")
+		     (.list "world!")))
 
 
 ;; Capturing intermediate results:
@@ -836,10 +843,10 @@
  > ((p 2 4) "abxy")
  (values (.list "ab") (.list "xy"))
  > (with-exception-catcher (comp .show F) (& ((p 3 4) "abxy")))
- (repeat-failure 3 4
+ (repeat-failure (.list "xy")
+		 3 4
 		 3
-		 (char-class-match-failure (.list "abcde") (.list "xy"))
-		 (.list "xy"))
+		 (char-class-match-failure (.list "xy") (.list "abcde")))
 
 
  > (def p (comp* .show
@@ -853,7 +860,7 @@
  > (with-exception-catcher (comp .show F) (& (p "xbcd")))
  ;; even though this is in parse1:many, only report parse1#char-of-class
  ;; failure? XX add wrapper?
- (char-class-match-failure (.list "ab") (.list "xbcd"))
+ (char-class-match-failure (.list "xbcd") (.list "ab"))
  
  
  > (.show (F ((PARSE1
