@@ -223,6 +223,16 @@
   (jclass
    ((parse1/input-failure _parse1/input-failure) #(iseq? input))
 
+   (def-method* (show-location _)
+     (let ((fallback (C .show-code-location _))
+	   (l (force input)))
+       (if (pair? l)
+	   (let ((a (car l)))
+	     (if (source? a)
+		 (show-source-location a)
+		 (fallback)))
+	   (fallback))))
+   
    (def-method* (_exception-message _)
      (list input: (.show-parse1-input input)))
 
