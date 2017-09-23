@@ -175,10 +175,14 @@
 
 (def (stream# no prefix)
      (let ((l (serial-number->object no)))
+       ;; *only* do side effect since that what I normally need; if
+       ;; the actual object is needed, require to type in `#no`?
+       ;; (Since returning the stream which is probably already
+       ;; evaluated is shown expanded when using debuggable-promise.)
        (FV (l)
 	   (if (pair? l)
-	       (show-source-location (car l))))
-       l))
+	       (show-source-location (car l))
+	       l))))
 
 (def. (source-char-istream.show-parse1-input s)
   (let ((long? (stream-length> s show-parse1-input-maxlen)))
