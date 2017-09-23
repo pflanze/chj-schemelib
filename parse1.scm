@@ -43,7 +43,7 @@
  ;; Parser combinators
  parse1#optional
  parse1#meither
- parse1#>>
+ parse1#>> (macro parse1#%>>)
  (macro parse1#mdo)
  parse1#any
  parse1#many
