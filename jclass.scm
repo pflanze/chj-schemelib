@@ -58,7 +58,10 @@
 			     name
 			     is-class?)
 			  forms)))))
-	(joo:parse-decl decl c c c))))
+	(joo:parse-decl decl
+			cont-renamedconstructor: c
+			cont-samename: c
+			cont-nofields: c))))
 
 
 (def (jclass:perhaps-expand-in-context require-match?
