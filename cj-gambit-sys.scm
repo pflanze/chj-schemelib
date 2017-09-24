@@ -32,6 +32,8 @@
 
 	repl
 
+	continuation-location
+
 	;; utilities:
 	vectorlike-bytecopy!
 	vectorlike-byteequal?
@@ -558,3 +560,6 @@ memset(obj+offset,value,numbytes);
 (define (repl)
   (##repl))
 
+
+(define-typed (continuation-location #(continuation? c))
+  (##continuation-locat c))
