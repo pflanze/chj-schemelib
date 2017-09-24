@@ -31,6 +31,7 @@
 	maybe-procedure-name
 
 	repl
+	repl-within
 
 	continuation-location
 
@@ -560,6 +561,9 @@ memset(obj+offset,value,numbytes);
 (define (repl)
   (##repl))
 
+(define-typed (repl-within #(continuation? c) #!optional (arg1 ""))
+  ;; don't know what arg1 is for
+  (##repl-within c arg1))
 
 (define-typed (continuation-location #(continuation? c))
   (##continuation-locat c))
