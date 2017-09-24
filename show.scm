@@ -134,12 +134,17 @@
 
 
 
-;; 
+(define (debuggable-promise# n)
+  (let ((v (serial-number->object n)))
+    (if (debuggable-promise? v)
+	v
+	(error "not a debuggable-promise:" n))))
+
 (define. (debuggable-promise.show v)
   (if (debuggable-promise? v)
       (if (@debuggable-promise-evaluated? v)
 	  (.show (@debuggable-promise-thunk-or-value v))
-	  `(debuggable-promise ,(object->serial-number v)))
+	  `(debuggable-promise# ,(object->serial-number v)))
       ;; shouldn't happen 'usually' (ever this question, unsafe direct call)
       (error "not a debuggable-promise:" v)))
 
