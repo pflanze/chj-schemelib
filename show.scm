@@ -149,7 +149,7 @@
       (error "not a debuggable-promise:" v)))
 
 (define. (##promise.show v)
-  (if (debuggable-promise? v)
+  (if (##promise? v)
       (if (@promise-evaluated? v)
 	  (.show (@promise-value v))
 	  v)
