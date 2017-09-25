@@ -279,10 +279,14 @@
    
    (def-method (show-input-location e fallback)
      ;; don't use the input at the start of a match, but the point
-     ;; where it failed (by default they are the same)
-     (let ((input (force (.at-input e))))
-       (if (pair? input)
-	   (let ((a (car input)))
+     ;; where it failed (which by default is the same) (is this a good
+     ;; or bad idea? Will it lead to confusion? Take a flag instead?)
+     (let* ((l (force (.at-input e)))
+	    ;; but currently, if that's EOF, use input, so as to have
+	    ;; a better chance at getting location info (HACK)
+	    (l (if (null? l) (force input) l)))
+       (if (pair? l)
+	   (let ((a (car l)))
 	     (if (source? a)
 		 (show-source-location a)
 		 (fallback)))
