@@ -6,12 +6,20 @@
 	 (oo-util char-list.show char-list+?)
 	 (cj-port with-output-to-string)
 	 (cj-exception-handler write-exception-message)
+	 (cj-gambit-sys continuation-location repl-within)
+	 predicates
 	 test
 	 char-util
 	 )
 
 (export
- (macro PARSE1) ;; to get all of the below without the prefix
+
+ ;; debugging features:
+ (global parse1:*capture-continuation?*) ;; read at parser instantiation time
+ (jinterface parse1-failure-interface)
+
+ ;; to get all of the below without the prefix:
+ (macro PARSE1)
  
  ;; Parsers
  parse1#at-end?
@@ -63,6 +71,14 @@
 
 (include "cj-standarddeclares.scm")
 (possibly-use-debuggable-promise)
+
+(def parse1:*capture-continuation?* #f)
+
+(set! parse1:*capture-continuation?* #t) ;;
+
+(def (parse1:capture-continuation)
+     (and parse1:*capture-continuation?*
+	  (continuation-capture identity)))
 
 
 (defmacro (PARSE1 . body)
@@ -201,15 +217,50 @@
 (jinterface
  parse1-failure-interface
 
- ;; message to be fed to write-exception-message from
- ;; cj-exception-handler:
- (method (maybe-exception-message _) -> list?)
+ ;; --------------------------------------------------------------------------
+ ;; Alright, the set of debugging methods is probably too big now:
+
+ ;; show the monad context (works even with
+ ;; parse1:*capture-continuation?* #f)
+ (method (show-context e) -> void?)
+
+ ;; visit the monad context (requires parse1:*capture-continuation?* #t)
+ (method (visit e) -> noreturn?)
+
+ ;; show input location, fall back to (.show-parse1-input input)
+ (method (show-input e) -> (either void? sexpr?))
+ ;; show input location, fall back to showing monad context
+ (method (show-location e) -> (either void? noreturn?))
+
+ ;; Transparently used by cj-exception-handler: (message to be fed to
+ ;; write-exception-message)
+ (method (maybe-exception-message e) -> list?)
  ;; same as maybe-exception-message (which will always give a message
  ;; here, too):
- (method (exception-message _) -> list?)
+ (method (exception-message e) -> list?)
+ ;; --------------------------------------------------------------------------
 
  (jclass
-  parse1-failure
+  ((parse1-failure _parse1-failure)
+   #((maybe (either location? continuation?)) context))
+
+  ;; *monadic* context
+  (def-method* (show-context _)
+    (if context
+	(show-location-location
+	 (xcond ((location? context)
+		 context)
+		((continuation? context)
+		 (continuation-location context))))
+	(error "don't have context information")))
+
+  ;; *monadic* visit (almost tempted to call it mvisit)
+  (def-method* (visit _)
+    (if context
+	(if (continuation? context)
+	    (repl-within context)
+	    (error "didn't capture continuation, set parse1:*capture-continuation?* to #t before instantiating the parsers"))
+	(error "don't have context information")))
 
   (def-method (maybe-exception-message v)
     (.exception-message v))
@@ -221,17 +272,28 @@
 
 
   (jclass
-   ((parse1/input-failure _parse1/input-failure) #(iseq? input))
+   ((parse1/input-failure _parse1/input-failure)
+    #(iseq? input))
 
-   (def-method* (show-location _)
-     (let ((fallback (C .show-code-location _))
-	   (l (force input)))
-       (if (pair? l)
-	   (let ((a (car l)))
+   (def-method* (at-input e) input)
+   
+   (def-method (show-input-location e fallback)
+     ;; don't use the input at the start of a match, but the point
+     ;; where it failed (by default they are the same)
+     (let ((input (force (.at-input e))))
+       (if (pair? input)
+	   (let ((a (car input)))
 	     (if (source? a)
 		 (show-source-location a)
 		 (fallback)))
 	   (fallback))))
+
+   (def-method* (show-input e)
+     (.show-input-location e (& (.show-parse1-input input))))
+
+   (def-method* (show-location e)
+     (.show-input-location e (& (.show-context e))))
+
    
    (def-method* (_exception-message _)
      (list input: (.show-parse1-input input)))
@@ -289,6 +351,11 @@
   
   
   (jclass parse1-unexpected-eof
+
+	  (def-method* (at-input e) '())
+	  ;; XX still the open question about the location info for
+	  ;; EOF. Move '() into a field? Probably rather add file info
+	  ;; separately.
 
 	  (jclass (generic-unexpected-eof #(symbol? kind))
 		  (def-method* (exception-message _)
@@ -348,6 +415,42 @@
 
 ;; XX should use generic monad syntax... improvement even if
 ;; parametrized!
+
+
+;; To capture the monad definition context, use |def-parser-generator|
+;; to define a function with /context appended to the parser's name,
+;; and a macro with the original name that calls the latter with the
+;; context:
+
+(def parse1#context #f)
+
+(defmacro (def-parser-generator name+binds . rest)
+
+  (def (modify name+binds make-def)
+       (let-pair ((name binds) (source-code name+binds))
+		 (let ((name* (source:symbol-append name "/context")))
+		   (with-gensym
+		    ARGS
+		    `(begin
+		       ,(make-def `(,name* parse1#context ,@binds))
+		       (defmacro (,name . ,ARGS)
+			 (cons* ',name*
+				`',(source-location stx)
+				,ARGS)))))))
+
+  (assert*
+   pair? name+binds
+   (lambda-pair ((name binds))
+	   (if (pair? (source-code name))
+	       ;; curried
+	       (modify name
+		       (lambda (name+binds*)
+			 `(def (,name+binds* ,@binds)
+			       ,@rest)))
+	       (modify name+binds
+		       (lambda (name+binds*)
+			 `(def ,name+binds*
+			       ,@rest)))))))
 
 
 ;; Hack to enable to retrieve context information upon return type
@@ -428,7 +531,7 @@
      -> parse1:non-capturing-result?
      (FV (l)
 	 (if (null? l) l
-	     (parse1-error (expecting-eof-failure l)))))
+	     (parse1-error (expecting-eof-failure parse1#context l)))))
 
 ;; returns the rest but does not consume it
 (def (parse1#point #(iseq? l))
@@ -445,7 +548,7 @@
      -> parse1:non-capturing-result?
      (FV (l)
 	 (if (null? l)
-	     (parse1-error (generic-unexpected-eof 'anything))
+	     (parse1-error (generic-unexpected-eof parse1#context 'anything))
 	     (cdr l))))
 
 ;; zero-width match (beware of endless loops!)
@@ -456,32 +559,35 @@
 
 ;; Parser generators
 
-(def ((parse1#char-of-class #(char-list+? chars))
-      #(iseq? l))
-     -> parse1:non-capturing-result?
-     (FV (l)
-	 (if (null? l)
-	     (parse1-error (char-class-unexpected-eof chars))
-	     (let-pair ((a l*) l)
-		       (if (memq (source-code a) chars)
-			   l*
-			   (parse1-error (char-class-match-failure l chars)))))))
+(def-parser-generator ((parse1#char-of-class #(char-list+? chars))
+		       #(iseq? l))
+  -> parse1:non-capturing-result?
+  (FV (l)
+      (if (null? l)
+	  (parse1-error (char-class-unexpected-eof parse1#context chars))
+	  (let-pair ((a l*) l)
+		    (if (memq (source-code a) chars)
+			l*
+			(parse1-error
+			 (char-class-match-failure parse1#context
+						   l chars)))))))
 
 ;; while parse1#capture could be used with parse1:char-of-class, the
 ;; following avoids a bit of overhead and will be a tad simpler to
 ;; write. Premature opt?
-(def ((parse1#capture-char-of-class #(char-list+? chars))
-      #(iseq? l))
-     -> parse1:char-capturing-result?
-     (FV (l)
-	 (if (null? l)
-	     (parse1-error (char-class-unexpected-eof chars))
-	     (let-pair ((a l*) l)
-		       (let ((a (source-code a)))
-			 (if (memq a chars)
-			     (values a l*)
-			     (parse1-error
-			      (char-class-match-failure chars l))))))))
+(def-parser-generator ((parse1#capture-char-of-class #(char-list+? chars))
+		       #(iseq? l))
+  -> parse1:char-capturing-result?
+  (FV (l)
+      (if (null? l)
+	  (parse1-error (char-class-unexpected-eof parse1#context chars))
+	  (let-pair ((a l*) l)
+		    (let ((a (source-code a)))
+		      (if (memq a chars)
+			  (values a l*)
+			  (parse1-error
+			   (char-class-match-failure parse1#context
+						     chars l))))))))
 
 
 (def ((parse1#match-list? #(iseq? templ))
@@ -489,12 +595,12 @@
      -> parse1:boolean-capturing-result?
      (list-starts-with? l templ))
 
-(def ((parse1#match-list #(iseq? templ))
-      #(iseq? l))
-     -> iseq?
-     (letv ((b l*) (list-starts-with? l templ))
-	   (if b l*
-	       (parse1-error (list-match-failure l templ l*)))))
+(def-parser-generator ((parse1#match-list #(iseq? templ))
+		       #(iseq? l))
+  -> iseq?
+  (letv ((b l*) (list-starts-with? l templ))
+	(if b l*
+	    (parse1-error (list-match-failure parse1#context l templ l*)))))
 
 
 (def ((parse1#match-string? #(string? templ))
@@ -502,24 +608,24 @@
      -> parse1:boolean-capturing-result?
      (char-list-starts-with-string? l templ))
 
-(def ((parse1#match-string #(string? templ))
-      #(iseq? l))
-     -> iseq?
-     (letv ((b l*) (char-list-starts-with-string? l templ))
-	   (if b l*
-	       (parse1-error (string-match-failure l templ l*)))))
+(def-parser-generator ((parse1#match-string #(string? templ))
+		       #(iseq? l))
+  -> iseq?
+  (letv ((b l*) (char-list-starts-with-string? l templ))
+	(if b l*
+	    (parse1-error (string-match-failure parse1#context l templ l*)))))
 
 
-(def ((parse1#match-pred/desc #(function? pred) desc)
-      #(iseq? l))
-     -> iseq?
-     (FV (l)
+(def-parser-generator ((parse1#match-pred/desc #(function? pred) desc)
+		       #(iseq? l))
+  -> iseq?
+  (FV (l)
       (if (null? l)
-	  (parse1-error (match-pred-unexpected-eof pred desc))
+	  (parse1-error (match-pred-unexpected-eof parse1#context pred desc))
 	  (let-pair ((a l*) l)
 		    (if (pred (source-code a))
 			l*
-			(parse1-error (match-pred-failure l pred desc)))))))
+			(parse1-error (match-pred-failure parse1#context l pred desc)))))))
 
 (def ((parse1#match*-pred #(function? pred))
       #(iseq? l))
@@ -533,9 +639,9 @@
 			     (lp l*)
 			     l))))))
 
-(def (parse1#match+-pred/desc #(function? pred) desc)
-     (parse1#mdo (parse1#match-pred/desc pred desc)
-		 (parse1#match*-pred pred)))
+(def-parser-generator (parse1#match+-pred/desc #(function? pred) desc)
+  (parse1#mdo (parse1#match-pred/desc pred desc)
+	      (parse1#match*-pred pred)))
 
 (defmacro (parse1#match-pred arg) `(parse1#match-pred/desc ,arg ',arg))
 (defmacro (parse1#match+-pred arg) `(parse1#match+-pred/desc ,arg ',arg))
@@ -599,20 +705,21 @@
 ;; perhaps that's what the user expects to be reported. So, leave via
 ;; run-time n-ary function for now.
 
-(def ((parse1#meither . #((list-of parse1:non-capturing-or-any-capturing-parser?)
-			 parsers))
-      #(iseq? l))
-     -> parse1:non-capturing-or-any-capturing-result?
-     ;; ^ same as the widest return type of all the ps
+(def-parser-generator
+  ((parse1#meither . #((list-of parse1:non-capturing-or-any-capturing-parser?)
+		       parsers))
+   #(iseq? l))
+  -> parse1:non-capturing-or-any-capturing-result?
+  ;; ^ same as the widest return type of all the ps
 
-     (let lp ((ps parsers)
-	      (failures '()))
-       (if (null? ps)
-	   (parse1-error (all-options-failure l failures))
-	   (let-pair ((p ps*) ps)
-		     (on-parse1-error
-		      (lambda (e) (lp ps* (cons e failures)))
-		      (& (p l)))))))
+  (let lp ((ps parsers)
+	   (failures '()))
+    (if (null? ps)
+	(parse1-error (all-options-failure parse1#context l failures))
+	(let-pair ((p ps*) ps)
+		  (on-parse1-error
+		   (lambda (e) (lp ps* (cons e failures)))
+		   (& (p l)))))))
 
 
 
@@ -640,32 +747,32 @@
 	 (lp)))))
 
 ;; like "+" in regexes; parser must be non-capturing
-(def (parse1#many #(parse1:non-capturing-parser? p))
-     (parse1#mdo p
-		 (parse1#any p)))
+(def-parser-generator (parse1#many #(parse1:non-capturing-parser? p))
+  (parse1#mdo p
+	      (parse1#any p)))
 
 ;; like "{n,m}" in regexes, n and m are inclusive; parser must be
 ;; non-capturing
-(def (parse1#repeat #(exact-natural0? n)
-		    #(exact-natural0? m)
-		    #(parse1:non-capturing-parser? parser))
-     (assert (<= n m)) ;; or let it fail at parse time?
-     (lambda (#(iseq? l))
-       (def i 0)
-       (on-parse1-error
-	(lambda (e)
-	  (if (fx<= i n)
-	      (parse1-error
-	       (repeat-failure l n m i e))
-	      l))
-	(&
-	 (let lp ()
-	   (if (fx< i m)
-	       (begin
-		 (set! i (fx+ i 1))
-		 (set! l (parser l))
-		 (lp))
-	       l))))))
+(def-parser-generator (parse1#repeat #(exact-natural0? n)
+				     #(exact-natural0? m)
+				     #(parse1:non-capturing-parser? parser))
+  (assert (<= n m)) ;; or let it fail at parse time?
+  (lambda (#(iseq? l))
+    (def i 0)
+    (on-parse1-error
+     (lambda (e)
+       (if (fx<= i n)
+	   (parse1-error
+	    (repeat-failure parse1#context l n m i e))
+	   l))
+     (&
+      (let lp ()
+	(if (fx< i m)
+	    (begin
+	      (set! i (fx+ i 1))
+	      (set! l (parser l))
+	      (lp))
+	    l))))))
 
 ;; ^ XX add variants that return how many times they matched?
 
@@ -680,77 +787,77 @@
 ;; captures a list of the input items. p2 must be a capturing parser,
 ;; P2 returns a list of all the results returned by p2.
 
-(def (parse1#capturing-any #(parse1:any-capturing-parser? p)
-			   #!optional
-			   (#(iseq? tail) '()))
-     (named rec
-	    (lambda (#(iseq? l)) -> parse1:results-capturing-result?
-	       ;; not optimized here, will be slowish
-	       (on-parse1-error
-		(lambda (e) (values tail l))
-		(& 
-		 (let*-values (((v l*) (p l))
-			       ((vs l**) (rec l*)))
-		   (values (cons v vs)
-			   l**)))))))
+(def-parser-generator (parse1#capturing-any #(parse1:any-capturing-parser? p)
+					    #!optional
+					    (#(iseq? tail) '()))
+  (named rec
+	 (lambda (#(iseq? l)) -> parse1:results-capturing-result?
+	    ;; not optimized here, will be slowish
+	    (on-parse1-error
+	     (lambda (e) (values tail l))
+	     (& 
+	      (let*-values (((v l*) (p l))
+			    ((vs l**) (rec l*)))
+		(values (cons v vs)
+			l**)))))))
 
 
-(def (parse1#capturing-many #(parse1:any-capturing-parser? p)
-			    #!optional
-			    (#(iseq? tail) '()))
-     (PARSE1 (mlet ((v0 p)
-		    (vs (any p tail)))
-		   (return (cons v0 vs)))))
+(def-parser-generator (parse1#capturing-many #(parse1:any-capturing-parser? p)
+					     #!optional
+					     (#(iseq? tail) '()))
+  (PARSE1 (mlet ((v0 p)
+		 (vs (any p tail)))
+		(return (cons v0 vs)))))
 
 
-(def (parse1#capturing-repeat #(exact-natural0? n)
-			      #(exact-natural0? m)
-			      #(parse1:any-capturing-parser? p)
-			      #!optional
-			      (#(iseq? tail) '()))
-     (assert (<= n m)) ;; or let it fail at parse time?
-     (lambda (#(iseq? l)) -> parse1:results-capturing-result?
+(def-parser-generator (parse1#capturing-repeat #(exact-natural0? n)
+					       #(exact-natural0? m)
+					       #(parse1:any-capturing-parser? p)
+					       #!optional
+					       (#(iseq? tail) '()))
+  (assert (<= n m)) ;; or let it fail at parse time?
+  (lambda (#(iseq? l)) -> parse1:results-capturing-result?
 
-	(def (parse/ rec l i)
-	     (let*-values (((v l*) (p l))
-			   ((vs l**) (rec l* (fx+ i 1))))
-	       (values (cons v vs)
-		       l**)))
+     (def (parse/ rec l i)
+	  (let*-values (((v l*) (p l))
+			((vs l**) (rec l* (fx+ i 1))))
+	    (values (cons v vs)
+		    l**)))
 
-	(let rec ((l l)
-		  (i 0))
-	  (if (< i n)
-	      (parse/ rec l i)
+     (let rec ((l l)
+	       (i 0))
+       (if (< i n)
+	   (parse/ rec l i)
 
-	      ;; Entering the part that does only stop, not backtrack
-	      ;; upon failure.  Unlike in parse1#repeat, to allow for
-	      ;; lazy results in the future, do not optimize here?
-	      (let rec ((l l)
-			(i i))
-		(if (< i m)
-		    (on-parse1-error
-		     (lambda (e) (values tail l))
-		     (& (parse/ rec l i)))
+	   ;; Entering the part that does only stop, not backtrack
+	   ;; upon failure.  Unlike in parse1#repeat, to allow for
+	   ;; lazy results in the future, do not optimize here?
+	   (let rec ((l l)
+		     (i i))
+	     (if (< i m)
+		 (on-parse1-error
+		  (lambda (e) (values tail l))
+		  (& (parse/ rec l i)))
 		    
-		    (values tail l)))))))
+		 (values tail l)))))))
 
 
 
 ;; Parser combinators and extractors for capturing:
 
-(def ((parse1#capture #(parse1:non-capturing-parser? p))
-      #(iseq? l))
-     -> parse1:input-capturing-result?
+(def-parser-generator ((parse1#capture #(parse1:non-capturing-parser? p))
+		       #(iseq? l))
+  -> parse1:input-capturing-result?
 
-     (let ((l* (p l)))
-       (FV (l*)
-	   (values (let rec ((l l))
-		     (FV (l)
-			 (if (or (null? l) (eq? l l*))
-			     '()
-			     (let-pair ((a r) l)
-				       (cons a (rec r))))))
-		   l*))))
+  (let ((l* (p l)))
+    (FV (l*)
+	(values (let rec ((l l))
+		  (FV (l)
+		      (if (or (null? l) (eq? l l*))
+			  '()
+			  (let-pair ((a r) l)
+				    (cons a (rec r))))))
+		l*))))
 
 
 
@@ -759,21 +866,30 @@
 	   (.list "foo bar")))
  (values (.list "foo") (.list " bar"))
 
- > (%try ((PARSE1 (capture (match-list (.list "foob"))))
-	  (.list "foo baz")))
- (exception text: "This object was raised: #((list-match-failure) (#\\f #\\o #\\o #\\space #\\b #\\a #\\z) (#\\f #\\o #\\o #\\b) (#\\space #\\b #\\a #\\z))\n")
-  
+ > (with-exception-catcher
+    .exception-message
+    (& ((PARSE1 (capture (match-list (.list "foob"))))
+	(.list "foo baz"))))
+ ("input does not start with list"
+  match: (.list "foob")
+  at-input: (.list " baz")
+  input: (.list "foo baz"))
+
  > (def p (PARSE1 (capture (meither (match-list (.list "foo"))
 				    (match-list (.list "bar"))))))
  > (.show (p (.list "foo baz")))
  (values (.list "foo") (.list " baz"))
  > (.show (p (.list "bar baz")))
  (values (.list "bar") (.list " baz"))
- > (with-exception-catcher .show (& (p (.list "buz baz"))))
- (all-options-failure
-  (.list "buz baz")
-  (list (list-match-failure (.list "buz baz") (.list "bar") (.list "uz baz"))
-	(list-match-failure (.list "buz baz") (.list "foo") (.list "buz baz"))))
+ > (with-exception-catcher .exception-message (& (p (.list "buz baz"))))
+ ("none of the options matched"
+  failures: (("input does not start with list"
+	      match: (.list "bar") at-input: (.list "uz baz")
+	      input: (.list "buz baz"))
+	     ("input does not start with list"
+	      match: (.list "foo") at-input: (.list "buz baz")
+	      input: (.list "buz baz")))
+  input: (.list "buz baz"))
  
  > (def p (PARSE1 (capture
 		   (mdo
@@ -784,10 +900,12 @@
  (values (.list "Hello World") (.list "!"))
  > (.show (p (.list "hello World!")))
  (values (.list "hello World") (.list "!"))
- > (with-exception-catcher (comp .show F) (& (p (.stream "hello world!"))))
- (list-match-failure (.list "ello world!")
-		     (.list "ello World")
-		     (.list "world!")))
+ > (with-exception-catcher .exception-message (& (p (.stream "hello world!"))))
+ ("input does not start with list"
+  match: (.list "ello World")
+  at-input: (.stream "world!")
+  input: (.stream "ello world!"))
+ )
 
 
 ;; Capturing intermediate results:
@@ -852,12 +970,13 @@
  (values (.list "ab") (.list "xy"))
  > ((p 2 4) "abxy")
  (values (.list "ab") (.list "xy"))
- > (with-exception-catcher (comp .show F) (& ((p 3 4) "abxy")))
- (repeat-failure (.list "xy")
-		 3 4
-		 3
-		 (char-class-match-failure (.list "xy") (.list "abcde")))
-
+ > (with-exception-catcher .exception-message (& ((p 3 4) "abxy")))
+ ("match should repeat n..m times but fails on the i-th repetition"
+  n: 3 m: 4 i: 3
+  failure: ("input does not start with a char out of"
+	    chars: (#\a #\b #\c #\d #\e)
+	    input: (.stream "xy"))
+  input: (.stream "xy"))
 
  > (def p (comp* .show
 		 F
@@ -867,12 +986,11 @@
  (values (.list "ab") (.list "cd"))
  > (p "axbcd")
  (values (.list "a") (.list "xbcd"))
- > (with-exception-catcher (comp .show F) (& (p "xbcd")))
+ > (with-exception-catcher .exception-message (& (p "xbcd")))
  ;; even though this is in parse1:many, only report parse1#char-of-class
  ;; failure? XX add wrapper?
- (char-class-match-failure (.list "xbcd") (.list "ab"))
- 
- 
+ ("input does not start with a char out of"
+  chars: (#\a #\b) input: (.stream "xbcd"))
  > (.show (F ((PARSE1
 	       (mlet* ((a (capture-while char-alpha?))
 		       (b (capture-while char-numeric?)))
@@ -919,6 +1037,7 @@
 
 ;; Utilities
 
+;; XX use def-parser-generator here, too?
 (def parse1#whitespace (PARSE1 (match-pred char-whitespace?)))
 (def parse1#whitespace* (PARSE1 (any whitespace)))
 (def parse1#whitespace+ (PARSE1 (many whitespace)))
@@ -966,7 +1085,7 @@
  > (p "o")
  (list)
  > (with-exception-catcher .show (& (p "")))
- (generic-unexpected-eof 'anything)
+ (generic-unexpected-eof #f 'anything) ;; XX why context #f ?
  > (.show ((PARSE1 nothing) (.list "foo")))
  (.list "foo")
  > (def p (comp* .show (PARSE1 (optional whitespace)
@@ -986,7 +1105,7 @@
 				     the-end
 				     (return c))) .list))
  > (with-exception-catcher .show (& (p "Hel")))
- (expecting-eof-failure (.list "l"))
+ (expecting-eof-failure #f (.list "l")) ;; XX why context #f ?
  > (p " He")
  (values (.list "H") (list))
  > (p "He")
