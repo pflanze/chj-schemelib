@@ -392,9 +392,15 @@
       (source-error sym "not a symbol")))
 
 
+(define-macro* (define-parameter name default-value)
+  `(define ,name (make-parameter ,default-value)))
+
+
+(define-parameter current-show-def show-procedure-location)
+
 (define-macro* (show-def expr)
   (let ((expr* (source-code expr)))
-    `(show-procedure-location
+    `((current-show-def)
       ,(if (symbol? expr*)
 	   ;; XX A tiny bit evil: checks macro expander
 	   ;; *first*. I.e. relies on current fact that if macro
@@ -496,10 +502,6 @@
 		    (fn v)))))
 
 ;; tests see cj-env-test
-
-
-(define-macro* (define-parameter name default-value)
-  `(define ,name (make-parameter ,default-value)))
 
 
 (define (keyword->symbol v)

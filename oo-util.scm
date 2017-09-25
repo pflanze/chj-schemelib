@@ -120,6 +120,12 @@
 (define. source.show-location show-source-location)
 (define. procedure.show-location show-procedure-location)
 
+;; make |show-def| more general:
+(current-show-def .show-location)
+;; XX hmm, rename show-def to show-location, though? This now prefers
+;; to show input location over source location or monad context for
+;; parse1 failures.
+
 ;; ------------------------------------------
 ;; Check values for truthness the Perl way:
 
