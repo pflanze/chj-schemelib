@@ -269,6 +269,24 @@
     (with-output-to-string
       (& (write-exception-message (.maybe-exception-message v)))))
 
+  (def-method (show-input-location e fallback)
+    ;; don't use the input at the start of a match, but the point
+    ;; where it failed (which by default is the same) (is this a good
+    ;; or bad idea? Will it lead to confusion? Take a flag instead?)
+    ;; But currently, if that's EOF, use input, so as to have a
+    ;; better chance at getting location info (HACK)
+    (cond ((or (.maybe-input-location e #t)
+	       (.maybe-input-location e #f))
+	   => show-location-location)
+	  (else
+	   (fallback))))
+
+  (def-method* (show-input e)
+    (.show-input-location e (& (.show-parse1-input (.input e)))))
+
+  (def-method* (show-location e)
+    (.show-input-location e (& (.show-context e))))
+
 
 
   (jclass
@@ -288,24 +306,6 @@
 		 #f))
 	   #f)))
    
-   (def-method (show-input-location e fallback)
-     ;; don't use the input at the start of a match, but the point
-     ;; where it failed (which by default is the same) (is this a good
-     ;; or bad idea? Will it lead to confusion? Take a flag instead?)
-     ;; But currently, if that's EOF, use input, so as to have a
-     ;; better chance at getting location info (HACK)
-     (cond ((or (.maybe-input-location e #t)
-		(.maybe-input-location e #f))
-	    => show-location-location)
-	   (else
-	    (fallback))))
-
-   (def-method* (show-input e)
-     (.show-input-location e (& (.show-parse1-input input))))
-
-   (def-method* (show-location e)
-     (.show-input-location e (& (.show-context e))))
-
    
    (def-method* (_exception-message _)
      (list input: (.show-parse1-input input)))
@@ -365,9 +365,11 @@
   (jclass parse1-unexpected-eof
 
 	  (def-method* (at-input e) '())
+	  (def-method* (input e) '())
 	  ;; XX still the open question about the location info for
 	  ;; EOF. Move '() into a field? Probably rather add file info
 	  ;; separately.
+
 
 	  (jclass (generic-unexpected-eof #(symbol? kind))
 		  (def-method* (exception-message _)
