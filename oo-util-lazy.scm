@@ -552,7 +552,7 @@
 (define. (lazy-null.append a b . r)
   (if (null? r)
       b
-      (if (null? b)
+      (if (possibly-lazy-null? b)
 	  (apply stream-append r)
 	  (apply stream-append b r))))
 
