@@ -37,7 +37,7 @@
 	just?
 	maybe
 	on* ;; for binary |on| see cj-env
-	(macro or*)
+	(macro or**)
 	(macro or/)
 	list-of
 	list-of/length ;; see also length-is
@@ -359,7 +359,7 @@
 ;; an "or" that triggers on something else than #f (but returns #f on
 ;; 'failure'):
 
-(define-macro* (or* true? . clauses)
+(define-macro* (or** true? . clauses)
   (with-gensyms
    (TRUE? V)
    `(let ((,TRUE? ,true?))
@@ -377,9 +377,9 @@
   (with-gensym
    FALSE-VALUE
    `(let ((,FALSE-VALUE ,false-value))
-      (or* (lambda (v)
-	     (not (eq? v ,FALSE-VALUE)))
-	   ,@clauses))))
+      (or** (lambda (v)
+	      (not (eq? v ,FALSE-VALUE)))
+	    ,@clauses))))
 
 (TEST
  > (or/ 'false 'false 'nonfalse 'anothernonfalse)
