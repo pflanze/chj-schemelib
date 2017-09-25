@@ -136,6 +136,118 @@
        (null? (force v))))
 
 
+
+;; fully evaluated streams
+
+(define (evaluated-strictly-stream? v)
+  (and (evaluated-promise? v)
+       (let ((v (evaluated-promise-value v)))
+	 (or (null? v)
+	     (and (pair? v)
+		  (evaluated-strictly-stream? (cdr v)))))))
+
+;; allow the first cons to be evaluated already like in istream?:
+(define (evaluated-stream? v)
+  (or (if (promise? v)
+	  (evaluated-strictly-stream? v)
+	  (and (pair? v)
+	       (evaluated-strictly-stream? (cdr v))))))
+
+
+(TEST
+ > (def s (.stream "hallo"))
+ > (evaluated-stream? s)
+ #f
+ > (force s)
+ > (evaluated-stream? s)
+ #f
+ > (evaluated-stream? (force s))
+ #f
+ > (F (stream-take s 2))
+ > (def s2 (S s)) ;; 2 first elements non-lazy
+ > (evaluated-stream? s)
+ #f
+ > (istream? s)
+ #t
+ > (istream? (force s))
+ #t
+ > (istream? (S s))
+ #f
+ > (F s)
+ (#\h #\a #\l #\l #\o)
+ > (evaluated-stream? s)
+ #t
+ > (evaluated-stream? (force s))
+ #t
+ > (evaluated-stream? s2)
+ #f ;; since *two* elements at the front are not promises
+ )
+
+(define (evaluated-strictly-stream-of pred)
+  (named rec
+	 (lambda (v)
+	   (and (evaluated-promise? v)
+		(let ((v (evaluated-promise-value v)))
+		  (or (null? v)
+		      (and (pair? v)
+			   (pred (car v))
+			   (rec (cdr v)))))))))
+
+(define (evaluated-stream-of pred)
+  (define evaluated-strictly-stream? (evaluated-strictly-stream-of pred))
+  (lambda (v)
+    (or (if (promise? v)
+	    (evaluated-strictly-stream? v)
+	    (and (pair? v)
+		 (evaluated-strictly-stream? (cdr v)))))))
+
+(define (evaluated-stream+-of pred)
+  (define evaluated-stream? (evaluated-stream-of pred))
+  (lambda (v)
+    (and (evaluated-stream? v)
+	 (pair? (force v)))))
+
+(TEST
+ > ((evaluated-stream+-of char?) '())
+ #f
+ > ((evaluated-stream+-of char?) '(#\a))
+ #f
+ > (def s3 (delay (cons #\a (delay '()))))
+ > ((evaluated-stream+-of char?) s3)
+ #f
+ > (force s3)
+ > ((evaluated-stream+-of char?) s3)
+ #f
+ > (F s3)
+ > ((evaluated-stream+-of char?) s3)
+ #t
+ > ((evaluated-stream+-of char?) (force s3))
+ #t
+ > ((evaluated-stream-of char?) s3)
+ #t
+ > ((evaluated-strictly-stream-of char?) (force s3))
+ #f
+ > ((evaluated-stream+-of boolean?) s3)
+ #f
+ )
+
+
+(define evaluated-char-stream+? (evaluated-stream+-of char?))
+
+(define. (evaluated-char-stream+.show v)
+  `(.stream ,(stream->string v)))
+
+(TEST
+ > (def s4 (.stream "foo"))
+ > (.show (F s4))
+ (.list "foo")
+ > (.show s4)
+ (.stream "foo")
+ ;; (XX add tests, here and with all .show tests, to verify that
+ ;; eval'ing the result is actually leading to an equivalent input)
+ )
+
+
 ;; move to an iseq.scm ?
 
 (define (iseq? v)
