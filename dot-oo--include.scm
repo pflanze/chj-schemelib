@@ -50,12 +50,19 @@
 	      (lp (fx.inc i)))
 	  #f))))
 
+
+(define *dot-oo:method-trace* #f)
+(set! *dot-oo:method-trace* #f)
+
 (define (dot-oo:method-type-maybe-ref-method vec n obj)
   (let ((end (fx+ n n)))
     (let lp ((i n))
       (if (fx< i end)
 	  (if ((vector-ref vec i) obj)
-	      (vector-ref vec (fx+ i n))
+	      (let ((m (vector-ref vec (fx+ i n))))
+		(if *dot-oo:method-trace*
+		    (warn "method call for:" (vector-ref vec (fx- i n)) m))
+		m)
 	      (lp (fx.inc i)))
 	  #f))))
 
