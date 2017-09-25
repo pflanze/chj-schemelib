@@ -167,6 +167,7 @@
 ;; pop! see list-util-2
 
 
+;; Also see stream-min&max and derived functions incl list-min etc.
 (define (list-preferred lis prefer?)
   (if (pair? lis)
       (let lp ((lis (cdr lis))

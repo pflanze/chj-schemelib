@@ -1429,6 +1429,8 @@
  #t)
 
 
+;; Also see list-preferred which actually takes a predicate!
+
 (define (stream-min&max s)
   (let-pair
    ((a s*) (force s))
