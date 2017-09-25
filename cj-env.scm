@@ -286,8 +286,48 @@
  > (if* '() 1 2)
  2
  > (if* #f 1 #f)
- #f
+ #f)
+
+
+(define (or*-expand expr exprs)
+  (if (null? exprs)
+      expr
+      (let ((V (gensym 'V)))
+	`(let ((,V ,expr))
+	   (if (not* ,V)
+	       ,(or*-expand (car exprs) (cdr exprs))
+	       ,V)))))
+
+(TEST
+ > (or*-expand '(foo) '())
+ (foo)
+ ;; don't have syntax-equal? from cj-symbol yet
+ ;; > (or*-expand '(foo) '((bar) (baz)))
+ ;; (let ((GEN:V-7090 (foo)))
+ ;;   (if (not* GEN:V-7090)
+ ;;       (let ((GEN:V-7091 (bar))) (if (not* GEN:V-7091) (baz) GEN:V-7091))
+ ;;       GEN:V-7090))
  )
+
+
+(define-macro* (or* . exprs)
+  (if (null? exprs)
+      #f
+      (or*-expand (car exprs) (cdr exprs))))
+
+(TEST
+ > (or* #f 1)
+ 1
+ > (or* #t 1)
+ #t
+ > (or* '() 1)
+ 1
+ > (or '() 1)
+ ()
+ > (or* '() #f 1 2)
+ 1)
+
+
 
 (define (pp-through a . r)
   (define port (current-error-port))
