@@ -276,21 +276,29 @@
     #(iseq? input))
 
    (def-method* (at-input e) input)
+
+   (def-method* (maybe-input-location e at-input?)
+     (let ((l (force (if at-input?
+			 (.at-input e)
+			 input))))
+       (if (pair? l)
+	   (let ((a (car l)))
+	     (if (source? a)
+		 (source-location a)
+		 #f))
+	   #f)))
    
    (def-method (show-input-location e fallback)
      ;; don't use the input at the start of a match, but the point
      ;; where it failed (which by default is the same) (is this a good
      ;; or bad idea? Will it lead to confusion? Take a flag instead?)
-     (let* ((l (force (.at-input e)))
-	    ;; but currently, if that's EOF, use input, so as to have
-	    ;; a better chance at getting location info (HACK)
-	    (l (if (null? l) (force input) l)))
-       (if (pair? l)
-	   (let ((a (car l)))
-	     (if (source? a)
-		 (show-source-location a)
-		 (fallback)))
-	   (fallback))))
+     ;; But currently, if that's EOF, use input, so as to have a
+     ;; better chance at getting location info (HACK)
+     (cond ((or (.maybe-input-location e #t)
+		(.maybe-input-location e #f))
+	    => show-location-location)
+	   (else
+	    (fallback))))
 
    (def-method* (show-input e)
      (.show-input-location e (& (.show-parse1-input input))))
