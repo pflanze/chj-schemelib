@@ -11,6 +11,27 @@
 	 debuggable-promise
 	 )
 
+(export ilist?
+	istream?
+	ilist-of
+	istream-of
+	char-ilist?
+	char-istream?
+	source-char-ilist?
+	source-char-istream?
+	possibly-lazy-null?
+	lazy-null?
+	evaluated-strictly-stream?
+	evaluated-stream? evaluated-strictly-stream-of
+	evaluated-stream-of
+	evaluated-stream+-of
+	evaluated-char-stream+?
+	(method evaluated-char-stream+.show)
+	iseq?
+	iseq-of
+	;; and then many methods and list function aliases ...
+	)
+
 (possibly-use-debuggable-promise)
 
 ;; Methods on lazy data
