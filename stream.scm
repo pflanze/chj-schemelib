@@ -6,19 +6,21 @@
 ;;;    (at your option) any later version.
 
 
-(require test
-	 lazy
+(require lazy
 	 define-strict-and-lazy
 	 cj-struct
 	 list-util
 	 cj-cmp
+	 (cj-functional compose)
 	 srfi-11
 	 cj-typed
 	 cut
 	 debuggable-promise
 	  ;; tests:
 	 (lazy-debug F)
-	 show)
+	 show
+	 test
+	 (cj-env on))
 
 (export stream-filter/tail
 	stream-for-each
@@ -1429,28 +1431,54 @@
  #t)
 
 
-;; Also see list-preferred which actually takes a predicate!
+;; Also see list-preferred
 
-(define (stream-min&max s)
-  (let-pair
-   ((a s*) (force s))
-   (stream-fold-left (lambda-values (v (lo hi))
-				    (values (min v lo)
-					    (max v hi)))
-		     (values a a)
-		     s*)))
+(define (stream-min&max s
+			#!key
+			(cmp generic-cmp)
+			all?)
+  (let ((con (lambda (v r)
+	       (if all? (cons v r) v)))
+	(ex (lambda (vS)
+	      (if all? (car vS) vS))))
 
-(define (stream-min s)
-  (fst (stream-min&max s)))
+    (let-pair ((v s*) (force s))
 
-(define (stream-max s)
-  (snd (stream-min&max s)))
+	      (let lp ((s s)
+		       (min (con v '()))
+		       (max (con v '())))
+		(FV (s)
+		    (if (null? s)
+			(values min max)
+			(let-pair ((v s*) s)
+				  (lp s*
+				      (match-cmp (cmp (ex min) v)
+						 ((lt) min)
+						 ((gt) (con v '()))
+						 ((eq) (con v min)))
+				      (match-cmp (cmp (ex max) v)
+						 ((lt) (con v '()))
+						 ((gt) max)
+						 ((eq) (con v max)))))))))))
+
+(define stream-min
+  (compose fst stream-min&max))
+
+(define stream-max
+  (compose snd stream-min&max))
 
 (TEST
  > (values->vector (stream-min&max '(3 5 9 -3 7)))
  #(-3 9)
+ > (values->vector (stream-min&max '(3 5 9 -3 9 7)))
+ #(-3 9)
  > (values->vector (stream-min&max '(3)))
- #(3 3))
+ #(3 3)
+ > (def l '((3 a) (5 b) (9 c) (-3 d) (7 e) (9 f) (8 g)))
+ > (stream-max l cmp: (on car number-cmp))
+ (9 f)
+ > (stream-max l cmp: (on car number-cmp) all?: #t)
+ ((9 f) (9 c)))
 
 
 (define (stream-sum s)
