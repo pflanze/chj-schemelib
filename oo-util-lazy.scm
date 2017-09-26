@@ -29,6 +29,8 @@
 	(method evaluated-char-stream+.show)
 	iseq?
 	iseq-of
+	iseq+of
+	char-iseq+?
 	;; and then many methods and list function aliases ...
 	)
 
@@ -281,6 +283,17 @@
 	(if (pair? v)
 	    (pred (car v))
 	    (null? v)))))
+
+
+(define (iseq+-of pred)
+  (lambda (v)
+    (FV (v)
+	(if (pair? v)
+	    (pred (car v))
+	    #f))))
+
+
+(define char-iseq+? (iseq+-of char?))
 
 
 
