@@ -25,6 +25,8 @@
 	perhaps-typed.maybe-predicate
 	typed?
 	@typed.var
+	typed.var
+	typed.predicate
 	args-detype
 	(macro typed-lambda)
 	(macro define-typed)
@@ -152,6 +154,14 @@
   ;; again stupid ~COPY
   (vector-ref (source-code x) 1))
 
+(define (typed.var expr)
+  (type-check typed? expr
+	      (@typed.var expr)))
+
+(define (typed.predicate expr)
+  (type-check typed? expr
+	      (perhaps-typed.maybe-predicate expr)))
+
 
 (TEST
  > (perhaps-typed.var '#(foo? x))
@@ -160,6 +170,10 @@
  y
  > (perhaps-typed.maybe-predicate '#(foo? x))
  foo?
+ > (typed.predicate '#((maybe foo?) x))
+ (maybe foo?)
+ > (%try-error (typed.predicate 'x))
+ #(error "expr does not match typed?:" x)
  > (typed? 'y)
  #f
  > (typed? '#(foo? x))
