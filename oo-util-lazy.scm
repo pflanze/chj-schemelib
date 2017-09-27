@@ -97,15 +97,18 @@
 (define (istream-of pred)
   (lambda (v)
     ;; *only* for lazy inputs
-    (or (and (promise? v)
-	     (FV (v)
-		 (or (null? v)
-		     (and (pair? v)
-			  (pred (car v))))))
-	(and (pair? v)
-	     (let ((r (cdr v)))
-	       (and (promise? r)
-		    (pred (car (force r)))))))))
+    (let ((check (lambda (v)
+		   (FV (v)
+		       (or (null? v)
+			   (and (pair? v)
+				(pred (car v))))))))
+      (or (and (promise? v)
+	       (check v))
+	  (and (pair? v)
+	       (pred (car v))
+	       (let ((r (cdr v)))
+		 (and (promise? r)
+		      (check r))))))))
 
 (define char-ilist? (ilist-of char?))
 (define char-istream? (istream-of char?))
@@ -143,7 +146,17 @@
  #f
  > (char-istream? (delay (cons 1 (delay (cons #\H '())))))
  #f
+
+ > (char-istream? (cons #\H (delay '())))
+ #t
+ > (char-istream? (cons 'H (delay '())))
+ #f
+ > (char-istream? (delay (cons 'H (delay '()))))
+ #f
+ > (char-istream? (delay (cons #\H '())))
+ #t
  )
+
 
 (define source-char-ilist? (ilist-of (source-of char?)))
 (define source-char-istream? (istream-of (source-of char?)))
