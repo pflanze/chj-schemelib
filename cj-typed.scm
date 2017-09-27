@@ -22,6 +22,7 @@
 
 (export (macro type-check)
 	perhaps-typed.var
+	perhaps-typed.maybe-predicate
 	typed?
 	typed.var
 	args-detype
@@ -135,6 +136,11 @@
 (define (perhaps-typed.var x)
   (car (fst (transform-arg x '() '()))))
 
+(define (perhaps-typed.maybe-predicate x)
+  ;; hacky, pick out of something like `(type-check foo? x ())
+  (cadr (snd (transform-arg x '() '()))))
+
+
 (define (typed? x)
   ;; stupid ~COPY
   (let ((x* (source-code x)))
@@ -152,6 +158,8 @@
  x
  > (perhaps-typed.var 'y)
  y
+ > (perhaps-typed.maybe-predicate '#(foo? x))
+ foo?
  > (typed? 'y)
  #f
  > (typed? '#(foo? x))
