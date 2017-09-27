@@ -214,7 +214,7 @@
 	     (cond ((symbol? v)
 		    v*)
 		   ((typed? v)
-		    (typed.var v))
+		    (@typed.var v))
 		   ((meta-object? v)
 		    #f)
 		   (((list-of-length 2) v)

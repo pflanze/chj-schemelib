@@ -24,7 +24,7 @@
 	perhaps-typed.var
 	perhaps-typed.maybe-predicate
 	typed?
-	typed.var
+	@typed.var
 	args-detype
 	(macro typed-lambda)
 	(macro define-typed)
@@ -148,7 +148,7 @@
 	 (= (vector-length x*) 2)
 	 (symbol? (source-code (vector-ref x* 1))))))
 
-(define (typed.var x) ;; careful, unsafe!
+(define (@typed.var x) ;; careful, unsafe!
   ;; again stupid ~COPY
   (vector-ref (source-code x) 1))
 
@@ -164,7 +164,7 @@
  #f
  > (typed? '#(foo? x))
  #t
- > (typed.var '#(foo? x))
+ > (@typed.var '#(foo? x))
  x)
 
 
