@@ -21,6 +21,7 @@
 	 cj-typed-1)
 
 (export (macro type-check)
+	(macro source-type-check)
 	perhaps-typed.var
 	perhaps-typed.maybe-predicate
 	typed?
@@ -39,28 +40,36 @@
 	typed-body-parse)
 
 
+(both-times
+ (define (type-check-expand predicate expr body use-source-error?)
+   (let ((V (gensym))
+	 (W (gensym)))
+     `(##let* ((,V ,expr)
+	       (,W (,predicate ,V)))
+	      (##if (##eq? ,W #t)
+		    (##let () ,@body)
+		    (cj-typed#type-check-error
+		     ,use-source-error?
+		     ,(let ((expr* (cj-desourcify expr)))
+			;; avoid putting gensyms into exception messages,
+			;; to make code using this testable.
+			(if (cj-gensym? expr*)
+			    (cond ((cj-gensym-maybe-name expr*)
+				   => (lambda (name)
+					(string-append "gensym '"
+						       (scm:object->string name))))
+				  (else
+				   #f))
+			    (scm:object->string expr*)))
+		     ,(scm:object->string (cj-desourcify predicate))
+		     ,W
+		     ,V))))))
+
 (define-macro* (type-check predicate expr . body)
-  (let ((V (gensym))
-	(W (gensym)))
-    `(##let* ((,V ,expr)
-	      (,W (,predicate ,V)))
-	     (##if (##eq? ,W #t)
-		   (##let () ,@body)
-		   (cj-typed#type-check-error
-		    ,(let ((expr* (cj-desourcify expr)))
-		       ;; avoid putting gensyms into exception messages,
-		       ;; to make code using this testable.
-		       (if (cj-gensym? expr*)
-			   (cond ((cj-gensym-maybe-name expr*)
-				  => (lambda (name)
-				       (string-append "gensym '"
-						      (scm:object->string name))))
-				 (else
-				  #f))
-			   (scm:object->string expr*)))
-		    ,(scm:object->string (cj-desourcify predicate))
-		    ,W
-		    ,V)))))
+  (type-check-expand predicate expr body #f))
+
+(define-macro* (source-type-check predicate expr . body)
+  (type-check-expand predicate expr body #t))
 
 (TEST
  ;; test that there's no "Ill-placed 'define'" compile-time error
@@ -155,12 +164,12 @@
   (vector-ref (source-code x) 1))
 
 (define (typed.var expr)
-  (type-check typed? expr
-	      (@typed.var expr)))
+  (source-type-check typed? expr
+		     (@typed.var expr)))
 
 (define (typed.predicate expr)
-  (type-check typed? expr
-	      (perhaps-typed.maybe-predicate expr)))
+  (source-type-check typed? expr
+		     (perhaps-typed.maybe-predicate expr)))
 
 
 (TEST
@@ -172,8 +181,8 @@
  foo?
  > (typed.predicate '#((maybe foo?) x))
  (maybe foo?)
- > (%try-error (typed.predicate 'x))
- #(error "expr does not match typed?:" x)
+ > (with-exception-catcher source-error-message (& (typed.predicate 'x)))
+ "expr does not match typed?"
  > (typed? 'y)
  #f
  > (typed? '#(foo? x))
