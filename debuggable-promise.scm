@@ -35,21 +35,22 @@
      (set! make-promise make-promise)
      ;; instead of via updateable linking, can just 'set' directly,
      ;; since they work for both kinds of promises:
-     (##namespace ("debuggable#" force promise?))))
+     (##namespace ("debuggable#" force force1 promise?))))
 
 
 
 
 (define-if-not-defined
    debuggable-promise-tag
-   (struct-tag-allocate! 'debuggable-promise (struct-metadata 'make-debuggable-promise)))
+   (struct-tag-allocate! 'debuggable-promise
+			 (struct-metadata 'make-debuggable-promise)))
 
 (define (make-debuggable-promise thunk-or-value evaluated? capturectx)
   (vector debuggable-promise-tag
 	  thunk-or-value evaluated? capturectx))
 
 (define (debuggable-promise? v)
-  (and (vector? v)
+  (and (##vector? v)
        (fx= (##vector-length v) 4)
        (eq? (##vector-ref v 0) debuggable-promise-tag)))
 
@@ -75,28 +76,71 @@
   `(make-promise
     (##lambda () ,body0 ,@body)))
 
+(define-macro* (debuggable-delay body0 . body)
+  `(debuggable#make-promise
+    (##lambda () ,body0 ,@body)))
+
 (define make-promise ##make-promise)
 ;; ^ changed by debuggable-promise-everywhere
 
 
+(define (@debuggable-force1 v)
+  (let ((tv (@debuggable-promise-thunk-or-value v)))
+    (if (@debuggable-promise-evaluated? v)
+	tv
+	(let ((val (tv)))
+	  (@debuggable-promise-thunk-or-value-set! v val)
+	  (@debuggable-promise-evaluated?-set! v #t)
+	  val))))
+
+(define (debuggable#force1 v)
+  (if (debuggable-promise? v)
+      (@debuggable-force1 v)
+      (##force v)))
+
 (define (debuggable#force v)
   (if (debuggable-promise? v)
-      (let ((tv (@debuggable-promise-thunk-or-value v)))
-	(if (@debuggable-promise-evaluated? v)
-	    tv
-	    ;; forgot, is it OK to shift values like this (short-cut
-	    ;; future evaluation of multi-layer promises)? just try..
-	    (let ((val (debuggable#force (tv))))
-	      (@debuggable-promise-thunk-or-value-set! v val)
-	      (@debuggable-promise-evaluated?-set! v #t)
-	      val)))
-      (##force v)))
+      (debuggable#force (@debuggable-force1 v))
+      (if (##promise? v)
+	  (debuggable#force (##force v))
+	  v)))
 
 (define force debuggable#force)
 
 (define (debuggable#promise? v)
   (or (##promise? v)
       (debuggable-promise? v)))
+
+(TEST
+ > (define c 0)
+ > (define v (debuggable-delay (debuggable-delay (inc! c) 2)))
+ > (define v1 (debuggable#force1 v))
+ > (debuggable#promise? v1)
+ #t
+ > c
+ 0
+ > (define v2 (debuggable#force1 v))
+ > c
+ 0
+ > (debuggable#force1 v1)
+ 2
+ > c
+ 1)
+
+;; check that force does not (only?) store directly:
+(TEST
+ > (define c 0)
+ > (define v (debuggable-delay (debuggable-delay (inc! c) 3)))
+ > (debuggable#force v)
+ 3
+ > c
+ 1
+ > (debuggable#promise? (debuggable#force1 v))
+ #t ;; should it really be that way?
+ )
+
+
+
 
 (define promise? debuggable#promise?)
 
