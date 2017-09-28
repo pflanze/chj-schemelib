@@ -10,6 +10,7 @@
 	 cj-c-util
 	 math/vectorlib
 	 parallel
+	 cj-gambit-sys
 	 math/fftw_Cpart-macros)
 
 ;; Dependency: apt-get install libfftw3-dev
@@ -99,27 +100,6 @@ void cjabort(void) {
 
 ;; or just safe variants.
 
-
-(define size? (both natural? fixnum?))
-(define size0? (both natural0? fixnum?))
-;; XXX is this really/always correct? upper bound? (number of words
-;; fitting into memory space)
-(TEST
- > (size? 0)
- #f
- > (size0? 0)
- #t
- > (size? 1)
- #t
- > (size? -1)
- #f
- > (size0? -1)
- #f
- > (size? 199999999)
- #t
- > (size? 199999999999999999999999)
- #f
- )
 
 ;; Represent pointers as fixnums (can be negative!)
 
