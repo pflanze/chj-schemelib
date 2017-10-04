@@ -10,12 +10,26 @@
 	 (simple-match-1 assert*)
 	 dot-oo)
 
-(export dot-oo-optim-for)
+(export dot-oo-optim-for
 
+	;; move to dot-oo and change it to not support foo:.bar any
+	;; more?
+	methodname-symbol?)
+
+
+;; XX TODO: this assumes methodname is always starting with a
+;; dot. Hence can't handle foo:.bar (give up on this?)
+
+(def (methodname-symbol? v)
+     (and (symbol? v)
+	  (let* ((str (symbol->string v))
+		 (len (string-length str)))
+	    (and (> len 1)
+		 (char=? (string-ref str 0) #\.)))))
 
 (def (dot-oo-optim-for-expand methodname num-args)
      (assert*
-      symbol? methodname
+      methodname-symbol? methodname
       (lambda (methodname)
 	(assert*
 	 natural? num-args
@@ -43,4 +57,13 @@
 
 (defmacro (dot-oo-optim-for methodname num-args)
   (dot-oo-optim-for-expand methodname num-args))
+
+
+;; instead of having to write (.ref/2 s 2), allow (% .ref s 2)
+(defmacro (% methodname . args)
+  (assert* methodname-symbol? methodname
+	   (lambda (methodname)
+	     (let ((len (length args)))
+	       `(,(symbol-append methodname "/" (number->string len))
+		 ,@args)))))
 
