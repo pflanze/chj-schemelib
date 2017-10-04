@@ -31,4 +31,6 @@
      (time (repeat n (.ref (vector 10 20) 1)))
      (time (repeat n (.ref v 1)))
      (time (repeat n (.ref l 1)))
+     (time (repeat n (list-ref l 1)))
+     (time (repeat n (list.ref l 1)))
      )
