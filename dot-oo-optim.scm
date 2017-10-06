@@ -92,5 +92,10 @@
 	     (define-if-not-defined ,genericname
 	       (dot-oo:make-generic ',genericname ,method-table-name))
 	     ;;/ copy-paste
+
+	     ;; The redefinable proxy (fallback to genericname):
 	     (define (,generic-name ,@ARGS)
-	       (,genericname ,@ARGS)))))))))
+	       (,genericname ,@ARGS))
+	     ;; make sure when |dot-oo-optim-for| is used to replace
+	     ;; generic-name, it is seen even in block mode:
+	     (set! ,generic-name ,generic-name))))))))
