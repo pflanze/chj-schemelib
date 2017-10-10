@@ -100,6 +100,10 @@
 (jclass
  rgb
 
+ ;; 'full' inversion, in linear space; XX does this make sense? See
+ ;; tests, search for "sense"
+ (method (invert v) -> rgb?)
+
  (jclass rgb01
 
 	 ;; RGB in 0..1 floating point range, sRGB 'transfer' format
@@ -131,7 +135,10 @@
 		   (let-rgb01t ((r g b) x)
 			       (rgb8 (01.uint8 r)
 				     (01.uint8 g)
-				     (01.uint8 b)))))
+				     (01.uint8 b))))
+
+		 (def-method (invert v)
+		   (rgb01l.rgb01t (rgb01l.invert (rgb01t.rgb01l v)))))
        
 
 
@@ -155,7 +162,23 @@
 
 		 (def-method r8 (compose 01.uint8 rgb01l.r01t))
 		 (def-method g8 (compose 01.uint8 rgb01l.g01t))
-		 (def-method b8 (compose 01.uint8 rgb01l.b01t))))
+		 (def-method b8 (compose 01.uint8 rgb01l.b01t))
+
+		 (def-method (rgb01t x)
+		   ;; XX dito duplication ~
+		   (let-rgb01l ((r g b) x)
+			       (let ((conv srgb:lum.transfer))
+				 (rgb01t (conv r)
+					 (conv g)
+					 (conv b)))))
+
+		 (def-method (rgb8 v)
+		   (.rgb8 (rgb01l.rgb01t v)))
+
+		 (def-method* (invert v)
+		   (rgb01l (- 1 r01l)
+			   (- 1 g01l)
+			   (- 1 b01l)))))
 
 	
 
@@ -181,7 +204,10 @@
 			     (uint8.01 g)
 			     (uint8.01 b))))
 		 
-	 (def-method rgb01l (compose rgb01t.rgb01l rgb8.rgb01t)))
+	 (def-method rgb01l (compose rgb01t.rgb01l rgb8.rgb01t))
+
+	 (def-method (invert v)
+	   (rgb01l.rgb8 (rgb01l.invert (rgb8.rgb01l v)))))
 
  
  ;; generic operations: ---------------------------------------------------
@@ -245,6 +271,12 @@
  "#0080FF"
  > (.html-colorstring (rgb01t 1 0.5 0))
  "#FF8000"
+
+ > (.invert (rgb8 0 128 255))
+ #((rgb8) 255 229 0) ;; hah yes, 128 is not the center.
+ > (.invert (rgb8 10 40 245))
+ #((rgb8) 255 253 83)
+ ;; oh my. Now question is does this kind of inversion actually make sense?
  )
 
 ;; parse =================================================================

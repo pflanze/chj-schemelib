@@ -19,7 +19,40 @@
 
 	(def-method maybe-stroke-color identity)
 	(def-method maybe-fill-color identity)
-	(def-method maybe-stroke-width false/1))
+	(def-method maybe-stroke-width false/1)
+
+
+	(def colorstring:inversions
+	     (list->table
+	      (fold-right (lambda (pair rest)
+			    (cons* (cons (car pair)
+					 (cadr pair))
+				   (cons (cadr pair)
+					 (car pair))
+				   rest))
+			  '()
+			  '(("white" "black")
+			    ("red" "cyan")
+			    ("green" "purple")
+			    ("blue" "yellow")
+			    ))))
+	
+	(def-method* (invert v)
+	  (let ((v* (string-downcase value)))
+	    (cond ((table-ref colorstring:inversions v* #f)
+		   => colorstring)
+		  (else
+		   (error "can't invert color string:" v*))))))
+
+
+(TEST
+ > (.invert (colorstring "White"))
+ #((colorstring) "black")
+ > (.invert (colorstring "black"))
+ #((colorstring) "white")
+ > (.invert (colorstring "red"))
+ #((colorstring) "cyan")
+ )
 
 
 ;; change/parametrize when other solutions abound
