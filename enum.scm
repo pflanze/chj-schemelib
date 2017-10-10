@@ -56,7 +56,7 @@
 	       (,IF-PARSE ,V
 			  identity
 			  (thunk
-			   (error "string does not map to any enum element of:"
+			   (error "string does not map to any member of enum:"
 				  ',name
 				  ,V))))
 	     ;; type safe comparison:
