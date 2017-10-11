@@ -22,6 +22,7 @@
 	improper-fold-right/yn-cont
 	lists-common-prefix-length
 	cartesian-product
+	cartesian-self-product
 	all-equal?
 	sublist
 	
@@ -221,6 +222,34 @@
  > (cartesian-product '(A B))
  ((A) (B))
  )
+
+
+;; a cartesian product for self combinations that omit combinations
+;; that already appeared in reverse order, and returns pairs instead
+;; of lists.
+(define (cartesian-self-product a)
+  (let rec ((a a)
+	    (b a))
+    (cond ((null? a)
+	   '())
+	  ((null? b)
+	   (let ((a* (cdr a)))
+	     (rec a* a*)))
+	  (else
+	   (cons (cons (car a)
+		       (car b))
+		 (rec a
+		      (cdr b)))))))
+
+(TEST
+ > (cartesian-self-product '())
+ ()
+ > (cartesian-self-product '(a))
+ ((a . a))
+ > (cartesian-self-product '(a b))
+ ((a . a) (a . b) (b . b))
+ > (cartesian-self-product '(a b c))
+ ((a . a) (a . b) (a . c) (b . b) (b . c) (c . c)))
 
 
 (define (shiftmap fn l)
