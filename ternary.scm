@@ -78,3 +78,17 @@
  16)
 
 
+(TEST
+ ;; https://en.wikipedia.org/wiki/Three-valued_logic :
+
+ ;; In Robert A. Heinlein's novel Time Enough for Love, the sapient
+ ;; computers of Secundus, the planet on which part of the framing
+ ;; story is set, including Minerva, use an unbalanced ternary
+ ;; system. Minerva, in reporting a calculation result, says "three
+ ;; hundred forty one thousand six hundred forty... the original
+ ;; ternary readout is unit pair pair comma unit nil nil comma unit
+ ;; pair pair comma unit nil nil point nil".
+
+ > (.integer (ternary-number* 1 2 2  1 0 0  1 2 2  1 0 0))
+ 341640)
+
