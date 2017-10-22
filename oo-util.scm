@@ -74,6 +74,8 @@
 
 (define. string.length string-length)
 
+(define. integer.length integer-length)
+
 (define. string.reverse string-reverse)
 
 (TEST
