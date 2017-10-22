@@ -14,11 +14,11 @@
 	 test)
 
 
-(def (ternary-digit? v)
+(def (trit? v)
      (and (fixnum? v)
 	  (fx<= 0 v 2)))
 
-(jclass (ternary-number #((list-of ternary-digit?) list))
+(jclass (ternary-number #((list-of trit?) list))
 
 	(def (ternary-number* . l)
 	     (ternary-number l))
