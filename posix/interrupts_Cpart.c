@@ -48,7 +48,7 @@ typedef int status;
 
 static struct sigqueue *
 make_sigqueue () {
-    struct sigqueue* q= malloc(sizeof(struct sigqueue));
+    struct sigqueue* q= (struct sigqueue*)malloc(sizeof(struct sigqueue));
     if (q) {
 	q->startpos=0;
 	q->endpos=0;
