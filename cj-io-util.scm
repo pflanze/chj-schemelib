@@ -17,7 +17,8 @@
 	 srfi-1
 	 posix/cj-posix ;; posix:environ open close read write seek etc.
 	 (cj-functional list-of values-of)
-	 string-bag)
+	 string-bag
+	 (cj-source make-source make-location make-position))
 
 (export open-process*
 	open-input-process*
@@ -27,6 +28,7 @@
 	eexist-exception?
 	eperm-exception?
 	read-lines
+	read-chars/location
 	maybe-read-line
 	xread-line
 	writeln
@@ -56,6 +58,7 @@
 	port->stream
 	directory-item-stream
 	file-line-stream
+	file-char/location-stream
 	process-input-line-stream
 	user-name-or-id->id
 	group-name-or-id->id
@@ -584,6 +587,26 @@
   (port->stream (open-input-file file)
 		read-line
 		close-port))
+
+(define (file-char/location-stream file)
+  (let ((p (open-input-file file)))
+    (let rec ((line 1)
+	      (col 1))
+      (delay
+	;; XX is this the one without mutex locking?
+	(let ((c (##read-char p)))
+	  (if (eof-object? c)
+	      (begin
+		(close-port p)
+		'())
+	      (cons (make-source
+		     c (make-location file (make-position line col)))
+		    (if (or (eq? c #\return)
+			    (eq? c #\newline))
+			(rec (fx+ line 1)
+			     1)
+			(rec line
+			     (fx+ col 1)))))))))) 
 
 (define (process-input-line-stream process
 				   status-handler)

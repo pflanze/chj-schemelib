@@ -51,12 +51,18 @@
 	  #f))))
 
 (define (dot-oo:method-type-maybe-ref-method vec n obj)
+  (declare (not safe))
   (let ((end (fx+ n n)))
     (let lp ((i n))
       (if (fx< i end)
-	  (if ((vector-ref vec i) obj)
-	      (vector-ref vec (fx+ i n))
-	      (lp (fx.inc i)))
+	  (if
+	   ( ;; XX should function call be safe here?
+	    (vector-ref vec i)
+	    obj)
+	   (vector-ref vec (fx+ i n))
+	   (lp
+	    ;; (fx.inc i) but unsafely here:
+	    (fx+ i 1)))
 	  #f))))
 
 (define (dot-oo:method-table-maybe-ref-method tbl obj)

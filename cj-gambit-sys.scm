@@ -7,7 +7,9 @@
 
 ;; (compile #t)
 
-(export wordaddress-peek
+(export size?
+	size0?
+	wordaddress-peek
 	body-address
 	body-wordaddress
 	;;check-mem-allocated
@@ -61,11 +63,39 @@
 	)
 
 
+
 (include "cj-standarddeclares.scm")
 ;; do NOT declare fixnum and not safe; this would break number
 ;; calculations overflowing fixnums.
 
 (c-declare "#include <string.h>")
+
+
+(define (size? x)
+  (and (fixnum? x)
+       (natural? x)))
+(define (size0? x)
+  (and (fixnum? x)
+       (natural0? x)))
+;; XXX is this really/always correct? upper bound? (number of words
+;; fitting into memory space)
+(TEST
+ > (size? 0)
+ #f
+ > (size0? 0)
+ #t
+ > (size? 1)
+ #t
+ > (size? -1)
+ #f
+ > (size0? -1)
+ #f
+ > (size? 199999999)
+ #t
+ > (size? 199999999999999999999999)
+ #f
+ )
+
 
 
 

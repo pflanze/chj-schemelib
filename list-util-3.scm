@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -12,13 +12,19 @@
 	 test
 	 local-test
 	 (srfi-11 letv values->vector lambda-values)
-	 (cj-functional compose*))
+	 (cj-functional compose*)
+	 lazy
+	 debuggable-promise
+	 )
 
+;; XX rename this to iseq-util-3 or something, change prefixes, or
+;; what? All functions here also accept streams even though still
+;; naming them *list*.
 (export	list-starts-with?/equal? list-starts-with?
 	char-list-starts-with-string?
 	)
 
-
+(possibly-use-debuggable-promise)
 
 ;; like string-starts-with?, but returns the remainder, too? (And,
 ;; taking a comparison predicate.) All the beginnings of a parser
@@ -28,18 +34,19 @@
 (define (list-starts-with?/equal? equal?)
   (named starts-with?
 	 (lambda (l matchl)
-	   (if (null? l)
-	       (values (null? matchl)
-		       l)
-	       (if (null? matchl)
-		   (values #t
+	   (FV (l)
+	       (if (null? l)
+		   (values (null? matchl)
 			   l)
-		   (let-pair ((m matchl*) matchl)
-			     (let-pair ((a l*) l)
-				       (if (equal? m a) ;; reverse arg order?
-					   (starts-with? l* matchl*)
-					   (values #f
-						   l)))))))))
+		   (if (null? matchl)
+		       (values #t
+			       l)
+		       (let-pair ((m matchl*) matchl)
+				 (let-pair ((a l*) l)
+					   (if (equal? m a) ;; reverse arg order?
+					       (starts-with? l* matchl*)
+					       (values #f
+						       l))))))))))
 
 (define list-starts-with? (list-starts-with?/equal? equal?))
 
@@ -68,14 +75,15 @@
   (let ((len (string-length str)))
     (let lp ((l l)
 	     (i 0))
-      (if (fx< i len)
-	  (if (null? l)
-	      (values #f l)
-	      (let-pair ((a l*) l)
-			(if (char=? a (string-ref str i))
-			    (lp l* (fx+ i 1))
-			    (values #f l))))
-	  (values #t l)))))
+      (FV (l)
+	  (if (fx< i len)
+	      (if (null? l)
+		  (values #f l)
+		  (let-pair ((a l*) l)
+			    (if (char=? a (string-ref str i))
+				(lp l* (fx+ i 1))
+				(values #f l))))
+	      (values #t l))))))
 
 (TEST
  > (lut (compose* (lambda-values ((b l))

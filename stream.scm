@@ -36,6 +36,8 @@
 	stream-filter-map
 	stream-improper-map
 	stream->list
+	stream->string
+	source-stream->string
 	stream-drop
 	stream-take
 	list-rtake&rest stream-rtake&rest
@@ -44,6 +46,8 @@
 	list-split-at stream-split-at
 	stream-sublist
 	stream-length
+	stream-length>=
+	stream-length>
 	(struct difference-at)
 	(struct no-difference)
 	stream-difference
@@ -71,7 +75,10 @@
 	stream-unfold2
 	stream-zip
 	zip2 stream-zip2
+	stream-find-tail
+	stream-take-while
 	stream-drop-while
+	
 	stream-ref
 	;; stream-%cars+cdrs
 	stream-every
@@ -360,6 +367,37 @@
 	     ;; memory retention!)
 	     (error "stream->list: improper stream, ending in:" p))))))
 
+
+(define (stream->string s)
+  (let* ((len (stream-length s))
+	 (str (make-string len)))
+    (let lp ((s s)
+	     (i 0))
+      (FV (s)
+	  (if (fx< i len)
+	      (let-pair ((a r) s)
+			(string-set! str i a)
+			(lp r (fx+ i 1))))))
+    str))
+
+;; copy-paste of stream->string with the addition of source-code
+;; handling
+(define (source-stream->string s #!optional track-source?)
+  (let* ((len (stream-length s))
+	 (str (make-string len)))
+    (let lp ((s s)
+	     (i 0))
+      (FV (s)
+	  (if (fx< i len)
+	      (let-pair ((a r) s)
+			(string-set! str i (source-code a))
+			(lp r (fx+ i 1))))))
+    (if (and track-source?
+	     (fx> len 0))
+	(possibly-sourcify str (car (force s)))
+	str)))
+
+
 (define (stream-drop s k)
   (if (>= k 0)
       (let iter ((s s)
@@ -509,6 +547,21 @@
 	     ;; (don't keep a reference to the stream head to avoid
 	     ;; memory retention!)
 	     (error "stream->list: improper stream, ending in:" p))))))
+
+
+;; also see improper-list/length>=
+;; (also, strict-and-lazy list-length>=  -- why bother?)
+(define (stream-length>= l len)
+  (if (positive? len)
+      (FV (l)
+	  ;; does not report failures hitting improper stream, OK?
+	  (and (pair? l)
+	       (stream-length>= (cdr l)
+				(dec len))))
+      #t))
+
+(define (stream-length> l len)
+  (stream-length>= l (inc len)))
 
 
 (define-struct difference-at
@@ -1246,6 +1299,24 @@
  > (.show (zip2 '(1 2) '(a b)))
  (list (values 1 'a) (values 2 'b)))
 
+
+;; adapted copies from SRFI-1
+(define (stream-find-tail pred list)
+  (let lp ((list list))
+    (FV (list)
+	(and (not (null-list? list))
+	     (if (pred (car list)) list
+		 (lp (cdr list)))))))
+
+(define (stream-take-while pred lis)
+  (let recur ((lis lis))
+    (delay
+      (FV (lis)
+	  (if (null-list? lis) '()
+	      (let ((x (car lis)))
+		(if (pred x)
+		    (cons x (recur (cdr lis)))
+		    '())))))))
 
 (define (stream-drop-while pred l)
   (let lp ((l l))

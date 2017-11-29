@@ -44,9 +44,6 @@
 (possibly-use-debuggable-promise)
 
 
-(defmacro (& first . rest)
-  `(lambda() ,first ,@rest))
-
 (def unbound 'unbound)
 
 (def (with-sxml-element/else elt cont-name-attrs-body

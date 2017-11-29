@@ -201,7 +201,7 @@
     (let lp ((n 0)
 	     (i 0))
       (if (< i len)
-	  (let* ((c (string.ref s i))
+	  (let* ((c (string-ref s i))
 		 (d (- (char.integer c) (char.integer #\0))))
 	    (if (<= 0 d base-)
 		(lp (+ d (* n base))

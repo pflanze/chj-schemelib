@@ -20,10 +20,13 @@
 	 ;; actually slow (XX but then should load more stuff
 	 ;; *explicitely*):
 	 easy
+	 dot-oo-optim
 	 jclass)
 
 
+;; (include "cj-standarddeclares.scm") doesn't make a big difference
 
+(dot-oo-optim-for .ref 2)
 
 (def (oo-bench n)
      (def v (vector n 20))
@@ -31,4 +34,8 @@
      (time (repeat n (.ref (vector 10 20) 1)))
      (time (repeat n (.ref v 1)))
      (time (repeat n (.ref l 1)))
+     (time (repeat n (list-ref l 1)))
+     (time (repeat n (list.ref l 1)))
+     (time (repeat n (.ref/2 v 1)))
+     (time (repeat n (.ref/2 l 1)))
      )

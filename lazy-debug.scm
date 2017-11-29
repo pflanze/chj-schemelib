@@ -82,8 +82,7 @@
 
 
 ;; make copy forcing everything, but show <P> wherever there was a
-;; promise (and one level at that for each). XX force1 is not
-;; consistently implemented now.
+;; promise (and one level at that for each).
 (define (F1 s)
   (let F ((s s))
     (cond ((promise? s)
