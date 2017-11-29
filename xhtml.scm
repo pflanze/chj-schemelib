@@ -267,28 +267,34 @@
 ;; NOTE: does not import |xhtml#map|, since the list function is way
 ;; more often used than the HTML element.
 
+(def (XHTML-expand es)
+     `(##let ()
+	     (##namespace ("xhtml#" ,@(filter (lambda (n) (not (eq? n 'map)))
+					      xhtml-element-names)))
+	     (##define-syntax ,'unquote
+			      (lambda (stx)
+				(cj-sourcify-deep
+				 (match*
+				  stx
+				  ((_ expr)
+				   `(##let ()
+					   (##namespace (""))
+					   ,expr)))
+				 stx)))
+	     ,(if (one? es)
+		  (car es)
+		  ;; but who says really that I want list and not
+		  ;; begin. Should XHTML not be a template thing but just
+		  ;; set up context thing? Or not, because making it one
+		  ;; template at a time means it could optimize in the
+		  ;; future.
+		  `(list '##begin ,@es))))
+
 (defmacro (XHTML . es)
-  `(##let ()
-	  (##namespace ("xhtml#" ,@(filter (lambda (n) (not (eq? n 'map)))
-					   xhtml-element-names)))
-	  (##define-syntax ,'unquote
-			   (lambda (stx)
-			     (cj-sourcify-deep
-			      (match*
-			       stx
-			       ((_ expr)
-				`(##let ()
-					(##namespace (""))
-					,expr)))
-			      stx)))
-	  ,(if (one? es)
-	       (car es)
-	       ;; but who says really that I want list and not
-	       ;; begin. Should XHTML not be a template thing but just
-	       ;; set up context thing? Or not, because making it one
-	       ;; template at a time means it could optimize in the
-	       ;; future.
-	       `(list '##begin ,@es))))
+  (XHTML-expand es))
+
+(defmacro (HTML . es)
+  (XHTML-expand es))
 
 (TEST
  > (xhtml#a href: "foo" "bar")
