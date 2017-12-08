@@ -71,8 +71,7 @@
 
 (def tempfile-base
      ;; (string-append (getenv "HOME") "/.cgi-scm-tmp")
-     (public-tempdir perms: "0770"
-		     group: "www-data"))
+     (public-tempdir perms: "0700"))
 
 ;; this is only safe against overwriting of existing files thanks to
 ;; proper long random numbers
