@@ -55,6 +55,9 @@
 	lc_umlaut?
 	german-string-cmp
 	german-generic-cmp
+
+	cmp-max
+	cmp-min
 	
 	cmp-sort
 
@@ -346,6 +349,30 @@
 	  'gt)
 	 (else
 	  'eq))))
+
+
+(define (cmp-max cmp prefer-right? a b)
+  (match-cmp (cmp a b)
+	     ((lt) b)
+	     ((gt) a)
+	     ((eq) (if prefer-right? b a))))
+
+(define (cmp-min cmp prefer-right? a b)
+  (match-cmp (cmp a b)
+	     ((lt) a)
+	     ((gt) b)
+	     ((eq) (if prefer-right? b a))))
+
+(TEST
+ > (cmp-min generic-cmp #t 1 3)
+ 1
+ > (cmp-min (on car generic-cmp) #t '(1 a) '(1 b))
+ (1 b)
+ > (cmp-min (on car generic-cmp) #f '(1 a) '(1 b))
+ (1 a)
+ > (cmp-max generic-cmp #t 1 3)
+ 3)
+
 
 ;; (could be optimized slightly by changing sort)
 (define (cmp-sort l cmp)

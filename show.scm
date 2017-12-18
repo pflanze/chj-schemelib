@@ -16,6 +16,7 @@
 	 debuggable-promise
 	 ;; ^ now we have to always load it. But, have
 	 ;; debuggable-promise-everywhere now which is optional.
+	 (lazy-debug S)
 	 test)
 
 
@@ -134,20 +135,28 @@
 
 
 
-;; 
+(define (promise# n)
+  (let ((v (serial-number->object n)))
+    (if (promise? v)
+	v
+	(error "not a promise:" n))))
+
 (define. (debuggable-promise.show v)
   (if (debuggable-promise? v)
       (if (@debuggable-promise-evaluated? v)
-	  (.show (@debuggable-promise-thunk-or-value v))
-	  `(debuggable-promise ,(object->serial-number v)))
+	  ;; pre-force all the way before calling .show again (so that
+	  ;; things like list? will match, although this may trigger
+	  ;; n^2 complexity issues more easily? XX)
+	  (.show (S v))
+	  `(promise# ,(object->serial-number v)))
       ;; shouldn't happen 'usually' (ever this question, unsafe direct call)
       (error "not a debuggable-promise:" v)))
 
 (define. (##promise.show v)
-  (if (debuggable-promise? v)
+  (if (##promise? v)
       (if (@promise-evaluated? v)
-	  (.show (@promise-value v))
-	  v)
+	  (.show (S v))
+	  `(promise# ,(object->serial-number v)))
       ;; shouldn't happen 'usually' (ever this question, unsafe direct call)
       (error "not a ##promise:" v)))
 

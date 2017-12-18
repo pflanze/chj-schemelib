@@ -50,6 +50,10 @@
 	      (lp (fx.inc i)))
 	  #f))))
 
+
+(define *dot-oo:method-trace* #f)
+(set! *dot-oo:method-trace* #f)
+
 (define (dot-oo:method-type-maybe-ref-method vec n obj)
   (declare (not safe))
   (let ((end (fx+ n n)))
@@ -59,7 +63,10 @@
 	   ( ;; XX should function call be safe here?
 	    (vector-ref vec i)
 	    obj)
-	   (vector-ref vec (fx+ i n))
+	   (let ((m (vector-ref vec (fx+ i n))))
+	     (if *dot-oo:method-trace*
+		 (warn "method call for:" (vector-ref vec (fx- i n)) m))
+	     m)
 	   (lp
 	    ;; (fx.inc i) but unsafely here:
 	    (fx+ i 1)))

@@ -54,6 +54,9 @@
 	in-signed-range?
 	parameter?
 
+	;; special:
+	noreturn?
+
 	;; and the new meat:
 	function?
 	predicate?
@@ -281,4 +284,10 @@
  > (p? '(f foo: "foo" bar: "13"))
  #f
  )
+
+
+;; to be used when a procedure is expected to never return: always
+;; fail
+(define (noreturn? v)
+  #f)
 

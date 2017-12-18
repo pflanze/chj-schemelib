@@ -13,7 +13,8 @@
 	 list-util
 	 (srfi-1 any))
 
-(export table
+(export table _table
+	table*
 	;; accessors:
 	(method table.test
 		table.hash
@@ -67,7 +68,7 @@
 
 (define table:absent (table.init (list->table '())))
 
-(define (table . options+pairs)
+(define (_table options+pairs)
   (let lp ((opts '())
 	   (l options+pairs))
     (define (t)
@@ -78,8 +79,12 @@
 		  (if (pair? v)
 		      (t)
 		      (let-pair ((w l**) l*)
-				(lp l**
-				    (cons v (cons w opts)))))))))
+				(lp (cons v (cons w opts))
+				    l**)))))))
+
+(define (table . options+pairs)
+  (_table options+pairs))
+
 
 (define. (table.show t)
   (define (get key op dflts)
@@ -132,6 +137,35 @@
  > (.show (list->table '((a . 1) (b . 2)) init: 123))
  (table init: 123 (cons 'a 1) (cons 'b 2))
  )
+
+
+(define (table* . options+pairs)
+  (_table
+   (let rec ((l options+pairs))
+     (if (null? l)
+	 l
+	 (let-pair ((a l*) l)
+		   (if (keyword? a)
+		       (let-pair ((b l**) l*)
+				 (cons a
+				       (cons b
+					     (rec l**))))
+		       (let rec ((l l))
+			 (if (null? l)
+			     l
+			     (let-pair ((a l*) l)
+				       (let-pair ((b l**) l*)
+						 (cons (cons a b)
+						       (rec l**))))))))))))
+
+
+(TEST
+ > (.show (table* init: 123))
+ (table weak-keys: '? weak-values: '? init: 123)
+ > (.show (table* "b" 2 "a" 1))
+ (table (cons "a" 1) (cons "b" 2))
+ > (.show (table* init: 123 "b" 2 "a" 1))
+ (table init: 123 (cons "a" 1) (cons "b" 2)))
 
 
 (define. table.list table->list)

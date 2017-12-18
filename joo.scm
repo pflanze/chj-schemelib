@@ -622,9 +622,10 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 (def (joo:parse-decl decl
 		     ;; conts all receive:
 		     ;; (class-name, maybe-constructor-name, field-decls)
+		     #!key
 		     cont-renamedconstructor
 		     cont-samename
-		     cont-abstract)
+		     cont-nofields)
      (def constructor-stx decl) ;; for location info of the constructor call
      (mcase decl
 	    (`(`class-name+perhaps-constructor-name* . `field-decls)
@@ -632,10 +633,10 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		    ;; separate constructor (XX hm, allow #f, too?,
 		    ;; i.e. fields but no constructor)
-		    (`(`class-name `constructor-name)
+		    (`(`class-name `maybe-constructor-name)
 		     (cont-renamedconstructor constructor-stx
 					      class-name
-					      constructor-name
+					      maybe-constructor-name
 					      field-decls))
 
 		    ;; constructor has the same name as the class
@@ -647,7 +648,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				      field-decls)))))
 	    (symbol?
 	     ;; no constructor at all, and no fields either
-	     (cont-abstract constructor-stx
+	     (cont-nofields constructor-stx
 			    decl
 			    #f
 			    `()))))
@@ -663,14 +664,36 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		     ;; checking (i.e. predicates)
 		     defs)
      (let ((cc
-	    (lambda (abstract?)
+	    (lambda (nofields?)
 	      ;; parsed decl:
 	      (lambda (constructor-stx class-name* maybe-constructor-name* field-decls)
-		;; if maybe-constructor-name is #f, that means, no
-		;; constructor at all (abstract class or interface)
+		;; If maybe-constructor-name is #f, that means, no
+		;; constructor at all (abstract class or interface).
 
-		;; XX wait^, do we have, with abstract? and
-		;; maybe-constructor-name, now the same info twice?
+		;; (Whereas if nofields? is #f then no fields are
+		;; being defined (and of course no constructor, since
+		;; even if a parent class has fields, there's no point
+		;; defining a new constructor with the same fields as
+		;; the parent class, or is there? XX)
+
+		;; ** Summary on the different cases: **
+		
+		;; interface: only declarations, no definitions
+		;; (neither method nor field)
+
+		;; abstract class: allows method definitions (but no
+		;; declarations), and fields (i.e. there are two
+		;; variants, the nofields? case, and the (not
+		;; maybe-constructor-name) case)
+
+		;; normal class: method definitions, fields, and
+		;; constructor (but the constructor can have a
+		;; different name than the class name).
+
+		;; (NOTE: we don't implement "static fields" in
+		;; interfaces like Java does. Do we need them? We
+		;; don't have fields anyway, only methods, so would be
+		;; difficult. Just use abstract class instead, OK?)
 
 		(if
 		 (and interface? maybe-constructor-name*)
@@ -731,6 +754,12 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		   `(begin
 		      (%joo-declare)
+		      ;; XX TODO: in the case of a class definition
+		      ;; with fields but no constructor, we would
+		      ;; still like to be able to use def-method*, but
+		      ;; currently can't as let-classname is defined
+		      ;; by define-struct.-expand. Split that out so
+		      ;; that we can.
 		      ,(if maybe-constructor-name
 			   (define-struct.-expand
 			     constructor-stx ;; for location info only
@@ -791,7 +820,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				(symboltable*
 				 ;; abstract methods
 				 method:
-				 (if (or interface? abstract?)
+				 (if (or interface? nofields?)
 				     (joo:abstract-method-expander-for class-name)
 				     joo:abstract-method-expander-forbidden)
 				 ;; implementations
@@ -801,7 +830,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				     (joo:implementation-method-expander-for
 				      class-name
 				      #f
-				      abstract?))
+				      nofields?))
 				 ;; with fields bound to variables
 				 def-method*:
 				 (if interface?
@@ -809,13 +838,13 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				     (joo:implementation-method-expander-for
 				      class-name
 				      (joo-type.all-field-names type)
-				      abstract?))))
+				      nofields?))))
 			     defs))))))))
 
        (joo:parse-decl decl
-		       (cc #f)
-		       (cc #f)
-		       (cc #t))))
+		       cont-renamedconstructor: (cc #f)
+		       cont-samename: (cc #f)
+		       cont-nofields: (cc #t))))
 
 (defmacro (joo-class decl
 		     #!key

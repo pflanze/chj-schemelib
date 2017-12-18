@@ -14,6 +14,8 @@
 	;; (##namespace ("debuggable#" delay force promise?))
 	;; and debuggable-promise in "" namespace
 
+	promise? ;; well, specially via possibly-use-debuggable-promise, too
+	evaluated-promise?
 	promise-evaluated?
 	evaluated-promise-value
 	)
@@ -152,6 +154,14 @@
 	 (@debuggable-promise-evaluated? v))
 	(else
 	 (error "not a promise:" v))))
+
+(define (evaluated-promise? v)
+  (cond ((##promise? v)
+	 (@promise-evaluated? v))
+	((debuggable-promise? v)
+	 (@debuggable-promise-evaluated? v))
+	(else
+	 #f)))
 
 (define (evaluated-promise-value v)
   (define (err)

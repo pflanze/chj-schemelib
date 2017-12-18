@@ -21,9 +21,13 @@
 	 cj-typed-1)
 
 (export (macro type-check)
+	(macro source-type-check)
 	perhaps-typed.var
+	perhaps-typed.maybe-predicate
 	typed?
+	@typed.var
 	typed.var
+	typed.predicate
 	args-detype
 	(macro typed-lambda)
 	(macro define-typed)
@@ -36,28 +40,36 @@
 	typed-body-parse)
 
 
+(both-times
+ (define (type-check-expand predicate expr body use-source-error?)
+   (let ((V (gensym))
+	 (W (gensym)))
+     `(##let* ((,V ,expr)
+	       (,W (,predicate ,V)))
+	      (##if (##eq? ,W #t)
+		    (##let () ,@body)
+		    (cj-typed#type-check-error
+		     ,use-source-error?
+		     ,(let ((expr* (cj-desourcify expr)))
+			;; avoid putting gensyms into exception messages,
+			;; to make code using this testable.
+			(if (cj-gensym? expr*)
+			    (cond ((cj-gensym-maybe-name expr*)
+				   => (lambda (name)
+					(string-append "gensym '"
+						       (scm:object->string name))))
+				  (else
+				   #f))
+			    (scm:object->string expr*)))
+		     ,(scm:object->string (cj-desourcify predicate))
+		     ,W
+		     ,V))))))
+
 (define-macro* (type-check predicate expr . body)
-  (let ((V (gensym))
-	(W (gensym)))
-    `(##let* ((,V ,expr)
-	      (,W (,predicate ,V)))
-	     (##if (##eq? ,W #t)
-		   (##let () ,@body)
-		   (cj-typed#type-check-error
-		    ,(let ((expr* (cj-desourcify expr)))
-		       ;; avoid putting gensyms into exception messages,
-		       ;; to make code using this testable.
-		       (if (cj-gensym? expr*)
-			   (cond ((cj-gensym-maybe-name expr*)
-				  => (lambda (name)
-				       (string-append "gensym '"
-						      (scm:object->string name))))
-				 (else
-				  #f))
-			   (scm:object->string expr*)))
-		    ,(scm:object->string (cj-desourcify predicate))
-		    ,W
-		    ,V)))))
+  (type-check-expand predicate expr body #f))
+
+(define-macro* (source-type-check predicate expr . body)
+  (type-check-expand predicate expr body #t))
 
 (TEST
  ;; test that there's no "Ill-placed 'define'" compile-time error
@@ -135,6 +147,11 @@
 (define (perhaps-typed.var x)
   (car (fst (transform-arg x '() '()))))
 
+(define (perhaps-typed.maybe-predicate x)
+  ;; hacky, pick out of something like `(type-check foo? x ())
+  (cadr (snd (transform-arg x '() '()))))
+
+
 (define (typed? x)
   ;; stupid ~COPY
   (let ((x* (source-code x)))
@@ -142,9 +159,17 @@
 	 (= (vector-length x*) 2)
 	 (symbol? (source-code (vector-ref x* 1))))))
 
-(define (typed.var x) ;; careful, unsafe!
+(define (@typed.var x) ;; careful, unsafe!
   ;; again stupid ~COPY
   (vector-ref (source-code x) 1))
+
+(define (typed.var expr)
+  (source-type-check typed? expr
+		     (@typed.var expr)))
+
+(define (typed.predicate expr)
+  (source-type-check typed? expr
+		     (perhaps-typed.maybe-predicate expr)))
 
 
 (TEST
@@ -152,11 +177,17 @@
  x
  > (perhaps-typed.var 'y)
  y
+ > (perhaps-typed.maybe-predicate '#(foo? x))
+ foo?
+ > (typed.predicate '#((maybe foo?) x))
+ (maybe foo?)
+ > (with-exception-catcher source-error-message (& (typed.predicate 'x)))
+ "expr does not match typed?"
  > (typed? 'y)
  #f
  > (typed? '#(foo? x))
  #t
- > (typed.var '#(foo? x))
+ > (@typed.var '#(foo? x))
  x)
 
 

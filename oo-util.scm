@@ -7,6 +7,8 @@
 	 (srfi-11 values->vector values->list) ;; included in easy?
 	 cj-env
 	 show
+	 (cj-source show-source-location show-location-location
+		    show-procedure-location)
 	 debuggable-promise)
 
 (possibly-use-debuggable-promise)
@@ -72,6 +74,8 @@
 
 (define. string.length string-length)
 
+(define. integer.length integer-length)
+
 (define. string.reverse string-reverse)
 
 (TEST
@@ -112,6 +116,17 @@
 (define. symbol.symbol-append source:symbol-append)
 (define. string.symbol-append source:symbol-append)
 
+
+
+(define. location.show-location show-location-location)
+(define. source.show-location show-source-location)
+(define. procedure.show-location show-procedure-location)
+
+;; make |show-def| more general:
+(current-show-def .show-location)
+;; XX hmm, rename show-def to show-location, though? This now prefers
+;; to show input location over source location or monad context for
+;; parse1 failures.
 
 ;; ------------------------------------------
 ;; Check values for truthness the Perl way:

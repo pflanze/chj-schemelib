@@ -9,24 +9,24 @@
 (require (fallible-1 fallible? fallible-string))
 
 
-(define (cj-typed#type-check-error maybe-exprstr predstr w v)
+(define (cj-typed#type-check-error use-source-error? maybe-exprstr predstr w v)
   ;; v = value
   ;; w = result of predicate
 
   (let ((err (lambda strs
-	       (error (apply string-append
-			     (if maybe-exprstr
-				 (string-append maybe-exprstr " "))
-			     "does not match "
-			     predstr
-			     strs)
-		      v))))
+	       (let ((msg (apply string-append
+				 (if maybe-exprstr
+				     (string-append maybe-exprstr " "))
+				 "does not match "
+				 predstr
+				 strs)))
+		 (if use-source-error?
+		     (source-error v msg)
+		     (error (string-append msg ":") v))))))
     (cond ((eq? w #f)
-	   (err ":"))
+	   (err))
 	  ((fallible? w)
-	   (err " "
-		(fallible-string w)
-		":"))
+	   (err " " (fallible-string w)))
 	  (else
 	   (error "predicate "
 		  predstr
