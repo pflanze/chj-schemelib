@@ -29,7 +29,7 @@
 		      (tail '()))
      (_csv-port-stream
       (open-input-process
-       (list path: "./csv2sexpr"
+       (list path: "lib/csv2sexpr"
 	     arguments: (list path
 			      "-"
 			      (string sep-char)
