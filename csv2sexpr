@@ -1,0 +1,106 @@
+#!/usr/bin/perl -w
+
+# Die Jul 26 16:46:49 BST 2016
+(my $email='ch%christianjaeger,ch')=~ tr/%,/@./;
+
+use strict; use warnings FATAL => 'uninitialized';
+
+sub usage {
+    print STDERR map{"$_\n"} @_ if @_;
+    print "$0 infile outfile sepchar eol
+
+  If infile or outfile are '-', stdin/out are used.
+
+  eol: one of CRLF, CR, LF
+
+  (Christian Jaeger <$email>)
+";
+exit (@_ ? 1 : 0);
+}
+
+usage unless @ARGV==4;
+
+my ($inpath, $outpath, $sep_char, $eol_symbol)=@ARGV;
+
+
+use Chj::schemestring 'schemestring_oneline';
+
+# Partial copy of FP::Text::CSV
+
+sub hashset_add_hashset_d ($ $) {
+    my ($r,$s)=@_;
+    for (keys %$s) {
+	$$r{$_} = $$s{$_}
+	  unless exists $$r{$_};
+    }
+}
+
+sub hashset_union {
+    my %r;
+    hashset_add_hashset_d(\%r,$_)
+      for @_;
+    \%r
+}
+
+
+use Text::CSV;
+
+our $defaults=
+  +{
+    binary => 1,
+    sep_char=> "\t",
+    eol=> "\r\n",
+    blank_is_undef=> 1,
+   };
+
+sub params ($) {
+    my ($maybe_params)=@_;
+    defined $maybe_params ? hashset_union($maybe_params, $defaults)
+      : $defaults
+}
+
+sub new_csv_instance (;$) {
+    my ($maybe_params)=@_;
+    Text::CSV->new(params $maybe_params)
+	or die "Cannot use CSV: ".Text::CSV->error_diag ();
+}
+
+
+open my $in, "< $inpath"
+  or die "opening input '$inpath': $!";
+open my $out, "> $outpath"
+  or die "opening output '$outpath': $!";
+
+binmode $in, ":encoding(UTF-8)" or die $!;
+binmode $out, ":encoding(UTF-8)" or die $!;
+
+my $csv= new_csv_instance(+{sep_char=> $sep_char,
+			    eol =>
+			    $eol_symbol eq "CR" ? "\r" :
+			    $eol_symbol eq "LF" ? "\n" :
+			    $eol_symbol eq "CRLF" ? "\r\n" :
+			    die "invalid eol_symbol '$eol_symbol'",
+			   });
+
+while (my $row= $csv->getline($in)) {
+    print "(" or die $!;
+    for (@$row) {
+	print( defined($_) ? schemestring_oneline($_) : " #f " )
+	  or die $!;
+    }
+    print ")\n" or die $!;
+}
+
+# XX wow another thing missing from FP::Text::CSV:
+# WOW and man page is even wrong, does not have 'die'; ah ugh
+# overloaded.
+$csv->eof
+  or die $csv->error_diag();
+
+
+close $in or die "input: $!";
+close $out or die "output: $!";
+
+
+#use Chj::ruse;
+#use Chj::Backtrace; use Chj::repl; repl;
