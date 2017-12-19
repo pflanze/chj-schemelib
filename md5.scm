@@ -341,17 +341,17 @@ static ___SCMOBJ release_md5_context(void*p){
 
 (define (md5:raw-digest obj
 			#!optional
-			[result alloc-result])
-  (let* ([ctxt alloc-context])
+			(result alloc-result))
+  (let* ((ctxt alloc-context))
     (starts ctxt)
-    (cond [(string? obj)
+    (cond ((string? obj)
 	   (let ((v (string.utf8-u8vector obj)))
 	     (update ctxt
 		     v
-		     (u8vector-length v)))]
-	  [(u8vector? obj)
-	   (update ctxt obj (##u8vector-length obj))]
-          [(input-port? obj)
+		     (u8vector-length v))))
+	  ((u8vector? obj)
+	   (update ctxt obj (##u8vector-length obj)))
+          ((input-port? obj)
 	   ;; todo: only works with "Byte INPUT PORT"'s, not with string ports.
 	   (let loop ()
 	     (let ((n-read
@@ -369,8 +369,8 @@ static ___SCMOBJ release_md5_context(void*p){
 		   ;; not finished
 		   (begin
 		     (update ctxt alloc-buf n-read)
-		     (loop)))))]
-          [else (error "bad argument type - not a string or input-port" obj)])
+		     (loop))))))
+          (else (error "bad argument type - not a string or input-port" obj)))
     (finish ctxt result)
     result))
 
