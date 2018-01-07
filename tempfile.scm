@@ -1,4 +1,4 @@
-;;; Copyright 2014-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2017 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -14,9 +14,14 @@
 	 (cj-io-util port.name
 		     eexist-exception?
 		     eperm-exception?
-		     xxsystem))
+		     xxsystem)
+	 jclass
+	 (cj-path path-string?))
 
-(export tempfile)
+(export tempfile
+	(jclass public-tempdir*)
+	create-public-tempdir*
+	.tempfile)
 
 
 
@@ -69,10 +74,27 @@
 			      (xxsystem "chgrp" group "--" path))
 			  path)))
 
+
+;; finally some OO man. stupid other approaches?
+(jclass (public-tempdir* #(path-string? base))
+
+	(def (create-public-tempdir* #!key
+				     #((maybe string?) perms)
+				     #((maybe string?) group)
+				     (base "/tmp/public-tempdir"))
+	     (public-tempdir* (public-tempdir perms: perms
+					      group: group
+					      base: base)))
+
+	(def-method* (tempfile s)
+	  (tempfile (string-append base "/"))))
+
+
 (def tempfile-base
      ;; (string-append (getenv "HOME") "/.public-tempdir")
      (public-tempdir base: "/tmp/tempfile-base"
 		     perms: "0700"))
+
 
 ;; this is only safe against overwriting of existing files thanks to
 ;; proper long random numbers
