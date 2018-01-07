@@ -58,7 +58,7 @@
 (def (public-tempdir #!key
 		     #((maybe string?) perms)
 		     #((maybe string?) group)
-		     (base "/tmp/cgi-scm-tmp"))
+		     (base "/tmp/public-tempdir"))
      (randomly-retrying base
 			get-short-random-appendix
 			(lambda (path)
@@ -70,7 +70,7 @@
 			  path)))
 
 (def tempfile-base
-     ;; (string-append (getenv "HOME") "/.cgi-scm-tmp")
+     ;; (string-append (getenv "HOME") "/.public-tempdir")
      (public-tempdir perms: "0700"))
 
 ;; this is only safe against overwriting of existing files thanks to
