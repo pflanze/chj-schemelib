@@ -71,7 +71,8 @@
 
 (def tempfile-base
      ;; (string-append (getenv "HOME") "/.public-tempdir")
-     (public-tempdir perms: "0700"))
+     (public-tempdir base: "/tmp/tempfile-base"
+		     perms: "0700"))
 
 ;; this is only safe against overwriting of existing files thanks to
 ;; proper long random numbers
