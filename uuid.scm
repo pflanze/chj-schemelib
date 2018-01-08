@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -19,7 +19,8 @@
 (defmodule (<uuid>
 	    #!key
 	    ;; uuid-string-length:
-	    (#(exact-natural? length) 27))
+	    (#(exact-natural? length) 27)
+	    convert)
 
   (export random-uuid
 	  uuid?)
@@ -30,12 +31,13 @@
 
   (def random-uuid
        (let ((*s (atomic-box (make-realrandom-alphanumeric-string-stream
-			      length))))
+			      length)))
+	     (convert (or convert identity)))
 	 (lambda ()
 	   (atomic-box.update!
 	    *s
 	    (lambda (s)
 	      (let-pair ((a s*) (force s))
-			(values s* (-> uuid? a)))))))))
+			(values s* (-> uuid? (convert a))))))))))
 
 
