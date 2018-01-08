@@ -54,6 +54,8 @@
 	;; string-every see string-util-4.scm
 	string-any
 	string-downcase string-lc
+	string-upcase string-uc
+	string-upcase-first string-ucfirst
 	string-pad-left
 	string-ends-with?
 	string-starts-with? ;;XXX vs string-starts? ?
@@ -614,12 +616,30 @@
 (define string-downcase
   (cut string-map char-downcase <>))
 
-;; some other langs call it lc, add alias?
+(define string-upcase
+  (cut string-map char-upcase <>))
+
+(define (string-upcase-first str)
+  (let ((len (string-length str)))
+    (if (zero? len)
+	str
+	(let ((str* (string-copy str)))
+	  (string-set! str* 0 (char-upcase (string-ref str 0)))
+	  str*))))
+
+
+;; some other langs call it lc, add aliases?
 (define string-lc string-downcase)
+(define string-uc string-upcase)
+(define string-ucfirst string-upcase-first)
 
 (TEST
  > (string-downcase "Hello")
  "hello"
+ > (string-upcase "Hello")
+ "HELLO"
+ > (string-upcase-first "hello")
+ "Hello"
  )
 
 
