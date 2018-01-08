@@ -110,18 +110,19 @@
 			(lambda (path)
 			  (open-output-file path))))
 
-(def (call-with-tempfile proc/1 . args) -> string?
+(def (call-with-tempfile proc/1 arg0 . args) -> string?
      ;; hmm, no 'dynamic wind' thing at all??
-     (let ((p (apply open-tempfile args)))
+     (let ((p (apply open-tempfile arg0 args)))
        (proc/1 p)
        (close-port p)
        (port.name p)))
 
 
 ;; saves as utf-8
-(def. (string.tempfile-path v) -> string?
+(def. (string.tempfile-path v base) -> string?
   (call-with-tempfile (lambda (port)
-			(display v port))))
+			(display v port))
+		      base))
 
 (def. (u8vector.tempfile-path v) -> string?
   (call-with-tempfile (lambda (port)
