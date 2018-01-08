@@ -90,15 +90,10 @@
 	  (tempfile (string-append base "/"))))
 
 
-(def tempfile-base
-     ;; (string-append (getenv "HOME") "/.public-tempdir")
-     (public-tempdir base: "/tmp/tempfile-base"
-		     perms: "0700"))
-
 
 ;; this is only safe against overwriting of existing files thanks to
 ;; proper long random numbers
-(def (tempfile #!optional (base (string-append tempfile-base "/")))
+(def (tempfile base)
      -> string?
      (randomly-retrying base
 			get-long-random-appendix ;; hack
@@ -108,7 +103,7 @@
 
 
 ;; to get the path, use port.name on the result
-(def (open-tempfile #!optional (base (string-append tempfile-base "/")))
+(def (open-tempfile base)
      -> output-port?
      (randomly-retrying base
 			get-long-random-appendix ;; hack
