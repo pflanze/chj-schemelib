@@ -9,7 +9,14 @@
 (require easy
 	 (string-quote perl-quote)
 	 test
-	 cj-io-util)
+	 cj-io-util
+	 (cj-path path-string?)
+	 jclass)
+
+(export path-string.mime-type-string
+	(jclass mime-type)
+	path-string.mime-type)
+
 
 (TEST
  ;; XX heh, eliminate |suffix| from lib?
@@ -50,7 +57,7 @@
 ;; XX correct mime type for binary
 (def mime-type:generic-binary "appication/binary")
 
-(def (path.mime-type path)
+(def (path-string.mime-type-string path)
      (cond ((path-maybe-suffix path)
 	    => (C suffix->mime-type _ mime-type:generic-binary))
 	   (else mime-type:generic-binary)))
@@ -61,14 +68,20 @@
  "a"
  > (suffix->mime-type "wefweq" "b")
  "b"
- > (path.mime-type "foo.png")
+ > (path-string.mime-type-string "foo.png")
  "image/png"
- > (path.mime-type "foo.txt")
+ > (path-string.mime-type-string "foo.txt")
  "text/plain"
- > (path.mime-type "foo.wef")
+ > (path-string.mime-type-string "foo.wef")
  "appication/binary"
- > (path.mime-type "foo.wefawiopo")
+ > (path-string.mime-type-string "foo.wefawiopo")
  "appication/binary"
- > (path.mime-type "foo")
+ > (path-string.mime-type-string "foo")
  "appication/binary")
+
+
+(jclass (mime-type #(string? string)))
+
+(def (path-string.mime-type path)
+     (mime-type (path-string.mime-type-string path)))
 
