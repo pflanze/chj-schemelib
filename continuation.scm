@@ -4,7 +4,8 @@
 	 test)
 
 (export continuation-return-no-winding
-	continuation-graft-no-winding)
+	continuation-graft-no-winding
+	show-continuation)
 
 
 
@@ -101,3 +102,9 @@
 ;; etc., for stack access..
 
 
+(def (show-continuation res)
+     (declare (not proper-tail-calls))
+     (continuation-capture
+      (lambda (cont)
+        (warn cont)
+        res)))
