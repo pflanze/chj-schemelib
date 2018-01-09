@@ -330,7 +330,7 @@
     (cond ((pair? x)
 	   (cons (cj-desourcify (car x))
 		 (cj-desourcify (cdr x))))
-	  ((vector? x)
+	  ((##vector? x)
 	   (vector-map-1 cj-desourcify x))
 	  ((box? x)
 	   (box (cj-desourcify (unbox x))))
