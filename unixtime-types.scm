@@ -45,6 +45,12 @@
  6)
 
 
+
+;; Hacky?.. for .show-nice
+(defmacro (FIELD fieldname value)
+  value)
+
+
 ;; kinda-highlevel lowlevel data implementation (used for FFI)
 
 (jclass (localtime sec
@@ -59,6 +65,18 @@
 		   ;; This is contained neither in what Perl's `localtime` returns nor
 		   ;; `struct tm` from time.h :
 		   integer-timezone)
+
+	(def-method* (show-nice v)
+	  `(localtime (FIELD sec: ,sec)
+		      (FIELD nub: ,min)
+		      (FIELD hour: ,hour)
+		      (FIELD mday: ,mday)
+		      (FIELD month-1: ,month-1)
+		      (FIELD year-1900: ,year-1900)
+		      (FIELD integer-wday: ,integer-wday)
+		      (FIELD yday: ,yday)
+		      (FIELD integer-isdst: ,integer-isdst)
+		      (FIELD integer-timezone: ,integer-timezone)))
 
 	(def-method* (month v)
 	  (inc month-1))
