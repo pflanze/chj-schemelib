@@ -68,7 +68,7 @@
 
 	(def-method* (show-nice v)
 	  `(localtime (FIELD sec: ,sec)
-		      (FIELD nub: ,min)
+		      (FIELD min: ,min)
 		      (FIELD hour: ,hour)
 		      (FIELD mday: ,mday)
 		      (FIELD month-1: ,month-1)
