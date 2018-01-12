@@ -136,6 +136,17 @@
 			      (localtime.sec-paddedstring v))
 	       "")))
 
+
+	(def-method (rfc-2822-but-date-only-string v)
+	  (string-append (localtime.wday-shortstring v)
+			 ", "
+			 (localtime.mday-string v)
+			 " "
+			 (localtime.month-shortstring v)
+			 " "
+			 (localtime.year-string v)))
+	
+
 	(def-method (rfc-2822-alike-string v maybe-zone-string
 					   #!optional (show-zone? #t))
 	  (string-append (localtime.wday-shortstring v)
