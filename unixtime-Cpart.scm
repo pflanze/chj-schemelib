@@ -1,4 +1,4 @@
-;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -19,6 +19,7 @@
 	setenv! ;; XX move elsewhere?
 	tzset
 	set-TZ!
+	mktime
 	
 	#!optional
 	sizeof-time_t
@@ -151,6 +152,54 @@
 }
 " in out)
     out))
+
+
+
+;; mktime:
+
+;; According to man mktime:
+
+;; * ignores the values supplied by the caller in the tm_wday and
+;;   tm_yday fields
+
+;; * The value specified in the tm_isdst field informs mktime()
+;;   whether or not day‐ light saving time (DST) is in effect for the
+;;   time supplied in the tm structure: a positive value means DST is
+;;   in effect; zero means that DST is not in effect; and a negative
+;;   value means that mktime() should (use time‐ zone information and
+;;   system databases to) attempt to determine whether DST is in
+;;   effect at the specified time. -- You can pass #f to get the same
+;;   effect as -1.
+
+;; Call |set-TZ!| beforehand! The timezone field is being *ignored*!
+
+(def (mktime #(localtime? l)) -> time_t?
+     (let ((res (s64vector 0)))
+       (##c-code "
+{
+    ___SCMOBJ l= ___ARG1;
+    long long *res= ___CAST(long long*, ___BODY(___ARG2));
+
+    ___SCMOBJ tmp;
+    struct tm in;
+#define LTSET(i, target) tmp= ___VECTORREF(l, ___FIX(i+1)); target= (___FIXNUMP(tmp) ? ___INT(tmp) : -1);
+    LTSET(0, in.tm_sec);
+    LTSET(1, in.tm_min);
+    LTSET(2, in.tm_hour);
+    LTSET(3, in.tm_mday);
+    LTSET(4, in.tm_mon);
+    LTSET(5, in.tm_year);
+    LTSET(6, in.tm_wday);
+    LTSET(7, in.tm_yday);
+    LTSET(8, in.tm_isdst);
+    // LTSET(9, timezone); ignored. Instead call |set-TZ!| beforehand!
+#undef LTSET
+    *res= mktime (&in);
+}
+"
+		 l
+		 res)
+       (s64vector-ref res 0)))
 
 
 ;; strptime see unixtime-Cpart-strptime, but it doesn't really work.
