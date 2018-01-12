@@ -165,11 +165,12 @@
 	;; Time boundary calculations
 
 	(def-method* (month-start s)
-	  (let* ((s1 (.mday-set s 1))
-		 (s2 (.hour-set s1 0))
-		 (s3 (.min-set s2 0))
-		 (s4 (.sec-set s3 0)))
-	    (.integer-isdst-set s4 -1 )))
+	  (=> s
+	      (.mday-set 1)
+	      (.hour-set 0)
+	      (.min-set 0)
+	      (.sec-set 0)
+	      (.integer-isdst-set -1)))
 	
 	(def-method* (month-inc s)
 	  (if (= month-1 12)
