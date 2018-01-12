@@ -172,10 +172,13 @@
 	      (.sec-set 0)
 	      (.integer-isdst-set -1)))
 	
-	(def-method* (month-inc s)
-	  (if (= month-1 12)
-	      (.year-1900-update (.month-set s 1) inc)
-	      (.month-1-update s inc))))
+	(def-method* (month-inc s #!optional keep-dst?)
+	  (let ((r (if (= month-1 12)
+		       (.year-1900-update (.month-set s 1) inc)
+		       (.month-1-update s inc))))
+	    (if keep-dst?
+		r
+		(.integer-isdst-set r -1)))))
 
 
 
