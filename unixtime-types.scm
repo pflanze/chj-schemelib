@@ -160,6 +160,34 @@
 	  (.rfc-2822-alike-string v "GMT"))
 
 	(def-method (localtime-string v)
-	  (.rfc-2822-alike-string v #f #f)))
+	  (.rfc-2822-alike-string v #f #f))
 
+	;; Time boundary calculations
+
+	(def-method* (month-start s)
+	  (let* ((s1 (.mday-set s 1))
+		 (s2 (.hour-set s1 0))
+		 (s3 (.min-set s2 0))
+		 (s4 (.sec-set s3 0)))
+	    (.integer-isdst-set s4 -1 )))
+	
+	(def-method* (month-inc s)
+	  (if (= month-1 12)
+	      (.year-1900-update (.month-set s 1) inc)
+	      (.month-1-update s inc))))
+
+
+
+(TEST
+ > (def l (localtime 20 28 16 12 0 118 5 11 0 0))
+ > (.localtime-string (mktime (.month-start l)))
+ "Mon, 1 Jan 2018 00:00:00"
+ > (.localtime-string (mktime (.month-inc (.month-start l))))
+ "Thu, 1 Feb 2018 00:00:00"
+ > (.localtime-string (mktime (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-start l)))))))))
+ "Sun, 1 Jul 2018 00:00:00"
+ > (.localtime-string (mktime (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-start l))))))))))))))
+ "Sat, 1 Dec 2018 00:00:00"
+ > (.localtime-string (mktime (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-start l)))))))))))))))
+ "Tue, 1 Jan 2019 00:00:00")
 
