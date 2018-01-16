@@ -145,6 +145,12 @@
 			 (localtime.month-shortstring v)
 			 " "
 			 (localtime.year-string v)))
+
+
+	(def-method (month-and-year-shortstring v)
+	  (string-append (localtime.month-shortstring v)
+			 " "
+			 (localtime.year-string v)))
 	
 
 	(def-method (rfc-2822-alike-string v maybe-zone-string
