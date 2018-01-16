@@ -175,7 +175,15 @@
 					  (@symbol>> key port)
 					  (@char>> #\= port)
 					  (@char>> #\" port)
-					  (atom>>htmlquoted val port #f xml? #t)
+					  (let ((piece>>
+						 (lambda (val)
+						   (atom>>htmlquoted val port #f xml? #t))))
+					    (cond ((sxml-begin? val)
+						   (for-each piece>> (cdr val)))
+						  ((pair? val)
+						   (for-each piece>> val))
+						  (else
+						   (piece>> val))))
 					  (@char>> #\" port))))))
 			    (cond ((pair? val)
 				   (atom>> (@car val)))
@@ -202,6 +210,12 @@
 	   ((null? attrlist))
 	   (else
 	    (error "@attrlist>>: not a list:" attrlist))))
+
+
+(TEST
+ > (sxml->html-string-fragment '(p (@ (title (##begin 123 4 5 56)))))
+ "<p title=\"1234556\">")
+
 
 (def (@string>>htmlquoted str port count-chars? in-attributes?)
      (let ((len (##string-length str)))
