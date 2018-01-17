@@ -14,12 +14,12 @@
 
 (export time_t? unixtime?
 	ctime
-	unixtime.gmtime
-	unixtime.localtime
+	(method unixtime.gmtime)
+	(method unixtime.localtime)
 	setenv! ;; XX move elsewhere?
 	tzset
 	set-TZ!
-	mktime
+	mktime (method localtime.unixtime)
 	
 	#!optional
 	sizeof-time_t
@@ -201,6 +201,8 @@
 		 res)
        (s64vector-ref res 0)))
 
+
+(def. localtime.unixtime mktime)
 
 ;; strptime see unixtime-Cpart-strptime, but it doesn't really work.
 
