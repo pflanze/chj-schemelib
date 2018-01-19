@@ -100,6 +100,12 @@
  "\"foo\r\nbarn\""
  > (U csv-escape #\, "foo\r\n,barn")
  "\"foo\r\n,barn\""
+ > ((csv-escape #\,) "foobar")
+ "foobar"
+ > ((csv-escape #\,) "foo\"bar")
+ "\"foo\"\"bar\""
+ > ((csv-escape #\,) "foo\"")
+ "\"foo\"\"\""
  )
 
 
