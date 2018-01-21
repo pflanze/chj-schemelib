@@ -100,7 +100,7 @@
      (assert (fx< channel channels))
      (let ((i (fx+ pnmatrix:headsize (fx* i0 rowlen) (fx* i1 channels) channel)))
        (##c-code "
-___U8* p= ___CAST(void*,___ARG1);
+___U8* p= ___CAST(___U8*,___ARG1);
 size_t i= ___INT(___ARG2);
 ___RESULT= ___FIX(p[i]);
 " (@u8matrix.addr m) i)))))
@@ -127,7 +127,7 @@ ___RESULT= ___FIX(p[i]);
      (assert (fx< v 256))
      (let ((i (fx+ pnmatrix:headsize (fx* i0 rowlen) (fx* i1 channels) channel)))
        (##c-code "
-___U8* p= ___CAST(void*,___ARG1);
+___U8* p= ___CAST(___U8*,___ARG1);
 size_t i= ___INT(___ARG2);
 ___U8 v= ___INT(___ARG3);
 p[i]= v;
