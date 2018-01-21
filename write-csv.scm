@@ -1,4 +1,5 @@
 (require easy
+	 (oo-util-lazy iseq?)
 	 U
 	 eol
 	 (char-util char-alphanumeric+?)
@@ -8,7 +9,7 @@
 ;; https://www.ietf.org/rfc/rfc4180.txt
 
 
-(export stream->csv-file
+(export (method iseq.csv-file)
 	#!optional
 	sep-chars
 	sep-char?
@@ -127,22 +128,22 @@
 			   eol*)))))
 
 
-(def (stream->csv-file s
-		       #(path-string? path)
-		       #!key
-		       #(eol-name? eol)
-		       #(char? sep-char))
-     (let* ((p (open-output-file path))
-	    (w (csv-row-writer port: p
-			       eol: eol
-			       sep-char: sep-char)))
-       (let lp ((s s))
-	 (FV (s)
-	     (if (null? s)
-		 (close-port p)
-		 (let-pair ((row s) s)
-			   (w row)
-			   (lp s)))))))
+(def. (iseq.csv-file s
+		     #(path-string? path)
+		     #!key
+		     #(eol-name? eol)
+		     #(char? sep-char))
+  (let* ((p (open-output-file path))
+	 (w (csv-row-writer port: p
+			    eol: eol
+			    sep-char: sep-char)))
+    (let lp ((s s))
+      (FV (s)
+	  (if (null? s)
+	      (close-port p)
+	      (let-pair ((row s) s)
+			(w row)
+			(lp s)))))))
 
 ;; XX should I always just create a type (value bundle) right away for
 ;; the options?! Are (openly placed) keywords even just a stupid idea?
