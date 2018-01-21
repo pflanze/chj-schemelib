@@ -77,7 +77,7 @@
      (##c-code
       ,(.append
 	(.pointertype v)"*m=
-	  ___CAST(void*,
+	  ___CAST("(.pointertype v)"*,
 	     ___CAST(___U8*,___ARG1) + " (.string pnmatrix:headsize) ");"nl
 	"___RESULT= ___CAST(___WORD, m);"nl)
       addr))))
@@ -88,7 +88,7 @@
    (lambda (addr i)
      (##c-code
       ,(.append
-	(.pointertype v)"*m= ___CAST(void*,___ARG1);"nl
+	(.pointertype v)"*m= ___CAST("(.pointertype v)"*,___ARG1);"nl
 	"size_t i= ___INT(___ARG2);"nl
 	"___RESULT= ___FIX(m[i]);"nl)
       addr i))))
@@ -121,7 +121,7 @@
        (##c-code
 	,(.append
 	  (.pointertype v)"*m=
-	  ___CAST(void*,
+	  ___CAST("(.pointertype v)"*,
 	     ___CAST(___U8*,___ARG1) + " (.string pnmatrix:headsize) ");"nl
 	  "size_t s1= ___INT(___ARG2);"nl
 	  "size_t i0= ___INT(___ARG3);"nl
