@@ -78,6 +78,8 @@
  "foobarn"
  > (U csv-escape #\, 123)
  "123"
+ > (U csv-escape #\, 123/2)
+ "\"123/2\"" ;; XX doubtful this will work?, also non-real numbers, and floating point formatting
  > (U csv-escape #\, "123")
  "123"
  > (U csv-escape #\, "123,2")
