@@ -12,7 +12,7 @@
 	#!optional
 	sep-chars
 	sep-char?
-	csv-map
+	write-csv:value->string
 	csv-escape)
 
 (def sep-chars '#(#\; #\, #\:))
@@ -53,21 +53,24 @@
 	     "\"\"" ;; make it different from #f which gives ""
 	     str)))
 
-(def (csv-map v) -> (maybe string?)
+
+;; map a Scheme value to a string representation that's fine to use in
+;; CSV; note that this is *not* the string that appears in the file
+;; (i.e. it is not escaped yet)
+(def (write-csv:value->string v) -> string?
      (cond ((string? v)
 	    v)
 	   ((number? v)
 	    ;; XX number formats?
 	    ;; XX and then treat just as a string, is this ok, correct?
 	    (number->string v))
-	   ((false? v)
-	    #f)
 	   (else
-	    (error "csv-map: don't know how to handle type of value:" v))))
+	    (error "write-csv:value->string: don't know how to handle type of value:" v))))
 
 (def ((csv-escape sep-char) v)
-     (cond ((csv-map v) => (lambda_ (csv-escape* sep-char _)))
-	   (else "")))
+     (if v
+	 (csv-escape* sep-char (write-csv:value->string v))
+	 ""))
 
 
 (TEST
