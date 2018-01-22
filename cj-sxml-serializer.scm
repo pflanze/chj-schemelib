@@ -12,6 +12,10 @@
 ;; upstream to Christian please.
 
 
+;; http://okmij.org/ftp/Scheme/xml.html
+;; https://en.wikipedia.org/wiki/SXML
+
+
 (require easy
 	 (srfi-1 last-pair append!)
 	 cj-env	;; warn, for debgging  ah and now thunk
