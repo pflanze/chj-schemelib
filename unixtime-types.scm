@@ -15,6 +15,12 @@
 	 test)
 
 
+(export rfc-2822:string.wday
+	rfc-2822:string.month
+	rfc-2822:string.year-1900
+	(jclass localtime))
+
+
 
 ;; date -R format
 
@@ -26,6 +32,8 @@
 
 (def rfc-2822:string.wday (vector.value.pos rfc-2822:wdays))
 (def rfc-2822:string.month (vector.value.pos rfc-2822:months))
+(def (rfc-2822:string.year-1900 str)
+     (- (string->number str) 1900))
 
 
 (TEST
@@ -42,7 +50,9 @@
  > (rfc-2822:string.wday "Sun")
  0
  > (rfc-2822:string.wday "Sat")
- 6)
+ 6
+ > (rfc-2822:string.year-1900 "2017")
+ 117)
 
 
 
