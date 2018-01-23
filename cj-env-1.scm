@@ -28,6 +28,13 @@
 (define (parameter-update! p fn)
   (p (fn (p))))
 
+(define (parameter-push! p v)
+  (p (cons v (p))))
+
+(define (parameter-pop! p)
+  (let ((l (p)))
+    (p (cdr l))
+    (car l)))
 
 
 (define (list-join lis val #!optional (tail '()))
