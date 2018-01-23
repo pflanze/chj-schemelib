@@ -16,7 +16,7 @@
 
 
 (export rfc-2822:string.wday
-	rfc-2822:string.month
+	rfc-2822:string.month-1
 	rfc-2822:string.year-1900
 	(jclass localtime))
 
@@ -31,19 +31,19 @@
      '#("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
 (def rfc-2822:string.wday (vector.value.pos rfc-2822:wdays))
-(def rfc-2822:string.month (vector.value.pos rfc-2822:months))
+(def rfc-2822:string.month-1 (vector.value.pos rfc-2822:months))
 (def (rfc-2822:string.year-1900 str)
      (- (string->number str) 1900))
 
 
 (TEST
- > (rfc-2822:string.month "Jan")
+ > (rfc-2822:string.month-1 "Jan")
  0
- > (rfc-2822:string.month "Feb")
+ > (rfc-2822:string.month-1 "Feb")
  1
- > (rfc-2822:string.month "Dec")
+ > (rfc-2822:string.month-1 "Dec")
  11
- > (%try-error (rfc-2822:string.month "December"))
+ > (%try-error (rfc-2822:string.month-1 "December"))
  #(error "unknown key:" "December")
  > (rfc-2822:string.wday "Mon")
  1
