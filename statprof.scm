@@ -154,6 +154,12 @@ td.line {
   (define directory-name (string-append (current-directory)
                                         profile-name
                                         "/"))
+
+  (define (clean-directory directory-name)
+    (for-each (lambda (item)
+		(delete-file (string-append directory-name "/" item)))
+	      (read-all (open-directory directory-name))))
+
   (with-exception-catcher
    (lambda (e)
      ;; ignore the exception, it probably means that the directory
@@ -163,6 +169,8 @@ td.line {
    (lambda ()
      (create-directory (list path: directory-name
                              permissions: #o755))))
+
+  (clean-directory directory-name)
 
   (if (pair? statprof:*buckets*)
       (let ((max-intensity
