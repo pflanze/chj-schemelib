@@ -7,12 +7,14 @@
 (require slib-sort
 	 (cj-env on)
 	 (srfi-11 lambda-values fst)
-	 (oo-vector-lib vector.sum))
+	 (oo-vector-lib vector.sum)
+	 define-macro-star)
 
-(export (profile-start!)
-	(profile-stop!)
-	(write-profile-report string:subdirectory)
-	(run-with-profile thunk #!optional (profile-name "profile")))
+(export profile-start!
+	profile-stop!
+	write-profile-report
+	run-with-profile
+	(macro profile))
 
 ;; ----------------------------------------------------------------------------
 ;; Profiling & interruption handling
@@ -254,6 +256,10 @@
     (profile-stop!)
     (write-profile-report profile-name)
     res))
+
+(define-macro* (profile expr . args)
+  `(run-with-profile (lambda () ,expr) ,@args))
+
 
 
 ;; ----------------------------------------------------------------------------
