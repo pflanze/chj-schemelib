@@ -7,6 +7,7 @@
 
 
 (require test
+	 define-macro-star
 	 srfi-1
 	 (list-util improper-fold-right)
 	 (char-util char-one-of?/ char-digit?)
@@ -60,6 +61,7 @@
 	lists?
 	0..1? ;; see also rgb:0..1?
 	in-signed-range?
+	(macro %in-signed-range?)
 	parameter?
 	parameter-of)
 
@@ -384,10 +386,22 @@
     (and (<= (- half) v)
 	 (< v half))))
 
+(define-macro* (%in-signed-range? wordsize-bits v)
+  ;; wordsize-bits must be a constant
+  (let ((half (expt 2 (dec (eval wordsize-bits)))))
+    `(let ((v ,v))
+       (and (<= ,(- half) v)
+	    (< v ,half)))))
+
 (TEST
  > (define (test basenum v)
-     (list (in-signed-range? 8 v)
-	   (number->string (+ basenum v) 2)))
+     (let ((r1 (in-signed-range? 8 v))
+	   (r2 (%in-signed-range? 8 v)))
+       (if (equal? r1 r2)
+	   (list
+	    r1
+	    (number->string (+ basenum v) 2))
+	   (list 'failure r1 r2))))
  > (test (expt 2 16) -1)
  (#t "1111111111111111")
  ;;   1234567812345678
