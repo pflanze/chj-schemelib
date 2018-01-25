@@ -11,7 +11,9 @@
 	 (string-util-1 string-split))
 
 (export lists-join
-	strings-join)
+	strings-join
+	string-escape
+	first-line)
 
 
 (define (lists-join ls seplis #!optional (tail '()))
@@ -48,4 +50,23 @@
  "Foo\\|bar"
  > (string-escape "|Foo||b\\ar|" '(#\|))
  "\\|Foo\\|\\|b\\\\ar\\|")
+
+
+(define (first-line str)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (if (< i len)
+	  (let ((c (string-ref str i)))
+	    (case c
+	      ((#\newline #\return) (substring str 0 i))
+	      (else (lp (+ i 1)))))
+	  str))))
+
+(TEST
+ > (first-line "foo")
+ "foo"
+ > (first-line "foo\n")
+ "foo"
+ > (first-line "foo\nbar")
+ "foo")
 
