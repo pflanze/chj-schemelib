@@ -6,6 +6,7 @@
 	 (string-util strings-join string-split))
 
 (export url-encode
+	url-decode
 	path-string.url-encode
 	url-string-and-fragment)
 
@@ -20,19 +21,22 @@
 (define-typed (url-encoding:reserved? #(char? c))
   (and (memq c url-encoding:reserved-chars) #t))
 
-(define (url-encoding:unreserved? c)
-  (let* ((is (lambda (c2)
-	       (eq? c c2)))
-	 (n (char->integer c))
-	 (_in-range (cut <= <> n <>))
-	 (in-range (on char->integer _in-range)))
-    (or (in-range #\A #\Z)
-	(in-range #\a #\z)
-	(in-range #\0 #\9)
-	(is #\-)
-	(is #\_)
-	(is #\.)
-	(is #\~))))
+(define-typed (url-encoding:unreserved? #(char? c))
+  (declare (not safe) (fixnum))
+  (case c
+    ((#\- #\_ #\. #\~) #t)
+    (else
+     (let ((cn (char->integer c)))
+       (or (<= (insert-result-of (char->integer #\a))
+	       cn
+	       (insert-result-of (char->integer #\z)))
+	   (<= (insert-result-of (char->integer #\A))
+	       cn
+	       (insert-result-of (char->integer #\Z)))
+	   (<= (insert-result-of (char->integer #\0))
+	       cn
+	       (insert-result-of (char->integer #\9))))))))
+
 (TEST
  > (url-encoding:unreserved? #\c)
  #t
@@ -112,6 +116,33 @@
  > (path-string.url-encode "foo/ bär")
  "foo/%20b%E4r" ;; XXX hmmm wrong right? sigh.
  )
+
+
+(define (url-decode str) ;; gives exceptions on invalid input, so don't compile unsafe..
+  (list->string
+   (let rec ((l (string->list str)))
+     (if (null? l)
+	 l
+	 (let-pair ((a r) l)
+		   (if (char=? a #\%)
+		       (let-pair ((b r) r)
+				 (let-pair ((c r) r)
+					   (cons (integer->char
+						  (+ (* 16 (char.parse-hexdigit b))
+						     (char.parse-hexdigit c)))
+						 (rec r))))
+		       (cons a (rec r))))))))
+
+(TEST
+ > (url-decode (url-encode " foo bar"))
+ " foo bar"
+ > (url-decode (url-encode " foo bar&-() !\" 87"))
+ " foo bar&-() !\" 87"
+ > (url-decode (url-encode (string #\% (integer->char 250) #\%)))
+ "%\372%"
+ > (string->number "372" 8)
+ 250)
+
 
 
 (define-typed (url-string-and-fragment #(string? url-string) #(string? fragment))
