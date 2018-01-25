@@ -186,6 +186,22 @@ td.line {
 	   (let ((file (car bucket))
 		 (data (cdr bucket)))
 
+	     (define (safer-vector-ref v i)
+	       (let ((len (vector-length v)))
+		 (if (< i len)
+		     (vector-ref v i)
+		     (let ((p (current-error-port)))
+		       (for-each (lambda (v)
+				   (display v p))
+				 (list "statprof: warning: safer-vector-ref failure in file: "
+				       file
+				       ", index: "
+				       i
+				       ", len: "
+				       len))
+		       (newline p)
+		       (vector-ref v (- len 1))))))
+
 	     (define (get-color n)
 	       (let ((i (vector-ref data n)))
 		 (if (= i 0)
@@ -193,8 +209,9 @@ td.line {
 		     (let ((x (* (/ (log (+ 1. i))
 				    (ceiling (log max-intensity)))
 				 (- (vector-length statprof:palette) 1))))
-		       (statprof:as-rgb (vector-ref statprof:palette
-						    (inexact->exact (ceiling x))))))))
+		       (statprof:as-rgb (safer-vector-ref
+					 statprof:palette
+					 (inexact->exact (ceiling x))))))))
 
 	     (with-output-to-file (string-append
 				   directory-name
