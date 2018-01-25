@@ -6,11 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-(require test
-	 easy
+(require easy
+	 unixtime-Cpart-compiletime
 	 unixtime-types
-	 (predicates in-signed-range?)
-	 u8vector0)
+	 (predicates %in-signed-range?)
+	 u8vector0
+	 test)
 
 (export time_t? unixtime?
 	ctime
@@ -19,11 +20,7 @@
 	setenv! ;; XX move elsewhere?
 	tzset
 	set-TZ!
-	mktime (method localtime.unixtime)
-	
-	#!optional
-	sizeof-time_t
-	bitsof-time_t)
+	mktime (method localtime.unixtime))
 
 
 (c-declare "
@@ -33,18 +30,11 @@
        #include <stdlib.h>
 ")
 
-(def sizeof-time_t (##c-code "___RESULT= ___FIX(sizeof(time_t));"))
-
-(assert (<= sizeof-time_t 8))
-;; ah wow we are on 64 bits already?!
-
-(def bitsof-time_t (* sizeof-time_t 8))
-
 
 (def (time_t? v)
   (and (number? v)
        (exact? v)
-       (in-signed-range? bitsof-time_t v)))
+       (%in-signed-range? bitsof-time_t v)))
 
 
 ;; XX is this alias a *bad* idea?
