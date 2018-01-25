@@ -3,7 +3,8 @@
 	 cj-functional
 	 (srfi-11 letv)
 	 srfi-1
-	 (string-util strings-join string-split))
+	 (string-util strings-join string-split)
+	 u8vector0)
 
 (export url-encode
 	url-decode
@@ -87,7 +88,12 @@
 	      lis))
 
 (define (stringliststring fn)
-  (compose* list->string fn string->list))
+  (compose* list->string
+	    fn
+	    (lambda (l)
+	      (map integer->char l))
+	    u8vector->list
+	    string.utf8-u8vector))
 
 (define url-encode (stringliststring _url-encode))
 
@@ -99,7 +105,9 @@
  > (url-encode "foo/bar")
  "foo%2Fbar"
  > (url-encode "äbi")
- "%E4bi" ;; hmm ok?
+ "%C3%A4bi"
+ > (url-encode (string (integer->char 3485)))
+ "%E0%B6%9D"
  )
 
 (define (path-string.url-encode str)
@@ -114,24 +122,26 @@
  > (path-string.url-encode "foo/ bar")
  "foo/%20bar"
  > (path-string.url-encode "foo/ bär")
- "foo/%20b%E4r" ;; XXX hmmm wrong right? sigh.
+ "foo/%20b%C3%A4r"
  )
 
 
 (define (url-decode str) ;; gives exceptions on invalid input, so don't compile unsafe..
-  (list->string
-   (let rec ((l (string->list str)))
-     (if (null? l)
-	 l
-	 (let-pair ((a r) l)
-		   (if (char=? a #\%)
-		       (let-pair ((b r) r)
-				 (let-pair ((c r) r)
-					   (cons (integer->char
-						  (+ (* 16 (char.parse-hexdigit b))
-						     (char.parse-hexdigit c)))
-						 (rec r))))
-		       (cons a (rec r))))))))
+  (u8vector.utf8-parse
+   (list->u8vector
+    (map char->integer
+	 (let rec ((l (string->list str)))
+	   (if (null? l)
+	       l
+	       (let-pair ((a r) l)
+			 (if (char=? a #\%)
+			     (let-pair ((b r) r)
+				       (let-pair ((c r) r)
+						 (cons (integer->char
+							(+ (* 16 (char.parse-hexdigit b))
+							   (char.parse-hexdigit c)))
+						       (rec r))))
+			     (cons a (rec r))))))))))
 
 (TEST
  > (url-decode (url-encode " foo bar"))
