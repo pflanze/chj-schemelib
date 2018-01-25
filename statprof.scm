@@ -122,6 +122,19 @@
 ;; ----------------------------------------------------------------------------
 ;; Functions to generate the report
 
+
+(define (statprof:head)
+  `(head (style "
+pre {
+  margin: 0px;
+}
+
+.percentage_column {
+  margin-left: 6px;
+  margin-right: 6px;
+}
+")))
+
 (define (write-profile-report profile-name)
 
   (define (iota1 n)
@@ -178,6 +191,7 @@
 		   (print
 		    (statprof:sexp->html
 		     `(html
+		       ,(statprof:head)
 		       (body
 			(table
 			 cellspacing: 0
@@ -187,7 +201,8 @@
 			 ,@(map
 			    (lambda (line line#)
 			      `(tr
-				(td ,(string-append
+				(td align: "right"
+				    ,(string-append
 				      (number->string line#)
 				      ": "))
 				;; (td
@@ -206,10 +221,11 @@
 				 ,(let ((n (vector-ref data line#)))
 				    (if (= n 0)
 					""
-					(string-append
-					 (number->string
-					  (statprof:round% (/ n statprof:*total*)))
-					 "% "))))
+					`(span class: "percentage_column"
+					       ,(string-append
+						 (number->string
+						  (statprof:round% (/ n statprof:*total*)))
+						 "% ")))))
 
 				(td (pre style: ,(string-append
 						  "background-color:#"
@@ -225,6 +241,7 @@
       (print
        (statprof:sexp->html
         `(html
+	  ,(statprof:head)
           (body
            ,@(map (lambda-values
 		   ((total bucket))
