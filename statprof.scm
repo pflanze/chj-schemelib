@@ -125,8 +125,15 @@
 
 (define (statprof:head)
   `(head (style "
-pre {
-  margin: 0px;
+pre.line {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+td.line {
+  border-left: 1px solid #d0d0d0;
 }
 
 .percentage_column {
@@ -227,7 +234,9 @@ pre {
 						  (statprof:round% (/ n statprof:*total*)))
 						 "% ")))))
 
-				(td (pre style: ,(string-append
+				(td class: "line"
+				    (pre class: "line"
+					 style: ,(string-append
 						  "background-color:#"
 						  (get-color line#))
 					 ,line))))
