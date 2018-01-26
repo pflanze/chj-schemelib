@@ -15,7 +15,8 @@
 		noparallel-for..<*
 		for-all
 		parallel-for-all
-		noparallel-for-all))
+		noparallel-for-all)
+	current-num-cpus-to-use)
 
 
 (include "cj-standarddeclares.scm")
@@ -23,7 +24,7 @@
 ;; needs to be a '*' for, i.e. |to| needs to be known in advance so
 ;; that it can divide work (supposedly equally) in advance.
 
-(define system:num-cpus-to-user 2) ;; XXX how?
+(define current-num-cpus-to-use (make-parameter #f))
 
 (define-typed (_parallel-for..<*
 	       #(natural? min-iter-per-child)
@@ -32,7 +33,7 @@
 	       #(procedure? loopbody))
   (assert (< from to))
   (let* ((numiter (- to from))
-	 (iterpercpu (/ numiter system:num-cpus-to-user)))
+	 (iterpercpu (/ numiter (current-num-cpus-to-use))))
     (if (>= iterpercpu min-iter-per-child)
 	(begin
 	  (interrupt-install-handler! SIGCHLD false/0)
@@ -49,7 +50,7 @@
 					 (thunk
 					  (loopbody lo hi)
 					  0)))))
-			      (iota system:num-cpus-to-user)))
+			      (iota (current-num-cpus-to-use))))
 		 (stati (map (lambda-pair
 			      ((i pid))
 			      (let ((status (s32vector 0)))
