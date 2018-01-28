@@ -271,16 +271,22 @@
      `(##let ()
 	     (##namespace ("xhtml#" ,@(filter (lambda (n) (not (eq? n 'map)))
 					      xhtml-element-names)))
-	     (##define-syntax ,'unquote
-			      (lambda (stx)
-				(cj-sourcify-deep
-				 (match*
-				  stx
-				  ((_ expr)
-				   `(##let ()
-					   (##namespace (""))
-					   ,expr)))
-				 stx)))
+	     (##define-syntax
+	      ,'unquote
+	      (lambda (stx)
+		(cj-sourcify-deep
+		 (match*
+		  stx
+		  ((_ expr)
+		   `(##let ()
+			   (##namespace (""))
+			   ;; report on invalid syntax, OK?
+			   (##define-syntax
+			    ,'unquote
+			    (lambda (stx)
+			      (error "invalid use of unquote")))
+			   ,expr)))
+		 stx)))
 	     ,(if (one? es)
 		  (car es)
 		  ;; but who says really that I want list and not
@@ -320,6 +326,17 @@
  (a ("fo" (5)))
  ;; fun :)
  )
+
+(TEST
+ ;; proper handling of unquote
+ > (def a 100)
+ > (XHTML ,a)
+ 100
+ > (eq? (XHTML a) xhtml:a)
+ #t
+ > (with-exception-catcher error-exception-message (& (eval '(XHTML ,,a))))
+ "invalid use of unquote")
+
 
 ;; multiple forms
 (TEST
