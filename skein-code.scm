@@ -229,7 +229,7 @@ static struct Skein512* INITIALIZED;
 
 /* zero the allocations since the original Java code relied on this
    already */
-#define LET_NEW(var,type) type* var= calloc(sizeof(type), 1)
+#define LET_NEW(var,type) type* var= CAST(type*,calloc(sizeof(type), 1))
 
 static void skein_throw(const char *msg) {
     fprintf(stderr, \"%s\\n\", msg);
