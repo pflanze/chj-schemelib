@@ -186,7 +186,7 @@ STATIC
 struct Skein512* skein_new_Skein512();
 
 STATIC
-void Skein512_init(struct Skein512 *this);
+void Skein512_init(struct Skein512 *self);
 
 STATIC
 void skein_hash_bytes(const byte *msg, int byteCount,
@@ -201,17 +201,17 @@ void skein_hash_bits(const byte *msg, int bitCount,
                      struct Skein512digest *digest);
 
 STATIC
-void Skein512_update(struct Skein512 *this,
+void Skein512_update(struct Skein512 *self,
                      const byte *msg, int len);
 
 STATIC
-void Skein512_finalize(struct Skein512* this,
+void Skein512_finalize(struct Skein512* self,
                        struct Skein512digest *hash);
 
-static void Skein512_startNewType(struct Skein512* this,
+static void Skein512_startNewType(struct Skein512* self,
                                   long type);
 
-static void Skein512_processBlock(struct Skein512 *this,
+static void Skein512_processBlock(struct Skein512 *self,
                                   const byte *block, int off, int blocks, int bytes);
 
 static long skein_rotlXor(long x, int n, long xor);
@@ -243,10 +243,10 @@ static void skein_throw(const char *msg) {
 /* build/process the configuration block (only done once) */
 
 static struct Skein512* _skein_initial_Skein512 (int hashBitCount) {
-    LET_XNEW(this, struct Skein512);
+    LET_XNEW(self, struct Skein512);
 
-    this->hashBitCount = hashBitCount;
-    Skein512_startNewType(this, TYPE_CONFIG | T1_FLAG_FINAL);
+    self->hashBitCount = hashBitCount;
+    Skein512_startNewType(self, TYPE_CONFIG | T1_FLAG_FINAL);
 
     /* set the schema, version */
     long w[2];
@@ -254,15 +254,15 @@ static struct Skein512* _skein_initial_Skein512 (int hashBitCount) {
     w[1] = hashBitCount;
 
     /* compute the initial chaining values from the configuration block */
-    skein_setBytes(this->buffer, w, 2 * 8);
-    Skein512_processBlock(this, this->buffer, 0, 1, 4 * WORDS);
+    skein_setBytes(self->buffer, w, 2 * 8);
+    Skein512_processBlock(self, self->buffer, 0, 1, 4 * WORDS);
 
     /* the chaining vars (x) are now initialized for the given hashBitLen.
        set up to process the data message portion of the hash (default)
        buffer starts out empty */
-    Skein512_startNewType(this, TYPE_MESSAGE);
+    Skein512_startNewType(self, TYPE_MESSAGE);
 
-    return this;
+    return self;
 }
 
 static void skein_init_Skein512 () {
@@ -270,21 +270,21 @@ static void skein_init_Skein512 () {
 }
 
 STATIC
-void Skein512_init(struct Skein512 *this) {
+void Skein512_init(struct Skein512 *self) {
     /* the Java version relies on the JVM to do this */
-    memset(this, 0, sizeof(struct Skein512));
+    memset(self, 0, sizeof(struct Skein512));
 
-    this->hashBitCount = INITIALIZED->hashBitCount;
-    this->tweak0 = INITIALIZED->tweak0;
-    this->tweak1 = INITIALIZED->tweak1;
-    skein_arraycopy_long(INITIALIZED->x, 0, this->x, 0, WORDS);
+    self->hashBitCount = INITIALIZED->hashBitCount;
+    self->tweak0 = INITIALIZED->tweak0;
+    self->tweak1 = INITIALIZED->tweak1;
+    skein_arraycopy_long(INITIALIZED->x, 0, self->x, 0, WORDS);
 }
 
 STATIC
 struct Skein512* skein_new_Skein512() {
-    LET_XNEW(this,  struct Skein512);
-    Skein512_init(this);
-    return this;
+    LET_XNEW(self,  struct Skein512);
+    Skein512_init(self);
+    return self;
 }
 
 /**
@@ -343,7 +343,7 @@ void skein_hash_bits(const byte *msg, int bitCount,
 
 /* process the input bytes */
 STATIC
-void Skein512_update(struct Skein512 *this,
+void Skein512_update(struct Skein512 *self,
                      const byte *msg, int len) {
 DEBUG(\"update: %d\", len);
     const int origLen= len;
@@ -351,22 +351,22 @@ DEBUG(\"update: %d\", len);
     int pos = 0;
 
     /* process full blocks, if any */
-    if (len + this->byteCount > BYTES) {
+    if (len + self->byteCount > BYTES) {
 
 	/* finish up any buffered message data */
-	if (this->byteCount != 0) {
-            DEBUG(\"  update: this->byteCount=%d\", this->byteCount);
+	if (self->byteCount != 0) {
+            DEBUG(\"  update: self->byteCount=%d\", self->byteCount);
 	    /* # bytes free in buffer */
-	    int n = BYTES - this->byteCount;
+	    int n = BYTES - self->byteCount;
 	    if (n != 0) {
-		skein_arraycopy_byte(msg, 0, this->buffer, this->byteCount, n);
+		skein_arraycopy_byte(msg, 0, self->buffer, self->byteCount, n);
                 /* XX check for number overflows; currently relying on asserts below */
 		len -= n;
 		pos += n;
-		this->byteCount += n;
+		self->byteCount += n;
 	    }
-	    Skein512_processBlock(this, this->buffer, 0, 1, BYTES);
-	    this->byteCount = 0;
+	    Skein512_processBlock(self, self->buffer, 0, 1, BYTES);
+	    self->byteCount = 0;
 	}
 
 	/* now process any remaining full blocks, 
@@ -375,7 +375,7 @@ DEBUG(\"update: %d\", len);
 	if (len > BYTES) {
 	    /* number of full blocks to process */
 	    int n = (len - 1) / BYTES;
-	    Skein512_processBlock(this, msg, pos, n, BYTES);
+	    Skein512_processBlock(self, msg, pos, n, BYTES);
 	    len -= n * BYTES;
 	    pos += n * BYTES;
 	}
@@ -386,70 +386,70 @@ DEBUG(\"update: %d\", len);
 
     /* copy any remaining source message data bytes into the buffer */
     if (len != 0) {
-         assert((this->byteCount+len) < BYTES);
+         assert((self->byteCount+len) < BYTES);
          assert(pos < origLen);
          assert((pos + len) <= origLen);
-	skein_arraycopy_byte(msg, pos, this->buffer, this->byteCount, len);
-	this->byteCount += len;
+	skein_arraycopy_byte(msg, pos, self->buffer, self->byteCount, len);
+	self->byteCount += len;
     }
-DEBUG(\"/update: pos, byteCount, len: %d, %d, %d\", pos, this->byteCount, len);
+DEBUG(\"/update: pos, byteCount, len: %d, %d, %d\", pos, self->byteCount, len);
 }
 
 /* finalize the hash computation and output the result */
 STATIC
-void Skein512_finalize(struct Skein512* this,
+void Skein512_finalize(struct Skein512* self,
                        struct Skein512digest *hash) {
 
     /* tag as the final block */
-    this->tweak1 |= T1_FLAG_FINAL;
+    self->tweak1 |= T1_FLAG_FINAL;
 
     /* zero pad if necessary */
-    if (this->byteCount < BYTES) {
-	skein_array_fill_from_to_bytes(this->buffer, BYTES,  this->byteCount, BYTES, (byte) 0);
+    if (self->byteCount < BYTES) {
+	skein_array_fill_from_to_bytes(self->buffer, BYTES,  self->byteCount, BYTES, (byte) 0);
     }
 
     /* process the final block */
 DEBUG(\"process the final block\");
-    Skein512_processBlock(this, this->buffer, 0, 1, this->byteCount);
+    Skein512_processBlock(self, self->buffer, 0, 1, self->byteCount);
 
     /* now output the result
        zero out the buffer, so it can hold the counter */
-    skein_array_fill(this->buffer, BYTES, 0);
+    skein_array_fill(self->buffer, BYTES, 0);
 
     /* up to 512 bits are supported
        build the counter block */
-    Skein512_startNewType(this, TYPE_OUT | T1_FLAG_FINAL);
+    Skein512_startNewType(self, TYPE_OUT | T1_FLAG_FINAL);
 
     /* run 'counter mode' */
 DEBUG(\"run 'counter mode'\");
-    Skein512_processBlock(this, this->buffer, 0, 1, 8);
+    Skein512_processBlock(self, self->buffer, 0, 1, 8);
 
     /* 'output' the counter mode bytes */
 DEBUG(\"'output' the counter mode bytes\");
-    skein_setBytes(hash->bytes, this->x, (this->hashBitCount + 7) >> 3);
+    skein_setBytes(hash->bytes, self->x, (self->hashBitCount + 7) >> 3);
 }
 
 /* set up for starting with a new type */
-static void Skein512_startNewType(struct Skein512* this,
+static void Skein512_startNewType(struct Skein512* self,
                                   long type) {
-    this->tweak0 = 0; this->tweak1 = T1_FLAG_FIRST | type;
+    self->tweak0 = 0; self->tweak1 = T1_FLAG_FIRST | type;
 }
 
-static void Skein512_processBlock(struct Skein512 *this,
+static void Skein512_processBlock(struct Skein512 *self,
                                   const byte *block, int off, int blocks, int bytes) {
 DEBUG(\"processBlock: off=%d, blocks=%d, bytes=%d\", off, blocks, bytes);
     while (blocks-- > 0) {
 	/* this implementation supports 2**64 input bytes (no carry out here)
 	   update processed length */
-	long *ts = this->tweakSchedule;
-	this->tweak0 += bytes;
-DEBUG(\"   processBlock: blocks, tweak0: %d, %ld\", blocks, this->tweak0);
+	long *ts = self->tweakSchedule;
+	self->tweak0 += bytes;
+DEBUG(\"   processBlock: blocks, tweak0: %d, %ld\", blocks, self->tweak0);
 	int *mod3 = MOD3;
 	int *mod9 = MOD9;
-	ts[3] = ts[0] = this->tweak0; ts[4] = ts[1] = this->tweak1;
-	ts[2] = this->tweak0 ^ this->tweak1;
-	long *c = this->x;
-	long *ks = this->keySchedule;
+	ts[3] = ts[0] = self->tweak0; ts[4] = ts[1] = self->tweak1;
+	ts[2] = self->tweak0 ^ self->tweak1;
+	long *c = self->x;
+	long *ks = self->keySchedule;
 DEBUG_Along(\"ts\", ts, 5);
 DEBUG_Along(\"c\", c, 8);
 DEBUG_Along(\"ks\", ks, 17);
@@ -466,8 +466,8 @@ DEBUG_Along(\"ks after KS_PARITY\", ks, 17);
 	long x2 = (c[2] = skein_getLong(block, BYTES, off + 16)) + ks[2];
 	long x3 = (c[3] = skein_getLong(block, BYTES, off + 24)) + ks[3];
 	long x4 = (c[4] = skein_getLong(block, BYTES, off + 32)) + ks[4];
-	long x5 = (c[5] = skein_getLong(block, BYTES, off + 40)) + ks[5] + this->tweak0;
-	long x6 = (c[6] = skein_getLong(block, BYTES, off + 48)) + ks[6] + this->tweak1;
+	long x5 = (c[5] = skein_getLong(block, BYTES, off + 40)) + ks[5] + self->tweak0;
+	long x6 = (c[6] = skein_getLong(block, BYTES, off + 48)) + ks[6] + self->tweak1;
 	long x7 = (c[7] = skein_getLong(block, BYTES, off + 56)) + ks[7];
 DEBUG(\"x0, c[0]: %ld, %ld\", x0, c[0]);
 DEBUG(\"x1, c[1]: %ld, %ld\", x1, c[1]);
@@ -517,7 +517,7 @@ DEBUG(\"r, x1,x5: %d, %ld, %ld\",r,x1,x5);
 	c[5] ^= x5;
 	c[7] ^= x7;
 	/* clear the start bit */
-	this->tweak1 &= ~T1_FLAG_FIRST;
+	self->tweak1 &= ~T1_FLAG_FIRST;
 	off += BYTES;
     }
 }
