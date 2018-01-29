@@ -35,7 +35,7 @@
 		     size)))
        (assert (fixnum? len)) ;; stupid but hell so it is now.
        (##c-code "
-const char* msg= ___CAST(const char*, ___BODY(___ARG1));
+const byte* msg= ___CAST(const byte*, ___BODY(___ARG1));
 int len= ___INT(___ARG2);
 char* digest= ___CAST(char*, ___BODY(___ARG3));
 struct Skein512digest out;
