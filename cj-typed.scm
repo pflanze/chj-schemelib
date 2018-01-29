@@ -42,26 +42,35 @@
 
 (both-times
  (define (type-check-expand predicate expr body use-source-error?)
-   (let ((V (gensym))
+   (let ((expr-str (let ((expr* (cj-desourcify expr)))
+		     ;; avoid putting gensyms into exception messages,
+		     ;; to make code using this testable.
+		     (if (cj-gensym? expr*)
+			 (cond ((cj-gensym-maybe-name expr*)
+				=> (lambda (name)
+				     (string-append "gensym '"
+						    (scm:object->string name))))
+			       (else
+				#f))
+			 (scm:object->string expr*))))
+	 (pred-str (scm:object->string (cj-desourcify predicate)))
+	 (V (gensym))
 	 (W (gensym)))
+     
      `(##let* ((,V ,expr)
 	       (,W (,predicate ,V)))
-	      (##if (##eq? ,W #t)
+	      (##if (##or (##eq? ,W #t)
+			  (cj-typed#type-check-warn
+			   ,use-source-error?
+			   ,expr-str
+			   ,pred-str
+			   ,W
+			   ,V))
 		    (##let () ,@body)
 		    (cj-typed#type-check-error
 		     ,use-source-error?
-		     ,(let ((expr* (cj-desourcify expr)))
-			;; avoid putting gensyms into exception messages,
-			;; to make code using this testable.
-			(if (cj-gensym? expr*)
-			    (cond ((cj-gensym-maybe-name expr*)
-				   => (lambda (name)
-					(string-append "gensym '"
-						       (scm:object->string name))))
-				  (else
-				   #f))
-			    (scm:object->string expr*)))
-		     ,(scm:object->string (cj-desourcify predicate))
+		     ,expr-str
+		     ,pred-str
 		     ,W
 		     ,V))))))
 
