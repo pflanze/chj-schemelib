@@ -214,7 +214,7 @@ static void Skein512_startNewType(struct Skein512* self,
 static void Skein512_processBlock(struct Skein512 *self,
                                   const byte *block, int off, int blocks, int bytes);
 
-static long skein_rotlXor(long x, int n, long xor);
+static long skein_rotlXor(long x, int n, long xor_);
 
 static void skein_setBytes(byte *dst, long *src, int byteCount);
 
@@ -522,8 +522,8 @@ DEBUG(\"r, x1,x5: %d, %ld, %ld\",r,x1,x5);
     }
 }
 
-static long skein_rotlXor(long x, int n, long xor) {
-    return ((x << n) | SIGNED_BITSHIFT_RIGHT_ZERO(long, x, (64 - n))) ^ xor;
+static long skein_rotlXor(long x, int n, long xor_) {
+    return ((x << n) | SIGNED_BITSHIFT_RIGHT_ZERO(long, x, (64 - n))) ^ xor_;
 }
 
 
