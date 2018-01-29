@@ -73,10 +73,15 @@
 (define (cj-typed#type-check-warn use-source-error? maybe-exprstr predstr w v)
   (case (current-type-failure-handling)
     ((warn)
-     (cj-typed#_type-check-warn use-source-error? maybe-exprstr predstr w v)
-     ;; signal to the code from type-check-expand that the failure was
-     ;; handled:
-     #t)
+     (continuation-capture
+      (lambda (c)
+	(let ((p (current-error-port)))
+	  (write c p)
+	  (display " " p))
+	(cj-typed#_type-check-warn use-source-error? maybe-exprstr predstr w v)
+	;; signal to the code from type-check-expand that the failure was
+	;; handled:
+	#t)))
     ((ignore)
      ;; claim that the failure was handled:
      #t)
