@@ -38,7 +38,12 @@
 	trif-one/
 	make-list/tail
 	map-apply
-	butlast)
+	butlast
+	map/sides
+	map/sides?
+	#!optional
+	_map/sides
+	_map/sides?)
 
 
 ;; destructuring syntax
@@ -574,3 +579,43 @@
  (4 3 2)
  > (reverse-map/tail inc '(1 2 3) 'b)
  (4 3 2 . b))
+
+
+
+(define (_map/sides fn l left tail)
+  (if (null? l)
+      tail
+      (let-pair ((a r) l)
+		(cons (fn a left r)
+		      (_map/sides fn r (cons a left) tail)))))
+
+(define (map/sides fn l)
+  (_map/sides fn l '() '()))
+
+(TEST
+ > (map/sides list '(a b c))
+ ((a () (b c))
+  (b (a) (c))
+  (c (b a) ()))
+ > (map/sides list '())
+ ())
+
+
+(define (_map/sides? fn l left? tail)
+  (if (null? l)
+      tail
+      (let-pair ((a r) l)
+		(cons (fn a left? (null? r))
+		      (_map/sides? fn r #f tail)))))
+
+(define (map/sides? fn l)
+  (_map/sides? fn l #t '()))
+
+(TEST
+ > (map/sides? list '(a b c))
+ ((a #t #f)
+  (b #f #f)
+  (c #f #t))
+ > (map/sides? list '())
+ ())
+
