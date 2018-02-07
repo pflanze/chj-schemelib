@@ -13,7 +13,8 @@
 	 u8vector0
 	 test)
 
-(export time_t? unixtime?
+(export time_t? integer-unixtime? unixtime?
+	real-unixtime?
 	ctime
 	(method unixtime.gmtime)
 	(method unixtime.localtime)
@@ -34,11 +35,19 @@
 (def (time_t? v)
   (and (number? v)
        (exact? v)
+       (integer? v)
        (%in-signed-range? bitsof-time_t v)))
 
 
-;; XX is this alias a *bad* idea?
+(def integer-unixtime? time_t?)
+;; unixtime? might also be handled as a float or rational, but not by
+;; default
 (def unixtime? time_t?)
+
+(def (real-unixtime? v)
+  (and (number? v)
+       (%in-signed-range? bitsof-time_t v)))
+
 
 (def max-ctime-bytes 26) ;; according to man page
 
