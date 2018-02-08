@@ -103,6 +103,8 @@
  ;; 'full' inversion, in linear space; XX does this make sense? See
  ;; tests, search for "sense"
  (method (invert v) -> rgb?)
+ ;; dito; saturating at the top
+ (method (scale v factor) -> rgb?)
 
  (jclass rgb01
 
@@ -137,8 +139,12 @@
 				     (01.uint8 g)
 				     (01.uint8 b))))
 
-		 (def-method (invert v)
-		   (rgb01l.rgb01t (rgb01l.invert (rgb01t.rgb01l v)))))
+		 (def-method invert
+		   (comp-1ary rgb01l.rgb01t rgb01l.invert rgb01t.rgb01l))
+
+		 (def-method (scale s factor)
+		   (rgb01l.rgb01t (rgb01l.scale (rgb01t.rgb01l s)
+						factor))))
        
 
 
@@ -178,7 +184,12 @@
 		 (def-method* (invert v)
 		   (rgb01l (- 1 r01l)
 			   (- 1 g01l)
-			   (- 1 b01l)))))
+			   (- 1 b01l)))
+
+		 (def-method* (scale s factor)
+		   (rgb01l (min 1.0 (* r01l factor))
+			   (min 1.0 (* g01l factor))
+			   (min 1.0 (* b01l factor))))))
 
 	
 
@@ -206,8 +217,12 @@
 		 
 	 (def-method rgb01l (compose rgb01t.rgb01l rgb8.rgb01t))
 
-	 (def-method (invert v)
-	   (rgb01l.rgb8 (rgb01l.invert (rgb8.rgb01l v)))))
+	 (def-method invert
+	   (comp-1ary rgb01l.rgb8 rgb01l.invert rgb8.rgb01l))
+
+	 (def-method (scale s factor)
+	   (rgb01l.rgb8 (rgb01l.scale (rgb8.rgb01l s)
+				      factor))))
 
  
  ;; generic operations: ---------------------------------------------------
@@ -277,7 +292,13 @@
  > (.invert (rgb8 10 40 245))
  #((rgb8) 255 253 83)
  ;; oh my. Now question is does this kind of inversion actually make sense?
- )
+ > (.show (.scale (rgb8 0 128 255) 0.5))
+ (rgb8 0 92 188)
+ > (.show (.scale (rgb8 2 10 20) 0.5))
+ (rgb8 1 5 11)
+ > (.show (.scale (rgb8 10 128 200) 2))
+ (rgb8 18 176 255))
+
 
 ;; parse =================================================================
 
