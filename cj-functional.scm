@@ -30,8 +30,7 @@
 	(macro LA)
 	compose**
 	(macro compose*)
-	(macro compose-1)
-	(macro compose-1*)
+	(macro compose-1ary)
 	true/0
 	true/1
 	false/0
@@ -284,6 +283,7 @@
     (define-macro* (compose* . f-exprs)
       `(RA compose ,@f-exprs))
     ;; or, manually inlining the compose rule:
+    ;; -- why using apply-values here??
     (define-macro* (compose* . f-exprs)
       (define X (gensym 'x))
       `(lambda ,X
@@ -292,12 +292,22 @@
 		      `(apply values ,X)
 		      f-exprs))))
 
-;; 1-ary versions for more performance:
-(define-macro* (compose-1 a b)
-  (with-gensym X `(lambda (,X) (,a (,b ,X)))))
+;; 1-ary version for more performance (and just as macro for same
+;; reason, OK?):
+(define-macro* (compose-1ary . es)
+  (with-gensym X
+	       `(lambda (,X)
+		  ,(fold-right (lambda (e inner)
+				 `(,e ,inner))
+			       X
+			       es))))
 
-(define-macro* (compose-1* . exprs)
-  `(RA compose-1 ,@exprs))
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#compose-1ary a b c)
+ (lambda (GEN:X-3566) (a (b (c GEN:X-3566))))
+ > (expansion#compose-1ary a)
+ (lambda (GEN:X-3567) (a GEN:X-3567)))
 
 
 (TEST
@@ -306,12 +316,12 @@
  > (define x*y (lambda-values ((x y)) (* x y)))
  > ((compose** half inc square) 10)
  101/2
- > ((compose-1* half inc square) 10)
+ > ((compose-1ary half inc square) 10)
  101/2
 
  > ((compose** half inc x*y) (values 10 20))
  201/2
- > ((compose-1* half inc x*y) (values 10 20))
+ > ((compose-1ary half inc x*y) (values 10 20))
  201/2
 
  > (define (inc2values x y) (values (inc x) (inc y)))
