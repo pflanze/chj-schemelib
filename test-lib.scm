@@ -22,7 +22,7 @@
 
 (export (struct pseudorandomsource)
 	(struct range)
-	make-range/base ;; ?
+	make-simplerange/base ;; ?
 	pseudorandomsource->integer-stream
 	pseudorandomsource->real-stream
 	pseudorandomsource->char-stream
@@ -73,19 +73,19 @@
      (random-source-pseudo-randomize! rs i j)
      rs)))
 
-(define-struct range
+(define-struct simplerange
   base ;; inclusive
   top ;; not inclusive
   )
 
-(define (make-range/base base range)
-  (make-range base (+ base range)))
+(define (make-simplerange/base base range)
+  (make-simplerange base (+ base range)))
 ;;^ weird name, admittedly.
 
 (define (pseudorandomsource->integer-stream prs range)
   (let ((random-integer (random-source-make-integers
 			 (_pseudorandomsource->randomsource prs))))
-    (let-range
+    (let-simplerange
      ((base top) range)
      (let ((n (- top base)))
        (let rec ()
@@ -104,7 +104,7 @@
 (TEST
  > (F (stream-take (pseudorandomsource->integer-stream
 		    (make-pseudorandomsource 10 2)
-		    (make-range 0 100))
+		    (make-simplerange 0 100))
 		   10))
  (35 70 54 50 30 94 61 43 8 0)
  )
@@ -116,7 +116,7 @@
 
 (define (pseudorandomsource->a-z-stream prs)
   (pseudorandomsource->char-stream prs
-				   (make-range/base (char->integer #\a)
+				   (make-simplerange/base (char->integer #\a)
 						    26)))
 
 
@@ -153,14 +153,14 @@
  ;; given:
  > (list->string (F (stream-take (pseudorandomsource->a-z-stream (make-pseudorandomsource 10 11)) 40)))
  "zpisjwqkorhqopufcvzkbqriacimptcyvijtnbbt"
- > (F (stream-take (pseudorandomsource->integer-stream (make-pseudorandomsource 10 13) (make-range 3 6)) 10))
+ > (F (stream-take (pseudorandomsource->integer-stream (make-pseudorandomsource 10 13) (make-simplerange 3 6)) 10))
  (5 3 4 5 3 4 3 4 3 3)
  ;; this yields:
- > (F (stream-take (pseudorandomsource*->a-z-string-stream (make-pseudorandomsource 10 11) (make-pseudorandomsource 10 13) (make-range 3 6)) 10))
+ > (F (stream-take (pseudorandomsource*->a-z-string-stream (make-pseudorandomsource 10 11) (make-pseudorandomsource 10 13) (make-simplerange 3 6)) 10))
  ("jsipz" "kqw" "qhro" "cfupo" "kzv" "irqb" "ica" "ctpm" "ivy" "ntj")
- > (F (stream-take (pseudorandomsource*->a-z-string-stream (make-pseudorandomsource 10 11) (make-pseudorandomsource 11 13) (make-range 3 6)) 10))
+ > (F (stream-take (pseudorandomsource*->a-z-string-stream (make-pseudorandomsource 10 11) (make-pseudorandomsource 11 13) (make-simplerange 3 6)) 10))
  ("ipz" "qwjs" "hrok" "upoq" "vcf" "rqbkz" "icai" "tpm" "jivyc" "bbnt")
- > (F (stream-take (pseudorandomsource*->a-z-string-stream (make-pseudorandomsource 12 11) (make-pseudorandomsource 10 13) (make-range 3 6)) 10))
+ > (F (stream-take (pseudorandomsource*->a-z-string-stream (make-pseudorandomsource 12 11) (make-pseudorandomsource 10 13) (make-simplerange 3 6)) 10))
  ("niktx" "igu" "opfo" "lqajo" "wfa" "tpzz" "ehl" "apyc" "uea" "ttq")
  )
 
@@ -172,9 +172,9 @@
 	       namelen-range)))
 
 (TEST
- > (F (stream-take (symbol-stream (make-range 3 6) 1 2) 10))
+ > (F (stream-take (symbol-stream (make-simplerange 3 6) 1 2) 10))
  (tlib qfby nykc ahpcb adm aug nwnm dar klkmv zjc)
- > (F (stream-take (symbol-stream (make-range 1 2) 1 2) 10))
+ > (F (stream-take (symbol-stream (make-simplerange 1 2) 1 2) 10))
  (b i l t y b f q c k) ;; b contained twice..
  )
 
@@ -224,7 +224,7 @@
   (stream-map ^5/1000
 	      (pseudorandomsource->integer-stream
 	       (make-pseudorandomsource seed 13342)
-	       (make-range -5 20))))
+	       (make-simplerange -5 20))))
 
 (define (start-mutator mutate!/2 val n seed)
   (let ((xs (test-lib:burn-time-numbers seed)))
