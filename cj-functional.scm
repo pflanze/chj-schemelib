@@ -30,6 +30,8 @@
 	(macro LA)
 	compose**
 	(macro compose*)
+	(macro compose-1)
+	(macro compose-1*)
 	true/0
 	true/1
 	false/0
@@ -290,6 +292,13 @@
 		      `(apply values ,X)
 		      f-exprs))))
 
+;; 1-ary versions for more performance:
+(define-macro* (compose-1 a b)
+  (with-gensym X `(lambda (,X) (,a (,b ,X)))))
+
+(define-macro* (compose-1* . exprs)
+  `(RA compose-1 ,@exprs))
+
 
 (TEST
  > (define (half x) (/ x 2))
@@ -297,8 +306,14 @@
  > (define x*y (lambda-values ((x y)) (* x y)))
  > ((compose** half inc square) 10)
  101/2
+ > ((compose-1* half inc square) 10)
+ 101/2
+
  > ((compose** half inc x*y) (values 10 20))
  201/2
+ > ((compose-1* half inc x*y) (values 10 20))
+ 201/2
+
  > (define (inc2values x y) (values (inc x) (inc y)))
  > ((compose** half x*y inc2values) 10 20)
  231/2
