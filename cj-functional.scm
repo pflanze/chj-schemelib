@@ -31,6 +31,7 @@
 	compose**
 	(macro compose*)
 	(macro compose-1ary)
+	(macro compose/arity)
 	true/0
 	true/1
 	false/0
@@ -302,12 +303,36 @@
 			       X
 			       es))))
 
+;; with parametrizable arity:
+(define-macro* (compose/arity n . es)
+  (assert* natural0? n
+	   (lambda (n)
+	     (let* ((ARGS (map (lambda (n) (gensym)) (iota n)))
+		    (code (fold-right (lambda (e inner)
+					`((,e ,@inner)))
+				      ARGS
+				      es)))
+	       (if (and (pair? code)
+			(null? (cdr code)))
+		   `(lambda ,ARGS
+		      ,(car code))
+		   (error "bug"))))))
+
+
 (TEST
  > (define TEST:equal? syntax-equal?)
+
  > (expansion#compose-1ary a b c)
  (lambda (GEN:X-3566) (a (b (c GEN:X-3566))))
  > (expansion#compose-1ary a)
- (lambda (GEN:X-3567) (a GEN:X-3567)))
+ (lambda (GEN:X-3567) (a GEN:X-3567))
+
+ > (expansion#compose/arity 1 a b c)
+ (lambda (GEN:-3382) (a (b (c GEN:-3382))))
+ > (expansion#compose/arity 3 a b c)
+ (lambda (GEN:-3383 GEN:-3384 GEN:-3385)
+   (a (b (c GEN:-3383 GEN:-3384 GEN:-3385)))))
+
 
 
 (TEST
@@ -318,10 +343,14 @@
  101/2
  > ((compose-1ary half inc square) 10)
  101/2
+ > ((compose/arity 1 half inc square) 10)
+ 101/2
 
  > ((compose** half inc x*y) (values 10 20))
  201/2
  > ((compose-1ary half inc x*y) (values 10 20))
+ 201/2
+ > ((compose/arity 1 half inc x*y) (values 10 20))
  201/2
 
  > (define (inc2values x y) (values (inc x) (inc y)))
@@ -329,6 +358,9 @@
  231/2
  > ((compose* half x*y inc2values) 10 20)
  231/2
+ > ((compose/arity 2 half x*y inc2values) 10 20)
+ 231/2
+
  ;; compose is ("fully") associative (left or right doesn't matter),
  ;; so choosing right-associate was arbitrary
  > ((compose (compose half x*y) inc2values) 10 20)
