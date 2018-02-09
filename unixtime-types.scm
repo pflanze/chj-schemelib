@@ -30,8 +30,12 @@
 (def rfc-2822:months
      '#("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
+(def rfc-2822:months-longstring
+     '#("January" "Febuary" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"))
+
 (def rfc-2822:string.wday (vector.value.pos rfc-2822:wdays))
 (def rfc-2822:string.month-1 (vector.value.pos rfc-2822:months))
+(def rfc-2822:string.month-longstring-1 (vector.value.pos rfc-2822:months-longstring))
 (def (rfc-2822:string.year-1900 str)
      (- (string->number str) 1900))
 
@@ -135,6 +139,9 @@
 
 	(def-method* (month-shortstring v)
 	  (vector-ref rfc-2822:months month-1))
+ 
+	(def-method* (month-longstring v)
+	  (vector-ref rfc-2822:months-longstring month-1))
 
 	(def-method (time-string v #!optional (with-seconds? #t))
 	  (string-append
@@ -159,6 +166,11 @@
 
 	(def-method (month-and-year-shortstring v)
 	  (string-append (localtime.month-shortstring v)
+			 " "
+			 (localtime.year-string v)))
+ 
+	(def-method (month-and-year-longstring v)
+	  (string-append (localtime.month-longstring v)
 			 " "
 			 (localtime.year-string v)))
 	
