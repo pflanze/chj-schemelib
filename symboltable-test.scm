@@ -31,12 +31,12 @@
 (define (strings) (pseudorandomsource*->a-z-string-stream
 		   (make-pseudorandomsource 10 11)
 		   (make-pseudorandomsource 10 13)
-		   (make-range 3 6)))
+		   (make-simplerange 3 6)))
 
 (TEST
  > (define (lengths) (pseudorandomsource->integer-stream
 		      (make-pseudorandomsource 103 114)
-		      (make-range 0 600)))
+		      (make-simplerange 0 600)))
  )
 
 (define (gaplengths #!optional (prs (make-pseudorandomsource 114 103)))
@@ -44,7 +44,7 @@
 		(expt (* n 1/100 1.5) 10))
 	      (pseudorandomsource->integer-stream
 	       prs
-	       (make-range 0 100))))
+	       (make-simplerange 0 100))))
 
 (define (mkpis from-id)
   (define maybe-parent #f)

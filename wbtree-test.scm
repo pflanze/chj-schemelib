@@ -303,11 +303,11 @@
  > (define *stringstream1 (box (pseudorandomsource*->a-z-string-stream
 				(make-pseudorandomsource 2910 734532)
 				(make-pseudorandomsource 83249 982288)
-				(make-range 2 4))))
+				(make-simplerange 2 4))))
  > (define *stringstream2 (box (pseudorandomsource*->a-z-string-stream
 				(make-pseudorandomsource 121290 119072)
 				(make-pseudorandomsource 32349 25288)
-				(make-range 3 15))))
+				(make-simplerange 3 15))))
  > (define* (prandomwbtree *s n)
      (letv ((l rest) (stream-rtake&rest (unbox *s) n))
 	   (set-box! *s rest)

@@ -30,6 +30,9 @@
 	(macro defparameter)
 	(macro def-once)
 	comp
+	(macro comp*)
+	(macro comp-1ary)
+	(macro comp/arity)
 	maybe-comp
 	id
 	(macro defmodule)
@@ -127,6 +130,12 @@
 (def comp compose)
 (defmacro (comp* . args)
   `(compose* ,@args))
+
+(defmacro (comp-1ary . es)
+  `(compose-1ary ,@es))
+
+(defmacro (comp/arity n . es)
+  `(compose/arity ,n ,@es))
 
 (def maybe-comp maybe-compose)
 
