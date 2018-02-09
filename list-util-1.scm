@@ -19,7 +19,8 @@
 	list-split
 	map/last?
 	reverse-map/tail
-	reverse-map)
+	reverse-map
+	flatten1)
 
 
 ;; srfi-1 defines first, but not rest (nor head nor tail)
@@ -153,4 +154,13 @@
 
 (define (reverse-map fn l)
   (reverse-map/tail fn l '()))
+
+
+(define (flatten1 lis #!optional (tail '()))
+  (fold-right (lambda (v l)
+		(if (pair? v)
+		    (append v l)
+		    (cons v l)))
+	      tail
+	      lis))
 

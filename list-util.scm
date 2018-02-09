@@ -619,3 +619,10 @@
  > (map/sides? list '())
  ())
 
+
+(TEST
+ > (flatten1 '(a (b c) (d (e)) f))
+ (a b c d (e) f)
+ > (flatten1 (flatten1 '(a (b c) (d (e)) f)))
+ (a b c d e f))
+
