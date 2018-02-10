@@ -48,6 +48,10 @@
 	 test
 	 (string-util-2 inexact.round-at))
 
+(export (jclass range)
+	range-of)
+
+
 
 (jclass (range from to) ;; excluding to
 
@@ -192,6 +196,12 @@
 	;;out of it? bless on original object's class?....
 	)
 
+
+(def ((range-of T?) v)
+     (and (range? v)
+	  (let-range ((from to) v)
+		     (and (T? from)
+			  (T? to)))))
 
 
 
