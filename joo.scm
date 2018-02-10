@@ -697,6 +697,13 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		(if
 		 (and interface? maybe-constructor-name*)
+		 ;; Note: an idea could be to allow field
+		 ;; *declarations* in interface, and treat them as
+		 ;; accessor method requirements (including for
+		 ;; setters), but not actually prepending the fields
+		 ;; to classes implementing the interface,
+		 ;; i.e. requiring the jclass forms to re-specify
+		 ;; those fields (perhaps in slices).
 		 (source-error
 		  decl "field definitions not allowed in interface")
 
