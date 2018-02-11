@@ -124,26 +124,26 @@
 (jclass (range from to) ;; excluding to
 	implements: range-or-ranges
 
-	(def-method* (length r) -> real?
+	(def-method (length r) -> real?
 	  (.- to from))
 
 	;; same as (comp length .list), XX add generative tests
-	(def-method* (size r) -> exact-natural0?
+	(def-method (size r) -> exact-natural0?
 	  (let ((len (.- to from)))
 	    (if (negative? len)
 		0
 		(integer len))))
 	
-	(def-method* (contains-element? r1 x) -> boolean?
+	(def-method (contains-element? r1 x) -> boolean?
 	  (and (.<= from x)
 	       (.< x to)))
 
-	(def-method* (contains-range? r1 r2) -> boolean?
+	(def-method (contains-range? r1 r2) -> boolean?
 	  (let-range ((from2 to2) r2)
 		     (and (.<= from from2)
 			  (.<= to2 to))))
 
-	(def-method* (contiguous? r1 r2) -> boolean?
+	(def-method (contiguous? r1 r2) -> boolean?
 	  (let-range ((from2 to2) r2)
 		     (or (and
 			  ;; avoid requiring .= ?
@@ -154,7 +154,7 @@
 			  (.<= to2 from)
 			  (.<= from to2)))))
 
-	(def-method* (overlaps? r1 r2) -> boolean?
+	(def-method (overlaps? r1 r2) -> boolean?
 	  (let-range ((from2 to2) r2)
 		     (and
 		      ;; make sure no range is empty:
@@ -165,7 +165,7 @@
 			  (.< from2 to)
 			  (.< from to2)))))
 
-	(def-method* (separated? r1 r2) -> boolean?
+	(def-method (separated? r1 r2) -> boolean?
 	  (let-range ((from2 to2) r2)
 		     ;; if one is empty, then there's no gap anyway
 		     (if (or (not (.< from to))
@@ -176,10 +176,10 @@
 			     (.< to2 from)))))
 
 
-	(def-method* (unchecked-rank r x) -> real?
+	(def-method (unchecked-rank r x) -> real?
 	  (.- x from))
 
-	(def-method* (checked-rank r x underflow overflow)
+	(def-method (checked-rank r x underflow overflow)
 	  (let ((rank (.- x from)))
 	    (if (negative? rank)
 		underflow
@@ -187,21 +187,21 @@
 		    rank
 		    overflow))))
 
-	(def-method* (maybe-rank r x) -> (maybe exact-natural0?)
+	(def-method (maybe-rank r x) -> (maybe exact-natural0?)
 	  (.checked-rank r x #f #f))
 	
 
-	(def-method* (ref r1 [real? x])
+	(def-method (ref r1 [real? x])
 	  (.+ from x))
 
-	(def-method* (intersection r1 r2) -> range?
+	(def-method (intersection r1 r2) -> range?
 	  (let-range ((from2 to2) r2)
 		     (range (if (<= from from2)
 				from2 from)
 			    (if (< to to2)
 				to to2))))
 
-	(def-method* (maybe-union r1 r2) -> (maybe range?)
+	(def-method (maybe-union r1 r2) -> (maybe range?)
 	  (let-range ((from2 to2) r2)
 		     (cond ((not (.< from to))
 			    r2)
@@ -215,7 +215,7 @@
 					(if (< to to2)
 					    to2 to)))))))
 
-	(def-method* (filling-union r1 r2) -> range?
+	(def-method (filling-union r1 r2) -> range?
 	  (let-range ((from2 to2) r2)
 		     (cond ((not (.< from to))
 			    r2)
@@ -225,7 +225,7 @@
 			    (range (if (.<= from from2) from from2)
 				   (if (.< to2 to) to to2))))))
 
-	(def-method* (union* r1 [range-or-ranges? r2]) -> range-or-ranges?
+	(def-method (union* r1 [range-or-ranges? r2]) -> range-or-ranges?
 	  (if (not (.< from to))
 	      r2
 	      (if (range? r2)
@@ -237,28 +237,28 @@
 		  (.add-range r2 r1))))
 
 
-	(def-method* (list r #!optional (tail '()))
+	(def-method (list r #!optional (tail '()))
 	  (let lp ((i (.dec to))
 		   (l tail))
 	    (if (.<= from i)
 		(lp (.dec i) (cons i l))
 		l)))
 
-	(def-method* (rlist r #!optional (tail '()))
+	(def-method (rlist r #!optional (tail '()))
 	  (let lp ((i from)
 		   (l tail))
 	    (if (.< i to)
 		(lp (.inc i) (cons i l))
 		l)))
 
-	(def-method* (stream r #!optional (tail '()))
+	(def-method (stream r #!optional (tail '()))
 	  (let rec ((i from))
 	    (delay
 	      (if (.< i to)
 		  (cons i (rec (.inc i)))
 		  tail))))
 	
-	(def-method* (rstream r #!optional (tail '()))
+	(def-method (rstream r #!optional (tail '()))
 	  (let rec ((i (.dec to)))
 	    (delay
 	      (if (.<= from i)
@@ -292,28 +292,28 @@
 	implements: range-or-ranges
 
 
-	(def-method* (from s)
+	(def-method (from s)
 	  (.from a))
 
-	(def-method* (to s)
+	(def-method (to s)
 	  (.to b))
 
-	(def-method* (list s #!optional (tail '()))
+	(def-method (list s #!optional (tail '()))
 	  (.list a (.list b tail)))
 
-	(def-method* (rlist s #!optional (tail '()))
+	(def-method (rlist s #!optional (tail '()))
 	  (.rlist b (.rlist a tail)))
 
-	(def-method* (stream s #!optional (tail '()))
+	(def-method (stream s #!optional (tail '()))
 	  (.stream a (.stream b tail)))
 
-	(def-method* (rstream s #!optional (tail '()))
+	(def-method (rstream s #!optional (tail '()))
 	  (.rstream b (.rstream a tail)))
 
 	;; XX implement the other methods like contains? -- via binary
 	;; search? Could also implement balancing...
 
-	(def-method* (add-range rs [range? r])
+	(def-method (add-range rs [range? r])
 	  ;; no need to check s for emptyness, rangess are always
 	  ;; guaranteed to be non-empty
 
@@ -339,7 +339,7 @@
 			   (error "XX UNFINISHED 2"))))))))
 
 	;; helper for doing merges
-	'(def-method* (_merge s [range? r])
+	'(def-method (_merge s [range? r])
 	   )
 	
 
