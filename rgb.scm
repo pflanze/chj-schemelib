@@ -87,7 +87,7 @@
 ;; /lib
 
 (def uint8.01
-     (C / _ 255))
+     (C * _ (insert-result-of (/ 1. 255.))))
 
 (def 01.uint8
      (lambda (x)
@@ -374,7 +374,7 @@
  > (.r01t (rgb8 0 255 128))
  0
  > (.b01t (rgb8 0 255 128))
- 128/255
+ .5019607843137255 ;; was 128/255 in earlier version of the lib
  )
 
 ;; XX rgb01l.rgb01t
