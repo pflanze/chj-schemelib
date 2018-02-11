@@ -91,11 +91,14 @@
 
 (def 01.uint8
      (lambda (x)
-      (let ((r (inexact->exact
-		(floor (fl+ (fl* (exact->inexact x) 255.) 0.5)))))
-	(if (= r 256)
-	    255
-	    r))))
+       (let ((r (inexact->exact
+		 (floor (fl+ (fl* (exact->inexact x) 255.) 0.5)))))
+	 (cond ((>= r 256)
+		255)
+	       ((negative? r)
+		0)
+	       (else
+		r)))))
 
 
 (jclass
@@ -365,7 +368,7 @@
  > (F (Lforall '(-1 0 1 2 253 254 255 255. 256)
 	       (lambda_ (= (01.uint8 (uint8.01 _)) _))))
  ;; failures are outside of number range, "though"
- (256))
+ (-1 256))
 
 (TEST
  > (.r01t (rgb8 0 255 128))
