@@ -9,6 +9,18 @@
 	if-let-expand)
 
 
+;; There is an if-let in Clojure: https://clojuredocs.org/clojure.core/if-let
+;;   XX check if it'd doing the same thing.
+
+;; See this in Rust: [iflet - a Rust macro to avoid nested if let](https://github.com/saghm/iflet)
+
+;; XX study this in Swift: [Optional Chaining](https://developer.apple.com/library/content/documentation/Swift/Conceptual/Swift_Programming_Language/OptionalChaining.html)
+
+;; Some Schemer(s) here use(s) the name let-if for what is called
+;; iflet here, and let-and for what we call if-let:
+;; https://news.ycombinator.com/item?id=13213304
+
+
 (defmacro (iflet bind+test yes #!optional no)
   (mcase bind+test
 	 (`(`var `test)
