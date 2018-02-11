@@ -90,8 +90,9 @@
      (C / _ 255))
 
 (def 01.uint8
-     (lambda_
-      (let ((r (inexact->exact (floor (* _ 256)))))
+     (lambda (x)
+      (let ((r (inexact->exact
+		(floor (fl+ (fl* (exact->inexact x) 255.) 0.5)))))
 	(if (= r 256)
 	    255
 	    r))))
@@ -364,7 +365,7 @@
  > (F (Lforall '(-1 0 1 2 253 254 255 255. 256)
 	       (lambda_ (= (01.uint8 (uint8.01 _)) _))))
  ;; failures are outside of number range, "though"
- (-1 256))
+ (256))
 
 (TEST
  > (.r01t (rgb8 0 255 128))
@@ -397,17 +398,17 @@
  > (.+ (rgb8 255 128 0) (rgb8 10 10 10) #t)
  #((rgb01l) 1 .21889579733014106 .0029963123619556426)
  > (.html-colorstring #)
- "#FF8109"
+ "#FF810A"
 
  ;; Seeing the effect of the luminosity curve:
  > (.html-colorstring (.+ (.rgb8 "#FF2000") (rgb8 20 20 20) #t))
- "#FF2813"
+ "#FF2814"
  > (.html-colorstring (.+ (.rgb8 "#FF4000") (rgb8 20 20 20) #t))
- "#FF4413"
+ "#FF4414"
  > (.html-colorstring (.+ (.rgb8 "#FF6000") (rgb8 20 20 20) #t))
- "#FF6313"
+ "#FF6314"
  > (.html-colorstring (.+ (.rgb8 "#FFF000") (rgb8 20 20 20) #t))
- "#FFF113"
+ "#FFF114"
 
  > (%try-error (..* (rgb8 100 200 0) 2))
  ;; #(error "does not match rgb:0..1?:" 80/51)
