@@ -109,7 +109,7 @@
 			assignments**)))))
 
 (defmacro (if-let assignments yes #!optional no)
-  ;; if no is #f, just pass it one as code, and it will result in #f, too ":)"
+  ;; if no is #f, just pass it on as code, and it will result in #f, too ":)"
   (if-let-expand `cond assignments yes no))
 
 (TEST
