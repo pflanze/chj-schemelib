@@ -136,7 +136,7 @@
 
 
 
-;; def-method* and def.* body expansion
+;; def-method and def.* body expansion
 (def (joo:body* class-name
 		fields
 		bind
@@ -193,7 +193,7 @@
 				    rest)))))))
 
 
-;; def-method- and def-method*
+;; def-method- and def-method
 (def (joo:implementation-method-expander-for
       class-name
       maybe-fields
@@ -226,7 +226,7 @@
 		;; the value expression
 		(source-error
 		 stx
-		 (string-append "def-method* expects bindings list, use"
+		 (string-append "def-method expects bindings list, use"
 				" def-method- for bare symbols"))
 		`(def. ,(source.symbol-append class-name. bind)
 		   ,@rest))))))
@@ -984,7 +984,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  )
 
 
-;; def-method*
+;; def-method
 (TEST
  > (def z 'outside)
  > (joo-class (fooagain x #(pair? y) z)
@@ -994,9 +994,9 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  (#((fooagain) 10 (1 . 2) f) 11 outside)
 
  > (joo-class (fooagain2 x #(pair? y) z)
-	      (def-method* (bar x y)
+	      (def-method (bar x y)
 		(list x y z))
-	      (def-method* (baz x y) -> pair?
+	      (def-method (baz x y) -> pair?
 		(list x y z)))
  > (def myfooagain2 (fooagain2 10 (cons 1 2) 'f))
  > (.bar myfooagain2 11)
@@ -1013,14 +1013,14 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  (1 . 2))
 
 
-;; def-method* and inheritance, or, test the let-<classname> feature
+;; def-method and inheritance, or, test the let-<classname> feature
 ;; with inheritance for the first tiem:
 (TEST
  > (joo-class (baa a b))
  > (joo-class (boo c) extends: baa
-	      (def-method* (foo1 s) (list c))
-	      (def-method* (foo2 s) (list a b c))
-	      (def-method* (foo3 s) -> pair? (list b c)))
+	      (def-method (foo1 s) (list c))
+	      (def-method (foo2 s) (list a b c))
+	      (def-method (foo3 s) -> pair? (list b c)))
  > (.foo1 (boo 10 11 12))
  (12)
  > (.foo2 (boo 10 11 12))

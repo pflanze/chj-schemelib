@@ -86,7 +86,7 @@
 					      group: group
 					      base: base)))
 
-	(def-method* (tempfile s)
+	(def-method (tempfile s)
 	  (tempfile (string-append base "/"))))
 
 

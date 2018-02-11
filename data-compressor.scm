@@ -117,7 +117,7 @@
 		 #!key
 		 #((maybe (list-of string?)) options))
 
-		(def-method* (arguments s)
+		(def-method (arguments s)
 		  (let ((opts (or options
 				  (.default-options s)))
 			(level (.level s)))

@@ -185,12 +185,12 @@
 		 (def-method- (rgb8 v)
 		   (.rgb8 (rgb01l.rgb01t v)))
 
-		 (def-method* (invert v)
+		 (def-method (invert v)
 		   (rgb01l (- 1 r01l)
 			   (- 1 g01l)
 			   (- 1 b01l)))
 
-		 (def-method* (scale s factor)
+		 (def-method (scale s factor)
 		   (rgb01l (min 1.0 (* r01l factor))
 			   (min 1.0 (* g01l factor))
 			   (min 1.0 (* b01l factor))))))

@@ -44,11 +44,11 @@
 				 first
 				 rest)
 
-		(def-method* (list l)
+		(def-method (list l)
 		  (cons first
 			(.list rest)))
 
-		(def-method* (reverse-list l #!optional (tail '()))
+		(def-method (reverse-list l #!optional (tail '()))
 		  (.reverse-list rest
 				 (cons first tail)))
 
@@ -83,7 +83,7 @@
 			   (none)
 			   (more)))))
 
-		(def-method* (null l)
+		(def-method (null l)
 		  (typed-list-null pred)))
 
 	(jclass (typed-list-null #(procedure? pred))

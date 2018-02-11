@@ -11,13 +11,13 @@
 ;; for representing time points (absolute) only
 (jclass (realunixtime #(real? real))
 
-	(def-method* (integer r)
+	(def-method (integer r)
 	  (integer real))
 
 	(def-method- (+ r #(real? x))
 	  (.real-update r (C + _ x)))
 
-	(def-method* (- r #(realunixtime? x))
+	(def-method (- r #(realunixtime? x))
 	  (- real (realunixtime.real x))))
 
 

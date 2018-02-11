@@ -86,7 +86,7 @@
 		       )
 
 	;; wait wrong orderanyway?
-	(def-method* (path s)
+	(def-method (path s)
 	  (if pathhead
 	      (cons pathhead (if maybe-parent
 				 (ssxpath-match.path maybe-parent)
@@ -106,7 +106,7 @@
 			       p*)))))
 
 	;;XX still figuring things out. should probably be called |path|.
-	(def-method* (precise-path s)
+	(def-method (precise-path s)
 	  (let lp ((m s)
 		   (p '()))
 	    (let.-static (ssxpath-match. (maybe-index pathhead maybe-parent) m)
@@ -118,7 +118,7 @@
 	
 
 	;;X? what was that ...?
-	(def-method* (individual-path s)
+	(def-method (individual-path s)
 	  (if pathhead
 	      (cons* maybe-index pathhead
 		     (if maybe-parent

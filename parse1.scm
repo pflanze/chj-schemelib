@@ -245,7 +245,7 @@
    #((maybe (either location? continuation?)) context))
 
   ;; *monadic* context
-  (def-method* (show-context _)
+  (def-method (show-context _)
     (if context
 	(show-location-location
 	 (xcond ((location? context)
@@ -255,7 +255,7 @@
 	(error "don't have context information")))
 
   ;; *monadic* visit (almost tempted to call it mvisit)
-  (def-method* (visit _)
+  (def-method (visit _)
     (if context
 	(if (continuation? context)
 	    (repl-within context)
@@ -281,10 +281,10 @@
 	  (else
 	   (fallback))))
 
-  (def-method* (show-input e)
+  (def-method (show-input e)
     (.show-input-location e (& (.show-parse1-input (.input e)))))
 
-  (def-method* (show-location e)
+  (def-method (show-location e)
     (.show-input-location e (& (.show-context e))))
 
 
@@ -293,9 +293,9 @@
    ((parse1/input-failure _parse1/input-failure)
     #(iseq? input))
 
-   (def-method* (at-input e) input)
+   (def-method (at-input e) input)
 
-   (def-method* (maybe-input-location e at-input?)
+   (def-method (maybe-input-location e at-input?)
      (let ((l (force (if at-input?
 			 (.at-input e)
 			 input))))
@@ -307,13 +307,13 @@
 	   #f)))
    
    
-   (def-method* (_exception-message _)
+   (def-method (_exception-message _)
      (list input: (.show-parse1-input input)))
 
    
    (jclass (list-match-failure #(iseq? match)
 			       #(iseq? at-input))
-	   (def-method* (exception-message _)
+	   (def-method (exception-message _)
 	     (cons* "input does not start with list"
 		    match: (.show match)
 		    at-input: (.show-parse1-input at-input)
@@ -321,20 +321,20 @@
 
    (jclass (string-match-failure #(string? match)
 				 #(iseq? at-input))
-	   (def-method* (exception-message _)
+	   (def-method (exception-message _)
 	     (cons* "input does not start with string"
 		    match: match
 		    at-input: (.show-parse1-input at-input)
 		    (parse1/input-failure._exception-message _))))
 
    (jclass (all-options-failure failures)
-	   (def-method* (exception-message _)
+	   (def-method (exception-message _)
 	     (cons* "none of the options matched"
 		    failures: (map .exception-message failures)
 		    (parse1/input-failure._exception-message _))))
 
    (jclass (char-class-match-failure #(char-list+? chars))
-	   (def-method* (exception-message _)
+	   (def-method (exception-message _)
 	     (cons* "input does not start with a char out of"
 		    chars: chars
 		    (parse1/input-failure._exception-message _))))
@@ -343,20 +343,20 @@
 			   #(exact-natural0? m)
 			   #(exact-natural0? i)
 			   #(parse1-failure? failure))
-	   (def-method* (exception-message _)
+	   (def-method (exception-message _)
 	     (cons* "match should repeat n..m times but fails on the i-th repetition"
 		    n: n m: m i: i
 		    failure: (.exception-message failure)
 		    (parse1/input-failure._exception-message _))))
 
    (jclass (match-pred-failure #(function? pred) desc)
-	   (def-method* (exception-message _)
+	   (def-method (exception-message _)
 	     (cons* "failure expecting an item satisfying pred"
 		    (if desc desc pred)
 		    (parse1/input-failure._exception-message _))))
 
    (jclass (expecting-eof-failure)
-	   (def-method* (exception-message _)
+	   (def-method (exception-message _)
 	     (cons* "expecting end of input"
 		    (parse1/input-failure._exception-message _)))))
 
@@ -364,25 +364,25 @@
   
   (jclass parse1-unexpected-eof
 
-	  (def-method* (at-input e) '())
-	  (def-method* (input e) '())
+	  (def-method (at-input e) '())
+	  (def-method (input e) '())
 	  ;; XX still the open question about the location info for
 	  ;; EOF. Move '() into a field? Probably rather add file info
 	  ;; separately.
 
 
 	  (jclass (generic-unexpected-eof #(symbol? kind))
-		  (def-method* (exception-message _)
+		  (def-method (exception-message _)
 		    (list "unexpected end of input while expecting"
 			  kind)))
 
 	  (jclass (char-class-unexpected-eof #(char-list+? chars))
-		  (def-method* (exception-message _)
+		  (def-method (exception-message _)
 		    (list "unexpected end of input while expecting a char out of"
 			  chars)))
 
 	  (jclass (match-pred-unexpected-eof #(function? pred) desc)
-		  (def-method* (exception-message _)
+		  (def-method (exception-message _)
 		    (list "unexpected end of input while expecting an item satisfying pred"
 			  (or desc (.show pred))))))))
 

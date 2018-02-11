@@ -16,14 +16,14 @@
 ;; (jclass (function/window #(function? f)
 ;; 			 #(real-window? window))
 
-;; 	(def-method* (vector s)
+;; 	(def-method (vector s)
 ;; 	  (let ((v (make-f32vector steps)))
 ;; 	    (for..< (i 0 steps)
 ;; 		    (f32vector-set! v i
 ;; 				    (f )))
 ;; 	    v))
 
-;; 	(def-method* (integral s)
+;; 	(def-method (integral s)
 ;; 	  (function/window XXXX
 ;; 			   window)))
 

@@ -37,7 +37,7 @@
 			    ("blue" "yellow")
 			    ))))
 	
-	(def-method* (invert v)
+	(def-method (invert v)
 	  (let ((v* (string-downcase value)))
 	    (cond ((table-ref colorstring:inversions v* #f)
 		   => colorstring)
@@ -93,9 +93,9 @@
 (jclass (painted #((improper-list-of paintoptions?) optionS)
 		 value)
 
-	(def-method* (start v)
+	(def-method (start v)
 	  (.start value))
 
-	(def-method* (min+maxs/prev a b)
+	(def-method (min+maxs/prev a b)
 	  (.min+maxs/prev value b)))
 

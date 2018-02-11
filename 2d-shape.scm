@@ -60,11 +60,11 @@
 				(/ x y)))
 
 		;; left
-		(def-method* (rot90l p)
+		(def-method (rot90l p)
 		  (2d-point (- y) x))
 
 		;; right
-		(def-method* (rot90r p)
+		(def-method (rot90r p)
 		  (2d-point y (- x)))
 
 		(def-method- (= a b)
@@ -106,7 +106,7 @@
 		(def-method- (start p)
 		  p)
 
-		(def-method* (distance^2 p)
+		(def-method (distance^2 p)
 		  ;; distance from root
 		  (+ (square x) (square y)))
 
@@ -115,7 +115,7 @@
 		  (sqrt (2d-point.distance^2 p)))
 
 		;; also see 2d-point.polar (2d-polar.scm)
-		(def-method* (angle p)
+		(def-method (angle p)
 		  (atan y x)))
 
 	;; hmm partial COPY-PASTE from above, how to avoid?
@@ -129,14 +129,14 @@
 		  y-given
 		  empty)
 
-		(def-method* (partial-kind v)
+		(def-method (partial-kind v)
 		  (cond (x (cond (y 'full)
 				 (else 'x-given)))
 			(y 'y-given)
 			(else
 			 'empty)))
 
-		(def-method* (2d-point v)
+		(def-method (2d-point v)
 		  (2d-point x y)))
 
 	
@@ -150,7 +150,7 @@
 		  (list (2d-line.from v)
 			(2d-line.to v)))
 
-		(def-method* (diff v)
+		(def-method (diff v)
 		  (2d-point.- to from))
 
 		(def-method- (slope v)
@@ -167,7 +167,7 @@
 			 #!optional
 			 #(boolean? closed?))
 
-		(def-method* (points-add v #(2d-point? p)) ;; prepend, cons. hm.
+		(def-method (points-add v #(2d-point? p)) ;; prepend, cons. hm.
 		  (2d-path (cons p points)
 			   closed?))
 
@@ -181,7 +181,7 @@
 		(def-method- (start v)
 		  (2d-window.mi v))
 
-		(def-method* (points v)
+		(def-method (points v)
 		  (let-2d-point
 		   ((x0 y0) mi)
 		   (let-2d-point
@@ -191,12 +191,12 @@
 			  ma
 			  (2d-point x0 y1)))))
 
-		(def-method* (range v)
+		(def-method (range v)
 		  (.- ma mi))
 
 		;; hm, rename this to x/y like the method for
 		;; 2d-point, or vice versa?
-		(def-method* (proportions v) ;; div by zero for zero dy !
+		(def-method (proportions v) ;; div by zero for zero dy !
 		  (let-2d-point
 		   ((x0 y0) mi)
 		   (let-2d-point
@@ -209,7 +209,7 @@
 
 		(def-method- x/y 2d-window.proportions)
 
-		(def-method* (fit-to-proportions v #((complement zero?) dx/dy) clip?)
+		(def-method (fit-to-proportions v #((complement zero?) dx/dy) clip?)
 		  (let-2d-point
 		   ((x0 y0) mi)
 		   (let-2d-point
@@ -249,7 +249,7 @@
 	(jclass (2d-square #(2d-point? start)
 			   #(2d-point? vector))
 
-		(def-method* (points s)
+		(def-method (points s)
 		  (let ((v90 (.rot90l vector))
 			(p2 (.+ start vector)))
 		    (list start

@@ -23,10 +23,10 @@
 	(def (ternary-number* . l)
 	     (ternary-number l))
 
-	(def-method* (length s)
+	(def-method (length s)
 	  (length list))
 	
-	(def-method* (integer s)
+	(def-method (integer s)
 	  (let lp ((tot 0)
 		   (l list))
 	    (if (pair? l)

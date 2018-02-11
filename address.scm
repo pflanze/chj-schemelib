@@ -52,7 +52,7 @@
 
 
 (jclass (address32 #(uint32? value))
-	(def-method* (show v)
+	(def-method (show v)
 	  `(address32* ,(.common-hex-string value 32))))
 
 (def (maybe-address32* str)

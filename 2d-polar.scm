@@ -20,7 +20,7 @@
 (jclass (2d-polar #(real? angle)
 		  #(real? distance))
 
-	(def-method* (point v)
+	(def-method (point v)
 	  (2d-point (* distance (cos angle))
 		    (* distance (sin angle)))))
 

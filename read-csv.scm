@@ -91,11 +91,11 @@
 	    (jclass (file-input-provider #(path-string? path-string)
 					 #(char-encoding? char-encoding))
 
-		    (def-method* (open s)
+		    (def-method (open s)
 		      (open-input-file (list path: path-string
 					     char-encoding: char-encoding)))
 
-		    ;; (def-method* (close s port)
+		    ;; (def-method (close s port)
 		    ;;   (close-port port)) unused
 		    ))
 
@@ -137,7 +137,7 @@
 		    #(boolean? skip-last?)
 		    #((maybe (list-of natural0?)) maybe-columns))
 
-	(def-method* (stream s)
+	(def-method (stream s)
 	  (let* ((s (csv-port-stream (.open input-provider)
 				     sep-char: sep-char
 				     eol: eol))

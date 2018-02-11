@@ -81,7 +81,7 @@
 		   ;; `struct tm` from time.h :
 		   integer-timezone)
 
-	(def-method* (show-nice v)
+	(def-method (show-nice v)
 	  `(localtime (FIELD sec: ,sec)
 		      (FIELD min: ,min)
 		      (FIELD hour: ,hour)
@@ -93,33 +93,33 @@
 		      (FIELD integer-isdst: ,integer-isdst)
 		      (FIELD integer-timezone: ,integer-timezone)))
 
-	(def-method* (month v)
+	(def-method (month v)
 	  (inc month-1))
 
-	(def-method* (year v)
+	(def-method (year v)
 	  (+ year-1900 1900))
 
 	(def-method- (year-string v)
 	  (number->string (localtime.year v)))
 
-	(def-method* (mday-string v)
+	(def-method (mday-string v)
 	  (number->string mday))
 
-	(def-method* (hour-paddedstring v)
+	(def-method (hour-paddedstring v)
 	  (number->padded-string 2 hour))
 
-	(def-method* (min-paddedstring v)
+	(def-method (min-paddedstring v)
 	  (number->padded-string 2 min))
 
-	(def-method* (sec-paddedstring v)
+	(def-method (sec-paddedstring v)
 	  (number->padded-string 2 sec))
 
 	;; seconds
-	(def-method* (tzoffset tm) 
+	(def-method (tzoffset tm) 
 	  (- (* integer-isdst 3600)
 	     integer-timezone))
 
-	(def-method* (tzoffset-string v)
+	(def-method (tzoffset-string v)
 	  (let* ((tzoffset (localtime.tzoffset v))
 		 ;; ^ is this really correct?
 		 (tzoffsetm (abs tzoffset))
@@ -132,16 +132,16 @@
 
 	;; more date -R format
 
-	(def-method* (wday-shortstring v)
+	(def-method (wday-shortstring v)
 	  (vector-ref rfc-2822:wdays integer-wday))
 
-	(def-method* (wday-longstring v)
+	(def-method (wday-longstring v)
 	  (vector-ref english:weekdays integer-wday))
 
-	(def-method* (month-shortstring v)
+	(def-method (month-shortstring v)
 	  (vector-ref rfc-2822:months month-1))
  
-	(def-method* (month-longstring v)
+	(def-method (month-longstring v)
 	  (vector-ref months-longstring month-1))
 
 	(def-method- (time-string v #!optional (with-seconds? #t))
@@ -204,7 +204,7 @@
 
 	;; Time boundary calculations
 
-	(def-method* (month-start s)
+	(def-method (month-start s)
 	  (=> s
 	      (.mday-set 1)
 	      (.hour-set 0)
@@ -212,7 +212,7 @@
 	      (.sec-set 0)
 	      (.integer-isdst-set -1)))
 	
-	(def-method* (month-inc s #!optional keep-dst?)
+	(def-method (month-inc s #!optional keep-dst?)
 	  (let ((r (if (= month-1 12)
 		       (.year-1900-update (.month-set s 1) inc)
 		       (.month-1-update s inc))))

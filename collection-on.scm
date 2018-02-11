@@ -65,43 +65,43 @@
 
 	;; Now just a big modified COPY-PASTE from wbcollection.scm
 	;; (don't need anything like def-wbcollection-method any more
-	;; since def-method* now does the same already for us, just
+	;; since def-method now does the same already for us, just
 	;; named the param field $wbtreeparameter already):
 
-	(def-method* (size c)
+	(def-method (size c)
 	  (wbtree:size data))
 
-	(def-method* (empty? c)
+	(def-method (empty? c)
 	  (empty-wbtree? data))
 
-	(def-method* (contains? c item)
+	(def-method (contains? c item)
 	  (wbtree:member? data item))
 
 	;; call it ref-item versus just ref here, unlike in
 	;; wbcollection
-	(def-method* (maybe-ref-item c item)
+	(def-method (maybe-ref-item c item)
 	  (wbtree:maybe-ref data item))
 
-	(def-method* (maybe-ref c key)
+	(def-method (maybe-ref c key)
 	  (wbtree:maybe-ref data (cons key #f)))
 
-	(def-method* (ref c key)
+	(def-method (ref c key)
 	  (wbtree:ref data (cons key #f)))
 
 	
-	;; (def-method* ( c)
+	;; (def-method ( c)
 	;; 	 (wbtree:maybe-ref&rank data))
 
-	(def-method* (min c)
+	(def-method (min c)
 	  (wbtree:min data))
 
-	(def-method* (max c)
+	(def-method (max c)
 	  (wbtree:max data))
 
-	(def-method* (maybe-min c)
+	(def-method (maybe-min c)
 	  (wbtree:maybe-min data))
 
-	(def-method* (maybe-max c)
+	(def-method (maybe-max c)
 	  (wbtree:maybe-max data))
 
 	;; `first` and `rest` don't really seem fitting here, since
@@ -109,31 +109,31 @@
 	;; min and max.
 
 	;; XX is there a faster way to do this? (splitting)
-	(def-method* (min&rest c)
+	(def-method (min&rest c)
 	  (let ((*v (wbtree:min data)))
 	    (values *v
 		    (wbcollection-change c
 					 $wbtreeparameter
 					 (wbtree:delete data *v)))))
 	;; copy-paste
-	(def-method* (max&rest c)
+	(def-method (max&rest c)
 	  (let ((*v (wbtree:max data)))
 	    (values *v
 		    (wbcollection-change c
 					 $wbtreeparameter
 					 (wbtree:delete data *v)))))
 
-	(def-method* (set c item)
+	(def-method (set c item)
 	  (wbcollection-change c
 			       $wbtreeparameter
 			       (wbtree:set data item)))
 
-	(def-method* (add c item)
+	(def-method (add c item)
 	  (wbcollection-change c
 			       $wbtreeparameter
 			       (wbtree:add data item)))
 
-	(def-method* (add-multiple c items)
+	(def-method (add-multiple c items)
 	  (wbcollection-change c
 			       $wbtreeparameter
 			       (stream-fold (lambda (item data)
@@ -141,7 +141,7 @@
 					    data
 					    items)))
 
-	(def-method* (delete c item)
+	(def-method (delete c item)
 	  (wbcollection-change c
 			       $wbtreeparameter
 			       (wbtree:delete data item)))
@@ -151,12 +151,12 @@
 	;; wbtree:inorder-fold-reverse
 	;; wbtree:stream-inorder-fold-reverse
 
-	(def-method* (members c)
+	(def-method (members c)
 	  (wbtree:members data))
 
 	(def-method- list wbcollection.members)
 
-	(def-method* (show s)
+	(def-method (show s)
 	  `((collection-on ,(.show .key)
 			   ,(.show key-cmp)
 			   ,@(if of
@@ -164,7 +164,7 @@
 				 `()))
 	    ,@(.members s)))
 
-	(def-method* (members-stream c
+	(def-method (members-stream c
 				     #!optional
 				     #(boolean? reverse?)
 				     (tail '()))
@@ -211,12 +211,12 @@
 
 	;; wbtree:between
 
-	(def-method* (rank c item)
+	(def-method (rank c item)
 	  (wbtree:rank data item))
 
 	;; rename this to `.ref` ? Or would that be dangerously close
 	;; to `.contains?` ?
-	(def-method* (index c item)
+	(def-method (index c item)
 	  (wbtree:index data item)))
 
 
