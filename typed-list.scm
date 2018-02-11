@@ -52,7 +52,7 @@
 		  (.reverse-list rest
 				 (cons first tail)))
 
-		(def-method (filter l f)
+		(def-method- (filter l f)
 		  (let-typed-list-pair
 		   ((pred _ v r) l)
 		   (let ((r* (.filter r f)))
@@ -68,10 +68,10 @@
 					      r*))
 			 r*))))
 
-		(def-method (remove l f)
+		(def-method- (remove l f)
 		  (typed-list-pair.filter l (complement f)))
 
-		(def-method (the l
+		(def-method- (the l
 				 #!optional
 				 (none (& (error "no element")))
 				 (more (& (error "more than one element"))))
@@ -88,32 +88,32 @@
 
 	(jclass (typed-list-null #(procedure? pred))
 
-		(def-method (length l)
+		(def-method- (length l)
 		  0)
 
-		(def-method (list l)
+		(def-method- (list l)
 		  '())
 
-		(def-method (reverse-list l #!optional (tail '()))
+		(def-method- (reverse-list l #!optional (tail '()))
 		  tail)
 
-		(def-method (filter l f)
+		(def-method- (filter l f)
 		  l)
 
-		(def-method (remove l f)
+		(def-method- (remove l f)
 		  l)
 
-		(def-method (the l)
+		(def-method- (the l)
 		  (error "fewer than one element"))
 
-		(def-method (null l)
+		(def-method- (null l)
 		  l))
 
-	(def-method (show v)
+	(def-method- (show v)
 	  `(typed-list ,(.show (.pred v))
 		       ,@(map .show (.list v))))
 
-	(def-method (cons rst fst)
+	(def-method- (cons rst fst)
 	  (let ((pred (.pred rst)))
 	    (if (pred fst)
 		(typed-list-pair pred
@@ -127,7 +127,7 @@
 
 	;; XX should actually not be a method since it's generic by
 	;; way of .cons anyway?
-	(def-method prepend
+	(def-method- prepend
 	  (named rec
 		 (lambda (l v)
 		   (cond ((null? v)
@@ -139,7 +139,7 @@
 			  ;; only difference to improper-prepend
 			  (error "improper list:" v))))))
 
-	(def-method improper-prepend
+	(def-method- improper-prepend
 	  (named rec
 		 (lambda (l v)
 		   (cond ((null? v)
@@ -150,7 +150,7 @@
 			 (else
 			  (.cons l v))))))
 
-	(def-method (take l #(natural0? n))
+	(def-method- (take l #(natural0? n))
 	  (let ((len (.length l)))
 	    (cond ((= n len)
 		   l)

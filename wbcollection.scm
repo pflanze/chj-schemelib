@@ -63,7 +63,7 @@
   (match* name+args
 	  ((name . args)
 	   (quasiquote-source
-	    (def-method ,name
+	    (def-method- ,name
 	      (wbcollection-lambda ,args
 				   ,@body))))))
 
@@ -156,9 +156,9 @@
  (def-wbcollection-method (members c)
    (wbtree:members $data))
 
- (def-method list wbcollection.members)
+ (def-method- list wbcollection.members)
 
- (def-method (show s)
+ (def-method- (show s)
    `(list.wbcollection
      ,(.show (wbtreeparameter.cmp (.param s)))
      ,(.show (wbcollection.members s))))
@@ -171,7 +171,7 @@
        (wbtree:stream-inorder-fold-reverse $data cons tail)
        (wbtree:stream-inorder-fold $data cons tail)))
 
- (def-method stream wbcollection.members-stream)
+ (def-method- stream wbcollection.members-stream)
 
  ;; wbtree:lt
  ;; wbtree:gt
@@ -191,16 +191,16 @@
 	    (error "incompatible wbcollection parameters:"
 		   $wbtreeparameter (.param c2))))))
  
- (def-method union
+ (def-method- union
    (wbcollection:binary-method wbtree:union* #t))
 
- (def-method difference
+ (def-method- difference
    (wbcollection:binary-method wbtree:difference* #t))
 
- (def-method intersection
+ (def-method- intersection
    (wbcollection:binary-method wbtree:intersection* #t))
 
- (def-method intersection-stream
+ (def-method- intersection-stream
    (wbcollection:binary-method (lambda (param d1 d2)
 				 (wbtrees:intersection-stream* param (list d1 d2)))
 			       #f))

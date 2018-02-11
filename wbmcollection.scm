@@ -43,7 +43,7 @@
  ;; leaf-cons receives (new-element, old leaf or leaf-null)
 
  
- (def-method (add c item)
+ (def-method- (add c item)
    (let-wbmcollection
     (($wbtreeparameter $data lnull lcons) c)
 
@@ -58,7 +58,7 @@
 			       (lcons item oldgroup)))
 			 (else group1)))))))
 
- (def-method (add-multiple c items)
+ (def-method- (add-multiple c items)
    ;; (yeah, *could* be optimized minimally by avoiding object
    ;; allocations)
    (fold (lambda (v c)
@@ -67,13 +67,13 @@
 	 items))
  
 
- (def-method (maybe-ref c item)
+ (def-method- (maybe-ref c item)
    (let-wbmcollection
     (($wbtreeparameter $data lnull lcons) c)
     ;; and the perennial fake wrapping
     (wbtree:maybe-ref $data (lcons item lnull))))
   
- (def-method (set c item)
+ (def-method- (set c item)
    (error "not implemented"))
 
  
@@ -89,16 +89,16 @@
  ;; from the group? (Although does that mean we need another function
  ;; for that, uh! So stupid really, where OO shines, really, man?!)
  ;; Note: it will also need null? check, to remove the whole leaf.
- (def-method (delete c item)
+ (def-method- (delete c item)
    (error "not implemented"))
  
 
- (def-method delete-group ;; requires group not item !
+ (def-method- delete-group ;; requires group not item !
    wbcollection.delete)
  ;; heh. as fast and still shadowed?
 
 
- (def-method (show s)
+ (def-method- (show s)
    (let-wbmcollection
     ((p _ lnull lcons) s)
     `(lists.wbmcollection

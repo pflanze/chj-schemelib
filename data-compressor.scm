@@ -41,7 +41,7 @@
 
 (jclass _data-compressor
 
-	(def-method (compress-u8vector s #(u8vector? vec) #!optional len)
+	(def-method- (compress-u8vector s #(u8vector? vec) #!optional len)
 	  (let* ((len* (u8vector.length vec))
 		 (len (if len
 			  (-> len (lambda (v)
@@ -131,23 +131,23 @@
 
 			(jclass (gzip-compressor)
 
-				(def-method (command s)
+				(def-method- (command s)
 				  "gzip")
-				(def-method (default-options s)
+				(def-method- (default-options s)
 				  '("--no-name")))
 	
 			(jclass (lzop-compressor)
 
-				(def-method (command s)
+				(def-method- (command s)
 				  "lzop")
-				(def-method (default-options s)
+				(def-method- (default-options s)
 				  '("--no-name")))
 
 			(jclass (bzip2-compressor)
 
-				(def-method (command s)
+				(def-method- (command s)
 				  "bzip2")
-				(def-method (default-options s)
+				(def-method- (default-options s)
 				  ;; no "--no-name" option?
 				  '())))
 
@@ -156,9 +156,9 @@
 
 			(jclass (xz-compressor)
 
-				(def-method (command s)
+				(def-method- (command s)
 				  "xz")
-				(def-method (default-options s)
+				(def-method- (default-options s)
 				  ;; no "--no-name" option, how to
 				  ;; avoid embedding a timestamp?
 				  '()))))

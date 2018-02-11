@@ -262,14 +262,14 @@
 	    (error "didn't capture continuation, set parse1:*capture-continuation?* to #t before instantiating the parsers"))
 	(error "don't have context information")))
 
-  (def-method (maybe-exception-message v)
+  (def-method- (maybe-exception-message v)
     (.exception-message v))
 
-  (def-method (message-string v)
+  (def-method- (message-string v)
     (with-output-to-string
       (& (write-exception-message (.maybe-exception-message v)))))
 
-  (def-method (show-input-location e fallback)
+  (def-method- (show-input-location e fallback)
     ;; don't use the input at the start of a match, but the point
     ;; where it failed (which by default is the same) (is this a good
     ;; or bad idea? Will it lead to confusion? Take a flag instead?)

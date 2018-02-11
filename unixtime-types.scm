@@ -99,7 +99,7 @@
 	(def-method* (year v)
 	  (+ year-1900 1900))
 
-	(def-method (year-string v)
+	(def-method- (year-string v)
 	  (number->string (localtime.year v)))
 
 	(def-method* (mday-string v)
@@ -144,7 +144,7 @@
 	(def-method* (month-longstring v)
 	  (vector-ref months-longstring month-1))
 
-	(def-method (time-string v #!optional (with-seconds? #t))
+	(def-method- (time-string v #!optional (with-seconds? #t))
 	  (string-append
 	   (localtime.hour-paddedstring v)
 	   ":"
@@ -155,7 +155,7 @@
 	       "")))
 
 
-	(def-method (rfc-2822-but-date-only-string v)
+	(def-method- (rfc-2822-but-date-only-string v)
 	  (string-append (localtime.wday-shortstring v)
 			 ", "
 			 (localtime.mday-string v)
@@ -165,18 +165,18 @@
 			 (localtime.year-string v)))
 
 
-	(def-method (month-and-year-shortstring v)
+	(def-method- (month-and-year-shortstring v)
 	  (string-append (localtime.month-shortstring v)
 			 " "
 			 (localtime.year-string v)))
  
-	(def-method (month-and-year-longstring v)
+	(def-method- (month-and-year-longstring v)
 	  (string-append (localtime.month-longstring v)
 			 " "
 			 (localtime.year-string v)))
 	
 
-	(def-method (rfc-2822-alike-string v maybe-zone-string
+	(def-method- (rfc-2822-alike-string v maybe-zone-string
 					   #!optional (show-zone? #t))
 	  (string-append (localtime.wday-shortstring v)
 			 ", "
@@ -193,13 +193,13 @@
 				 (localtime.tzoffset-string v))
 			     "")))
 
-	(def-method (rfc-2822 v)
+	(def-method- (rfc-2822 v)
 	  (.rfc-2822-alike-string v #f))
 
-	(def-method (gmtime-string v)
+	(def-method- (gmtime-string v)
 	  (.rfc-2822-alike-string v "GMT"))
 
-	(def-method (localtime-string v)
+	(def-method- (localtime-string v)
 	  (.rfc-2822-alike-string v #f #f))
 
 	;; Time boundary calculations

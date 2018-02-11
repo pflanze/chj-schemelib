@@ -26,7 +26,7 @@
 
 (jclass 2d-shape
 
-	(def-method (min+maxs/prev v min+max)
+	(def-method- (min+maxs/prev v min+max)
 	  (fold 2d-point.min+maxs/prev
 		min+max
 		(.points v)))
@@ -40,8 +40,8 @@
 				     (let-2d-point ((b0 b1) b)
 						   (2d-point (op a0 b0)
 							     (op a1 b1))))))
-		(def-method + (_point-op +))
-		(def-method - (_point-op -))
+		(def-method- + (_point-op +))
+		(def-method- - (_point-op -))
 
 		(def (_point-op* op)
 		     (let ((vecop (_point-op op)))
@@ -52,10 +52,10 @@
 			     (let-2d-point ((a0 a1) a)
 					   (2d-point (op a0 b)
 						     (op a1 b)))))))
-		(def-method .* (_point-op* *))
-		(def-method ./ (_point-op* /))
+		(def-method- .* (_point-op* *))
+		(def-method- ./ (_point-op* /))
 
-		(def-method (x/y p)
+		(def-method- (x/y p)
 		  (let-2d-point ((x y) p)
 				(/ x y)))
 
@@ -67,20 +67,20 @@
 		(def-method* (rot90r p)
 		  (2d-point y (- x)))
 
-		(def-method (= a b)
+		(def-method- (= a b)
 		  (let-2d-point ((a0 a1) a)
 				(let-2d-point ((b0 b1) b)
 					      (and (= a0 b0)
 						   (= a1 b1)))))
 
-		(def-method (almost= a b max-abs-diff)
+		(def-method- (almost= a b max-abs-diff)
 		  (def almost= (almost=/max-abs-diff max-abs-diff))
 		  (let-2d-point ((a0 a1) a)
 				(let-2d-point ((b0 b1) b)
 					      (and (almost= a0 b0)
 						   (almost= a1 b1)))))
 
-		(def-method (< a b)
+		(def-method- (< a b)
 		  (let-2d-point ((a0 a1) a)
 				(let-2d-point ((b0 b1) b)
 					      (or (< a0 b0)
@@ -88,7 +88,7 @@
 						       (< a1 b1))))))
 
 
-		(def-method (min+maxs/prev p min+max)
+		(def-method- (min+maxs/prev p min+max)
 		  (let-2d-point
 		   ((p0 p1) p)
 		   (let-pair
@@ -103,7 +103,7 @@
 			    (2d-point (max p0 ma0)
 				      (max p1 ma1))))))))
 
-		(def-method (start p)
+		(def-method- (start p)
 		  p)
 
 		(def-method* (distance^2 p)
@@ -111,7 +111,7 @@
 		  (+ (square x) (square y)))
 
 		;; should this be called magnitude ?
-		(def-method (distance p)
+		(def-method- (distance p)
 		  (sqrt (2d-point.distance^2 p)))
 
 		;; also see 2d-point.polar (2d-polar.scm)
@@ -143,17 +143,17 @@
 	(jclass (2d-line #(2d-point? from)
 			 #(2d-point? to))
 
-		(def-method (start v)
+		(def-method- (start v)
 		  (2d-line.from v))
 
-		(def-method (points v)
+		(def-method- (points v)
 		  (list (2d-line.from v)
 			(2d-line.to v)))
 
 		(def-method* (diff v)
 		  (2d-point.- to from))
 
-		(def-method (slope v)
+		(def-method- (slope v)
 		  (let-2d-point
 		   ((x y) (2d-line.diff v))
 		   (if (zero? x)
@@ -171,14 +171,14 @@
 		  (2d-path (cons p points)
 			   closed?))
 
-		(def-method (start v)
+		(def-method- (start v)
 		  (car (2d-path.points v))))
 
 	;; an untilted rectangle
 	(jclass (2d-window #(2d-point? mi)
 			   #(2d-point? ma))
 
-		(def-method (start v)
+		(def-method- (start v)
 		  (2d-window.mi v))
 
 		(def-method* (points v)
@@ -207,7 +207,7 @@
 			   (our-dx/dy (/ dx dy)))
 		      our-dx/dy))))
 
-		(def-method x/y 2d-window.proportions)
+		(def-method- x/y 2d-window.proportions)
 
 		(def-method* (fit-to-proportions v #((complement zero?) dx/dy) clip?)
 		  (let-2d-point
@@ -257,7 +257,7 @@
 			  (.+ p2 v90)
 			  (.+ start v90))))
 
-		(def-method (< a b)
+		(def-method- (< a b)
 		  (let-2d-square
 		   ((as av) a)
 		   (let-2d-square
@@ -269,7 +269,7 @@
 			    (2d-point.< av bv))))))
 
 		;;XXX? vs the one above ?
-		;; (def-method (< a b)
+		;; (def-method- (< a b)
 		;;   (if (null? a)
 		;;       (begin
 		;; 	(assert (null? b))
@@ -279,7 +279,7 @@
 		;; 	       (2d-square.< (cdr a) (cdr b))))))
 
 	  
-		(def-method (canonical s)
+		(def-method- (canonical s)
 		  ;; now stupidly have to add, well
 		  (canonical-2d-square start (2d-point.+ start vector)))))
 

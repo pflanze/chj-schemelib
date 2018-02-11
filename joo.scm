@@ -193,7 +193,7 @@
 				    rest)))))))
 
 
-;; def-method and def-method*
+;; def-method- and def-method*
 (def (joo:implementation-method-expander-for
       class-name
       maybe-fields
@@ -227,7 +227,7 @@
 		(source-error
 		 stx
 		 (string-append "def-method* expects bindings list, use"
-				" def-method for bare symbols"))
+				" def-method- for bare symbols"))
 		`(def. ,(source.symbol-append class-name. bind)
 		   ,@rest))))))
 	stx)))
@@ -883,9 +883,9 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 (TEST
  > (joo-class (joo_fooo a b)
-	      (def-method (haha s)
+	      (def-method- (haha s)
 		(.a s))
-	      (def-method id identity))
+	      (def-method- id identity))
  > (joo-object? (joo_fooo 1 2))
  #t
  > (.haha (joo_fooo 1 2))
@@ -904,7 +904,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  #!void
  > (with-exception-handler source-error-message
 			   (& (eval `(joo-interface joo_fooo
-						    (def-method (haha s))))))
+						    (def-method- (haha s))))))
  "method implementation not allowed in interface"
  > (with-exception-handler source-error-message
 			   (& (eval `(joo-interface (joo_fooo a b)
@@ -954,10 +954,10 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
  > (joo-class (bar-integer)
 	      implements: (bar-integer-interface)
-	      (def-method (exact? _)
+	      (def-method- (exact? _)
 		#t)
 	      ;; to see that rest args work:
-	      (def-method (fifi a . b)
+	      (def-method- (fifi a . b)
 		(vector a b)))
  > (joo-class (bar-natural0)
 	      extends: bar-integer
@@ -988,7 +988,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 (TEST
  > (def z 'outside)
  > (joo-class (fooagain x #(pair? y) z)
-	      (def-method (bar x y)
+	      (def-method- (bar x y)
 		(list x y z)))
  > (.bar (fooagain 10 (cons 1 2) 'f) 11)
  (#((fooagain) 10 (1 . 2) f) 11 outside)

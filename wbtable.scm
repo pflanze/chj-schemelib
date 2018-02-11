@@ -49,7 +49,7 @@
 
 ;; (joo-class (wbtable-key-type #(predicate? predicate?)
 ;; 			     #(function? cmp))
-;; 	   (def-method (wbtreeparameter t)
+;; 	   (def-method- (wbtreeparameter t)
 ;; 	     (wbtreeparameter (on car (.cmp t))
 ;; 			      pair?)))
 
@@ -74,7 +74,7 @@
 		     (wbtreeparameter (on car key-cmp)
 				      pair?)))
 
- (def-method (compatible? s #(wbtable-head? t))
+ (def-method- (compatible? s #(wbtable-head? t))
    ;; pessimistic for now...
    (let-wbtable-head
     ((a b c _) s)
@@ -91,7 +91,7 @@
   (match* name+args
 	  ((name c . args)
 	   (quasiquote-source
-	    (def-method ,name+args
+	    (def-method- ,name+args
 	      (let-wbtable
 	       (($wbtable-head $data) ,c)
 	       (let-wbtable-head (($key? $key-cmp $value? $wbtreeparameter)
@@ -160,17 +160,17 @@
  ;; XX gah dimly remember, too: useless cons. Should add some
  ;; maybe-ref-key to wbtree? Hm, how is cmp used, always in same
  ;; order?? todo.
- (def-method (ref s key alt)
+ (def-method- (ref s key alt)
    (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
 	 (else alt)))
 
- (def-method (refx s key)
+ (def-method- (refx s key)
    (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
 	 (else (error "key not found:" key))))
 
  ;; restrict `contains?` to collections, i.e. full items? And follow
  ;; Perl with `exists`, OK?
- (def-method (exists? s key)
+ (def-method- (exists? s key)
    (and (wbtable.maybe-ref-pair s (cons key #f))
 	#t))
 
@@ -216,13 +216,13 @@
  ;; ^ XX what about missing keys here? Compatibility with symboltable,
  ;; or?
  
- (def-method (add s key val)
+ (def-method- (add s key val)
    (wbtable.add-pair s (cons key val)))
 
- (def-method (set s key val)
+ (def-method- (set s key val)
    (wbtable.set-pair s (cons key val)))
 
- (def-method (delete s key)
+ (def-method- (delete s key)
    (wbtable.delete-pair s (cons key #f)))
 
  ;; XX die or not on conflicting elements?

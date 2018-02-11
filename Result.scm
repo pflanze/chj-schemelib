@@ -31,7 +31,7 @@
 
 (jclass Result
 
-	(def-method (if-Ok v yes no)
+	(def-method- (if-Ok v yes no)
 	  (cond ((Ok? v)
 		 (yes (Ok.value v)))
 		((Error? v)

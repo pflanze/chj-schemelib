@@ -15,11 +15,11 @@
 
 (jclass (colorstring #(string? value))
 
-	(def-method html-colorstring colorstring.value)
+	(def-method- html-colorstring colorstring.value)
 
-	(def-method maybe-stroke-color identity)
-	(def-method maybe-fill-color identity)
-	(def-method maybe-stroke-width false/1)
+	(def-method- maybe-stroke-color identity)
+	(def-method- maybe-fill-color identity)
+	(def-method- maybe-stroke-width false/1)
 
 
 	(def colorstring:inversions
@@ -71,9 +71,9 @@
 (jclass (colors #(color? stroke)
 		#(color? fill))
 
-	(def-method maybe-stroke-color colors.stroke)
-	(def-method maybe-fill-color colors.fill)
-	(def-method maybe-stroke-width false/1))
+	(def-method- maybe-stroke-color colors.stroke)
+	(def-method- maybe-fill-color colors.fill)
+	(def-method- maybe-stroke-width false/1))
 
 ;; with stroke width, and optional keyword parameters
 (jclass (paint #!key
@@ -81,9 +81,9 @@
 	       #((maybe color?) fill-color)
 	       #((maybe positive-real?) stroke-width))
 
-	(def-method maybe-stroke-color paint.stroke-color)
-	(def-method maybe-fill-color paint.fill-color)
-	(def-method maybe-stroke-width paint.stroke-width))
+	(def-method- maybe-stroke-color paint.stroke-color)
+	(def-method- maybe-fill-color paint.fill-color)
+	(def-method- maybe-stroke-width paint.stroke-width))
 
 (def paintoptions?
      (either color? colors? paint?))

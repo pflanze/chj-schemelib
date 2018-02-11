@@ -28,16 +28,16 @@
 (jclass Maybe
 
 	(jclass ((Nothing _Nothing))
-		(def-method (maybe-value s)
+		(def-method- (maybe-value s)
 		  #f)
-		(def-method (show s)
+		(def-method- (show s)
 		  `(Nothing)))
 
 	(jclass (Just value)
-		(def-method maybe-value Just.value))
+		(def-method- maybe-value Just.value))
 
 	;; name if-present instead?
-	(def-method (if-Just v then els)
+	(def-method- (if-Just v then els)
 	  (if (Just? v)
 	      (then (@Just.value v))
 	      (els))))

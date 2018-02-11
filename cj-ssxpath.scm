@@ -95,7 +95,7 @@
 
 	;; a path of only using indexing. XX BUT, item indices versus
 	;; element indices? !
-	(def-method (index-path s)
+	(def-method- (index-path s)
 	  (let lp ((m s)
 		   (p '()))
 	    (let.-static (ssxpath-match. (maybe-index maybe-parent) m)

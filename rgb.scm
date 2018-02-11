@@ -117,17 +117,17 @@
 			 #(rgb:0..1? g01t)
 			 #(rgb:0..1? b01t))
 
-		 (def-method rgb01t identity)
+		 (def-method- rgb01t identity)
 
-		 (def-method r01l (compose srgb:transfer.lum rgb01t.r01t))
-		 (def-method g01l (compose srgb:transfer.lum rgb01t.g01t))
-		 (def-method b01l (compose srgb:transfer.lum rgb01t.b01t))
+		 (def-method- r01l (compose srgb:transfer.lum rgb01t.r01t))
+		 (def-method- g01l (compose srgb:transfer.lum rgb01t.g01t))
+		 (def-method- b01l (compose srgb:transfer.lum rgb01t.b01t))
 
-		 (def-method r8 (compose 01.uint8 rgb01t.r01t))
-		 (def-method g8 (compose 01.uint8 rgb01t.g01t))
-		 (def-method b8 (compose 01.uint8 rgb01t.b01t))
+		 (def-method- r8 (compose 01.uint8 rgb01t.r01t))
+		 (def-method- g8 (compose 01.uint8 rgb01t.g01t))
+		 (def-method- b8 (compose 01.uint8 rgb01t.b01t))
 
-		 (def-method (rgb01l x)
+		 (def-method- (rgb01l x)
 		   ;; XX evil, too much duplication. this is
 		   ;; optimization here
 		   ;; ah and at least  have   map functions  right? evil.
@@ -137,16 +137,16 @@
 					 (conv g)
 					 (conv b)))))
 
-		 (def-method (rgb8 x)
+		 (def-method- (rgb8 x)
 		   (let-rgb01t ((r g b) x)
 			       (rgb8 (01.uint8 r)
 				     (01.uint8 g)
 				     (01.uint8 b))))
 
-		 (def-method invert
+		 (def-method- invert
 		   (comp-1ary rgb01l.rgb01t rgb01l.invert rgb01t.rgb01l))
 
-		 (def-method (scale s factor)
+		 (def-method- (scale s factor)
 		   (rgb01l.rgb01t (rgb01l.scale (rgb01t.rgb01l s)
 						factor))))
        
@@ -164,17 +164,17 @@
 			      (01-bound g)
 			      (01-bound b)))
 
-		 (def-method rgb01l identity)
+		 (def-method- rgb01l identity)
 
-		 (def-method r01t (compose srgb:lum.transfer rgb01l.r01l))
-		 (def-method g01t (compose srgb:lum.transfer rgb01l.g01l))
-		 (def-method b01t (compose srgb:lum.transfer rgb01l.b01l))
+		 (def-method- r01t (compose srgb:lum.transfer rgb01l.r01l))
+		 (def-method- g01t (compose srgb:lum.transfer rgb01l.g01l))
+		 (def-method- b01t (compose srgb:lum.transfer rgb01l.b01l))
 
-		 (def-method r8 (compose 01.uint8 rgb01l.r01t))
-		 (def-method g8 (compose 01.uint8 rgb01l.g01t))
-		 (def-method b8 (compose 01.uint8 rgb01l.b01t))
+		 (def-method- r8 (compose 01.uint8 rgb01l.r01t))
+		 (def-method- g8 (compose 01.uint8 rgb01l.g01t))
+		 (def-method- b8 (compose 01.uint8 rgb01l.b01t))
 
-		 (def-method (rgb01t x)
+		 (def-method- (rgb01t x)
 		   ;; XX dito duplication ~
 		   (let-rgb01l ((r g b) x)
 			       (let ((conv srgb:lum.transfer))
@@ -182,7 +182,7 @@
 					 (conv g)
 					 (conv b)))))
 
-		 (def-method (rgb8 v)
+		 (def-method- (rgb8 v)
 		   (.rgb8 (rgb01l.rgb01t v)))
 
 		 (def-method* (invert v)
@@ -203,35 +203,35 @@
 	       #(uint8? g8)
 	       #(uint8? b8))
 
-	 (def-method rgb8 identity)
+	 (def-method- rgb8 identity)
 
-	 (def-method r01t (compose uint8.01 rgb8.r8))
-	 (def-method g01t (compose uint8.01 rgb8.g8))
-	 (def-method b01t (compose uint8.01 rgb8.b8))
+	 (def-method- r01t (compose uint8.01 rgb8.r8))
+	 (def-method- g01t (compose uint8.01 rgb8.g8))
+	 (def-method- b01t (compose uint8.01 rgb8.b8))
 
-	 (def-method r01l (comp* srgb:transfer.lum uint8.01 rgb8.r8))
-	 (def-method g01l (comp* srgb:transfer.lum uint8.01 rgb8.g8))
-	 (def-method b01l (comp* srgb:transfer.lum uint8.01 rgb8.b8))
+	 (def-method- r01l (comp* srgb:transfer.lum uint8.01 rgb8.r8))
+	 (def-method- g01l (comp* srgb:transfer.lum uint8.01 rgb8.g8))
+	 (def-method- b01l (comp* srgb:transfer.lum uint8.01 rgb8.b8))
 
-	 (def-method (rgb01t x)
+	 (def-method- (rgb01t x)
 	   (let-rgb8 ((r g b) x)
 		     (rgb01t (uint8.01 r)
 			     (uint8.01 g)
 			     (uint8.01 b))))
 		 
-	 (def-method rgb01l (compose rgb01t.rgb01l rgb8.rgb01t))
+	 (def-method- rgb01l (compose rgb01t.rgb01l rgb8.rgb01t))
 
-	 (def-method invert
+	 (def-method- invert
 	   (comp-1ary rgb01l.rgb8 rgb01l.invert rgb8.rgb01l))
 
-	 (def-method (scale s factor)
+	 (def-method- (scale s factor)
 	   (rgb01l.rgb8 (rgb01l.scale (rgb8.rgb01l s)
 				      factor))))
 
  
  ;; generic operations: ---------------------------------------------------
 
- (def-method (html-colorstring x)
+ (def-method- (html-colorstring x)
    (def (conv #(uint8? x))
 	(number->uc-hex-string/padding x 2))
    (insert-result-of
@@ -252,9 +252,9 @@
 	   (op g0 g1)
 	   (op b0 b1))))))
 
- (def-method + (rgb01:op/2 +))
- (def-method - (rgb01:op/2 -))
- (def-method mean (rgb01:op/2 mean))
+ (def-method- + (rgb01:op/2 +))
+ (def-method- - (rgb01:op/2 -))
+ (def-method- mean (rgb01:op/2 mean))
 
  (def (rgb01:op/2+1 op)
       (lambda (a b c #!optional #(boolean? clip?))
@@ -267,7 +267,7 @@
 	   (op g0 g1 c)
 	   (op b0 b1 c))))))
 
- (def-method mean-towards (rgb01:op/2+1 mean-towards))
+ (def-method- mean-towards (rgb01:op/2+1 mean-towards))
 
  (def (rgb01:.op op)
       (lambda (a #(number? b) #!optional #(boolean? clip?))
@@ -277,8 +277,8 @@
 		   `(op (,_ a) b))
 		  '(.r01l .g01l .b01l))))))
 
- (def-method .* (rgb01:.op *))
- (def-method ./ (rgb01:.op /))
+ (def-method- .* (rgb01:.op *))
+ (def-method- ./ (rgb01:.op /))
 
  )
 

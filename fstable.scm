@@ -19,7 +19,7 @@
 
 (jclass (fstable #(path-string? basedir))
 
-	(def-method (set! t #(string? key) #(string? val))
+	(def-method- (set! t #(string? key) #(string? val))
 	  (let ((tf (tempfile (string-append (.basedir t) ".tmp")))
 		(keyhash (fstable:digest key)))
 	    (call-with-output-file tf
@@ -27,7 +27,7 @@
 		(display val p)))
 	    (rename-file tf (string-append (.basedir t) "/" keyhash))))
 
-	(def-method (ref t #(string? key) alternative)
+	(def-method- (ref t #(string? key) alternative)
 	  (let* ((keyhash (fstable:digest key))
 		 (path (string-append (.basedir t) "/" keyhash)))
 	    (with-exception-catcher
@@ -37,11 +37,11 @@
 		   (raise e)))
 	     (& (call-with-input-file path (C read-line _ #f))))))
 
-	(def-method (delete! t #(string? key))
+	(def-method- (delete! t #(string? key))
 	  (let ((keyhash (fstable:digest key)))
 	    (delete-file (string-append (.basedir t) "/" keyhash))))
 
-	(def-method (possibly-delete! t #(string? key)) -> boolean?
+	(def-method- (possibly-delete! t #(string? key)) -> boolean?
 	  (let ((keyhash (fstable:digest key)))
 	    (with-exception-catcher
 	     (lambda (e)

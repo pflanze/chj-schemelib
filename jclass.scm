@@ -114,7 +114,7 @@
 		       ;; method *after* an inner class definition to
 		       ;; test for the ##define-syntax (inner syntax
 		       ;; scoping) issue:
-		       (def-method (meth s)
+		       (def-method- (meth s)
 			 (+ (.x s) (.y s))))
 	       (jinterface jct2
 			   (jclass (jclass_foo2 x))))
@@ -155,12 +155,12 @@
  (joo-class (foo x y)
 	    (joo-class (bar z) extends: foo))
  > (expansion#jclass (foo x y)
-		     (jclass (bar z) (def-method (meth s) 'bar))
-		     (def-method (meth s) 'foo))
+		     (jclass (bar z) (def-method- (meth s) 'bar))
+		     (def-method- (meth s) 'foo))
  (joo-class
   (foo x y)
-  (joo-class (bar z) extends: foo (def-method (meth s) 'bar))
-  (def-method (meth s) 'foo))
+  (joo-class (bar z) extends: foo (def-method- (meth s) 'bar))
+  (def-method- (meth s) 'foo))
 
  ;; and on the earlier, actually executed, definition of foo:
  > (.meth (jclass_foo 10 11))

@@ -25,7 +25,7 @@
 		       value->string
 		       string->value))
 
-	(def-method (call* s)
+	(def-method- (call* s)
 	  (let-fscache
 	   ((table
 	     args->string
@@ -42,7 +42,7 @@
 			(fstable.set! table key (value->string val))
 			val)))))))
 
-	(def-method (delete* s)
+	(def-method- (delete* s)
 	  (let-fscache
 	   ((table
 	     args->string

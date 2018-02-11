@@ -90,7 +90,7 @@
       (list.wbsymboltable-of l value?))
  
 
- (def-method (show t)
+ (def-method- (show t)
    `(list.wbsymboltable-of ,(.show (.list t))
 			   ,(.show (=> t
 				       (.table-head)

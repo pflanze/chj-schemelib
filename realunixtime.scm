@@ -14,7 +14,7 @@
 	(def-method* (integer r)
 	  (integer real))
 
-	(def-method (+ r #(real? x))
+	(def-method- (+ r #(real? x))
 	  (.real-update r (C + _ x)))
 
 	(def-method* (- r #(realunixtime? x))
