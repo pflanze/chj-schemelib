@@ -1,10 +1,9 @@
 ;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
 
-;;;    This file is free software; you can redistribute it and/or modify
-;;;    it under the terms of the GNU General Public License (GPL) as published 
-;;;    by the Free Software Foundation, either version 2 of the License, or
-;;;    (at your option) any later version.
-
+;;; This file is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU Lesser General Public License (LGPL)
+;;; as published by the Free Software Foundation, either version 2 of
+;;; the License, or (at your option) any later version.
 
 
 ;; Ranges (closed in the mathematical sense [1]) on types offering
@@ -38,9 +37,6 @@
 ;; - ranges including to ? Or just wrapper that .inc's first?
 ;; - downward ranges (how to share evaluation code?)
 
-;; - should collections of ranges (ranges with gaps) be provided via
-;;   subclasses or other? (Check Haskell's implementation.)
-
 
 (require easy
 	 jclass
@@ -49,11 +45,84 @@
 	 (string-util-2 inexact.round-at))
 
 (export (jclass range)
+	(jclass ranges)
 	range-of)
 
 
+;; XX: the API across |range| and |ranges| is incomplete, |range| does
+;; not support |ranges| in all places and |ranges| does not support
+;; all the methods from |range| (yet).
+
+(jinterface range-or-ranges
+
+	    ;; inclusive
+	    (method (from r) -> T?)
+	    ;; exclusive
+	    (method (to r) -> T?)
+
+	    ;; orderable distance betweeen start and end
+	    (method (length r) -> real?)
+
+	    ;; number of items between from and to, excluding to,
+	    ;; i.e. (length (.list r))
+	    (method (size r) -> exact-natural0?)
+
+	    (method (contains-element? r1 [T? x]) -> boolean?)
+
+	    ;; whether r2 is fully contained in r1, i.e. whether
+	    ;; (.union r1 r2) == r1 XX add generative tests
+	    (method (contains-range? r1 [range-or-ranges? r2]) -> boolean?)
+
+	    ;; i.e. whether (cond ((.union r1 r2) => (lambda (u) (= (+ (.size
+	    ;; r1) (.size r2)) (.size u)))) (else #f)) XX add generative
+	    ;; tests
+	    (method (contiguous? r1 [range-or-ranges? r2]) -> boolean?)
+
+	    ;; excl. contiguous ones (i.e. the same as (comp* pair? .list
+	    ;; .union)) XX add generative tests; XX naming consistency
+	    ;; with contiguous: should this be called |overlapping?|
+	    ;; instead (describing the resulting theoretical range
+	    ;; 'collection')?
+	    (method (overlaps? r1 [range-or-ranges? r2]) -> boolean?)
+
+	    ;; same as (complement (either .contiguous? .overlaps?)), or,
+	    ;; (is that the same thing?) would it require multiple ranges
+	    ;; to satisfy the result? XX add generative tests
+	    (method (separated? r1 [range-or-ranges? r2]) -> boolean?)
+
+	    ;; index in r1 for x, following the naming from wbtree;
+	    ;; "rank" for non-discrete types sounds bad, though, but
+	    ;; so be it
+	    (method (unchecked-rank r [T? x]) -> real?)
+
+	    ;; with overflow and integer checking:
+	    (method (checked-rank r [T? x]
+				  [T2? underflow-value]
+				  [T3? overflow-value])
+		    -> (either real? T2? T3?))
+
+	    (method (maybe-rank r x) -> (maybe exact-natural0?))
+
+	    (method (ref r1 [real? x]) -> T?)
+
+	    (method (intersection r1 [range-or-ranges? r2]) -> range?)
+
+	    ;; a union that only succeeds if there is no gap between
+	    ;; r1 and r2
+	    (method (maybe-union r1 [range-or-ranges? r2]) -> (maybe range?))
+
+	    ;; a union that bridges over gaps
+	    (method (filling-union r1 [range-or-ranges? r2]) -> range?)
+
+	    ;; A union that works even if there are holes between the
+	    ;; ranges. Name it with a star to stop users from just calling
+	    ;; .union without realizing that it could return ranges.
+	    (method (union* r1 [range-or-ranges? r2]) -> range-or-ranges?)
+	    )
+
 
 (jclass (range from to) ;; excluding to
+	implements: range-or-ranges
 
 	(def-method* (length r) -> real?
 	  (.- to from))
@@ -74,9 +143,6 @@
 		     (and (.<= from from2)
 			  (.<= to2 to))))
 
-	;; i.e. whether (cond ((.union r1 r2) => (lambda (u) (= (+ (.size
-	;; r1) (.size r2)) (.size u)))) (else #f)) XX add generative
-	;; tests
 	(def-method* (contiguous? r1 r2) -> boolean?
 	  (let-range ((from2 to2) r2)
 		     (or (and
@@ -88,11 +154,6 @@
 			  (.<= to2 from)
 			  (.<= from to2)))))
 
-	;; excl. contiguous ones (i.e. the same as (comp* pair? .list
-	;; .union)) XX add generative tests; XX naming consistency
-	;; with contiguous: should this be called |overlapping?|
-	;; instead (describing the resulting theoretical range
-	;; 'collection')?
 	(def-method* (overlaps? r1 r2) -> boolean?
 	  (let-range ((from2 to2) r2)
 		     (and
@@ -104,9 +165,6 @@
 			  (.< from2 to)
 			  (.< from to2)))))
 
-	;; same as (complement (either .contiguous? .overlaps?)), or,
-	;; (is that the same thing?) would it require multiple ranges
-	;; to satisfy the result? XX add generative tests
 	(def-method* (separated? r1 r2) -> boolean?
 	  (let-range ((from2 to2) r2)
 		     ;; if one is empty, then there's no gap anyway
@@ -117,13 +175,10 @@
 			     (.< to from2)
 			     (.< to2 from)))))
 
-	;; index in r1 for x, following the naming from wbtree; rank
-	;; for non-discrete types sounds bad, though, but so be it
 
 	(def-method* (unchecked-rank r x) -> real?
 	  (.- x from))
 
-	;; with overflow and integer checking:
 	(def-method* (checked-rank r x underflow overflow)
 	  (let ((rank (.- x from)))
 	    (if (negative? rank)
@@ -135,7 +190,7 @@
 	(def-method* (maybe-rank r x) -> (maybe exact-natural0?)
 	  (.checked-rank r x #f #f))
 	
-	
+
 	(def-method* (ref r1 [real? x])
 	  (.+ from x))
 
@@ -159,6 +214,27 @@
 					    from from2)
 					(if (< to to2)
 					    to2 to)))))))
+
+	(def-method* (filling-union r1 r2) -> range?
+	  (let-range ((from2 to2) r2)
+		     (cond ((not (.< from to))
+			    r2)
+			   ((not (.< from2 to2))
+			    r1)
+			   (else
+			    (range (if (.<= from from2) from from2)
+				   (if (.< to2 to) to to2))))))
+
+	(def-method* (union* r1 [range-or-ranges? r2]) -> range-or-ranges?
+	  (if (not (.< from to))
+	      r2
+	      (if (range? r2)
+		  (or (.maybe-union r1 r2)
+		      (ranges r1 r2))
+		  
+		  ;; r2 is a |ranges|; use the functionality in ranges
+		  ;; class
+		  (.add-range r2 r1))))
 
 
 	(def-method* (list r #!optional (tail '()))
@@ -202,6 +278,73 @@
 	  (let-range ((from to) v)
 		     (and (T? from)
 			  (T? to)))))
+
+
+
+;; Trees of ranges (i.e. ranges with gaps). (Todo: check Haskell's
+;; implementation for comparison.)
+
+(jclass (ranges [range-or-ranges? a]
+		[(lambda (b)
+		   (and (range-or-ranges? b)
+			(.< (.from a) (.from b))))
+		 b])
+	implements: range-or-ranges
+
+
+	(def-method* (from s)
+	  (.from a))
+
+	(def-method* (to s)
+	  (.to b))
+
+	(def-method* (list s #!optional (tail '()))
+	  (.list a (.list b tail)))
+
+	(def-method* (rlist s #!optional (tail '()))
+	  (.rlist b (.rlist a tail)))
+
+	(def-method* (stream s #!optional (tail '()))
+	  (.stream a (.stream b tail)))
+
+	(def-method* (rstream s #!optional (tail '()))
+	  (.rstream b (.rstream a tail)))
+
+	;; XX implement the other methods like contains? -- via binary
+	;; search? Could also implement balancing...
+
+	(def-method* (add-range rs [range? r])
+	  ;; no need to check s for emptyness, rangess are always
+	  ;; guaranteed to be non-empty
+
+	  (let-range
+	   ((r-from r-to) r)
+	   (let ((rs-from (.from rs)))
+	     (if (.< r-to rs-from)
+		 ;; disjoint
+		 (ranges r rs)
+		 
+		 (let ((rs-to (.to rs)))
+		   (if (.< rs-to r-from)
+		       (ranges rs r)
+
+		       ;; adjacent, or overlapping, or inclusive
+		       (if (.<= r-from rs-from)
+			   (if (.<= rs-to r-to)
+			       ;; r includes rs
+			       r
+			       ;; need to merge with the low end
+			       (error "XX UNFINISHED 1"))
+			   ;; need to merge with the high end
+			   (error "XX UNFINISHED 2"))))))))
+
+	;; helper for doing merges
+	'(def-method* (_merge s [range? r])
+	   )
+	
+
+	)
+
 
 
 
@@ -312,7 +455,43 @@
  (range 3 100)
  > (.show (.maybe-union (range 3 9) (range 10 100)))
  #f
- )
+
+ > (.show (.filling-union (range 3 9) (range 10 100)))
+ (range 3 100)
+ > (.show (.filling-union (range 3 20) (range 10 100)))
+ (range 3 100)
+ > (.show (.filling-union (range 20 3) (range 10 100)))
+ (range 10 100)
+ > (.show (.filling-union (range 10 100) (range 20 3)))
+ (range 10 100)
+ > (.show (.filling-union (range 20 3) (range 100 10)))
+ (range 100 10) ;; whatever~
+ > (.show (.filling-union (range 10 3) (range 100 20)))
+ (range 100 20) ;; whatever~
+ > (.show (.filling-union (range 4 4) (range 100 20)))
+ (range 100 20) ;; whatever~
+ > (.show (.filling-union (range 4 4) (range 20 100)))
+ (range 20 100)
+
+ > (.show (.union* (range 3 9) (range 10 100)))
+ (ranges (range 3 9) (range 10 100))
+ > (def rs (.union* (range -2 1) (range 3 5)))
+ > (.list rs)
+ (-2 -1 0 3 4)
+ > (.rlist rs)
+ (4 3 0 -1 -2)
+ > (.show (.union* (.union* (range -2 1) (range 1 2)) (range 3 5)))
+ (ranges (range -2 2) (range 3 5))
+ ;; > (.show (.union* (.union* (range -2 0) (range 1 2)) (range 3 5)))
+ ;; XX todo
+ > (.show (.union* (range 3 5) (.union* (range -2 0) (range 1 2))))
+ (ranges (ranges (range -2 0) (range 1 2))
+	 (range 3 5))
+ > (def rs (eval #))
+ > (.list rs)
+ (-2 -1 1 3 4)
+ > (.rlist rs)
+ (4 3 1 -1 -2))
 
 
 (TEST
