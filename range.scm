@@ -118,6 +118,12 @@
 	    ;; ranges. Name it with a star to stop users from just calling
 	    ;; .union without realizing that it could return ranges.
 	    (method (union* r1 [range-or-ranges? r2]) -> range-or-ranges?)
+
+	    ;; Iteration
+	    (method (list r #!optional (tail '())) -> (list-of T?))
+	    (method (rlist r #!optional (tail '())) -> (list-of T?))
+	    (method (stream r #!optional (tail '())) -> (iseq-of T?))
+	    (method (rstream r #!optional (tail '())) -> (iseq-of T?))
 	    )
 
 
