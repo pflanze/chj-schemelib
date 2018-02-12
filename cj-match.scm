@@ -691,7 +691,8 @@
 		  (matchl clause
 			  ((`pred . `body)
 			   `((,pred ,V*)
-			     ,@body))))
+			     (let ()
+			       ,@body)))))
 		(mcaseclauses-other sepclauses))
 
 	 ;; list
