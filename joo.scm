@@ -136,68 +136,78 @@
 
 
 
-;; def-method and def.* body expansion
-(def (joo:body* class-name
-		fields
-		bind
-		rest) ;; -> list?
-     (let* ((used (list->symbolcollection
-		       (joo:body-symbols rest)))
-		(bindvars* (joo:args->vars bind))
-		(bindvars (list->symbolcollection
-			   (map source-code bindvars*)))
-		(args (cdr bindvars*)))
-	   (letv ((pre body)
-		  ;; Also have to parse rest for "->"
-		  ;; syntax *UH*, that's bad? Well the ->
-		  ;; is part of the binds thing,
-		  ;; basically, but still, XX should
-		  ;; really provide proper parsers!
-		  ;; (S-expr *is* just a layer in the
-		  ;; syntax parsing. Really.)
-		  (if (and (pair? rest)
-			   (eq? (source-code (car rest)) '->)
-			   (pair? (cdr rest)))
-		      (values (take rest 2)
-			      (drop rest 2))
-		      (values '()
-			      rest)))
-		 `(,@pre
-		   (,(symbol-append 'let- class-name)
-		    (,(map (lambda (nam)
-			     (let ((nam* (source-code nam)))
-			       (if (and (symboltable-ref used nam* #f)
-					(not
-					 (symboltable-ref bindvars nam* #f)))
-				   nam
-				   '_)))
-			   fields)
-		     ,(car args))
-		    ,@body)))))
+;; for |def-method| and |def.*|: make fields visible in the body
+(def (joo:body* [symbol? class-name]
+		[(list-of (source-of symbol?)) fields]
+		bind ;; raw method arguments
+		rest
+		;; ^ body plus possibly -> from method definition or lambda
+		)
+     ;; -> list?
+     (let* ((used (list->symbolcollection (joo:body-symbols rest)))
+	    (bindvars (joo:args->vars bind))
+	    (bind-used (list->symbolcollection (map source-code bindvars))))
+       
+       (letv ((pre body)
+	      ;; Also have to parse rest for "->"
+	      ;; syntax *UH*, that's bad? Well the ->
+	      ;; is part of the binds thing,
+	      ;; basically, but still, XX should
+	      ;; really provide proper parsers!
+	      ;; (S-expr *is* just a layer in the
+	      ;; syntax parsing. Really.)
+	      (if (and (pair? rest)
+		       (eq? (source-code (car rest)) '->)
+		       (pair? (cdr rest)))
+		  (values (take rest 2)
+			  (drop rest 2))
+		  (values '()
+			  rest)))
+	     `(,@pre
+	       (,(symbol-append 'let- class-name)
+		(,(map (lambda (nam)
+			 (let ((nam* (source-code nam)))
+			   (if (and (symboltable-ref used nam* #f)
+				    (not
+				     (symboltable-ref bind-used nam* #f)))
+			       nam
+			       '_)))
+		       fields)
+		 ,(car bindvars))
+		,@body)))))
 
 
 (defmacro (def.* bind . rest)
-  (assert* pair? bind
-	   (lambda-pair
-	    ((class-name.method bindvars))
-	    (letv ((class-name-str _method)
-		   (dot-oo:split-prefix:typename.methodname
-		    (symbol.string (source-code class-name.method))))
+  (mcase bind
 
-		  (let ((class-name (string.symbol class-name-str)))
-		    `(def. ,bind
-		       ,@(joo:body* class-name
-				    (joo-type.all-field-names
-				     (eval (joo:joo-type-symbol class-name)))
-				    bind
-				    rest)))))))
+	 (pair?
+	  (let ((bind* (source-code bind)))
+	    (let-pair
+	     ((class-name.method bindvars) bind*)
+	     (letv ((class-name-str _method)
+		    (dot-oo:split-prefix:typename.methodname
+		     (symbol.string (source-code class-name.method))))
+
+		   (let ((class-name (string.symbol class-name-str)))
+		     `(def. ,bind
+			,@(joo:body* class-name
+				     (joo-type.all-field-names
+				      (eval (joo:joo-type-symbol class-name)))
+				     (cdr bind*)
+				     rest)))))))
+
+	 (symbol?
+	  (error "not implemented yet, the same as for |def-method|"))))
 
 
 ;; def-method- and def-method
 (def (joo:implementation-method-expander-for
       class-name
       maybe-fields
+      ;; ^ #f if no visibility of fields is desired
+      ;; (i.e. |def-method-|)
       abstract?)
+
      ;; maybe-fields is true (and the list of all fields (including
      ;; those of parent classes) in order) if object fields should be
      ;; visible as same-named variables (they are currently copied,
@@ -209,28 +219,40 @@
 	 stx
 	 (`(`METHOD `bind . `rest)
 
+	  (def (expand-with-bindings name args body)
+	       `(def. (,(source.symbol-append class-name. name)
+		       ,@args)
+		  ,@(if (and maybe-fields
+			     ;; only non-abstract classes have let-
+			     ;; forms
+			     (not abstract?))
+			(joo:body* class-name maybe-fields args body)
+			body)))
+
 	  (mcase
 	   bind
 	   (pair?
 	    (let-pair ((name args) (source-code bind))
-		      `(def. (,(source.symbol-append class-name. name)
-			      ,@args)
-			 ,@(if (and maybe-fields
-				    ;; only non-abstract classes have let-
-				    ;; forms
-				    (not abstract?))
-			       (joo:body* class-name maybe-fields bind rest)
-			       rest))))
+		      (expand-with-bindings name args rest)))
 	   (symbol?
+
+	    (def (expand-without-bindings)
+		 `(def. ,(source.symbol-append class-name. bind)
+		    ,@rest))
+
 	    (if maybe-fields
-		;; or simply do not do it, or parse lambda if that's
-		;; the value expression
-		(source-error
-		 stx
-		 (string-append "def-method expects bindings list, use"
-				" def-method- for bare symbols"))
-		`(def. ,(source.symbol-append class-name. bind)
-		   ,@rest))))))
+		;; check if it's a lambda form, if so do the transformation
+		;; anyway, OK?
+		(if (length-= rest 1)
+		    (mcase (car rest)
+			   (`(lambda `binds . `body)
+			    (expand-with-bindings bind binds body))
+			   (else
+			    (expand-without-bindings)))
+		    (source-error stx "bare symbol given, but remainder after it is not of length 1"))
+
+		;; no fields given, i.e. |def-method-|
+		(expand-without-bindings))))))
 	stx)))
 
 (def (joo:abstract-method-expander-for class-name)
@@ -998,13 +1020,16 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 	      (def-method (bar x y)
 		(list x y z))
 	      (def-method (baz x y) -> pair?
-		(list x y z)))
+		(list x y z))
+	      (def-method foo (lambda (s) x)))
+ 
  > (def myfooagain2 (fooagain2 10 (cons 1 2) 'f))
  > (.bar myfooagain2 11)
  (#((fooagain2) 10 (1 . 2) f) 11 f)
  > (.baz myfooagain2 11)
  (#((fooagain2) 10 (1 . 2) f) 11 f)
- )
+ > (.foo myfooagain2)
+ 10)
 
 ;; def.*
 (TEST
