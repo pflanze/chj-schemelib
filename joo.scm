@@ -177,27 +177,40 @@
 		,@body)))))
 
 
+;; XX now that def-method* has been renamed to def-method, should
+;; probably rename this, too, but then it needs safe detection if
+;; class-name is a class or not (just see whether the eval fails?
+;; Sigh.)
 (defmacro (def.* bind . rest)
+
+  (def (expand class-name.method binds body)
+       (letv ((class-name-str _method)
+	      (dot-oo:split-prefix:typename.methodname
+	       (symbol.string (source-code class-name.method))))
+
+	     (let ((class-name (string.symbol class-name-str)))
+	       `(def. (,class-name.method ,@binds)
+		  ,@(joo:body* class-name
+			       (joo-type.all-field-names
+				(eval (joo:joo-type-symbol class-name)))
+			       binds
+			       body)))))
+  
   (mcase bind
-
 	 (pair?
-	  (let ((bind* (source-code bind)))
-	    (let-pair
-	     ((class-name.method bindvars) bind*)
-	     (letv ((class-name-str _method)
-		    (dot-oo:split-prefix:typename.methodname
-		     (symbol.string (source-code class-name.method))))
-
-		   (let ((class-name (string.symbol class-name-str)))
-		     `(def. ,bind
-			,@(joo:body* class-name
-				     (joo-type.all-field-names
-				      (eval (joo:joo-type-symbol class-name)))
-				     (cdr bind*)
-				     rest)))))))
-
+	  (let-pair ((class-name.method binds) (source-code bind))
+		    (expand class-name.method binds rest)))
 	 (symbol?
-	  (error "not implemented yet, the same as for |def-method|"))))
+	  ;; partial COPY PASTE from the lambda expansion code in
+	  ;; joo:implementation-method-expander-for
+	  (if (length-= rest 1)
+	      ;; XX should macro-expand that form before checking for
+	      ;; lambda, dito for the copy in
+	      ;; joo:implementation-method-expander-for
+	      (mcase (car rest)
+		     (`(lambda `binds . `body)
+		      (expand bind binds body)))
+	      (source-error stx "bare symbol given, but remainder after it is not of length 1")))))
 
 
 ;; def-method- and def-method
@@ -242,7 +255,9 @@
 
 	    (if maybe-fields
 		;; check if it's a lambda form, if so do the transformation
-		;; anyway, OK?
+		;; anyway, OK?  XX should eliminate COPY PASTE in
+		;; def.*, including adding the missing macro-expand
+		;; step.
 		(if (length-= rest 1)
 		    (mcase (car rest)
 			   (`(lambda `binds . `body)
@@ -1036,7 +1051,14 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  > (def.* (fooagain2.testdefstar _)
      y)
  > (.testdefstar myfooagain2)
+ (1 . 2)
+ ;; and now also supporting immediate lambda forms:
+ > (def.* fooagain2.testdefstar2
+     ;; ah lambda_ not supported lol. XX should macro-expand first.
+     (lambda (_) y))
+ > (.testdefstar2 myfooagain2)
  (1 . 2))
+
 
 
 ;; def-method and inheritance, or, test the let-<classname> feature
