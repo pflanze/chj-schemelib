@@ -763,7 +763,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		      (%joo-declare)
 		      ;; XX TODO: in the case of a class definition
 		      ;; with fields but no constructor, we would
-		      ;; still like to be able to use def-method*, but
+		      ;; still like to be able to use def-method, but
 		      ;; currently can't as let-classname is defined
 		      ;; by define-struct.-expand. Split that out so
 		      ;; that we can.
@@ -831,7 +831,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				     (joo:abstract-method-expander-for class-name)
 				     joo:abstract-method-expander-forbidden)
 				 ;; implementations
-				 def-method:
+				 def-method-:
 				 (if interface?
 				     joo:implementation-method-expander-forbidden
 				     (joo:implementation-method-expander-for
@@ -839,7 +839,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				      #f
 				      nofields?))
 				 ;; with fields bound to variables
-				 def-method*:
+				 def-method:
 				 (if interface?
 				     joo:implementation-method-expander-forbidden
 				     (joo:implementation-method-expander-for
