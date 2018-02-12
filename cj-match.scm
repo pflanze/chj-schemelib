@@ -165,14 +165,14 @@
 				     ,constructor
 				     ,@clause-code-rest)
 				   (clause:test clause)) ,V)
-		(begin
+		(let ()
 		  ,@(clause:body clause))
 		,remainder)))))))
 
 (TEST
  > (clause->check '((list a ,b c) (run b)) 'MYV 'REM)
  (let ((b (list-ref MYV 1)))
-   (if (cj-match:equal? (list a b c) MYV) (begin (run b)) REM))
+   (if (cj-match:equal? (list a b c) MYV) (let () (run b)) REM))
  )
 
 (both-times
