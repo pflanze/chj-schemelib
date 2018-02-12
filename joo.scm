@@ -208,6 +208,7 @@
 	(mcase
 	 stx
 	 (`(`METHOD `bind . `rest)
+
 	  (mcase
 	   bind
 	   (pair?
