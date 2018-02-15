@@ -984,8 +984,7 @@
 ;;; Map F across lists, guaranteeing to go left-to-right.
 ;;; NOTE: Some implementations of R5RS MAP are compliant with this spec;
 ;;; in which case this procedure may simply be defined as a synonym for MAP.
-#|
-(define (map-in-order f lis1 . lists)
+'(define (map-in-order f lis1 . lists)
   (check-arg procedure? f map-in-order)
   (if (pair? lists)
       (let recur ((lists (cons lis1 lists)))
@@ -1004,8 +1003,7 @@
 
 
 ;;; We extend MAP to handle arguments of unequal length.
-(define map map-in-order)	
-|#
+'(define map map-in-order)	
 
 ;;; filter, remove, partition
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
