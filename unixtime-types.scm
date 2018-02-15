@@ -12,7 +12,8 @@
 	 (string-util-2 number->padded-string)
 	 (vector-util vector.value.pos)
 	 english
-	 test)
+	 test
+	 (list-util repeatedly))
 
 
 (export rfc-2822:string.wday
@@ -224,14 +225,18 @@
 
 (TEST
  > (def l (localtime 20 28 16 12 0 118 5 11 0 0))
- > (.localtime-string (mktime (.month-start l)))
+ > (def (l* n)
+	(.localtime-string
+	 (.unixtime
+	  (repeatedly n .month-inc (.month-start l)))))
+ > (l* 0)
  "Mon, 1 Jan 2018 00:00:00"
- > (.localtime-string (mktime (.month-inc (.month-start l))))
+ > (l* 1)
  "Thu, 1 Feb 2018 00:00:00"
- > (.localtime-string (mktime (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-start l)))))))))
+ > (l* 6)
  "Sun, 1 Jul 2018 00:00:00"
- > (.localtime-string (mktime (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-start l))))))))))))))
+ > (l* 11)
  "Sat, 1 Dec 2018 00:00:00"
- > (.localtime-string (mktime (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-inc (.month-start l)))))))))))))))
+ > (l* 12)
  "Tue, 1 Jan 2019 00:00:00")
 
