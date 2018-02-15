@@ -814,24 +814,26 @@
 	    (cons (f seed) ans)))))
 
 
-(define (unfold p f g seed . maybe-tail-gen)
-  (check-arg procedure? p unfold)
+
+;; > (unfold (C > _ 20) square inc 10)
+;; (100 121 144 169 196 225 256 289 324 361 400)
+
+(define (unfold stop? ;; called p in docs: Determines when to stop unfolding. 
+		f ;; Maps each seed value to the corresponding list element. 
+		g ;; Maps each seed value to next seed value. 
+		seed ;; The "state" value for the unfold. 
+		#!optional
+		(tail-gen ;; Creates the tail of the list
+		 (lambda (x) '())))
+
+  (check-arg procedure? stop? unfold)
   (check-arg procedure? f unfold)
   (check-arg procedure? g unfold)
-  (if (pair? maybe-tail-gen)
 
-      (let ((tail-gen (car maybe-tail-gen)))
-	(if (pair? (cdr maybe-tail-gen))
-	    (apply error "Too many arguments" unfold p f g seed maybe-tail-gen)
+  (let recur ((seed seed))
+    (if (stop? seed) (tail-gen seed)
+	(cons (f seed) (recur (g seed))))))
 
-	    (let recur ((seed seed))
-	      (if (p seed) (tail-gen seed)
-		  (cons (f seed) (recur (g seed)))))))
-
-      (let recur ((seed seed))
-	(if (p seed) '()
-	    (cons (f seed) (recur (g seed)))))))
-      
 
 (define (fold kons knil lis1 . lists)
   (check-arg procedure? kons fold)
