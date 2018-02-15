@@ -178,7 +178,7 @@
 	
 
 	(def-method- (rfc-2822-alike-string v maybe-zone-string
-					   #!optional (show-zone? #t))
+					    #!optional (show-zone? #t))
 	  (string-append (localtime.wday-shortstring v)
 			 ", "
 			 (localtime.mday-string v)
@@ -214,8 +214,10 @@
 	      (.integer-isdst-set -1)))
 	
 	(def-method (month-inc s #!optional keep-dst?)
-	  (let ((r (if (= month-1 12)
-		       (.year-1900-update (.month-set s 1) inc)
+	  (let ((r (if (>= month-1 11)
+		       (=> s
+			   (.year-1900-update inc)
+			   (.month-1-set 0))
 		       (.month-1-update s inc))))
 	    (if keep-dst?
 		r
