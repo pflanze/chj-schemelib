@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,14 +6,18 @@
 ;;;    (at your option) any later version.
 
 
-(require dot-oo
+(require table-1
+	 dot-oo
 	 show
 	 test
 	 cj-cmp
-	 list-util
+	 srfi-1
 	 (srfi-1 any))
 
-(export table _table
+(export table-sorted-keys
+	table-sorted-values
+	;; re-export essentials from table-1
+	table _table
 	table*
 	;; accessors:
 	(method table.test
@@ -23,7 +27,7 @@
 		table.show
 		table.ref 
 		table.set! 
-		table.delete! table-delete!
+		table.delete!
 		table.push!)
 	
 	;; utilities:
@@ -35,55 +39,38 @@
 	list.table-maybe-function)
 
 
+;; dependent on cj-cmp:
 
-;; finally provide a nicer interface to creating tables
+(define (table-sorted-keys t)
+  (cmp-sort (table-keys t) generic-cmp))
 
-(define. (table.test #(table? t))
-  ;; wow, `eq?` is turned into #f by Gambit; but the default procedure
-  ;; is `equal?`, and passing #f to test: is not allowed.
-  (or (##vector-ref t 2)
-      eq?))
+(define (table-sorted-values t #!optional (cmp generic-cmp))
+  (cmp-sort (table-values t) cmp))
 
-(define. (table.hash #(table? t))
-  ;; dito
-  (or (##vector-ref t 3)
-      eq?-hash))
 
-;; 4 is the data vector
 
-;; XX doesn't work
-(define. (table.weak-keys #(table? t))
-  (if (##gc-hash-table? (##vector-ref t 5))
-      #f
-      '?))
+;; dependent on dot-oo:
 
-;; XX doesn't work
-(define. (table.weak-values #(table? t))
-  (if (##gc-hash-table? (##vector-ref t 5))
-      #f
-      '?))
+(define. table.list table->list)
+(define. table.ref table-ref)
+(define. table.set! table-set!)
 
-(define. (table.init #(table? t))
-  (##vector-ref t 6))
+(define. table.test table-test)
+(define. table.hash table-hash)
+(define. table.weak-keys table-weak-keys)
+(define. table.weak-values table-weak-values)
+(define. table.init table-init)
 
-(define table:absent (table.init (list->table '())))
+(define. table.keys table-keys)
+(define. table.sorted-keys table-sorted-keys)
+(define. table.values table-values)
+(define. table.sorted-values table-sorted-values)
+(define. list.table-maybe-function list->table-maybe-function)
 
-(define (_table options+pairs)
-  (let lp ((opts '())
-	   (l options+pairs))
-    (define (t)
-      (apply list->table l opts))
-    (if (null? l)
-	(t)
-	(let-pair ((v l*) l)
-		  (if (pair? v)
-		      (t)
-		      (let-pair ((w l**) l*)
-				(lp (cons v (cons w opts))
-				    l**)))))))
+(define. table.delete! table-delete!)
+(define. table.push! table-push!)
+(define. table.pop! table-pop!)
 
-(define (table . options+pairs)
-  (_table options+pairs))
 
 
 (define. (table.show t)
@@ -139,26 +126,7 @@
  )
 
 
-(define (table* . options+pairs)
-  (_table
-   (let rec ((l options+pairs))
-     (if (null? l)
-	 l
-	 (let-pair ((a l*) l)
-		   (if (keyword? a)
-		       (let-pair ((b l**) l*)
-				 (cons a
-				       (cons b
-					     (rec l**))))
-		       (let rec ((l l))
-			 (if (null? l)
-			     l
-			     (let-pair ((a l*) l)
-				       (let-pair ((b l**) l*)
-						 (cons (cons a b)
-						       (rec l**))))))))))))
-
-
+;; table*
 (TEST
  > (.show (table* init: 123))
  (table weak-keys: '? weak-values: '? init: 123)
@@ -168,65 +136,6 @@
  (table init: 123 (cons "a" 1) (cons "b" 2)))
 
 
-(define. table.list table->list)
-
-(define. (table.keys t)
-  ;; XX more efficient?
-  (map car (table->list t)))
-
-(define. (table.sorted-keys t)
-  (cmp-sort (table.keys t) generic-cmp))
-
-(define. (table.values t)
-  ;; XX more efficient?
-  (map cdr (table->list t)))
-
-(define. (table.sorted-values t #!optional (cmp generic-cmp))
-  (cmp-sort (table.values t) cmp))
-
-
-(define (list.table-maybe-function lis)
-  (let ((t (list->table lis)))
-    (lambda (k #!optional get-table?)
-      (if get-table? t
-	  (table-ref t k #f)))))
-
-
-
-(define. table.ref table-ref)
-(define. table.set! table-set!)
-(define. (table.delete! t key)
-  (table-set! t key))
-
-(define table-delete! table.delete!)
-
-(define. (table.push! t key val)
-  (table-set! t key (cons val (table-ref t key '()))))
-
-(define table:nothing (gensym 'table-nothing))
-;; uh, allow access to table:nothing so that table.pop! can be called
-;; with no alternate but a |clean?| value.
-
-(define. table.pop!
-  (let ((nothing (box #f)))
-    (lambda (t key
-	  #!optional
-	  (alternate table:nothing) 
-	  (clean? #t))
-      (let ((l (table-ref t key nothing)))
-	(if (eq? l nothing)
-	    (if (eq? alternate table:nothing)
-		(error "table.pop!: key not found:" key)
-		alternate)
-	    (if (null? l)
-		(if (eq? alternate table:nothing)
-		    (error "table.pop!: empty list at key:" key)
-		    alternate)
-		(let-pair ((v r) l)
-			  (if (and clean? (null? r))
-			      (table-set! t key)
-			      (table-set! t key r))
-			  v)))))))
 
 (TEST
  > (define t (make-table))
@@ -240,7 +149,7 @@
  > (.ref t "a")
  (1)
  > (%try (.pop! t "y"))
- (exception text: "table.pop!: key not found: \"y\"\n")
+ (exception text: "table-pop!: key not found: \"y\"\n")
  > (.pop! t "a" 'n)
  1
  > (.pop! t "a" 'n)

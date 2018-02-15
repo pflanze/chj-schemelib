@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require table
+(require table-1
 	 (cj-env-1 scm:object->string))
 
 (export warn
@@ -25,7 +25,7 @@
 				  weak-keys: #t))
 
 (define (port-add-hook! port proc)
-  (table.push! cj-warn:hooks port proc))
+  (table-push! cj-warn:hooks port proc))
 
 (define (port-remove-hook! port proc)
   (let ((l (filter (lambda (h)
@@ -40,7 +40,7 @@
       (for-each (lambda (proc)
 		  ;; XX would I want to also pass the argument being printed?
 		  (proc port))
-		(table.ref cj-warn:hooks port '()))))
+		(table-ref cj-warn:hooks port '()))))
 
 (define (newline/hooks p)
   (newline p)

@@ -10,6 +10,7 @@
 	 define-macro-star
 	 cj-typed ;; heh indirectly through define-struct. expansion
 	 cj-match
+	 cj-warn
 	 test
 	 (cj-source-wraps source:symbol-append)
 	 (string-util strings-join)
