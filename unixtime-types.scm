@@ -226,17 +226,16 @@
 (TEST
  > (def l (localtime 20 28 16 12 0 118 5 11 0 0))
  > (def (l* n)
-	(.localtime-string
-	 (.unixtime
-	  (repeatedly n .month-inc (.month-start l)))))
+	(let ((lt (repeatedly n .month-inc (.month-start l))))
+	  (.show (values lt (.localtime-string (.unixtime lt))))))
  > (l* 0)
- "Mon, 1 Jan 2018 00:00:00"
+ (values (localtime 0 0 0 1 0 118 5 11 -1 0) "Mon, 1 Jan 2018 00:00:00")
  > (l* 1)
- "Thu, 1 Feb 2018 00:00:00"
+ (values (localtime 0 0 0 1 1 118 5 11 -1 0) "Thu, 1 Feb 2018 00:00:00")
  > (l* 6)
- "Sun, 1 Jul 2018 00:00:00"
+ (values (localtime 0 0 0 1 6 118 5 11 -1 0) "Sun, 1 Jul 2018 00:00:00")
  > (l* 11)
- "Sat, 1 Dec 2018 00:00:00"
+ (values (localtime 0 0 0 1 11 118 5 11 -1 0) "Sat, 1 Dec 2018 00:00:00")
  > (l* 12)
- "Tue, 1 Jan 2019 00:00:00")
+ (values (localtime 0 0 0 1 0 119 5 11 -1 0) "Tue, 1 Jan 2019 00:00:00"))
 
