@@ -1,4 +1,4 @@
-;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -15,14 +15,15 @@
 	 (cj-functional compose*)
 	 lazy
 	 debuggable-promise
+	 cj-match
 	 )
 
 ;; XX rename this to iseq-util-3 or something, change prefixes, or
 ;; what? All functions here also accept streams even though still
-;; naming them *list*.
+;; naming them *list*. -- except move out letl
 (export	list-starts-with?/equal? list-starts-with?
 	char-list-starts-with-string?
-	)
+	(macro letl))
 
 (possibly-use-debuggable-promise)
 
@@ -91,3 +92,38 @@
 		  (lambda (input match)
 		    (char-list-starts-with-string? (string->list input) match)))))
 
+
+(define-macro* (letl bind . body)
+  (mcase bind
+	 (`(`vars `expr)
+	  (with-gensyms
+	   (V ERR)
+	   `(let* ((,V ,expr)
+		   (,ERR (lambda ()
+			   (error ,(string-append
+				    "letl: expected a list containing "
+				    (object->string (cj-desourcify vars))
+				    " but got:")
+				  ,V))))
+	      ,(let rec ((vars (source-code vars)))
+		 (if (null? vars)
+		     `(if (null? ,V)
+			  (let ()
+			    ,@body)
+			  (,ERR))
+		     (let-pair ((var vars*) vars)
+			       `(if (pair? ,V)
+				    (let ((,var (car ,V))
+					  (,V (cdr ,V)))
+				      ,(rec vars*))
+				    (,ERR))))))))))
+
+(TEST
+ > (%try-error (letl ((a b d e f) (list 10 22 33)) b))
+ #(error "letl: expected a list containing (a b d e f) but got:" (10 22 33))
+ > (%try-error (letl ((a b d) (list 10 22 33)) b))
+ 22
+ > (%try-error (letl ((a b) (list 10 22 33)) b))
+ #(error "letl: expected a list containing (a b) but got:" (10 22 33))
+ > (%try-error (letl (() (list)) "foo"))
+ "foo")
