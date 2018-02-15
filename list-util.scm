@@ -1,4 +1,4 @@
-;;; Copyright 2010-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -41,6 +41,8 @@
 	butlast
 	map/sides
 	map/sides?
+	repeatedly
+	natural0-fold
 	#!optional
 	_map/sides
 	_map/sides?)
@@ -625,4 +627,36 @@
  (a b c d (e) f)
  > (flatten1 (flatten1 '(a (b c) (d (e)) f)))
  (a b c d e f))
+
+
+
+(define repeatedly-noval (gensym 'noval))
+
+(define (repeatedly n fn #!optional (val repeatedly-noval))
+  (define (rep val)
+    (let lp ((i n)
+	     (val val))
+      (if (positive? i)
+	  (lp (dec i)
+	      (fn val))
+	  val)))
+  (if (eq? val repeatedly-noval)
+      rep
+      (rep val)))
+
+(TEST
+ > (repeatedly 10 inc 5)
+ 15
+ > ((repeatedly 4 square) 2)
+ 65536)
+
+
+(define (natural0-fold fn start n)
+  (if (positive? n)
+      (natural0-fold fn (fn n start) (dec n))
+      start))
+
+(TEST
+ > (natural0-fold cons '(end) 5)
+ (1 2 3 4 5 end))
 
