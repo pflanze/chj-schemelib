@@ -12,6 +12,7 @@
 	 (string-util-2 number->padded-string)
 	 (vector-util vector.value.pos)
 	 english
+	 comparison-chain-macro
 	 test
 	 (list-util repeatedly))
 
@@ -94,6 +95,37 @@
 		      (FIELD integer-isdst: ,integer-isdst)
 		      (FIELD integer-timezone: ,integer-timezone)))
 
+
+	(defmacro (unixtime-types:def-comparison-method op)
+	  (let* ((fields '(sec
+			   min
+			   hour
+			   mday
+			   month-1
+			   year-1900))
+		 (b-fields (map (lambda (f) (symbol-append "b-" f)) fields)))
+	  
+	    (quasiquote-source
+	     (def-method (,op a b)
+	       (let-localtime
+		((,@b-fields
+		  _
+		  _
+		  _
+		  b-integer-timezone) b)
+	   
+		(assert (= integer-timezone b-integer-timezone))
+		;; ignoring isdst is fine? XX still check? 
+	   
+		,(comparison-chain-expand `< `= op
+					  (reverse fields)
+					  (reverse b-fields)))))))
+	
+	(unixtime-types:def-comparison-method <)
+
+	(unixtime-types:def-comparison-method <=)
+	
+	
 	(def-method (month v)
 	  (inc month-1))
 
@@ -241,3 +273,29 @@
  > (l* 12)
  (values (localtime 0 0 0 1 0 119 5 11 -1 0) "Tue, 1 Jan 2019 00:00:00"))
 
+(TEST
+ > (def (gen-unixtime)
+	(def from 1519862400)
+	(def to 1551398400)
+	(+ from (random-integer (- to from))))
+
+ > (def (gen-unixtimes)
+	(map (lambda (i)
+	       (gen-unixtime))
+	     ;; increase to 10000 or so for thorough testing
+	     (iota 100)))
+
+ > (def (test-comparison method op)
+	(let* ((a-t (gen-unixtime))
+	       (a-l (.localtime a-t)))
+	  (every (lambda (b-t)
+		   (let ((b-l (.localtime b-t)))
+		     (equal? (method a-l b-l)
+			     (op a-t b-t))))
+		 (gen-unixtimes))))
+
+ > (test-comparison localtime.< <)
+ #t
+ > (test-comparison localtime.<= <=)
+ #t
+ )
