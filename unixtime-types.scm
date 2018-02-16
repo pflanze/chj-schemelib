@@ -111,11 +111,17 @@
 		((,@b-fields
 		  _
 		  _
-		  _
+		  b-integer-isdst
 		  b-integer-timezone) b)
-	   
-		(assert (= integer-timezone b-integer-timezone))
-		;; ignoring isdst is fine? XX still check? 
+
+		(if (and integer-timezone b-integer-timezone)
+		    ;; otherwise blindly trust that zone is fine
+		    (assert (= integer-timezone b-integer-timezone)))
+
+		;; XX todo: consistently use #f not -1
+		(if (and integer-isdst b-integer-isdst)
+		    ;; otherwise blindly trust 
+		    (assert (= integer-isdst b-integer-isdst)))
 	   
 		,(comparison-chain-expand `< `= op
 					  (reverse fields)
