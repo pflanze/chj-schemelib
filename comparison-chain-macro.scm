@@ -1,38 +1,34 @@
 (require easy)
 
 (export comparison-chain-<-expand
-	comparison-chain-<=-expand)
+	comparison-chain-<=-expand
+	comparison-chain-expand)
 
 
 (def (a->b-fieldnames fieldnames)
      (map gensym fieldnames))
 
-(def (comparison-chain-<-expand a-fieldnames b-fieldnames)
-     (let-pair
-      ((a-fieldname a-fieldnames*) a-fieldnames)
-      (let-pair
-       ((b-fieldname b-fieldnames*) b-fieldnames)
 
-       (let ((end `(< ,a-fieldname ,b-fieldname)))
-	 (if (null? (rest a-fieldnames))
-	     end
-	     `(or ,end
-		  (and (= ,a-fieldname ,b-fieldname)
-		       ,(comparison-chain-<-expand a-fieldnames*
-						   b-fieldnames*))))))))
+(def (comparison-chain-expand <op =op last-op a-fieldnames b-fieldnames)
+     (let rec ((a-fieldnames a-fieldnames)
+	       (b-fieldnames b-fieldnames))
+	 (let-pair
+	  ((a-fieldname a-fieldnames*) a-fieldnames)
+	  (let-pair
+	   ((b-fieldname b-fieldnames*) b-fieldnames)
+
+	   (if (null? (rest a-fieldnames))
+	       `(,last-op ,a-fieldname ,b-fieldname)
+	       `(or (,<op ,a-fieldname ,b-fieldname)
+		    (and (,=op ,a-fieldname ,b-fieldname)
+			 ,(rec a-fieldnames* b-fieldnames*))))))))
+
+(def (comparison-chain-<-expand a-fieldnames b-fieldnames)
+     (comparison-chain-expand `< `= `< a-fieldnames b-fieldnames))
 
 (def (comparison-chain-<=-expand a-fieldnames b-fieldnames)
-     (let-pair
-      ((a-fieldname a-fieldnames*) a-fieldnames)
-      (let-pair
-       ((b-fieldname b-fieldnames*) b-fieldnames)
+     (comparison-chain-expand `< `= `<= a-fieldnames b-fieldnames))
 
-       (if (null? (rest a-fieldnames))
-	   `(<= ,a-fieldname ,b-fieldname)
-	   `(or (< ,a-fieldname ,b-fieldname)
-		(and (= ,a-fieldname ,b-fieldname)
-		     ,(comparison-chain-<=-expand a-fieldnames*
-						  b-fieldnames*)))))))
 
 (TEST
  > (def fns (reverse '(sec
