@@ -203,7 +203,8 @@
      '((include)
        (quote)
        (define)
-       (no-load)))
+       (no-load)
+       (current-type-failure-handling)))
 
 (def (load.scm-extract sexpr tail)
      (mcase
