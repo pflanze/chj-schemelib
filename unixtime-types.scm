@@ -12,7 +12,7 @@
 	 (string-util-2 number->padded-string)
 	 (vector-util vector.value.pos)
 	 english
-	 comparison-chain-macro
+	 code-comparison-chain
 	 test
 	 (list-util repeatedly))
 
