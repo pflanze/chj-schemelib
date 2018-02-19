@@ -8,7 +8,7 @@
 
 (require easy test)
 
-(export forall
+(export for-all
 	#!optional
 	Lforall)
 
@@ -39,7 +39,7 @@
  )
 
 
-(def (forall vs pred)
+(def (for-all vs pred)
      (force (Lforall vs pred)))
 ;; yes really the same as the current qcheck, but the latter may
 ;; change. OK?
