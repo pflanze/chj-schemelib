@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,6 +7,11 @@
 
 
 (require easy test)
+
+(export forall
+	#!optional
+	Lforall)
+
 
 ;; Logic? Or just
 
@@ -32,6 +37,12 @@
  > (F (Lforall '(1 3 a 5 c 8) number?))
  (a c)
  )
+
+
+(def (forall vs pred)
+     (force (Lforall vs pred)))
+;; yes really the same as the current qcheck, but the latter may
+;; change. OK?
 
 ;; shouldn't the order of arguments be reversed, both for wording (we
 ;; check pred, not vs), and to make n-ary in the future?
