@@ -13,7 +13,7 @@
 
 (export (macros parallel-for..<*
 		noparallel-for..<*
-		for-all
+		parallel:for-all
 		parallel-for-all
 		noparallel-for-all)
 	current-num-cpus-to-use)
@@ -82,7 +82,8 @@
 (define-macro* (noparallel-for..<* min-iter-per-child var-from-to . body)
   `(for..< ,var-from-to ,@body))
 
-(define-macro* (for-all m ss is . body)
+
+(define-macro* (parallel:for-all m ss is . body)
   (mcase ss
 	 (`(`S0 `S1)
 	  (mcase is
@@ -96,6 +97,8 @@
 			     (for..<*
 			      (,I1 0 ,S1)
 			      ,@body))))))))))
+;; ? (parallel:for-all (iota 10 3) (x0 x1) (y1 y2) body)  XX docs and tests
+
 
 (define-macro* (parallel-for-all min-iter-per-child m ss is . body)
   (mcase ss
@@ -114,5 +117,5 @@
 			      ,@body))))))))))
 
 (define-macro* (noparallel-for-all min-iter-per-child m ss is . body)
-  `(for-all ,m ,ss ,is ,@body))
+  `(parallel:for-all ,m ,ss ,is ,@body))
 
