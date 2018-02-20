@@ -123,9 +123,9 @@
 		    ;; otherwise blindly trust 
 		    (assert (= integer-isdst b-integer-isdst)))
 	   
-		,(comparison-chain-expand `< `= op
-					  (reverse fields)
-					  (reverse b-fields)))))))
+		,((comparison-chain-expand `< `= op)
+		  (reverse fields)
+		  (reverse b-fields)))))))
 	
 	(unixtime-types:def-comparison-method <)
 
