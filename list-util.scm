@@ -46,7 +46,8 @@
 	fold/fn0
 	#!optional
 	_map/sides
-	_map/sides?)
+	_map/sides?
+	map/maybe-sides)
 
 
 ;; destructuring syntax
@@ -620,6 +621,24 @@
   (b #f #f)
   (c #f #t))
  > (map/sides? list '())
+ ())
+
+(define (_map/maybe-sides fn l maybe-left tail)
+  (if (null? l)
+      tail
+      (let-pair ((a r) l)
+		(cons (fn a maybe-left (if (null? r) #f (first r)))
+		      (_map/maybe-sides fn r a tail)))))
+
+(define (map/maybe-sides fn l)
+  (_map/maybe-sides fn l #f '()))
+
+(TEST
+ > (map/maybe-sides list '(a b c))
+ ((a #f b)
+  (b a c)
+  (c b #f))
+ > (map/maybe-sides list '())
  ())
 
 
