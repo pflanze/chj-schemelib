@@ -2,14 +2,15 @@
 
 (export comparison-chain-<-expand
 	comparison-chain-<=-expand
-	comparison-chain-expand)
+	comparison-chain-expand
+	comparison-chain-expand*)
 
 
 (def (a->b-fieldnames fieldnames)
      (map gensym fieldnames))
 
 
-(def (comparison-chain-expand <op =op last-op)
+(def (comparison-chain-expand* <op =op last-fn)
      (named rec
 	    (lambda (a-fieldnames b-fieldnames)
 	      (let-pair
@@ -18,10 +19,15 @@
 		((b-fieldname b-fieldnames*) b-fieldnames)
 
 		(if (null? (rest a-fieldnames))
-		    `(,last-op ,a-fieldname ,b-fieldname)
+		    (last-fn a-fieldname b-fieldname)
 		    `(or (,<op ,a-fieldname ,b-fieldname)
 			 (and (,=op ,a-fieldname ,b-fieldname)
 			      ,(rec a-fieldnames* b-fieldnames*)))))))))
+
+(def (comparison-chain-expand <op =op last-op)
+     (comparison-chain-expand* <op =op (lambda (a b)
+					 `(,last-op ,a ,b))))
+
 
 (def comparison-chain-<-expand
      (comparison-chain-expand `< `= `<))
