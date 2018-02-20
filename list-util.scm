@@ -43,6 +43,7 @@
 	map/sides?
 	repeatedly
 	natural0-fold
+	fold/fn0
 	#!optional
 	_map/sides
 	_map/sides?)
@@ -659,4 +660,11 @@
 (TEST
  > (natural0-fold cons '(end) 5)
  (1 2 3 4 5 end))
+
+
+(define (fold/fn0 fn fn0 vs)
+  (let-pair ((v0 vs*) vs)
+	    (fold fn
+		  (fn0 v0)
+		  vs*)))
 
