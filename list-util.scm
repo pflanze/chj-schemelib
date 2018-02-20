@@ -609,17 +609,17 @@
   (if (null? l)
       tail
       (let-pair ((a r) l)
-		(cons (fn a left? (null? r))
-		      (_map/sides? fn r #f tail)))))
+		(cons (fn a left? (pair? r))
+		      (_map/sides? fn r #t tail)))))
 
 (define (map/sides? fn l)
-  (_map/sides? fn l #t '()))
+  (_map/sides? fn l #f '()))
 
 (TEST
  > (map/sides? list '(a b c))
- ((a #t #f)
-  (b #f #f)
-  (c #f #t))
+ ((a #f #t)
+  (b #t #t)
+  (c #t #f))
  > (map/sides? list '())
  ())
 
