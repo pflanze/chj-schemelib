@@ -97,13 +97,14 @@
 
 
 	(defmacro (unixtime-types:def-comparison-method op)
-	  (let* ((fields '(sec
-			   min
-			   hour
-			   mday
-			   month-1
-			   year-1900))
-		 (b-fields (map (lambda (f) (symbol-append "b-" f)) fields)))
+	  (let* ((a-fields '(sec
+			     min
+			     hour
+			     mday
+			     month-1
+			     year-1900))
+		 (b-fields (map (lambda (f) (symbol-append "b-" f)) a-fields))
+		 (fields (map values a-fields b-fields)))
 	  
 	    (quasiquote-source
 	     (def-method (,op a b)
@@ -123,9 +124,7 @@
 		    ;; otherwise blindly trust 
 		    (assert (= integer-isdst b-integer-isdst)))
 	   
-		,((comparison-chain-expand `< `= op)
-		  (reverse fields)
-		  (reverse b-fields)))))))
+		,((comparison-chain-littleendian-expand `< `= op) fields))))))
 	
 	(unixtime-types:def-comparison-method <)
 

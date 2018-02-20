@@ -1,52 +1,56 @@
-(require easy)
+(require easy
+	 (list-util fold/fn0))
 
-(export comparison-chain-<-expand
-	comparison-chain-<=-expand
-	comparison-chain-expand
-	comparison-chain-expand*)
-
-
-(def (a->b-fieldnames fieldnames)
-     (map gensym fieldnames))
-
-
-(def (comparison-chain-expand* <op =op last-fn)
-     (named rec
-	    (lambda (a-fieldnames b-fieldnames)
-	      (let-pair
-	       ((a-fieldname a-fieldnames*) a-fieldnames)
-	       (let-pair
-		((b-fieldname b-fieldnames*) b-fieldnames)
-
-		(if (null? (rest a-fieldnames))
-		    (last-fn a-fieldname b-fieldname)
-		    `(or (,<op ,a-fieldname ,b-fieldname)
-			 (and (,=op ,a-fieldname ,b-fieldname)
-			      ,(rec a-fieldnames* b-fieldnames*)))))))))
-
-(def (comparison-chain-expand <op =op last-op)
-     (comparison-chain-expand* <op =op (lambda (a b)
-					 `(,last-op ,a ,b))))
+(export comparison-chain-<-littleendian-expand
+	comparison-chain-<=-littleendian-expand
+	comparison-chain-littleendian-expand
+	#!optional
+	a->a+b-fieldnames
+	fold/fn0 ;; re-export
+	code-comparison-chain:or-and/
+	code-comparison-chain:op/)
 
 
-(def comparison-chain-<-expand
-     (comparison-chain-expand `< `= `<))
+(def (a->a+b-fieldnames fieldnames)
+     (map (lambda (fn)
+	    (values fn (gensym fn)))
+	  fieldnames))
 
-(def comparison-chain-<=-expand
-     (comparison-chain-expand `< `= `<=))
+
+(def (code-comparison-chain:or-and/ <op =op)
+     (lambda-values ((a-fieldname b-fieldname) tail)
+	       `(or (,<op ,a-fieldname ,b-fieldname)
+		    (and (,=op ,a-fieldname ,b-fieldname)
+			 ,tail))))
+
+(def (code-comparison-chain:op/ op)
+     (lambda-values ((a b))
+	       `(,op ,a ,b)))
+
+(def (comparison-chain-littleendian-expand <op =op last-op)
+     (C fold/fn0
+	(code-comparison-chain:or-and/ <op =op)
+	(code-comparison-chain:op/ last-op)
+	_))
+
+
+(def comparison-chain-<-littleendian-expand
+     (comparison-chain-littleendian-expand `< `= `<))
+
+(def comparison-chain-<=-littleendian-expand
+     (comparison-chain-littleendian-expand `< `= `<=))
 
 
 (TEST
- > (def fns (reverse '(sec
-		       min
-		       hour
-		       mday
-		       month-1
-		       year-1900)))
- > (def b-fns (map (lambda (fn)
-		     (symbol-append "b-" fn))
-		   fns))
- > (comparison-chain-<-expand fns b-fns)
+ > (def fns (map (lambda (nam)
+		   (values nam (symbol-append "b-" nam)))
+		 '(sec
+		   min
+		   hour
+		   mday
+		   month-1
+		   year-1900)))
+ > (comparison-chain-<-littleendian-expand fns)
  (or (< year-1900 b-year-1900)
      (and (= year-1900 b-year-1900)
 	  (or (< month-1 b-month-1)
@@ -59,7 +63,7 @@
 					 (and (= min b-min)
 					      (< sec b-sec)))))))))))
 
- > (comparison-chain-<=-expand fns b-fns)
+ > (comparison-chain-<=-littleendian-expand fns)
  (or (< year-1900 b-year-1900)
      (and (= year-1900 b-year-1900)
 	  (or (< month-1 b-month-1)
