@@ -144,7 +144,7 @@
 		    (lambda (,C) (let ,(map list vars args)
 			      (debug:perhaps-warn/cont
 			       ,level ,C ,maybe-msg (##list ,@vars))
-			      ,(if (one? vars) (car vars)
+			      ,(if (one-item? vars) (car vars)
 				   `(values ,@vars)))))))))
 
 	 (if (and (pair? exprs)

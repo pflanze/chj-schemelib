@@ -10,14 +10,14 @@
 	      (list path: "xml-to-sexpr" 
 		    arguments: (list "--expand-entities" "--stdout" "--" path))
 	      read-all)))
-    (if (one? res)
+    (if (one-item? res)
 	(car res)
 	res)))
 
 (define (get-sxml-file path)
   ;; xone? or
   (let ((res (call-with-input-file path read-all)))
-    (if (one? res)
+    (if (one-item? res)
 	(car res)
 	res)))
 

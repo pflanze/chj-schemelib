@@ -30,7 +30,7 @@
 	for-each* ;; for-each*/2, but what sense did this name have?
 	split-at*
 	rxtake-while
-	one?
+	one-item?
 	xone ;; also see |the| in easy-1
 	xone/fail
 	maybe-xone
@@ -388,7 +388,7 @@
 	      res)))))
 
 
-(define (one? v)
+(define (one-item? v)
   ;; require that a list is given
   (cond ((null? v)
 	 #f)
@@ -396,7 +396,7 @@
 	 (or (null? (cdr v))
 	     (null? (force (cdr v)))))
 	((promise? v)
-	 (one? (force v)))
+	 (one-item? (force v)))
 	(else
 	 (error "not a list:" v))))
 
@@ -423,7 +423,7 @@
  > (%try-error (xone (delay '(a b))))
  #(error "expected one item, but:" found-too-many (a b))
  > (def (t v)
-	(list (%try-error (one? v))
+	(list (%try-error (one-item? v))
 	      (xone/fail v identity)))
  > (t (delay (list 1 2)))
  (#f found-too-many)
@@ -501,7 +501,7 @@
   ;; `(*if-one ,v
   ;; 	    (lambda () ,then)
   ;; 	    (lambda () ,else))
-  `(if (one? ,v)
+  `(if (one-item? ,v)
        ,then
        ,else))
 

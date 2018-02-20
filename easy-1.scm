@@ -156,11 +156,11 @@
        `(let* ((,V ,expr)
 	       (it (force ,V)))
 	  ,(if too-many-error-expr
-	       `(cond ((one? it) (car it))
+	       `(cond ((one-item? it) (car it))
 		      ((null? it) ,error-expr)
 		      (else
 		       ,too-many-error-expr))
-	       `(if (one? it)
+	       `(if (one-item? it)
 		    (car it)
 		    ,error-expr))))
       `(xone ,expr)))

@@ -157,7 +157,7 @@
 	  (error "first path is to a file:" (.string a))
 	  (if (.null? b)
 	      (.maybe-type-set a 'directory)
-	      ;;^ XX btw assert that b was one? i.e. that a null path is
+	      ;;^ XX btw assert that b was one-item? i.e. that a null path is
 	      ;;directory if type is given
 	      ((if (and (collapsed-posixpath? a)
 			(collapsed-posixpath? b)

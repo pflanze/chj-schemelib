@@ -474,7 +474,7 @@
   `(parse1#>> ,a ,b ',(source-location stx)))
 
 (defmacro (parse1#mdo . parser-exprs)
-  (if (one? parser-exprs)
+  (if (one-item? parser-exprs)
       ;; this would not call parse1#>> at all, and hence not do early
       ;; type checking, hence: (XX: can this be turned off via
       ;; cj-typed-disable ? Probably not. Solve.)

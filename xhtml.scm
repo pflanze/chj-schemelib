@@ -287,7 +287,7 @@
 			      (error "invalid use of unquote")))
 			   ,expr)))
 		 stx)))
-	     ,(if (one? es)
+	     ,(if (one-item? es)
 		  (car es)
 		  ;; but who says really that I want list and not
 		  ;; begin. Should XHTML not be a template thing but just
