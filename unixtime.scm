@@ -151,8 +151,8 @@
  > (def (gen-unixtimes)
 	(map (lambda (i)
 	       (gen-unixtime))
-	     ;; increase to 10000 or so for thorough testing
-	     (iota 10000)))
+	     ;; XX increase to 10000 or so for thorough testing
+	     (iota 200)))
 
  > (def (->t+l t)
 	(values t (unixtime.localtime t)))
