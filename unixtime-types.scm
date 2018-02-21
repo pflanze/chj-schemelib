@@ -95,41 +95,7 @@
 		      (FIELD integer-isdst: ,integer-isdst)
 		      (FIELD integer-timezone: ,integer-timezone)))
 
-
-	(defmacro (unixtime-types:def-comparison-method op)
-	  (let* ((a-fields '(sec
-			     min
-			     hour
-			     mday
-			     month-1
-			     year-1900))
-		 (b-fields (map (lambda (f) (symbol-append "b-" f)) a-fields))
-		 (fields (map values a-fields b-fields)))
-	  
-	    (quasiquote-source
-	     (def-method (,op a b)
-	       (let-localtime
-		((,@b-fields
-		  _
-		  _
-		  b-integer-isdst
-		  b-integer-timezone) b)
-
-		(if (and integer-timezone b-integer-timezone)
-		    ;; otherwise blindly trust that zone is fine
-		    (assert (= integer-timezone b-integer-timezone)))
-
-		;; XX todo: consistently use #f not -1
-		(if (and integer-isdst b-integer-isdst)
-		    ;; otherwise blindly trust 
-		    (assert (= integer-isdst b-integer-isdst)))
-	   
-		,((comparison-chain-littleendian-expand `< `= op) fields))))))
-	
-	(unixtime-types:def-comparison-method <)
-
-	(unixtime-types:def-comparison-method <=)
-	
+	;; for < and <= methods see unixtime.scm
 	
 	(def-method (month v)
 	  (inc month-1))
@@ -278,29 +244,3 @@
  > (l* 12)
  (values (localtime 0 0 0 1 0 119 5 11 -1 0) "Tue, 1 Jan 2019 00:00:00"))
 
-(TEST
- > (def (gen-unixtime)
-	(def from 1519862400)
-	(def to 1551398400)
-	(+ from (random-integer (- to from))))
-
- > (def (gen-unixtimes)
-	(map (lambda (i)
-	       (gen-unixtime))
-	     ;; increase to 10000 or so for thorough testing
-	     (iota 100)))
-
- > (def (test-comparison method op)
-	(let* ((a-t (gen-unixtime))
-	       (a-l (.localtime a-t)))
-	  (every (lambda (b-t)
-		   (let ((b-l (.localtime b-t)))
-		     (equal? (method a-l b-l)
-			     (op a-t b-t))))
-		 (gen-unixtimes))))
-
- > (test-comparison localtime.< <)
- #t
- > (test-comparison localtime.<= <=)
- #t
- )

@@ -1,4 +1,4 @@
-;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -15,7 +15,9 @@
 	 Maybe
 	 (cj-env current-unixtime))
 
-(export (method unixtime.gmtime-string
+(export (method localtime.<
+		localtime.<=
+		unixtime.gmtime-string
 		unixtime.rfc-2822
 		unixtime.localtime-string)
 	gmtime?
@@ -26,6 +28,88 @@
 	#!optional
 	leap-years
 	leap-years-len)
+
+
+
+(def (localtime-compare/ tail-op)
+     (insert-result-of
+      (let* ((a-fields '(sec
+			 min
+			 hour
+			 mday
+			 month-1
+			 year-1900))
+	     (b-fields (map (lambda (f) (symbol-append "b-" f)) a-fields))
+	     (fields (map values a-fields b-fields))
+	     (fields-end (take fields 3))
+	     (fields-start (drop fields 3)))
+
+	(quasiquote-source
+	 (lambda (a b)
+	   (let-localtime
+	    ((,@a-fields
+	      _
+	      _
+	      integer-isdst
+	      integer-timezone) a)
+	    (let-localtime
+	     ((,@b-fields
+	       _
+	       _
+	       b-integer-isdst
+	       b-integer-timezone) b)
+
+	     (if (and integer-timezone b-integer-timezone)
+		 ;; otherwise blindly trust that zone is fine
+		 (assert (= integer-timezone b-integer-timezone)))
+
+	     ;; Have to insert a check for isdst in the middle of the
+	     ;; calculation, hence only use
+	     ;; comparison-chain-littleendian-expand for the last 3
+	     ;; comparisons
+	     ,(fold (code-comparison-chain:or-and/ `fx< `fx=)
+		    `(if (and integer-isdst b-integer-isdst
+			      (fx= integer-isdst b-integer-isdst))
+			 ,((comparison-chain-littleendian-expand `fx< `fx=
+								 `tail-op)
+			   fields-end)
+			 ;; otherwise fall back on calculating
+			 ;; unixtime; XX of course we still depend
+			 ;; totally on the global TZ setting..
+			 (tail-op (localtime.unixtime a)
+				  (localtime.unixtime b)))
+		    fields-start))))))))
+
+(def. localtime.< (localtime-compare/ fx<))
+
+(def. localtime.<= (localtime-compare/ fx<=))
+	
+
+(TEST
+ > (def (gen-unixtime)
+	(def from 1519862400)
+	(def to 1551398400)
+	(+ from (random-integer (- to from))))
+
+ > (def (gen-unixtimes)
+	(map (lambda (i)
+	       (gen-unixtime))
+	     ;; increase to 10000 or so for thorough testing
+	     (iota 10000)))
+
+ > (def (test-comparison method op)
+	(let* ((a-t (gen-unixtime))
+	       (a-l (.localtime a-t)))
+	  (every (lambda (b-t)
+		   (let ((b-l (.localtime b-t)))
+		     (equal? (method a-l b-l)
+			     (op a-t b-t))))
+		 (gen-unixtimes))))
+
+ > (test-comparison localtime.< <)
+ #t
+ > (test-comparison localtime.<= <=)
+ #t)
 
 
 
