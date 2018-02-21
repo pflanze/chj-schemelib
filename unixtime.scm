@@ -6,14 +6,16 @@
 ;;;    (at your option) any later version.
 
 
-(require test
-	 easy
+(require easy
 	 unixtime-types
 	 unixtime-Cpart
 	 (list-util-1 map/iota)
 	 cj-functional ;; contained in easy, though?
 	 Maybe
-	 (cj-env current-unixtime))
+	 (cj-env current-unixtime)
+	 test
+	 test-logic
+	 dateparse)
 
 (export (method localtime.<
 		localtime.<=
@@ -30,6 +32,8 @@
 	leap-years-len)
 
 
+
+(def localtime-compare:fallback-count 0)
 
 (def (localtime-compare/ tail-op)
      (insert-result-of
@@ -76,8 +80,9 @@
 			 ;; otherwise fall back on calculating
 			 ;; unixtime; XX of course we still depend
 			 ;; totally on the global TZ setting..
-			 (tail-op (localtime.unixtime a)
-				  (localtime.unixtime b)))
+			 (begin (inc! localtime-compare:fallback-count)
+				(tail-op (localtime.unixtime a)
+					 (localtime.unixtime b))))
 		    fields-start))))))))
 
 (def. localtime.< (localtime-compare/ fx<))
@@ -86,6 +91,58 @@
 	
 (TEST
  > (set-TZ! "Europe/Zurich")
+
+ ;; the border cases:
+ > (def ds (map (applying
+		 (lambda (isdst str)
+		   (let* ((t (dateparse str))
+			  (lt (.localtime t)))
+		     (assert (= (.integer-isdst lt) isdst))
+		     t)))
+		'((0 "2018/03/25 01:59")
+		  (1 "2018/03/25 02:00")
+		  (1 "2018/10/28 02:59")
+		  (0 "2018/10/28 03:00"))))
+ > ds
+ (1521939540 1521939600 1540688340 1540692000)
+ > (- (.ref ds 1) (.ref ds 0))
+ 60
+ > (- (.ref ds 3) (.ref ds 2))
+ 3660
+ > (/ # 60)
+ 61
+ > (.localtime-string 1521939600)
+ "Sun, 25 Mar 2018 03:00:00" ;; same as parsing "2018/03/25 02:00" !
+ > (.localtime-string 1521939599)
+ "Sun, 25 Mar 2018 01:59:59"
+
+ > (F (.take (.map (stream-unfold false/1 id (C + _ 600)
+				  (- 1540688340 (* 2 3600)))
+		   (lambda (t) (list t (.integer-isdst (.localtime t))
+				(.localtime-string t)))) 20))
+ ((1540681140 1 "Sun, 28 Oct 2018 00:59:00")
+  (1540681740 1 "Sun, 28 Oct 2018 01:09:00")
+  (1540682340 1 "Sun, 28 Oct 2018 01:19:00")
+  (1540682940 1 "Sun, 28 Oct 2018 01:29:00")
+  (1540683540 1 "Sun, 28 Oct 2018 01:39:00")
+  (1540684140 1 "Sun, 28 Oct 2018 01:49:00")
+  (1540684740 1 "Sun, 28 Oct 2018 01:59:00")
+  (1540685340 1 "Sun, 28 Oct 2018 02:09:00")
+  (1540685940 1 "Sun, 28 Oct 2018 02:19:00")
+  (1540686540 1 "Sun, 28 Oct 2018 02:29:00")
+  (1540687140 1 "Sun, 28 Oct 2018 02:39:00")
+  (1540687740 1 "Sun, 28 Oct 2018 02:49:00")
+  (1540688340 1 "Sun, 28 Oct 2018 02:59:00")
+  (1540688940 0 "Sun, 28 Oct 2018 02:09:00")
+  (1540689540 0 "Sun, 28 Oct 2018 02:19:00")
+  (1540690140 0 "Sun, 28 Oct 2018 02:29:00")
+  (1540690740 0 "Sun, 28 Oct 2018 02:39:00")
+  (1540691340 0 "Sun, 28 Oct 2018 02:49:00")
+  (1540691940 0 "Sun, 28 Oct 2018 02:59:00")
+  (1540692540 0 "Sun, 28 Oct 2018 03:09:00"))
+ ;; times to test:
+ > (def ts (cons* 1521939540 1521939600 (map first #)))
+ 
  > (def (gen-unixtime)
 	(def from 1519862400)
 	(def to 1551398400)
@@ -97,19 +154,20 @@
 	     ;; increase to 10000 or so for thorough testing
 	     (iota 10000)))
 
+ > (def (->t+l t)
+	(values t (unixtime.localtime t)))
  > (def (test-comparison method op)
-	(let* ((a-t (gen-unixtime))
-	       (a-l (.localtime a-t)))
-	  (every (lambda (b-t)
-		   (let ((b-l (.localtime b-t)))
-		     (equal? (method a-l b-l)
-			     (op a-t b-t))))
-		 (gen-unixtimes))))
+	(for-all (cartesian-product (map ->t+l ts)
+				    (map ->t+l (gen-unixtimes)))
+		 (applying
+		  (lambda (a b)
+		    (equal? (method (snd a) (snd b))
+			    (op (fst a) (fst b)))))))
 
  > (test-comparison localtime.< <)
- #t
+ ()
  > (test-comparison localtime.<= <=)
- #t)
+ ())
 
 
 
