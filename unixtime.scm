@@ -84,8 +84,8 @@
 
 (def. localtime.<= (localtime-compare/ fx<=))
 	
-
 (TEST
+ > (set-TZ! "Europe/Zurich")
  > (def (gen-unixtime)
 	(def from 1519862400)
 	(def to 1551398400)
