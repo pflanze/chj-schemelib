@@ -126,7 +126,7 @@
 	     (cons v res))
 	 res))))
 
-(define-macro* (first-then arity* access cmp)
+(define-macro* (first-then/ arity* access cmp)
   (let ((arity (eval arity*)))
     (if (natural? arity)
 	(let ((ACCESS (gensym 'access))
@@ -138,7 +138,7 @@
 			    VARS))))))))
 
 (define-macro* (on access cmp)
-  `(first-then 2 ,access ,cmp))
+  `(first-then/ 2 ,access ,cmp))
 
 
 ;; Hack only because can't analyze code yet :(
