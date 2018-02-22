@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -129,16 +129,30 @@
 (define-macro* (first-then/ arity* access cmp)
   (let ((arity (eval arity*)))
     (if (natural? arity)
-	(let ((ACCESS (gensym 'access))
-	      (VARS (map gensym (make-list arity 'v))))
-	  `(let ((,ACCESS ,access))
-	     (lambda ,VARS
-	       (,cmp ,@(map (lambda (V)
-			      `(,ACCESS ,V))
-			    VARS))))))))
+	(let* ((VARS (map gensym (make-list arity 'v)))
+	       (lam (lambda (ACCESS)
+		      `(lambda ,VARS
+			 (,cmp ,@(map (lambda (V)
+					`(,ACCESS ,V))
+				      VARS))))))
+	  (if (symbol? (source-code access))
+	      (lam access)
+	      (let ((ACCESS (gensym 'access)))
+		`(let ((,ACCESS ,access))
+		   ,(lam ACCESS))))))))
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#first-then/ 2 foo bar)
+ (lambda (GEN:v-3300 GEN:v-3301) (bar (foo GEN:v-3300) (foo GEN:v-3301)))
+ > (expansion#first-then/ 2 (foo) (bar))
+ (let ((GEN:access-3304 (foo)))
+   (lambda (GEN:v-3302 GEN:v-3303)
+     ((bar) (GEN:access-3304 GEN:v-3302) (GEN:access-3304 GEN:v-3303)))))
 
 (define-macro* (on access cmp)
   `(first-then/ 2 ,access ,cmp))
+
 
 
 ;; Hack only because can't analyze code yet :(
