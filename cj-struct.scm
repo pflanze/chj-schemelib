@@ -13,7 +13,7 @@
 	 symbol-append
 	 (cj-symbol with-gensyms)
 	 named
-	 (cj-env define-if-not-defined) ;; in macro expansion
+	 (cj-env define-if-not-defined list-max) ;; in macro expansion
 	 (predicates-1 list-of-length)
 	 (cj-inline-1 define-inline) ;; cj-inline would give cycle
 	 )
@@ -90,6 +90,7 @@
 	  tag
 	  tag-prefix
 	  #!rest args*)
+
   (let* ((name (source-code name*))
 	 (tag-code
 	  (if tag
@@ -288,10 +289,26 @@
 						   (vector-ref v+f+i 0))
 						 real-v+f+i-s)
 					  ,(rec (cdr vars+inp-s)))))
-				(if (,',predicate-name ,V)
+				(if (and (,',predicate-name ,V)
+					 ;; XX is the following check
+					 ;; really needed? (does the
+					 ;; predicate not already
+					 ;; always include it? But
+					 ;; better be safe: reloaded
+					 ;; code!, i.e. changing
+					 ;; definitions); don't even
+					 ;; count on it being a
+					 ;; vector?
+					 (fx> (vector-length ,V)
+					      ,(list-max
+						(cons
+						 (add-offset 0)
+						 (map (lambda (v+f+i)
+							(add-offset (vector-ref v+f+i 2)))
+						      real-v+f+i-s)))))
 				    (,C
 				     ,@(map (lambda (v+f+i)
-					      `(vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
+					      `(##vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
 					    real-v+f+i-s))
 				    ,(if ,let-fallback?
 					 ;; use type-name.field-name
