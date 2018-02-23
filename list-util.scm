@@ -44,6 +44,7 @@
 	repeatedly
 	natural0-fold
 	fold/fn0
+	list-max
 	#!optional
 	_map/sides
 	_map/sides?
@@ -687,3 +688,14 @@
 		  (fn0 v0)
 		  vs*)))
 
+(define (list-max l)
+    (let lp ((x (car l))
+	     (l (cdr l)))
+      (if (null? l)
+	  x
+	  (lp (max x (car l))
+	      (cdr l)))))
+
+(TEST
+ > (list-max '(1 39 10 -1 33))
+ 39)
