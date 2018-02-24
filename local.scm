@@ -34,40 +34,41 @@
 		(var->kept (lambda (var)
 			     (assert* symbol? var
 				      (lambda (var)
-					(cdr (assq var var->kept_)))))))
+					(cdr (assq var var->kept_))))))
+		(SWAP (gensym 'swap))
+		(TMP (gensym 'tmp)))
 	   `(let ,(map (lambda (var+expr)
-			 `(,(var->kept (.var var+expr)) #f))
+			 `(,(var->kept (.var var+expr)) ,(.expr var+expr)))
 		       var+expr-s*)
-	      (dynamic-wind (lambda ()
-			      ,@(map (lambda (var+expr)
-				       (define var (.var var+expr))
-				       (define expr (.expr var+expr))
-				       `(begin
-					  (set! ,(var->kept var) ,var)
-					  (set! ,var ,expr)))
-				     var+expr-s*))
-		  (lambda ()
-		    ,@body)
-		  (lambda ()
-		    ,@(map (lambda (var+expr)
-			     (define var (.var var+expr))
-			     `(begin
-				;; simply drop value of var (and recalculate
-				;; from expr)?
-				(set! ,var ,(var->kept var))))
-			   var+expr-s*))))))))))
+	      (let ((,SWAP (lambda ()
+			     ,@(map (lambda (var+expr)
+				      (let ((var (.var var+expr))
+					    (expr (.expr var+expr)))
+					(let ((kept (var->kept var)))
+					  `(let ((,TMP ,var))
+					     (set! ,var ,kept)
+					     (set! ,kept ,TMP)))))
+				    var+expr-s*))))
+		(dynamic-wind
+		    ,SWAP
+		    (lambda ()
+		      ,@body)
+		    ,SWAP)))))))))
 
 
 (TEST
  > (define TEST:equal? syntax-equal?)
  > (expansion#fluid-let ((a 1) (b 2)) a)
- (let ((GEN:-3831 #f) (GEN:-3832 #f))
-   (dynamic-wind
-       (lambda ()
-	 (begin (set! GEN:-3831 a) (set! a 1))
-	 (begin (set! GEN:-3832 b) (set! b 2)))
-       (lambda () a)
-       (lambda () (begin (set! a GEN:-3831)) (begin (set! b GEN:-3832))))))
+ (let ((GEN:-3915 1) (GEN:-3916 2))
+   (let ((GEN:swap-3917
+	  (lambda ()
+	    (let ((GEN:tmp-3918 a))
+	      (set! a GEN:-3915)
+	      (set! GEN:-3915 GEN:tmp-3918))
+	    (let ((GEN:tmp-3918 b))
+	      (set! b GEN:-3916)
+	      (set! GEN:-3916 GEN:tmp-3918)))))
+     (dynamic-wind GEN:swap-3917 (lambda () a) GEN:swap-3917))))
 
 
 (TEST
