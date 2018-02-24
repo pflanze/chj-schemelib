@@ -37,38 +37,38 @@
 					(cdr (assq var var->kept_))))))
 		(SWAP (gensym 'swap))
 		(TMP (gensym 'tmp)))
-	   `(let ,(map (lambda (var+expr)
-			 `(,(var->kept (.var var+expr)) ,(.expr var+expr)))
-		       var+expr-s*)
-	      (let ((,SWAP (lambda ()
-			     ,@(map (lambda (var+expr)
-				      (let ((var (.var var+expr))
-					    (expr (.expr var+expr)))
-					(let ((kept (var->kept var)))
-					  `(let ((,TMP ,var))
-					     (set! ,var ,kept)
-					     (set! ,kept ,TMP)))))
-				    var+expr-s*))))
-		(dynamic-wind
-		    ,SWAP
-		    (lambda ()
-		      ,@body)
-		    ,SWAP)))))))))
+	   `(##let ,(map (lambda (var+expr)
+			   `(,(var->kept (.var var+expr)) ,(.expr var+expr)))
+			 var+expr-s*)
+		   (##let ((,SWAP (##lambda ()
+				       ,@(map (lambda (var+expr)
+						(let ((var (.var var+expr))
+						      (expr (.expr var+expr)))
+						  (let ((kept (var->kept var)))
+						    `(##let ((,TMP ,var))
+							    (##set! ,var ,kept)
+							    (##set! ,kept ,TMP)))))
+					      var+expr-s*))))
+			  (##dynamic-wind
+			   ,SWAP
+			   (##lambda ()
+				,@body)
+			   ,SWAP)))))))))
 
 
 (TEST
  > (define TEST:equal? syntax-equal?)
  > (expansion#fluid-let ((a 1) (b 2)) a)
- (let ((GEN:-3915 1) (GEN:-3916 2))
-   (let ((GEN:swap-3917
-	  (lambda ()
-	    (let ((GEN:tmp-3918 a))
-	      (set! a GEN:-3915)
-	      (set! GEN:-3915 GEN:tmp-3918))
-	    (let ((GEN:tmp-3918 b))
-	      (set! b GEN:-3916)
-	      (set! GEN:-3916 GEN:tmp-3918)))))
-     (dynamic-wind GEN:swap-3917 (lambda () a) GEN:swap-3917))))
+ (##let ((GEN:-3915 1) (GEN:-3916 2))
+	(##let ((GEN:swap-3917
+		 (##lambda ()
+		      (##let ((GEN:tmp-3918 a))
+			     (##set! a GEN:-3915)
+			     (##set! GEN:-3915 GEN:tmp-3918))
+		      (##let ((GEN:tmp-3918 b))
+			     (##set! b GEN:-3916)
+			     (##set! GEN:-3916 GEN:tmp-3918)))))
+	       (##dynamic-wind GEN:swap-3917 (##lambda () a) GEN:swap-3917))))
 
 
 (TEST
