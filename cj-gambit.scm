@@ -59,7 +59,12 @@
 (define (compile:random-name)
   (string-append "compile-" (random-filename)))
 
-(define-if-not-defined compile:basedir (##delay (xbacktick "mktemp" "-d")))
+(define-if-not-defined compile:basedir
+  (##delay
+   (let ((path (path-expand "~/.cj-gambit-compile-cache")))
+     (if (not (file-exists? path))
+	 (xbacktick "mkdir" "-m" "0700" path))
+     path)))
 
 
 ;; Compile an arbitrary expression. This is totally unsafe with
