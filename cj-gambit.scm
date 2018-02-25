@@ -19,6 +19,7 @@
 		compiled-expression)
 	compile-source
 	compile-expression
+	(macro compiled-expression)
 	#!optional)
 
 
@@ -115,4 +116,8 @@
 			  compile-options: compile-options
 			  name: name)))
     (.compiled-expression c namesym)))
+
+
+(define-macro* (compiled-expression expr)
+  `(.eval (compile-expression (source-dequote ',(source-quote expr)))))
 
