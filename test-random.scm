@@ -32,8 +32,8 @@
 	pseudorandomsource*->a-z-string-stream
 	symbol-stream
 	random-sort
-	test-lib:burn-time! ;; ?
-	test-lib:burn-time-numbers ;; ?
+	test-random:burn-time! ;; ?
+	test-random:burn-time-numbers ;; ?
 	start-mutator ;; ?
 	random-integer..<
 	random-integer..
@@ -211,7 +211,7 @@
 
 ;; utilities for writing concurrency tests:
 
-(define (test-lib:burn-time! n)
+(define (test-random:burn-time! n)
   (if (negative? n)
       (thread-sleep! (/ (- n) 1000))
       (let lp ((i n))
@@ -220,14 +220,14 @@
 
 (define (^5/1000 x) (* x x x x x 1/1000))
 
-(define (test-lib:burn-time-numbers seed)
+(define (test-random:burn-time-numbers seed)
   (stream-map ^5/1000
 	      (pseudorandomsource->integer-stream
 	       (make-pseudorandomsource seed 13342)
 	       (make-simplerange -5 20))))
 
 (define (start-mutator mutate!/2 val n seed)
-  (let ((xs (test-lib:burn-time-numbers seed)))
+  (let ((xs (test-random:burn-time-numbers seed)))
     (thread-start!
      (make-thread
       (thunk
@@ -238,11 +238,11 @@
 	     (let*-pair
 	      (((x1 xs*) (force xs))
 	       ((x2 xs*) (force xs*)))
-	      (test-lib:burn-time! x1)
+	      (test-random:burn-time! x1)
 	      (lp (dec i)
 		  xs*
 		  (mutate!/2 (thunk
-			      (test-lib:burn-time! x2))
+			      (test-random:burn-time! x2))
 			     val)))
 	     'end)))))))
 
