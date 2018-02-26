@@ -20,7 +20,14 @@
 (export rfc-2822:string.wday
 	rfc-2822:string.month-1
 	rfc-2822:string.year-1900
-	(jclass localtime))
+	(jclass localtime)
+	#!optional
+	;; Careful, these will move to localized functions at some
+	;; point.
+	rfc-2822:wdays
+	rfc-2822:months
+	months-longstring
+	)
 
 
 
