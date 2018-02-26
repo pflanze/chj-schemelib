@@ -40,13 +40,24 @@
 
 (require easy
 	 jclass
+	 ;; for Library at the bottom only:
+	 (cj-env for..<)
+	 (list-util map/maybe-sides)
+	 (stream stream-map)
 	 ;; for tests only:
 	 test
 	 (string-util-2 inexact.round-at))
 
 (export (jclass range)
 	(jclass ranges)
-	range-of)
+	range-of
+	;; "Library":
+	(method range.map
+		range.map-stream
+		range.map/maybe-sides
+		range.for)
+	range-of-exact-integer?
+	(method range-of-exact-integer.for))
 
 
 ;; XX: the API across |range| and |ranges| is incomplete, |range| does
@@ -643,4 +654,33 @@
  ((#f #t #f #f #f #f #f) (#f #f #f #f #f #f))
  )
 
+
+;; Library on top, well, could be part of the interface. Dunno.
+
+;; XX more efficient implementations would avoid intermediary
+;; lists/streams
+
+(def. (range.map r fn)
+  (map fn (.list r)))
+
+(def. (range.map-stream r fn)
+  (stream-map fn (.stream r)))
+
+(def. (range.map/maybe-sides r fn)
+  (map/maybe-sides fn (.list r)))
+
+
+(def.* (range.for r proc)
+  (let lp ((i from))
+    (if (.< i to)
+	(begin
+	  (proc i)
+	  (lp (.inc i))))))
+
+(def range-of-exact-integer? (range-of exact-integer?))
+
+(def. (range-of-exact-integer.for r proc)
+  (let-range ((from to) r)
+	     (for..< (i from to)
+		     (proc i))))
 
