@@ -16,6 +16,7 @@
 	 debuggable-promise)
 
 (export (macro for..<)
+	(macro for..)
 	(macro for..<*)
 	current-unixtime
 	(macro xcase)
@@ -56,6 +57,19 @@
 		       ,@body
 		       (,LP (fx+ ,var 1)))))))))
 
+(define-macro* (for.. var-from-to . body)
+  (mcase var-from-to
+         (`(`var `from `to)
+          (with-gensyms
+	   (LP)
+	   `(let ,LP ((,var ,from))
+		 (if (fx<= ,var ,to)
+		     (begin
+		       ,@body
+		       (,LP (fx+ ,var 1)))))))))
+
+
+;; same as for..< but slightly optimized
 (define-macro* (for..<* var-from-to . body)
   (mcase var-from-to
          (`(`var `from `to)
