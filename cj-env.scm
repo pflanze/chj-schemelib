@@ -265,16 +265,24 @@
 (define bitwise-or bitwise-ior)
 
 
-(define-macro* (inc! v)
+;; do *not* assert* var to be a symbol, since want to allow for macros
+;; for var.
+(define-macro* (inc! var)
   (let ((V (gensym)))
-    `(let ((,V (inc ,v)))
-       (set! ,v ,V)
+    `(let ((,V (inc ,var)))
+       (set! ,var ,V)
        ,V)))
 
-(define-macro* (dec! v)
+(define-macro* (dec! var)
   (let ((V (gensym)))
-    `(let ((,V (dec ,v)))
-       (set! ,v ,V)
+    `(let ((,V (dec ,var)))
+       (set! ,var ,V)
+       ,V)))
+
+(define-macro* (add! var e)
+  (let ((V (gensym)))
+    `(let ((,V (+ ,var ,e)))
+       (set! ,var ,V)
        ,V)))
 
 
