@@ -67,6 +67,9 @@
 	    ;; i.e. (length (.list r))
 	    (method (size r) -> exact-natural0?)
 
+	    ;; whether size is 0
+	    (method (empty? r) -> boolean?)
+
 	    (method (contains-element? r1 [T? x]) -> boolean?)
 
 	    ;; whether r2 is fully contained in r1, i.e. whether
@@ -139,6 +142,9 @@
 	    (if (negative? len)
 		0
 		(integer len))))
+
+	(def-method (empty? r)
+	  (zero? (range.size r)))
 	
 	(def-method (contains-element? r1 x) -> boolean?
 	  (and (.<= from x)
