@@ -13,6 +13,8 @@
 ;; A library of helper functions for writing tests
 ;; also see test-random
 
+;; Also see test-lib.scm, split only because of dependancy reasons.
+
 (export (macro time-cpu)
 	(macro %try-error)
 	(macro %error?)
