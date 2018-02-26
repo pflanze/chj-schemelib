@@ -62,7 +62,7 @@
 	stream-append/2
 	stream-append
 	stream-iota
-	;; huh why here? XX vs test-lib ?
+	;; huh why here? XX vs test-random ?
 	random-integer-list
 	list-union stream-union
 	list-uniq stream-uniq

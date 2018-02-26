@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-;; tests for cj-env, to break dependency cycle on test-lib
+;; tests for cj-env, to break dependency cycle on test-random
 
 (require define-macro-star
 	 cj-phasing

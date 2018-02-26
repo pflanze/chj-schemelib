@@ -385,7 +385,7 @@
 (define 5th (lambda (<>) (values-ref <> 4)))
 
 (TEST
- > (require (test-lib)))
+ > (require (test-random)))
 
 (TEST
  > (fst (values 'a))

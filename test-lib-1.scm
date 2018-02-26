@@ -11,7 +11,7 @@
 
 
 ;; A library of helper functions for writing tests
-;; also see test-lib
+;; also see test-random
 
 (export (macro time-cpu)
 	(macro %try-error)
