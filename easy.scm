@@ -2,9 +2,9 @@
 
 (require easy-1
 	 more-oo
-	 oo-util)
+	 oo-util
+	 named
+	 show
+	 test
+	 test-lib)
 
-;; XX add these?:
-
-;;  named
-;;  show
