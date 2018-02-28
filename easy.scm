@@ -6,5 +6,8 @@
 	 named
 	 show
 	 test
-	 test-lib)
+	 test-lib
+	 cj-functional-2
+	 cj-functional
+	 jclass)
 
