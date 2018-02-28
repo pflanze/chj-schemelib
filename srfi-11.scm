@@ -26,6 +26,7 @@
 	(macro lambda-values)
 	(macro lambda-values/force)
 	(macro apply-values)
+	applying-values
 	(macro define-values)
 	values-ref
 	fst
@@ -302,6 +303,38 @@
  > (apply-values / (values 1 3))
  1/3
  )
+
+
+(define (applying-values f)
+  (lambda (vals)
+    (if (values? vals)
+	(case (##vector-length vals)
+	  ((0) (f))
+	  ((1) (f (##vector-ref vals 0)))
+	  ((2) (f (##vector-ref vals 0)
+		  (##vector-ref vals 1)))
+	  ((3) (f (##vector-ref vals 0)
+		  (##vector-ref vals 1)
+		  (##vector-ref vals 2)))
+	  ((4) (f (##vector-ref vals 0)
+		  (##vector-ref vals 1)
+		  (##vector-ref vals 2)
+		  (##vector-ref vals 3)))
+	  (else
+	   (apply f (values->list vals))))
+	(f vals))))
+
+(TEST
+ > (map (applying-values vector)
+	(list (values)
+	      (values 10)
+	      (values 11 12)
+	      (values 11 12 13 14 15 16)))
+ ([]
+  [10]
+  [11 12]
+  [11 12 13 14 15 16]))
+
 
 (define-macro* (define-values vars* expr)
   (define (flatten1 lis)
