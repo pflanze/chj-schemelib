@@ -6,9 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require easy
+(require easy-1
 	 joo
-	 (joo expand-forms-in-exprs))
+	 (joo expand-forms-in-exprs)
+	 test)
 
 (include "cj-standarddeclares.scm")
 

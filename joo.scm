@@ -23,7 +23,8 @@
 ;; "could this ever happen?".  AH, cj-struct predicates don't go
 ;; through the hashtable actually man. man.
 
-(require easy
+(require easy-1
+	 more-oo
 	 (srfi-1 cons* take drop)
 	 ;; ^ btw so many times, fold etc., should this be with easy?
 	 (cj-struct struct-tag.name)
@@ -36,7 +37,9 @@
 	 (tree-util flatten)
 	 (cj-typed args-detype)
 	 cj-source-quasiquote ;; all in the name of optimization
-	 debuggable-promise)
+	 debuggable-promise
+	 cj-functional
+	 test)
 
 (export (macro joo-class)
 	(macro joo-interface)

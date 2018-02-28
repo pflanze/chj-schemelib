@@ -1,4 +1,4 @@
-(require easy
+(require easy-1
 	 test)
 
 (def _cj-seen:nothing (gensym))

@@ -8,9 +8,10 @@
 
 ;; XXX shouldn't this be merged with cj-source-lambda.scm ?
 
-(require easy
+(require easy-1
 	 cj-alist
-	 (list-util let-pair))
+	 (list-util let-pair)
+	 test)
 
 (export sequential-pairs
 	sequencialpairs->pairs ;; older, obsolete ?
