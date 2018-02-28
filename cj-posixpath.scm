@@ -42,21 +42,19 @@
   directory file)
 
 
-(class segmentedpath
-       (subclass posixpath
-		 (subclass uncollapsed-posixpath
-			   (struct 
-			    #(boolean? absolute?)
-			    #(list-of-posixpath-segment? segments)
-			    #!optional
-			    #((maybe posixpath-type?) maybe-type)))
+(jclass segmentedpath
+	(jclass posixpath
+		(jclass (uncollapsed-posixpath 
+			 [boolean? absolute?]
+			 [list-of-posixpath-segment? segments]
+			 #!optional
+			 [(maybe posixpath-type?) maybe-type]))
 
-		 (subclass collapsed-posixpath
-			   (struct 
-			    #(boolean? absolute?)
-			    #(list-of-collapsed-posixpath-segment? segments)
-			    #!optional
-			    #((maybe posixpath-type?) maybe-type)))))
+		(jclass (collapsed-posixpath 
+			 [boolean? absolute?]
+			 [list-of-collapsed-posixpath-segment? segments]
+			 #!optional
+			 [(maybe posixpath-type?) maybe-type]))))
 
 (def. (posixpath.null? p)
   (null? (.segments p)))

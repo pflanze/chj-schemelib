@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -14,47 +14,48 @@
 	 Maybe
 	 (cj-functional values-of))
 
-(class queue
-       (struct constructor-name: _queue
-	       forward	;; newest in front
-	       backward ;; oldest in front
-	       )
+(export (jclass queue)
+	queue
+	list.queue)
 
-       (method (enqueue q v) -> queue?
-	       (let-queue ((fw ba) q)
-			  (_queue (cons v fw)
-				  ba)))
+(jclass ((queue _queue)
+	 ;; newest in front
+	 forward
+	 ;; oldest in front
+	 backward)
 
-       (method (Maybe-dequeue q) -> (values-of queue? Maybe?)
-	       (let-queue ((fw ba) q)
-			  (if (null? ba)
-			      (if (null? fw)
-				  (values q
-					  (Nothing))
-				  (let ((ba* (reverse fw)))
-				    (values (_queue '()
-						    (cdr ba*))
-					    (Just (car ba*)))))
-			      (values (_queue fw
-					      (cdr ba))
-				      (Just (car ba))))))
+	(def-method (enqueue q v) -> queue?
+	  (_queue (cons v forward)
+		  backward))
 
-       (method (list q)
-	       (let-queue ((fw ba) q)
-			  (append fw (reverse ba))))
+	(def-method (Maybe-dequeue q) -> (values-of queue? Maybe?)
+	  (if (null? backward)
+	      (if (null? forward)
+		  (values q
+			  (Nothing))
+		  (let ((backward* (reverse forward)))
+		    (values (_queue '()
+				    (cdr backward*))
+			    (Just (car backward*)))))
+	      (values (_queue forward
+			      (cdr backward))
+		      (Just (car backward)))))
 
-       (method (rlist q)
-	       (let-queue ((fw ba) q)
-			  (append ba (reverse fw))))
+	(def-method (list q)
+	  (append forward (reverse backward)))
 
-       (method (empty? q)
-	       (let-queue ((fw ba) q)
-			  (and (null? fw)
-			       (null? ba)))))
+	(def-method (rlist q)
+	  (append backward (reverse forward)))
+
+	(def-method (empty? q)
+	  (and (null? forward)
+	       (null? backward))))
 
 (def (queue . items)
      (_queue items '()))
 
+(def (list.queue items)
+     (_queue items '()))
 
 (TEST
  > (def q (queue 1 2 3))

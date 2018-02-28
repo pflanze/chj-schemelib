@@ -14,7 +14,7 @@
 
 (export maybe-parse-common-hex-string
 	(method natural0.common-hex-string)
-	(class address32)
+	(jclass address32)
 	maybe-address32*
 	address32*)
 

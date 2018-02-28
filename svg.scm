@@ -147,18 +147,17 @@
 
 
 ;; insert SVG code verbatim
-(class svg-fragment
-       (struct #(sxml-element? value))
+(jclass (svg-fragment [sxml-element? value])
 
-       (method (svg-fragment shape fit #!optional optionS)
-	 ;; simply ignore the arguments?
-	 (svg-fragment.value shape))
+	(def-method (svg-fragment shape fit #!optional optionS)
+	  ;; simply ignore the arguments?
+	  value)
 
-       ;; and those 2d-shape methods that are required for operation
-       ;; in svg.scm
-       (method (min+maxs/prev v min+max)
-	       ;; simply be invisible? XX totally unsafe and bad.
-	       min+max))
+	;; and those 2d-shape methods that are required for operation
+	;; in svg.scm
+	(def-method (min+maxs/prev v min+max)
+	  ;; simply be invisible? XX totally unsafe and bad.
+	  min+max))
 
 
 

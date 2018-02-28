@@ -23,7 +23,7 @@
 		       wbcollection-change))
 
 
-(export (class collection-on)
+(export (jclass collection-on)
 	;; ^ could that already include all the methods, at least
 	;; those within the syntactical form of the class definition ?
 	)

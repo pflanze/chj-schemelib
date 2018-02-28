@@ -1,13 +1,11 @@
 (require easy
 	 test
 	 alist
-	 cj-seen
-	 )
+	 cj-seen)
 
 
-(class topo-relation
-       (struct #(symbol? name)
-	       #((list-of symbol?) deps)))
+(jclass (topo-relation [symbol? name]
+		       [(list-of symbol?) deps]))
 
 ;; topo:Maybe-ref, topo:ref
 (modimport/prefix topo: (<alist> symbol?

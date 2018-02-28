@@ -1,4 +1,4 @@
-;;; Copyright 2015-2017 by Christian Jaeger, ch at christianjaeger ch
+;;; Copyright 2015-2018 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -29,24 +29,22 @@
 	fail)
 
 
-(class failure
-       (struct #(symbol? kind)
-	       #(string? message)
-	       #(list? arguments))
-       (method (string v)
-	       (let-failure
-		((kind message arguments) v)
-		(string-append
-		 (symbol->string kind)
-		 ": "
-		 (if (null? arguments)
-		     message
-		     (string-append
-		      message
-		      (strings-join
-		       (cons ":"
-			     (map object->string arguments))
-		       " ")))))))
+(jclass (failure [symbol? kind]
+		 [string? message]
+		 [list? arguments])
+
+	(def-method (string v)
+	  (string-append
+	   (symbol->string kind)
+	   ": "
+	   (if (null? arguments)
+	       message
+	       (string-append
+		message
+		(strings-join
+		 (cons ":"
+		       (map object->string arguments))
+		 " "))))))
 
 
 (def (failure-of-kind kind)

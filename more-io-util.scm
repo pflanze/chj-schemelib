@@ -15,7 +15,7 @@
 	 (Result Ok Error)
 	 test)
 
-(export (class command)
+(export (jclass command)
 	process-run
 	string-writer
 	string-reader
@@ -51,19 +51,18 @@
  #t)
 
 
-(class command
-       (struct #(path-string? path)
-	       #!key
-	       (#(process-spec? additional-spec) '())
-	       #!rest
-	       #((list-of string?) arguments))
+(jclass (command [path-string? path]
+		 #!key
+		 ([process-spec? additional-spec] '())
+		 #!rest
+		 [(list-of string?) arguments])
 
-       (method (process-spec c . args)
-	       `(path: ,(.path c)
-		       arguments: ,(.arguments c)
-		       ;; XX do the following two need merging?
-		       ,@(.additional-spec c)
-		       ,@args)))
+	(def-method (process-spec c . args)
+	  `(path: ,(.path c)
+		  arguments: ,(.arguments c)
+		  ;; XX do the following two need merging?
+		  ,@(.additional-spec c)
+		  ,@args)))
 
 (TEST
  > (command "a" additional-spec: '(foo: "a") "b")

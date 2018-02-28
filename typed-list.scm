@@ -11,9 +11,10 @@
 	 show
 	 test)
 
-(export typed-list? ;; (class typed-list)
-	(class typed-list-pair)
-	(class typed-list-cons)
+(export typed-list? ;;
+	(jclass typed-list)
+	(jclass typed-list-pair)
+	(jclass typed-list-cons)
 	typed-list-cons
 	typed-list-of
 	list->typed-list

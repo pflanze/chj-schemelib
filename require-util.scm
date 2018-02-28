@@ -27,7 +27,7 @@
 	modulepaths-tsort
 	modulepaths-in-dir
 	modulepaths-in-dirs
-	(class requires)
+	(jclass requires)
 	modulepaths-satisfying?
 	load.scm-files)
 
@@ -156,8 +156,7 @@
 
 
 ;; a single-dependency representation
-(class requires
-       (struct name dependency))
+(jclass (requires name dependency))
 
 (def (modulepaths-satisfying? paths) -> Result?
      (call/cc
