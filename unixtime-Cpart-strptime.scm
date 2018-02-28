@@ -20,10 +20,14 @@
 
 
 (c-declare "
+#ifndef _GNU_SOURCE
        #define _GNU_SOURCE
+#endif
+#ifndef _XOPEN_SOURCE
        #define _XOPEN_SOURCE
-       #include <time.h>
-       #include <stdlib.h>
+#endif
+#include <time.h>
+#include <stdlib.h>
 
 /* then that still doesn't work on Debian stretch any more, huh. Did
    the header file include order change? Would that break it? So.. :
