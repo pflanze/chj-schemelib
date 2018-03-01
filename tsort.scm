@@ -15,7 +15,7 @@
 (def topo? (list-of topo-relation?))
 ;; XX must .name be unique in each topo? ?
 
-(def (topo.sort rs) -> (list-of topo-relation?)
+(def (topo.sort rs) -> topo?
      (letv
       ((processed? processed!) (make-seen?+!))
       (letv
