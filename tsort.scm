@@ -43,8 +43,10 @@
 	    ((name deps) r)
 	    (if (seen? name)
 		(unless (processed? name)
-			(error "cycle detected resolving:"
-			       name rloadernames))
+			(error "dependency cycle:"
+			       (drop-while (lambda (x)
+					     (not (eq? x name)))
+					   (reverse rloadernames))))
 		(begin
 		  (seen! name)
 		  (load (cons name rloadernames)
@@ -123,21 +125,23 @@
 (TEST
  > (%try-error (topo.sort* (list (topo-relation 'a '(b))
 				 (topo-relation 'b '(a)))))
- [error "cycle detected resolving:" a (b a)]
+ [error "dependency cycle:" (a b)]
 
  > (%try-error (.sort (list (topo-relation 'a '(b c))
 			    (topo-relation 'b '(d))
 			    (topo-relation 'c '(d))
 			    (topo-relation 'd '(a)))))
- [error "cycle detected resolving:" a (d b a)]
+ [error "dependency cycle:" (a b d)]
 
  > (%try-error (.sort (list (topo-relation 'c '(d))
 			    (topo-relation 'b '(d))
 			    (topo-relation 'a '(b c))
 			    (topo-relation 'd '(a)))))
- [error "cycle detected resolving:" d (b a d c)]
- ;; hrm  -- ok go back until; i.e. reverse list, then skip part until d; OK?
- )
+ [error "dependency cycle:" (d a b)]
+
+ > (%try-error (.sort (list (topo-relation 'a '(a)))))
+ [error "dependency cycle:" (a)])
+
 
 
 ;; XX add rule based tests
