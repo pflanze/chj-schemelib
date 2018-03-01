@@ -11,7 +11,7 @@
 	 srfi-1
 	 (list-util improper-fold-right)
 	 (char-util char-one-of?/ char-digit?)
-	 cj-functional
+	 cj-functional-2
 	 C
 	 (string-util-4 string-empty?
 			string-every)
