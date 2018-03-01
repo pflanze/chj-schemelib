@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,7 +7,6 @@
 
 
 (require cj-source
-	 cj-match
 	 (scheme-meta self-quoting?))
 
 (export (macros assert
@@ -73,28 +72,29 @@
 
 (both-times
  (define (assert-replace-expand e)
-   (mcase e
-	  (pair?
-	   (let* ((e* (source-code e)))
-	     (if (memq (source-code (car e*)) assert:stopping-syntax-forms)
-		 `(quote ,e)
-		 `(##cons ,(assert-replace-expand (car e*))
-			  ,(assert-replace-expand (cdr e*))))))
-	  (symbol?
-	   (if (or (define-macro-star-maybe-ref (source-code e))
-		   (memq (source-code e) assert:syntax-forms))
-	       ;; even though it might be shadowed by a local
-	       ;; definition, since we don't have (thanks expander) a
-	       ;; way to check for that, we have to be conservative to
-	       ;; avoid referencing errors at runtime.
-	       `',e
-	       `(assert:possibly-symbolize ,e)))
-	  (null?
-	   ''())
-	  (self-quoting?
-	   e)
-	  (else
-	   `(quote (quote ,e))))))
+   (let ((e* (source-code e)))
+     (cond
+      ((pair? e*)
+       (let* ()
+	 (if (memq (source-code (car e*)) assert:stopping-syntax-forms)
+	     `(quote ,e)
+	     `(##cons ,(assert-replace-expand (car e*))
+		      ,(assert-replace-expand (cdr e*))))))
+      ((symbol? e*)
+       (if (or (define-macro-star-maybe-ref (source-code e))
+	       (memq (source-code e) assert:syntax-forms))
+	   ;; even though it might be shadowed by a local
+	   ;; definition, since we don't have (thanks expander) a
+	   ;; way to check for that, we have to be conservative to
+	   ;; avoid referencing errors at runtime.
+	   `',e
+	   `(assert:possibly-symbolize ,e)))
+      ((null? e*)
+       ''())
+      ((self-quoting? e*)
+       e)
+      (else
+       `(quote (quote ,e)))))))
 
 (TEST
  > (assert-replace-expand '(= e1 e2))
