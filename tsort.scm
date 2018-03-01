@@ -3,6 +3,11 @@
 	 alist
 	 cj-seen)
 
+(export (jclass topo-relation)
+	topo?
+	(method topo.sort
+		topo.sort*))
+
 
 (jclass (topo-relation [symbol? name]
 		       [(list-of symbol?) deps]))
@@ -15,42 +20,42 @@
 (def topo? (list-of topo-relation?))
 ;; XX must .name be unique in each topo? ?
 
-(def (topo.sort rs) -> topo?
-     (letv
-      ((processed? processed!) (make-seen?+!))
-      (letv
-       ((seen? seen!) (make-seen?+!))
-       (let ((name.dep.relation
-	      (lambda (name)
-		(lambda (dep)
-		  (Maybe:cond ((topo:Maybe-ref rs dep)
-			       => identity)
-			      (else
-			       (error "in module, unknown dependency:"
-				      name dep))))))
-	     (out '())
-	     (all-rs rs))
-	 (let load ((rloadernames '())
-		    (rs rs))
-	   (for-each
-	    (lambda (r)
-	      (let-topo-relation
-	       ((name deps) r)
-	       (if (seen? name)
-		   (unless (processed? name)
-			   (error "cycle detected resolving:"
-				  name rloadernames))
-		   (begin
-		     (seen! name)
-		     (load (cons name rloadernames)
-			   (map (name.dep.relation name) deps))
-		     (push! out r)
-		     (processed! name)))))
-	    rs))
-	 (reverse out)))))
+(def. (topo.sort rs) -> topo?
+  (letv
+   ((processed? processed!) (make-seen?+!))
+   (letv
+    ((seen? seen!) (make-seen?+!))
+    (let ((name.dep.relation
+	   (lambda (name)
+	     (lambda (dep)
+	       (Maybe:cond ((topo:Maybe-ref rs dep)
+			    => identity)
+			   (else
+			    (error "in module, unknown dependency:"
+				   name dep))))))
+	  (out '())
+	  (all-rs rs))
+      (let load ((rloadernames '())
+		 (rs rs))
+	(for-each
+	 (lambda (r)
+	   (let-topo-relation
+	    ((name deps) r)
+	    (if (seen? name)
+		(unless (processed? name)
+			(error "cycle detected resolving:"
+			       name rloadernames))
+		(begin
+		  (seen! name)
+		  (load (cons name rloadernames)
+			(map (name.dep.relation name) deps))
+		  (push! out r)
+		  (processed! name)))))
+	 rs))
+      (reverse out)))))
 
-(def (topo.sort* rs) -> (list-of symbol?)
-     (map .name (topo.sort rs)))
+(def. (topo.sort* rs) -> (list-of symbol?)
+  (map .name (topo.sort rs)))
 
 
 (TEST
@@ -116,9 +121,23 @@
 
 
 (TEST
- > (%try-error
-    (topo.sort* (list (topo-relation 'a '(b)) (topo-relation 'b '(a)))))
- #(error "cycle detected resolving:" a (b a)))
+ > (%try-error (topo.sort* (list (topo-relation 'a '(b))
+				 (topo-relation 'b '(a)))))
+ [error "cycle detected resolving:" a (b a)]
+
+ > (%try-error (.sort (list (topo-relation 'a '(b c))
+			    (topo-relation 'b '(d))
+			    (topo-relation 'c '(d))
+			    (topo-relation 'd '(a)))))
+ [error "cycle detected resolving:" a (d b a)]
+
+ > (%try-error (.sort (list (topo-relation 'c '(d))
+			    (topo-relation 'b '(d))
+			    (topo-relation 'a '(b c))
+			    (topo-relation 'd '(a)))))
+ [error "cycle detected resolving:" d (b a d c)]
+ ;; hrm  -- ok go back until; i.e. reverse list, then skip part until d; OK?
+ )
 
 
 ;; XX add rule based tests
