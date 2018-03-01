@@ -589,7 +589,8 @@
  #f
  > ((values-of integer? number?) (values 2 1.4))
  #t
- )
+ > ((values-of integer? number?) (values 2 1.4 3))
+ #f)
 
 
 ;; name?
