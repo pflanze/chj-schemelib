@@ -15,8 +15,7 @@
 	 test
 	 srfi-11
 	 (simple-match-1 assert*)
-	 (cj-source-util-2 assert
-			   assert:possibly-symbolize)
+	 (cj-source-util-2 assert)
 	 (improper-list improper-length)
 	 cj-typed-1)
 
