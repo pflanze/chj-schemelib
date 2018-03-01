@@ -1,5 +1,7 @@
 
-(require cj-match
+(require define-macro-star
+	 (cj-source source-error)
+	 (list-util let-pair)
 	 ;; for tests:
 	 test
 	 (cj-env-1 inc)
@@ -21,11 +23,16 @@
 	res
 	(let-pair ((expr exprs*) exprs)
 		  (next exprs*
-			(mcase expr
-			       (`(`call . `rest)
-				`(,call ,res ,@rest))
-			       (symbol?
-				`(,expr ,res))))))))
+			(let ((expr* (source-code expr)))
+			  (cond
+			   ((pair? expr*)
+			    `(,(car expr*) ,res ,@(cdr expr*)))
+			   ((symbol? expr*)
+			    `(,expr ,res))
+			   (else
+			    (source-error
+			     expr
+			     "expecting a form or a symbol")))))))))
 
 (TEST
  > (=>-expand 'input '((foo-set 1) (bar-set 2)))
@@ -61,7 +68,7 @@
  3)
 
 
-;; bah, copy-paste except for the last line
+;; bah, copy-paste except for one line
 (define (=>>-expand start exprs)
   (let next ((exprs exprs)
 	     (res start))
@@ -69,11 +76,17 @@
 	res
 	(let-pair ((expr exprs*) exprs)
 		  (next exprs*
-			(mcase expr
-			       (`(`call . `rest)
-				`(,call ,@rest ,res))
-			       (symbol?
-				`(,expr ,res))))))))
+			(let ((expr* (source-code expr)))
+			  (cond
+			   ((pair? expr*)
+			    ;; only change here:
+			    `(,(car expr*) ,@(cdr expr*) ,res))
+			   ((symbol? expr*)
+			    `(,expr ,res))
+			   (else
+			    (source-error
+			     expr
+			     "expecting a form or a symbol")))))))))
 
 
 ;; dito
