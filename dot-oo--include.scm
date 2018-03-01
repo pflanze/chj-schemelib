@@ -178,7 +178,7 @@
 	  1))
  (exception
   text:
-  "(Argument 2) Out of range\n(vector-ref '#(a foo baz a? foo? baz? a.bar foo.bar baz.bar 0 0 0) 12)\n"))
+  "(Argument 2) Out of range\n(vector-ref '[a foo baz a? foo? baz? a.bar foo.bar baz.bar 0 0 0] 12)\n"))
 
 
 
