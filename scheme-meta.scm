@@ -8,8 +8,8 @@
 
 ;; Meta-knowledge about Scheme
 
-(require (cj-functional pair-of)
-	 ;;(vector-util vector-of)  circular dep?
+(require ;;(cj-functional pair-of)  circular
+	 ;;(vector-util vector-of)  circular
 	 )
 
 (export void?
@@ -123,7 +123,15 @@
       (homogenous-vector? v)
       (box? v)))
 
-(define pair-of-sexpr? (pair-of sexpr? sexpr?))
+(define pair-of-sexpr? (let ()
+			 ;; COPY from cj-functional to resolve
+			 ;; dependency cycle
+			 (define (pair-of t1? t2?)
+			   (lambda (v)
+			     (and (pair? v)
+				  (t1? (car v))
+				  (t2? (cdr v)))))
+			 (pair-of sexpr? sexpr?)))
 (define vector-of-sexpr? (vector-of sexpr?))
 
 
