@@ -9,7 +9,7 @@
 (require define-macro-star
 	 test
 	 cj-phasing
-	 cj-functional
+	 (cj-functional-2 =>*)
 	 (srfi-11 fst snd)
 	 cj-source
 	 cj-source-2
@@ -43,8 +43,8 @@
 	     ((test . body)
 	      (values test body)))))
 
- (define clause:test (compose fst clause:parse))
- (define clause:body (compose snd clause:parse))
+ (define clause:test (=>* clause:parse fst))
+ (define clause:body (=>* clause:parse snd))
 
  (define clause:test-parse
    ;; (values constructor apply? rest)
@@ -67,9 +67,9 @@
 					#f
 					(cdr test))))))))))
 
- (define clause:constructor-xsym (compose fst clause:test-parse))
- (define clause:apply? (compose snd clause:test-parse))
- (define clause:args (compose 3rd clause:test-parse))
+ (define clause:constructor-xsym (=>* clause:test-parse fst))
+ (define clause:apply? (=>* clause:test-parse snd))
+ (define clause:args (=>* clause:test-parse 3rd))
 
  (define clause:test-nargs
    ;; negative like improper-length if it's an n-ary application
@@ -226,9 +226,9 @@
 		 (segregate opgroup (on clause:test-nargs <))))
 	   ;; split into n-ary and fixed arity cases:
 	   (letv ((groups-nary groups-fixed)
-		  (partition (compose* negative?
-				       clause:test-nargs
-				       car)
+		  (partition (=>* car
+				  clause:test-nargs
+				  negative?)
 			     grouped-by-nargs))
 		 ;; nary groups need to be given names so as to be reusable:
 		 (let* ((narity->name+group
@@ -481,10 +481,9 @@
        (letv ((improper? test*)
 	      (let rec ((cl test))
 		(cond ((maybe-quasiquote-or-unquote cl symbol?)
-		       => (compose (lambda (r)
-				     (values #t
-					     (list r)))
-				   changequote))
+		       => (lambda (r)
+			    (values #t
+				    (list (changequote r)))))
 		      (else
 		       (let ((cl* (source-code cl)))
 			 (cond ((pair? cl*)
