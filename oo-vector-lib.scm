@@ -631,9 +631,9 @@
 
 
 ;; there's a more efficient string->u8vector in cj-u8vector-util
-(def string->u8vector (comp* list->u8vector
-			     (cut map char->integer <>)
-			     string->list))
+(def string->u8vector (comp list->u8vector
+			    (cut map char->integer <>)
+			    string->list))
 
 (def. string.u8vector string->u8vector)
 
