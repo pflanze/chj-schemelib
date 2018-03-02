@@ -144,7 +144,7 @@
 				     (01.uint8 b))))
 
 		 (def-method- invert
-		   (comp-1ary rgb01l.rgb01t rgb01l.invert rgb01t.rgb01l))
+		   (comp rgb01l.rgb01t rgb01l.invert rgb01t.rgb01l))
 
 		 (def-method- (scale s factor)
 		   (rgb01l.rgb01t (rgb01l.scale (rgb01t.rgb01l s)
@@ -222,7 +222,7 @@
 	 (def-method- rgb01l (compose-function rgb01t.rgb01l rgb8.rgb01t))
 
 	 (def-method- invert
-	   (comp-1ary rgb01l.rgb8 rgb01l.invert rgb8.rgb01l))
+	   (comp rgb01l.rgb8 rgb01l.invert rgb8.rgb01l))
 
 	 (def-method- (scale s factor)
 	   (rgb01l.rgb8 (rgb01l.scale (rgb8.rgb01l s)

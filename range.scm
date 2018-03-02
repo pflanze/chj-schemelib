@@ -379,8 +379,8 @@
 (def. real.<= <=)
 (def. real.- -)
 
-(def. char.inc (comp-1ary integer->char (C fx+ _ 1) char->integer))
-(def. char.dec (comp-1ary integer->char (C fx- _ 1) char->integer))
+(def. char.inc (comp integer->char (C fx+ _ 1) char->integer))
+(def. char.dec (comp integer->char (C fx- _ 1) char->integer))
 (def. char.< (on char->integer fx<))
 (def. char.<= (on char->integer fx<=))
 (def. char.- (on char->integer fx-))
