@@ -181,7 +181,7 @@
 	  (else (error "bug in safer-apply"))))))
 
 (TEST
- > (define c (schemedefinition-arity-checker '(a b c #!optional d)))
+ > (define c (schemedefinition-arity:pattern->template '(a b c #!optional d)))
  > (define f (lambda (a b c #!optional d) d))
  > (safer-apply c f '(10 20 30 40) error values)
  40
