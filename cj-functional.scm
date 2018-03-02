@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -12,7 +12,10 @@
 	 cj-symbol
 	 (list-util let-pair)
 	 (srfi-11 apply-values)
-	 (lazy FV))
+	 (lazy FV)
+	 (cj-gambit-sys maybe-decompile)
+	 (cj-source-util schemedefinition-arity:pattern->template)
+	 (cj-functional-2 compose-function))
 
 (export right-associate
 	left-associate
@@ -22,7 +25,7 @@
 	(macro LA)
 	compose**
 	(macro compose)
-	(macro compose-1ary)
+	(macro compose*)
 	(macro compose/arity)
 	true/0
 	true/1
@@ -115,35 +118,59 @@
 
 ;; as a function:
 
+;; XX rename to compose-function*, or compose-function to compose* (no) or ?
 (define (compose** . fs)
   (right-associate compose-function fs error))
 
-;; as macro for a tad more performance:
+;; as macro for more performance, unary only:
+(define-macro* (compose . es)
+  (let* ((es* (map (lambda (e)
+		     (let ((e* (source-code e)))
+		       ;; pre-eval-sym, e 
+		       (list (if (symbol? e*)
+				 #f
+				 (gensym)) e)))
+		   es))
+	 (lam (with-gensym V
+			   `(lambda (,V)
+			      ,(fold-right (lambda (e inner)
+					     `(,(or (car e)
+						    (cadr e)) ,inner))
+					   V
+					   es*))))
+	 (es*-pre-eval (filter car es*)))
+    (if (null? es*-pre-eval)
+	lam
+	`(let ,es*-pre-eval
+	   ,lam))))
 
-(IF #t
-    (define-macro* (compose . f-exprs)
-      `(RA compose-function ,@f-exprs))
-    ;; or, manually inlining the compose-function rule:
-    ;; -- why using apply-values here??
-    (define-macro* (compose . f-exprs)
-      (define X (gensym 'x))
-      `(lambda ,X
-	 ,(fold-right (lambda (f-expr inner)
-			`(apply-values ,f-expr ,inner))
-		      `(apply values ,X)
-		      f-exprs))))
-
-;; 1-ary version for more performance (and just as macro for same
-;; reason, OK?):
-(define-macro* (compose-1ary . es)
-  (with-gensym X
-	       `(lambda (,X)
-		  ,(fold-right (lambda (e inner)
-				 `(,e ,inner))
-			       X
-			       es))))
+;; same thing, n-ary: -- COPY PASTE
+(define-macro* (compose* . es)
+  (let* ((es* (map (lambda (e)
+		     (let ((e* (source-code e)))
+		       ;; pre-eval-sym, e 
+		       (list (if (symbol? e*)
+				 #f
+				 (gensym)) e)))
+		   es))
+	 (lam (with-gensym VS
+			   `(lambda ,VS
+			      ,(let-pair
+				((e0 er) (reverse es*))
+				(fold (lambda (e inner)
+					`(,(or (car e)
+					       (cadr e)) ,inner))
+				      `(apply ,(or (car e0)
+						   (cadr e0)) ,VS)
+				      er)))))
+	 (es*-pre-eval (filter car es*)))
+    (if (null? es*-pre-eval)
+	lam
+	`(let ,es*-pre-eval
+	   ,lam))))
 
 ;; with parametrizable arity:
+;; XXX factor out non-symbol arguments like in compose
 (define-macro* (compose/arity n . es)
   (assert* natural0? n
 	   (lambda (n)
@@ -162,9 +189,9 @@
 (TEST
  > (define TEST:equal? syntax-equal?)
 
- > (expansion#compose-1ary a b c)
+ > (expansion#compose a b c)
  (lambda (GEN:X-3566) (a (b (c GEN:X-3566))))
- > (expansion#compose-1ary a)
+ > (expansion#compose a)
  (lambda (GEN:X-3567) (a GEN:X-3567))
 
  > (expansion#compose/arity 1 a b c)
@@ -196,7 +223,7 @@
  > (define (inc2values x y) (values (inc x) (inc y)))
  > ((compose** half x*y inc2values) 10 20)
  231/2
- > ((compose half x*y inc2values) 10 20)
+ > ((compose* half x*y inc2values) 10 20)
  231/2
  > ((compose/arity 2 half x*y inc2values) 10 20)
  231/2
