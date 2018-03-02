@@ -195,7 +195,7 @@
 			    (match* var+expr
 				    ((var expr)
 				     `(,var define-module:unbound))))
-			  (filter (compose* not cj-gensym? car)
+			  (filter (compose not cj-gensym? car)
 				  convertedforms))
 		 ,@movedout
 		 ,@(map (lambda (var+expr)

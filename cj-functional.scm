@@ -21,7 +21,7 @@
 	(macro RA)
 	(macro LA)
 	compose**
-	(macro compose*)
+	(macro compose)
 	(macro compose-1ary)
 	(macro compose/arity)
 	true/0
@@ -121,11 +121,11 @@
 ;; as macro for a tad more performance:
 
 (IF #t
-    (define-macro* (compose* . f-exprs)
+    (define-macro* (compose . f-exprs)
       `(RA compose-function ,@f-exprs))
     ;; or, manually inlining the compose-function rule:
     ;; -- why using apply-values here??
-    (define-macro* (compose* . f-exprs)
+    (define-macro* (compose . f-exprs)
       (define X (gensym 'x))
       `(lambda ,X
 	 ,(fold-right (lambda (f-expr inner)
@@ -196,7 +196,7 @@
  > (define (inc2values x y) (values (inc x) (inc y)))
  > ((compose** half x*y inc2values) 10 20)
  231/2
- > ((compose* half x*y inc2values) 10 20)
+ > ((compose half x*y inc2values) 10 20)
  231/2
  > ((compose/arity 2 half x*y inc2values) 10 20)
  231/2

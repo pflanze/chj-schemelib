@@ -88,7 +88,7 @@
 	      lis))
 
 (define (stringliststring fn)
-  (compose* list->string
+  (compose list->string
 	    fn
 	    (lambda (l)
 	      (map integer->char l))

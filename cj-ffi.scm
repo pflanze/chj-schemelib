@@ -12,7 +12,7 @@
 ;; helper function to replace _ in identifiers:
 (define (symbol-replace-_-with/ c)
   (let ((cont (lambda (chars)
-		(compose* string->symbol
+		(compose string->symbol
 			  list->string
 			  (cut fold-right
 			       (lambda (c res)

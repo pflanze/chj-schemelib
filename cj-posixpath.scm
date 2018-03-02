@@ -319,7 +319,7 @@
 ;; explicitely.
 
 ;; (def list-of-posixpath-segment.parent
-;;   (compose* reverse cdr reverse))
+;;   (compose reverse cdr reverse))
 
 (def (list-of-posixpath-segment.parent l)
      (let ((r (reverse l)))

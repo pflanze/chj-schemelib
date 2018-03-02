@@ -70,7 +70,7 @@
                  (not (char=? x #\.)))
                (reverse l)))
 
-(define suffix (compose* list->string suffix-list string->list))
+(define suffix (compose list->string suffix-list string->list))
 
 (TEST
  > (suffix "foo.scm")
@@ -147,13 +147,13 @@
 ;; slow way. just  .
 ;; drop-while but from the end.
 (define (list-trim-right lis pred)
-  ((compose* reverse
+  ((compose reverse
 	     (cut drop-while pred <>)
 	     reverse) lis))
 
 
 (define string-trim-right
-  (compose* list->string
+  (compose list->string
 	    (cut list-trim-right <> char-whitespace?)
 	    string->list))
 
@@ -222,7 +222,7 @@
   (cut char=? <> #\newline))
 
 (define trimlines
-  (compose* (cut strings-join <> "\n")
+  (compose (cut strings-join <> "\n")
 	    (cut map trim <>)
 	    (cut string-split <> char-newline?)))
 
@@ -531,7 +531,7 @@
 
 (define string-reverse
   ;;XX bah
-  (compose* list->string reverse string->list))
+  (compose list->string reverse string->list))
 
 ;; dirname that gives empty string for root. yeah, remembering now
 (define (dirname* str)

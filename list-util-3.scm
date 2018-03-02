@@ -12,7 +12,7 @@
 	 test
 	 local-test
 	 (srfi-11 letv values->vector lambda-values)
-	 (cj-functional compose*)
+	 (cj-functional compose)
 	 lazy
 	 debuggable-promise
 	 cj-match
@@ -66,7 +66,7 @@
 	 #(#t "")
 	 > (t "ab" "ax")
 	 #(#f "b")))
- > (lut (compose* (lambda-values ((b l))
+ > (lut (compose (lambda-values ((b l))
 			    (vector b (list->string l)))
 		  (applying list-starts-with?)
 		  (lambda args (map string->list args)))))
@@ -87,7 +87,7 @@
 	      (values #t l))))))
 
 (TEST
- > (lut (compose* (lambda-values ((b l))
+ > (lut (compose (lambda-values ((b l))
 			    (vector b (list->string l)))
 		  (lambda (input match)
 		    (char-list-starts-with-string? (string->list input) match)))))

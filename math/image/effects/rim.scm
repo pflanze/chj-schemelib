@@ -48,7 +48,7 @@
 (define white-near-r 6)
 
 (define white-near-widths
-  (.u8vector (map (compose* integer round (cut circle-width white-near-r <>))
+  (.u8vector (map (compose integer round (cut circle-width white-near-r <>))
 		  (iota white-near-r))))
 
 

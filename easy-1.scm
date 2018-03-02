@@ -129,7 +129,7 @@
 
 (def comp compose-function)
 (defmacro (comp* . args)
-  `(compose* ,@args))
+  `(compose ,@args))
 
 (defmacro (comp-1ary . es)
   `(compose-1ary ,@es))

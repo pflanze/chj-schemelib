@@ -110,7 +110,7 @@
 (define show-fn show-fnS)
 
 (define view-fn
-  (compose* view
+  (compose view
 	    (C .map _ sqrt)
 	    show-fn))
 
