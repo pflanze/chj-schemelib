@@ -132,7 +132,7 @@
   `(compose* ,@args))
 
 (defmacro (comp . es)
-  `(compose-1ary ,@es))
+  `(compose ,@es))
 
 (defmacro (comp/arity n . es)
   `(compose/arity ,n ,@es))

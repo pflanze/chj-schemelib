@@ -208,14 +208,14 @@
  > (define x*y (lambda-values ((x y)) (* x y)))
  > ((compose** half inc square) 10)
  101/2
- > ((compose-1ary half inc square) 10)
+ > ((compose half inc square) 10)
  101/2
  > ((compose/arity 1 half inc square) 10)
  101/2
 
  > ((compose** half inc x*y) (values 10 20))
  201/2
- > ((compose-1ary half inc x*y) (values 10 20))
+ > ((compose half inc x*y) (values 10 20))
  201/2
  > ((compose/arity 1 half inc x*y) (values 10 20))
  201/2
