@@ -52,7 +52,7 @@
 		     (cons (snd vs) l)))))))))
 
 (TEST
- > (map (comp .list .ternary-number) (iota 7))
+ > (map (comp-function .list .ternary-number) (iota 7))
  ((0)
   (1)
   (2)
@@ -60,7 +60,7 @@
   (1 1)
   (1 2)
   (2 0))
- > (map (comp .integer .ternary-number) (iota 10))
+ > (map (comp-function .integer .ternary-number) (iota 10))
  (0 1 2 3 4 5 6 7 8 9))
 
 

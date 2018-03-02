@@ -386,10 +386,10 @@
 
 
 (TEST
- > (def sm* (comp stream->list ssxpath-matches*))
- > (def sm (comp stream->list ssxpath-matches))
- > (def sm*/c (comp stream->list ssxpath-matches*/context))
- > (def sm/c (comp stream->list ssxpath-matches/context))
+ > (def sm* (comp-function stream->list ssxpath-matches*))
+ > (def sm (comp-function stream->list ssxpath-matches))
+ > (def sm*/c (comp-function stream->list ssxpath-matches*/context))
+ > (def sm/c (comp-function stream->list ssxpath-matches/context))
 
  > (sm* '() '((a (b))))
  ((a (b)))

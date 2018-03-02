@@ -28,7 +28,7 @@
 (compile-time
  (def (zip-values-code-for i)
       (let ((name (symbol-append 'zip-values/ (.string i)))
-	    (vs (map (comp gensym .string) (.. 1 i))))
+	    (vs (map (comp-function gensym .string) (.. 1 i))))
 	`(def (,name ,@vs)
 	      (if (and ,@(map (lambda (v)
 				`(null? ,v))

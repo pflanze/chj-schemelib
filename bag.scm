@@ -120,13 +120,13 @@
   (a b c)
   (a b c d))
 
- > (equal? ss (map (comp reverse bag->reverse-list) bags))
+ > (equal? ss (map (comp-function reverse bag->reverse-list) bags))
  #t
 
- > (equal? ss (map (comp stream->list bag->stream) bags))
+ > (equal? ss (map (comp-function stream->list bag->stream) bags))
  #t
 
- > (map (comp promise? bag->stream) bags)
+ > (map (comp-function promise? bag->stream) bags)
  (#t #t #t #t #t #t #t #t #t)
  
  > (map bag-length bags)

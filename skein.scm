@@ -67,5 +67,5 @@ ___RESULT=___VOID;
 	    ;; well should use OO you know
 	    (error "skein:digest: can only hash strings or u8vectors"))))
 
-(def skein:digest (comp u8vector->hex-string-lc skein:raw-digest))
+(def skein:digest (comp-function u8vector->hex-string-lc skein:raw-digest))
 

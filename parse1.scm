@@ -1062,7 +1062,7 @@
 	(comp* .string
 	       parser
 	       .stream))
- > (with-exception-catcher (comp .message-string F)
+ > (with-exception-catcher (comp-function .message-string F)
 			   (& ((p (PARSE1 whitespace)) "Hello World")))
  "failure expecting an item satisfying pred: char-whitespace? input: (.list \"Hello World\")"
   > ((p (PARSE1 whitespace)) " World")
@@ -1081,7 +1081,7 @@
  > ((p (PARSE1 whitespace*)) "")
  ""
 
- > (with-exception-catcher (comp .message-string F)
+ > (with-exception-catcher (comp-function .message-string F)
 			   (& ((p (PARSE1 whitespace+)) "Hello World")))
  "failure expecting an item satisfying pred: char-whitespace? input: (.list \"Hello World\")"
  > ((p (PARSE1 whitespace+)) " World")

@@ -182,7 +182,7 @@
        (lambda (form level maybe-marker)
 	 (with-gensym
 	  res
-	  (let ((vs (map (comp gensym .string) (cdr (iota (length form))))))
+	  (let ((vs (map (comp-function gensym .string) (cdr (iota (length form))))))
 	    `(let ,(map (lambda (v arg)
 			  `(,v ,arg))
 			vs

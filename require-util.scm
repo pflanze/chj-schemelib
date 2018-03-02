@@ -139,7 +139,7 @@
 ;; e.g. (print (dependency-graph-in "lib")) then pass the output to
 ;; e.g. "dot -Tpng output.dot > output.png"
 (def (dependency-graph-in . dirpaths)
-     (def show (comp object->string symbol.string))
+     (def show (comp-function object->string symbol.string))
      (list "digraph {\n"
 	   (map (lambda (modulepath)
 		  (path-string.relation

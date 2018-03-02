@@ -340,7 +340,7 @@
 ;; Set operations
 (TEST
  > (def (binarytest fn l1 l2 post)
-	(let ((c (comp post
+	(let ((c (comp-function post
 		       (on (C list.wbcollection number-cmp _)
 			   fn))))
 	  (list (c l1 l2)

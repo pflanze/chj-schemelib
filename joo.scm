@@ -110,7 +110,7 @@
 	    (let ((bind* (source-code bind)))
 	      (if (pair? bind*) (car bind*)
 		  bind)))
-	  (filter (comp (either pair? symbol?) source-code)
+	  (filter (comp-function (either pair? symbol?) source-code)
 		  (improper-list->list (args-detype args)))))
 
 (TEST

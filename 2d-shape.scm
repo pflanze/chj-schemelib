@@ -386,7 +386,7 @@
  > (def w2 (.fit-to-proportions w 2 #t))
  > w2
  #((2d-window) #((2d-point) 10 27/2) #((2d-point) 20 37/2))
- ;; for every w and y, (comp .proportions (C .fit-to-proportions _ x
+ ;; for every w and y, (comp-function .proportions (C .fit-to-proportions _ x
  ;; y)) equals x
  > (.range w2)
  #((2d-point) 10 5)
@@ -472,7 +472,7 @@
 				    (let-2d-point ((x y) (.range w))
 						  (/ x y))))
 
-		    ;; for every w and y, (comp .proportions (C
+		    ;; for every w and y, (comp-function .proportions (C
 		    ;; .fit-to-proportions _ x y)) equals x
 		    (assert (equal? (.proportions w2) prop))
 		    (assert (equal? (.proportions w3) prop))

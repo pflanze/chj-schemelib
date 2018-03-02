@@ -21,7 +21,7 @@
 	   (cons (fm x*)
 		 (rec x*))))))
 
-(def hide-extract (comp 8bits floor))
+(def hide-extract (comp-function 8bits floor))
 
 
 (def. (u8vector.hide v x y)

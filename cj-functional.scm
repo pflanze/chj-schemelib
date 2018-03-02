@@ -75,26 +75,26 @@
 (define syntax:left-associate (syntax:_-associate left-associate))
 
 (TEST
- > (syntax:right-associate 'comp (list 'a 'b 'c) error)
- (comp a (comp b c))
- > (syntax:right-associate 'comp (list 'b 'c) error)
- (comp b c)
+ > (syntax:right-associate 'comp-function (list 'a 'b 'c) error)
+ (comp-function a (comp-function b c))
+ > (syntax:right-associate 'comp-function (list 'b 'c) error)
+ (comp-function b c)
 
  ;; and left...
- > (syntax:left-associate 'comp (list 'a 'b 'c) error)
- (comp (comp a b) c)
- > (syntax:left-associate 'comp (list 'b 'c) error)
- (comp b c)
+ > (syntax:left-associate 'comp-function (list 'a 'b 'c) error)
+ (comp-function (comp-function a b) c)
+ > (syntax:left-associate 'comp-function (list 'b 'c) error)
+ (comp-function b c)
 
  ;; and errors:
  > (map (lambda (_)
 	  (with-exception-catcher error-exception-message
-				  (lambda () (_ 'comp (list 'c) error))))
+				  (lambda () (_ 'comp-function (list 'c) error))))
 	(list syntax:right-associate syntax:left-associate))
  (c c)
  > (map (lambda (_)
 	  (with-exception-catcher error-exception-message
-				  (lambda () (_ 'comp (list) error))))
+				  (lambda () (_ 'comp-function (list) error))))
 	(list syntax:right-associate syntax:left-associate))
  ("got no element" "got no element")
  )

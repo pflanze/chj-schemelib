@@ -147,7 +147,7 @@
 	(def-method (length r) -> real?
 	  (.- to from))
 
-	;; same as (comp length .list), XX add generative tests
+	;; same as (comp-function length .list), XX add generative tests
 	(def-method (size r) -> exact-natural0?
 	  (let ((len (.- to from)))
 	    (if (negative? len)

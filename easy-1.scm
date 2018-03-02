@@ -29,7 +29,7 @@
 	(macro defvalues)
 	(macro defparameter)
 	(macro def-once)
-	comp
+	comp-function
 	(macro comp*)
 	(macro comp-1ary)
 	(macro comp/arity)
@@ -127,7 +127,7 @@
 (define-macro* (def-once . args)
   `(define-if-not-defined ,@args))
 
-(def comp compose-function)
+(def comp-function compose-function)
 (defmacro (comp* . args)
   `(compose ,@args))
 

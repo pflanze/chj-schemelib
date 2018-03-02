@@ -26,7 +26,7 @@
   (make-list-of-symbol.token-table .string))
 
 (def. list-of-symbol.u8vector-token-table
-  (make-list-of-symbol.token-table (comp .u8vector .string)))
+  (make-list-of-symbol.token-table (comp-function .u8vector .string)))
 
 (both-times ;; so that module-import in the same file works
  (define-module (<token-table> prefix token? list-of-symbol.token-table)
@@ -52,6 +52,6 @@
  #(error "str does not match token?:" foo) ;; XX hmm. Heh. getting interesting. 'Syntax evil'
  > (%try-error (u8m "a"))
  #(error "str does not match token?:" "a")
- > (map (comp u8m .u8vector) '("a" "c" "" "foo"))
+ > (map (comp-function u8m .u8vector) '("a" "c" "" "foo"))
  (a #f #f foo))
 
