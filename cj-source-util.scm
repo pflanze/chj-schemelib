@@ -181,13 +181,15 @@
 	  (else (error "bug in safer-apply"))))))
 
 (TEST
- > (safer-apply (schemedefinition-arity-checker '(a b c #!optional d)) (lambda (a b c #!optional d) d) '(10 20 30 40) error values)
+ > (define c (schemedefinition-arity-checker '(a b c #!optional d)))
+ > (define f (lambda (a b c #!optional d) d))
+ > (safer-apply c f '(10 20 30 40) error values)
  40
- > (safer-apply (schemedefinition-arity-checker '(a b c #!optional d)) (lambda (a b c #!optional d) d) '(10 20 30 40 50) vector values)
+ > (safer-apply c f '(10 20 30 40 50) vector values)
  #("too many arguments")
- > (safer-apply (schemedefinition-arity-checker '(a b c #!optional d)) (lambda (a b c #!optional d) d) '(10 20 30) error values)
- #f
- )
+ > (safer-apply c f '(10 20 30) error values)
+ #f)
+
 
 ;; compare with Gambits apply:
 ; > (apply inc '(1 2 3))
