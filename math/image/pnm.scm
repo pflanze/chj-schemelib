@@ -36,7 +36,7 @@
 	 ((ascii) #f)))
 
 (define. (pnmformat.expected-maxval v #!optional (error error))
-  (cond ((.bpc v)=> (compose dec (cut expt 2 <>)))
+  (cond ((.bpc v)=> (compose-function dec (cut expt 2 <>)))
 	(else (error "can't give expected maxval, bpc unknown"))))
 (define. (pnmformat.maybe-expected-maxval v)
   (pnmformat.expected-maxval v false/1))

@@ -107,23 +107,23 @@
 			   (source-error stx msg))))
 
 (TEST
- > (expansion#RA compose half x*y inc2values)
- (compose half (compose x*y inc2values))
- > (expansion#LA compose half x*y inc2values)
- (compose (compose half x*y) inc2values)
+ > (expansion#RA compose-function half x*y inc2values)
+ (compose-function half (compose-function x*y inc2values))
+ > (expansion#LA compose-function half x*y inc2values)
+ (compose-function (compose-function half x*y) inc2values)
  )
 
 ;; as a function:
 
 (define (compose** . fs)
-  (right-associate compose fs error))
+  (right-associate compose-function fs error))
 
 ;; as macro for a tad more performance:
 
 (IF #t
     (define-macro* (compose* . f-exprs)
-      `(RA compose ,@f-exprs))
-    ;; or, manually inlining the compose rule:
+      `(RA compose-function ,@f-exprs))
+    ;; or, manually inlining the compose-function rule:
     ;; -- why using apply-values here??
     (define-macro* (compose* . f-exprs)
       (define X (gensym 'x))
@@ -201,11 +201,11 @@
  > ((compose/arity 2 half x*y inc2values) 10 20)
  231/2
 
- ;; compose is ("fully") associative (left or right doesn't matter),
+ ;; compose-function is ("fully") associative (left or right doesn't matter),
  ;; so choosing right-associate was arbitrary
- > ((compose (compose half x*y) inc2values) 10 20)
+ > ((compose-function (compose-function half x*y) inc2values) 10 20)
  231/2
- > ((compose half (compose x*y inc2values)) 10 20)
+ > ((compose-function half (compose-function x*y inc2values)) 10 20)
  231/2
 
  )
@@ -288,7 +288,7 @@
 
 (define <to<=
   ;; <-><= would be a fun name, wouldn't it?
-  (compose complement flip))
+  (compose-function complement flip))
 
 (define (sorted-list-of el? <)
   (strictly-monotonic-list-of el? (<to<= <)))

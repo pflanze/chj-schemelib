@@ -11,7 +11,7 @@
 	 (string-util-2 string-pad-left string-downcase)
 	 ;; ^ sigh that mess of scattered libs
 	 (list-util make-list/tail)
-	 (cj-functional compose both)
+	 (cj-functional compose-function both)
 	 (cj-env natural0?)
 	 dot-oo
 	 (cj-typed ->)
@@ -349,19 +349,19 @@
     (substring x 1 (dec len))))
 
 (define. ipv6-string.ipv6-hex-string
-  (compose bare-ipv6-string.ipv6-hex-string
+  (compose-function bare-ipv6-string.ipv6-hex-string
 	   ipv6-string.bare-ipv6-string))
 
 
 ;; .ipv6-number
 
 (define. bare-ipv6-string.ipv6-number
-  (compose ipv6-hex-string.ipv6-number
+  (compose-function ipv6-hex-string.ipv6-number
 	   bare-ipv6-string.ipv6-hex-string))
 
 
 (define. ipv6-string.ipv6-number
-  (compose bare-ipv6-string.ipv6-number
+  (compose-function bare-ipv6-string.ipv6-number
 	   ipv6-string.bare-ipv6-string))
 
 
@@ -426,7 +426,7 @@
 
 (define ipv4-network-string?
   (both ipv4-string?
-	(compose ipv4-network-number? ipv4-string.ipv4-number)))
+	(compose-function ipv4-network-number? ipv4-string.ipv4-number)))
 
 (TEST
  > (ipv4-network-string? "1")
@@ -451,16 +451,16 @@
 
 (define ipv6-network-string?
   (both ipv6-string?
-	(compose ipv6-network-number? ipv6-string.ipv6-number)))
+	(compose-function ipv6-network-number? ipv6-string.ipv6-number)))
 
 (define bare-ipv6-network-string?
   (both bare-ipv6-string?
-	(compose ipv6-network-number? bare-ipv6-string.ipv6-number)))
+	(compose-function ipv6-network-number? bare-ipv6-string.ipv6-number)))
 
 ;; XX and should I move the 'hex' to the front as with the 'bare'?
 (define ipv6-network-hex-string?
   (both ipv6-hex-string?
-	(compose ipv6-network-number? ipv6-hex-string.ipv6-number)))
+	(compose-function ipv6-network-number? ipv6-hex-string.ipv6-number)))
 
 (TEST
  > (ipv6-network-hex-string? "F0000000000000000000000000000000")

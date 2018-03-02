@@ -54,7 +54,7 @@
   #(u8vector? val))
 
 (define. serialized-source.object
-  (compose u8vector->object serialized-source.val))
+  (compose-function u8vector->object serialized-source.val))
 
 (define-struct. value
   val)

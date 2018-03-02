@@ -279,7 +279,7 @@
 
 
 ;; (def. collapsed-posixpath.filename
-;;   (compose last .segments))
+;;   (compose-function last .segments))
 
 (def. (collapsed-posixpath.if-filename p then els)
   (let ((ss (.segments p)))
@@ -398,7 +398,7 @@
 
 (TEST
  > (def t* (on .posixpath .chroot-add))
- > (def t (compose .string t*))
+ > (def t (compose-function .string t*))
  > (%try-error (t "/foo/baz" "../bar.html"))
  #(error
    ".chroot-add: path b is not absolute:"

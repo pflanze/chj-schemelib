@@ -110,7 +110,7 @@
 ;;much COPYPASTE sgh
 (define. (pnmatrixCcode.set!@-code v)
   (let* ((channels (.string (.channels v)))
-	 (args (map (compose gensym .string) (iota (.channels v)))))
+	 (args (map (compose-function gensym .string) (iota (.channels v)))))
     (quasiquote-source
      (lambda (m i0 i1 ,@args)
        (define s1 (,(symbol-append
@@ -161,7 +161,7 @@
 	 ;; and the floats? XXX
 	 ))))
 (define bpc+channels.pnmatrixCcode
-  (compose bpc*channels.pnmatrixCcode
+  (compose-function bpc*channels.pnmatrixCcode
 	   bpc*channels))
 
 (both-times
@@ -194,7 +194,7 @@
 			   (channels (.channels format))
 			   (cgen (bpc+channels.pnmatrixCcode bpc channels))
 			   (cs (iota channels))
-			   (vars (map (compose gensym .string) cs))
+			   (vars (map (compose-function gensym .string) cs))
 			   (T (symbol-replace-_-with/ type))
 			   (pnmatrixtype
 			    ;;X grr another one of these? see pnminfo.pnmatrixtype

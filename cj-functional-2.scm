@@ -9,7 +9,7 @@
 
 (export flip
 	complement
-	compose
+	compose-function
 	maybe-compose
 	either (macro %either)
 	neither (macro %neither)
@@ -35,7 +35,7 @@
   (lambda v
     (not (apply fn v))))
 
-(define (compose f g)
+(define (compose-function f g)
   (lambda x
     (f (apply g x))))
 

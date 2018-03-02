@@ -423,7 +423,7 @@
 
 ;; where should that be moved to?
 (define file-info->mtime
-  (compose time->seconds
+  (compose-function time->seconds
 	   file-info-last-modification-time))
 ;;^ also now see file-info.mtime in oo-gambit.scm
 

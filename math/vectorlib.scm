@@ -486,7 +486,7 @@
 	   (,_M_
 	    s0 s1
 	    (list->vector
-	     (map (compose ,(T 'list->V_) (cut map exact->inexact <>))
+	     (map (compose-function ,(T 'list->V_) (cut map exact->inexact <>))
 		  listoflists)))))
 
        ;; should this be done w a R.unfold?

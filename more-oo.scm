@@ -33,7 +33,7 @@
 
  ;; well, always fearing conflicts...
  (defstruct more-oo-class-ctx
-   #((compose symbol? source-code) class-name)
+   #((compose-function symbol? source-code) class-name)
    #(box? subclasses))
  
  (def (class=> cont)

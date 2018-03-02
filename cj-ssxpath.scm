@@ -365,7 +365,7 @@
 	 (not (or (null? v)
 		  (not v)))))
 
-;; (can't use compose here because of the currying)
+;; (can't use compose-function here because of the currying)
 
 (def (ssxpath-matches? path
 		       #!optional

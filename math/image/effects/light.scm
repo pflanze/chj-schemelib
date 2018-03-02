@@ -43,8 +43,8 @@
 
 
 (define (flight2d s0 s1)
-  (let ((f0 (compose sqrt (flight 1)))
-	(f1 (compose sqrt (flight 1)))
+  (let ((f0 (compose-function sqrt (flight 1)))
+	(f1 (compose-function sqrt (flight 1)))
 	(scale0 (/ s0))
 	(scale1 (/ s1)))
     (lambda (i0 i1)

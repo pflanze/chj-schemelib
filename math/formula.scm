@@ -173,7 +173,7 @@
 			(cond ((formula-expr? item)
 			       (cond ((formula-opapplication? item)
 				      (match-cmp
-				       ((on (compose .precedence-level .op)
+				       ((on (compose-function .precedence-level .op)
 					    number-cmp)
 					item
 					e)
@@ -285,7 +285,7 @@
  )
 
 
-(define pp-formula (compose (C .string/ctx _ #f) formula))
+(define pp-formula (compose-function (C .string/ctx _ #f) formula))
 
 (TEST
  > (pp-formula '1)

@@ -375,8 +375,8 @@
 
 
 ;; (define number->integer ;; any better name?
-;;   (compose inexact->exact floor))
-;;dependency issue, compose is in cj-functional
+;;   (compose-function inexact->exact floor))
+;;dependency issue, compose-function is in cj-functional
 
 (define (number->integer x) ;; any better name?
   (inexact->exact (floor x)))

@@ -174,7 +174,7 @@
 (def. (unixtime.gmtime-string v)
   (.rfc-2822-alike-string (unixtime.gmtime v) "GMT"))
 
-(def. unixtime.rfc-2822 (compose localtime.rfc-2822 unixtime.localtime))
+(def. unixtime.rfc-2822 (compose-function localtime.rfc-2822 unixtime.localtime))
 
 (def. (unixtime.localtime-string v)
   (.rfc-2822-alike-string (unixtime.localtime v) #f #f))
@@ -202,10 +202,10 @@
 
 
 (def current-localtime
-     (compose unixtime.localtime current-unixtime))
+     (compose-function unixtime.localtime current-unixtime))
 
 (def current-gmtime
-     (compose unixtime.gmtime current-unixtime))
+     (compose-function unixtime.gmtime current-unixtime))
 
 
 (TEST

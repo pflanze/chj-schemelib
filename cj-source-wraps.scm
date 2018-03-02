@@ -61,7 +61,7 @@
 (define source.number? (source-wrap-1 number?))
 
 ;; hm move to another lib?
-(define symbol->keyword (compose string->keyword symbol->string))
+(define symbol->keyword (compose-function string->keyword symbol->string))
 (define source.symbol->keyword (source-wrap-1 symbol->keyword))
 
 (define source.symbol->string (source-wrap-1 symbol->keyword))

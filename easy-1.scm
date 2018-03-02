@@ -2,7 +2,7 @@
 
 (require define-macro-star
 	 cj-env ;; identity ?, define-if-not-defined
-	 cj-functional ;; compose
+	 cj-functional ;; compose-function
 	 cj-struct
 	 cj-typed
 	 dot-oo ;; incl. define.
@@ -127,7 +127,7 @@
 (define-macro* (def-once . args)
   `(define-if-not-defined ,@args))
 
-(def comp compose)
+(def comp compose-function)
 (defmacro (comp* . args)
   `(compose* ,@args))
 

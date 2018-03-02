@@ -92,7 +92,7 @@
 
 (TEST
  > (define t-list-dropstop
-     (compose
+     (compose-function
       (list-dropstop (lambda (v) (eq? v #\.))
 		     (lambda (v) (eq? v #\/))
 		     (lambda (v) (vector 'stop (list->string v)))
@@ -215,7 +215,7 @@
 (define trim-maybe (_-maybe trim))
 ;; XX what does that do differently??
 
-(define trim-both (compose string-trim-right string-trim-left))
+(define trim-both (compose-function string-trim-right string-trim-left))
 
 
 (define char-newline?

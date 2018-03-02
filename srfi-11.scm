@@ -13,7 +13,7 @@
 	 (named named-lambda)
 	 list-util ;; let-pair
 	 (list-util-1 improper-map)
-	 ;; (cj-functional compose) now avoided
+	 ;; (cj-functional compose-function) now avoided
 	 )
 
 (export (macro let*-values)
@@ -98,9 +98,9 @@
 (TEST
  > (values->vector (improper-mapfold (lambda (a b) (values (dec a) (inc b))) '100 '(1 2 . 3)))
  #(97 (2 3 . 4))
- ;; > ((compose values->vector list->values) '(a b c))
+ ;; > ((compose-function values->vector list->values) '(a b c))
  ;; (a b c)
- ;;OHH compose applies values. nogo.XX
+ ;;OHH compose-function applies values. nogo.XX
  > (values->vector (list->values '(a b c)))
  #(a b c)
  )
@@ -348,7 +348,7 @@
 			(flatten1 (source-code vars*))))
 	 (varstmptop (map gensym varsflat))
 	 (varslex (improper-map
-		   ;; (compose gensym source-code)
+		   ;; (compose-function gensym source-code)
 		   ;; avoid dependency cycle
 		   (lambda (v)
 		     (gensym (source-code v)))

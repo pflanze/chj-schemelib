@@ -251,7 +251,7 @@
  ;; try with a skewed distribution, too (yeah hacky):
  > (define (floor-integer n)
      (inexact->exact (floor n)))
- > (map test-for (F (stream-take (stream-map (compose floor-integer *)
+ > (map test-for (F (stream-take (stream-map (compose-function floor-integer *)
  					     (lengths)
  					     (gaplengths (make-pseudorandomsource 773 31)))
  				 20)))
