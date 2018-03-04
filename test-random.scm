@@ -20,21 +20,22 @@
 ;; A library of helper functions for writing tests
 ;; also see test-lib-1
 
-(export (struct pseudorandomsource)
+(export make-list! ;; ok name? should name all generators with ! too?
+	(struct pseudorandomsource)
 	(struct range)
 	make-simplerange/base ;; ?
 	pseudorandomsource->integer-stream
 	pseudorandomsource->real-stream
 	pseudorandomsource->char-stream
 	pseudorandomsource->a-z-stream
-	charstream:string ;; ?
+	charstream:string		    ;; ?
 	charstream+lenstream->string-stream ;; ?
 	pseudorandomsource*->a-z-string-stream
 	symbol-stream
 	random-sort
-	test-random:burn-time! ;; ?
+	test-random:burn-time!	      ;; ?
 	test-random:burn-time-numbers ;; ?
-	start-mutator ;; ?
+	start-mutator		      ;; ?
 	random-integer..<
 	random-integer..
 	random-natural random-natural0
@@ -57,9 +58,18 @@
 	random-boolean
 	
 	#!optional
-	do-iter ;; ?
+	do-iter		    ;; ?
 	list->chunked-lists ;; XX move?
 	)
+
+
+(define (make-list! len generate/0)
+  (let lp ((i 0)
+	   (l '()))
+    (if (< i len)
+	(lp (inc i)
+	    (cons (generate/0) l))
+	l)))
 
 ;; pseudorandom sources
 
