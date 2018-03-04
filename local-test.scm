@@ -97,19 +97,46 @@
 
 ;; run a test separately
 (define (run-test t)
-  (if TEST:running
+  (if (TEST:running)
       (error "already running a test suite")
-      (begin
-	(set! TEST:count-success 0)
-	(set! TEST:count-fail 0)
-	(set! TEST:running #t)
-	(t)
-	(print (list TEST:count-success " success(es), "
-		     TEST:count-fail " failure(s)" "\n"))
-	(set! TEST:running #f))))
+      (parameterize
+       ((TEST:running #t)
+	(TEST:count-success 0)
+	(TEST:count-fail 0))
+       (t)
+       (print (list (TEST:count-success) " success(es), "
+		    (TEST:count-fail) " failure(s)" "\n")))))
+
+
+(TEST
+ > (eq? (local-TEST > 1 1) (void))
+ #t)
+
+(TEST
+ > (%try-error (run-test (& (local-TEST > 1 1))))
+ [error "already running a test suite"]
+ > (parameterize ((TEST:running #f))
+		 (eq? (run-test (& (local-TEST > 1 1))) (void)))
+ ;; prints a superfluous 1 success(es), 0 failure(s)
+ #t)
+
 
 (define-macro* (%test e)
   `(begin
      (begin (display "test form: ") (write ',e) (newline))
      (,e)))
+
+(TEST
+ > (define didrunit? #f)
+ > (define (t-foo f)
+     (local-TEST*
+      > (f 10)
+      100
+      > (begin (set! didrunit? #t) (f 11))
+      121))
+ > (eq? (%test (t-foo square)) (void))
+ #t
+ > didrunit?
+ #t)
+
 
