@@ -46,25 +46,30 @@
 		 code)))))
 
 
-(defmacro (template subsymbols code)
+(defmacro (template subsymbols code0 . coder)
   (assert*
    list? subsymbols
    (lambda (subsymbols*)
-     `(lambda ,subsymbols
-	(code-symbol-substring-replace
-	 (u8vector->object ',(object->u8vector code))
-	 ;; build alist:
-	 (list ,@(map (lambda (subsymbol)
-			(assert* symbol? subsymbol
-				 (lambda_
-				  `(cons ',subsymbol ,subsymbol))))
-		      subsymbols*)))))))
+     (let ((code (if (pair? coder)
+		     (sourcify `(,(sourcify `begin code0) ,code0 ,@coder)
+			       code0)
+		     code0)))
+     
+       `(lambda ,subsymbols
+	  (code-symbol-substring-replace
+	   (u8vector->object ',(object->u8vector code))
+	   ;; build alist:
+	   (list ,@(map (lambda (subsymbol)
+			  (assert* symbol? subsymbol
+				   (lambda_
+				    `(cons ',subsymbol ,subsymbol))))
+			subsymbols*))))))))
 
-(defmacro (deftemplate name+subsymbols code)
+(defmacro (deftemplate name+subsymbols code0 . coder)
   (mcase name+subsymbols
 	 (`(`name . `subsymbols)
 	  `(defmacro (,name ,@subsymbols)
-	     ((template ,subsymbols ,code) ,@subsymbols)))))
+	     ((template ,subsymbols ,code0 ,@coder) ,@subsymbols)))))
 
 
 (TEST
@@ -80,7 +85,7 @@
  > (.code-symbol-substring-map-test (u32vector 1))
  ("hello u32 u32" . u32))
 
-(defmacro (template-map binds code)
+(defmacro (template-map binds code0 . coder)
   (assert*
    list? binds
    (lambda (binds)
@@ -96,7 +101,8 @@
        `(insert-result-of
 	 (cons `begin
 	       (map (template ,keys
-			      ,code)
+			      ,code0
+			      ,@coder)
 		    ,@vals-codes)))))))
 
 (TEST
