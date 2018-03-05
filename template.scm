@@ -11,12 +11,18 @@
 ;; A code template consists of named template arguments (symbols), and
 ;; the code containing these symbols either directly (as in |eq?|) or
 ;; as substrings in symbols or strings. Replacements are done on an
-;; s-expression basis, not Scheme AST. This of course means,
-;; especially given that substrings are replaced, too, that the
-;; template argument names have to be choosen carefully to avoid
-;; accidentally replacing parts of the code that weren't meant to. It
-;; is suggested to name the template arguments with angle brackets
-;; around them.
+;; s-expression basis, not Scheme AST. Also, substring matches in
+;; symbols and strings are replaced, too[1]. Therefore, template
+;; variable names have to be chosen carefully to avoid accidental
+;; matches. It is suggested to delimit variable names in some way,
+;; like $T$ or <T>.
+
+;; [1] One could change the implementation to only replace matches if
+;; surrounded by non word (as in [a-zA-Z0-9_]) characters or the end
+;; of the string/symbol or surrounded by $ on both ends (in which case
+;; the $ are part of the match). But once $ are used, why not make
+;; them part of the variable name and leave it all simple? It is then
+;; easier to search for them via e.g. text editor functionality, too.
 
 ;; There are 3 forms:
 
