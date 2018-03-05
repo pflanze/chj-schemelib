@@ -27,23 +27,32 @@
      (let replace ((code code))
        (let ((code* (source-code code))
 	     (S (C sourcify _ code)))
-	 (mcase code
-		((either symbol? string?)
-		 (S (fold (lambda (replacement code*)
-			    (let-pair ((subsymbol newsubsymbol) replacement)
-				      (.replace-substrings
-				       code*
-				       (symbol.string subsymbol)
-				       (.string
-					(source-code newsubsymbol)))))
-			  code*
-			  replacements)))
-		(pair?
-		 (S (improper-map replace code*)))
-		(vector?
-		 (S (vector-map replace code*)))
-		(else
-		 code)))))
+	 (cond
+	  ((and (symbol? code*)
+		(assq code* replacements))
+	   => (lambda (r)
+		;; replace symbol with the actual value directly
+		;; without going through -> string -> symbol
+		;; conversion
+		(S (cdr r))))
+	  (else
+	   (mcase code
+		  ((either symbol? string?)
+		   (S (fold (lambda (replacement code*)
+			      (let-pair ((subsymbol newsubsymbol) replacement)
+					(.replace-substrings
+					 code*
+					 (symbol.string subsymbol)
+					 (.string
+					  (source-code newsubsymbol)))))
+			    code*
+			    replacements)))
+		  (pair?
+		   (S (improper-map replace code*)))
+		  (vector?
+		   (S (vector-map replace code*)))
+		  (else
+		   code)))))))
 
 
 (defmacro (template subsymbols code0 . coder)
