@@ -16,6 +16,7 @@
 
 
 (require cj-typed
+	 cj-inline
 	 test
 	 local-test
 	 test-random
