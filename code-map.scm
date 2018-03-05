@@ -10,7 +10,7 @@
 	 (string-util-3 string.replace-substring)
 	 easy-1)
 
-(export (macro code-substrings-lambda)
+(export (macro template)
 	(macro code-map-substrings)
 	#!optional
 	symbol.replace-substrings
@@ -45,7 +45,7 @@
 		 code)))))
 
 
-(defmacro (code-substrings-lambda subsymbols code)
+(defmacro (template subsymbols code)
   (assert*
    list? subsymbols
    (lambda (subsymbols*)
@@ -62,7 +62,7 @@
 (TEST
  > (insert-result-of
     (cons `begin
-	  (map (code-substrings-lambda
+	  (map (template
 		(<X>)
 		(def. (<X>vector.code-symbol-substring-map-test x)
 		  (cons "hello <X> <X>" '<X>)))
@@ -87,8 +87,8 @@
 	    (vals-codes (map (bind-> (lambda (key vals-code) vals-code)) binds)))
        `(insert-result-of
 	 (cons `begin
-	       (map (code-substrings-lambda ,keys
-					    ,code)
+	       (map (template ,keys
+			      ,code)
 		    ,@vals-codes)))))))
 
 (TEST
