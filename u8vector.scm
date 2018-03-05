@@ -8,6 +8,13 @@
 
 (require easy)
 
+(export (method u8vector.integer-unsigned-le)
+	(method u8vector.integer-unsigned-be))
+
+;; XX oh, also see u8vector->integer in cj-u8vector-util.scm
+
+;; XX make faster via casting in C?
+
 ;; u8vector.natural0-be ?
 
 (def. (u8vector.integer-unsigned-le v)
