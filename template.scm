@@ -15,7 +15,7 @@
 	(macro template-map)
 	#!optional
 	symbol.replace-substrings
-	code-symbol-substring-replace)
+	code-symbol-or-substring-replace)
 
 
 
@@ -23,7 +23,7 @@
   (string.symbol
    (string.replace-substring (symbol.string s) substr withstr)))
 
-(def (code-symbol-substring-replace code replacements)
+(def (code-symbol-or-substring-replace code replacements)
      (let replace ((code code))
        (let ((code* (source-code code))
 	     (S (C sourcify _ code)))
@@ -65,7 +65,7 @@
 		     code0)))
      
        `(lambda ,subsymbols
-	  (code-symbol-substring-replace
+	  (code-symbol-or-substring-replace
 	   (u8vector->object ',(object->u8vector code))
 	   ;; build alist:
 	   (list ,@(map (lambda (subsymbol)
