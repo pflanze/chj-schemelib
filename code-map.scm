@@ -26,7 +26,8 @@
 				      (.replace-substrings
 				       code*
 				       (symbol.string subsymbol)
-				       (symbol.string (source-code newsubsymbol)))))
+				       (symbol.string
+					(source-code newsubsymbol)))))
 			  code*
 			  replacements)))
 		(pair?
