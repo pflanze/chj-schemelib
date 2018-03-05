@@ -10,7 +10,6 @@
 	 srfi-1 ;; fold
 	 (list-util let-pair)
 	 jclass
-	 template
 	 ;; for testing:
 	 (exceptions with-exceptions-to))
 
