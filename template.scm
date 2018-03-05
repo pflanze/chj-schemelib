@@ -11,6 +11,7 @@
 	 easy-1)
 
 (export (macro template)
+	(macro deftemplate)
 	(macro template-map)
 	#!optional
 	symbol.replace-substrings
@@ -59,6 +60,13 @@
 				  `(cons ',subsymbol ,subsymbol))))
 		      subsymbols*)))))))
 
+(defmacro (deftemplate name+subsymbols code)
+  (mcase name+subsymbols
+	 (`(`name . `subsymbols)
+	  `(defmacro (,name ,@subsymbols)
+	     ((template ,subsymbols ,code) ,@subsymbols)))))
+
+
 (TEST
  > (insert-result-of
     (cons `begin
@@ -92,6 +100,12 @@
 		    ,@vals-codes)))))))
 
 (TEST
+ > (deftemplate (mydeft FOO)
+     (def (hello)
+	  "FOO world"))
+ > (mydeft Hi)
+ > (hello)
+ "Hi world"
  > (template-map
     ((<X> '(s32 s8))
      (<Y> '(signed-32 signed-8)))
