@@ -7,7 +7,7 @@
 
 
 (require test
-	 code-map
+	 template
 	 easy-1)
 
 (export sum

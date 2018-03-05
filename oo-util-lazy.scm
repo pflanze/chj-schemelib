@@ -6,7 +6,7 @@
 	 stream ;; (only optionally? (lazily? well.))
 	 stream-Maybe ;; (ah well, more dependencies)
 	 list-util-1
-	 (code-map template-map)
+	 (template template-map)
 	 (oo-vector-lib sum)
 	 debuggable-promise
 	 )
