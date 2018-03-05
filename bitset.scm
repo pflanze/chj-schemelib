@@ -40,7 +40,10 @@
 
 
 (template-map
- ;; parameterize word size in bits
+ ;; parameterize word size in bits; 64 bits won't work because C
+ ;; doesn't calculate the correct bitwise-not (~) value then. Also,
+ ;; using something that fixnum size fits is faster in the pure Scheme
+ ;; implementation.
  ((<WORDSIZE> '(32)))
 
  (define (bitset:i.slot i)
