@@ -34,7 +34,7 @@
 				      (.replace-substrings
 				       code*
 				       (symbol.string subsymbol)
-				       (symbol.string
+				       (.string
 					(source-code newsubsymbol)))))
 			  code*
 			  replacements)))
