@@ -10,6 +10,13 @@
 	 (string-util-3 string.replace-substring)
 	 easy-1)
 
+(export (macro code-substrings-lambda)
+	(macro code-map-substrings)
+	#!optional
+	symbol.replace-substrings
+	code-symbol-substring-replace)
+
+
 
 (def. (symbol.replace-substrings s substr withstr)
   (string.symbol
