@@ -1,9 +1,36 @@
-;;; Copyright 2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
+
+
+;; Code templates:
+
+;; A code template consists of named template arguments (symbols), and
+;; the code containing these symbols either directly (as in |eq?|) or
+;; as substrings in symbols or strings. Replacements are done on an
+;; s-expression basis, not Scheme AST. This of course means,
+;; especially given that substrings are replaced, too, that the
+;; template argument names have to be choosen carefully to avoid
+;; accidentally replacing parts of the code that weren't meant to. It
+;; is suggested to name the template arguments with angle brackets
+;; around them.
+
+;; There are 3 forms:
+
+;; (template ARGS . CODE) returns a function that when called returns
+;; CODE with the elements in ARGS replaced by the respective value
+;; given to the function.
+
+;; (deftemplate (NAME . ARGS) . CODE) defines a macro NAME (and
+;; corresponding NAME-expand), that when called does the same as
+;; |template|, but includes the result in the surrounding code.
+
+;; (template-map ((ARG0 VALS) ...) . CODE) maps over CODE and VALS
+;; (length VALS) times, replacing ARG0 with each value in return;
+;; i.e. instantiates the template multiple times directly in place.
 
 
 (require test
