@@ -407,7 +407,7 @@
 (def (sum nums)
      (fold + 0 nums))
 
-(code-map-substrings
+(template-map
  ((VECTOR '(
 	    string
 	    vector
@@ -535,7 +535,7 @@
 		 (cont)
 		 (error "uneven lengths of input VECTORs (min max):"
 			len lenmax))))))
-   ;; ^XX really getting wasteful with duplication through code-map-substrings
+   ;; ^XX really getting wasteful with duplication through template-map
 
    (define (VECTOR-map fn . vecs)
      (VECTORs-map fn vecs #f))

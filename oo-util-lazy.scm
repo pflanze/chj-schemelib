@@ -6,7 +6,7 @@
 	 stream ;; (only optionally? (lazily? well.))
 	 stream-Maybe ;; (ah well, more dependencies)
 	 list-util-1
-	 (code-map code-map-substrings)
+	 (code-map template-map)
 	 (oo-vector-lib sum)
 	 debuggable-promise
 	 )
@@ -407,7 +407,7 @@
 
 (define list->list identity)
 
-(code-map-substrings
+(template-map
  ((istream. '(istream. ilist.))
   (stream- '(stream- list-)))
  (begin

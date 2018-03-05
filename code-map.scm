@@ -11,7 +11,7 @@
 	 easy-1)
 
 (export (macro template)
-	(macro code-map-substrings)
+	(macro template-map)
 	#!optional
 	symbol.replace-substrings
 	code-symbol-substring-replace)
@@ -72,7 +72,7 @@
  > (.code-symbol-substring-map-test (u32vector 1))
  ("hello u32 u32" . u32))
 
-(defmacro (code-map-substrings binds code)
+(defmacro (template-map binds code)
   (assert*
    list? binds
    (lambda (binds)
@@ -92,7 +92,7 @@
 		    ,@vals-codes)))))))
 
 (TEST
- > (code-map-substrings
+ > (template-map
     ((<X> '(s32 s8))
      (<Y> '(signed-32 signed-8)))
     (def. (<X>vector.doit x) (cons "hello<X> <Y>" '<Y>)))
