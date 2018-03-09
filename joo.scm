@@ -318,7 +318,7 @@
 ;; using more-oo here as infrastructure for our coding, but not for
 ;; building the actual oo system on top of it
 
-(class joo-type
+(more-class joo-type
        ;; With metadata; still call it joo-metadata instead?  Those
        ;; are mutable, and singletons, please!
        (struct #(symbol? class-name)

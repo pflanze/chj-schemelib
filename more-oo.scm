@@ -14,7 +14,7 @@
 	 (string-util-2 string-contains?)
 	 (oo-util string.symbol symbol.string))
 
-(export (macro class)
+(export (macro more-class)
 	(macro subclass)
 	(macro struct)
 	(macro method)
@@ -40,7 +40,7 @@
       (if (pair? compile-time:class-ctx)
 	  (cont (car compile-time:class-ctx))
 	  (source-error compile-time:class-ctx
-			"not placed within a |class| form"))))
+			"not placed within a |more-class| form"))))
 
 (defmacro (compile-time#start-class! name subclass?)
   (if (source-code subclass?)
@@ -69,7 +69,7 @@
 	    (%either ,@(map (C source:symbol-append _ "?")
 			    subclasses)))))))
 
-(defmacro (class name . body)
+(defmacro (more-class name . body)
   `(begin
      (compile-time#start-class! ,name #f)
      ,@body
