@@ -9,5 +9,6 @@
 	 test-lib
 	 cj-functional-2
 	 cj-functional
-	 jclass)
+	 jclass
+	 class)
 
