@@ -15,7 +15,7 @@
 	 (oo-util string.symbol symbol.string))
 
 (export (macro more-class)
-	(macro subclass)
+	(macro more-subclass)
 	(macro struct)
 	(macro method)
 	(macro let.)
@@ -75,7 +75,7 @@
      ,@body
      (compile-time#end-class!)))
 
-(defmacro (subclass name . body)
+(defmacro (more-subclass name . body)
   ;;XXX + predicate constr
   `(begin
      (compile-time#start-class! ,name #t)
