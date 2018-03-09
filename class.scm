@@ -6,24 +6,24 @@
 ;;;    (at your option) any later version.
 
 
-;; Make |jclass| and |jinterface| forms also available as |class| and
-;; |interface|, respectively.
+;; Make |jclass| and |jinterface| forms also available as |defclass| and
+;; |definterface|, respectively.
 
 (require define-macro-star
 	 jclass)
 
 
-(define-macro* (interface decl . forms)
-  (jclass:perhaps-expand-in-context '(interface expansion#interface
+(define-macro* (definterface decl . forms)
+  (jclass:perhaps-expand-in-context '(definterface expansion#definterface
 						jinterface expansion#jinterface)
-				    '(class expansion#class
+				    '(defclass expansion#defclass
 					    jclass expansion#jclass)
 				    #t stx #f #f))
 
-(define-macro* (class decl . forms)
-  (jclass:perhaps-expand-in-context '(interface expansion#interface
+(define-macro* (defclass decl . forms)
+  (jclass:perhaps-expand-in-context '(definterface expansion#definterface
 						jinterface expansion#jinterface)
-				    '(class expansion#class
+				    '(defclass expansion#defclass
 					    jclass expansion#jclass)
 				    #t stx #f #t))
 
