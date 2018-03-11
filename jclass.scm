@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -38,11 +38,14 @@
 ;; found forms.
 
 
-(def (jclass:expand stx
-		    is-class?
-		    args
-		    maybe-super-name
-		    super-is-class?)
+(def (jclass:expand
+      interface-syms
+      class-syms
+      stx
+      is-class?
+      args
+      maybe-super-name
+      super-is-class?)
      (let-pair
       ((decl forms) args)
       (let ((c (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
@@ -54,6 +57,8 @@
 			       maybe-super-name)
 			 '())
 		   ,@(map (C jclass:perhaps-expand-in-context
+			     interface-syms
+			     class-syms
 			     #f
 			     _
 			     name
@@ -65,10 +70,18 @@
 			cont-nofields: c))))
 
 
-(def (jclass:perhaps-expand-in-context require-match?
-				       expr
-				       maybe-super-name
-				       super-is-class?)
+(def (jclass:perhaps-expand-in-context
+      ;; the symbols used for interface and class definition forms
+      ;; (necessary for nested scopes, as those are parsed directly,
+      ;; not via macro system; NOTE: need to include expansion#
+      ;; variants, too!):
+      interface-syms
+      class-syms
+      ;; other arguments:
+      require-match?
+      expr
+      maybe-super-name
+      super-is-class?)
 
      ;; XX should use expand-forms-in-exprs from joo.scm to get more
      ;; proper macro treatment
@@ -76,20 +89,24 @@
 	    (pair?
 	     (let-pair ((a r) (source-code expr))
 		       (if (pair? r)
-			   (case (source-code a)
-			     ;; wow have to check for expansion#
-			     ;; version, too. OMG
-			     ((jinterface expansion#jinterface) 
-			      (jclass:expand expr
-					     #f r
-					     maybe-super-name
-					     super-is-class?))
-			     ((jclass expansion#jclass)
-			      (jclass:expand expr
-					     #t r
-					     maybe-super-name
-					     super-is-class?))
-			     (else expr))
+			   (let ((a* (source-code a)))
+			     (if (symbol? a*)
+				 (cond ((memq a* interface-syms)
+					(jclass:expand interface-syms
+						       class-syms
+						       expr
+						       #f r
+						       maybe-super-name
+						       super-is-class?))
+				       ((memq a* class-syms)
+					(jclass:expand interface-syms
+						       class-syms
+						       expr
+						       #t r
+						       maybe-super-name
+						       super-is-class?))
+				       (else expr))
+				 expr))
 			   (source-error expr "missing decl"))))
 	    (else
 	     (if require-match?
@@ -97,10 +114,14 @@
 		 expr))))
 
 (defmacro (jinterface decl . forms)
-  (jclass:perhaps-expand-in-context #t stx #f #f))
+  (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
+				    '(jclass expansion#jclass)
+				    #t stx #f #f))
 
 (defmacro (jclass decl . forms)
-  (jclass:perhaps-expand-in-context #t stx #f #t))
+  (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
+				    '(jclass expansion#jclass)
+				    #t stx #f #t))
 
 ;; ^ XX btw double extends: or implements: keywords, how to handle?
 ;; Really \SCHEME[keyword arguments should handle duplicate argument
