@@ -264,12 +264,18 @@
 	    xhtml-element-names)))
 
 
-;; NOTE: does not import |xhtml#map|, since the list function is way
-;; more often used than the HTML element.
+;; Do not import some symbols that are commonly used for other
+;; things. You can still access |xhtml#map| or |xhtml#s| fully
+;; qualified.
+
+(def (xhtml:no-import? v)
+     (case v
+       ((map s) #t)
+       (else #f)))
 
 (def (XHTML-expand es)
      `(##let ()
-	     (##namespace ("xhtml#" ,@(filter (lambda (n) (not (eq? n 'map)))
+	     (##namespace ("xhtml#" ,@(filter (complement xhtml:no-import?)
 					      xhtml-element-names)))
 	     (##define-syntax
 	      ,'unquote
