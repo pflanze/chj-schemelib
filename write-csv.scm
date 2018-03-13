@@ -116,23 +116,25 @@
 
 
 (def (csv-row-writer #!key
-		     #(eol-name? eol)
-		     #(char? sep-char)
+		     #((maybe eol-name?) eol)
+		     #((maybe char?) sep-char)
 		     #(output-port? port))
-     (let ((eol* (list (eol-name.string eol))))
-       (lambda (row)
-	 (print port: port
-		(list-join (map (csv-escape sep-char)
-				row)
-			   sep-char
-			   eol*)))))
+     (let ((eol (or eol 'LF))
+	   (sep-char (or sep-char #\,)))
+       (let ((eol* (list (eol-name.string eol))))
+	 (lambda (row)
+	   (print port: port
+		  (list-join (map (csv-escape sep-char)
+				  row)
+			     sep-char
+			     eol*))))))
 
 
 (def. (iseq.csv-file s
 		     #(path-string? path)
 		     #!key
-		     #(eol-name? eol)
-		     #(char? sep-char))
+		     #((maybe eol-name?) eol)
+		     #((maybe char?) sep-char))
   (let* ((p (open-output-file path))
 	 (w (csv-row-writer port: p
 			    eol: eol
