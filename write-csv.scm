@@ -2,6 +2,7 @@
 	 (oo-util-lazy iseq?)
 	 U
 	 eol
+	 csv-defaults
 	 (char-util char-alphanumeric+?)
 	 test)
 
@@ -16,7 +17,7 @@
 	write-csv:value->string
 	csv-escape)
 
-(def sep-chars '#(#\; #\, #\:))
+(def sep-chars '[#\; #\, #\:])
 
 (def (sep-char? v)
      (and (char? v)
@@ -116,11 +117,11 @@
 
 
 (def (csv-row-writer #!key
-		     #((maybe eol-name?) eol)
-		     #((maybe char?) sep-char)
-		     #(output-port? port))
-     (let ((eol (or eol 'LF))
-	   (sep-char (or sep-char #\,)))
+		     [(maybe eol-name?) eol]
+		     [(maybe char?) sep-char]
+		     [output-port? port])
+     (let ((eol (or eol (current-csv-eol)))
+	   (sep-char (or sep-char (current-csv-sep-char))))
        (let ((eol* (list (eol-name.string eol))))
 	 (lambda (row)
 	   (print port: port
@@ -131,10 +132,10 @@
 
 
 (def. (iseq.write-csv-file s
-			   #(path-string? path)
+			   [path-string? path]
 			   #!key
-			   #((maybe eol-name?) eol)
-			   #((maybe char?) sep-char))
+			   [(maybe eol-name?) eol]
+			   [(maybe char?) sep-char])
   (let* ((p (open-output-file path))
 	 (w (csv-row-writer port: p
 			    eol: eol

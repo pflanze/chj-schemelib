@@ -1,5 +1,6 @@
 (require easy
 	 eol
+	 csv-defaults
 	 (predicates length-=)
 	 jclass)
 
@@ -24,8 +25,8 @@
 
 (def (csv-file-stream path
 		      #!key
-		      ([char? sep-char] #\,)
-		      ([eol-name? eol] 'LF)
+		      ([char? sep-char] (current-csv-sep-char))
+		      ([eol-name? eol] (current-csv-eol))
 		      (tail '()))
      (_csv-port-stream
       (open-input-process
@@ -47,8 +48,8 @@
 
 (def (csv-port-stream port
 		      #!key
-		      ([char? sep-char] #\,)
-		      ([eol-name? eol] 'LF)
+		      ([char? sep-char] (current-csv-sep-char))
+		      ([eol-name? eol] (current-csv-eol))
 		      (tail '()))
      (let ((p (open-process
 	       (list path: "./csv2sexpr"
