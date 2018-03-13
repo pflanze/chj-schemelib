@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,6 +7,7 @@
 
 
 (require dot-oo
+	 cj-struct
 	 (cj-source-util-2 assert)
 	 (scheme-meta self-quoting)
 	 (cj-gambit-sys procedure-name)
@@ -25,7 +26,7 @@
 	try-show
 	#!optional
 	toplevel-procedure?
-	struct->values)
+	struct-values)
 
 
 (define. (self-quoting.show v)
@@ -70,11 +71,6 @@
 
 ;; structs:
 
-(define (struct->values v)
-  (let ((l (vector->list v)))
-    (assert (struct-tag? (car l)))
-    (cdr l)))
-
 ;; XXX HACK for now, should generate for each struct according to its
 ;; (default) constructor:
 
@@ -82,7 +78,7 @@
    ;; The HACK is: assumption that the constructor takes positional
    ;; arguments
   (cons (struct-constructor-name v)
-	(map .show (struct->values v))))
+	(map .show (struct-values v))))
 
 
 

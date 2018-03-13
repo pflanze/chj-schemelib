@@ -497,6 +497,7 @@
  (#f #f #f #f #f #f #f #t #f #t #f #t #t #t))
 
 
+;; there used to be a copy called struct->values
 (define (struct-values s)
   (if (struct? s)
       (cdr (vector->list s))
