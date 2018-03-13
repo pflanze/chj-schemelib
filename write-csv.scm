@@ -9,7 +9,7 @@
 ;; https://www.ietf.org/rfc/rfc4180.txt
 
 
-(export (method iseq.csv-file)
+(export (method iseq.write-csv-file)
 	#!optional
 	sep-chars
 	sep-char?
@@ -130,11 +130,11 @@
 			     eol*))))))
 
 
-(def. (iseq.csv-file s
-		     #(path-string? path)
-		     #!key
-		     #((maybe eol-name?) eol)
-		     #((maybe char?) sep-char))
+(def. (iseq.write-csv-file s
+			   #(path-string? path)
+			   #!key
+			   #((maybe eol-name?) eol)
+			   #((maybe char?) sep-char))
   (let* ((p (open-output-file path))
 	 (w (csv-row-writer port: p
 			    eol: eol
