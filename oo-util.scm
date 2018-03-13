@@ -4,12 +4,16 @@
 	 (cj-math integer)
 	 (string-util-2 string-reverse)
 	 (cj-functional list-of)
-	 (srfi-11 values->vector values->list) ;; included in easy?
+	 (srfi-11 values->vector values->list letv) ;; included in easy?
 	 cj-env
 	 show
 	 (cj-source show-source-location show-location-location
 		    show-procedure-location)
-	 debuggable-promise)
+	 debuggable-promise
+	 string-util-1
+	 string-util-2
+	 ;; string-util-3 -- cycle
+	 string-util-4)
 
 (possibly-use-debuggable-promise)
 
@@ -178,3 +182,64 @@
 
 ;; ------------------------------------------
 
+
+(insert-result-of
+ `(begin
+    ,@(map (lambda (sym)
+	     (define (minus-to-dot str)
+	       (letv ((function-start function-end) (string-split-once str #\- #t))
+		     (string-append function-start
+				    "."
+				    function-end)))
+	     `(define. ,(string->symbol (minus-to-dot (symbol->string sym))) ,sym))
+	   '(
+	     ;; string-util-1
+	     string-split
+
+	     ;; string-util-2
+	     suffix-list
+	     string-trim-left
+	     string-trim-right
+	     string-ref*
+	     string-trimlines-right
+	     string-multiply
+	     string-starts?
+	     string-starts-ci?
+	     string-contains
+	     string-contains-ci
+	     string-contains?
+	     string-contains-ci?
+	     string-split-1 ;; vs. string-split-once ?
+	     string-split-once
+	     ;;	string-reverse
+	     ;;	string-map
+	     string-any
+	     string-downcase string-lc
+	     string-upcase string-uc
+	     string-upcase-first string-ucfirst
+	     string-pad-left
+	     string-ends-with?
+	     string-starts-with? ;;XX vs string-starts? ?
+
+	     ;; string-util-3
+	     ;;string-contains-char? -- can't because of dependency cycle
+	     ;; string.replace-substring
+	     ;; string.replace-substring-ci
+	     ;; string.replace-substrings
+	     ;; string.replace-substrings-ci
+	     ;; string.maybe-replace-substring
+	     ;; string.maybe-replace-substring-ci
+	     ;; string.maybe-replace-substrings
+	     ;; string.maybe-replace-substrings-ci
+	     ;; string.drop
+	     ;; string.take
+	     ;; string.any
+	     ;; string.natural0
+	     ;; string.natural
+ 
+	     ;; string-util-4
+	     string-empty
+	     string-every
+	     string-first-line
+
+	     ))))
