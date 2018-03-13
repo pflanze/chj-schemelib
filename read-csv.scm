@@ -24,8 +24,8 @@
 
 (def (csv-file-stream path
 		      #!key
-		      (#(char? sep-char) #\tab)
-		      #(eol-name? eol)
+		      ([char? sep-char] #\,)
+		      ([eol-name? eol] 'LF)
 		      (tail '()))
      (_csv-port-stream
       (open-input-process
@@ -47,8 +47,8 @@
 
 (def (csv-port-stream port
 		      #!key
-		      (#(char? sep-char) #\tab)
-		      #(eol-name? eol)
+		      ([char? sep-char] #\,)
+		      ([eol-name? eol] 'LF)
 		      (tail '()))
      (let ((p (open-process
 	       (list path: "./csv2sexpr"
@@ -88,8 +88,8 @@
 
 	    (method (open) -> input-port?)
 
-	    (jclass (file-input-provider #(path-string? path-string)
-					 #(char-encoding? char-encoding))
+	    (jclass (file-input-provider [path-string? path-string]
+					 [char-encoding? char-encoding])
 
 		    (def-method (open s)
 		      (open-input-file (list path: path-string
@@ -129,13 +129,13 @@
  (b c))
 
 
-(jclass (csv-reader #(input-provider? input-provider)
+(jclass (csv-reader [input-provider? input-provider]
 		    #!key
-		    #(char? sep-char)
-		    #(eol-name? eol)
-		    #((maybe natural0?) maybe-head-skip)
-		    #(boolean? skip-last?)
-		    #((maybe (list-of natural0?)) maybe-columns))
+		    [char? sep-char]
+		    [eol-name? eol]
+		    [(maybe natural0?) maybe-head-skip]
+		    [boolean? skip-last?]
+		    [(maybe (list-of natural0?)) maybe-columns])
 
 	(def-method (stream s)
 	  (let* ((s (csv-port-stream (.open input-provider)
