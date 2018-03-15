@@ -6,6 +6,8 @@
 	 (list-util let-pair))
 
 (export string-contains-char?
+	string-contains-char
+	string-rcontains-char
 	make-replace-substring
 	replace-substring-error
 	string.replace-substring
@@ -31,6 +33,7 @@
 ;; 	   ,@body)))
 
 
+;; XX rename to string-contains-charpred? or so?
 (define (string-contains-char? str pred)
   (let ((len (string-length str)))
     (let lp ((i 0))
@@ -44,6 +47,39 @@
  > (string-contains-char? "Hello\n" char-newline?)
  #t
  )
+
+;; XX should this be called string-find ?
+(define (string-contains-char str ch)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (and (< i len)
+	   (if (char=? (string-ref str i) ch)
+	       i
+	       (lp (inc i)))))))
+
+(TEST
+ > (string-contains-char "Hello" #\newline)
+ #f
+ > (string-contains-char "Hello\n" #\newline)
+ 5
+ > (string-contains-char "Hello\nWorld\n" #\newline)
+ 5)
+
+;; XX should this be called string-rfind ?
+(define (string-rcontains-char str ch)
+  (let lp ((i (- (string-length str) 1)))
+    (and (>= i 0)
+	 (if (char=? (string-ref str i) ch)
+	     i
+	     (lp (- i 1))))))
+
+(TEST
+ > (string-rcontains-char "Hello" #\newline)
+ #f
+ > (string-rcontains-char "Hello\n" #\newline)
+ 5
+ > (string-rcontains-char "Hello\nWorld\n" #\newline)
+ 11)
 
 
 ;; The name string-replace is already used in srfi-13;
