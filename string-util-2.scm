@@ -15,7 +15,8 @@
 	 cj-typed
 	 (local-test local-TEST* %test)
 	 (string-util-4 string-empty?
-			string-every))
+			string-every)
+	 (predicates-1 exact-integer?))
 
 (export suffix-list
 	suffix
@@ -322,7 +323,7 @@
 
 
 ;; XX move to some math lib?
-(define-typed (inexact.round-at x #(integer? digit-after-comma))
+(define-typed (inexact.round-at x #(exact-integer? digit-after-comma))
   (let ((factor (expt 10 digit-after-comma)))
     (/ (round (* x factor)) factor)))
 
