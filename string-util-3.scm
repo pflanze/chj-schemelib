@@ -6,8 +6,8 @@
 	 (list-util let-pair))
 
 (export string-contains-char?
-	string-contains-char
-	string-rcontains-char
+	string-find-char
+	string-rfind-char
 	make-replace-substring
 	replace-substring-error
 	string.replace-substring
@@ -48,8 +48,8 @@
  #t
  )
 
-;; XX should this be called string-find ?
-(define (string-contains-char str ch)
+;; might also be called string-contains-char
+(define (string-find-char str ch)
   (let ((len (string-length str)))
     (let lp ((i 0))
       (and (< i len)
@@ -58,15 +58,15 @@
 	       (lp (inc i)))))))
 
 (TEST
- > (string-contains-char "Hello" #\newline)
+ > (string-find-char "Hello" #\newline)
  #f
- > (string-contains-char "Hello\n" #\newline)
+ > (string-find-char "Hello\n" #\newline)
  5
- > (string-contains-char "Hello\nWorld\n" #\newline)
+ > (string-find-char "Hello\nWorld\n" #\newline)
  5)
 
-;; XX should this be called string-rfind ?
-(define (string-rcontains-char str ch)
+;; might also be called string-rcontains-char
+(define (string-rfind-char str ch)
   (let lp ((i (- (string-length str) 1)))
     (and (>= i 0)
 	 (if (char=? (string-ref str i) ch)
@@ -74,11 +74,11 @@
 	     (lp (- i 1))))))
 
 (TEST
- > (string-rcontains-char "Hello" #\newline)
+ > (string-rfind-char "Hello" #\newline)
  #f
- > (string-rcontains-char "Hello\n" #\newline)
+ > (string-rfind-char "Hello\n" #\newline)
  5
- > (string-rcontains-char "Hello\nWorld\n" #\newline)
+ > (string-rfind-char "Hello\nWorld\n" #\newline)
  11)
 
 
