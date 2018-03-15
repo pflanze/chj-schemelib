@@ -209,6 +209,8 @@
 	     string-contains-ci
 	     string-contains?
 	     string-contains-ci?
+	     string-find-char
+	     string-rfind-char
 	     string-split-1 ;; vs. string-split-once ?
 	     string-split-once
 	     ;;	string-reverse
