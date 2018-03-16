@@ -197,7 +197,6 @@
 	     string-split
 
 	     ;; string-util-2
-	     suffix-list
 	     string-trim-left
 	     string-trim-right
 	     string-ref*
@@ -240,7 +239,7 @@
 	     ;; string.natural
  
 	     ;; string-util-4
-	     string-empty
+	     string-empty?
 	     string-every
 	     string-first-line
 
