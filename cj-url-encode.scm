@@ -4,7 +4,8 @@
 	 (srfi-11 letv)
 	 srfi-1
 	 (string-util strings-join string-split)
-	 u8vector0)
+	 u8vector0
+	 (hex char.parse-hexdigit))
 
 (export url-encode
 	url-decode
