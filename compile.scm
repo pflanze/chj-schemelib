@@ -62,7 +62,7 @@
 	  (gambit:load (.object-path s)))
 
 	(def-method (module-symbol s)
-	  (string->symbol (string-append " " bn ".o1")))
+	  (string->symbol (string-append " " hash ".o1")))
 
 	;; Run the module's body; load! already does that implicitly
 	(def-method (re-init! s)
