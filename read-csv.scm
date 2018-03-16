@@ -2,7 +2,8 @@
 	 eol
 	 csv-defaults
 	 (predicates length-=)
-	 jclass)
+	 jclass
+	 stream)
 
 (export csv-file-stream
 	(jclass csv-reader)
@@ -146,7 +147,7 @@
 			(stream-drop s maybe-head-skip)
 			s))
 		 (s (if skip-last?
-			(stream-skip-last s)
+			(stream-butlast s)
 			s))
 		 (s (if maybe-columns
 			(stream-map (lambda (row)
