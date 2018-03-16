@@ -339,6 +339,8 @@
 ;; for easy matching below. Consistency, you know..
 (define list-drop drop)
 (define list-take take)
+(define list-last last)
+(define list-butlast butlast)
 (define list-sublist sublist)
 (define list-length length)
 (define list-sum sum)
@@ -448,6 +450,10 @@
      stream-drop)
 
    (define. istream.take stream-take)
+
+   (define. istream.last stream-last)
+
+   (define. istream.butlast stream-butlast)
 
    (define. istream.sublist stream-sublist)
 
