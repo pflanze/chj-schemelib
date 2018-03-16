@@ -97,7 +97,8 @@
 
 ;; path before normalization
 (def (require-util:modulepath-ignore? path)
-     (or (string-starts-with? path "Attic/")
+     (or (string-starts-with? path "doc/")
+	 (string-starts-with? path "Attic/")
 	 (string-starts-with? path "Trash/")
 	 (string-starts-with? path "trash/")
 	 (string-starts-with? path "trash/")
