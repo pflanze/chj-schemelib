@@ -5,7 +5,7 @@
 	 srfi-1
 	 (string-util strings-join string-split)
 	 u8vector0
-	 (hex char.parse-hexdigit))
+	 (hex hexdigit char.parse-hexdigit))
 
 (export url-encode
 	url-decode
@@ -47,11 +47,6 @@
  > (url-encoding:unreserved? #\-)
  #t
  )
-
-(define (hexdigit digit)
-  (if (< digit 10)
-      (integer->char (+ digit (char->integer #\0)))
-      (integer->char (+ (- digit 10) (char->integer #\A)))))
 
 (define (fold:number->hex len n tail)
   ;; ensure even padding right?

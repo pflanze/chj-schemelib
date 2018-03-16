@@ -1,4 +1,4 @@
-;;; Copyright 2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,7 +8,20 @@
 
 (require easy
 	 oo-vector-lib ;; should that be part of easy?
-	 (cj-url-encode hexdigit))
+	 )
+
+(export hexdigit
+	(method integer.parse-hexdigit
+		char.parse-hexdigit
+		u8vector.hex-string
+		string.parse-hex))
+
+
+(define (hexdigit digit)
+  (if (< digit 10)
+      (integer->char (+ digit (char->integer #\0)))
+      (integer->char (+ (- digit 10) (char->integer #\A)))))
+
 
 ;; stupid name?
 (def. (integer.parse-hexdigit x)
