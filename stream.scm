@@ -42,6 +42,8 @@
 	source-stream->string
 	stream-drop
 	stream-take
+	stream-last
+	stream-butlast
 	list-rtake&rest stream-rtake&rest
 	reverse/tail stream-reverse/tail
 	stream-reverse
@@ -429,6 +431,40 @@
 		       p)
 		      (error "stream-take: improper stream:" p))))))
       (error "stream-take: negative k:" k)))
+
+
+(define (stream-last s)
+  (FV (s)
+      (let-pair ((a s*) s)
+		(FV (s*)
+		    (if (null? s*)
+			a
+			(stream-last s*))))))
+
+(define (stream-butlast s #!optional (tail '()))
+  (let rec ((s s))
+    (delay
+      (FV (s)
+	  (let-pair ((a s*) s)
+		    (FV (s*)
+			(if (null? s*)
+			    tail
+			    (cons a (rec s*)))))))))
+
+
+(TEST
+ > (stream-last (.stream "Hello"))
+ #\o
+ > (stream-last (.stream "a"))
+ #\a
+ > (%try (stream-last (.stream "")))
+ (exception text: "(Argument 1) PAIR expected\n(car '())\n")
+ > (F (stream-butlast (.stream "Hello")))
+ (#\H #\e #\l #\l)
+ > (promise? (stream-butlast (.stream "")))
+ #t
+ > (%try (force (stream-butlast (.stream ""))))
+ (exception text: "(Argument 1) PAIR expected\n(car '())\n"))
 
 
 ;; combined stream-take and stream-drop, but eager, returning the take
