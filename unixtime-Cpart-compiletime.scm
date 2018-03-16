@@ -12,8 +12,12 @@
 	bitsof-time_t)
 
 (c-declare "
+#ifndef _GNU_SOURCE
        #define _GNU_SOURCE
+#endif
+#ifndef _XOPEN_SOURCE
        #define _XOPEN_SOURCE
+#endif
        #include <time.h>
        #include <stdlib.h>
 ")
