@@ -310,7 +310,9 @@
 (jclass (ranges [range-or-ranges? a]
 		[(lambda (b)
 		   (and (range-or-ranges? b)
-			(.< (.from a) (.from b))))
+			(.< (.from a) (.from b))
+			;; and, otherwise it should be a merged range:
+			(.<= (.to a) (.from b))))
 		 b])
 	implements: range-or-ranges
 
