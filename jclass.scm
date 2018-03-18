@@ -158,8 +158,8 @@
  ;; > (jct? jct2) ehr there's no constructor. Do or do I not
  ;; have a way to check this hierarchy just on the class level yet?
 
- ;; > (with-exception-handler
- ;;    identity ;; source-error-message
+ ;; > (with-exception-catcher
+ ;;    source-error-message
  ;;    (& (eval (quote-source (jinterface jct
  ;; 				       (jclass (foo x y)
  ;; 					       (jinterface jctdeep
@@ -168,9 +168,6 @@
  ;; 				       (jinterface jct2
  ;; 						   (jclass (foo2 x))))))))
  ;;"an interface cannot extend a class"
-
- ;; ^ ok wow that crashes Gambit; without with-exception-handler it's
- ;; fine, goes into debugger. Same thing when using quote.
 
  ;; Test the inner syntax scoping thing:
  > (expansion#jclass (foo x y) (jclass (bar z)))
