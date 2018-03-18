@@ -186,7 +186,7 @@
  #\c
  > (string-ref* "abc" -2)
  #\b
- > (with-exception-handler range-exception? (thunk (string-ref* "abc" -4)))
+ > (with-exception-catcher range-exception? (thunk (string-ref* "abc" -4)))
  #t
  )
 
