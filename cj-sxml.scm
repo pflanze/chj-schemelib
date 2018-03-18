@@ -104,6 +104,7 @@
   (or (pair? v)
       (null? v)
       (string? v)
+      (number? v) ;; ?
       ;;(boolean? v) hmm?
       ;;(symbol? v) for pre-serialized fragments, XXX finally do something proper for that!
       ;; (procedure? v) want that here? Only allow in bodies?
