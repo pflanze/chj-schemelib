@@ -31,18 +31,17 @@
 
 ;; fn: (A?) -> (values A? B?)
 (def. (atomic-box.update! b fn) ;; -> B?
-  (let-atomic-box ((v m) b)
-		  (mutex-lock! m)
-		  (let ((orig-handler (current-exception-handler)))
-		    (with-exception-handler
-		     ;; everything is costly in this...
-		     (lambda (e)
-		       (mutex-unlock! m)
-		       (orig-handler e))
-		     (& (letv ((v* res) (fn v))
-			      (vector-set! b 1 v*) ;; hack
-			      (mutex-unlock! m)
-			      res))))))
+  (let-atomic-box
+   ((v m) b)
+   (dynamic-wind
+       (lambda ()
+	 (mutex-lock! m))
+       (lambda ()
+	 (letv ((v* res) (fn v))
+	       (vector-set! b 1 v*) ;; hack
+	       res))
+       (lambda ()
+	 (mutex-unlock! m)))))
 
 (def. atomic-box.unbox
   atomic-box.value)
