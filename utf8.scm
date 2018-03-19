@@ -12,8 +12,6 @@
 	 (cj-source-util-2 assert)
 	 (oo-util values.vector))
 
-;; included into u8vector0.scm
-
 ;; https://en.wikipedia.org/wiki/UTF-32
 ;; UTF-32 (or UCS-4) stands for Unicode Transformation Format 32
 ;; bits. It is a protocol to encode Unicode code points that uses
