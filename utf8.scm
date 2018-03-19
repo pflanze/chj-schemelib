@@ -14,8 +14,9 @@
 
 (export ucs4-codepoint?
 	utf8-bytes
+	;; why not call these ref and set! ?:
 	(method u8vector.utf8-put!
-		;; why not call these ref and set! ?
+		u8vector.utf8-get-codepoint
 		u8vector.utf8-get)
 	
 	#!optional
@@ -212,9 +213,9 @@ i_res[1]= c;
      (-> (C = _ 4) ;; i.e. same as U32
 	 (##c-code "___RESULT= ___FIX(sizeof(___UCS_4));")))
 
-(def. (u8vector.utf8-get #(u8vector? v)
-			 #(natural0? i))
-  -> (values-of (maybe char?)
+(def. (u8vector.utf8-get-codepoint #(u8vector? v)
+				   #(natural0? i))
+  -> (values-of (maybe ucs4-codepoint?)
 		;; XX size_t? index?
 		natural0?)
   
@@ -230,8 +231,17 @@ i_res[1]= c;
 	    ;; in the case of u8vector0? But need real typing
 	    ;; then. Alternatively check in functions like
 	    ;; u8vector0.utf8-parse .
-	    (values (integer->char (-> ucs4-codepoint? c))
-		    i*))))))
+	    (values c i*))))))
+
+(def. (u8vector.utf8-get #(u8vector? v)
+			 #(natural0? i))
+  -> (values-of (maybe char?)
+		;; XX size_t? index?
+		natural0?)
+
+  (letv ((c i*) (u8vector.utf8-get-codepoint v i))
+	(values (and c (integer->char c))
+		i*)))
 
 (TEST
  > (def v '#u8(195 164 195 182 195 188 0))
