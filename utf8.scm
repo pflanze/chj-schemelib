@@ -12,6 +12,19 @@
 	 (cj-source-util-2 assert)
 	 (oo-util values.vector))
 
+(export ucs4-codepoint?
+	utf8-bytes
+	(method u8vector.utf8-put!
+		;; why not call these ref and set! ?
+		u8vector.utf8-get)
+	
+	#!optional
+	sizeof-ucs4
+	@utf8-bytes
+	@u8vector-utf8-put!
+	@u8vector-utf8-get!
+	)
+
 ;; https://en.wikipedia.org/wiki/UTF-32
 ;; UTF-32 (or UCS-4) stands for Unicode Transformation Format 32
 ;; bits. It is a protocol to encode Unicode code points that uses
