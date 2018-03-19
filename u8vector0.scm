@@ -28,8 +28,10 @@
 		string.utf8-bytes
 		string.utf8-u8vector
 		string.utf8-u8vector0
+		u8vector.utf8-parse
+		u8vector.utf8-codepoints
 		u8vector0.utf8-parse
-		u8vector.utf8-parse))
+		u8vector0.utf8-codepoints))
 
 
 (c-declare "
@@ -165,9 +167,9 @@ ___RESULT= ___FIX(res);
  #(error "utf-8 decoding error, can't proceed"))
 
 
-(def (<>.utf8-parse T? T.strlen)
+(def (<>.utf8-parse T? T.strlen get return)
      (typed-lambda
-      (#(T? v)) -> string?
+      (#(T? v))
       (let ((len (T.strlen v)))
 	(let lp ((i 0)
 		 ;; using a list instead of pre-calculating size, XX room
@@ -175,7 +177,7 @@ ___RESULT= ___FIX(res);
 		 (l '())
 		 (n 0))
 	  (if (< i len)
-	      (letv ((maybe-c i*) (u8vector.utf8-get v i))
+	      (letv ((maybe-c i*) (get v i))
 		    (if maybe-c
 			(lp i*
 			    (cons maybe-c l)
@@ -187,14 +189,28 @@ ___RESULT= ___FIX(res);
 			      (warn "utf-8 decoding error, skipping over bad sequence")
 			      ;; XX or should we die anyway?
 			      (lp i* l n)))))
-	      (char-list.string-reverse l))))))
+	      (return l))))))
 
-(def. u8vector.utf8-parse (<>.utf8-parse u8vector? u8vector-length))
+(def. u8vector.utf8-parse (<>.utf8-parse u8vector?
+					 u8vector-length
+					 u8vector.utf8-get
+					 char-list.string-reverse))
+(def. u8vector.utf8-codepoints (<>.utf8-parse u8vector?
+					      u8vector-length
+					      u8vector.utf8-get-codepoint
+					      reverse))
 
 ;; don't call this u8vector0.string -- u8vector.string does *not* do
 ;; utf8 decoding, also, why hard code this implicitely so hard. It's
 ;; wrong.
-(def. u8vector0.utf8-parse (<>.utf8-parse u8vector0? u8vector0.strlen))
+(def. u8vector0.utf8-parse (<>.utf8-parse u8vector0?
+					  u8vector0.strlen
+					  u8vector.utf8-get
+					  char-list.string-reverse))
+(def. u8vector0.utf8-codepoints (<>.utf8-parse u8vector0?
+					       u8vector0.strlen
+					       u8vector.utf8-get-codepoint
+					       reverse))
 
 
 (TEST
