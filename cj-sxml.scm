@@ -97,7 +97,9 @@
 
 (define (sxml-element? l)
   (and (pair? l)
-       (symbol? (##car l))))
+       (let ((a (##car l)))
+	 (and (symbol? a)
+	      (not (eq? a '##begin))))))
 
 
 (define (sxml? v)
