@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -100,8 +100,9 @@ ___UCS_4 c;);
 
 
 (def (ucs4-codepoint? v)
-     (and (natural0? v) ;; be careful about the null value! valid in
-			;; UCS-4 but not necessarily in strings.
+     (and (exact-natural0? v)
+	  ;; be careful about the null value!  valid in UCS-4 but not
+	  ;; necessarily in strings.
 	  (<= v #xFFFFFFFF)))
 
 (TEST
@@ -113,6 +114,8 @@ ___UCS_4 c;);
  #f
  > (ucs4-codepoint? 0)
  #t
+ > (ucs4-codepoint? 0.)
+ #f
  > (ucs4-codepoint? (dec (expt 2 32)))
  #t
  > (ucs4-codepoint? (expt 2 32))
