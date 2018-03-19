@@ -31,7 +31,19 @@
 (export sxml>>html-fast
 	sxml>>xhtml-fast
 	sxml>>xml-fast
+	;; drop the -fast here, take those as the normal ones, OK?
+	(method sxml.print-xhtml
+		sxml.print-html
+		sxml.print-xml)
 
+	;; XX clean these up and not actually use as such?
+	sxml>>xml-file
+	sxml>>fast-xml-file
+	sxml>>xhtml-file
+	sxml>>fast-xhtml-file
+	sxml>>html-file
+	sxml>>fast-html-file
+	
 	sxml>>pretty-xml-file
 	sxml>>pretty-xhtml-file
 
@@ -39,9 +51,17 @@
 	sxml>>html
 	sxml>>xml
  
- 
 	sxml->html-string-fragment
-	sxml->xml-string-fragment)
+	sxml->xml-string-fragment
+	(method sxml.xml-string-fragment
+		sxml.html-string-fragment)
+
+	sxml->xml-string
+	sxml->html-string
+	sxml->xhtml-string
+	(method sxml-element.xml-string
+		sxml-element.html-string
+		sxml-element.xhtml-string))
 
 
 (include "cj-standarddeclares.scm")
@@ -487,22 +507,34 @@
 		port
 		maybe-level)))
 
-(def (sxml>>html-fast item #!optional (port (current-output-port)))
+(def (sxml>>html-fast [sxml-element? item]
+		      #!optional (port (current-output-port)))
      ((make-sxml>> sxml>>html* #f) item port))
 
-(def (sxml>>html item #!optional (port (current-output-port)))
+(def. sxml.print-html sxml>>html-fast)
+
+(def (sxml>>html [sxml-element? item]
+		 #!optional (port (current-output-port)))
      ((make-sxml>> sxml>>html* #t) item port))
 
-(def (sxml>>xhtml-fast item #!optional (port (current-output-port)))
+(def (sxml>>xhtml-fast [sxml-element? item]
+		       #!optional (port (current-output-port)))
      ((make-sxml>> sxml>>xhtml* #f) item port))
 
-(def (sxml>>xhtml item #!optional (port (current-output-port)))
+(def. sxml.print-xhtml sxml>>xhtml-fast)
+
+(def (sxml>>xhtml [sxml-element? item]
+		  #!optional (port (current-output-port)))
      ((make-sxml>> sxml>>xhtml* #t) item port))
 
-(def (sxml>>xml-fast item #!optional (port (current-output-port)))
+(def (sxml>>xml-fast [sxml-element? item]
+		     #!optional (port (current-output-port)))
      ((make-sxml>> sxml>>xml* #f) item port))
 
-(def (sxml>>xml item #!optional (port (current-output-port)))
+(def. sxml.print-xml sxml>>xml-fast)
+
+(def (sxml>>xml [sxml-element? item]
+		#!optional (port (current-output-port)))
      ((make-sxml>> sxml>>xml* #t) item port))
 
 
@@ -566,26 +598,69 @@
 
 
 ;; 'fragment' means, that it's output doesn't include a <?..?> line.
-(def (fragment-stringifyer xml?)
+(def (sxml:fragment-stringifyer xml?)
      (lambda (item #!optional maybe-level)
        (let ((port (open-output-string '())))
 	 (sxml>>fast item port xml? maybe-level)
 	 (get-output-string port))))
 
-(def sxml->html-string-fragment (fragment-stringifyer #f))
-(def sxml->xml-string-fragment (fragment-stringifyer #t))
+(def sxml->html-string-fragment (sxml:fragment-stringifyer #f))
+(def. sxml.html-string-fragment sxml->html-string-fragment)
 
-
+(def sxml->xml-string-fragment (sxml:fragment-stringifyer #t))
+(def. sxml.xml-string-fragment sxml->xml-string-fragment)
 
 (TEST
-> (sxml->xml-string-fragment '(a (@ (href "ha")) . "welt"))
-"<a href=\"ha\">welt</a>"
-> (sxml->xml-string-fragment '(a (@ (href "ha")) "welt"))
-"<a href=\"ha\">welt</a>"
-> (sxml->xml-string-fragment '(a (@ (href . "ha")) "welt"))
-"<a href=\"ha\">welt</a>"
+ > (sxml->xml-string-fragment '(a (@ (href "ha")) . "welt"))
+ "<a href=\"ha\">welt</a>"
+ > (sxml->xml-string-fragment '(a (@ (href "ha")) "welt"))
+ "<a href=\"ha\">welt</a>"
+ > (sxml->xml-string-fragment '(a (@ (href . "ha")) "welt"))
+ "<a href=\"ha\">welt</a>")
 
-)
+
+(def (sxml:stringifyer >>)
+     (lambda (item)
+       (let ((port (open-output-string '())))
+	 (>> item port)
+	 (get-output-string port))))
+
+
+(def sxml->xml-string (sxml:stringifyer sxml>>xml-fast))
+(def. sxml-element.xml-string sxml->xml-string)
+
+(def sxml->html-string (sxml:stringifyer sxml>>html-fast))
+(def. sxml-element.html-string sxml->html-string)
+
+(def sxml->xhtml-string (sxml:stringifyer sxml>>xhtml-fast))
+(def. sxml-element.xhtml-string sxml->xhtml-string)
+
+(TEST
+ > (def v '(##begin (a (@ (href "ha")) . "welt") (br)))
+ > (map (C _ v) (list .xml-string-fragment
+		      .html-string-fragment))
+ ("<a href=\"ha\">welt</a><br />"
+  "<a href=\"ha\">welt</a><br>")
+ > (%try (.xml-string v))
+ (exception
+ text:
+ "no method found for generic .xml-string for value: (##begin (a (@ (href \"ha\")) . \"welt\") (br))\n")
+ > (%try (sxml-element.xml-string v))
+ (exception
+ text:
+ "item does not match sxml-element?: (##begin (a (@ (href \"ha\")) . \"welt\") (br))\n")
+
+ > (def v '(div (a (@ (href "ha")) . "welt") (br)))
+ > (.xml-string v)
+ "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<div><a href=\"ha\">welt</a><br /></div>"
+ > (.xhtml-string v)
+ "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+<div xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\"><a href=\"ha\">welt</a><br /></div>"
+ > (.html-string v)
+ "<div><a href=\"ha\">welt</a><br></div>")
+
 
 ;; ---------------------------------------------------------
 ;; idea to offer some serializer helper
