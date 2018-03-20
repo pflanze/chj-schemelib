@@ -16,7 +16,7 @@
 	(macro quasiquote-source-list)
 	(macro quote-source)
 	(macro quote-source-list)
-	(macro enable-unquote))
+	(macro enable-unquoting))
 
 
 (define (source-quasiquote-run u8vec alis)
@@ -151,7 +151,7 @@
 
 
 ;; "enable" both unquote and unquote-splicing:
-(define-macro* (enable-unquote code)
+(define-macro* (enable-unquoting code)
   `(insert-result-of
     (quasiquote-source
      ,code)))
