@@ -12,6 +12,11 @@
 	 cj-source-util-2
 	 (vector-util vector-map))
 
+(export (macro quasiquote-source)
+	(macro quasiquote-source-list)
+	(macro quote-source)
+	(macro quote-source-list))
+
 
 (define (source-quasiquote-run u8vec alis)
   ;; alis is list of (symbol splice? . val)
