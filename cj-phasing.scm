@@ -4,6 +4,10 @@
 		      ;; implement the d* module system.
 	 define-macro-star)
 
+(export (macro insert-result-of)
+	(macro compile-time)
+	(macro both-times))
+
 ;; This used to be compile-time, which could be used both for the
 ;; result as well as the side effects. now be explicit about the
 ;; purpose:
