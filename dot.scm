@@ -68,24 +68,25 @@
       ""))
 
   
-  (defclass (dot-> a b)
+  (defclass (dot-> object [list? links])
 
     (defmethod (string-bag s) -> string-bag?
       (list
        ;; formatting for the object itself
-       (if (or (struct? a)
-	       (vector? a)
-	       (pair? a)) ;; XX move this logic to .dot-name
+       (if (or (struct? object)
+	       (vector? object)
+	       (pair? object)) ;; XX move this logic to .dot-name
 	   (list "\t"
-		 (.dot-name a)
+		 (.dot-name object)
 		 " [ fontsize=7, shape=record ];\n")
-	   "")
+	   (error "BUG never happens right?" s))
        ;; and the pointer to the next
        (list "\t"
-	     (.dot-name a)
-	     " -> "
-	     (.dot-name b)
-	     ";\n")))))
+	     (.dot-name object)
+	     " -> { "
+	     (list-join (map .dot-name links)
+			'(" "))
+	     " };\n")))))
 
 
 (def. (dot-bag.string l)
@@ -100,15 +101,14 @@
     (=> l
 	dot-bag.string-bag
 	(putfile path))
-    (xsystem "display" path)))
+    (future (xsystem "display" path))))
 
 
 (def. (any.dot-bag v)
   (dot-leaf v))
 
 (def. (pair.dot-bag v)
-  (list (dot-> v (car v))
-	(dot-> v (cdr v))
+  (list (dot-> v (list (car v) (cdr v)))
 	(.dot-bag (car v))
 	(.dot-bag (cdr v))))
 
@@ -116,18 +116,15 @@
   '())
 
 (def. (vector.dot-bag v)
-  (vector.map-list v
-		   (lambda (w)
-		     (cons (dot-> v w)
-			   (.dot-bag w)))))
+  (cons (dot-> v (vector.list v))
+	(vector.map-list v .dot-bag)))
 
 (def. (struct.dot-bag v)
-  (ilist.map (struct-values v)
-	     (lambda (w)
-	       (cons (dot-> v w)
-		     (.dot-bag w)))))
+  (let ((vs (struct-values v)))
+    (cons (dot-> v vs)
+	  (ilist.map vs .dot-bag))))
 
 
 (def (display-dot v)
-     (future (.display (.dot-bag v))))
+     (.display (.dot-bag v)))
 
