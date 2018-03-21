@@ -31,18 +31,62 @@
 
 (def string-bag? (bag-of string?))
 
-(def. (any.dot-name v)
-  ;; XX are there any differences from Scheme to C strings? Well,
-  ;; unicode, right?
-  (object->string ;; <- string -> C style string, really
-   (object->string v)))
+;; (method (dot-id&label s) -> (values string? string-bag?))
 
-(def. (pair.dot-name v)
-  (list "\"pair #" (number.string (object->serial-number v)) "\""))
+;;    node id string (used for connection endpoint names), and label
+;;    shown in the graph.
 
-(def. (struct.dot-name v)
-  (list "\"" (object->string (struct-type-name v))
-	" #" (number.string (object->serial-number v)) "\""))
+
+;; XX are there any differences from Scheme to C strings? Well,
+;; unicode, right?
+(def string.c-string object->string)
+
+
+(defparameter dot:current-immediate-serial 0)
+
+(def object->serial-number-string
+     (comp number.string object->serial-number))
+
+
+(def. (any.dot-id&label v)
+  (values (if (mem-allocated? v)
+	      (string-append
+	       "A" (object->serial-number-string v))
+	      (string-append
+	       "I" (.string (parameter-inc! dot:current-immediate-serial))))
+	  (string.c-string (object->string v))))
+
+(def. (pair.dot-id&label v)
+  (let ((idn (object->serial-number-string v)))
+    (values (string-append "P" idn)
+	    (list "\"pair #" idn "\""))))
+
+(def. (struct.dot-id&label v)
+  (let ((idn (object->serial-number-string v)))
+    (values (string-append "S" idn)
+	    (list "\"" (object->string (struct-type-name v))
+		  " #" idn "\""))))
+
+
+
+;; Wrap Scheme objects, so that the serial number can be re-retrieved
+;; multiple times (non-mem-allocated Scheme objects can't be passed
+;; through object->serial-number-string because their entries in that
+;; table are never freed):
+
+(defclass ((dot-wrap _dot-wrap) id&label-cache object)
+
+  (def (dot-wrap v) (_dot-wrap #f v))
+
+  ;; caching delegate
+  (defmethod (dot-id&label s)
+    (or id&label-cache
+	(let ((il (.dot-id&label object)))
+	  (vector-set! s 1 il)
+	  il))))
+
+(def dot-wrap-list? (list-of dot-wrap?))
+
 
 
 ;; https://graphviz.gitlab.io/_pages/doc/info/lang.html
@@ -66,30 +110,34 @@
 	  "}\n"))
 
 
-  (defclass (dot-leaf v)
-
+  (defclass (dot-leaf [dot-wrap? object])
+    
     (defmethod (string-bag s) -> string-bag?
-      ;; (list "  " (.dot-name v) ";\n")
-      ;; or, omit?
-      ""))
+      (letv ((id label) (.dot-id&label object))
+	    (list "\t" id " [ label=" label "];\n"))))
 
   
-  (defclass (dot-> object [list? links])
+  (defclass (dot-> [dot-wrap? object] [dot-wrap-list? links])
 
     (defmethod (string-bag s) -> string-bag?
-      (list
-       ;; formatting for the object itself
-       (list "\t"
-	     (.dot-name object)
-	     " [ fontsize=7, shape=record ];\n")
-       ;; and the pointers to the next
-       (map/iota (lambda (w i)
-		   (list "\t"
-			 (.dot-name object)
-			 " -> "
-			 (.dot-name w)
-			 " [ label="(.string i)", fontsize=6, color=red ];\n"))
-		 links)))))
+      (letv ((id label) (.dot-id&label object))
+	    (list
+	     ;; formatting for the object itself
+	     (list "\t"
+		   id
+		   " [ label="
+		   label
+		   ", fontsize=7, shape=record ];\n")
+	     ;; and the pointers to the next
+	     (map/iota (lambda (w i)
+			 (list "\t"
+			       id
+			       " -> "
+			       (fst (.dot-id&label w))
+			       " [ label="
+			       (.string i)
+			       ", fontsize=6, color=red ];\n"))
+		       links))))))
 
 
 (def. (dot-bag.string l)
@@ -107,27 +155,43 @@
     (future (xsystem "display" path))))
 
 
-(def. (any.dot-bag v)
-  (dot-leaf v))
+;; (method (dot-bag v [dot-wrap? v*]) -> dot-bag?)
 
-(def. (pair.dot-bag v)
-  (list (dot-> v (list (car v) (cdr v)))
-	(.dot-bag (car v))
-	(.dot-bag (cdr v))))
+;;  (assert (eq? v (dot-wrap.object)))
 
-(def. (null.dot-bag v)
-  '())
+;;  have to pass down the wrapped variant (so that sharing of the
+;;  cache works), but still dispatch on the un-wrapped object so that
+;;  object dispatch works easily (ok, could dispatch on a (dot-wrap-of
+;;  ..) predicate, though, but..), hence take both arguments.
 
-(def. (vector.dot-bag v)
-  (cons (dot-> v (vector.list v))
-	(vector.map-list v .dot-bag)))
+(def. (any.dot-bag v v*)
+  (dot-leaf v*))
 
-(def. (struct.dot-bag v)
-  (let ((vs (struct-values v)))
-    (cons (dot-> v vs)
-	  (ilist.map vs .dot-bag))))
+(def. (pair.dot-bag v v*)
+  (let ((a* (dot-wrap (car v)))
+	(r* (dot-wrap (cdr v))))
+    (list (dot-> v* (list a* r*))
+	  (*dot-bag a*)
+	  (*dot-bag r*))))
 
+(def. (null.dot-bag v v*)
+  v*)
+
+(def. (vector.dot-bag v v*)
+  (let ((ws* (vector.map-list v dot-wrap)))
+    (cons (dot-> v* ws*)
+	  (ilist.map ws* *dot-bag))))
+
+(def. (struct.dot-bag v v*)
+  (let ((ws* (ilist.map (struct-values v) dot-wrap)))
+    (cons (dot-> v* ws*)
+	  (ilist.map ws* *dot-bag))))
+
+
+(def *dot-bag
+     (lambda (w*)
+       (.dot-bag (dot-wrap.object w*) w*)))
 
 (def (display-dot v)
-     (.display (.dot-bag v)))
+     (.display (.dot-bag v (dot-wrap v))))
 
