@@ -17,20 +17,32 @@
 
 
 (define (parameter-inc! p)
-  (p (inc (p))))
+  (let ((x (inc (p))))
+    (p x)
+    x))
 
 (define (parameter-dec! p)
-  (p (dec (p))))
+  (let ((x (dec (p))))
+    (p x)
+    x))
 
 (define (parameter-add! p x)
-  (p (+ (p) x)))
+  (let ((x (+ (p) x)))
+    (p x)
+    x))
 
 (define (parameter-update! p fn)
-  (p (fn (p))))
+  (let ((x (fn (p))))
+    (p x)
+    x))
 
 (define (parameter-push! p v)
-  (p (cons v (p))))
+  (let ((x (cons v (p))))
+    (p x)
+    x))
 
+;; this one deviates from the above in that its return value is used
+;; for the "primary purpose":
 (define (parameter-pop! p)
   (let ((l (p)))
     (p (cdr l))
