@@ -56,6 +56,12 @@
   (def. (dot-bag.string-bag b)
     ;; XX digraph needed for -> but only allows that?
     (list "digraph foo {\n"
+	  ;; "\tordering=out;\n"
+	  ;; "\trankdir=;\n"
+	  ;; "\trank=same;\n"
+	  "\tranksep=0.4;\n" ;; makes it a bit less tall
+	  ;; "\tmindist=3.4;\n" no effect
+	  ;; "\tepsilon=0.0001;\n" only for neato
 	  (map .string-bag (bag->list b))
 	  "}\n"))
 
@@ -73,20 +79,16 @@
     (defmethod (string-bag s) -> string-bag?
       (list
        ;; formatting for the object itself
-       (if (or (struct? object)
-	       (vector? object)
-	       (pair? object)) ;; XX move this logic to .dot-name
-	   (list "\t"
-		 (.dot-name object)
-		 " [ fontsize=7, shape=record ];\n")
-	   (error "BUG never happens right?" s))
-       ;; and the pointer to the next
+       (list "\t"
+	     (.dot-name object)
+	     " [ fontsize=7, shape=record ];\n")
+       ;; and the pointers to the next
        (list "\t"
 	     (.dot-name object)
 	     " -> { "
 	     (list-join (map .dot-name links)
 			'(" "))
-	     " };\n")))))
+	     " } [ color=red ];\n")))))
 
 
 (def. (dot-bag.string l)
