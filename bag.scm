@@ -11,7 +11,7 @@
 (require easy
 	 define-strict-and-lazy
 	 test
-	 (cj-port with-output-to-string) ;; for test only
+	 (cj-port with-output-to-string) ;; for test and bag->string
 	 )
 
 (export bag-of
@@ -23,6 +23,7 @@
 	bag->reverse-list
 	bag->list
 	bag->stream
+	bag->string
 	)
 
 
@@ -89,6 +90,9 @@
 (def (bag->stream b #!optional (tail '()))
      (bag-stream-fold-right b tail cons))
 
+
+(def (bag->string b #!optional (display display))
+     (with-output-to-string (C bag-for-each b display)))
 
 (TEST
  > (def bags '(()
