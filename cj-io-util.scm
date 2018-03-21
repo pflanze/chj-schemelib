@@ -668,7 +668,8 @@
  > (delete-directory cj-io-util:testbase))
 
 
-(def (putfile path bag)
+;; first bag then path, so that it works nicely with =>
+(def (putfile bag path)
      (call-with-output-file path
        (lambda (port)
 	 (string-bag-display bag port))))
