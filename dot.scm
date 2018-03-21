@@ -83,12 +83,13 @@
 	     (.dot-name object)
 	     " [ fontsize=7, shape=record ];\n")
        ;; and the pointers to the next
-       (list "\t"
-	     (.dot-name object)
-	     " -> { "
-	     (list-join (map .dot-name links)
-			'(" "))
-	     " } [ color=red ];\n")))))
+       (map/iota (lambda (w i)
+		   (list "\t"
+			 (.dot-name object)
+			 " -> "
+			 (.dot-name w)
+			 " [ label="(.string i)", fontsize=6, color=red ];\n"))
+		 links)))))
 
 
 (def. (dot-bag.string l)
