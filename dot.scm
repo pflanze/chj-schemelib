@@ -7,7 +7,7 @@
 
 
 ;; Display Scheme data structures as directed graphs using the "dot"
-;; tool via "display" from imagemagick.
+;; tool from graphviz via "display" from imagemagick.
 
 ;; apt install graphviz imagemagick
 
@@ -31,9 +31,11 @@
 
 (def string-bag? (bag-of string?))
 
-
 (def. (any.dot-name v)
-  (object->string (object->string v)))
+  ;; XX are there any differences from Scheme to C strings? Well,
+  ;; unicode, right?
+  (object->string ;; <- string -> C style string, really
+   (object->string v)))
 
 (def. (pair.dot-name v)
   (list "\"pair #" (number.string (object->serial-number v)) "\""))
@@ -43,8 +45,11 @@
 	" #" (number.string (object->serial-number v)) "\""))
 
 
+;; https://graphviz.gitlab.io/_pages/doc/info/lang.html
+
 (definterface dot
   (method (string-bag s) -> string-bag?)
+
 
   (def dot-bag? (bag-of dot?))
 
@@ -61,11 +66,26 @@
       ;; (list "  " (.dot-name v) ";\n")
       ;; or, omit?
       ""))
+
   
   (defclass (dot-> a b)
 
     (defmethod (string-bag s) -> string-bag?
-      (list "\t" (.dot-name a) " -> " (.dot-name b) ";\n"))))
+      (list
+       ;; formatting for the object itself
+       (if (or (struct? a)
+	       (vector? a)
+	       (pair? a)) ;; XX move this logic to .dot-name
+	   (list "\t"
+		 (.dot-name a)
+		 " [ fontsize=7, shape=record ];\n")
+	   "")
+       ;; and the pointer to the next
+       (list "\t"
+	     (.dot-name a)
+	     " -> "
+	     (.dot-name b)
+	     ";\n")))))
 
 
 (def. (dot-bag.string l)
