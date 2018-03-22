@@ -113,6 +113,9 @@
 	(def-method- (year-string v)
 	  (number->string (localtime.year v)))
 
+	(def-method- (month-string v)
+	  (number->string (localtime.month v)))
+
 	(def-method (mday-string v)
 	  (number->string mday))
 
