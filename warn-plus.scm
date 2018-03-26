@@ -17,17 +17,16 @@
 
 (defmacro (vars . vs)
   (list 'quasiquote
-	(cons 'vars
-	      (fold-right (lambda (v rest)
-			    (cons (symbol->keyword (source-code v))
-				  (cons (list 'unquote v)
-					rest)))
-			  '()
-			  vs))))
+	(fold-right (lambda (v rest)
+		      (cons (symbol->keyword (source-code v))
+			    (cons (list 'unquote v)
+				  rest)))
+		    '()
+		    vs)))
 
 (TEST
  > (let ((a 1) (b "hey")) (vars a b))
- (vars a: 1 b: "hey"))
+ (a: 1 b: "hey"))
 
 
 (defenum WARN-mode
