@@ -34,7 +34,7 @@
   warn/continuation)
 
 ;; #f turning warnings off, or a WARN-mode
-(defparameter current-WARN warn-only)
+(defparameter current-WARN warn/continuation)
 
 (def (warn-plus:_WARN loc opt message args)
      (let* ((cont (lambda (msg)
