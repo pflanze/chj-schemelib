@@ -103,7 +103,7 @@
 
 
 
-;; https://graphviz.gitlab.io/_pages/doc/info/lang.html
+;; https://graphviz.gitlab.io/_pages/doc/info/
 
 (definterface dot
   (method (string-bag s) -> string-bag?)
@@ -152,17 +152,18 @@
 		   ", fontsize=7, shape=record, color=blue ];\n")
 	     ;; and the pointers to the next
 	     (map/iota (lambda (w i)
-			 (list "\t"
-			       id
-			       " -> "
-			       (fst (.dot-id&label w))
-			       " [ label="
-			       (.string i)
-			       ", fontsize=6, color="
-			       (if (mem-allocated? (.object w))
-				   "blue"
-				   "black")
-			       " ];\n"))
+			 (let ((ma? (mem-allocated? (.object w))))
+			   (list "\t"
+				 id
+				 " -> "
+				 (fst (.dot-id&label w))
+				 " [ label="
+				 (.string i)
+				 ", fontsize=6, color="
+				 (if ma?
+				     "blue"
+				     "black, arrowhead=none")
+				 " ];\n")))
 		       links))))))
 
 
