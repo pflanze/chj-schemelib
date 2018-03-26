@@ -252,10 +252,14 @@
  ((a . a) (a . b) (a . c) (b . b) (b . c) (c . c)))
 
 
-(define (shiftmap fn l)
-     (map fn
-	  l
-	  (append (cdr l) (list (car l)))))
+(define (shiftmap fn lis #!optional (tail '()))
+  (let rec ((a (car lis))
+	    (l (cdr lis)))
+    (if (null? l)
+	(cons (fn a (car lis)) tail)
+	(let-pair ((a* l*) l)
+		  (cons (fn a a*)
+			(rec a* l*))))))
 
 (define (all-equal? l #!optional (equal? equal?))
   ;; XX optimize..
