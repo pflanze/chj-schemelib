@@ -128,7 +128,14 @@
     
     (defmethod (string-bag s) -> string-bag?
       (letv ((id label) (.dot-id&label object))
-	    (list "\t" id " [ label=" label "];\n"))))
+	    (list "\t"
+		  id
+		  " [ label="
+		  label
+		  (if (mem-allocated? (.object object))
+		      ""
+		      ", color=blue")
+		  " ];\n"))))
 
   
   (defclass (dot-> [dot-wrap? object] [dot-wrap-list? links])
@@ -150,7 +157,11 @@
 			       (fst (.dot-id&label w))
 			       " [ label="
 			       (.string i)
-			       ", fontsize=6, color=red ];\n"))
+			       ", fontsize=6, color="
+			       (if (mem-allocated? (.object w))
+				   "black"
+				   "blue")
+			       " ];\n"))
 		       links))))))
 
 
