@@ -7,7 +7,8 @@
 
 
 (require easy
-	 (simple-match-1 warn*))
+	 (simple-match-1 warn*)
+	 (cj-env object->serial-number-string))
 
 (export current-debug
 	(macro variables)
@@ -29,9 +30,31 @@
  (vars a: 1 b: "hey"))
 
 
-(defparameter current-WARN? #f)
+(defenum WARN-mode
+  warn-only
+  warn/continuation)
 
-(defmacro (WARN . args)
-  `(if (current-WARN?)
-       (warn* ,@args)))
+;; #f turning warnings off, or a WARN-mode
+(defparameter current-WARN warn-only)
+
+(def (warn-plus:_WARN loc opt message args)
+     (let* ((cont (lambda (msg)
+		    (apply location-warn loc msg args))))
+       (if (eq? opt 'warn/continuation)
+	   (continuation-capture
+	    (lambda (c)
+	      (cont (string-append
+		     "#"
+		     (object->serial-number-string c)
+		     " -- "
+		     message))))
+	   (cont message))))
+
+(defmacro (WARN message . args)
+  (let ((loc (source-location stx)))
+    (with-gensym
+     OPT
+     `(##cond ((current-WARN)
+	       => (lambda (,OPT)
+		    (warn-plus:_WARN ',loc ,OPT ,message (##list ,@args))))))))
 
