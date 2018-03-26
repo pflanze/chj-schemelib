@@ -62,6 +62,11 @@
     (values (string-append "P" idn)
 	    (list "\"pair #" idn "\""))))
 
+(def. (vector.dot-id&label v)
+  (let ((idn (object->serial-number-string v)))
+    (values (string-append "P" idn)
+	    (list "\"vector #" idn "\""))))
+
 (def. (struct.dot-id&label v)
   (let ((idn (object->serial-number-string v)))
     (values (string-append "S" idn)
