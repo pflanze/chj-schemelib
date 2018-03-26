@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,20 +6,32 @@
 ;;;    (at your option) any later version.
 
 
-(require easy)
+(require easy
+	 (simple-match-1 warn*))
 
-(defmacro (variables . vs)
+(export current-debug
+	(macro variables)
+	(macro WARN))
+
+
+(defmacro (vars . vs)
   (list 'quasiquote
-	(fold-right (lambda (v rest)
-		      (cons (symbol->keyword (source-code v))
-			    (cons (list 'unquote v)
-				  rest)))
-		    '()
-		    vs)))
+	(cons 'vars
+	      (fold-right (lambda (v rest)
+			    (cons (symbol->keyword (source-code v))
+				  (cons (list 'unquote v)
+					rest)))
+			  '()
+			  vs))))
+
+(TEST
+ > (let ((a 1) (b "hey")) (vars a b))
+ (vars a: 1 b: "hey"))
+
+
+(defparameter current-WARN? #f)
 
 (defmacro (WARN . args)
-  `(if *warn*
-       (warn ,@args)))
-
-(def *warn* #f)
+  `(if (current-WARN?)
+       (warn* ,@args)))
 
