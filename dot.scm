@@ -132,9 +132,10 @@
 		  id
 		  " [ label="
 		  label
+		  ", color="
 		  (if (mem-allocated? (.object object))
-		      ""
-		      ", color=blue")
+		      "blue"
+		      "black")
 		  " ];\n"))))
 
   
@@ -148,7 +149,7 @@
 		   id
 		   " [ label="
 		   label
-		   ", fontsize=7, shape=record ];\n")
+		   ", fontsize=7, shape=record, color=blue ];\n")
 	     ;; and the pointers to the next
 	     (map/iota (lambda (w i)
 			 (list "\t"
@@ -159,8 +160,8 @@
 			       (.string i)
 			       ", fontsize=6, color="
 			       (if (mem-allocated? (.object w))
-				   "black"
-				   "blue")
+				   "blue"
+				   "black")
 			       " ];\n"))
 		       links))))))
 
