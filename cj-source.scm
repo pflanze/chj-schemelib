@@ -387,7 +387,7 @@
   (display val (or maybe-port (current-output-port))))
 
 (define (display-console val maybe-port)
-  (display/maybe-port val (or maybe-port (console-port))))
+  (display/maybe-port val (or maybe-port (current-error-port))))
 
 (define (1st-argument/2 val maybe-port)
   val)
