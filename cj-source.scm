@@ -386,6 +386,9 @@
 (define (display/maybe-port val maybe-port)
   (display val (or maybe-port (current-output-port))))
 
+(define (display-console val maybe-port)
+  (display/maybe-port val (or maybe-port (console-port))))
+
 (define (1st-argument/2 val maybe-port)
   val)
 
@@ -462,13 +465,19 @@
 	  (cont normalize location message args))
 	(lambda (location message . args)
 	  (cont #f location message args)))))
-(define location-warn (_location-warn display/maybe-port #f #f))
-(define location-warn-to-string (_location-warn 1st-argument/2 #f #f))
 
-(define location-warn* (_location-warn display/maybe-port #t #f))
-(define location-warn-to-string* (_location-warn 1st-argument/2 #t #f))
+(define location-warn
+  (_location-warn display-console #f #f))
+(define location-warn-to-string
+  (_location-warn 1st-argument/2 #f #f))
 
-(define location-warn-to-string/normalize (_location-warn 1st-argument/2 #f #t))
+(define location-warn*
+  (_location-warn display-console #t #f))
+(define location-warn-to-string*
+  (_location-warn 1st-argument/2 #t #f))
+
+(define location-warn-to-string/normalize
+  (_location-warn 1st-argument/2 #f #t))
 
 ;; test see in simple-match.scm
 
