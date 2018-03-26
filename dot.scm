@@ -7,13 +7,14 @@
 
 
 ;; Display Scheme data structures as directed graphs using the "dot"
-;; tool from graphviz via "display" from imagemagick.
+;; tool from graphviz via "xdot", or "display" from imagemagick.
 
-;; apt install graphviz imagemagick
+;; apt install graphviz
+;; apt install xdot # or imagemagick
 
 (require easy
 	 bag
-	 (cj-io-util xsystem))
+	 (cj-io-util xbacktick xsystem))
 
 (export display-dot)
 
@@ -147,12 +148,18 @@
 ;; XX tmpfile?
 (defparameter dot:tmp-path ".dot-scm.dot")
 
+(defparameter dot:display-cmd
+  (letv ((p c) (Xbacktick "which" "xdot"))
+	(if (zero? c)
+	    '("xdot")
+	    '("display"))))
+
 (def. (dot-bag.display l)
   (let ((path (dot:tmp-path)))
     (=> l
 	dot-bag.string-bag
 	(putfile path))
-    (future (xsystem "display" path))))
+    (future (apply xsystem (append (dot:display-cmd) (list path))))))
 
 
 ;; (method (dot-bag v [dot-wrap? v*]) -> dot-bag?)
