@@ -57,21 +57,29 @@
 	       "I" (.string (parameter-inc! dot:current-immediate-serial))))
 	  (string.c-string (object->string v))))
 
-(def. (pair.dot-id&label v)
-  (let ((idn (object->serial-number-string v)))
-    (values (string-append "P" idn)
-	    (list "\"pair #" idn "\""))))
 
-(def. (vector.dot-id&label v)
-  (let ((idn (object->serial-number-string v)))
-    (values (string-append "P" idn)
-	    (list "\"vector #" idn "\""))))
+(def (make-vectorlike-dot-id&label obj-kind&typename)
+     ;; kind is 1-character string; typename is the type name as
+     ;; string
+     (lambda (v)
+       (let ((idn (object->serial-number-string v)))
+	 (letv ((kind typename) (obj-kind&typename v))
+	       (values (string-append kind idn)
+		       (list "\"" typename " #" idn "\""))))))
 
-(def. (struct.dot-id&label v)
-  (let ((idn (object->serial-number-string v)))
-    (values (string-append "S" idn)
-	    (list "\"" (object->string (struct-type-name v))
-		  " #" idn "\""))))
+(def. pair.dot-id&label
+  (make-vectorlike-dot-id&label (lambda (v) (values "P" "pair"))))
+
+(def. vector.dot-id&label
+  (make-vectorlike-dot-id&label (lambda (v) (values "V" "vector"))))
+
+(def. values.dot-id&label
+  (make-vectorlike-dot-id&label (lambda (v) (values "T" "values"))))
+
+(def. struct.dot-id&label
+  (make-vectorlike-dot-id&label
+   (lambda (v) (values "S"
+		  (object->string (struct-type-name v))))))
 
 
 
@@ -191,6 +199,11 @@
 
 (def. (vector.dot-bag v v*)
   (let ((ws* (vector.map-list v dot-wrap)))
+    (cons (dot-> v* ws*)
+	  (ilist.map ws* *dot-bag))))
+
+(def. (values.dot-bag v v*)
+  (let ((ws* (vector.map-list (values->vector v) dot-wrap)))
     (cons (dot-> v* ws*)
 	  (ilist.map ws* *dot-bag))))
 
