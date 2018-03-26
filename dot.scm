@@ -106,6 +106,7 @@
 ;; https://graphviz.gitlab.io/_pages/doc/info/
 
 (definterface dot
+
   (method (string-bag s) -> string-bag?)
 
 
@@ -206,9 +207,6 @@
     (list (dot-> v* (list a* r*))
 	  (*dot-bag a*)
 	  (*dot-bag r*))))
-
-(def. (null.dot-bag v v*)
-  v*)
 
 (def. (vector.dot-bag v v*)
   (let ((ws* (vector.map-list v dot-wrap)))
