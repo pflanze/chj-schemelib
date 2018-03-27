@@ -32,6 +32,16 @@
 ;; maybe-namespace-form).
 
 ;; Example:
+
+;; (TEST
+;;  > (parameterize
+;;     ((current-foo 123))
+;;     (local-TEST 
+;;      > 1
+;;      2)))
+
+;; or, if parametrization isn't the motivation for it:
+
 ;; (TEST
 ;;  > (define (t-foo f)
 ;;      (local-TEST*
@@ -41,14 +51,6 @@
 ;;       12355))
 ;;  > (%test (t-foo foo))
 ;;  > (%test (t-foo foo*)))
-
-;; or, if parametrization isn't the motivation for it:
-;; (TEST
-;;  > (parameterize
-;;     ((current-manadb (empty-manadb/time 1)))
-;;     (local-TEST 
-;;      > 1
-;;      2)))
 
 
 (define (TEST-expand test-check)
