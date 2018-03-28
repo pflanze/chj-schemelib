@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,24 +11,55 @@
 	 (predicates-1 any? true/1 false/2))
 
 
+(export symbol=?
+	keyword=?
+	symbol-alist-ref
+	keyword-alist-ref
+	number-alist-ref
+	string-alist-ref
+	eq-alist-ref
+	symbol-alist-maybe-ref
+	keyword-alist-maybe-ref
+	number-alist-maybe-ref
+	string-alist-maybe-ref
+	eq-alist-maybe-ref
+	symbol-alist-replace
+	keyword-alist-replace
+	number-alist-replace
+	eq-alist-replace
+	string-alist-replace
+	string-alist-eliminate
+	symbol-alist-add
+	keyword-alist-add
+	number-alist-add
+	eq-alist-add
+	symbol-alist-set
+	keyword-alist-set)
+
 ;; Library for association lists of various key types
 
 ;; ** See alist.scm now, for a more flexible (but perhaps not
 ;; bootstrappable) solution **
 
-(define (symbol-equal? a b)
+(define (symbol=? a b)
   (if (symbol? a)
       (if (symbol? b)
 	  (eq? a b)
 	  (error "not a symbol:" b))
       (error "not a symbol:" a)))
 
-(define (keyword-equal? a b)
+;; deprecated, OK?
+(define symbol-equal? symbol=?)
+
+(define (keyword=? a b)
   (if (keyword? a)
       (if (keyword? b)
 	  (eq? a b)
 	  (error "not a keyword:" b))
       (error "not a keyword:" a)))
+
+;; deprecated, OK?
+(define keyword-equal? keyword=?)
 
 (define (cj-alist:error-not-found alis key)
   (error "key not found:" alis key))
