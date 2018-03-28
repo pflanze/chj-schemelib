@@ -8,12 +8,11 @@
 
 (require test
 	 C
-	 (predicates-1 any? true/1 false/2))
+	 (predicates-1 any? true/1 false/2)
+	 cj-env)
 
 
-(export symbol=?
-	keyword=?
-	symbol-alist-ref
+(export symbol-alist-ref
 	keyword-alist-ref
 	number-alist-ref
 	string-alist-ref
@@ -40,26 +39,6 @@
 
 ;; ** See alist.scm now, for a more flexible (but perhaps not
 ;; bootstrappable) solution **
-
-(define (symbol=? a b)
-  (if (symbol? a)
-      (if (symbol? b)
-	  (eq? a b)
-	  (error "not a symbol:" b))
-      (error "not a symbol:" a)))
-
-;; deprecated, OK?
-(define symbol-equal? symbol=?)
-
-(define (keyword=? a b)
-  (if (keyword? a)
-      (if (keyword? b)
-	  (eq? a b)
-	  (error "not a keyword:" b))
-      (error "not a keyword:" a)))
-
-;; deprecated, OK?
-(define keyword-equal? keyword=?)
 
 (define (cj-alist:error-not-found alis key)
   (error "key not found:" alis key))

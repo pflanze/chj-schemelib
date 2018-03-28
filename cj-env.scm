@@ -14,6 +14,70 @@
 	 cj-env-1
 	 (cj-source show-procedure-location))
 
+(export (macro IF)
+	(macro If)
+	natural?
+	natural0?
+	fxnatural?
+	fxnatural0?
+	positive-real?
+	uint8?  
+	uint16? 
+	uint32? 
+	uint64? 
+	uint128?
+	int8?   
+	int16?  
+	int32?  
+	int64?  
+	int128? 
+	make-list
+	(macro first-then/)
+	(macro on)
+	(macro on/registry) ;; "hack", ?
+	(macro path-normalize/origin=source)
+	equal?*
+	(macro thunk)
+	box-inc!
+	box-dec!
+	box-update!
+	box-add!
+	box-set!
+	bitwise-or
+	(macro inc!)
+	(macro dec!)
+	(macro add!)
+	not*
+	(macro if*)
+	(macro or*)
+	pp-through
+	no-pp-through
+	number->integer ;; XX vs |integer| ?
+	force-thunk
+	(macro lambda_)
+	(macro fut) ;; XX vs. |future| ?
+	fjoin
+	symbol-value-or
+	make-unbound ;; ?
+	unbound?
+	thunk-symbol-value-or ;;?
+	(macro macro-symbol-value-or)
+	(macro define-parameter)
+	(macro show-def)
+	(macro define-if-not-defined)
+	(macro define-if-not-defined-strict)
+	gambit:load
+	*if-symbol-value
+	table-update! ;; XX move to table.scm ?
+	keyword->symbol
+	symbol->keyword
+	bignum? ;; XX move to cj-gambit-sys or so?
+	symbol-or-string->string
+	symbol-append
+	symbol=?
+	keyword=?)
+
+
 (declare (block)(standard-bindings)(extended-bindings))
 
 
@@ -592,3 +656,23 @@
 	   symbol-or-string->string
 	   vals))))
 
+
+(define (symbol=? a b)
+  (if (symbol? a)
+      (if (symbol? b)
+	  (eq? a b)
+	  (error "not a symbol:" b))
+      (error "not a symbol:" a)))
+
+;; deprecated, OK?
+(define symbol-equal? symbol=?)
+
+(define (keyword=? a b)
+  (if (keyword? a)
+      (if (keyword? b)
+	  (eq? a b)
+	  (error "not a keyword:" b))
+      (error "not a keyword:" a)))
+
+;; deprecated, OK?
+(define keyword-equal? keyword=?)
