@@ -18,6 +18,8 @@
 	string.maybe-replace-substrings-ci
 	string.drop
 	string.take
+	string.drop-while
+	string.take-while
 	string.any
 	char-list.string-reverse
 	substring*
@@ -147,6 +149,42 @@
  ;; > (.take "abc" 4)
  ;; *** ERROR IN (console)@9.1 -- (Argument 2) Out of range
  )
+
+
+(define. (string.drop-while str pred)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (if (< i len)
+	  (if (pred (string-ref str i))
+	      (lp (inc i))
+	      (substring str i len))
+	  ""))))
+
+(TEST
+ > (.drop-while "Hello World" char-alpha?)
+ " World"
+ > (.drop-while "Hello World" char-digit?)
+ "Hello World"
+ > (.drop-while "Hello" char-alpha?)
+ "")
+
+(define. (string.take-while str pred)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (if (< i len)
+	  (if (pred (string-ref str i))
+	      (lp (inc i))
+	      (substring str 0 i))
+	  str))))
+
+(TEST
+ > (.take-while "Hello World" char-alpha?)
+ "Hello"
+ > (.take-while "Hello World" char-digit?)
+ ""
+ > (.take-while "Hello" char-alpha?)
+ "Hello")
+
 
 (define. (string.any str pred)
   (let ((len (string-length str)))
