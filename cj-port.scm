@@ -11,7 +11,7 @@
 
 (export with-output-to-string
 	with-error-to-string
-	(macro *with-output-to-string)
+	(macro %with-output-to-string)
 	with-output-to-string*
 	pretty-print-to-string)
 
@@ -31,12 +31,12 @@
   (make-with-_-to-string current-error-port))
 
 
-(define-macro* (*with-output-to-string expr)
+(define-macro* (%with-output-to-string expr)
   `(with-output-to-string (lambda ()
 			    ,expr)))
 
 (TEST
- > (*with-output-to-string (begin (display "Hello ") (display "World")))
+ > (%with-output-to-string (begin (display "Hello ") (display "World")))
  "Hello World")
 
 
