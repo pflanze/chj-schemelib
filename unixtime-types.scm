@@ -225,6 +225,20 @@
 	      (.min-set 0)
 	      (.sec-set 0)
 	      (.integer-isdst-set -1)))
+
+	;; Note: this does not change the time! Nor does it fix wday
+	;; or isdst!
+	(def-method (month-end s)
+	  (let ((lt* (=> (.mday-set s 31)
+			 localtime.unixtime
+			 unixtime.localtime)))
+	    (if (= (.month lt*) (.month s))
+		lt*
+		;; handle overflow: (.mday lt*) is the number of days
+		;; it overflowed, subtract that from 31 and you get
+		;; the last day in the month:
+		(.mday-set s (- 31 (.mday lt*))))))
+	
 	
 	(def-method (month-inc s #!optional keep-dst?)
 	  (let ((r (if (>= month-1 11)
@@ -252,5 +266,23 @@
  > (l* 11)
  (values (localtime 0 0 0 1 11 118 5 11 -1 0) "Sat, 1 Dec 2018 00:00:00")
  > (l* 12)
- (values (localtime 0 0 0 1 0 119 5 11 -1 0) "Tue, 1 Jan 2019 00:00:00"))
+ (values (localtime 0 0 0 1 0 119 5 11 -1 0) "Tue, 1 Jan 2019 00:00:00")
+ > (.gmtime-string (.month-end l))
+ "Wed, 31 Jan 2018 16:28:20 GMT"
+ > (.gmtime-string (.month-end (.month-end l)))
+ "Wed, 31 Jan 2018 16:28:20 GMT"
+ > (.gmtime-string (.month-end (localtime 20 28 16 12 1 118 5 11 0 0)))
+ "Fri, 28 Feb 2018 16:28:20 GMT"
+ ;; evil date claiming to be the 31. of February
+ > (.gmtime-string (.month-end (localtime 20 28 16 31 1 118 5 11 0 0)))
+ "Fri, 28 Feb 2018 16:28:20 GMT"
+ ;; same for a pseudo date far into the next months:
+ > (.gmtime-string (.month-end (localtime 20 28 16 131 1 118 5 11 0 0)))
+ "Fri, 28 Feb 2018 16:28:20 GMT"
+ > (.gmtime-string (.month-end (localtime 20 28 16 31 2 118 5 11 0 0)))
+ "Sat, 31 Mar 2018 17:28:20 GMT"
+ > (.gmtime-string (.month-end (localtime 20 28 16 30 2 118 5 11 0 0)))
+ "Sat, 31 Mar 2018 17:28:20 GMT"
+ > (.gmtime-string (.month-end (localtime 20 28 16 30 3 118 5 11 0 0)))
+ "Fri, 30 Apr 2018 16:28:20 GMT")
 
