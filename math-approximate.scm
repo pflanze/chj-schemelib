@@ -59,7 +59,7 @@
 		  (yh (f hi)))
 	 (let* ((x (average l h))
 		(y* (f x)))
-	   (WARN "iter" (variables x y* yl yh))
+	   ;; (WARN "iter" (variables x y* yl yh))
 	   (if (good-enough x) ;; y*, add variant that does not need f  ? !
 	       x
 	       ;; In which range for x in (f x) is y to be found? x..l
@@ -68,10 +68,10 @@
 	       ;; cases here?)
 	       (let ((cont (lambda (<>)
 			     (cond ((<> yl y* y)
-				    (WARN "need to go towards h" <>)
+				    ;; (WARN "need to go towards h" <>)
 				    (iter x h y* yh))
 				   ((<> y y* yh)
-				    (WARN "need to go towards l" <>)
+				    ;; (WARN "need to go towards l" <>)
 				    (iter l x yl y*))
 				   (else (error "???"))))))
 		 (cond ((<= yl y yh)
