@@ -6,21 +6,30 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test))
+(require define-macro-star
+	 test)
 
 (export with-output-to-string
+	with-error-to-string
 	(macro *with-output-to-string)
 	with-output-to-string*
 	pretty-print-to-string)
 
 
-(define (with-output-to-string thunk)
-  (call-with-output-string
-   ""
-   (lambda (port)
-     (parameterize ((current-output-port port))
-		   (thunk)))))
+(define (make-with-_-to-string current-_-port)
+  (lambda (thunk)
+    (call-with-output-string
+     ""
+     (lambda (port)
+       (parameterize ((current-_-port port))
+		     (thunk))))))
+
+(define with-output-to-string
+  (make-with-_-to-string current-output-port))
+
+(define with-error-to-string
+  (make-with-_-to-string current-error-port))
+
 
 (define-macro* (*with-output-to-string expr)
   `(with-output-to-string (lambda ()
