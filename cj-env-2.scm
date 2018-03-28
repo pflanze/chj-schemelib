@@ -13,9 +13,11 @@
 	 ;; ?
 	 C
 	 (cj-env-1)
+	 cj-functional
 	 debuggable-promise)
 
-(export (macro for..<)
+(export object->serial-number-string
+	(macro for..<)
 	(macro for..)
 	(macro for..<*)
 	current-unixtime
@@ -36,6 +38,10 @@
 (declare (block)(standard-bindings)(extended-bindings))
 (possibly-use-debuggable-promise)
 
+
+
+(define object->serial-number-string
+  (compose number.string object->serial-number))
 
 
 ;; that which cj-standarddeclares.scm was.

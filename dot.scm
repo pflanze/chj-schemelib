@@ -14,6 +14,7 @@
 
 (require easy
 	 bag
+	 (cj-env-2 object->serial-number-string)
 	 (cj-io-util xbacktick xsystem))
 
 (export display-dot)
@@ -44,9 +45,6 @@
 
 
 (defparameter dot:current-immediate-serial 0)
-
-(def object->serial-number-string
-     (comp number.string object->serial-number))
 
 
 (def. (any.dot-id&label v)
