@@ -12,7 +12,6 @@
 	 test
 	 ;; require this?: (understand it as part of bundle?)
 	 cj-env-1
-	 symbol-append
 	 (cj-source show-procedure-location))
 
 (declare (block)(standard-bindings)(extended-bindings))
@@ -575,4 +574,21 @@
 
 ;; ~sigh, Gambit already defines |fixnum?|
 (define bignum? ##bignum?)
+
+
+
+
+(define (symbol-or-string->string v)
+  (cond ((string? v)
+	 v)
+	((symbol? v)
+	 (symbol->string v))
+	(else (error "invalid type:" v))))
+
+(define (symbol-append . vals)
+  (string->symbol
+   (apply string-append
+	  (map 
+	   symbol-or-string->string
+	   vals))))
 

@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 (require easy
-	 symbol-append
+	 (cj-env symbol-append)
 	 (simple-match-1 assert*)
 	 dot-oo)
 

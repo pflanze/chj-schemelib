@@ -8,7 +8,7 @@
 
 (require define-macro-star
 	 test
-	 symbol-append
+	 cj-env
 	 (cj-env-1 inc)
 	 (cj-env on symbol-value-or))
 

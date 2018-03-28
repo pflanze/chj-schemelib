@@ -10,10 +10,9 @@
 	 define-macro-star
 	 test
 	 simple-match
-	 symbol-append
 	 (cj-symbol with-gensyms)
 	 named
-	 (cj-env define-if-not-defined list-max) ;; in macro expansion
+	 (cj-env symbol-append define-if-not-defined list-max) ;; in macro expansion
 	 (predicates-1 list-of-length)
 	 (cj-inline-1 define-inline) ;; cj-inline would give cycle
 	 )
