@@ -218,6 +218,9 @@
 
 	;; Time boundary calculations
 
+	;; NOTE: these do not fix wday or isdst! You have to use
+	;; .canonicalize on the result if that is needed.
+	
 	(def-method (month-start s)
 	  (=> s
 	      (.mday-set 1)
@@ -226,8 +229,7 @@
 	      (.sec-set 0)
 	      (.integer-isdst-set -1)))
 
-	;; Note: this does not change the time! Nor does it fix wday
-	;; or isdst!
+	;; Note: this does not change the time! 
 	(def-method (month-end s)
 	  (let ((lt* (=> (.mday-set s 31)
 			 localtime.unixtime
@@ -237,7 +239,9 @@
 		;; handle overflow: (.mday lt*) is the number of days
 		;; it overflowed, subtract that from 31 and you get
 		;; the last day in the month:
-		(.mday-set s (- 31 (.mday lt*))))))
+		(=> s
+		    (.mday-set (- 31 (.mday lt*)))
+		    (.integer-isdst-set -1)))))
 	
 	
 	(def-method (month-inc s #!optional keep-dst?)
