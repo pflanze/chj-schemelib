@@ -8,9 +8,12 @@
 
 (require easy
 	 (simple-match-1 warn*)
-	 (cj-env-2 object->serial-number-string))
+	 (cj-env-2 object->serial-number-string)
+	 test
+	 (string-util-1 string-split)
+	 (string-util-3 with-error-to-string .drop-while))
 
-(export current-debug
+(export current-WARN-mode
 	(macro variables)
 	(macro WARN))
 
@@ -34,11 +37,11 @@
   warn/continuation)
 
 ;; #f turning warnings off, or a WARN-mode
-(defparameter current-WARN warn/continuation)
+(defparameter current-WARN-mode warn/continuation)
 
-(def (warn-plus:_WARN loc opt message args)
-     (let* ((cont (lambda (msg)
-		    (apply location-warn loc msg args))))
+(def (warn-plus:_WARN loc opt [string? message] args)
+     (let ((cont (lambda (msg)
+		   (apply location-warn loc msg args))))
        (if (eq? opt 'warn/continuation)
 	   (continuation-capture
 	    (lambda (c)
@@ -53,7 +56,55 @@
   (let ((loc (source-location stx)))
     (with-gensym
      OPT
-     `(##cond ((current-WARN)
+     `(##cond ((current-WARN-mode)
 	       => (lambda (,OPT)
 		    (warn-plus:_WARN ',loc ,OPT ,message (##list ,@args))))))))
+
+
+(TEST
+ > (def (trim-digitdot-left str)
+	(.drop-while str (either char-digit? (char-one-of?/ "."))))
+ > (def (t proc)
+	(=> (with-error-to-string proc)
+	    (string-split (char-one-of?/ "@#"))
+	    rest
+	    (.map trim-digitdot-left)))
+ 
+ > (parameterize
+    ((current-WARN-mode warn-only))
+    (local-TEST
+     > (%try (WARN '(a "ha")))
+     (exception text: "message does not match string?: (a \"ha\")\n")
+     > (t (& (WARN "" '(a "ha"))))
+     ;; originally something like:
+     ;;    "*** WARNING IN (console)@11.26 -- : (a \"ha\")\n"
+     (" -- : (a \"ha\")\n")
+     > (t (& (WARN "this" '(a "ha"))))
+     (" -- this: (a \"ha\")\n")
+     > (t (& (WARN "this")))
+     (" -- this\n")))
+
+ > (parameterize
+    ((current-WARN-mode warn/continuation))
+    (local-TEST
+     > (t (& (WARN "" '(a "ha"))))
+     ;; originally something like:
+     ;; *** WARNING IN (console)@11.1 -- #2 -- : (a "ha")
+     (" -- " " -- : (a \"ha\")\n")
+     > (t (& (WARN "this" '(a "ha"))))
+     (" -- " " -- this: (a \"ha\")\n")
+     > (t (& (WARN "this")))
+     (" -- " " -- this\n")))
+
+ > (parameterize
+    ((current-WARN-mode #f))
+    (local-TEST
+     > (%try (WARN '(a "ha")))
+     (value #!void)
+     > (t (& (WARN "" '(a "ha"))))
+     ()
+     > (t (& (WARN "this" '(a "ha"))))
+     ()
+     > (t (& (WARN "this")))
+     ())))
 
