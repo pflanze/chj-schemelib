@@ -84,7 +84,7 @@
 
 (TEST
  > (parameterize
-    ((current-WARN #f))
+    ((current-WARN-mode #f))
     (local-TEST
      > (binfsearch 2 square 0. 1000000.)
      1.430511474609375
@@ -114,7 +114,7 @@
 
 (TEST
  > (parameterize
-    ((current-WARN #f))
+    ((current-WARN-mode #f))
     (local-TEST
      > (mysqrt 4)
      2
