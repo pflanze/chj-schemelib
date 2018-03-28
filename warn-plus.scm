@@ -15,7 +15,7 @@
 	(macro WARN))
 
 
-(defmacro (vars . vs)
+(defmacro (variables . vs)
   (list 'quasiquote
 	(fold-right (lambda (v rest)
 		      (cons (symbol->keyword (source-code v))
@@ -25,7 +25,7 @@
 		    vs)))
 
 (TEST
- > (let ((a 1) (b "hey")) (vars a b))
+ > (let ((a 1) (b "hey")) (variables a b))
  (a: 1 b: "hey"))
 
 
