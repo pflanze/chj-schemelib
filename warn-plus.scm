@@ -8,7 +8,7 @@
 
 (require easy
 	 (simple-match-1 warn*)
-	 (cj-env object->serial-number-string))
+	 (cj-env-2 object->serial-number-string))
 
 (export current-debug
 	(macro variables)
