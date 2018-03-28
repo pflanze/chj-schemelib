@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,7 +6,6 @@
 ;;;    (at your option) any later version.
 
 (require easy test
-	 cj-warn
 	 warn-plus)
 
 ;; searching functionality
@@ -84,22 +83,24 @@
 
 
 (TEST
- > (binfsearch 2 square 0. 1000000.)
- 1.430511474609375
- > (binfsearch 2 sqrt 0. 1000000.)
- 3.814697265625
- > (sqrt 3.814697265625)
- 1.953125
- ;; hu ? ah. range
- > (binfsearch 2 sqrt 0. 10.)
- 3.9999961853027344
- > (binfsearch 0.5 (C - 1.5 _) 0. 255.)
- .9999847412109375
- > (binfsearch 3 (C - 1.5 _) -10. 255.)
- -1.5000176429748535
- > (binfsearch 0.5 (C / 1.5 _) 0.0001 255.)
- 3.0000530471801756
- )
+ > (parameterize
+    ((current-WARN #f))
+    (local-TEST
+     > (binfsearch 2 square 0. 1000000.)
+     1.430511474609375
+     > (binfsearch 2 sqrt 0. 1000000.)
+     3.814697265625
+     > (sqrt 3.814697265625)
+     1.953125
+     ;; hu ? ah. range
+     > (binfsearch 2 sqrt 0. 10.)
+     3.9999961853027344
+     > (binfsearch 0.5 (C - 1.5 _) 0. 255.)
+     .9999847412109375
+     > (binfsearch 3 (C - 1.5 _) -10. 255.)
+     -1.5000176429748535
+     > (binfsearch 0.5 (C / 1.5 _) 0.0001 255.)
+     3.0000530471801756)))
 
 (def (inverse f lo hi)
      (lambda (x)
@@ -112,16 +113,19 @@
 (def mysqrt (inverse-0-x square))
 
 (TEST
- > (mysqrt 4)
- 2
- > (mysqrt 2)
- 11863283/8388608
- ;; (heh, kinda nice for testing)
- > (mysqrt 10000)
- 3355443125/33554432
- ;; 99.99999776482582
- ;; (hmm heh. need more precision, really?)
- )
+ > (parameterize
+    ((current-WARN #f))
+    (local-TEST
+     > (mysqrt 4)
+     2
+     > (mysqrt 2)
+     11863283/8388608
+     ;; (heh, kinda nice for testing)
+     > (mysqrt 10000)
+     3355443125/33554432
+     ;; 99.99999776482582
+     ;; (hmm heh. need more precision, really?)
+     )))
 
 ;; > (plot mysqrt 0.01 9.99)
 ;; *** ERROR IN iter, "color.scm"@97.4 -- y out of range (non-continuous function, or wrong starting range): .01 0 1e-4
