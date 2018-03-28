@@ -216,6 +216,14 @@
 	(def-method- (localtime-string v)
 	  (.rfc-2822-alike-string v #f #f))
 
+
+	;; After operations on localtime values, fields can be
+	;; inconsistent with each other. Canonicalize according to the
+	;; rules used by libc. NOTE: uses the current TZ setting for
+	;; the new localtime!
+	(def-method (canonicalize s)
+	  (unixtime.localtime (localtime.unixtime s)))
+
 	;; Time boundary calculations
 
 	;; NOTE: these do not fix wday or isdst! You have to use
@@ -288,5 +296,9 @@
  > (.gmtime-string (.month-end (localtime 20 28 16 30 2 118 5 11 0 0)))
  "Sat, 31 Mar 2018 17:28:20 GMT"
  > (.gmtime-string (.month-end (localtime 20 28 16 30 3 118 5 11 0 0)))
- "Fri, 30 Apr 2018 16:28:20 GMT")
+ "Fri, 30 Apr 2018 16:28:20 GMT"
+ ;; Note that the above times have had wrong wdays; canonicalized:
+ > (=> (localtime 20 28 16 30 3 118 5 11 0 0)
+       .month-end .canonicalize .gmtime-string)
+ "Mon, 30 Apr 2018 16:28:20 GMT")
 
