@@ -20,10 +20,10 @@
 
 ;; XX rename this to iseq-util-3 or something, change prefixes, or
 ;; what? All functions here also accept streams even though still
-;; naming them *list*. -- except move out letl
+;; naming them *list*. -- except move out let-list
 (export	list-starts-with?/equal? list-starts-with?
 	char-list-starts-with-string?
-	(macro letl))
+	(macro let-list))
 
 (possibly-use-debuggable-promise)
 
@@ -93,7 +93,12 @@
 		    (char-list-starts-with-string? (string->list input) match)))))
 
 
-(define-macro* (letl bind . body)
+;; We were tempted to call this |letl| at first, like |letv|, since it
+;; only allows to decompose one value after all. But, that's quite a
+;; moot argument as all the other decomposition forms like let-pair or
+;; let-$anystructure only take one, too. And we forgot that we named
+;; it letl.
+(define-macro* (let-list bind . body)
   (mcase bind
 	 (`(`vars `expr)
 	  (with-gensyms
@@ -101,7 +106,7 @@
 	   `(let* ((,V ,expr)
 		   (,ERR (lambda ()
 			   (error ,(string-append
-				    "letl: expected a list containing "
+				    "let-list: expected a list containing "
 				    (object->string (cj-desourcify vars))
 				    " but got:")
 				  ,V))))
@@ -119,11 +124,11 @@
 				    (,ERR))))))))))
 
 (TEST
- > (%try-error (letl ((a b d e f) (list 10 22 33)) b))
- #(error "letl: expected a list containing (a b d e f) but got:" (10 22 33))
- > (%try-error (letl ((a b d) (list 10 22 33)) b))
+ > (%try-error (let-list ((a b d e f) (list 10 22 33)) b))
+ #(error "let-list: expected a list containing (a b d e f) but got:" (10 22 33))
+ > (%try-error (let-list ((a b d) (list 10 22 33)) b))
  22
- > (%try-error (letl ((a b) (list 10 22 33)) b))
- #(error "letl: expected a list containing (a b) but got:" (10 22 33))
- > (%try-error (letl (() (list)) "foo"))
+ > (%try-error (let-list ((a b) (list 10 22 33)) b))
+ #(error "let-list: expected a list containing (a b) but got:" (10 22 33))
+ > (%try-error (let-list (() (list)) "foo"))
  "foo")
