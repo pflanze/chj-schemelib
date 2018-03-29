@@ -47,7 +47,7 @@
 ;; parameter not for thread safety, but for easy temporary override
 
 
-;; XX TODO: these are not actually safe when considering the
+;; XXX TODO: these are not actually safe when considering the
 ;; possibility of loading already-compiled object files. How to solve?
 ;; Either forced namespaces, or maintaining counter value as part of
 ;; the build process.
