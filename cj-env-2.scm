@@ -41,7 +41,7 @@
 
 
 (define object->serial-number-string
-  (compose number.string object->serial-number))
+  (compose number->string object->serial-number))
 
 
 ;; that which cj-standarddeclares.scm was.
