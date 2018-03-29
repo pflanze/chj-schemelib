@@ -9,13 +9,15 @@
 (require easy
 	 (simple-match-1 warn*)
 	 (cj-env-2 object->serial-number-string)
+	 symboltable
 	 test
 	 (string-util-1 string-split)
 	 (string-util-3 with-error-to-string .drop-while))
 
 (export current-WARN-mode
 	(macro variables)
-	(macro WARN))
+	(macro WARN)
+	(macro WARN-ONCE))
 
 
 (defmacro (variables . vs)
@@ -107,4 +109,24 @@
      ()
      > (t (& (WARN "this")))
      ())))
+
+
+;; Warnings that show up once (or some fixed times) only:
+
+;; note: count will always just be 1 unless higher number of times is
+;; required
+(def warn-plus:warned-count (symboltable))
+
+(def (warn-plus:warn?-inc! sym)
+     (if (symboltable-ref warn-plus:warned-count sym #f)
+	 #f
+	 (begin
+	   (set! warn-plus:warned-count
+		 (symboltable-set warn-plus:warned-count sym 1))
+	   #t)))
+
+(defmacro (WARN-ONCE message . args)
+  (let ((key (gensym 'warn-once-name)))
+    `(if (warn-plus:warn?-inc! ',key)
+	 (WARN ,message ,@args))))
 
