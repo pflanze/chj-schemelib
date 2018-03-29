@@ -6,9 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require test
-	 template
-	 easy-1)
+(require template
+	 easy-1
+	 test
+	 (cj-test %try))
 
 (export sum
 
@@ -704,4 +705,21 @@
 (TEST
  > (.reverse (s32vector 43341 -3))
  #s32(-3 43341))
+
+
+(TEST
+ > (.first "Hello")
+ #\H
+ > (.last "Hello")
+ #\o
+ > (.rest "Hell")
+ "ell"
+ ;; Not the best error messages, well.. :
+ > (%try (.first ""))
+ (exception text: "(Argument 2) Out of range\n(string-ref \"\" 0)\n")
+ > (%try (.last ""))
+ (exception text: "(Argument 2) Out of range\n(string-ref \"\" -1)\n")
+ > (%try (.rest ""))
+ (exception text: "(Argument 2) Out of range\n(substring \"\" 1 0)\n"))
+
 
