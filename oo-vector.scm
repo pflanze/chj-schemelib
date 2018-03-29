@@ -12,9 +12,7 @@
 	 test)
 
 (export (method vector.filter/iota
-		vector.for-each/iota
-		vector.first
-		vector.last))
+		vector.for-each/iota))
 
 
 (def inc (inline inc))
@@ -59,10 +57,4 @@
  > l
  ((12 . 2) (11 . 1) (10 . 0)))
 
-
-(def. (vector.first v)
-  (vector-ref v 0))
-
-(def. (vector.last v)
-  (vector-ref v (dec (vector-length v))))
 

@@ -1,4 +1,4 @@
-;;; Copyright 2014-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -22,6 +22,8 @@
 	string.length
 	string.list
 	string.null?
+	string.first
+	string.last
 	;; string-inc!
 	;; string-set!
 	;; string.inc!
@@ -55,6 +57,8 @@
 	vector.list
 	list.vector
 	vector.null?
+	vector.first
+	vector.last
 	vector-inc!
 	vector-set!
 	vector.inc!
@@ -87,6 +91,8 @@
 	f32vector.list
 	list.f32vector
 	f32vector.null?
+	f32vector.first
+	f32vector.last
 	f32vector-inc!
 	f32vector-set!
 	f32vector.inc!
@@ -119,6 +125,8 @@
 	f64vector.list
 	list.f64vector
 	f64vector.null?
+	f64vector.first
+	f64vector.last
 	f64vector-inc!
 	f64vector-set!
 	f64vector.inc!
@@ -151,6 +159,8 @@
 	u8vector.list
 	list.u8vector
 	u8vector.null?
+	u8vector.first
+	u8vector.last
 	u8vector-inc!
 	u8vector-set!
 	u8vector.inc!
@@ -183,6 +193,8 @@
 	s8vector.list
 	list.s8vector
 	s8vector.null?
+	s8vector.first
+	s8vector.last
 	s8vector-inc!
 	s8vector-set!
 	s8vector.inc!
@@ -215,6 +227,8 @@
 	u16vector.list
 	list.u16vector
 	u16vector.null?
+	u16vector.first
+	u16vector.last
 	u16vector-inc!
 	u16vector-set!
 	u16vector.inc!
@@ -247,6 +261,8 @@
 	s16vector.list
 	list.s16vector
 	s16vector.null?
+	s16vector.first
+	s16vector.last
 	s16vector-inc!
 	s16vector-set!
 	s16vector.inc!
@@ -279,6 +295,8 @@
 	u32vector.list
 	list.u32vector
 	u32vector.null?
+	u32vector.first
+	u32vector.last
 	u32vector-inc!
 	u32vector-set!
 	u32vector.inc!
@@ -311,6 +329,8 @@
 	s32vector.list
 	list.s32vector
 	s32vector.null?
+	s32vector.first
+	s32vector.last
 	s32vector-inc!
 	s32vector-set!
 	s32vector.inc!
@@ -343,6 +363,8 @@
 	u64vector.list
 	list.u64vector
 	u64vector.null?
+	u64vector.first
+	u64vector.last
 	u64vector-inc!
 	u64vector-set!
 	u64vector.inc!
@@ -375,6 +397,8 @@
 	s64vector.list
 	list.s64vector
 	s64vector.null?
+	s64vector.first
+	s64vector.last
 	s64vector-inc!
 	s64vector-set!
 	s64vector.inc!
@@ -437,6 +461,13 @@
    ;; XX already have |string-empty?|
    (def. (VECTOR.null? v)
      (zero? (VECTOR-length v)))
+
+   (def. (VECTOR.first v)
+     (VECTOR-ref v 0))
+
+   (def. (VECTOR.last v)
+     (VECTOR-ref v (dec (VECTOR-length v))))
+
 
    (IF (not (eq? 'VECTOR 'string))
        (begin
