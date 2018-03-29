@@ -26,6 +26,8 @@
 	string.first
 	string.last
 	string.rest
+	string.filter/iota
+	string.for-each/iota
 	;; string-inc!
 	;; string-set!
 	;; string.inc!
@@ -62,6 +64,8 @@
 	vector.first
 	vector.last
 	vector.rest
+	vector.filter/iota
+	vector.for-each/iota
 	vector-inc!
 	vector-set!
 	vector.inc!
@@ -97,6 +101,8 @@
 	f32vector.first
 	f32vector.last
 	f32vector.rest
+	f32vector.filter/iota
+	f32vector.for-each/iota
 	f32vector-inc!
 	f32vector-set!
 	f32vector.inc!
@@ -132,6 +138,8 @@
 	f64vector.first
 	f64vector.last
 	f64vector.rest
+	f64vector.filter/iota
+	f64vector.for-each/iota
 	f64vector-inc!
 	f64vector-set!
 	f64vector.inc!
@@ -167,6 +175,8 @@
 	u8vector.first
 	u8vector.last
 	u8vector.rest
+	u8vector.filter/iota
+	u8vector.for-each/iota
 	u8vector-inc!
 	u8vector-set!
 	u8vector.inc!
@@ -202,6 +212,8 @@
 	s8vector.first
 	s8vector.last
 	s8vector.rest
+	s8vector.filter/iota
+	s8vector.for-each/iota
 	s8vector-inc!
 	s8vector-set!
 	s8vector.inc!
@@ -237,6 +249,8 @@
 	u16vector.first
 	u16vector.last
 	u16vector.rest
+	u16vector.filter/iota
+	u16vector.for-each/iota
 	u16vector-inc!
 	u16vector-set!
 	u16vector.inc!
@@ -272,6 +286,8 @@
 	s16vector.first
 	s16vector.last
 	s16vector.rest
+	s16vector.filter/iota
+	s16vector.for-each/iota
 	s16vector-inc!
 	s16vector-set!
 	s16vector.inc!
@@ -307,6 +323,8 @@
 	u32vector.first
 	u32vector.last
 	u32vector.rest
+	u32vector.filter/iota
+	u32vector.for-each/iota
 	u32vector-inc!
 	u32vector-set!
 	u32vector.inc!
@@ -342,6 +360,8 @@
 	s32vector.first
 	s32vector.last
 	s32vector.rest
+	s32vector.filter/iota
+	s32vector.for-each/iota
 	s32vector-inc!
 	s32vector-set!
 	s32vector.inc!
@@ -377,6 +397,8 @@
 	u64vector.first
 	u64vector.last
 	u64vector.rest
+	u64vector.filter/iota
+	u64vector.for-each/iota
 	u64vector-inc!
 	u64vector-set!
 	u64vector.inc!
@@ -412,6 +434,8 @@
 	s64vector.first
 	s64vector.last
 	s64vector.rest
+	s64vector.filter/iota
+	s64vector.for-each/iota
 	s64vector-inc!
 	s64vector-set!
 	s64vector.inc!
@@ -439,6 +463,8 @@
 	s64vector-reverse s64vector.reverse
 
 	)
+
+(def inc (inline inc))
 
 
 (def (sum nums)
@@ -484,7 +510,30 @@
    (def. (VECTOR.rest v)
      (subVECTOR v 1 (VECTOR-length v)))
 
+   (def. (VECTOR.filter/iota v fn)
+     (let* ((len (VECTOR-length v))
+	    (v* (make-VECTOR len)))
+       (let lp ((i 0)
+		(j 0))
+	 (if (fx< i len)
+	     (let ((val (VECTOR-ref v i)))
+	       (if (fn val i)
+		   (begin
+		     (VECTOR-set! v* j val)
+		     (lp (inc i) (inc j)))
+		   (lp (inc i) j)))
+	     (begin
+	       (VECTOR-shrink! v* j)
+	       v*)))))
 
+   ;; XX move to/merge with vector-util.scm: (vector-for-each proc vec) .. ?
+
+   (def. (VECTOR.for-each/iota v proc)
+     (let ((len (VECTOR-length v)))
+       (for..< (i 0 len)
+	       (proc (VECTOR-ref v i)
+		     i))))
+   
    (IF (not (eq? 'VECTOR 'string))
        (begin
 	 ;; Heh these are still using the R5RS number operations
@@ -721,5 +770,19 @@
  (exception text: "(Argument 2) Out of range\n(string-ref \"\" -1)\n")
  > (%try (.rest ""))
  (exception text: "(Argument 2) Out of range\n(substring \"\" 1 0)\n"))
+
+(TEST
+ > (.filter/iota (vector 2 -4 5 8) (lambda (v i) (even? v)))
+ #(2 -4 8)
+ > (.filter/iota (vector 2 -4 5 8) (lambda (v i) (even? i)))
+ #(2 5))
+
+(TEST
+ > (def l '())
+ > (def v (vector 10 11 12))
+ > (.for-each/iota v (lambda (x i)
+		       (push! l (cons x i))))
+ > l
+ ((12 . 2) (11 . 1) (10 . 0)))
 
 
