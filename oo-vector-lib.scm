@@ -12,6 +12,9 @@
 	 (cj-test %try)
 	 char-util)
 
+
+;; This is the great combinatorial explosion file.
+
 (export sum
 
 	string->u8vector string.u8vector ;; XX remove this?
@@ -476,6 +479,7 @@
 	s64vector-reverse s64vector.reverse
 
 	)
+
 
 (def inc (inline inc))
 
