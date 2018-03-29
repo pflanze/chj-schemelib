@@ -9,7 +9,8 @@
 (require template
 	 easy-1
 	 test
-	 (cj-test %try))
+	 (cj-test %try)
+	 char-util)
 
 (export sum
 
@@ -27,6 +28,7 @@
 	string.last
 	string.rest
 	string.filter/iota
+	string.filter
 	string.for-each/iota
 	;; string-inc!
 	;; string-set!
@@ -65,6 +67,7 @@
 	vector.last
 	vector.rest
 	vector.filter/iota
+	vector.filter
 	vector.for-each/iota
 	vector-inc!
 	vector-set!
@@ -102,6 +105,7 @@
 	f32vector.last
 	f32vector.rest
 	f32vector.filter/iota
+	f32vector.filter
 	f32vector.for-each/iota
 	f32vector-inc!
 	f32vector-set!
@@ -139,6 +143,7 @@
 	f64vector.last
 	f64vector.rest
 	f64vector.filter/iota
+	f64vector.filter
 	f64vector.for-each/iota
 	f64vector-inc!
 	f64vector-set!
@@ -176,6 +181,7 @@
 	u8vector.last
 	u8vector.rest
 	u8vector.filter/iota
+	u8vector.filter
 	u8vector.for-each/iota
 	u8vector-inc!
 	u8vector-set!
@@ -213,6 +219,7 @@
 	s8vector.last
 	s8vector.rest
 	s8vector.filter/iota
+	s8vector.filter
 	s8vector.for-each/iota
 	s8vector-inc!
 	s8vector-set!
@@ -250,6 +257,7 @@
 	u16vector.last
 	u16vector.rest
 	u16vector.filter/iota
+	u16vector.filter
 	u16vector.for-each/iota
 	u16vector-inc!
 	u16vector-set!
@@ -287,6 +295,7 @@
 	s16vector.last
 	s16vector.rest
 	s16vector.filter/iota
+	s16vector.filter
 	s16vector.for-each/iota
 	s16vector-inc!
 	s16vector-set!
@@ -324,6 +333,7 @@
 	u32vector.last
 	u32vector.rest
 	u32vector.filter/iota
+	u32vector.filter
 	u32vector.for-each/iota
 	u32vector-inc!
 	u32vector-set!
@@ -361,6 +371,7 @@
 	s32vector.last
 	s32vector.rest
 	s32vector.filter/iota
+	s32vector.filter
 	s32vector.for-each/iota
 	s32vector-inc!
 	s32vector-set!
@@ -398,6 +409,7 @@
 	u64vector.last
 	u64vector.rest
 	u64vector.filter/iota
+	u64vector.filter
 	u64vector.for-each/iota
 	u64vector-inc!
 	u64vector-set!
@@ -435,6 +447,7 @@
 	s64vector.last
 	s64vector.rest
 	s64vector.filter/iota
+	s64vector.filter
 	s64vector.for-each/iota
 	s64vector-inc!
 	s64vector-set!
@@ -526,6 +539,10 @@
 	       (VECTOR-shrink! v* j)
 	       v*)))))
 
+   (def. (VECTOR.filter v fn)
+     (VECTOR.filter/iota v (lambda (val i)
+			     (fn val))))
+   
    ;; XX move to/merge with vector-util.scm: (vector-for-each proc vec) .. ?
 
    (def. (VECTOR.for-each/iota v proc)
@@ -785,4 +802,7 @@
  > l
  ((12 . 2) (11 . 1) (10 . 0)))
 
+(TEST
+ > (.filter "Hello, World." char-alpha?)
+ "HelloWorld")
 
