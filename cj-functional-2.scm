@@ -178,6 +178,8 @@
 ;; is taken by cj-typed. Called this "chain" previously (but then how
 ;; to call the other variant, chain> ?)
 
+;; Also see source.=> in code-cj-functional.scm
+
 (define (=>-expand start exprs)
   (let next ((exprs exprs)
 	     (res start))
