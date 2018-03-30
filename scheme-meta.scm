@@ -158,7 +158,7 @@
 (define vector-of-sexpr? (vector-of sexpr?))
 
 
-'(TEST
+(TEST
  ;; hum, stupidly, is the only data structure not supported
  ;; procedures, continuations, and other Gambit data structures
  ;; (cj-struct ones would be considered s-expressions)? If Gambit used
@@ -170,5 +170,6 @@
  ;; Notably also: (wow, that removes the need for |source-sexpr?|)
  > (sexpr? (quote-source 4))
  #t
+ ;; ^ ugh, "works" via vector-of-sexpr?, right? XX evil?
  )
 
