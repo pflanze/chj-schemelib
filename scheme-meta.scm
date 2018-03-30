@@ -10,7 +10,8 @@
 
 (require ;;(cj-functional pair-of)  circular
 	 ;;(vector-util vector-of)  circular
-	 )
+ test)
+
 
 (export void?
 	optional?
@@ -18,6 +19,7 @@
 	rest?
 	
 	self-quoting?
+	constant-expr?
 	perhaps-quote
 	uvector?
 	svector?
@@ -25,6 +27,7 @@
 	homogenous-vector?
 	sexpr-object?
 	sexpr?
+
 	#!optional
 	pair-of-sexpr?
 	vector-of-sexpr?
@@ -73,6 +76,26 @@
       (key? v)
       (rest? v)
       (keyword? v)))
+
+
+;; XX also check quasiquote with only constants used inside?
+;; Or...etc.. deep program analysis? I.e. there may be many more
+;; things that are constant, without this returning #t for it.
+(define (constant-expr? v)
+  (or (self-quoting? v)
+      (and (pair? v)
+	   (eq? (source-code (car v)) 'quote)
+	   (pair? (cdr v))
+	   (null? (cddr v)))))
+
+(TEST
+ > (constant-expr? 10)
+ #t
+ > (constant-expr? ''v)
+ #t
+ > (constant-expr? (list 'quote 'v 'w))
+ #f)
+
 
 (define (perhaps-quote v)
   (if (self-quoting? v)
