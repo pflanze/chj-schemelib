@@ -53,18 +53,20 @@
 ;;  > (%test (t-foo foo*)))
 
 
+;; (XX vs. expansion function in test.scm?)
+
 (define (TEST-expand test-check)
   (named self
 	 (lambda (l)
 	   (define (sideeffect e rest)
-	     (source-error e "local-TEST: side-effects not currently supported"))
+	     (cons e (self rest)))
 	   (mcase l
 		  (null?
 		   '())
 		  (`(> `e)
 		   (sideeffect e '()))
-		  (`(> `e > . `_rest)
-		   (sideeffect e (cddr (source-code l))))
+		  (`(> `e > . `rest)
+		   (sideeffect e (cons '> rest)))
 		  (`(> `e `res . `rest)
 		   (cons `(,test-check ,e ,res)
 			 (self rest)))))))
@@ -95,6 +97,18 @@
 (define-macro* (local-TEST . args)
   `(begin
      ,@((TEST-expand 'test-check) args)))
+
+
+(TEST
+ > (expansion#local-TEST > 1 2)
+ (begin (test-check 1 2))
+ > (expansion#local-TEST* > 1 2)
+ (lambda () (test-check 1 2))
+ > (expansion#local-TEST* > (def f 1))
+ (lambda () (def f 1))
+ > (expansion#local-TEST > (def f 1) > f 1)
+ (begin (def f 1) (test-check f 1)))
+
 
 
 ;; run a test separately
