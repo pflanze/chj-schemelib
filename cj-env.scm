@@ -38,6 +38,7 @@
 	(macro path-normalize/origin=source)
 	equal?*
 	(macro thunk)
+	box-copy
 	box-inc!
 	box-dec!
 	box-update!
@@ -287,6 +288,10 @@
 (define-macro* (thunk . body)
   `(lambda ()
      ,@body))
+
+
+(define (box-copy b)
+  (box (unbox b)))
 
 
 (define (box-inc! b)
