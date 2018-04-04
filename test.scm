@@ -567,6 +567,7 @@
   (set! TEST:repl-history
 	(cons res ;; or expect ?
 	      TEST:repl-history))
+  ;; ^ XX use parameter? Currently not since reset on each TEST form.
   (if (TEST:equal? res expect)
       (parameter-inc! TEST:count-success)
       (if (test:ignore-warning?
