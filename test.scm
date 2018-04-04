@@ -578,7 +578,8 @@
 	    (location-warn* loc "TEST failure, got" res))
 	  (begin
 	    (parameter-inc! TEST:count-fail)
-	    (location-warn loc "TEST failure, got" res)))))
+	    (location-warn loc "TEST failure, got" res))))
+  (void))
 
 (define (TEST:repl-result-history-ref n)
   (list-ref TEST:repl-history n))
