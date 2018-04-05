@@ -180,15 +180,31 @@
 	       (nvals (length vals))
 	       (len (random-natural0 100))
 	       (b (make-ringbuffer len))
-	       (maxspace (min nvals len)))
+	       (maxspace (min nvals len))
+
+	       (initial-t
+		(lambda ()
+		  (local-TEST
+		   > (.length b)
+		   0
+		   > (.empty? b)
+		   #t
+		   > (equal? (.full? b) (zero? len))
+		   #t))))
+
+	  (initial-t)
 	  
-	  (local-TEST
-	   > (.length b)
-	   0
-	   > (.empty? b)
-	   #t
-	   > (equal? (.full? b) (zero? len))
-	   #t)
+	  ;; "prime" the ring buffer so that its internal pointers are
+	  ;; not at the initial position:
+	  (let ((vals (make-list! (random-natural0
+				   (inc (* len 3)))
+				  (C random-natural 10000))))
+	    (for-each (C .push! b _) vals)
+	    (for..< (i 0 (min (length vals) len))
+		    (.pop! b) ))
+	  
+	  (initial-t)
+	  
 
 	  (let ((subvals (take vals maxspace)))
 
@@ -215,10 +231,10 @@
 			     (if (zero? len)
 				 '()
 				 (cons 111 (reverse (if (= maxspace len)
-						     (if (null? subvals)
-							 '()
-							 (rest subvals))
-						     subvals)))))
+							(if (null? subvals)
+							    '()
+							    (rest subvals))
+							subvals)))))
 		     (raise 'n))
 	       #t
 	       > (equal? (.Maybe-pop! b)
@@ -281,6 +297,6 @@
 	       #t)
 	      ;;(raise (continuation-capture id))
 	      ))))
- > (repeat 100 (t)))
+ > (repeat 10 (t)))
 
 
