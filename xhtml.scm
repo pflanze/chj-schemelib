@@ -219,7 +219,10 @@
 	width
 	xml:lang
 	xml:space
-	xmlns))
+	xmlns
+	;; and, XX bad HACK, HTML 5 attributes:
+	integrity
+	crossorigin))
  
  (def xhtml-attribute:maybe-keyword->symbol
       (let ((t (list->table
