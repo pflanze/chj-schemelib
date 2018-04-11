@@ -1,6 +1,6 @@
 (require easy
 	 dot-oo ;; included in easy now?
-	 )
+	 cj-functional)
 
 (def (file-info-time-accessor accessor)
      (lambda (v)
@@ -29,4 +29,23 @@
 (def. file-info.creation-time*
   ;; seems to return garbage!
   (file-info-time-accessor file-info-creation-time))
+
+
+
+(def. error-exception.parameters error-exception-parameters)
+;; hmm arguments vs. parameters (see type-exception)?
+(def. error-exception.arguments error-exception-parameters)
+(def. error-exception.values (comp list->values error-exception-parameters))
+(def. error-exception.message error-exception-message)
+
+(def. type-exception.arguments type-exception-arguments)
+(def. type-exception.values (comp list->values type-exception-arguments))
+(def. type-exception.arg-num type-exception-arg-num)
+(def. type-exception.procedure type-exception-procedure)
+(def. type-exception.type-id type-exception-type-id)
+
+(def. wrong-number-of-arguments-exception.arguments
+  wrong-number-of-arguments-exception-arguments)
+(def. wrong-number-of-arguments-exception.procedure
+  wrong-number-of-arguments-exception-procedure)
 
