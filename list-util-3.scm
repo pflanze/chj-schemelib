@@ -113,24 +113,37 @@
 				    " but got:")
 				  ,V))))
 	      ,(let rec ((vars (source-code vars)))
-		 (if (null? vars)
-		     `(if (null? ,V)
-			  (let ()
-			    ,@body)
-			  (,ERR))
-		     (let-pair ((var vars*) vars)
-			       `(if (pair? ,V)
-				    (let ((,var (car ,V))
-					  (,V (cdr ,V)))
-				      ,(rec vars*))
-				    (,ERR))))))))))
+		 (cond ((null? vars)
+			`(if (null? ,V)
+			     (let ()
+			       ,@body)
+			     (,ERR)))
+		       ((pair? vars)
+			(let-pair ((var vars*) vars)
+				  `(if (pair? ,V)
+				       (let ((,var (car ,V))
+					     (,V (cdr ,V)))
+					 ,(rec vars*))
+				       (,ERR))))
+		       (else
+			;; rest argument
+			`(let ((,vars ,V))
+			   ,@body)))))))))
 
 (TEST
  > (%try-error (let-list ((a b d e f) (list 10 22 33)) b))
- #(error "let-list: expected a list containing (a b d e f) but got:" (10 22 33))
- > (%try-error (let-list ((a b d) (list 10 22 33)) b))
+ [error "let-list: expected a list containing (a b d e f) but got:" (10 22 33)]
+ > (let-list ((a b d) (list 10 22 33)) b)
  22
  > (%try-error (let-list ((a b) (list 10 22 33)) b))
- #(error "let-list: expected a list containing (a b) but got:" (10 22 33))
- > (%try-error (let-list (() (list)) "foo"))
- "foo")
+ [error "let-list: expected a list containing (a b) but got:" (10 22 33)]
+ > (let-list (() (list)) "foo")
+ "foo"
+ ;; rest arguments
+ > (let-list ((a e . i) (list 10 22 33)) (vector a e i))
+ [10 22 (33)]
+ > (let-list ((a e . i) (list 10 22)) (vector a e i))
+ [10 22 ()]
+ > (%try-error (let-list ((a e . i) (list 10)) (vector a e i)))
+ [error "let-list: expected a list containing (a e . i) but got:" (10)])
+
