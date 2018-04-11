@@ -33,21 +33,22 @@
 ;; Q: how does Haskell keep uniformity when going vector representation?
 
 (define (list-starts-with?/equal? equal?)
-  (named starts-with?
-	 (lambda (l matchl)
-	   (FV (l)
-	       (if (null? l)
-		   (values (null? matchl)
-			   l)
-		   (if (null? matchl)
-		       (values #t
-			       l)
-		       (let-pair ((m matchl*) matchl)
-				 (let-pair ((a l*) l)
-					   (if (equal? m a) ;; reverse arg order?
-					       (starts-with? l* matchl*)
-					       (values #f
-						       l))))))))))
+  (named
+   starts-with?
+   (lambda (l matchl)
+     (FV (l)
+	 (if (null? l)
+	     (values (null? matchl)
+		     l)
+	     (if (null? matchl)
+		 (values #t
+			 l)
+		 (let-pair ((m matchl*) matchl)
+			   (let-pair ((a l*) l)
+				     (if (equal? m a) ;; reverse arg order?
+					 (starts-with? l* matchl*)
+					 (values #f
+						 l))))))))))
 
 (define list-starts-with? (list-starts-with?/equal? equal?))
 
@@ -87,10 +88,11 @@
 	      (values #t l))))))
 
 (TEST
- > (lut (compose* (lambda-values ((b l))
-				 (vector b (list->string l)))
-		  (lambda (input match)
-		    (char-list-starts-with-string? (string->list input) match)))))
+ > (lut (compose*
+	 (lambda-values ((b l))
+			(vector b (list->string l)))
+	 (lambda (input match)
+	   (char-list-starts-with-string? (string->list input) match)))))
 
 
 ;; We were tempted to call this |letl| at first, like |letv|, since it
