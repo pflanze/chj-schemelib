@@ -19,8 +19,8 @@
 (defmodule (<uuid>
 	    #!key
 	    ;; uuid-string-length:
-	    (#(exact-natural? length) 27)
-	    convert)
+	    ([exact-natural? length] 27)
+	    ([procedure? convert] identity))
 
   (export random-uuid
 	  uuid?)
@@ -31,8 +31,7 @@
 
   (def random-uuid
        (let ((*s (atomic-box (make-realrandom-alphanumeric-string-stream
-			      length)))
-	     (convert (or convert identity)))
+			      length))))
 	 (lambda ()
 	   (atomic-box.update!
 	    *s
