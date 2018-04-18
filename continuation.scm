@@ -5,7 +5,8 @@
 
 (export continuation-return-no-winding
 	continuation-graft-no-winding
-	show-continuation)
+	show-continuation
+	current-continuation)
 
 
 
@@ -108,3 +109,7 @@
       (lambda (cont)
         (warn cont)
         res)))
+
+(def (current-continuation)
+     (continuation-capture identity))
+
