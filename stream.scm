@@ -22,7 +22,9 @@
 	 test
 	 (cj-env on))
 
-(export stream-filter/tail
+(export stream-null?
+	stream-pair?
+	stream-filter/tail
 	stream-for-each
 	stream-fold-right
 	stream:fold-right
@@ -106,6 +108,13 @@
 	)
 
 (possibly-use-debuggable-promise)
+
+
+(define (stream-null? s)
+  (null? (force s)))
+
+(define (stream-pair? s)
+  (pair? (force s)))
 
 
 (define (stream-filter/tail pred s tail)

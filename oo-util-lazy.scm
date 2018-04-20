@@ -9,6 +9,7 @@
 	 (template template-map)
 	 (oo-vector-lib sum)
 	 debuggable-promise
+	 (srfi-1 null-list?)
 	 )
 
 (export ilist?
@@ -409,10 +410,20 @@
 
 (define list->list identity)
 
+(define list-null? null-list?)
+(define list-pair? pair?)
+
+
 (template-map
  ((istream. '(istream. ilist.))
   (stream- '(stream- list-)))
  (begin
+
+   (define. (istream.null? s)
+     (stream-null? s))
+
+   (define. (istream.pair? s)
+     (stream-pair? s))
 
    (define. (istream.filter/tail s pred tail)
      (stream-filter/tail pred s tail))
