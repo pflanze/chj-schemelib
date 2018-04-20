@@ -12,24 +12,30 @@
 	 (cj-test %try)
 	 char-util)
 
-;; functions not implemented but required by oo-util-lazy if adding
-;; vector as type parameter there:
-(def (error-not-implemented/n . args)
-     (error-not-implemented))
-(def vector->string error-not-implemented/n)
-(def source-vector->string error-not-implemented/n)
-(def vector-length> error-not-implemented/n)
-(def vector-length>= error-not-implemented/n)
-(def vector-fourth error-not-implemented/n)
-(def vector-fifth error-not-implemented/n)
-(def vector-sixth error-not-implemented/n)
-(def vector-seventh error-not-implemented/n)
-(def vector-eighth error-not-implemented/n)
-(def vector-ninth error-not-implemented/n)
-(def vector-tenth error-not-implemented/n)
+(compile-time
+ (def *oo-vector-lib:implement-thunks* #f))
 
-(def char-vector? false/1) ;; XX evil
-(def source-char-vector? false/1) ;; XX evil
+(IF *oo-vector-lib:implement-thunks*
+    (begin
+      ;; functions not implemented but required by oo-util-lazy if adding
+      ;; vector as type parameter there:
+      (def (error-not-implemented/n . args)
+	   (error-not-implemented))
+      (def vector->string error-not-implemented/n)
+      (def source-vector->string error-not-implemented/n)
+      (def vector-length> error-not-implemented/n)
+      (def vector-length>= error-not-implemented/n)
+      (def vector-fourth error-not-implemented/n)
+      (def vector-fifth error-not-implemented/n)
+      (def vector-sixth error-not-implemented/n)
+      (def vector-seventh error-not-implemented/n)
+      (def vector-eighth error-not-implemented/n)
+      (def vector-ninth error-not-implemented/n)
+      (def vector-tenth error-not-implemented/n)
+
+      (def char-vector? false/1) ;; XX evil
+      (def source-char-vector? false/1) ;; XX evil
+      ))
 
 
 ;; This is the great combinatorial explosion file.
@@ -500,8 +506,9 @@
 	)
 
 
-(def (error-not-implemented)
-     (error "not yet implemented"))
+(IF *oo-vector-lib:implement-thunks*
+    (def (error-not-implemented)
+	 (error "not yet implemented")))
 
 (def inc (inline inc))
 
@@ -538,30 +545,30 @@
 
    ;; XX already have |string-empty?|
    (def (VECTOR-null? v)
-     (zero? (VECTOR-length v)))
+	(zero? (VECTOR-length v)))
    (def. VECTOR.null? VECTOR-null?)
 
    (def (VECTOR-filter/iota fn v)
-     (let* ((len (VECTOR-length v))
-	    (v* (make-VECTOR len)))
-       (let lp ((i 0)
-		(j 0))
-	 (if (fx< i len)
-	     (let ((val (VECTOR-ref v i)))
-	       (if (fn val i)
-		   (begin
-		     (VECTOR-set! v* j val)
-		     (lp (inc i) (inc j)))
-		   (lp (inc i) j)))
-	     (begin
-	       (VECTOR-shrink! v* j)
-	       v*)))))
+	(let* ((len (VECTOR-length v))
+	       (v* (make-VECTOR len)))
+	  (let lp ((i 0)
+		   (j 0))
+	    (if (fx< i len)
+		(let ((val (VECTOR-ref v i)))
+		  (if (fn val i)
+		      (begin
+			(VECTOR-set! v* j val)
+			(lp (inc i) (inc j)))
+		      (lp (inc i) j)))
+		(begin
+		  (VECTOR-shrink! v* j)
+		  v*)))))
    (def. (VECTOR.filter/iota v fn)
      (VECTOR-filter/iota fn v))
 
    (def (VECTOR-filter fn v)
-     (VECTOR.filter/iota v (lambda (val i)
-			     (fn val))))
+	(VECTOR.filter/iota v (lambda (val i)
+				(fn val))))
    (def. (VECTOR.filter v fn)
      (VECTOR-filter fn v))
    
@@ -593,8 +600,9 @@
 	      (VECTOR.fold v + 0))
 	 (def. VECTOR.sum VECTOR-sum)
 
-	 (def (VECTOR-reverse/tail v tail)
-	      (error-not-implemented))
+	 (IF *oo-vector-lib:implement-thunks*
+	     (def (VECTOR-reverse/tail v tail)
+		  (error-not-implemented)))
 
 	 (def (VECTOR-reverse v)
 	      (let* ((len (VECTOR-length v))
@@ -708,14 +716,16 @@
 	      '())))
    (def. VECTOR.sublist VECTOR-sublist)
 
-   (def (VECTOR-difference s1 s2 #!optional (equal? equal?))
-	(error-not-implemented))
+   (IF *oo-vector-lib:implement-thunks*
+       (def (VECTOR-difference s1 s2 #!optional (equal? equal?))
+	    (error-not-implemented)))
 
-   (def (show-VECTOR-difference s1 s2
-				#!key
-				(equal? equal?)
-				(n 2))
-	(error-not-implemented))
+   (IF *oo-vector-lib:implement-thunks*
+       (def (show-VECTOR-difference s1 s2
+				    #!key
+				    (equal? equal?)
+				    (n 2))
+	    (error-not-implemented)))
 
    (def (VECTOR-append-optimized a b)
 	(if (VECTOR.null? a)
@@ -788,8 +798,9 @@
    (def. VECTOR.min VECTOR-min)
    (def. VECTOR.max VECTOR-max)
 
-   (def (VECTOR-rtake&rest s n #!optional (tail '()))
-	(error-not-implemented))
+   (IF *oo-vector-lib:implement-thunks*
+       (def (VECTOR-rtake&rest s n #!optional (tail '()))
+	    (error-not-implemented)))
    ;; (def VECTOR.rtake&rest VECTOR-rtake&rest) why when the generic
    ;; will report that anyway!
    
