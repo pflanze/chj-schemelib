@@ -28,7 +28,7 @@
 
 ;; also see u8vector->string in cj-u8vector-util
 (def. (u8vector.string v)
-  (let* ((len (u8vector.length v))
+  (let* ((len (u8vector-length v))
 	 (o (##make-string len)))
     (for..< (i 0 len)
 	    (string-set!
