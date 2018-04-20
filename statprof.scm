@@ -8,7 +8,8 @@
 	 (cj-env on)
 	 (srfi-11 lambda-values fst)
 	 (oo-vector-lib vector.sum)
-	 define-macro-star)
+	 define-macro-star
+	 oo-lib-vector)
 
 (export profile-start!
 	profile-stop!

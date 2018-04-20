@@ -3,7 +3,8 @@
 	 csv-defaults
 	 (predicates length-=)
 	 jclass
-	 stream)
+	 stream
+	 oo-lib-vector)
 
 (export csv-file-stream
 	(jclass csv-reader)
