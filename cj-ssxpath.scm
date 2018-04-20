@@ -13,7 +13,7 @@
 	 stream
 	 cj-sxml
 	 cj-env	;; natural0?, should be moved
-	 (oo-vector-lib strings-append)
+	 (oo-lib-string strings-append)
 	 debuggable-promise
 	 predicates
 	 (oo-util-lazy iseq-of)

@@ -7,9 +7,8 @@
 (require slib-sort
 	 (cj-env on)
 	 (srfi-11 lambda-values fst)
-	 (oo-vector-lib vector.sum)
-	 define-macro-star
-	 oo-lib-vector)
+	 oo-lib-vector
+	 define-macro-star)
 
 (export profile-start!
 	profile-stop!
