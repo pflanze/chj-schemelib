@@ -117,6 +117,8 @@
 (TEST
  > (char-istream? '())
  #f ;; because there's *no* indication of lazyness
+ > (char-istream? (delay '()))
+ #t
  > (char-ilist? '())
  #t
  > (char-istream? '(#\H #\i))
