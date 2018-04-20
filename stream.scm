@@ -11,7 +11,7 @@
 	 cj-struct
 	 list-util
 	 cj-cmp
-	 (cj-functional compose-function)
+	 (cj-functional compose compose*)
 	 srfi-11
 	 cj-typed
 	 cut
@@ -1307,7 +1307,7 @@
 (define (stream-zip . ss)
   (let rec ((ss ss))
     (delay
-      (if (any (compose-function null? force) ss)
+      (if (any (compose null? force) ss)
 	  '()
 	  (cons (map (lambda (s)
 		       (car (force s)))
@@ -1507,10 +1507,10 @@
 						 ((eq) (con v max)))))))))))
 
 (define stream-min
-  (compose-function fst stream-min&max))
+  (compose* fst stream-min&max))
 
 (define stream-max
-  (compose-function snd stream-min&max))
+  (compose* snd stream-min&max))
 
 (TEST
  > (values->vector (stream-min&max '(3 5 9 -3 7)))
