@@ -12,6 +12,25 @@
 	 (cj-test %try)
 	 char-util)
 
+;; functions not implemented but required by oo-util-lazy if adding
+;; vector as type parameter there:
+(def (error-not-implemented/n . args)
+     (error-not-implemented))
+(def vector->string error-not-implemented/n)
+(def source-vector->string error-not-implemented/n)
+(def vector-length> error-not-implemented/n)
+(def vector-length>= error-not-implemented/n)
+(def vector-fourth error-not-implemented/n)
+(def vector-fifth error-not-implemented/n)
+(def vector-sixth error-not-implemented/n)
+(def vector-seventh error-not-implemented/n)
+(def vector-eighth error-not-implemented/n)
+(def vector-ninth error-not-implemented/n)
+(def vector-tenth error-not-implemented/n)
+
+(def char-vector? false/1) ;; XX evil
+(def source-char-vector? false/1) ;; XX evil
+
 
 ;; This is the great combinatorial explosion file.
 
@@ -481,6 +500,9 @@
 	)
 
 
+(def (error-not-implemented)
+     (error "not yet implemented"))
+
 (def inc (inline inc))
 
 
@@ -515,19 +537,11 @@
        (def. list.VECTOR list->VECTOR))
 
    ;; XX already have |string-empty?|
-   (def. (VECTOR.null? v)
+   (def (VECTOR-null? v)
      (zero? (VECTOR-length v)))
+   (def. VECTOR.null? VECTOR-null?)
 
-   (def. (VECTOR.first v)
-     (VECTOR-ref v 0))
-
-   (def. (VECTOR.last v)
-     (VECTOR-ref v (dec (VECTOR-length v))))
-
-   (def. (VECTOR.rest v)
-     (subVECTOR v 1 (VECTOR-length v)))
-
-   (def. (VECTOR.filter/iota v fn)
+   (def (VECTOR-filter/iota fn v)
      (let* ((len (VECTOR-length v))
 	    (v* (make-VECTOR len)))
        (let lp ((i 0)
@@ -542,10 +556,14 @@
 	     (begin
 	       (VECTOR-shrink! v* j)
 	       v*)))))
+   (def. (VECTOR.filter/iota v fn)
+     (VECTOR-filter/iota fn v))
 
-   (def. (VECTOR.filter v fn)
+   (def (VECTOR-filter fn v)
      (VECTOR.filter/iota v (lambda (val i)
 			     (fn val))))
+   (def. (VECTOR.filter v fn)
+     (VECTOR-filter fn v))
    
    ;; XX move to/merge with vector-util.scm: (vector-for-each proc vec) .. ?
 
@@ -571,17 +589,22 @@
 
 	 ;; could also write (def .sum (C .fold _ + 0)) but then it wouldn't
 	 ;; be properly extensible?
-	 (def. (VECTOR.sum v)
-	   (VECTOR.fold v + 0))
+	 (def (VECTOR-sum v)
+	      (VECTOR.fold v + 0))
+	 (def. VECTOR.sum VECTOR-sum)
 
-	 (def. (VECTOR.reverse v)
-	   (let* ((len (VECTOR-length v))
-		  (out (make-VECTOR len))
-		  (len-1 (dec len)))
-	     (for..< (i 0 len)
-		     (VECTOR-set! out i
-				  (VECTOR-ref v (- len-1 i))))
-	     out))))
+	 (def (VECTOR-reverse/tail v tail)
+	      (error-not-implemented))
+
+	 (def (VECTOR-reverse v)
+	      (let* ((len (VECTOR-length v))
+		     (out (make-VECTOR len))
+		     (len-1 (dec len)))
+		(for..< (i 0 len)
+			(VECTOR-set! out i
+				     (VECTOR-ref v (- len-1 i))))
+		out))
+	 (def. VECTOR.reverse VECTOR-reverse)))
    
    ;; Could abstract most code into a separate routine that takes a
    ;; make-vector argument, and uses object ops for the rest, but
@@ -625,6 +648,151 @@
 		       l)
 		 (dec i))))))
 
+   (def (VECTOR-take v k) (subVECTOR v 0 k))
+   (def. VECTOR.take VECTOR-take)
+
+   (def (VECTOR-drop v k) (subVECTOR v k (VECTOR-length v)))
+   (def. VECTOR.drop VECTOR-drop)
+
+
+   (def _VECTOR-rest-count 0)
+
+   (def (VECTOR-rest v)
+	(let ((len (VECTOR-length v)))
+	  (if (zero? len)
+	      (error "VECTOR-rest: VECTOR is empty")
+	      (begin
+		(if (= (inc! _VECTOR-rest-count) 10)
+		    (warn "VECTOR-rest is called often, consider optimizing your algorithm")) ;; XX use WARN
+		(subVECTOR v 1 len)))))
+   (def. VECTOR.rest VECTOR-rest)
+   
+   (def (VECTOR-first v)
+	(let ((len (VECTOR-length v)))
+	  (if (zero? len)
+	      (error "VECTOR-first: VECTOR is empty")
+	      (VECTOR-ref v 0))))
+   (def. VECTOR.first VECTOR-first)
+
+   (def (VECTOR-second v)
+	(let ((len (VECTOR-length v)))
+	  (if (< len 2)
+	      (error "VECTOR-second: VECTOR is too small")
+	      (VECTOR-ref v 1))))
+   (def. VECTOR.second VECTOR-second)
+
+   (def (VECTOR-third v)
+	(let ((len (VECTOR-length v)))
+	  (if (< len 3)
+	      (error "VECTOR-third: VECTOR is too small")
+	      (VECTOR-ref v 2))))
+   (def. VECTOR.third VECTOR-third)
+
+   (def (VECTOR-last v)
+	(let ((len (VECTOR-length v)))
+	  (if (zero? len)
+	      (error "VECTOR-last: VECTOR is empty")
+	      (VECTOR-ref v (dec len)))))
+   (def. VECTOR.last VECTOR-last)
+
+
+   (def (VECTOR-butlast v)
+	(subVECTOR v 0 (dec (VECTOR-length v))))
+   (def. VECTOR.butlast VECTOR-butlast)
+
+   (def (VECTOR-sublist v si ei)
+	(let rec ((i si))
+	  (if (< si ei)
+	      (cons (VECTOR-ref v i)
+		    (rec (inc i)))
+	      '())))
+   (def. VECTOR.sublist VECTOR-sublist)
+
+   (def (VECTOR-difference s1 s2 #!optional (equal? equal?))
+	(error-not-implemented))
+
+   (def (show-VECTOR-difference s1 s2
+				#!key
+				(equal? equal?)
+				(n 2))
+	(error-not-implemented))
+
+   (def (VECTOR-append-optimized a b)
+	(if (VECTOR.null? a)
+	    b
+	    (if (VECTOR.null? b)
+		a
+		(VECTOR-append a b))))
+   (def. VECTOR.append-optimized VECTOR-append-optimized)
+
+   (def (VECTOR-append/2 a b)
+	;; rely on compiler optim? How does it even work without it?
+	(VECTOR-append a b))
+   (def. VECTOR.append/2 VECTOR-append/2)
+
+   ;; careful, optimized! (in the sense of append-optimized)
+   (def (VECTOR-split-at s [exact-natural0? n]) ;; not supporting  #!optional tail
+	(let ((len (VECTOR-length s)))
+	  (cond ((zero? n)
+		 (values '[] s))
+		((= n len)
+		 (values s '[]))
+		((< n len)
+		 (values (subVECTOR s 0 n)
+			 (subVECTOR s n len)))
+		(else
+		 (error "VECTOR-split-at: argument out of bounds:" n)))))
+   (def. VECTOR.split-at VECTOR-split-at)
+
+   (def (VECTOR-Maybe-ref v [exact-natural0? i])
+	(let ((len (VECTOR-length v)))
+	  (if (< i len)
+	      (Just (VECTOR-ref v i))
+	      (Nothing))))
+   (def. VECTOR.Maybe-ref VECTOR-Maybe-ref)
+
+   ;; like stream-min&max in stream.scm
+   (def (VECTOR-min&max vec
+			#!key
+			(cmp generic-cmp)
+			all?)
+	(let ((con (lambda (v r)
+		     (if all? (cons v r) v)))
+	      (ex (lambda (vS)
+		    (if all? (car vS) vS)))
+	      (len (VECTOR-length vec)))
+
+	  (if (zero? len)
+	      (error "VECTOR-min&max: got empty VECTOR")
+
+	      (let ((v (VECTOR-ref vec 0)))
+		(let lp ((i 1)
+			 (min (con v '()))
+			 (max (con v '())))
+		  (if (< i len)
+		      (let ((v (VECTOR-ref vec i)))
+			(lp (inc i)
+			    (match-cmp (cmp (ex min) v)
+				       ((lt) min)
+				       ((gt) (con v '()))
+				       ((eq) (con v min)))
+			    (match-cmp (cmp (ex max) v)
+				       ((lt) (con v '()))
+				       ((gt) max)
+				       ((eq) (con v max)))))
+		      (values min max)))))))
+   (def. VECTOR.min&max VECTOR-min&max)
+
+   (def VECTOR-min (comp* fst VECTOR-min&max))
+   (def VECTOR-max (comp* snd VECTOR-min&max))
+   (def. VECTOR.min VECTOR-min)
+   (def. VECTOR.max VECTOR-max)
+
+   (def (VECTOR-rtake&rest s n #!optional (tail '()))
+	(error-not-implemented))
+   ;; (def VECTOR.rtake&rest VECTOR-rtake&rest) why when the generic
+   ;; will report that anyway!
+   
    ;; n-ary, non-oo version:
 
    ;; These are already in vector-util!  Not removing them right now
@@ -786,11 +954,11 @@
  "ell"
  ;; Not the best error messages, well.. :
  > (%try (.first ""))
- (exception text: "(Argument 2) Out of range\n(string-ref \"\" 0)\n")
+ (exception text: "string-first: string is empty\n")
  > (%try (.last ""))
- (exception text: "(Argument 2) Out of range\n(string-ref \"\" -1)\n")
+ (exception text: "string-last: string is empty\n")
  > (%try (.rest ""))
- (exception text: "(Argument 2) Out of range\n(substring \"\" 1 0)\n"))
+ (exception text: "string-rest: string is empty\n"))
 
 (TEST
  > (.filter/iota (vector 2 -4 5 8) (lambda (v i) (even? v)))
@@ -809,4 +977,48 @@
 (TEST
  > (.filter "Hello, World." char-alpha?)
  "HelloWorld")
+
+
+(TEST
+ > (def a (vector 1 23 3))
+ > (eq? a (vector-append a '[]))
+ #f ;; in Gambit, at least, but IIRC the standard is even asking for this?
+ > (equal? a (vector-append a '[]))
+ #t
+ > (eq? a (vector-append-optimized a '[]))
+ #t
+ > (def a "Hi")
+ > (eq? a (string-append a ""))
+ #f
+ > (eq? a (string-append-optimized a ""))
+ #t
+ > (eq? a (string-append-optimized "" a))
+ #t
+ > (eq? a (string-append "" a))
+ #f ;; ?
+ )
+
+(TEST
+ > (.show (.min&max '[10 9]))
+ (values 9 10)
+ > (.show (.min&max '[-10 9]))
+ (values -10 9)
+ > (.show (.min&max '[-10]))
+ (values -10 -10)
+ > (%try (.min&max '[]))
+ (exception text: "vector-min&max: got empty vector\n")
+ > (.show (.min&max '[10 29 4]))
+ (values 4 29))
+
+(TEST
+ > (.show (.split-at '[a b c] 0))
+ (values (vector) (vector 'a 'b 'c))
+ > (.show (.split-at '[a b c] 3))
+ (values (vector 'a 'b 'c) (vector))
+ > (.show (.split-at '[a b c] 2))
+ (values (vector 'a 'b) (vector 'c))
+ > (%try (.split-at '[a b c] 4))
+ (exception text: "vector-split-at: argument out of bounds: 4\n")
+ > (%try (.split-at '[a b c] -1))
+ (exception text: "n does not match exact-natural0?: -1\n"))
 
