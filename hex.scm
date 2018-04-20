@@ -6,9 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy
-	 oo-vector-lib ;; should that be part of easy?
-	 )
+(require easy)
 
 (export hexdigit
 	(method integer.parse-hexdigit
@@ -54,7 +52,7 @@
 
 
 (def. (u8vector.hex-string v)
-  (let* ((len (u8vector.length v))
+  (let* ((len (u8vector-length v))
 	 (o (##make-string (* 2 len))))
     (for..< (i 0 len)
 	    (let* ((x (u8vector-ref v i))
@@ -78,7 +76,7 @@
 
 (def. (string.parse-hex v)
   ;; to u8vector, ok?
-  (let* ((len (string.length v)))
+  (let* ((len (string-length v)))
     (assert (even? len))
     (let* ((len (arithmetic-shift len -1))
 	   (o (##make-u8vector len)))
