@@ -1,4 +1,9 @@
 
+;; This now includes vectors as well, i.e. probably targets all
+;; sequences now. Thus should be renamed at some point.
+
+;; Except there are many sequences, do all of those in oo-vector-lib ?
+
 (require easy-1
 	 dot-oo ;; included in easy?
 	 ;; oo-util ;; ?
@@ -430,8 +435,8 @@
 
 
 (template-map
- ((istream. '(istream. ilist.))
-  (stream- '(stream- list-)))
+ ((istream. '(istream. ilist. vector.))
+  (stream- '(stream- list- vector-)))
  (begin
 
    (define. (istream.null? s)
