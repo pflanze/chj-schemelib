@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,7 +8,8 @@
 
 (require easy
 	 test
-	 (math/vectorlib-1 view))
+	 (math/vectorlib-1 view)
+	 (oo-lib-u32vector u32vector-inc!))
 
 (export show-fn
 	view-fn plot

@@ -11,7 +11,7 @@
 	 named
 	 (cj-warn warn
 		  port-add-hook!)
-	 (oo-vector-lib strings-append))
+	 (oo-lib-string strings-append))
 
 
 (export STRING
