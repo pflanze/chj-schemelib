@@ -16,8 +16,11 @@
 	istream?
 	ilist-of
 	istream-of
+	ivector?
+	ivector-of
 	char-ilist?
 	char-istream?
+	char-ivector?
 	source-char-ilist?
 	source-char-istream?
 	possibly-lazy-null?
@@ -111,8 +114,18 @@
 		 (and (promise? r)
 		      (check r))))))))
 
+(define ivector? vector?)
+
+(define (ivector-of pred)
+  (lambda (v)
+    (and (vector? v)
+	 (let ((len (vector-length v)))
+	   (or (zero? len)
+	       (pred (vector-ref v 0)))))))
+
 (define char-ilist? (ilist-of char?))
 (define char-istream? (istream-of char?))
+(define char-ivector? (ivector-of char?))
 
 (TEST
  > (char-istream? '())
