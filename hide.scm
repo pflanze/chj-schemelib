@@ -7,8 +7,8 @@
 
 
 (require easy
-	 oo-vector-lib ;; for .u8vector in u8vector.hide, right one?
-		       ;; also: string.u8vector, u8vector-map, u8vector.string
+	 (oo-lib-u8vector .u8vector u8vector-map u8vector.string)
+	 (oo-lib-string string.u8vector)
 	 stream)
 
 (def (8bits x)
