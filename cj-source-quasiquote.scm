@@ -9,7 +9,8 @@
 (require cj-source
 	 define-macro-star
 	 cj-source-util-2
-	 (vector-util vector-map))
+	 (vector-util vector-map)
+	 C)
 
 (export (macro quasiquote-source)
 	(macro quasiquote-source-list)
@@ -28,19 +29,19 @@
 	       (else
 		(cons #f src)))
 	 (let ((run-list
-		(cut improper-fold-right*
-		     (lambda (improper? src rest)
-		       (let-pair
-			((splice? val) (rec src))
-			(if improper?
-			    (if splice?
-				(error "can't splice in improper tail pos")
-				val)
-			    (if splice?
-				(append val rest)
-				(cons val rest)))))
-		     '()
-		     <>))
+		(C improper-fold-right*
+		   (lambda (improper? src rest)
+		     (let-pair
+		      ((splice? val) (rec src))
+		      (if improper?
+			  (if splice?
+			      (error "can't splice in improper tail pos")
+			      val)
+			  (if splice?
+			      (append val rest)
+			      (cons val rest)))))
+		   '()
+		   _))
 	       (src* (source-code src)))
 	   (cond ((pair? src*)
 		  (cons #f (possibly-sourcify (run-list src*) src)))
