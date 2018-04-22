@@ -15,7 +15,7 @@
 	 C
 	 (string-util-4 string-empty?
 			string-every)
-	 (improper-list improper-any))
+	 (improper-list-1 improper-every))
 
 
 (export box-of
@@ -37,15 +37,12 @@
 	pair-or-null?
 	pair-with-car
 	nonempty-string?
-	improper*-map/tail ;; XX move
-	improper*-map	   ;; dito
 	string-of
 	nonempty-string-of
 	natural0-string? ;; do these two really
 	natural-string?	 ;; belong here (in a neutral predicates lib)?
 	string-of-length
 	u8vector-of-length
-	improper-every	  ;; XX move
 	improper-list-of  ;; hmm
 	char-one-of	  ;; move to char lib?
 	perhaps-source-of ;; XX rename to possibly-source-of ?
@@ -151,20 +148,6 @@
   (both string?
 	(complement string-empty?)))
 
-;; improper->proper-map
-
-(define (improper*-map/tail fn v tail)
-  (improper-fold-right (lambda (a r)
-			 (cons (fn a) r))
-		       tail
-		       v))
-
-(define improper*-map (C improper*-map/tail _ _ '()))
-
-(TEST
- > (improper*-map true? '("" . ""))
- (#f #f))
-
 
 (define (string-of pred)
   (lambda (v)
@@ -225,15 +208,6 @@
 	      (make-u8vector 4)))
  (#f #f  #f #f #f #t #f))
 
-
-(define (improper-every pred v)
-  (cond ((pair? v)
-	 (and (pred (car v))
-	      (improper-every pred (cdr v))))
-	((null? v)
-	 #t)
-	(else
-	 (pred v))))
 
 (define (improper-list-of pred)
   (C improper-every pred _))

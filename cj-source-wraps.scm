@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require cj-source)
+(require cj-source
+	 (improper-list-1 improper*-map))
 
 (export source-wrap-1
 	source-wrap-1*

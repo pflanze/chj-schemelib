@@ -32,11 +32,8 @@
 	pair-or-null?
 	pair-with-car
 	nonempty-string?
-	improper*-map/tail ;; XX move
-	improper*-map	   ;; dito
 	string-of
 	string-of-length
-	improper-every	  ;; XX move
 	improper-list-of  ;; hmm
 	char-one-of	  ;; move to char lib?
 	perhaps-source-of ;; XX rename to possibly-source-of ?
