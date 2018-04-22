@@ -439,8 +439,13 @@
 		(@sxml-element>> item port xml? maybe-level))
 	       (else
 		(for-each self item))))
+	((vector? item)
+	 (vector-for-each self item))
 	((promise? item)
-	 (stream-for-each self item))
+	 (let ((item (force item)))
+	   (if (pair? item)
+	       (stream-for-each self item)
+	       (self item))))
 	((null? item))
 	((procedure? item)
 	 (if *warn-thunk-evaluation*
