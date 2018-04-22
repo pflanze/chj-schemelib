@@ -7,7 +7,7 @@
 
 
 (require cj-env
-	 (cj-env-2 for..<)
+	 ;; (cj-env-2 for..<), no, to avoid cycle
 	 test
 	 ;; vector-util-1 ;; well, cj-source or mod/mod.scm since those include it?
 	 srfi-1
@@ -192,11 +192,21 @@
   (let* ((len (vector-length v))
 	 (len* (inc len))
 	 (v* (make-vector len*)))
-    (for..< (j 0 i)
-	    (vector-set! v* j (vector-ref v j)))
+    ;; (for..< (j 0 i)
+    ;; 	    (vector-set! v* j (vector-ref v j)))
+    (let lp ((j 0))
+      (if (< j i)
+	  (begin (vector-set! v* j (vector-ref v j))
+		 (lp (+ j 1)))))
+    
     (vector-set! v* i val)
-    (for..< (j (inc i) len*)
-	    (vector-set! v* j (vector-ref v (dec j))))
+    ;; (for..< (j (inc i) len*)
+    ;; 	    (vector-set! v* j (vector-ref v (dec j))))
+    (let lp ((j (+ i 1)))
+      (if (< j len*)
+	  (begin
+	    (vector-set! v* j (vector-ref v (- j 1)))
+	    (lp (+ j 1)))))
     v*))
 
 (TEST
