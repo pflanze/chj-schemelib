@@ -107,7 +107,7 @@
   (declare (standard-bindings)
   	   (extended-bindings)
   	   (not safe))
-  (and (vector? x)
+  (and (##vector? x)
        (fx>= (vector-length x) 4)
        ;; ^ not 2: need an empty slot or (vector symboltable:tag 1) or
        ;; so would lead to endless loop in C. Oh well, and make safe
