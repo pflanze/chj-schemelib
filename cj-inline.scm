@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011, 2013 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,6 @@
 (require define-macro-star
 	 simple-match
 	 cj-source-quasiquote
-	 (cj-typed ->)
 	 (cj-source-wraps source:symbol-append source.symbol?)
 	 (cj-env *if-symbol-value)
 	 test)
@@ -41,7 +40,11 @@
 
 ;; XX just how dangerously unsafe is this?
 (define-macro* (inline-through-decompile proc)
-  (##decompile (-> procedure? (eval proc))))
+  (let ((v (eval proc)))
+    (if (procedure? v)
+	(##decompile v)
+	(source-error proc
+		      "does not evaluate to a procedure"))))
 
 (define-macro* (inline proc)
   (let ((idec (lambda () `(inline-through-decompile ,proc))))
