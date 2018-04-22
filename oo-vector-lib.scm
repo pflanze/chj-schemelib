@@ -196,7 +196,21 @@
   (def (VECTOR-take v k) (subVECTOR v 0 k))
   (def. VECTOR.take VECTOR-take)
 
-  (def (VECTOR-drop v k) (subVECTOR v k (VECTOR-length v)))
+
+  (def *oo-lib-VECTOR:max-warn-inefficient-count* #f)
+  (set! *oo-lib-VECTOR:max-warn-inefficient-count* 1000)
+
+  
+  (def _VECTOR-drop-count 0)
+
+  (def (VECTOR-drop v k)
+       (let ((res (subVECTOR v k (VECTOR-length v))))
+	 (begin
+	   (if (= (inc! _VECTOR-drop-count)
+		  *oo-lib-VECTOR:max-warn-inefficient-count*)
+	       ;; XX use WARN or WARN-ONCE
+	       (warn "VECTOR-drop is called often, consider optimizing your algorithm")))
+	 res))
   (def. VECTOR.drop VECTOR-drop)
 
 
@@ -207,8 +221,10 @@
 	 (if (zero? len)
 	     (error "VECTOR-rest: VECTOR is empty")
 	     (begin
-	       (if (= (inc! _VECTOR-rest-count) 10)
-		   (warn "VECTOR-rest is called often, consider optimizing your algorithm")) ;; XX use WARN
+	       (if (= (inc! _VECTOR-rest-count)
+		      *oo-lib-VECTOR:max-warn-inefficient-count*)
+		   ;; XX use WARN or WARN-ONCE
+		   (warn "VECTOR-rest is called often, consider optimizing your algorithm"))
 	       (subVECTOR v 1 len)))))
   (def. VECTOR.rest VECTOR-rest)
    
