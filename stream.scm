@@ -32,6 +32,7 @@
 	stream-map/tail
 	stream-map1
 	stream-map
+	stream-map-list
 	stream-filter-map/tail
 	filter-map/iota stream-filter-map/iota
 	stream-map/iota
@@ -321,6 +322,23 @@
  > (F (stream-map vector (stream-iota) '(a b c)))
  (#(0 a) #(1 b) #(2 c))
  )
+
+(define (stream-map-list fn s)
+  (define tail '())
+  (let rec ((s s))
+    (FV (s)
+	(if (null? s)
+	    tail
+	    (let-pair ((a s*) s)
+		      (cons (fn a)
+			    (rec s*)))))))
+
+(TEST
+ > (stream-map-list inc '(10 12))
+ (11 13)
+ > (stream-map-list inc (stream-take (stream-iota) 3))
+ (1 2 3))
+
 
 
 ;; Also see stream-mapfilter/tail etc. in stream-Maybe.scm !
