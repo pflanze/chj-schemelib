@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -20,6 +20,7 @@
 	(macro for..<)
 	(macro for..)
 	(macro for..<*)
+	current-unixtime*
 	current-unixtime
 	(macro xcase)
 	(macro xcond)
@@ -98,8 +99,11 @@
 
 
 ;; move to where?
+(define (current-unixtime*)
+  (time->seconds (current-time)))
+
 (define (current-unixtime)
-  (inexact->exact (floor (time->seconds (current-time)))))
+  (inexact->exact (floor (current-unixtime*))))
 
 
 (define-macro* (xcase expr . cases)
