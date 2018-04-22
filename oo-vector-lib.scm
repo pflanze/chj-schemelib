@@ -83,18 +83,18 @@
   (def. VECTOR.null? VECTOR-null?)
 
   (def (VECTOR-filter/iota fn v)
+       (declare (block)(standard-bindings)(extended-bindings)(fixnum))
        (let* ((len (VECTOR-length v))
 	      (v* (make-VECTOR len)))
-	 (declare (fixnum))
 	 (let lp ((i 0)
 		  (j 0))
-	   (if (< i len)
+	   (if (fx< i len)
 	       (let ((val (VECTOR-ref v i)))
 		 (if (fn val i)
 		     (begin
 		       (VECTOR-set! v* j val)
-		       (lp (+ i 1) (+ j 1)))
-		     (lp (+ i 1) j)))
+		       (lp (fx+ i 1) (fx+ j 1)))
+		     (lp (fx+ i 1) j)))
 	       (begin
 		 (VECTOR-shrink! v* j)
 		 v*)))))
