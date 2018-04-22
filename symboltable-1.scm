@@ -166,9 +166,9 @@
 (define (symboltable:vector-length->size^ vlen)
   (symboltable:dec-from-base (fxlength (dec vlen))))
 
-(define symboltable:length->vector-length
-  (compose-function symboltable:size^->vector-length
-	   symboltable:length->size^))
+(define (symboltable:length->vector-length v)
+  (symboltable:size^->vector-length
+   (symboltable:length->size^ v)))
 
 (TEST
  > (symboltable:length->vector-length 0)
