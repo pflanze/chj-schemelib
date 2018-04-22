@@ -30,7 +30,6 @@
 	for-each* ;; for-each*/2, but what sense did this name have?
 	split-at*
 	rxtake-while
-	one-item?
 	trif-one
 	trif-one/
 	make-list/tail
@@ -388,19 +387,6 @@
 	      res)))))
 
 
-(define (one-item? v)
-  ;; require that a list is given
-  (cond ((null? v)
-	 #f)
-	((pair? v)
-	 (or (null? (cdr v))
-	     (null? (force (cdr v)))))
-	((promise? v)
-	 (one-item? (force v)))
-	(else
-	 (error "not a list:" v))))
-
-
 
 ;; XX change to handle streams, too?
 (define (trif-one x then/1 toomany/1 none/0)
@@ -426,29 +412,8 @@
   (lambda (x then/1 toomany/1 none/0)
     (trif-one (fn x) then/1 toomany/1 none/0)))
 
+;; also see |if-one| etc. in list-util-lazy.scm
 
-;; (define (*if-one l *then *else)
-;;   ;; hm, don't use trif-one since don't want to pass the values?
-;;   )
-
-;; wow can then 'wrap' that as syntax, too. Perhaps should provide
-;; this functionality through some "hint"? (But then only efficient
-;; when inlining *if-one.)
-(define-macro* (if-one v then else)
-  ;; `(*if-one ,v
-  ;; 	    (lambda () ,then)
-  ;; 	    (lambda () ,else))
-  `(if (one-item? ,v)
-       ,then
-       ,else))
-
-(TEST
- > (if-one (list) 'y 'n)
- n
- > (if-one (list 1) 'y 'n)
- y
- > (if-one (list 'a 'b) 'y 'n)
- n)
 
 
 (define (make-list/tail n item tail)
