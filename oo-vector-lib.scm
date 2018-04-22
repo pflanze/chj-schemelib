@@ -62,9 +62,6 @@
 
 (deftemplate (def-oo-vector-lib-for VECTOR)
 
-  (def inc (inline inc))
-
-   
   (def. VECTOR.ref VECTOR-ref)
   (def. VECTOR.set! VECTOR-set!)
   (def. VECTOR.length VECTOR-length)
@@ -88,15 +85,16 @@
   (def (VECTOR-filter/iota fn v)
        (let* ((len (VECTOR-length v))
 	      (v* (make-VECTOR len)))
+	 (declare (fixnum))
 	 (let lp ((i 0)
 		  (j 0))
-	   (if (fx< i len)
+	   (if (< i len)
 	       (let ((val (VECTOR-ref v i)))
 		 (if (fn val i)
 		     (begin
 		       (VECTOR-set! v* j val)
-		       (lp (inc i) (inc j)))
-		     (lp (inc i) j)))
+		       (lp (+ i 1) (+ j 1)))
+		     (lp (+ i 1) j)))
 	       (begin
 		 (VECTOR-shrink! v* j)
 		 v*)))))
@@ -261,11 +259,12 @@
        (subVECTOR v 0 (dec (VECTOR-length v))))
   (def. VECTOR.butlast VECTOR-butlast)
 
-  (def (VECTOR-sublist v si ei)
+  (def (VECTOR-sublist v [fixnum? si] [fixnum? ei])
+       (declare (fixnum))
        (let rec ((i si))
 	 (if (< si ei)
 	     (cons (VECTOR-ref v i)
-		   (rec (inc i)))
+		   (rec (+ i 1)))
 	     '())))
   (def. VECTOR.sublist VECTOR-sublist)
 
@@ -329,12 +328,13 @@
 	     (error "VECTOR-min&max: got empty VECTOR")
 
 	     (let ((v (VECTOR-ref vec 0)))
+	       (declare (fixnum))
 	       (let lp ((i 1)
 			(min (con v '()))
 			(max (con v '())))
 		 (if (< i len)
 		     (let ((v (VECTOR-ref vec i)))
-		       (lp (inc i)
+		       (lp (+ i 1)
 			   (match-cmp (cmp (ex min) v)
 				      ((lt) min)
 				      ((gt) (con v '()))
@@ -366,6 +366,7 @@
 	   (len (apply min lens))
 	   (cont (lambda ()
 		   (let* ((res (##make-VECTOR len)))
+		     (declare (fixnum))
 		     (let lp ((i 0))
 		       (if (= i len)
 			   res
@@ -376,7 +377,7 @@
 						 (map (lambda (vec)
 							(VECTOR-ref vec i))
 						      vecs)))
-			     (lp (inc i)))))))))
+			     (lp (+ i 1)))))))))
       (if accept-uneven-lengths?
 	  (cont)
 	  (let ((lenmax (apply max lens)))
@@ -395,23 +396,25 @@
 
   (def (VECTOR-fold-right fn tail vec)
        (let ((len (VECTOR-length vec)))
+	 (declare (fixnum))
 	 (let rec ((i 0))
 	   (if (= i len)
 	       tail
 	       (fn (VECTOR-ref vec i)
-		   (rec (inc i)))))))
+		   (rec (+ i 1)))))))
   (def. (VECTOR.fold-right vec fn tail)
     (VECTOR-fold-right fn tail vec))
 
   (def (VECTOR-fold fn tail vec)
        (let ((len (VECTOR-length vec)))
+	 (declare (fixnum))
 	 (let lp ((res tail)
 		  (i 0))
 	   (if (= i len)
 	       res
 	       (lp (fn (VECTOR-ref vec i)
 		       res)
-		   (inc i))))))
+		   (+ i 1))))))
   (def. (VECTOR.fold vec fn tail)
     (VECTOR-fold fn tail vec))
 
