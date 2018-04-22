@@ -22,8 +22,8 @@
 
 ;; Suspected that the straight-forward (<= min01 v max01) approach was
 ;; very slow, so try to avoid number format conversions (turns out was
-;; already getting an inexact anyway, hence no change, huh, why is
-;; that slow):
+;; already getting an inexact anyway, oddly slow, optimize via fl<= as
+;; well--doesn't actually help really):
 
 (def min01-exact (inexact->exact min01))
 (def max01-exact (inexact->exact max01))
@@ -36,5 +36,5 @@
 		((exact? v)
 		 (<= min01-exact v max01-exact))
 		(else
-		 (<= min01 v max01)))))
+		 (fl<= min01 v max01)))))
 
