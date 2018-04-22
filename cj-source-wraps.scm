@@ -1,4 +1,4 @@
-;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -61,7 +61,8 @@
 (define source.number? (source-wrap-1 number?))
 
 ;; hm move to another lib?
-(define symbol->keyword (compose-function string->keyword symbol->string))
+(define (symbol->keyword v)
+  (string->keyword (symbol->string v)))
 (define source.symbol->keyword (source-wrap-1 symbol->keyword))
 
 (define source.symbol->string (source-wrap-1 symbol->keyword))
