@@ -13,7 +13,8 @@
 	 cj-typed ;; wow can use it, seems we're later anyway, no circular problem!
 	 simple-match
 	 srfi-11
-	 (simple-match-1 assert*))
+	 (simple-match-1 assert*)
+	 (list-util-lazy xone/fail))
 
 (export (macro module:import)
 	(macro module:import/prefix)

@@ -17,7 +17,8 @@
 	 (cj-env-2 for..<)
 	 (cj-test %try)
 	 (cj-struct define-struct-expand)
-	 C)
+	 C
+	 (list-util-lazy xone))
 
 (export (macro method-table-for)
 	(macro show-methods)
