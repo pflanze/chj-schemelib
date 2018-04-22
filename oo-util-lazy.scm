@@ -435,6 +435,8 @@
 (define list-null? null-list?)
 (define list-pair? pair?)
 
+(define list-for-each/iota for-each/iota)
+
 
 (template-map
  ((istream. '(istream. ilist.))
@@ -578,6 +580,9 @@
 
    (define. (istream.filter-map/iota s func . rest)
      (apply stream-filter-map/iota func s rest))
+
+   (define. (istream.for-each/iota s proc)
+     (stream-for-each/iota proc s))
 
    (define. istream.sum stream-sum)
 
