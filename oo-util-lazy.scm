@@ -376,6 +376,7 @@
 (define list-for-each for-each)
 
 (define list-map map)
+(define list-map-list map)
 (define (list-filter/tail pred lis tail)
   (let rec ((l lis))
     (if (pair? l)
@@ -465,6 +466,9 @@
 
    (define. (istream.map s f . ss)
      (apply stream-map f s ss))
+
+   (define. (istream.map-list s f)
+     (stream-map-list f s))
 
    (define. (istream.filter-map s f . ss)
      (apply stream-filter-map f s ss))
