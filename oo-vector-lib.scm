@@ -20,6 +20,7 @@
 	u8vector.string			 ;; dito?
 	)
 
+(include "cj-standarddeclares.scm")
 
 (compile-time
  (def *oo-vector-lib:implement-thunks* #f))

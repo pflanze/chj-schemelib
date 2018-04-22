@@ -8,4 +8,6 @@
 
 (require oo-vector-lib)
 
+(include "cj-standarddeclares.scm")
+
 (def-oo-vector-lib-for u16vector)

@@ -14,6 +14,8 @@
 	;; and then all those from def-oo-vector-lib-for
 	)
 
+(include "cj-standarddeclares.scm")
+
 (def-oo-vector-lib-for string)
 
 
