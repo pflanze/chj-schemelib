@@ -26,6 +26,7 @@
 	stream-pair?
 	stream-filter/tail
 	stream-for-each
+	stream-for-each/iota
 	stream-fold-right
 	stream:fold-right
 	stream-map/tail
@@ -104,8 +105,7 @@
 	stream-seventh
 	stream-eighth
 	stream-ninth
-	stream-tenth
-	)
+	stream-tenth)
 
 (possibly-use-debuggable-promise)
 
@@ -169,6 +169,18 @@
 ;  1
 ;  2
 )
+
+(define (stream-for-each/iota proc lis)
+  (let lp ((lis lis)
+	   (i 0))
+    (FV (lis)
+	(if (null? lis) (void)
+	    (let ((a (car lis))
+		  (r (cdr lis)))
+	      (proc a i)
+	      (lp r (inc i)))))))
+
+
 
 (define (stream-fold-right kons tail s)
   (let rec ((s s))
