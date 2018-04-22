@@ -7,7 +7,6 @@
 
 
 (require cj-source
-	 cj-match
 	 define-macro-star
 	 cj-source-util-2
 	 (vector-util vector-map))
@@ -68,33 +67,34 @@
 	 ;; XX support quasiquote nesting (either source-quasiquote or
 	 ;; quasiquote or both; but how exactly again now)
 	 (let rec ((src src))
-	   (mcase src
-		  (form-unquote?
-		   (with-gensym ID
-				(begin
-				  (push-form!
-				   `(##cons ',ID
-					    (##cons #f
-						    ,(cadr (source-code src)))))
-				  ID)))
-		  (form-unquote-splicing?
-		   (with-gensym ID
-				(begin
-				  (push-form!
-				   `(##cons ',ID
-					    (##cons #t
-						    ,(cadr (source-code src)))))
-				  ID)))
-		  (pair?
-		   (let ((src* (source-code src)))
-		     (possibly-sourcify (cons (rec (car src*))
-					      (rec (cdr src*)))
-					src)))
-		  (vector?
-		   (possibly-sourcify (vector-map rec (source-code src))
-				      src))
-		  (else
-		   src))))
+	   (let ((src* (source-code src)))
+	     (cond ((form-unquote? src*)
+		    (with-gensym
+		     ID
+		     (begin
+		       (push-form!
+			`(##cons ',ID
+				 (##cons #f
+					 ,(cadr (source-code src)))))
+		       ID)))
+		   ((form-unquote-splicing? src*)
+		    (with-gensym
+		     ID
+		     (begin
+		       (push-form!
+			`(##cons ',ID
+				 (##cons #t
+					 ,(cadr (source-code src)))))
+		       ID)))
+		   ((pair? src*)
+		    (possibly-sourcify (cons (rec (car src*))
+					     (rec (cdr src*)))
+				       src))
+		   ((vector? src*)
+		    (possibly-sourcify (vector-map rec (source-code src))
+				       src))
+		   (else
+		    src)))))
       (##list ,@(reverse forms)))))
 
 (TEST
