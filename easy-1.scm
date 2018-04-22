@@ -15,7 +15,9 @@
 	 (cj-source-quasiquote quasiquote-source)
 	 test
 	 (test-random %try-syntax-error)
-	 (string-util-2 string-any))
+	 (string-util-2 string-any)
+	 list-util
+	 list-util-lazy)
 
 (export (macro defstruct)
 	(macro def)
