@@ -1,4 +1,4 @@
-;;; Copyright 2011, 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2011, 2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -17,11 +17,33 @@
 
 ;; re-export all exports from symboltable-1, plus
 (export (method symboltable.show)
-	symboltable->sortedlist
-	symboltable-sortedkeys
-	symboltable-eqv?
-	list->symbolcollection
-	symboltable*)
+	symboltable->sortedlist (method symboltable.sortedlist)
+	symboltable-sortedkeys  (method symboltable.sortedkeys)
+	symboltable-eqv? ;; method? is this really like eqv? 
+	list->symbolcollection  (method list.symbolcollection)
+	symboltable*
+
+	;; and methods for symboltable-1 :
+	(methods symboltable.length
+		 symboltable.ref
+		 symboltable.xref ;; XX bad, not same as usual .ref, right?
+		 symboltable.maybe-ref
+		 symboltable.contains?
+		 ;;these have special behaviour so don't make methods:
+		 ;; symboltable-update! 
+		 ;; symboltable-set!
+		 list.symboltable
+		 symboltable.fold
+		 symboltable.every
+		 symboltable.list
+		 symboltable.keys
+		 ;; symboltable-update-all ?
+		 ;; symboltable-add ?
+		 symboltable.set
+		 symboltable.remove ;; delete ?
+		 symboltable.copy
+		 )
+	)
 
 
 (include "cj-standarddeclares.scm")
@@ -30,12 +52,16 @@
 (define (symboltable->sortedlist t)
   (cmp-sort (symboltable->list t) (on car symbol-cmp)))
 
+(define. symboltable.sortedlist symboltable->sortedlist)
+
+
 (define. (symboltable.show v)
   `(symboltable ,@(map .show (symboltable->sortedlist v))))
 
 (define (symboltable-sortedkeys t #!optional (tail '()))
   (cmp-sort (symboltable-keys t tail) symbol-cmp))
 
+(define. symboltable.sortedkeys symboltable-sortedkeys)
 
 
 (TEST
@@ -261,6 +287,8 @@
 	empty-symboltable
 	l))
 
+(define. list.symbolcollection list->symbolcollection)
+
 (TEST
  > (symboltable->sortedlist (list->symbolcollection '(a b c)))
  ((a . #t) (b . #t) (c . #t)))
@@ -279,3 +307,27 @@
  > (.show (symboltable* b: 1 a: 2))
  (symboltable (cons 'a 2) (cons 'b 1)))
 
+
+;; methods for symboltable-1 :
+
+(define. symboltable.length symboltable-length)
+(define. symboltable.ref symboltable-ref)
+(define. symboltable.xref symboltable-xref)
+(define. symboltable.maybe-ref symboltable-maybe-ref)
+(define. symboltable.contains? symboltable-contains?)
+;;these have special behaviour so don't make methods:
+;; symboltable-update! 
+;; symboltable-set!
+(define. list.symboltable list->symboltable)
+(define. (symboltable.fold s fn start)
+  ;; heh confusing API here, good I wrap it...
+  (symboltable:fold s start fn))
+;; and unusual naming, dito:
+(define. symboltable.every symboltable:every?)
+(define. symboltable.list symboltable->list)
+(define. symboltable.keys symboltable-keys)
+;; symboltable-update-all ?
+;; symboltable-add ?
+(define. symboltable.set symboltable-set)
+(define. symboltable.remove symboltable-remove) ;; delete ?
+(define. symboltable.copy symboltable-copy)
