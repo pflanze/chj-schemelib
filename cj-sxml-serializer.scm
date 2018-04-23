@@ -69,6 +69,7 @@
 
 (include "gambit-io-fast--include.scm")
 
+(declare (not safe)) ;; XXX remove again!!!
 
 (def unbound 'unbound)
 
