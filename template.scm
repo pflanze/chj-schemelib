@@ -54,7 +54,13 @@
 
 (def. (symbol.replace-substrings s substr withstr)
   (string.symbol
-   (string.replace-substring (symbol.string s) substr withstr)))
+   (string.replace-substrings (symbol.string s) substr withstr)))
+
+(TEST
+ > (symbol.replace-substrings 'VECTORVECTOR "VECTOR" "vec")
+ vecvec
+ > (symbol.replace-substrings 'VECTOR.VECTOR "VECTOR" "vec")
+ vec.vec)
 
 (def (code-symbol-or-substring-replace code replacements)
      (let replace ((code code))
