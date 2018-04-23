@@ -13,7 +13,7 @@
 	 char-util)
 
 (export sum
-	*oo-vector-lib:implement-thunks*
+	oo-vector-lib:implement-thunks
 	(macro def-oo-vector-lib-for)
 
 	string->u8vector string.u8vector ;; XX remove this?
@@ -22,10 +22,12 @@
 
 (include "cj-standarddeclares.scm")
 
-(compile-time
- (def *oo-vector-lib:implement-thunks* #f))
+(both-times
+ ;; (not naming this with stars as it can't be changed at runtime
+ ;; without recompiling both oo-vector-lib and its users.)
+ (def oo-vector-lib:implement-thunks #f))
 
-(IF *oo-vector-lib:implement-thunks*
+(IF oo-vector-lib:implement-thunks
     (begin
       ;; functions not implemented but required by oo-util-lazy if adding
       ;; vector as type parameter there:
@@ -47,7 +49,7 @@
       (def source-char-vector? false/1)	   ;; XX evil
       ))
 
-(IF *oo-vector-lib:implement-thunks*
+(IF oo-vector-lib:implement-thunks
     (def (error-not-implemented)
 	 (error "not yet implemented")))
 
@@ -137,7 +139,7 @@
 	     (VECTOR.fold v + 0))
 	(def. VECTOR.sum VECTOR-sum)
 
-	(IF *oo-vector-lib:implement-thunks*
+	(IF oo-vector-lib:implement-thunks
 	    (def (VECTOR-reverse/tail v tail)
 		 (error-not-implemented)))
 
@@ -270,11 +272,11 @@
 	     '())))
   (def. VECTOR.sublist VECTOR-sublist)
 
-  (IF *oo-vector-lib:implement-thunks*
+  (IF oo-vector-lib:implement-thunks
       (def (VECTOR-difference s1 s2 #!optional (equal? equal?))
 	   (error-not-implemented)))
 
-  (IF *oo-vector-lib:implement-thunks*
+  (IF oo-vector-lib:implement-thunks
       (def (show-VECTOR-difference s1 s2
 				   #!key
 				   (equal? equal?)
@@ -353,7 +355,7 @@
   (def. VECTOR.min VECTOR-min)
   (def. VECTOR.max VECTOR-max)
 
-  (IF *oo-vector-lib:implement-thunks*
+  (IF oo-vector-lib:implement-thunks
       (def (VECTOR-rtake&rest s n #!optional (tail '()))
 	   (error-not-implemented)))
   ;; (def VECTOR.rtake&rest VECTOR-rtake&rest) why when the generic
