@@ -44,6 +44,8 @@
 	box-add!
 	box-set!
 	bitwise-or
+	(macro inc)
+	(macro dec)
 	(macro inc!)
 	(macro dec!)
 	(macro add!)
@@ -330,6 +332,23 @@
 
 ;; another crazy name?:
 (define bitwise-or bitwise-ior)
+
+
+;; also see inc-function and dec-function in cj-env-1--include.scm
+;;   e.g.
+;; (define (inc-function n)
+;;   (declare (fixnum))
+;;   (+ n 1))
+
+(define-macro* (inc e)
+  `(let ()
+     (declare (fixnum))
+     (+ ,e 1)))
+
+(define-macro* (dec e)
+  `(let ()
+     (declare (fixnum))
+     (- ,e 1)))
 
 
 ;; do *not* assert* var to be a symbol, since want to allow for macros
