@@ -57,7 +57,7 @@
 	 improper-length)
 
 
-(include "cj-env-1.scm")
+(include "cj-env-1--include.scm")
 
 
 (define (source? o)
