@@ -12,7 +12,10 @@
 	base-string.modulename
 	path-string.modulename
 	path-string.relation
+	require:include?
+	require:include-path?
 	#!optional ;; move? :
+	require:include-string?
 	scm-stripsuffix
 	simple-basename
 	scm-basename)
@@ -89,11 +92,16 @@
 
 ;; "...--include.scm" should never be expected to have (or checked
 ;; for) a require form
-(define (require:include? sym)
-  (let* ((str (symbol->string sym))
-	 (len (string-length str)))
+(define (require:include-string? str)
+  (let* ((len (string-length str)))
     (and (> len 9)
 	 (string=? (substring str (- len 9) len) "--include"))))
+
+(define (require:include? sym)
+  (require:include-string? (symbol->string sym)))
+
+(define (require:include-path? path)
+  (require:include-string? (scm-stripsuffix path)))
 
 
 (define modules-without-require-forms

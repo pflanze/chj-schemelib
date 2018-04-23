@@ -72,7 +72,14 @@
  > (require:include? 'foo-include)
  #f
  > (require:include? 'foo)
- #f)
+ #f
+ > (require:include-path? "ab/foo--include.scm")
+ #t
+ > (require:include-path? "ab/foo-include.scm")
+ #f
+ > (%try-error (require:include-path? "ab/foo--include"))
+ [error "not a path with suffix '.scm':" "ab/foo--include"])
+
 
 
 
