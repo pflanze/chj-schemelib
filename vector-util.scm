@@ -7,6 +7,7 @@
 
 
 (require cj-env
+	 (fixnum inc)
 	 ;; (cj-env-2 for..<), no, to avoid cycle
 	 test
 	 ;; vector-util-1 ;; well, cj-source or mod/mod.scm since those include it?

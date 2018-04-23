@@ -1,4 +1,5 @@
-(require test
+(require (fixnum dec)
+	 test
 	 cj-env	;;XX update what exactly?
 	 cj-typed
 	 ;;(predicates-1 exact-natural0?) actually not necessary,

@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require)
+(require (fixnum inc))
 
 (export string-empty?
 	string-every

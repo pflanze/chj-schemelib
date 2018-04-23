@@ -19,12 +19,12 @@
 
 
 (define (parameter-inc! p)
-  (let ((x (inc (p))))
+  (let ((x (inc-function (p))))
     (p x)
     x))
 
 (define (parameter-dec! p)
-  (let ((x (dec (p))))
+  (let ((x (dec-function (p))))
     (p x)
     x))
 

@@ -62,6 +62,7 @@
 (require define-macro-star
 	 cj-phasing
 	 ;; cj-env-1 included in cj-source
+	 (fixnum inc dec)
 	 cj-source
 	 simple-match-1
 	 srfi-1

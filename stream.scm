@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require lazy
+(require (fixnum inc dec)
+	 lazy
 	 define-strict-and-lazy
 	 cj-struct
 	 list-util

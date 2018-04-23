@@ -1,5 +1,6 @@
-(require (define-macro-star)
-	 (test))
+(require define-macro-star
+	 (fixnum inc)
+	 test)
 
 
 (define (vector-equal? equal? a b)

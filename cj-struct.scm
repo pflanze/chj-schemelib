@@ -6,8 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require cj-struct-tag
-	 define-macro-star
+(require define-macro-star
+	 (fixnum inc dec)
+	 cj-struct-tag
 	 test
 	 simple-match
 	 (cj-symbol with-gensyms)
@@ -391,11 +392,11 @@
  > (define-struct foo a b)
  > (make-foo 1 2)
  #((foo) 1 2)
- > (foo-b-update # inc)
+ > (foo-b-update # inc-function)
  #((foo) 1 3)
- > (foo-b-update # inc)
+ > (foo-b-update # inc-function)
  #((foo) 1 4)
- > (foo-a-update # inc)
+ > (foo-a-update # inc-function)
  #((foo) 2 4)
  > (define-struct foo #!key quote x y z)
  > (make-foo quote: 10)

@@ -9,6 +9,7 @@
 (require cj-source
 	 define-macro-star
 	 cj-phasing
+	 (fixnum dec)
 	 ;; improper-length is included by cj-source-util.scm is
 	 ;; included by define-macro-star.scm
 	 )

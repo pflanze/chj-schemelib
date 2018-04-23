@@ -3,6 +3,7 @@
 (require C
 	 ;; (cj-functional either) circular dependency
 	 (list-util let-pair) ;; for either
+	 (fixnum inc)
 	 test)
 
 (export char=?/ ;; ?

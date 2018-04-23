@@ -7,7 +7,8 @@
 ;;;    terms of the GPL you can link it with any code produced by Categorical
 ;;;    Design Solutions Inc. from Quebec, Canada.
 
-(require (cj-struct-tag struct-tag-allocate! struct-metadata)
+(require (fixnum inc dec)
+	 (cj-struct-tag struct-tag-allocate! struct-metadata)
 	 (cj-env define-if-not-defined)
 	 define-macro-star
 	 cj-inline
@@ -552,10 +553,10 @@ ___SCMOBJ symboltable_1__symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ 
 	   (old-vec t)
 	   (id (symboltable:key-id key))
 	   ;; new length
-	   (newlen ((if doing-remove?
-			dec
-			inc)
-		    (symboltable-length t))))
+	   (newlen (let ((v (symboltable-length t)))
+		     (if doing-remove?
+			 (dec v)
+			 (inc v)))))
       (let* ((size^ (symboltable:length->size^ newlen))
 	     (vlen (symboltable:size^->vector-length size^))
 	     ;; slot for new vector

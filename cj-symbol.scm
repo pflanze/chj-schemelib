@@ -9,7 +9,7 @@
 (require define-macro-star
 	 test
 	 cj-env
-	 ;; (cj-env-1 inc) included in cj-source, sigh, mess
+	 (fixnum inc)
 	 (cj-env on symbol-value-or))
 
 (export symbol<?

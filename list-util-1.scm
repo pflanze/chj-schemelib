@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require srfi-1)
+(require srfi-1
+	 (fixnum inc dec))
 
 (export rest
 	map/tail

@@ -10,6 +10,7 @@
 	 cj-phasing
 	 test
 	 ;; (cj-env-1 inc dec) cj-source, sigh
+	 (fixnum inc dec)
 	 (named named-lambda)
 	 list-util ;; let-pair
 	 (list-util-1 improper-map)

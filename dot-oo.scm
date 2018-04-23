@@ -7,6 +7,7 @@
 
 
 (require cj-env
+	 (fixnum inc)
 	 define-macro-star
 	 cj-typed ;; heh indirectly through define-struct. expansion
 	 cj-match

@@ -6,8 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require test
-	 define-macro-star
+(require define-macro-star
+	 (fixnum inc dec)
 	 srfi-1
 	 (list-util improper-fold-right)
 	 (char-util char-one-of?/ char-digit?)
@@ -15,7 +15,8 @@
 	 C
 	 (string-util-4 string-empty?
 			string-every)
-	 (improper-list-1 improper-every))
+	 (improper-list-1 improper-every)
+	 test)
 
 
 (export box-of

@@ -115,7 +115,7 @@
 
 
 (define (natural0.bitsize n)
-  (integer-ceiling (/ (log (inc n)) (log 2))))
+  (integer-ceiling (/ (log (+ n 1)) (log 2))))
 
 (TEST
  > (map natural0.bitsize (iota 5))

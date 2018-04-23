@@ -13,18 +13,6 @@
 ;;         reserved reserved reserved)
 
 
-;; XX move?
-
-;; should allow anything that works for vector access. Then could do
-;; unsafe. What about wrap-around?
-;; > (fx+ max-fixnum 1)
-;; *** ERROR IN (console)@17.1 -- FIXNUM overflow
-;; (fx+ 2305843009213693951 1)
-;; OK.
-(define (fx.inc n)
-  (fx+ n 1))
-
-
 (define (vector-copy! fromvec from to tovec tofrom)
   (let* ((offset (fx- tofrom from)))
     (for..< (i from to)
@@ -47,7 +35,7 @@
       (if (< i end)
 	  (if (eq? (vector-ref vec i) key)
 	      i
-	      (lp (fx.inc i)))
+	      (lp (inc i)))
 	  #f))))
 
 
@@ -67,9 +55,7 @@
 	     (if *dot-oo:method-trace*
 		 (warn "method call for:" (vector-ref vec (fx- i n)) m))
 	     m)
-	   (lp
-	    ;; (fx.inc i) but unsafely here:
-	    (fx+ i 1)))
+	   (lp (inc i)))
 	  #f))))
 
 (define (dot-oo:method-table-maybe-ref-method tbl obj)
@@ -203,7 +189,7 @@
 		       (new (make-vector oldlen)))
 
 		  (define (do-rail raili)
-		    (let ((oldi* (fx.inc oldi)))
+		    (let ((oldi* (inc oldi)))
 		      ;; copy part after found position (unshifted):
 		      (dot-oo:copy-rail! raili old oldn new n
 					 oldi* oldn oldi*)
@@ -218,7 +204,7 @@
 		  (finish new n))))
 	  (else
 	   ;; prepend to the top
-	   (let* ((n (fx.inc oldn))
+	   (let* ((n (inc oldn))
 		  (new (make-vector (arithmetic-shift n 2))))
 	     (dot-oo:copy-rail! 0 old oldn new n 0 oldn 1)
 	     (dot-oo:copy-rail! 1 old oldn new n 0 oldn 1)
@@ -285,4 +271,5 @@
 	      (list (vector-ref v i)
 		    (vector-ref v (+ i n))
 		    (vector-ref v (+ i (* 2 n)))))
-	    inc 0)))
+	    inc-function
+	    0)))

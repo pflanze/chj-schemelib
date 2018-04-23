@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+	 (fixnum inc)
 	 test
 	 simple-match
 	 cj-inline

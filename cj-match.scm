@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+	 (fixnum inc dec)
 	 test
 	 cj-phasing
 	 (cj-functional-2 =>-lambda)

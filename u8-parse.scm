@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 (require test
-	 cj-env-1)
+	 (fixnum inc dec))
 
 (export u8-rlist->string
 	u8-rlist->u8vector

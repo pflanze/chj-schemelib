@@ -8,7 +8,7 @@
 
 (require (list-util let-pair)
 	 (srfi-11 letv values->vector)
-	 ;; (cj-env-1 inc) cj-source, sigh
+	 (fixnum inc)
 	 define-nested
 	 slib-sort
 	 cj-symbol

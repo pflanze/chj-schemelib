@@ -13,18 +13,19 @@
 	 cj-inline-1
 	 test
 	 (test-lib-1 %try-error)
-	 cj-env-1)
+	 cj-source ;; cj-env-1 included in cj-source, sigh
+	 )
 
 
 (TEST
  > (define t (make-table))
- > (%try-error (table-update! t 'a inc))
+ > (%try-error (table-update! t 'a inc-function))
  #(error "key not found")
  > (table-set! t 'a 1)
- > (table-update! t 'a inc)
+ > (table-update! t 'a inc-function)
  > (table-ref t 'a)
  2
- > (table-update! t 'b inc (lambda () 10))
+ > (table-update! t 'b inc-function (lambda () 10))
  > (table-ref t 'b)
  10)
 

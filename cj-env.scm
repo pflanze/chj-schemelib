@@ -11,6 +11,7 @@
 	 cj-inline-1
 	 test
 	 cj-source ;; cj-env-1 included in cj-source
+	 fixnum
 	 (cj-source show-procedure-location))
 
 (export (macro IF)
