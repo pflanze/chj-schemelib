@@ -9,6 +9,7 @@
 (require table-1
 	 dot-oo
 	 show
+	 (predicates alist?)
 	 test
 	 cj-cmp
 	 srfi-1
@@ -36,7 +37,8 @@
 		table.sorted-keys
 		table.values
 		table.sorted-values)
-	list.table-maybe-function)
+	alist.table-maybe-function
+	alist.table)
 
 
 ;; dependent on cj-cmp:
@@ -65,7 +67,8 @@
 (define. table.sorted-keys table-sorted-keys)
 (define. table.values table-values)
 (define. table.sorted-values table-sorted-values)
-(define. list.table-maybe-function list->table-maybe-function)
+(define. alist.table-maybe-function list->table-maybe-function)
+(define. alist.table list->table)
 
 (define. table.delete! table-delete!)
 (define. table.push! table-push!)
