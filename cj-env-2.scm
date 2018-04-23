@@ -12,7 +12,7 @@
 	 test
 	 ;; ?
 	 C
-	 (cj-env-1)
+	 ;; cj-env-1 cj-source, sigh
 	 cj-functional
 	 debuggable-promise)
 

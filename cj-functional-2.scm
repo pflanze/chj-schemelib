@@ -4,7 +4,7 @@
 	 (list-util let-pair)
 	 ;; for tests:
 	 test
-	 (cj-env-1 inc)
+	 ;; (cj-env-1 inc) cj-source, sigh
 	 srfi-1
 	 (cj-symbol syntax-equal?))
 

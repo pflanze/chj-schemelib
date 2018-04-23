@@ -10,8 +10,7 @@
 	 cj-phasing
 	 cj-inline-1
 	 test
-	 ;; require this?: (understand it as part of bundle?)
-	 cj-env-1
+	 cj-source ;; cj-env-1 included in cj-source
 	 (cj-source show-procedure-location))
 
 (export (macro IF)

@@ -1,5 +1,5 @@
 (require (cj-env warn pp-through thunk)
-	 (cj-env-1 list-join)
+	 ;; (cj-env-1 list-join) cj-source, sigh
 	 (srfi-1 filter-map)
 	 cj-inline
 	 char-util

@@ -7,7 +7,8 @@
 
 
 (require (fallible-1 fallible? fallible-string)
-	 (cj-env-1 scm:object->string))
+	 ;; (cj-env-1 scm:object->string) cj-source, sigh
+	 )
 
 
 ;; mostly-COPY from cj-warn to avoid circular dependency

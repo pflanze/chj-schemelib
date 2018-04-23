@@ -7,7 +7,8 @@
 
 
 (require table-1
-	 (cj-env-1 scm:object->string))
+	 ;; (cj-env-1 scm:object->string) cj-source, sigh
+	 )
 
 (export warn
 	displayln ;; move?

@@ -9,7 +9,7 @@
 (require define-macro-star
 	 cj-phasing
 	 test
-	 (cj-env-1 inc dec)
+	 ;; (cj-env-1 inc dec) cj-source, sigh
 	 (named named-lambda)
 	 list-util ;; let-pair
 	 (list-util-1 improper-map)

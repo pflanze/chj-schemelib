@@ -8,7 +8,7 @@
 
 (require define-macro-star
 	 test
-	 (cj-env-1 dec inc)
+	 ;; (cj-env-1 dec inc) cj-source, sigh
 	 cj-symbol
 	 (list-util let-pair)
 	 (srfi-11 apply-values)

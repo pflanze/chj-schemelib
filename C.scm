@@ -8,7 +8,7 @@
 
 (require define-macro-star
 	 cj-symbol
-	 (cj-env-1 identity)
+	 ;; (cj-env-1 identity) cj-source, sigh
 	 (srfi-1 filter))
 
 

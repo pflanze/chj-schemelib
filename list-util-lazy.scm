@@ -11,7 +11,7 @@
 	 (test-lib-1 %try-error)
 	 C
 	 srfi-1
-	 (cj-env-1 dec inc identity)
+	 ;; (cj-env-1 dec inc identity) cj-source, sigh
 	 (string-util-1 string-split)
 	 (improper-list improper-length)
 
