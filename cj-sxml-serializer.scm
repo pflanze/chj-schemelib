@@ -177,7 +177,7 @@
 		 #f))
 	   #f)))
 
-(def @string>> display)
+(def @string>> ##write-string)
 (def (@char>> c port)
      (macro-write-char-neverlock c port))
 
@@ -332,7 +332,7 @@
 	     ((null? atom)
 	      #|nothing|#)
 	     ((number? atom)
-	      (display atom port))
+	      (##display atom port))
 	     ((boolean? atom)
 	      #|nothing|#)
 
