@@ -18,9 +18,6 @@
 	list.rvector)
 
 
-(def inc (inline inc))
-(def dec (inline dec))
-
 ;; Would really profit from guaranteed-proper length-maintaining (and
 ;; type maintaining?) lists. Well I've got them. Not using them?
 ;; Advantage would be that oo dispatch could actually be used sanely,

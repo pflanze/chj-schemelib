@@ -1,4 +1,4 @@
-;;; Copyright 2010-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,10 +9,12 @@
 ;; no require form, included in cj-source.scm
 
 
-(define (inc n)
+(define (inc-function n)
+  (declare (fixnum))
   (+ n 1))
 
-(define (dec n)
+(define (dec-function n)
+  (declare (fixnum))
   (- n 1))
 
 

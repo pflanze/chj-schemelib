@@ -12,17 +12,7 @@
 
 (export string-split)
 
-
-;; just for performance
 (include "cj-standarddeclares.scm")
-
-(##namespace ("string-util-1#" inc dec))
-(define (inc x)
-  (+ x 1))
-(define (dec n)
-  (- n 1))
-;;/
-
 
 ;; (define (string-split str char-or-pred)
 ;;   (map list->string (list-split (string->list str) char-or-pred)))
