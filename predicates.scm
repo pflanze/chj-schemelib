@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -61,7 +61,10 @@
 	throwing
 	function-of
 	procedure-of
-	arguments-of)
+	arguments-of
+
+	alist?
+	alist-of)
 
 
 ;; for now there's no difference (intent: pure functions, aside of
@@ -287,4 +290,57 @@
 ;; fail
 (define (noreturn? v)
   #f)
+
+
+
+;; alist.scm is for something else (well, more general, hence *could*
+;; cover it, though, performance?), cj-alist.scm is, 'old?', and
+;; 'full?', don't know if really should be there?, just here?:
+
+(define (alist? v)
+  (or (null? v)
+      (and (pair? v)
+	   (let-pair ((a r) v)
+		     (and (pair? a)
+			  (alist? r))))))
+
+(TEST
+ > (alist? '())
+ #t
+ > (alist? '(a))
+ #f
+ > (alist? '((a b)))
+ #t
+ > (alist? '((a b) (c . d)))
+ #t)
+
+
+(define (alist-of key? value?)
+  (named self
+	 (lambda (v)
+	   (or (null? v)
+	       (and (pair? v)
+		    (let-pair ((a r) v)
+			      (and (pair? a)
+				   (let-pair ((b c) a)
+					     (and (key? b)
+						  (value? c)))
+				   (self r))))))))
+
+(TEST
+ > (def p? (alist-of symbol? string?))
+ > (p? '())
+ #t
+ > (p? '(a))
+ #f
+ > (p? '((a a)))
+ #f
+ > (p? '((a "a")))
+ #f
+ > (p? '((a . "a")))
+ #t
+ > (p? '((a . "a") (b . "b")))
+ #t
+ > (p? '((a . "a") ("b" . b)))
+ #f)
 
