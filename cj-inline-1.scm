@@ -9,10 +9,14 @@
 (require define-macro-star
 	 simple-match-1)
 
-;; looses location information; see cj-inline-2 which overrides it
-;; with a version that uses quasiquote-source.
+(export (macro define-inline.1))
 
-(define-macro* (define-inline name+vars body0 . body)
+;; looses location information; see cj-inline for a version that uses
+;; quasiquote-source. Now using a different name, to prevent
+;; re-compilations after loading cj-inline from expanding to code that
+;; depends on cj-inline instead of cj-inline-1.
+
+(define-macro* (define-inline.1 name+vars body0 . body)
   (match-list*
    name+vars
    ((name . vars)
