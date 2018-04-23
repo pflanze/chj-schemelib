@@ -108,14 +108,14 @@
   ;; XX Gambit: does length never overflow the fixnum range?
   (declare (standard-bindings)
   	   (extended-bindings)
-  	   (not safe))
+  	   (not safe)
+	   (fixnum))
   (and (##vector? x)
-       (fx>= (vector-length x) 4)
+       (>= (vector-length x) 4)
        ;; ^ not 2: need an empty slot or (vector symboltable:tag 1) or
        ;; so would lead to endless loop in C. Oh well, and make safe
        ;; by type checking slot 1 too?
-       (eq? (vector-ref x 0) symboltable:tag)
-       (fixnum? (vector-ref x 1))))
+       (eq? (vector-ref x 0) symboltable:tag)))
 
 (TEST
  > (vector? (list->symboltable '()))
