@@ -6,8 +6,7 @@
 	 test
 	 (cj-env-1 inc)
 	 srfi-1
-	 (cj-symbol syntax-equal?)
-	 (cj-gambit-sys decompile))
+	 (cj-symbol syntax-equal?))
 
 (export flip
 	complement  (macro %complement)
@@ -313,17 +312,17 @@
 (TEST
  > (define TEST:equal? syntax-equal?)
  
- > (decompile (=>-lambda ((lambda (x) #\y)) string))
- (lambda (GEN:V-668) (string ((lambda (x) #\y) GEN:V-668)))
- > (decompile (=>-lambda car string))
- (lambda (GEN:V-671) (string (car GEN:V-671)))
+ > (expansion#=>-lambda ((lambda (x) #\y)) string)
+ (##lambda (GEN:V-668) (string ((lambda (x) #\y) GEN:V-668)))
+ > (expansion#=>-lambda car string)
+ (##lambda (GEN:V-671) (string (car GEN:V-671)))
 
- > (decompile (=>-lambda/arity 1 (lambda (x) #\y) string))
- (lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
- > (decompile (=>-lambda/arity 0 (lambda (x) #\y) string))
- (lambda () (string ((lambda (x) #\y))))
- > (decompile (=>-lambda/arity 2 (lambda (x y) #\y) string))
- (lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
+ > (expansion#=>-lambda/arity 1 (lambda (x) #\y) string)
+ (##lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
+ > (expansion#=>-lambda/arity 0 (lambda (x) #\y) string)
+ (##lambda () (string ((lambda (x) #\y))))
+ > (expansion#=>-lambda/arity 2 (lambda (x y) #\y) string)
+ (##lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
 
  > (expansion#=>-lambda/arity 1 e0 e1 e2)
  (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
@@ -334,13 +333,13 @@
 
  ;; Compared to =>* :
  ;; currently this is the same with non-symbol expressions:
- > (decompile (=>* ((lambda (x) #\y)) string))
- (lambda (GEN:V-669) (string ((lambda (x) #\y) GEN:V-669)))
+ > (expansion#=>* ((lambda (x) #\y)) string)
+ (##lambda (GEN:V-669) (string ((lambda (x) #\y) GEN:V-669)))
  ;;   ^ BTW it does *not* evaluate expressions once-only like on,
  ;;     comp, either do.
  ;; but not this:
- > (decompile (=>* car string))
- (lambda GEN:V-670 (string (##apply car GEN:V-670))))
+ > (expansion#=>* car string)
+ (##lambda GEN:V-670 (string (##apply car GEN:V-670))))
 
 
 
