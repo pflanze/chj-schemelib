@@ -62,6 +62,8 @@
 
 (deftemplate (def-oo-vector-lib-for VECTOR)
 
+  (def. VECTOR.VECTOR identity)
+
   (def. VECTOR.ref VECTOR-ref)
   (def. VECTOR.set! VECTOR-set!)
   (def. VECTOR.length VECTOR-length)
