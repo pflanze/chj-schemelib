@@ -9,6 +9,7 @@
 
 (export flip
 	complement
+	(macro %complement)
 	compose-function
 	maybe-compose
 	either (macro %either)
@@ -34,6 +35,13 @@
 (define (complement fn)
   (lambda v
     (not (apply fn v))))
+
+;; XX implement early evaluation of fn, like in |compose| and |on|
+(define-macro* (%complement fn)
+  (with-gensym
+   V
+   `(lambda (,V)
+      (not (,fn ,V)))))
 
 (define (compose-function f g)
   (lambda x
@@ -93,13 +101,11 @@
 (define (neither . fs)
   (complement (apply either fs)))
 
+;; XX implement early evaluation of fn, like in |compose| and |on|
 (define-macro* (%neither . fs)
   (with-gensym
    V
-   `(lambda (,V)
-      (not (or ,@(map (lambda (f)
-			`(,f ,V))
-		      fs))))))
+   `(%complement (%either ,@fs))))
 
 (TEST ;; copy of test cases above
  > ((neither symbol? string?) "foo")
