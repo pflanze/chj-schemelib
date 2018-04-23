@@ -67,6 +67,8 @@
 (include "cj-standarddeclares.scm")
 (possibly-use-debuggable-promise)
 
+(include "gambit-io-fast--include.scm")
+
 
 (def unbound 'unbound)
 
@@ -175,7 +177,9 @@
 	   #f)))
 
 (def @string>> ##write-string)
-(def @char>> ##write-char)
+(def (@char>> c port)
+     (macro-write-char-neverlock c port))
+
 (def (@symbol>> sym port)
      (@string>> (##symbol->string sym) port))
 
