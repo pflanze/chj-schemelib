@@ -5,7 +5,9 @@
 	 ;; for tests:
 	 test
 	 (cj-env-1 inc)
-	 srfi-1)
+	 srfi-1
+	 (cj-symbol syntax-equal?)
+	 (cj-gambit-sys decompile))
 
 (export flip
 	complement  (macro %complement)
@@ -17,6 +19,8 @@
 	all-of      (macro %all-of)
 	(macro =>)
 	(macro =>*)
+	(macro =>-lambda)
+	(macro =>-lambda/arity)
 	(macro =>>)
 	(macro =>>*)
 	list-of
@@ -270,6 +274,74 @@
  #t
  > ((=>* (+) inc) 2)
  3)
+
+
+;; always 1-ary, OK? XX or change =>* to this, how is Clojure dealing
+;; with this?
+(define-macro* (=>-lambda expr0 . exprs)
+  (with-gensym
+   V
+   `(##lambda (,V)
+	      ,(=>-expand V (cons expr0 exprs)))))
+
+(define-macro* (=>-lambda/arity n expr0 . exprs)
+  (let ((n* (eval n)))
+    (if (exact-natural0? n*)
+	(let ((VS (map (lambda (i) (gensym))
+		       (iota n*))))
+	  `(##lambda ,VS
+		     ,(=>-expand `(,expr0 ,@VS) exprs)))
+	(source-error n "expecting expression evaluating to natural0"))))
+
+(TEST
+ > ((=>-lambda car string) '(#\a #\b))
+ "a"
+ > (with-exception-catcher wrong-number-of-arguments-exception?
+			   (& ((=>-lambda car string) '(#\a #\b) 3)))
+ #t
+ > ((=>-lambda/arity 1 car string) '(#\a #\b))
+ "a"
+
+ > ((=>-lambda ((lambda (x) #\y)) string) '(#\a #\b))
+ "y"
+ > ((=>-lambda/arity 1 (lambda (x) #\y) string) '(#\a #\b))
+ "y"
+ ;; ^ unlike =>-lambda, the first expression does *not* need an
+ ;; additional paren wrap! XX messy, what to do?
+ )
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ 
+ > (decompile (=>-lambda ((lambda (x) #\y)) string))
+ (lambda (GEN:V-668) (string ((lambda (x) #\y) GEN:V-668)))
+ > (decompile (=>-lambda car string))
+ (lambda (GEN:V-671) (string (car GEN:V-671)))
+
+ > (decompile (=>-lambda/arity 1 (lambda (x) #\y) string))
+ (lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
+ > (decompile (=>-lambda/arity 0 (lambda (x) #\y) string))
+ (lambda () (string ((lambda (x) #\y))))
+ > (decompile (=>-lambda/arity 2 (lambda (x y) #\y) string))
+ (lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
+
+ > (expansion#=>-lambda/arity 1 e0 e1 e2)
+ (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
+ > (expansion#=>-lambda/arity 1 (e0) e1 e2)
+ (##lambda (GEN:-724) (e2 (e1 ((e0) GEN:-724))))
+ > (expansion#=>-lambda/arity 1 e0 (e1) e2)
+ (##lambda (GEN:-725) (e2 (e1 (e0 GEN:-725))))
+
+ ;; Compared to =>* :
+ ;; currently this is the same with non-symbol expressions:
+ > (decompile (=>* ((lambda (x) #\y)) string))
+ (lambda (GEN:V-669) (string ((lambda (x) #\y) GEN:V-669)))
+ ;;   ^ BTW it does *not* evaluate expressions once-only like on,
+ ;;     comp, either do.
+ ;; but not this:
+ > (decompile (=>* car string))
+ (lambda GEN:V-670 (string (##apply car GEN:V-670))))
+
 
 
 ;; bah, copy-paste except for one line
