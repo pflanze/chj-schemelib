@@ -1,4 +1,5 @@
-(require cj-math   ;; quotient-ceiling
+(require fixnum
+	 cj-math   ;; quotient-ceiling
 	 cj-let-named-star ;; let-named*
 	 (test TEST)
 	 cj-warn)

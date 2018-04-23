@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (test))
+(require fixnum
+	 test)
 
 
 ;; check for equal? with cache

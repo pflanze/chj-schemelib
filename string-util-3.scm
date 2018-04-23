@@ -1,5 +1,6 @@
 
 (require cj-env
+	 fixnum
 	 dot-oo
 	 (oo-util char-list?) ;; XX should that be in predicates.scm?
 	 (unclean make-unclean-string)

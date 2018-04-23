@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require cj-functional
+(require fixnum
+	 cj-functional
 	 (cj-functional-2 =>)
 	 test
 	 (cj-env named)

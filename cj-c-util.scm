@@ -1,12 +1,12 @@
 ;;;XXX sort out what I still want/need
-(require
- (cj-gambit-sys max-fixnum min-fixnum)
- (srfi-1 cons*)
- (cj-string-flatten flat-append-strings)
- cj-env
- (cj-functional applying)
- (list-util-1 map/iota)
- test)
+(require fixnum
+	 (cj-gambit-sys max-fixnum min-fixnum)
+	 (srfi-1 cons*)
+	 (cj-string-flatten flat-append-strings)
+	 cj-env
+	 (cj-functional applying)
+	 (list-util-1 map/iota)
+	 test)
 
 ;; (compile #f);; since it's only a macro.
 

@@ -6,10 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require (define-macro-star)
-	 (test)
-	 (cj-env)
-	 (cj-symbol))
+(require define-macro-star
+	 fixnum
+	 test
+	 cj-env
+	 cj-symbol)
 
 
 ;; not sure this is the end of ideas, but, giving it a try

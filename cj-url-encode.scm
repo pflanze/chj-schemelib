@@ -1,4 +1,5 @@
-(require cj-typed
+(require fixnum
+	 cj-typed
 	 test
 	 cj-functional
 	 (srfi-11 letv)

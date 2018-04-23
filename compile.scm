@@ -22,7 +22,8 @@
 ;;   installation) salted sha-256 (as the name is showing up in error
 ;;   messages)
 
-(require cj-source
+(require fixnum
+	 cj-source
 	 (cj-env define-if-not-defined)
 	 (cj-io-util xbacktick)
 	 fluid-let

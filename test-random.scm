@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+	 fixnum
 	 test
 	 cj-struct
 	 list-util
