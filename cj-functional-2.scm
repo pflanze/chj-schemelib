@@ -8,14 +8,13 @@
 	 srfi-1)
 
 (export flip
-	complement
-	(macro %complement)
+	complement  (macro %complement)
 	compose-function
 	maybe-compose
-	either (macro %either)
-	neither (macro %neither)
+	either      (macro %either)
+	neither     (macro %neither)
 	both
-	all-of
+	all-of      (macro %all-of)
 	(macro =>)
 	(macro =>*)
 	(macro =>>)
@@ -177,6 +176,41 @@
  #t
  )
 
+;; XX implement early evaluation of fn, like in |compose|, |on| and
+;; |%complement|
+(define-macro* (%all-of . preds)
+  (with-gensym
+   V
+   `(lambda (,V)
+      (and ,@(map (lambda (pred)
+		    `(,pred ,V))
+		  preds)))))
+
+(TEST ;; copy of test cases above
+ > ((%all-of even? odd?) 1)
+ #f
+ > ((%all-of even? odd?) 2)
+ #f
+ > ((%all-of even? negative?) 2)
+ #f
+ > ((%all-of even? negative?) -2)
+ #t
+ > ((%all-of even? negative?) -1)
+ #f
+
+ > ((%all-of odd?) 1)
+ #t
+ > ((%all-of) 1)
+ #t
+ ;; wow didn't expect that, but ok makes sense, (and) resolves to #t,
+ ;; nice, but wow didn't expect the interpreter to resolve that,
+ ;; either:
+ ;;
+ ;;  > (expansion (%all-of))
+ ;;  (lambda (GEN:V-686) #t)
+ ;;  > (expansion#%all-of)
+ ;;  (lambda (GEN:V-687) (and))
+ )
 
 
 
