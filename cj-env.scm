@@ -356,7 +356,7 @@
 
 ;; treating null as false:
 
-(define-inline (not* v)
+(define-inline.1 (not* v)
   (or (eq? v #f)
       (eq? v '())))
 

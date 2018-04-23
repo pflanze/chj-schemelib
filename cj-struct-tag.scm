@@ -9,7 +9,7 @@
 	 test
 	 (cj-env define-if-not-defined) ;; in macro expansion
 	 ;; (predicates-1 list-of-length)
-	 (cj-inline-1 define-inline) ;; cj-inline would give cycle
+	 (cj-inline-1 define-inline.1) ;; cj-inline would give cycle
 	 )
 
 (export struct-tag?
@@ -76,7 +76,7 @@
 
 (define-if-not-defined cj-struct:type->metadata (make-table test: eq?))
 
-(define-inline (@maybe-struct-tag-name v)
+(define-inline.1 (@maybe-struct-tag-name v)
   (declare (block)
 	   (standard-bindings)
 	   (extended-bindings)

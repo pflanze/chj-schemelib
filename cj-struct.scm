@@ -14,7 +14,7 @@
 	 named
 	 (cj-env symbol-append define-if-not-defined list-max) ;; in macro expansion
 	 (predicates-1 list-of-length)
-	 (cj-inline-1 define-inline) ;; cj-inline would give cycle
+	 (cj-inline-1 define-inline.1) ;; cj-inline would give cycle
 	 )
 
 (export (macro define-struct)
