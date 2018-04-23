@@ -92,13 +92,13 @@
 	      (v* (make-VECTOR len)))
 	 (let lp ((i 0)
 		  (j 0))
-	   (if (fx< i len)
-	       (let ((val (VECTOR-ref v i)))
+	   (if (< i len)
+	       (let ((val (##VECTOR-ref v i)))
 		 (if (fn val i)
 		     (begin
-		       (VECTOR-set! v* j val)
-		       (lp (fx+ i 1) (fx+ j 1)))
-		     (lp (fx+ i 1) j)))
+		       (##VECTOR-set! v* j val)
+		       (lp (+ i 1) (+ j 1)))
+		     (lp (+ i 1) j)))
 	       (begin
 		 (VECTOR-shrink! v* j)
 		 v*)))))
