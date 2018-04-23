@@ -18,6 +18,7 @@
 	all-of      (macro %all-of)
 	(macro =>)
 	(macro =>*)
+	exact-natural0? ;; can't be in predicates-1 for dependency reasons
 	(macro =>-lambda)
 	(macro =>-lambda/arity)
 	(macro =>>)
@@ -282,6 +283,9 @@
    V
    `(##lambda (,V)
 	      ,(=>-expand V (cons expr0 exprs)))))
+
+
+(define exact-natural0? (both natural0? exact?))
 
 (define-macro* (=>-lambda/arity n expr0 . exprs)
   (let ((n* (eval n)))

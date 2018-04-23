@@ -107,7 +107,8 @@
 
 (define exact-natural? (both natural? exact?))
 
-(define exact-natural0? (both natural0? exact?))
+;; (define exact-natural0? (both natural0? exact?))
+;; see cj-functional-2
 
 
 (TEST
