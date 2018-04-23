@@ -9,7 +9,7 @@
 (require define-macro-star
 	 test
 	 cj-phasing
-	 (cj-functional-2 =>*)
+	 (cj-functional-2 =>-lambda)
 	 (srfi-11 fst snd)
 	 cj-source
 	 cj-source-2
@@ -43,8 +43,8 @@
 	     ((test . body)
 	      (values test body)))))
 
- (define clause:test (=>* clause:parse fst))
- (define clause:body (=>* clause:parse snd))
+ (define clause:test (=>-lambda clause:parse fst))
+ (define clause:body (=>-lambda clause:parse snd))
 
  (define clause:test-parse
    ;; (values constructor apply? rest)
@@ -67,9 +67,9 @@
 					#f
 					(cdr test))))))))))
 
- (define clause:constructor-xsym (=>* clause:test-parse fst))
- (define clause:apply? (=>* clause:test-parse snd))
- (define clause:args (=>* clause:test-parse 3rd))
+ (define clause:constructor-xsym (=>-lambda clause:test-parse fst))
+ (define clause:apply? (=>-lambda clause:test-parse snd))
+ (define clause:args (=>-lambda clause:test-parse 3rd))
 
  (define clause:test-nargs
    ;; negative like improper-length if it's an n-ary application
@@ -226,9 +226,9 @@
 		 (segregate opgroup (on clause:test-nargs <))))
 	   ;; split into n-ary and fixed arity cases:
 	   (letv ((groups-nary groups-fixed)
-		  (partition (=>* car
-				  clause:test-nargs
-				  negative?)
+		  (partition (=>-lambda car
+					clause:test-nargs
+					negative?)
 			     grouped-by-nargs))
 		 ;; nary groups need to be given names so as to be reusable:
 		 (let* ((narity->name+group

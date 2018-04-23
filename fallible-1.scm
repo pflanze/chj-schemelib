@@ -11,7 +11,7 @@
 ;; to satisfy `cj-typed`'s dependency
 
 (require cj-struct
-	 (cj-functional-2 =>*)
+	 (cj-functional-2 =>-lambda)
 	 (cj-env symbol-value-or))
 
 (export fallible?
@@ -35,4 +35,4 @@
 	 (fallible-stack v))))
 
 (define fallible-string
-  (=>* fallible-show object->string))
+  (=>-lambda fallible-show object->string))
