@@ -7,7 +7,8 @@
 ;;;    terms of the GPL you can link it with any code produced by Categorical
 ;;;    Design Solutions Inc. from Quebec, Canada.
 
-(require (cj-env define-if-not-defined)
+(require (cj-struct-tag struct-tag-allocate! struct-metadata)
+	 (cj-env define-if-not-defined)
 	 define-macro-star
 	 cj-inline
 	 cj-source-quasiquote
@@ -100,7 +101,8 @@
 (define symboltable:key-name symbol->string)
 
 (define-if-not-defined symboltable:tag
-  (list 'symboltable))
+  (struct-tag-allocate! 'symboltable
+			(struct-metadata 'symboltable)))
 
 (define-inline (symboltable? x)
   ;; XX Gambit: does length never overflow the fixnum range?
@@ -114,6 +116,14 @@
        ;; by type checking slot 1 too?
        (eq? (vector-ref x 0) symboltable:tag)
        (fixnum? (vector-ref x 1))))
+
+(TEST
+ > (vector? (list->symboltable '()))
+ #f
+ > (symboltable? (list->symboltable '()))
+ #t)
+
+
 
 (define-if-not-defined empty-symboltable
   (vector symboltable:tag 0 #f #f))
