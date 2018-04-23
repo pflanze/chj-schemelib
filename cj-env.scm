@@ -137,7 +137,7 @@
 ;; 'Machine' integer types (predicates)
 
 (define (uint_? bits)
-  (let ((ma (dec (arithmetic-shift 1 bits))))
+  (let ((ma (- (arithmetic-shift 1 bits) 1)))
     (lambda (x)
       (and (integer? x)
 	   (<= 0 x ma)))))
@@ -149,7 +149,7 @@
 (define uint128? (uint_? 128))
 
 (define (int_? bits)
-  (let ((ma (dec (arithmetic-shift 1 (dec bits))))
+  (let ((ma (- (arithmetic-shift 1 (dec bits)) 1))
 	(mi (- (arithmetic-shift 1 (dec bits)))))
     (lambda (x)
       (and (integer? x)
