@@ -82,7 +82,7 @@
 	  v))))
 
 (TEST
- > (list.rmap-vector '(1 2 3) inc)
+ > (list.rmap-vector '(1 2 3) inc-function)
  #(4 3 2))
 
 
