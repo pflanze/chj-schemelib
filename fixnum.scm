@@ -12,6 +12,8 @@
 	(macro dec))
 
 
+;; Also see safe-fx.scm ! (Perhaps merge?)
+
 ;; also see inc-function and dec-function in cj-env-1--include.scm
 ;;   e.g.
 ;; (define (inc-function n)

@@ -6,6 +6,8 @@
 ;;;    (at your option) any later version.
 
 
+;; Also see fixnum.scm ! (Perhaps merge?)
+
 ;; Safe fixnum operations:
 
 ;; In the sense that even when used in (not safe) mode, they do check
