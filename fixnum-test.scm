@@ -14,6 +14,11 @@
 ;; "should allow anything that works for vector access. Then could do
 ;; unsafe. What about wrap-around?"
 
+
+;; compiled:
+(def fixnum-test:inc (C inc _))
+(def fixnum-test:dec (C dec _))
+
 (TEST
  > (with-exception-catcher fixnum-overflow-exception?
 			   (& (fx+ max-fixnum 1)))
@@ -23,5 +28,12 @@
  #t
  > (with-exception-catcher fixnum-overflow-exception?
 			   (& (dec min-fixnum)))
+ #t
+
+ > (with-exception-catcher fixnum-overflow-exception?
+			   (& (fixnum-test:inc max-fixnum)))
+ #t
+ > (with-exception-catcher fixnum-overflow-exception?
+			   (& (fixnum-test:dec min-fixnum)))
  #t)
 
