@@ -48,6 +48,8 @@
 	(macro inc!)
 	(macro dec!)
 	(macro add!)
+	inc* 1+
+	dec*
 	not*
 	(macro if*)
 	(macro or*)
@@ -352,6 +354,15 @@
     `(let ((,V (+ ,var ,e)))
        (set! ,var ,V)
        ,V)))
+
+;; non-fixnum ones, not a macro:
+(define (inc* x)
+  (+ x 1))
+(define 1+ inc*)
+
+(define (dec* x)
+  (- x 1))
+;; 1-? no
 
 
 ;; treating null as false:
