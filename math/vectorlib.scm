@@ -192,7 +192,7 @@
 
 (TEST
  > (define v (Vc 1 2 3))
- > (.update!* v 3 inc-function)
+ > (.update!* v 3 inc*)
  > (.show v)
  (Vc 1.+0.i 2.+0.i 4.+0.i)
  > (define m (Mr (Vr 1 2 3) (Vr 4 5 6)))
@@ -836,11 +836,11 @@
 
 
 (TEST
- > (.show (.map (Vr 1 2 3) inc))
+ > (.show (.map (Vr 1 2 3) inc*))
  (Vr 2. 3. 4.)
- > (.show (.map (Vc 1 2 3) inc))
+ > (.show (.map (Vc 1 2 3) inc*))
  (Vc 2.+0.i 3.+0.i 4.+0.i)
- > (.show (.map (Mr (Vr 1 2) (Vr 3 4)) inc))
+ > (.show (.map (Mr (Vr 1 2) (Vr 3 4)) inc*))
  (Mr (Vr 2. 3.) (Vr 4. 5.))
  > (.show (.map+ (Mr (Vr 1 2) (Vr 3 4)) (lambda (x i0 i1) (+ x i0))))
  (Mr (Vr 1. 2.) (Vr 4. 5.))
