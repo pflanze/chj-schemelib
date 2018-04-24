@@ -106,7 +106,9 @@
   (error error)
   (error error)
   (error error)
-  (error error)
+  (not-found not-found)
+  ;; ^ used to be (error error), but now the type predicate doesn't check
+  ;;   the length field anymore (since it's supposedly safe via the tag)
   (not-found not-found)
   (not-found not-found))
  ;; ((type error)
