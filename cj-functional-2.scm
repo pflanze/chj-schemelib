@@ -262,7 +262,7 @@
 (TEST
  > ((=>* (inc)) 10)
  11
- > ((=>* inc inc) 10)
+ > ((=>-lambda inc inc) 10)
  12
  ;; multiple arguments:
  > ((=>* + inc))
@@ -388,13 +388,13 @@
 
 (TEST
  > (=> (=>> (iota 10)
-	    (map inc)
+	    (map inc-function)
 	    (filter even?))
        (take 2))
  (2 4)
  > ((=>>* (inc)) 10)
  11
- > ((=>>* inc (inc) inc inc) 10)
+ > ((=>>* inc-function (inc) inc inc) 10)
  14
  ;; multiple arguments:
  > (with-exception-catcher divide-by-zero-exception?

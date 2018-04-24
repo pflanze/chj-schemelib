@@ -235,9 +235,9 @@
 	(def-method (month-inc s #!optional keep-dst?)
 	  (let ((r (if (>= month-1 11)
 		       (=> s
-			   (.year-1900-update inc)
+			   (.year-1900-update inc-function)
 			   (.month-1-set 0))
-		       (.month-1-update s inc))))
+		       (.month-1-update s inc-function))))
 	    (if keep-dst?
 		r
 		(.integer-isdst-set r -1))))

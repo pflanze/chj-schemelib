@@ -129,7 +129,7 @@
 ;; definition see list-util-1
 
 (TEST
- > (map/tail inc 'mytail '(1 2))
+ > (map/tail inc-function 'mytail '(1 2))
  (2 3 . mytail)
  )
 
@@ -480,9 +480,9 @@
  (#(#f a) #(#f b) #(#t c)))
 
 (TEST
- > (reverse-map inc '(1 2 3))
+ > (reverse-map inc-function '(1 2 3))
  (4 3 2)
- > (reverse-map/tail inc '(1 2 3) 'b)
+ > (reverse-map/tail inc-function '(1 2 3) 'b)
  (4 3 2 . b))
 
 
@@ -566,7 +566,7 @@
       (rep val)))
 
 (TEST
- > (repeatedly 10 inc 5)
+ > (repeatedly 10 inc-function 5)
  15
  > ((repeatedly 4 square) 2)
  65536)

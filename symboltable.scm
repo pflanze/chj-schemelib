@@ -142,15 +142,15 @@
  > (symboltable-update! t 'ha (lambda (x) 1))
  > (symboltable-ref t 'ha 'not-found)
  1
- > (symboltable-update! t 'ha inc)
+ > (symboltable-update! t 'ha inc-function)
  > (symboltable-ref t 'ha 'not-found)
  2
- > (define t2 (symboltable-update t 'ha inc))
+ > (define t2 (symboltable-update t 'ha inc-function))
  > (symboltable-ref t 'ha 'not-found)
  2
  > (symboltable-ref t2 'ha 'not-found)
  3
- > (symboltable-update t 'hu inc (lambda () 'no))
+ > (symboltable-update t 'hu inc-function (lambda () 'no))
  no
  > (define-values (t3 res)
      (symboltable-update* t2 'ha (lambda (v)

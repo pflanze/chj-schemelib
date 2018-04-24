@@ -651,9 +651,9 @@
  45
  > (.sum (stream-iota 10))
  45
- > (.sum (.map (iota 10) inc))
+ > (.sum (.map (iota 10) inc-function))
  55
- > (.sum (.map (stream-iota 10) inc))
+ > (.sum (.map (stream-iota 10) inc-function))
  55
  > (.max '(1 9 4))
  9

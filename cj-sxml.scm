@@ -347,7 +347,7 @@
 
 (TEST
  ;; (tests for sxml:nothing: see test forms for set and delete)
- > (sxml-attributes.update '(@ (foo 1) (bar 2) (baz 3)) 'bar inc)
+ > (sxml-attributes.update '(@ (foo 1) (bar 2) (baz 3)) 'bar inc-function)
  (@ (foo 1) (bar 3) (baz 3)))
 
 (define (sxml-attributes.set attrs namesym val)

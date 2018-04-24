@@ -21,9 +21,6 @@
 		vectors.interleave-list))
 
 
-(def dec (inline dec)) ;; didn't I have a macro for that? lost?
-
-
 (def. (vector.map-list vec fn #!optional (tail '()) with-i?)
   (let lp ((i (dec (vector-length vec)))
 	   (l tail))
@@ -64,9 +61,9 @@
 
 
 (TEST
- > (.map-list (vector 2 3 4) inc)
+ > (.map-list (vector 2 3 4) inc-function)
  (3 4 5)
- > (.map-list (vector 2 3 4) inc 'foo)
+ > (.map-list (vector 2 3 4) inc-function 'foo)
  (3 4 5 . foo)
  > (.map-list (list (vector 2 3 4) (vector 1 -1 9)) + 'foo)
  (3 2 13 . foo)

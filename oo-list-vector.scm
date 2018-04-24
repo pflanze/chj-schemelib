@@ -65,7 +65,7 @@
 	  v))))
 
 (TEST
- > (list.map-vector '(1 2 3) inc)
+ > (list.map-vector '(1 2 3) inc-function)
  #(2 3 4))
 
 

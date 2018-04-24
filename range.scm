@@ -375,8 +375,8 @@
 
 ;; XX MOVE
 
-(def. real.inc inc)
-(def. real.dec dec)
+(def. real.inc inc-function)
+(def. real.dec dec-function)
 (def. real.< <)
 (def. real.<= <=)
 (def. real.- -)

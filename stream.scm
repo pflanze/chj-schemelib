@@ -314,11 +314,11 @@
 		       '()))))))
 
 (TEST
- > (F (stream-map inc (list 10 20 30)))
+ > (F (stream-map inc-function (list 10 20 30)))
  (11 21 31)
- > (F (stream-map/tail inc (list 10 20 30) '(a b)))
+ > (F (stream-map/tail inc-function (list 10 20 30) '(a b)))
  (11 21 31 a b)
- > (F (stream-map/tail inc (list) '(a b)))
+ > (F (stream-map/tail inc-function (list) '(a b)))
  (a b)
  > (F (stream-map vector (stream-iota) '(a b c)))
  (#(0 a) #(1 b) #(2 c))
@@ -335,9 +335,9 @@
 			    (rec s*)))))))
 
 (TEST
- > (stream-map-list inc '(10 12))
+ > (stream-map-list inc-function '(10 12))
  (11 13)
- > (stream-map-list inc (stream-take (stream-iota) 3))
+ > (stream-map-list inc-function (stream-take (stream-iota) 3))
  (1 2 3))
 
 

@@ -350,7 +350,7 @@
  #((foo) 12 #t)
  > (%try-error (.x-set # 'n))
  #(error "value does not match integer?:" n)
- > (.x-update (foo x: 10 b: #t) inc)
+ > (.x-update (foo x: 10 b: #t) inc-function)
  #((foo) 11 #t)
  > (%try-error (.x-update (foo x: 10 b: #t) true/1))
  #(error "gensym '\"V*\" does not match integer?:" #t)

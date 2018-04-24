@@ -331,7 +331,7 @@
  (a ("fo" 5))
  ;; > (XHTML (a `("fo" ,(map inc '(4)))))
  ;; (a ("fo" (map #<procedure #2 inc> (4))))
- > (XHTML (a `("fo" ,(,map inc '(4)))))
+ > (XHTML (a `("fo" ,(,map inc-function '(4)))))
  (a ("fo" (5)))
  ;; fun :)
  )

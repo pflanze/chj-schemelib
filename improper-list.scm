@@ -32,21 +32,21 @@
 ;; implementation see list-util-1.scm
 
 (TEST
- > (improper-map inc '(1 2 3))
+ > (improper-map inc-function '(1 2 3))
  (2 3 4)
- > (improper-map inc '(1 2 . 3))
+ > (improper-map inc-function '(1 2 . 3))
  (2 3 . 4)
- > (improper-map inc '5)
+ > (improper-map inc-function '5)
  6
- > (improper-map inc '())
+ > (improper-map inc-function '())
  ()
- > (mapS inc '(1 2 . 3))
+ > (mapS inc-function '(1 2 . 3))
  (2 3 4)
- > (mapS inc '5)
+ > (mapS inc-function '5)
  (6)
- > (mapS inc '())
+ > (mapS inc-function '())
  ()
- > (mapS inc 5 'tail)
+ > (mapS inc-function 5 'tail)
  (6 . tail)
  )
 

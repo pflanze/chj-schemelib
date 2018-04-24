@@ -192,7 +192,7 @@
 
 (TEST
  > (define v (Vc 1 2 3))
- > (.update!* v 3 inc)
+ > (.update!* v 3 inc-function)
  > (.show v)
  (Vc 1.+0.i 2.+0.i 4.+0.i)
  > (define m (Mr (Vr 1 2 3) (Vr 4 5 6)))
