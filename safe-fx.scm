@@ -18,7 +18,8 @@
 	 test
 	 cj-test
 	 (cj-inline inline-through-decompile)
-	 (string-util-3 string.replace-substring))
+	 (string-util-3 string.replace-substring)
+	 (cj-env inc*))
 
 
 (export (macros safe-fx#+
@@ -154,7 +155,7 @@
  32
  > (fixnum? max-fixnum)
  #t
- > (fixnum? (inc max-fixnum))
+ > (fixnum? (inc* max-fixnum))
  #f
  > (def (fixup v r)
 	(if (eq? (car v) 'exception)
