@@ -18,14 +18,26 @@
 ;;   (declare (fixnum))
 ;;   (+ n 1))
 
+
+;; In interpreted code, the fixnum declaration is ignored thus the
+;; code doesn't report an error for non-fixnums, or fixnum overflows,
+;; especially the latter of which is potentially troublesome.
+
+;; Could just rely on fx+ and fx-, but it appeared that declare fixnum
+;; with generic ops is faster? TODO: double check.
+
 (define-macro* (inc e)
-  `(let ()
-     (declare (fixnum))
-     (+ ,e 1)))
+  (if (mod:compiled?)
+      `(let ()
+	 (declare (fixnum))
+	 (+ ,e 1))
+      `(fx+ ,e 1)))
 
 (define-macro* (dec e)
-  `(let ()
-     (declare (fixnum))
-     (- ,e 1)))
+  (if (mod:compiled?)
+      `(let ()
+	 (declare (fixnum))
+	 (- ,e 1))
+      `(fx- ,e 1)))
 
 
