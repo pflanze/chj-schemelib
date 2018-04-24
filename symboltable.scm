@@ -11,6 +11,7 @@
 	 symboltable-1
 	 show ;; should it be possible to make things optional?!
 	 test
+	 (fixnum inc)
 	 cj-cmp
 	 (dsssl sequential-pairs)
 	 (cj-env keyword->symbol))
