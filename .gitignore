@@ -10,3 +10,5 @@
 
 /mod/config.scm
 /TinyMT
+*.xhtml
+.markdownmake.lck
