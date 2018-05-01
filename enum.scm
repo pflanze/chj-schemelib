@@ -1,4 +1,4 @@
-;;; Copyright 2013, 2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -65,8 +65,11 @@
 			   (error "string does not map to any member of enum:"
 				  ',name
 				  ,V))))
-	     ;; type safe comparison:
-	     (define-typed (,(symbol-append name '-eq?) #(,name? a) #(,name? b))
+	     ;; Type safe 'methods' (avoiding the need to use any
+	     ;; symbol functions directly):
+	     (define-typed (,(symbol-append name ".string") #(,name? s))
+	       (symbol->string s))
+	     (define-typed (,(symbol-append name "-eq?") #(,name? a) #(,name? b))
 	       (eq? a b)))))))))
 
 (TEST
