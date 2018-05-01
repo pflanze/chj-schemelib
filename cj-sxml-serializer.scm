@@ -346,6 +346,12 @@
 	     (else
 	      (error "atom>>htmlquoted: unknown type of:" atom)))))
 
+(TEST
+ > (.xml-string-fragment '(p |&nbsp;|))
+ "<p>&nbsp;</p>"
+ > (.xml-string-fragment '(p (@ (class |&nbsp;|))))
+ "<p class=\"&nbsp;\" />")
+
 
 (def indentation-width 1)
 
