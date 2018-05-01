@@ -321,14 +321,6 @@
 	      (@string>>htmlquoted atom port count-chars? in-attributes?))
 	     ((char? atom)
 	      (@char>>htmlquoted atom port count-chars? in-attributes?))
-	     ((symbol? atom)
-	      (@symbol>> atom port)
-	      ;; I'm using this for outputting |&nbsp;| etc.; but maybe
-	      ;; should use something else, for better error
-	      ;; checking.(flattenedtags) ?
-	   
-	      ;; (serializeprocess-string-reset!)
-	      )
 	     ((null? atom)
 	      #|nothing|#)
 	     ((number? atom)
@@ -347,10 +339,10 @@
 	      (error "atom>>htmlquoted: unknown type of:" atom)))))
 
 (TEST
- > (.xml-string-fragment '(p |&nbsp;|))
- "<p>&nbsp;</p>"
- > (.xml-string-fragment '(p (@ (class |&nbsp;|))))
- "<p class=\"&nbsp;\" />")
+ > (%try-error (.xml-string-fragment '(p |&nbsp;|)))
+ [error "atom>>htmlquoted: unknown type of:" |&nbsp;|]
+ > (%try-error (.xml-string-fragment '(p (@ (class |&nbsp;|)))))
+ [error "atom>>htmlquoted: unknown type of:" |&nbsp;|])
 
 
 (def indentation-width 1)
