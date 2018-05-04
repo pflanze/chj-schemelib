@@ -31,6 +31,7 @@
 	(macro typed-lambda)
 	(macro define-typed)
 	(macro ->)
+	(macro @->)
 	;; indirectly: ->-error
 	(macros cj-typed-disable
 		cj-typed-enable)
@@ -434,6 +435,11 @@
 	       `(##let ((,V (##let () ,@body)))
 		       (##if (,pred ,V) ,V
 			     (->-error ',pred ,V)))))
+
+;; and for easy disabling:
+(define-macro* (@-> pred . body)
+  `(begin
+     ,@body))
 
 (TEST
  > (-> number? 5)
