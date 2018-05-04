@@ -1,8 +1,5 @@
 
-(require dummy-module ;; XX stupid, just add it here so that I don't
-		      ;; have to add it everywhere, hack, finally
-		      ;; implement the d* module system.
-	 define-macro-star)
+(require define-macro-star)
 
 (export (macro insert-result-of)
 	(macro compile-time)

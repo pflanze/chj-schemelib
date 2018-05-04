@@ -277,3 +277,18 @@
       ##primordial-exception-handler
       (lambda ()
 	,@body))))
+
+
+
+
+;; dummy-module
+
+;; now put directly here to avoid having to special-case it (which
+;; seems to be broken or was forgotten)
+
+(define-macro* (require . body)
+  `(begin))
+
+(define-macro* (export . forms)
+  '(begin))
+
