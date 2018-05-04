@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -35,6 +35,11 @@
 	3rd
 	4th
 	5th
+	(macro @fst)
+	(macro @snd)
+	(macro @3rd)
+	(macro @4th)
+	(macro @5th)
 	values?
 	values-equal?
 	values-map)
@@ -417,6 +422,12 @@
 (define 3rd (lambda (<>) (values-ref <> 2)))
 (define 4th (lambda (<>) (values-ref <> 3)))
 (define 5th (lambda (<>) (values-ref <> 4)))
+
+(define-macro* (@fst v) `(##vector-ref ,v 0))
+(define-macro* (@snd v) `(##vector-ref ,v 1))
+(define-macro* (@3rd v) `(##vector-ref ,v 2))
+(define-macro* (@4th v) `(##vector-ref ,v 3))
+(define-macro* (@5th v) `(##vector-ref ,v 4))
 
 (TEST
  > (require (test-random)))
