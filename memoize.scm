@@ -1,4 +1,4 @@
-;;; Copyright 2015 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2015-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,7 @@
 (require)
 
 
-(define memoize:nothing (gensym 'nothing))
+(define memoize:nothing (box 'nothing))
 
 (define (memoize f
 		 #!optional
