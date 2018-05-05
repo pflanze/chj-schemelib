@@ -14,7 +14,7 @@
 	maybe-compose
 	either      (macro %either)
 	neither     (macro %neither)
-	both-function
+	both-function        (macro both)
 	all-of-function      (macro %all-of)
 	(macro =>)
 	(macro =>*)
@@ -217,6 +217,10 @@
  )
 
 
+(define-macro* (both a b)
+  `(%all-of ,a ,b))
+
+
 
 ;; The "Clojure-macros". Clojure calls them -> and ->> instead, but ->
 ;; is taken by cj-typed. Called this "chain" previously (but then how
@@ -285,7 +289,7 @@
 	      ,(=>-expand V (cons expr0 exprs)))))
 
 
-(define exact-natural0? (both-function natural0? exact?))
+(define exact-natural0? (both natural0? exact?))
 
 (define-macro* (=>-lambda/arity n expr0 . exprs)
   (let ((n* (eval n)))
