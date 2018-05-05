@@ -14,7 +14,7 @@
 	maybe-compose
 	either      (macro %either)
 	neither     (macro %neither)
-	both
+	both-function
 	all-of-function      (macro %all-of)
 	(macro =>)
 	(macro =>*)
@@ -137,21 +137,21 @@
 
 
 ;; name ok?
-(define (both f0 f1)
+(define (both-function f0 f1)
   (lambda x
     (and (apply f0 x)
 	 (apply f1 x))))
 
 (TEST
- > ((both even? odd?) 1)
+ > ((both-function even? odd?) 1)
  #f
- > ((both even? odd?) 2)
+ > ((both-function even? odd?) 2)
  #f
- > ((both even? negative?) 2)
+ > ((both-function even? negative?) 2)
  #f
- > ((both even? negative?) -2)
+ > ((both-function even? negative?) -2)
  #t
- > ((both even? negative?) -1)
+ > ((both-function even? negative?) -1)
  #f
  )
 
@@ -285,7 +285,7 @@
 	      ,(=>-expand V (cons expr0 exprs)))))
 
 
-(define exact-natural0? (both natural0? exact?))
+(define exact-natural0? (both-function natural0? exact?))
 
 (define-macro* (=>-lambda/arity n expr0 . exprs)
   (let ((n* (eval n)))
