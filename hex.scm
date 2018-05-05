@@ -15,26 +15,33 @@
 		string.parse-hex))
 
 
+(include "cj-standarddeclares.scm")
+
+(define-macro (CHAR->INTEGER c)
+  (char->integer c))
+
+
 (define (hexdigit digit)
+  (declare (fixnum))
   (if (< digit 10)
-      (integer->char (+ digit (char->integer #\0)))
-      (integer->char (+ (- digit 10) (char->integer #\A)))))
+      (integer->char (+ digit (CHAR->INTEGER #\0)))
+      (integer->char (+ (- digit 10) (CHAR->INTEGER #\A)))))
 
 
 ;; stupid name?
 (def. (integer.parse-hexdigit x)
-  (cond ((<= (char->integer #\0)
+  (cond ((<= (CHAR->INTEGER #\0)
 	     x
-	     (char->integer #\9))
-	 (- x (char->integer #\0)))
-	((<= (char->integer #\a)
+	     (CHAR->INTEGER #\9))
+	 (- x (CHAR->INTEGER #\0)))
+	((<= (CHAR->INTEGER #\a)
 	     x
-	     (char->integer #\f))
-	 (+ 10 (- x (char->integer #\a))))
-	((<= (char->integer #\A)
+	     (CHAR->INTEGER #\f))
+	 (+ 10 (- x (CHAR->INTEGER #\a))))
+	((<= (CHAR->INTEGER #\A)
 	     x
-	     (char->integer #\F))
-	 (+ 10 (- x (char->integer #\A))))
+	     (CHAR->INTEGER #\F))
+	 (+ 10 (- x (CHAR->INTEGER #\A))))
 	(else
 	 ;; better print char-encoded ?
 	 (error "not a character representing a hex digit:" x))))
