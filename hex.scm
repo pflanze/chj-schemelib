@@ -8,7 +8,8 @@
 
 (require easy)
 
-(export hexdigit
+(export hexdigit-integer
+	hexdigit
 	(method integer.parse-hexdigit
 		char.parse-hexdigit
 		u8vector.hex-string
@@ -21,11 +22,14 @@
   (char->integer c))
 
 
-(define (hexdigit digit)
+(define (hexdigit-integer digit)
   (declare (fixnum))
   (if (< digit 10)
-      (integer->char (+ digit (CHAR->INTEGER #\0)))
-      (integer->char (+ (- digit 10) (CHAR->INTEGER #\A)))))
+      (+ digit (CHAR->INTEGER #\0))
+      (+ (- digit 10) (CHAR->INTEGER #\A))))
+
+(define (hexdigit digit)
+  (integer->char (hexdigit-integer digit)))
 
 
 ;; stupid name?
