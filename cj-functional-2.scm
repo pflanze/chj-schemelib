@@ -15,7 +15,7 @@
 	either      (macro %either)
 	neither     (macro %neither)
 	both-function        (macro both)
-	all-of-function      (macro %all-of)
+	all-of-function      (macro all-of)
 	(macro =>)
 	(macro =>*)
 	exact-natural0? ;; can't be in predicates-1 for dependency reasons
@@ -182,7 +182,7 @@
 
 ;; XX implement early evaluation of fn, like in |compose|, |on| and
 ;; |%complement|
-(define-macro* (%all-of . preds)
+(define-macro* (all-of . preds)
   (with-gensym
    V
    `(lambda (,V)
@@ -191,26 +191,26 @@
 		  preds)))))
 
 (TEST ;; copy of test cases above
- > ((%all-of even? odd?) 1)
+ > ((all-of even? odd?) 1)
  #f
- > ((%all-of even? odd?) 2)
+ > ((all-of even? odd?) 2)
  #f
- > ((%all-of even? negative?) 2)
+ > ((all-of even? negative?) 2)
  #f
- > ((%all-of even? negative?) -2)
+ > ((all-of even? negative?) -2)
  #t
- > ((%all-of even? negative?) -1)
+ > ((all-of even? negative?) -1)
  #f
 
- > ((%all-of odd?) 1)
+ > ((all-of odd?) 1)
  #t
- > ((%all-of) 1)
+ > ((all-of) 1)
  #t
  ;; wow didn't expect that, but ok makes sense, (and) resolves to #t,
  ;; nice, but wow didn't expect the interpreter to resolve that,
  ;; either:
  ;;
- ;;  > (expansion (%all-of))
+ ;;  > (expansion (all-of))
  ;;  (lambda (GEN:V-686) #t)
  ;;  > (expansion#%all-of)
  ;;  (lambda (GEN:V-687) (and))
@@ -218,7 +218,7 @@
 
 
 (define-macro* (both a b)
-  `(%all-of ,a ,b))
+  `(all-of ,a ,b))
 
 
 

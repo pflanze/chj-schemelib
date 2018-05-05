@@ -10,7 +10,7 @@
 	 list))
 
 (def tag?
-     (%all-of pair?
+     (all-of pair?
 	      (=>* car symbol?)))
 
 ;; (def maket
