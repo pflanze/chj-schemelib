@@ -21,7 +21,7 @@
 	
 	#!optional
 	sizeof-ucs4
-	@utf8-bytes
+	(macro @utf8-bytes)
 	@u8vector-utf8-put!
 	@u8vector-utf8-get!
 	)
@@ -134,10 +134,12 @@ ___UCS_4 c;);
  #f)
 
 
-(def (@utf8-bytes c)
-     (##c-code "
+(defmacro (@utf8-bytes c)
+  (if (mod:compiled?)
+      `(##c-code "
 ___RESULT=___FIX(___UTF_8_bytes(___INT(___ARG1)));"
-	       c))
+		 ,c)
+      `(utf8-bytes ,c)))
 
 (def (utf8-bytes #(ucs4-codepoint? c))
      (@utf8-bytes c))
