@@ -24,6 +24,7 @@
 	(macro =>>)
 	(macro =>>*)
 	list-of
+	non-empty-list-of
 	list-of/length ;; see also length-is
 	improper-list/length>=
 	pair-of
@@ -418,6 +419,11 @@
   (lambda (x)
     (and (list? x)
 	 (every pred x))))
+
+
+(define (non-empty-list-of pred)
+  (both pair? (list-of pred)))
+
 
 ;; see also length-is
 (define (list-of/length pred len)
