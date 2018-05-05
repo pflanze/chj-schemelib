@@ -6,12 +6,19 @@
 	 srfi-1
 	 (string-util strings-join string-split)
 	 u8vector0
-	 (hex hexdigit char.parse-hexdigit))
+	 (hex hexdigit char.parse-hexdigit)
+	 (oo-lib-string u8vector.string))
 
-(export url-encode
+(export url-encode url-encode-u8vector
 	url-decode
 	path-string.url-encode
 	url-string-and-fragment)
+
+(include "cj-standarddeclares.scm")
+
+
+(define-macro (CHAR->INTEGER c)
+  (char->integer c))
 
 
 ;; sigh url-encoding AGAIN. where did I have it before?? recently? no?
@@ -30,15 +37,15 @@
     ((#\- #\_ #\. #\~) #t)
     (else
      (let ((cn (char->integer c)))
-       (or (<= (insert-result-of (char->integer #\a))
+       (or (<= (CHAR->INTEGER #\a)
 	       cn
-	       (insert-result-of (char->integer #\z)))
-	   (<= (insert-result-of (char->integer #\A))
+	       (CHAR->INTEGER #\z))
+	   (<= (CHAR->INTEGER #\A)
 	       cn
-	       (insert-result-of (char->integer #\Z)))
-	   (<= (insert-result-of (char->integer #\0))
+	       (CHAR->INTEGER #\Z))
+	   (<= (CHAR->INTEGER #\0)
 	       cn
-	       (insert-result-of (char->integer #\9))))))))
+	       (CHAR->INTEGER #\9)))))))
 
 (TEST
  > (url-encoding:unreserved? #\c)
@@ -92,7 +99,70 @@
 	    u8vector->list
 	    string.utf8-u8vector))
 
-(define url-encode (stringliststring _url-encode))
+(define url-encode-slow (stringliststring _url-encode))
+
+(define cj-url-encode:url-encode-retry 0)
+
+(define-typed (url-encode-u8vector [string? str])
+  (declare (fixnum))
+
+  ;; Optimistic (?, attempting) algorithm: allocate a fixed buffer, if
+  ;; the result fits, shrink it, otherwise (overflow case) retry with
+  ;; larger buffer.
+
+  (let* ((max-utf-bytes 4)
+	 (buf (##make-u8vector max-utf-bytes))
+
+	 (len (string-length str)))
+
+    (let retry ((len* (+ 8 (* len 3))))
+  
+      (def (overflow)
+	   (inc! cj-url-encode:url-encode-retry)
+	   (retry (* len* 2)))
+
+      (let* ((out (##make-u8vector len*)))
+	
+	(let lp ((i 0)
+		 (i* 0))
+	  (if (< i len)
+	      (let* ((c (string-ref str i))
+		     (utf8len (@u8vector-utf8-put! buf 0
+						   (char->integer c))))
+		(assert (fx<= utf8len max-utf-bytes))
+		;; ^ mem already corrupted though
+		(let lp-buf ((j 0)
+			     (i* i*))
+		  (if (< j utf8len)
+		      (let ((b (u8vector-ref buf j)))
+			(if (url-encoding:unreserved? (integer->char b))
+			    (if (< i* len*)
+				(begin
+				  (u8vector-set! out i* b)
+				  (lp-buf (inc j)
+					  (inc i*)))
+				(overflow))
+			    (if (<= (+ i* 3) len*) ;; XX <= ?
+				(begin
+				  (u8vector-set! out i* (CHAR->INTEGER #\%))
+				  (u8vector-set!
+				   out (+ i* 1)
+				   (hexdigit-integer (arithmetic-shift b -4)))
+				  (u8vector-set!
+				   out (+ i* 2)
+				   (hexdigit-integer (bitwise-and b 15)))
+				  (lp-buf (inc j)
+					  (+ i* 3)))
+				(overflow))))
+		      (lp (inc i)
+			  i*))))
+	      (begin
+		(u8vector-shrink! out i*)
+		out)))))))
+
+(define (url-encode str)
+  ;; somewhat wasteful..
+  (u8vector.string (url-encode-u8vector str)))
 
 (TEST
  > (url-encode "")
