@@ -1,5 +1,8 @@
 (require)
 
+(include "cj-standarddeclares.scm")
+
+
 ;;; SRFI-1 list-processing library 			-*- Scheme -*-
 ;;; Reference implementation
 ;;;
