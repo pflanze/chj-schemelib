@@ -15,7 +15,7 @@
 	either      (macro %either)
 	neither     (macro %neither)
 	both
-	all-of      (macro %all-of)
+	all-of-function      (macro %all-of)
 	(macro =>)
 	(macro =>*)
 	exact-natural0? ;; can't be in predicates-1 for dependency reasons
@@ -156,27 +156,27 @@
  )
 
 ;; name?
-(define (all-of . preds)
+(define (all-of-function . preds)
   (lambda x
     (every (lambda (pred)
 	     (apply pred x))
 	   preds)))
 
 (TEST
- > ((all-of even? odd?) 1)
+ > ((all-of-function even? odd?) 1)
  #f
- > ((all-of even? odd?) 2)
+ > ((all-of-function even? odd?) 2)
  #f
- > ((all-of even? negative?) 2)
+ > ((all-of-function even? negative?) 2)
  #f
- > ((all-of even? negative?) -2)
+ > ((all-of-function even? negative?) -2)
  #t
- > ((all-of even? negative?) -1)
+ > ((all-of-function even? negative?) -1)
  #f
 
- > ((all-of odd?) 1)
+ > ((all-of-function odd?) 1)
  #t
- > ((all-of) 1)
+ > ((all-of-function) 1)
  #t
  )
 
