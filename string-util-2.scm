@@ -1,4 +1,4 @@
-;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -67,6 +67,8 @@
 	#!optional
 	string-_-starts?
 	string-_-contains)
+
+(include "cj-standarddeclares.scm")
 
 
 (define (suffix-list l)
@@ -395,6 +397,7 @@
 
 (define (string-_-contains char=? found)
   (lambda (str substr)
+    (declare (fixnum))
     (let ((strlen (string-length str))
 	  (sublen (string-length substr)))
       (let lp ((stri 0))
@@ -741,6 +744,7 @@
 
 
 (define (string-starts-with? str substr)
+  (declare (fixnum))
   ;; copypaste
   ((on string-length
        (lambda (len0 len1)
