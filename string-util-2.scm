@@ -745,13 +745,20 @@
 
 (define (string-starts-with? str substr)
   (declare (fixnum))
-  ;; copypaste
+  ;; copypaste -- now optimized though
   ((on string-length
        (lambda (len0 len1)
 	 (let ((offset (- len0 len1)))
 	   (and (not (negative? offset))
-		(string=? (substring str 0 len1);; XX performance
-			  substr)))))
+		;; (string=? (substring str 0 len1)
+		;; 	  substr)
+		;; faster:
+		(let lp ((i 0))
+		  (if (< i len1)
+		      (and (char=? (string-ref str i)
+				   (string-ref substr i))
+			   (lp (inc i)))
+		      #t))))))
    str substr))
 
 (TEST
@@ -763,9 +770,10 @@
  #t
  > (string-starts-with? "ax" "a")
  #t
- > (string-starts-with? "ax" "x")
+ > (string-starts-with? "a" "ax")
  #f
- )
+ > (string-starts-with? "ax" "x")
+ #f)
 
 
 (TEST
