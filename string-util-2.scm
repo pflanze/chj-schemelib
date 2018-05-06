@@ -571,9 +571,18 @@
 	     #f)))
 
 
-(define string-reverse
-  ;;XX bah
-  (compose list->string reverse string->list))
+;; also see VECTOR-reverse in oo-vector-lib, but this may need to
+;; remain for dependency reasons.
+(define (string-reverse str)
+  (declare (fixnum))
+  (let* ((len (string-length str))
+	 (out (##make-string len))
+	 (len-1 (dec len)))
+    (for..< (i 0 len)
+	    (string-set! out i
+			 (string-ref str (- len-1 i))))
+    out))
+
 
 ;; dirname that gives empty string for root. yeah, remembering now
 (define (dirname* str)
