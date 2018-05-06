@@ -24,7 +24,7 @@
 	(macro =>>)
 	(macro =>>*)
 	list-of
-	non-empty-list-of
+	nonempty-list-of
 	list-of/length ;; see also length-is
 	improper-list/length>=
 	pair-of
@@ -421,7 +421,7 @@
 	 (every pred x))))
 
 
-(define (non-empty-list-of pred)
+(define (nonempty-list-of pred)
   (both pair? (list-of pred)))
 
 
