@@ -573,8 +573,8 @@
 
 ;; also see VECTOR-reverse in oo-vector-lib, but this may need to
 ;; remain for dependency reasons.
-(define (string-reverse str)
-  (declare (fixnum))
+(define-typed (string-reverse [string? str])
+  (declare (fixnum) (not safe))
   (let* ((len (string-length str))
 	 (out (##make-string len))
 	 (len-1 (dec len)))
