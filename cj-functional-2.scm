@@ -2,6 +2,7 @@
 (require define-macro-star
 	 (cj-source source-error)
 	 (list-util let-pair)
+	 (list-util-1 map/iota)
 	 ;; for tests:
 	 test
 	 (fixnum inc dec)
@@ -29,7 +30,7 @@
 	improper-list/length>=
 	pair-of
 	strictly-monotonic-list-of
-	values-of
+	values-of-function (macro values-of)
 	applying)
 
 (define (flip f)
@@ -511,7 +512,7 @@
 
 
 
-(define (values-of . preds)
+(define (values-of-function . preds)
   (let ((len (length preds)))
     (if (= len 1)
 	(car preds)
@@ -523,6 +524,21 @@
 			       (pred val))
 			     vals
 			     preds))))))))
+
+(define-macro* (values-of . preds)
+  (let ((len (length preds)))
+    (if (not (fixnum? len))
+	(error "bug"))
+    (if (= len 1)
+	(car preds)
+	(with-gensym
+	 V
+	 `(lambda (,V)
+	    (and (##values? ,V)
+		 (##fx= (##vector-length ,V) ,len)
+		 ,@(map/iota (lambda (pred i)
+			       `(,pred (##vector-ref ,V ,i)))
+			     preds)))))))
 
 (TEST
  > ((values-of boolean? string?) (values #f ""))
