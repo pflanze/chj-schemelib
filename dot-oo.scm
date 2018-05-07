@@ -32,6 +32,7 @@
 	;; XX should move?
 	(generic list.ref)
 
+	show-generics-list
 	show-method-statistics
 	
 	#!optional
@@ -168,6 +169,12 @@
 
 (define-macro* (show-methods generic-name-sym)
   `(dot-oo:show-method-table (method-table-for ,generic-name-sym)))
+
+
+(define (show-generics-list)
+  (sort (map car (table->list dot-oo:genericname->method-table))
+	(on symbol->string string<?)))
+
 
 (define (show-method-statistics)
   (define (stat-count l) (list-ref l 3))
