@@ -106,8 +106,22 @@
     (VECTOR-filter/iota fn v))
 
   (def (VECTOR-filter fn v)
-       (VECTOR.filter/iota v (lambda (val i)
-			       (fn val))))
+       ;; stupid COPY-PASTE from VECTOR-filter/iota
+       (declare (block)(standard-bindings)(extended-bindings)(fixnum))
+       (let* ((len (VECTOR-length v))
+	      (v* (make-VECTOR len)))
+	 (let lp ((i 0)
+		  (j 0))
+	   (if (< i len)
+	       (let ((val (##VECTOR-ref v i)))
+		 (if (fn val)
+		     (begin
+		       (##VECTOR-set! v* j val)
+		       (lp (+ i 1) (+ j 1)))
+		     (lp (+ i 1) j)))
+	       (begin
+		 (VECTOR-shrink! v* j)
+		 v*)))))
   (def. (VECTOR.filter v fn)
     (VECTOR-filter fn v))
    
