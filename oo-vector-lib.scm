@@ -105,9 +105,10 @@
   (def. (VECTOR.filter/iota v fn)
     (VECTOR-filter/iota fn v))
 
-  (def (VECTOR-filter fn v)
+  (def (VECTOR-filter [procedure? fn] [VECTOR? v])
        ;; stupid COPY-PASTE from VECTOR-filter/iota
-       (declare (block)(standard-bindings)(extended-bindings)(fixnum))
+       (declare (block)(standard-bindings)(extended-bindings)(fixnum)
+		(not safe))
        (let* ((len (VECTOR-length v))
 	      (v* (make-VECTOR len)))
 	 (let lp ((i 0)
@@ -119,7 +120,8 @@
 		       (##VECTOR-set! v* j val)
 		       (lp (+ i 1) (+ j 1)))
 		     (lp (+ i 1) j)))
-	       (begin
+	       (let ()
+		 (declare (safe))
 		 (VECTOR-shrink! v* j)
 		 v*)))))
   (def. (VECTOR.filter v fn)
