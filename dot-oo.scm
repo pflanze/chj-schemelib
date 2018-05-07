@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -19,7 +19,9 @@
 	 (cj-test %try)
 	 (cj-struct define-struct-expand)
 	 C
-	 (list-util-lazy xone))
+	 (list-util-lazy xone)
+	 slib-sort ;; for show-method-statistics
+	 )
 
 (export (macro method-table-for)
 	(macro show-methods)
@@ -29,6 +31,8 @@
 
 	;; XX should move?
 	(generic list.ref)
+
+	show-method-statistics
 	
 	#!optional
 	define-struct.-expand
@@ -164,6 +168,21 @@
 
 (define-macro* (show-methods generic-name-sym)
   `(dot-oo:show-method-table (method-table-for ,generic-name-sym)))
+
+(define (show-method-statistics)
+  (define (stat-count l) (list-ref l 3))
+  (sort (filter
+	 (lambda (entry)
+	   (not (zero? (car entry))))
+	 (map (lambda (genericname.method-table)
+		(let* ((tableshown (dot-oo:show-method-table
+				    (cdr genericname.method-table)))
+		       (tot (apply + (map stat-count tableshown))))
+		  (list tot
+			(car genericname.method-table)
+			(sort tableshown (on stat-count <)))))
+	      (table->list dot-oo:genericname->method-table)))
+	(on car <)))
 
 
 (define-macro* (define. first . rest)
