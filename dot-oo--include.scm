@@ -42,18 +42,21 @@
 (define *dot-oo:method-trace* #f)
 (set! *dot-oo:method-trace* #f)
 
-(define (dot-oo:method-type-maybe-ref-method vec n obj)
-  (declare (not safe))
-  (let ((end (fx+ n n)))
+(define (@dot-oo:method-type-maybe-ref-method vec n obj)
+  (declare (block)
+	   (standard-bindings)
+	   (extended-bindings)
+	   (fixnum) (not safe))
+  (let ((end (+ n n)))
     (let lp ((i n))
-      (if (fx< i end)
+      (if (< i end)
 	  (if
 	   ( ;; XX should function call be safe here?
 	    (vector-ref vec i)
 	    obj)
-	   (let ((m (vector-ref vec (fx+ i n))))
+	   (let ((m (vector-ref vec (+ i n))))
 	     (if *dot-oo:method-trace*
-		 (warn "method call for:" (vector-ref vec (fx- i n)) m))
+		 (warn "method call for:" (vector-ref vec (- i n)) m))
 	     m)
 	   (lp (inc i)))
 	  #f))))
@@ -61,7 +64,7 @@
 (define (dot-oo:method-table-maybe-ref-method tbl obj)
   (let* ((vec (unbox tbl))
 	 (n (arithmetic-shift (vector-length vec) -2)))
-    (dot-oo:method-type-maybe-ref-method vec n obj)))
+    (@dot-oo:method-type-maybe-ref-method vec n obj)))
 
 
 ;; Disable all assertments for production mode? Can we have full testing instead?
