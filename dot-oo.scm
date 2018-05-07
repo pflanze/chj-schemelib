@@ -27,6 +27,7 @@
 	(macro show-methods)
 	(macro define.)
 	(macro define-struct.)
+	(macro CALL.)
 	nothing? ;; really?
 
 	;; XX should move?
@@ -109,6 +110,13 @@
 
 (define dot-oo:genericname->method-table (make-table))
 
+
+(define (dot-oo:generic-error genericname obj)
+  (error (string-append "no method found for generic "
+			(object->string genericname)
+			" for value:")
+	 obj))
+
 (define (dot-oo:make-generic genericname method-table)
   (table-set! dot-oo:genericname->method-table
 	      genericname method-table)
@@ -117,10 +125,26 @@
 	   => (lambda (method)
 		(apply method obj rest)))
 	  (else
-	   (error (string-append "no method found for generic "
-				 (object->string genericname)
-				 " for value:")
-		  obj)))))
+	   (dot-oo:generic-error genericname obj)))))
+
+;; optimization to avoid allocation of rest arguments (alternatively
+;; also see dot-oo-optim.scm):
+(define-macro* (CALL. genericname obj . args)
+  (assert*
+   symbol? genericname
+   (lambda (genericname)
+     (with-gensyms
+      (OBJ METHOD)
+      `(let ((,OBJ ,obj))
+	 (cond ((dot-oo:method-table-maybe-ref-method
+		 ,(generic-name-string.method-table-name
+		   (symbol->string genericname))
+		 ,OBJ)
+		=> (lambda (,METHOD)
+		     (,METHOD ,OBJ ,@args)))
+	       (else
+		(dot-oo:generic-error ',genericname ,OBJ))))))))
+
 
 
 (both-times
