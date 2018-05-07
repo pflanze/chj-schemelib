@@ -10,8 +10,9 @@
 ;; (vector prefix1 prefix2 prefix3
 ;;         pred1 pred2 pred3
 ;;         method1 method2 method3
-;;         reserved reserved reserved)
+;;         callcount1 callcount2 callcount3)
 
+;; callcount field is only updated if *dot-oo:method-stats* is #t
 
 (define (vector-copy! fromvec from to tovec tofrom)
   (let* ((offset (fx- tofrom from)))
@@ -42,6 +43,9 @@
 (define *dot-oo:method-trace* #f)
 (set! *dot-oo:method-trace* #f)
 
+(define *dot-oo:method-stats* #f)
+(set! *dot-oo:method-stats* #f)
+
 (define (@dot-oo:method-type-maybe-ref-method vec n obj)
   (declare (block)
 	   (standard-bindings)
@@ -57,6 +61,11 @@
 	   (let ((m (vector-ref vec (+ i n))))
 	     (if *dot-oo:method-trace*
 		 (warn "method call for:" (vector-ref vec (- i n)) m))
+	     (if *dot-oo:method-stats*
+		 (let ((j (+ i (* 2 n))))
+		   ;; ^ not 3 as i is already in second row
+		   (vector-set! vec j
+				(+ (vector-ref vec j) 1))))
 	     m)
 	   (lp (inc i)))
 	  #f))))
@@ -203,7 +212,7 @@
 		  (do-rail 0)
 		  (do-rail 1)
 		  (do-rail 2)
-		  ;; (don't bother about reserved fields)
+		  (do-rail 3)
 		  (finish new n))))
 	  (else
 	   ;; prepend to the top
@@ -212,7 +221,7 @@
 	     (dot-oo:copy-rail! 0 old oldn new n 0 oldn 1)
 	     (dot-oo:copy-rail! 1 old oldn new n 0 oldn 1)
 	     (dot-oo:copy-rail! 2 old oldn new n 0 oldn 1)
-	     ;; (don't bother about reserved fields)
+	     (dot-oo:copy-rail! 3 old oldn new n 0 oldn 1)
 	     (finish new n))))))
 
 (TEST
@@ -273,6 +282,7 @@
 	    (lambda (i)
 	      (list (vector-ref v i)
 		    (vector-ref v (+ i n))
-		    (vector-ref v (+ i (* 2 n)))))
+		    (vector-ref v (+ i (* 2 n)))
+		    (vector-ref v (+ i (* 3 n)))))
 	    inc-function
 	    0)))
