@@ -102,8 +102,11 @@
  )
 
 
+(define dot-oo:genericname->method-table (make-table))
 
 (define (dot-oo:make-generic genericname method-table)
+  (table-set! dot-oo:genericname->method-table
+	      genericname method-table)
   (lambda (obj . rest)
     (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
 	   => (lambda (method)
