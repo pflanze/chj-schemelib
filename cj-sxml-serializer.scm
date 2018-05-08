@@ -372,9 +372,9 @@
 			     ;; XX what should happen with *COMMENT*
 			     ;; elements having attributes? being handled
 			     ;; strangely currently, probably.
-			     =>(lambda(attrlist)
-				 (@attrlist>> attrlist port xml?)
-				 (@cddr l)))
+			     => (lambda (attrlist)
+				  (@attrlist>> attrlist port xml?)
+				  (@cddr l)))
 			    (else (@cdr l)))))
 	 (if is-comment
 	     (cond ((pair? content)
