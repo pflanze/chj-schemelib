@@ -250,10 +250,17 @@
  #(b (c)))
 
 (define (typed-lambda-args-expand args body)
+  ;; -> (values-of (improper-list-of (possibly-source-of
+  ;; 				   ;; not just symbol? but also #!rest etc.
+  ;; 				   sexpr-object?))
+  ;; 		(possibly-source-of sexpr-object?))
+  
   (let rem ((args args))
     (let ((args_ (source-code args)))
       (cond ((null? args_)
 	     (values '()
+		     ;; can't just return body, as it's also used in
+		     ;; transform-arg via the recursive call below:
 		     `(##begin ,@body)))
 	    ((pair? args_)
 	     (let-pair ((arg args*) args_)
