@@ -18,6 +18,9 @@
 (possibly-use-debuggable-promise)
 
 
+(define. (any.cons s v)
+  (cons v s))
+
 (define inexact exact->inexact)
 (define. exact.inexact exact->inexact) ;; ah, use the above?
 
