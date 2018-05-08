@@ -46,7 +46,7 @@
 	u8vector-of-length
 	improper-list-of  ;; hmm
 	char-one-of	  ;; move to char lib?
-	perhaps-source-of ;; XX rename to possibly-source-of ?
+	possibly-source-of
 	source-of
 	perhaps-source*-of ;; dito
 	source*-of
@@ -223,7 +223,8 @@
 (define char-one-of char-one-of?/)
 
 
-(define (perhaps-source-of pred)
+;; perhaps  possibly  potentially  hmm.
+(define (possibly-source-of pred)
   (lambda (v)
     (pred (source-code v))))
 

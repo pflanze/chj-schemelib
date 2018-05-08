@@ -36,7 +36,7 @@
 	string-of-length
 	improper-list-of  ;; hmm
 	char-one-of	  ;; move to char lib?
-	perhaps-source-of ;; XX rename to possibly-source-of ?
+	possibly-source-of
 	source-of
 	perhaps-source*-of ;; dito
 	source*-of
