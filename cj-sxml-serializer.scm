@@ -74,40 +74,42 @@
 
 (def unbound 'unbound)
 
-(def (with-sxml-element/else elt cont-name-attrs-body
-			     #!optional
-			     (cont-else (lambda ()
-					  (error "not an sxml element:" elt))))
-     (if (pair? elt)
-	 (let ((maybe-name (car elt)))
-	   (if (symbol? maybe-name)
-	       (let ((has-attrs (lambda (attrs rest)
-				  (cont-name-attrs-body maybe-name attrs rest)))
-		     (no-attrs (lambda (rest)
-				 (cont-name-attrs-body maybe-name '(@) rest))))
-		 (let ((maybe-2nd (cdr elt)))
-		   (if (pair? maybe-2nd)
-		       (let ((2nd-val (car maybe-2nd)))
-			 (if (and (pair? 2nd-val)
-				  (eq? (car 2nd-val)
-				       '@))
-			     (has-attrs 2nd-val
-					(cdr maybe-2nd))
-			     (no-attrs maybe-2nd)))
-		       (no-attrs maybe-2nd))))
-	       (cont-else)))
-	 (cont-else)))
+(define-macro (%with-sxml-element/else elt
+				       cont-name-attrs-body
+				       cont-else)
+  `(if (pair? ,elt)
+       (let ((maybe-name (car ,elt)))
+	 (if (symbol? maybe-name)
+	     (let ((has-attrs (lambda (attrs rest)
+				(,cont-name-attrs-body maybe-name attrs rest)))
+		   (no-attrs (lambda (rest)
+			       (,cont-name-attrs-body maybe-name '(@) rest))))
+	       (let ((maybe-2nd (cdr ,elt)))
+		 (if (pair? maybe-2nd)
+		     (let ((2nd-val (car maybe-2nd)))
+		       (if (and (pair? 2nd-val)
+				(eq? (car 2nd-val)
+				     '@))
+			   (has-attrs 2nd-val
+				      (cdr maybe-2nd))
+			   (no-attrs maybe-2nd)))
+		     (no-attrs maybe-2nd))))
+	     (,cont-else)))
+       (,cont-else)))
 
-(def (with-sxml-element elt cont-name-attrs-body)
-     (with-sxml-element/else elt cont-name-attrs-body))
+(define-macro (%with-sxml-element elt cont-name-attrs-body)
+  `(%with-sxml-element/else ,elt
+			    ,cont-name-attrs-body
+			    (lambda ()
+			      (error "not an sxml element:" ,elt))))
 
 (def (with-sxml-element-attributes/else element yes no)
-     (with-sxml-element element
-			(lambda (name attrs body)
-			  (let ((alis (cdr attrs)))
-			    (if (pair? alis)
-				(yes attrs)
-				(no))))))
+     (%with-sxml-element element
+			 (lambda (name attrs body)
+			   (let ((alis (cdr attrs)))
+			     (if (pair? alis)
+				 (yes attrs)
+				 (no))))))
 
 (def (sxml-element-attribute-ref element #(symbol? attrname)
 				 #!optional (missing unbound))
