@@ -15,6 +15,7 @@
 	 test
 	 (cj-source-wraps source:symbol-append)
 	 (string-util strings-join)
+	 (string-util-2 string-split-once)
 	 (cj-env-2 for..<)
 	 (cj-test %try)
 	 (cj-struct define-struct-expand)
@@ -58,13 +59,17 @@
 ;; number of result values. Working around using strings-join.)
 
 (both-times
- (define (dot-oo:split-typename.methodname str)
-   (let ((parts (string-split (source-code str) #\.)))
-     (mcase (possibly-sourcify parts str)
-	    (`(`typename . `rest)
-	     (values typename
-		     ;; really prepend the dot? I'm still confused, torn.
-		     (string-append "." (strings-join rest ".")))))))
+ (define (dot-oo:split-typename.methodname str #!optional src)
+   (let ((typename+maybe-methodname
+	  (string-split-once (source-code str) #\. #f)))
+
+     (cond ((snd typename+maybe-methodname)
+	    => (lambda (methodname)
+		 (if (string=? methodname ".")
+		     (source-error src "missing method name after '.' in name")
+		     typename+maybe-methodname)))
+	   (else
+	    (source-error src "missing '.' in name")))))
  
  ;; The full name
  ;; 
@@ -78,9 +83,10 @@
  ;; type checks and methods for one hole, the first argument; not the
  ;; return type; return type yields a different generic name).
 
- (define (dot-oo:split-prefix:typename.methodname str)
+ (define (dot-oo:split-prefix:typename.methodname str #!optional src)
    (define (cont prefix remainder)
-     (letv ((typename methodname) (dot-oo:split-typename.methodname remainder))
+     (letv ((typename methodname)
+	    (dot-oo:split-typename.methodname remainder src))
 	   (values typename
 		   (string-append prefix methodname))))
    (let* ((parts (string-split (source-code str) #\:)))
@@ -105,7 +111,12 @@
 		    "foo.bar.baz"))
  #("foo" ".bar.baz")
  ;; XX I'm not testing "foo.bar.baz:boo".. what should it do then?...
- )
+ > (map (lambda (name)
+	  (with-exception-catcher
+	   source-error-message
+	   (& (snd (dot-oo:split-prefix:typename.methodname name)))))
+	'("foo" "foo." "foo.bar"))
+ ("missing '.' in name" "missing method name after '.' in name" ".bar"))
 
 
 (define dot-oo:genericname->method-table (make-table))
@@ -157,7 +168,7 @@
      (let ((namestr (possibly-sourcify (symbol->string (source-code name))
 				       name)))
        (letv ((typenamestr genericnamestr)
-	      (dot-oo:split-prefix:typename.methodname namestr))
+	      (dot-oo:split-prefix:typename.methodname namestr name))
 	     (let* ((genericname (string->symbol genericnamestr))
 		    (typename (string->symbol typenamestr))
 		    (predicate (source:symbol-append typename '?))
