@@ -26,7 +26,7 @@
        (and (atomic-box? v)
 	    (pred (atomic-box.value v)))))
 
-(def. (atomic-box val)
+(def (atomic-box val)
   (_atomic-box val (make-mutex)))
 
 ;; fn: (A?) -> (values A? B?)
