@@ -200,16 +200,13 @@
 	      (@symbol>> key port)
 	      (@char>> #\= port)
 	      (@char>> #\" port)
-	      (let* ((piece>>
-		      (lambda (val)
-			(atom>>htmlquoted val port #f xml? #t)))
-		     (for-each-piece>>
-		      (lambda (l)
-			(%for-each piece>> l))))
+	      (let ()
+		(define-macro (piece>> val)
+		  `(atom>>htmlquoted ,val port #f xml? #t))
 		(cond ((sxml-begin? val)
-		       (for-each-piece>> (cdr val)))
+		       (%for-each piece>> (cdr val)))
 		      ((pair? val)
-		       (for-each-piece>> val))
+		       (%for-each piece>> val))
 		      (else
 		       (piece>> val))))
 	      (@char>> #\" port)))))
