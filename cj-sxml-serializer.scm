@@ -189,6 +189,28 @@
 (def @cdr ##cdr)
 (def @cddr ##cddr)
 
+
+(def cj-sxml-serializer:atom>>
+     (lambda (val key xml? port)
+       (and val
+	    (begin
+	      (@char>> #\space port)
+	      (@symbol>> key port)
+	      (@char>> #\= port)
+	      (@char>> #\" port)
+	      (let* ((piece>>
+		      (lambda (val)
+			(atom>>htmlquoted val port #f xml? #t)))
+		     (for-each-piece>>
+		      (lambda (l)
+			(%for-each piece>> l))))
+		(cond ((sxml-begin? val)
+		       (for-each-piece>> (cdr val)))
+		      ((pair? val)
+		       (for-each-piece>> val))
+		      (else
+		       (piece>> val))))
+	      (@char>> #\" port)))))
 (def (@attrlist>> attrlist port xml?)
      (cond ((pair? attrlist)
 	    (let ((d (@car attrlist)))
@@ -196,39 +218,17 @@
 		  (let ((key (@car d))
 			(val (@cdr d)))
 		    (if (symbol? key)
-			(begin
-			  (let ((atom>>
-				 (lambda (val)
-				   (and val
-					(begin
-					  (@char>> #\space port)
-					  (@symbol>> key port)
-					  (@char>> #\= port)
-					  (@char>> #\" port)
-					  (let* ((piece>>
-						  (lambda (val)
-						    (atom>>htmlquoted val port #f xml? #t)))
-						 (for-each-piece>>
-						  (lambda (l)
-						    (%for-each piece>> l))))
-					    (cond ((sxml-begin? val)
-						   (for-each-piece>> (cdr val)))
-						  ((pair? val)
-						   (for-each-piece>> val))
-						  (else
-						   (piece>> val))))
-					  (@char>> #\" port))))))
-			    (cond ((pair? val)
-				   (atom>> (@car val)))
-				  ((null? val)
-				   ;; empty attribute value. ok for html.
-				   (if xml?
-				       (error "missing value for attribute:" key)
-				       (begin
-					 (@char>> #\space port)
-					 (@symbol>> key port))))
-				  (else
-				   (atom>> val)))))
+			(cond ((pair? val)
+			       (cj-sxml-serializer:atom>> (@car val) key xml? port))
+			      ((null? val)
+			       ;; empty attribute value. ok for html.
+			       (if xml?
+				   (error "missing value for attribute:" key)
+				   (begin
+				     (@char>> #\space port)
+				     (@symbol>> key port))))
+			      (else
+			       (cj-sxml-serializer:atom>> val key xml? port)))
 			;; error; or treat the whole thing like elements,
 			;; e.g. accept listwraps? :
 			(error "attribute key is not a symbol:" key)))
