@@ -26,6 +26,7 @@
 	 (stream stream-for-each)
 	 (test TEST)
 	 cj-warn
+	 srfi-1-macros
 	 debuggable-promise)
 
 (export sxml>>html-fast
@@ -204,13 +205,16 @@
 					  (@symbol>> key port)
 					  (@char>> #\= port)
 					  (@char>> #\" port)
-					  (let ((piece>>
-						 (lambda (val)
-						   (atom>>htmlquoted val port #f xml? #t))))
+					  (let* ((piece>>
+						  (lambda (val)
+						    (atom>>htmlquoted val port #f xml? #t)))
+						 (for-each-piece>>
+						  (lambda (l)
+						    (%for-each piece>> l))))
 					    (cond ((sxml-begin? val)
-						   (for-each piece>> (cdr val)))
+						   (for-each-piece>> (cdr val)))
 						  ((pair? val)
-						   (for-each piece>> val))
+						   (for-each-piece>> val))
 						  (else
 						   (piece>> val))))
 					  (@char>> #\" port))))))
@@ -308,9 +312,9 @@
 	  (lambda(item)
 	    (sxml>>fast item port xml? maybe-level)))
      (cond ((pair? value)
-	    (for-each subproc value))
+	    (%for-each subproc value))
 	   ((promise? value)
-	    (stream-for-each subproc value))
+	    (%stream-for-each subproc value))
 	   (else
 	    (atom>>htmlquoted value port count-chars? xml? in-attributes?))))
 
@@ -331,9 +335,9 @@
 	     ;; text (or more general: atom) lists or streams: (no
 	     ;; subelements!)
 	     ((pair? atom)
-	      (for-each self atom))
+	      (%for-each self atom))
 	     ((promise? atom)
-	      (stream-for-each self atom))
+	      (%stream-for-each self atom))
 
 	     (else
 	      (error "atom>>htmlquoted: unknown type of:" atom)))))
@@ -353,9 +357,9 @@
 			     (+ maybe-level indentation-width)))
 	    (body->>> ;; proxy back to sxml>>fast
 	     (lambda (body)
-	       (& (for-each (lambda (item)
-			      (sxml>>fast item port xml? next-level))
-			    body))))
+	       (%for-each (lambda (item)
+			    (sxml>>fast item port xml? next-level))
+			  body)))
 	    (nam (@car l))
 	    (is-comment
 	     ;; upcase version is the one shown in the reference
@@ -376,7 +380,7 @@
 			    (else (@cdr l)))))
 	 (if is-comment
 	     (cond ((pair? content)
-		    ((body->>> content))
+		    (body->>> content)
 		    (@string>> "-->" port))
 		   ((null? content)
 		    (@string>> "-->" port))
@@ -407,7 +411,7 @@
 			    (@char>> #\> port))))
 	       ;; XX use improper-for-each instead
 	       (cond ((pair? content)
-		      (out>>/body>> (body->>> content)))
+		      (out>>/body>> (& (body->>> content))))
 		     ((null? content)
 		      (end>>))
 		     (else
@@ -437,17 +441,18 @@
        (cond 
 	((pair? item)
 	 (cond ((sxml-begin? item)
-		(for-each self (cdr item)))
+		(%for-each self (cdr item)))
 	       ((sxml-element? item)
 		(@sxml-element>> item port xml? maybe-level))
 	       (else
-		(for-each self item))))
+		(%for-each self item))))
 	((vector? item)
-	 (vector-for-each self item))
+	 (vector-for-each (lambda (v)
+			    (self v)) item))
 	((promise? item)
 	 (let ((item (force item)))
 	   (if (pair? item)
-	       (stream-for-each self item)
+	       (%stream-for-each self item)
 	       (self item))))
 	((null? item))
 	((procedure? item)
