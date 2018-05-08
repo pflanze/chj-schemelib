@@ -297,8 +297,8 @@
 	      (else
 	       (@char>> char port)
 	       #f))
-	    =>(lambda(str)
-		(@string>> str port)))))
+	    => (lambda (str)
+		 (@string>> str port)))))
 
 
 (def (atom-or-list>>htmlquoted value
@@ -307,9 +307,8 @@
 			       xml?
 			       in-attributes?
 			       maybe-level)
-     (def subproc
-	  (lambda(item)
-	    (sxml>>fast item port xml? maybe-level)))
+     (define-macro (subproc item)
+       `(sxml>>fast ,item port xml? maybe-level))
      (cond ((pair? value)
 	    (%for-each subproc value))
 	   ((promise? value)
