@@ -103,17 +103,17 @@
 			    (lambda ()
 			      (error "not an sxml element:" ,elt))))
 
-(def (with-sxml-element-attributes/else element yes no)
-     (%with-sxml-element element
-			 (lambda (name attrs body)
-			   (let ((alis (cdr attrs)))
-			     (if (pair? alis)
-				 (yes attrs)
-				 (no))))))
+(define-macro (%with-sxml-element-attributes/else element yes no)
+  `(%with-sxml-element ,element
+		       (lambda (name attrs body)
+			 (let ((alis (cdr attrs)))
+			   (if (pair? alis)
+			       (,yes attrs)
+			       (,no))))))
 
 (def (sxml-element-attribute-ref element #(symbol? attrname)
 				 #!optional (missing unbound))
-     (with-sxml-element-attributes/else
+     (%with-sxml-element-attributes/else
       element
       (lambda (attrs)
 	(cond ((assoc attrname (cdr attrs))
@@ -126,10 +126,10 @@
 
 
 (def (maybe-sxml-element-attribute-alist element)
-     (with-sxml-element-attributes/else element
-					cdr
-					(lambda ()
-					  #f)))
+     (%with-sxml-element-attributes/else element
+					 cdr
+					 (lambda ()
+					   #f)))
 
 (def (sxml-element:add-attributes-unless-present element alis)
      (let ((newattrs
