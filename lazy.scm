@@ -15,6 +15,7 @@
 (export promise?
 	(macro no-delay)
 	(macro FV)
+	(macro no-FV)
 	;; re-export just for convenience:
 	@promise-evaluated?
 	@promise-value
@@ -51,4 +52,8 @@
 			      `(,var* (force ,var*)))
 			    vars)
 		   ,@body))))
+
+(define-macro* (no-FV vars* . body)
+  `(let ()
+     ,@body))
 
