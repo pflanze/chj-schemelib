@@ -18,7 +18,7 @@
 	 srfi-1
 	 (cj-symbol syntax-equal?))
 
-(export flip
+(export flip-function        (macro flip)
 	complement-function  (macro complement)
 	compose-function
 	maybe-compose
@@ -42,9 +42,18 @@
 	values-of-function (macro values-of)
 	applying)
 
-(define (flip f)
+(define (flip-function f)
   (lambda (x y)
     (f y x)))
+
+(define-macro* (flip f)
+  (early-bind-expressions
+   (f)
+   (with-gensyms
+    (x y)
+    `(##lambda (,x ,y)
+	  (,f ,y ,x)))))
+
 
 (define (complement-function fn)
   (lambda v
