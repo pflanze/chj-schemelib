@@ -1,8 +1,17 @@
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
 
 (require define-macro-star
 	 (cj-source source-error)
 	 (list-util let-pair)
 	 (list-util-1 map/iota)
+	 (cj-symbol with-gensym)
+	 (code-util early-bind-expressions)
 	 ;; for tests:
 	 test
 	 (fixnum inc dec)
@@ -28,7 +37,7 @@
 	nonempty-list-of
 	list-of/length ;; see also length-is
 	improper-list/length>=
-	pair-of
+	pair-of-function (macro pair-of)
 	strictly-monotonic-list-of
 	values-of-function (macro values-of)
 	applying)
@@ -473,11 +482,21 @@
  > (map (improper-list/length>= 2) l)
  (#f #f #f #t #t #t))
 
-(define (pair-of t1? t2?)
+(define (pair-of-function t1? t2?)
   (lambda (v)
     (and (pair? v)
 	 (t1? (car v))
 	 (t2? (cdr v)))))
+
+(define-macro* (pair-of t1? t2?)
+  (early-bind-expressions
+   (t1? t2?)
+   (with-gensym
+    v
+    `(##lambda (,v)
+	  (##and (##pair? ,v)
+		 (,t1? (##car ,v))
+		 (,t2? (##cdr ,v)))))))
 
 (define (strictly-monotonic-list-of el? <)
   (lambda (v)
