@@ -22,8 +22,8 @@
 	complement-function  (macro complement)
 	compose-function
 	maybe-compose
-	either      (macro %either)
-	neither     (macro %neither)
+	either-function      (macro either)
+	neither-function     (macro neither)
 	both-function        (macro both)
 	all-of-function      (macro all-of)
 	(macro =>)
@@ -67,7 +67,7 @@
     (cond ((apply g x) => f)
 	  (else #f))))
 
-(define (either . fs)
+(define (either-function . fs)
   (if (null? fs)
       (lambda x
 	#f)
@@ -76,9 +76,31 @@
 		   (lambda x
 		     (or (apply f x)
 			 (apply r x))))
-		 (apply either fs*)))))
+		 (apply either-function fs*)))))
 
 (TEST
+ > ((either-function symbol? string?) "foo")
+ #t
+ > ((either-function symbol? string?) 'bar)
+ #t
+ > ((either-function symbol? string?) 0)
+ #f
+ > ((either-function symbol? number? string?) 0)
+ #t
+ ;; test shortcutting?
+ )
+
+(define-macro* (either . fs)
+  ;; XX (early-bind-expressions
+  ;;  fs)
+  (with-gensym
+   V
+   `(lambda (,V)
+      (or ,@(map (lambda (f)
+		   `(,f ,V))
+		 fs)))))
+
+(TEST ;; copy of test cases above
  > ((either symbol? string?) "foo")
  #t
  > ((either symbol? string?) 'bar)
@@ -90,37 +112,27 @@
  ;; test shortcutting?
  )
 
-;; macro version of either, not (only) for performance, but for late
-;; binding:
-(define-macro* (%either . fs)
-  (with-gensym
-   V
-   `(lambda (,V)
-      (or ,@(map (lambda (f)
-		   `(,f ,V))
-		 fs)))))
 
-(TEST ;; copy of test cases above
- > ((%either symbol? string?) "foo")
- #t
- > ((%either symbol? string?) 'bar)
- #t
- > ((%either symbol? string?) 0)
- #f
- > ((%either symbol? number? string?) 0)
- #t
- ;; test shortcutting?
- )
-
-
-(define (neither . fs)
-  (complement (apply either fs)))
+(define (neither-function . fs)
+  (complement (apply either-function fs)))
 
 ;; XX implement early evaluation of fn, like in |compose| and |on|
-(define-macro* (%neither . fs)
+(define-macro* (neither . fs)
   (with-gensym
    V
-   `(complement (%either ,@fs))))
+   `(complement (either ,@fs))))
+
+(TEST ;; copy of test cases above
+ > ((neither-function symbol? string?) "foo")
+ #f
+ > ((neither-function symbol? string?) 'bar)
+ #f
+ > ((neither-function symbol? string?) 0)
+ #t
+ > ((neither-function symbol? number? string?) 0)
+ #f
+ ;; test shortcutting?
+ )
 
 (TEST ;; copy of test cases above
  > ((neither symbol? string?) "foo")
@@ -130,18 +142,6 @@
  > ((neither symbol? string?) 0)
  #t
  > ((neither symbol? number? string?) 0)
- #f
- ;; test shortcutting?
- )
-
-(TEST ;; copy of test cases above
- > ((%neither symbol? string?) "foo")
- #f
- > ((%neither symbol? string?) 'bar)
- #f
- > ((%neither symbol? string?) 0)
- #t
- > ((%neither symbol? number? string?) 0)
  #f
  ;; test shortcutting?
  )
