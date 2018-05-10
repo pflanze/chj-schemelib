@@ -110,15 +110,15 @@
 			   (source-error stx msg))))
 
 (TEST
- > (expansion#RA compose-function half x*y inc2values)
- (compose-function half (compose-function x*y inc2values))
- > (expansion#LA compose-function half x*y inc2values)
- (compose-function (compose-function half x*y) inc2values)
+ > (expansion#RA compose half x*y inc2values)
+ (compose half (compose x*y inc2values))
+ > (expansion#LA compose half x*y inc2values)
+ (compose (compose half x*y) inc2values)
  )
 
 ;; as a function:
 
-;; XX rename to compose-function*, or compose-function to compose* (no) or ?
+;; XX rename to compose*, or compose to compose* (no) or ?
 (define (compose** . fs)
   (right-associate compose-function fs error))
 
@@ -228,14 +228,12 @@
  > ((compose/arity 2 half x*y inc2values) 10 20)
  231/2
 
- ;; compose-function is ("fully") associative (left or right doesn't matter),
+ ;; compose is ("fully") associative (left or right doesn't matter),
  ;; so choosing right-associate was arbitrary
- > ((compose-function (compose-function half x*y) inc2values) 10 20)
+ > ((compose-function (compose half x*y) inc2values) 10 20)
  231/2
  > ((compose-function half (compose-function x*y inc2values)) 10 20)
- 231/2
-
- )
+ 231/2)
 
 
 (define (true/0)
