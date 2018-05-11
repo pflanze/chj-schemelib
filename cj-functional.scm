@@ -15,7 +15,8 @@
 	 (lazy FV)
 	 (cj-gambit-sys maybe-decompile)
 	 (cj-source-util schemedefinition-arity:pattern->template)
-	 (cj-functional-2 compose compose-function either))
+	 (cj-functional-2 compose compose-function either)
+	 (code-util early-bind-expressions))
 
 (export right-associate
 	left-associate
@@ -193,6 +194,10 @@
  (lambda (GEN:X-3566) (a (b (c GEN:X-3566))))
  > (expansion#compose a)
  (lambda (GEN:X-3567) (a GEN:X-3567))
+
+ > (expansion#compose a (maybe b) (complement c))
+ (let ((GEN:-546 (maybe b)) (GEN:-547 (complement c)))
+   (lambda (GEN:V-548) (a (GEN:-546 (GEN:-547 GEN:V-548)))))
 
  > (expansion#compose/arity 1 a b c)
  (lambda (GEN:-3382) (a (b (c GEN:-3382))))
