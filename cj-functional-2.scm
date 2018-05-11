@@ -108,14 +108,14 @@
  )
 
 (define-macro* (either . fs)
-  ;; XX (early-bind-expressions
-  ;;  fs)
-  (with-gensym
-   V
-   `(lambda (,V)
-      (or ,@(map (lambda (f)
-		   `(,f ,V))
-		 fs)))))
+  (early-bind-expressions
+   fs
+   (with-gensym
+    V
+    `(lambda (,V)
+       (or ,@(map (lambda (f)
+		    `(,f ,V))
+		  fs))))))
 
 (TEST ;; copy of test cases above
  > ((either symbol? string?) "foo")
@@ -133,7 +133,6 @@
 (define (neither-function . fs)
   (complement (apply either-function fs)))
 
-;; XX implement early evaluation of fn, like in |compose| and |on|
 (define-macro* (neither . fs)
   (with-gensym
    V
@@ -209,15 +208,15 @@
  #t
  )
 
-;; XX implement early evaluation of fn, like in |compose|, |on| and
-;; |complement|
 (define-macro* (all-of . preds)
-  (with-gensym
-   V
-   `(lambda (,V)
-      (and ,@(map (lambda (pred)
-		    `(,pred ,V))
-		  preds)))))
+  (early-bind-expressions
+   preds
+   (with-gensym
+    V
+    `(lambda (,V)
+       (and ,@(map (lambda (pred)
+		     `(,pred ,V))
+		   preds))))))
 
 (TEST ;; copy of test cases above
  > ((all-of even? odd?) 1)
