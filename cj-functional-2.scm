@@ -35,7 +35,7 @@
 	(macro =>>*)
 	list-of/2
 	list-of-function (macro list-of)
-	nonempty-list-of
+	nonempty-list-of-function (macro nonempty-list-of)
 	list-of/length ;; see also length-is
 	improper-list/length>=
 	pair-of-function (macro pair-of)
@@ -468,8 +468,13 @@
 			   (list-of/2 ,pred ,x)))))
 
 
-(define (nonempty-list-of pred)
+(define (nonempty-list-of-function pred)
   (both pair? (list-of pred)))
+
+(define-macro* (nonempty-list-of pred)
+  (early-bind-expressions
+   (pred)
+   `(both pair? (list-of ,pred))))
 
 
 ;; see also length-is
