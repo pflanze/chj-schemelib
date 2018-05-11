@@ -19,7 +19,7 @@
 	 (cj-symbol syntax-equal?))
 
 (export flip-function        (macro flip)
-	complement-function  (macro complement)
+	complement-function  (macro complement complement-2ary)
 	compose-function
 	maybe-compose
 	either-function      (macro either)
@@ -66,6 +66,14 @@
     V
     `(lambda (,V)
        (not (,fn ,V))))))
+
+(define-macro* (complement-2ary fn)
+  (early-bind-expressions
+   (fn)
+   (with-gensyms
+    (V1 V2)
+    `(lambda (,V1 ,V2)
+       (not (,fn ,V1 ,V2))))))
 
 (define (compose-function f g)
   (lambda x
