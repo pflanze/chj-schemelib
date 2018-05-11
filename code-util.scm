@@ -32,7 +32,7 @@
    expr))
 
 (define (early-bind-expressions:expr+s . exprs)
-  (map early-bind-expressions:expr+ exprs))
+  (early-bind-expressions:expr+s* exprs))
 
 (define (early-bind-expressions:expr+s-ref-expr* expr+s i)
   (let ((expr+ (list-ref expr+s i)))
@@ -51,27 +51,50 @@
 	`(##let ,need-eval ,code))))
 
 
+;; For "rest argument" support (a single variable in the macro
+;; expander holding all expressions to be interpolated):
+
+(define (early-bind-expressions:expr+s* exprs)
+  (map early-bind-expressions:expr+ exprs))
+
+(define (early-bind-expressions:bind expr+s)
+  (map (lambda (expr+)
+	 (or (car expr+)
+	     (cadr expr+)))
+       expr+s))
+
+
 ;; codegen-expr is generating code that is being wrapped to early-bind
 ;; the variables (which are supposedly used in codegen-expr) that are
 ;; listed in var-of-exprs:
 
-(define-macro* (early-bind-expressions var-of-exprs codegen-expr)
+(define-macro* (early-bind-expressions var-of-exprS codegen-expr)
   (with-gensyms
    (EXPR+S)
-   ;; XX source location handling bug somewhere, workaround:
-   (cj-desourcify
-    `(let ((,EXPR+S (early-bind-expressions:expr+s ,@var-of-exprs)))
-       (early-bind-expressions:wrap
-	,EXPR+S
-	;; re-bind var-of-exprs in the macro expander to the gensyms
-	;; or their original, depending on whether they are bound to
-	;; an expression or a symbol:
-	(let ,(map/iota
-	       (lambda (var-of-expr i)
-		 `(,var-of-expr
-		   (early-bind-expressions:expr+s-ref-expr* ,EXPR+S ,i)))
-	       (source-code var-of-exprs))
-	  ,codegen-expr))))))
+   (if (pair? (source-code var-of-exprS))
+
+       ;; (i.e. {var-of-expr}s)
+       (let ((var-of-exprs (source-code var-of-exprS)))
+	 `(let ((,EXPR+S (early-bind-expressions:expr+s ,@var-of-exprs)))
+	    (early-bind-expressions:wrap
+	     ,EXPR+S
+	     ;; re-bind var-of-exprs in the macro expander to the gensyms
+	     ;; or their original, depending on whether they are bound to
+	     ;; an expression or a symbol:
+	     (let ,(map/iota
+		    (lambda (var-of-expr i)
+		      `(,var-of-expr
+			(early-bind-expressions:expr+s-ref-expr* ,EXPR+S ,i)))
+		    var-of-exprs)
+	       ,codegen-expr))))
+      
+       ;; Only 1 variable given, assumed to hold a list of
+       ;; var-of-exprs (i.e. var-of-{exprs})
+       `(let ((,EXPR+S (early-bind-expressions:expr+s* ,var-of-exprS)))
+	  (early-bind-expressions:wrap
+	   ,EXPR+S
+	   (let ((,var-of-exprS (early-bind-expressions:bind ,EXPR+S)))
+	     ,codegen-expr))))))
 
 (TEST
  > (define TEST:equal? syntax-equal?)
