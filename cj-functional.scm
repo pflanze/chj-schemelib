@@ -33,7 +33,7 @@
 	false/0
 	false/1
 	just?
-	maybe
+	maybe-function   (macro maybe)
 	on* ;; for binary |on| see cj-env
 	(macro or**)
 	(macro or/)
@@ -252,8 +252,13 @@
     (and v
 	 (fn v))))
 
-(define (maybe pred)
+(define (maybe-function pred)
   (either not pred))
+
+(define-macro* (maybe pred)
+  (early-bind-expressions
+   (pred)
+   `(either not ,pred)))
 
 (TEST
  > ((maybe number?) 1)
