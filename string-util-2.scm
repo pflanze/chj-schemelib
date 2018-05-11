@@ -9,6 +9,7 @@
 (require fixnum
 	 cj-functional
 	 (cj-functional-2 =>)
+	 cut
 	 test
 	 (cj-env named)
 	 (cj-env-2 C)
