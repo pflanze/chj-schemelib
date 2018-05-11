@@ -495,9 +495,9 @@
   (wbtree:stream-inorder-fold_ identity))
 ;; suffix "-right" doesn't seem right, since the above was already right. Thus:
 (define wbtree:inorder-fold-reverse*
-  (wbtree:inorder-fold_ flip))
+  (wbtree:inorder-fold_ flip-function))
 (define wbtree:stream-inorder-fold-reverse*
-  (wbtree:stream-inorder-fold_ flip))
+  (wbtree:stream-inorder-fold_ flip-function))
 ;; and the non-starred macros:
 (define-define*s
   wbtree:inorder-fold
