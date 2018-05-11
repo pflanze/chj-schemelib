@@ -303,7 +303,7 @@
  > ((=>* + inc) 2 3)
  6
  > (with-exception-catcher wrong-number-of-arguments-exception?
-			   (& ((=>* (+) inc) 2 3)))
+			   (lambda () ((=>* (+) inc) 2 3)))
  #t
  > ((=>* (+) inc) 2)
  3)
@@ -333,7 +333,7 @@
  > ((=>-lambda car string) '(#\a #\b))
  "a"
  > (with-exception-catcher wrong-number-of-arguments-exception?
-			   (& ((=>-lambda car string) '(#\a #\b) 3)))
+			   (lambda () ((=>-lambda car string) '(#\a #\b) 3)))
  #t
  > ((=>-lambda/arity 1 car string) '(#\a #\b))
  "a"
@@ -431,12 +431,12 @@
  14
  ;; multiple arguments:
  > (with-exception-catcher divide-by-zero-exception?
-			   (& ((=>>* + (/ 2)))))
+			   (lambda () ((=>>* + (/ 2)))))
  #t
  > ((=>>* + (/ 2)) 2 3)
  2/5
  > (with-exception-catcher wrong-number-of-arguments-exception?
-			   (& ((=>>* (+) inc) 2 3)))
+			   (lambda () ((=>>* (+) inc) 2 3)))
  #t
  > ((=>>* (+) inc) 2)
  3)
