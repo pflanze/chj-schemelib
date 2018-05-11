@@ -160,20 +160,21 @@
 	   ,lam))))
 
 ;; with parametrizable arity:
-;; XXX factor out non-symbol arguments like in compose
 (define-macro* (compose/arity n . es)
-  (assert* natural0? n
-	   (lambda (n)
-	     (let* ((ARGS (map (lambda (n) (gensym)) (iota n)))
-		    (code (fold-right (lambda (e inner)
-					`((,e ,@inner)))
-				      ARGS
-				      es)))
-	       (if (and (pair? code)
-			(null? (cdr code)))
-		   `(lambda ,ARGS
-		      ,(car code))
-		   (error "bug"))))))
+  (early-bind-expressions
+   es
+   (assert* natural0? n
+	    (lambda (n)
+	      (let* ((ARGS (map (lambda (n) (gensym)) (iota n)))
+		     (code (fold-right (lambda (e inner)
+					 `((,e ,@inner)))
+				       ARGS
+				       es)))
+		(if (and (pair? code)
+			 (null? (cdr code)))
+		    `(lambda ,ARGS
+		       ,(car code))
+		    (error "bug")))))))
 
 
 (TEST
