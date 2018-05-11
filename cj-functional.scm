@@ -125,25 +125,14 @@
 
 ;; as macro for more performance, unary only:
 (define-macro* (compose . es)
-  (let* ((es* (map (lambda (e)
-		     (let ((e* (source-code e)))
-		       ;; pre-eval-sym, e 
-		       (list (if (symbol? e*)
-				 #f
-				 (gensym)) e)))
-		   es))
-	 (lam (with-gensym V
-			   `(lambda (,V)
-			      ,(fold-right (lambda (e inner)
-					     `(,(or (car e)
-						    (cadr e)) ,inner))
-					   V
-					   es*))))
-	 (es*-pre-eval (filter car es*)))
-    (if (null? es*-pre-eval)
-	lam
-	`(let ,es*-pre-eval
-	   ,lam))))
+  (early-bind-expressions
+   es
+   (with-gensym V
+		`(lambda (,V)
+		   ,(fold-right (lambda (e inner)
+				  `(,e ,inner))
+				V
+				es)))))
 
 ;; same thing, n-ary: -- COPY PASTE
 (define-macro* (compose* . es)
@@ -196,7 +185,7 @@
  (lambda (GEN:X-3567) (a GEN:X-3567))
 
  > (expansion#compose a (maybe b) (complement c))
- (let ((GEN:-546 (maybe b)) (GEN:-547 (complement c)))
+ (##let ((GEN:-546 (maybe b)) (GEN:-547 (complement c)))
    (lambda (GEN:V-548) (a (GEN:-546 (GEN:-547 GEN:V-548)))))
 
  > (expansion#compose/arity 1 a b c)
