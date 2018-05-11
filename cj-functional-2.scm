@@ -19,7 +19,7 @@
 	 (cj-symbol syntax-equal?))
 
 (export flip
-	complement  (macro %complement)
+	complement-function  (macro complement)
 	compose-function
 	maybe-compose
 	either      (macro %either)
@@ -46,16 +46,17 @@
   (lambda (x y)
     (f y x)))
 
-(define (complement fn)
+(define (complement-function fn)
   (lambda v
     (not (apply fn v))))
 
-;; XX implement early evaluation of fn, like in |compose| and |on|
-(define-macro* (%complement fn)
-  (with-gensym
-   V
-   `(lambda (,V)
-      (not (,fn ,V)))))
+(define-macro* (complement fn)
+  (early-bind-expressions
+   (fn)
+   (with-gensym
+    V
+    `(lambda (,V)
+       (not (,fn ,V))))))
 
 (define (compose-function f g)
   (lambda x
@@ -119,7 +120,7 @@
 (define-macro* (%neither . fs)
   (with-gensym
    V
-   `(%complement (%either ,@fs))))
+   `(complement (%either ,@fs))))
 
 (TEST ;; copy of test cases above
  > ((neither symbol? string?) "foo")
@@ -192,7 +193,7 @@
  )
 
 ;; XX implement early evaluation of fn, like in |compose|, |on| and
-;; |%complement|
+;; |complement|
 (define-macro* (all-of . preds)
   (with-gensym
    V
