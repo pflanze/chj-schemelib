@@ -42,6 +42,9 @@
 	values-of-function (macro values-of)
 	applying)
 
+(include "cj-standarddeclares.scm")
+
+
 (define (flip-function f)
   (lambda (x y)
     (f y x)))
