@@ -15,7 +15,7 @@
 	 (lazy FV)
 	 (cj-gambit-sys maybe-decompile)
 	 (cj-source-util schemedefinition-arity:pattern->template)
-	 (cj-functional-2 compose-function %either))
+	 (cj-functional-2 compose compose-function either))
 
 (export right-associate
 	left-associate
@@ -260,7 +260,7 @@
 	 (fn v))))
 
 (define (maybe pred)
-  (%either not pred))
+  (either not pred))
 
 (TEST
  > ((maybe number?) 1)
@@ -315,7 +315,7 @@
 
 (define <to<=
   ;; <-><= would be a fun name, wouldn't it?
-  (compose-function complement flip))
+  (compose complement-2ary flip))
 
 (define (sorted-list-of el? <)
   (strictly-monotonic-list-of el? (<to<= <)))
