@@ -5,7 +5,7 @@
 
 (defenum eol-name CR LF CRLF)
 
-(def. (eol-name.string v)
+(def. (eol-name.newline-string v)
   (xcase v
 	 ((CR) "\r")
 	 ((LF) "\n")

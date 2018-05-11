@@ -122,7 +122,7 @@
 		     [output-port? port])
      (let ((eol (or eol (current-csv-eol)))
 	   (sep-char (or sep-char (current-csv-sep-char))))
-       (let ((eol* (list (eol-name.string eol))))
+       (let ((eol* (list (eol-name.newline-string eol))))
 	 (lambda (row)
 	   (print port: port
 		  (list-join (map (csv-escape sep-char)
