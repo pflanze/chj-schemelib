@@ -33,6 +33,7 @@
 	(macro =>-lambda/arity)
 	(macro =>>)
 	(macro =>>*)
+	list-of/2
 	list-of-function (macro list-of)
 	nonempty-list-of
 	list-of/length ;; see also length-is
@@ -444,20 +445,27 @@
  3)
 
 
-;; XX eliminate duplicate walk via list? and every
+(define (list-of/2 pred v)
+  (let lp ((v v))
+    (cond ((pair? v)
+	   (and (pred (car v))
+		(lp (cdr v))))
+	  ((null? v)
+	   #t)
+	  (else
+	   #f))))
 
-(define (list-of-function pred)
-  (lambda (x)
-    (and (list? x)
-	 (every pred x))))
+(define list-of-function (C list-of/2 _))
 
 (define-macro* (list-of pred)
+  ;; (this is still a tad more than just inlining: late binding still
+  ;; provided. Which will allow the compiler to lambda lift the generated
+  ;; function (in cases where it can't be inlined itself))
   (early-bind-expressions
    (pred)
    (with-gensym x
 		`(##lambda (,x)
-		      (##and (list? ,x)
-			     (every ,pred ,x))))))
+			   (list-of/2 ,pred ,x)))))
 
 
 (define (nonempty-list-of pred)
