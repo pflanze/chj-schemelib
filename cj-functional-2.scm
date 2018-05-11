@@ -33,7 +33,7 @@
 	(macro =>-lambda/arity)
 	(macro =>>)
 	(macro =>>*)
-	list-of
+	list-of-function (macro list-of)
 	nonempty-list-of
 	list-of/length ;; see also length-is
 	improper-list/length>=
@@ -424,11 +424,20 @@
  3)
 
 
+;; XX eliminate duplicate walk via list? and every
 
-(define (list-of pred)
+(define (list-of-function pred)
   (lambda (x)
     (and (list? x)
 	 (every pred x))))
+
+(define-macro* (list-of pred)
+  (early-bind-expressions
+   (pred)
+   (with-gensym x
+		`(##lambda (,x)
+		      (##and (list? ,x)
+			     (every ,pred ,x))))))
 
 
 (define (nonempty-list-of pred)
