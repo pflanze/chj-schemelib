@@ -8,7 +8,7 @@
 	 srfi-1
 	 (string-util strings-join string-split)
 	 u8vector0
-	 (hex hexdigit char.parse-hexdigit)
+	 (hex hexdigit hexdigit-integer char.parse-hexdigit)
 	 (oo-lib-string u8vector.string))
 
 (export url-encode url-encode-u8vector
