@@ -197,7 +197,7 @@
 ;; A string chom that works like Perl's
 
 (define (chomp str)
-  (if (string-empty? str)
+  (if (%string-empty? str)
       str
       (if (char=? (string-ref* str -1) #\newline) ;; Perl even ignores \r heh
 	  (substring str 0 (dec (string-length str)))
@@ -272,7 +272,7 @@
 
 (define (nonempty? v)
   (and v
-       (not (string-empty? (trim v)))))
+       (not (%string-empty? (trim v)))))
 
 ;; bad name? but:
 ;; - maybe handling

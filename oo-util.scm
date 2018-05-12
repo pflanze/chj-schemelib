@@ -150,7 +150,7 @@
   #f)
 
 (define. (string.perl-true? str)
-  (cond ((string-empty? str) #f)
+  (cond ((%string-empty? str) #f)
 	;; calc> :l if ("0 ") { "ja" } else { "nein" }
 	;; ja
 	;; calc> :l if ("00") { "ja" } else { "nein" }

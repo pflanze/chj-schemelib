@@ -105,7 +105,7 @@
 	(string-ref str (+ len i)))
       (string-ref str i)))
 (define (chomp str)
-  (if (string-empty? str)
+  (if (%string-empty? str)
       str
       (if (char=? (string-ref* str -1) #\newline) ;; Perl even ignores \r heh
 	  (substring str 0 (dec (string-length str)))

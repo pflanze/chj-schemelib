@@ -148,7 +148,7 @@
 
 (define nonempty-string?
   (both string?
-	(complement string-empty?)))
+	(complement %string-empty?)))
 
 
 (define (string-of pred)
