@@ -6,23 +6,26 @@
 ;;;    (at your option) any later version.
 
 
-(require easy)
+(require easy
+	 cj-inline)
 
-(export hexdigit-integer
+(export (inline hexdigit-integer)
 	hexdigit
 	(method integer.parse-hexdigit
 		char.parse-hexdigit
 		u8vector.hex-string
-		string.parse-hex))
+		string.parse-hex)
+	#!optional
+	(macro CHAR->INTEGER))
 
 
 (include "cj-standarddeclares.scm")
 
-(define-macro (CHAR->INTEGER c)
-  (char->integer c))
+(define-macro* (CHAR->INTEGER c)
+  (assert* char? c char->integer))
 
 
-(define (hexdigit-integer digit)
+(define-inline (hexdigit-integer digit)
   (declare (fixnum))
   (if (< digit 10)
       (+ digit (CHAR->INTEGER #\0))
