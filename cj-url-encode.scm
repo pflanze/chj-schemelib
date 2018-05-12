@@ -8,7 +8,7 @@
 	 srfi-1
 	 (string-util strings-join string-split)
 	 u8vector0
-	 (hex hexdigit hexdigit-integer char.parse-hexdigit)
+	 (hex hexdigit hexdigit-integer-inline char.parse-hexdigit)
 	 (oo-lib-string u8vector.string))
 
 (export url-encode url-encode-u8vector
@@ -140,10 +140,12 @@
 				  (u8vector-set! out i* (CHAR->INTEGER #\%))
 				  (u8vector-set!
 				   out (+ i* 1)
-				   (hexdigit-integer (arithmetic-shift b -4)))
+				   (hexdigit-integer-inline
+				    (arithmetic-shift b -4)))
 				  (u8vector-set!
 				   out (+ i* 2)
-				   (hexdigit-integer (bitwise-and b 15)))
+				   (hexdigit-integer-inline
+				    (bitwise-and b 15)))
 				  (lp-buf (inc j)
 					  (+ i* 3)))
 				(overflow))))
