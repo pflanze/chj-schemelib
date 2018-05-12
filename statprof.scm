@@ -123,8 +123,10 @@
 ;; Functions to generate the report
 
 
-(define (statprof:head)
-  `(head (style "
+(define statprof:head
+  `(head
+    (meta charset: "utf-8")
+    (style "
 pre.line {
   margin-top: 0px;
   margin-bottom: 0px;
@@ -223,7 +225,7 @@ td.line {
 		   (print
 		    (statprof:sexp->html
 		     `(html
-		       ,(statprof:head)
+		       ,statprof:head
 		       (body
 			(table
 			 cellspacing: 0
@@ -275,7 +277,7 @@ td.line {
       (print
        (statprof:sexp->html
         `(html
-	  ,(statprof:head)
+	  ,statprof:head
           (body
            ,@(map (lambda-values
 		   ((total bucket))
