@@ -96,7 +96,6 @@
 (define cj-url-encode:url-encode-retry 0)
 
 (define-typed (url-encode-u8vector [string? str])
-  (declare (fixnum))
 
   ;; Optimistic (?, attempting) algorithm: allocate a fixed buffer, if
   ;; the result fits, shrink it, otherwise (overflow case) retry with
@@ -107,7 +106,9 @@
 
 	 (len (string-length str)))
 
-    (let retry ((len* (+ 8 (* len 3))))
+    (let retry ((len* (-> fixnum? (+ 8 (* len 3)))))
+
+      (declare (fixnum) (not safe)) ;; XX should statically prove safety
   
       (def (overflow)
 	   (inc! cj-url-encode:url-encode-retry)
