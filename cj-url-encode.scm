@@ -1,3 +1,5 @@
+;; sigh url-encoding AGAIN. where did I have it before?? recently? no?
+
 (require fixnum
 	 cj-typed
 	 test
@@ -20,16 +22,6 @@
 (define-macro (CHAR->INTEGER c)
   (char->integer c))
 
-
-;; sigh url-encoding AGAIN. where did I have it before?? recently? no?
-
-(define url-encoding:reserved-chars
-  '(
-    #\! #\*    #\'    #\(    #\)
-	#\;	#\:	#\@	#\&	#\=	#\+	#\$	#\,	#\/	#\?	#\#	#\[	#\]))
-
-(define-typed (url-encoding:reserved? #(char? c))
-  (and (memq c url-encoding:reserved-chars) #t))
 
 (define-typed (url-encoding:unreserved? #(char? c))
   (declare (not safe) (fixnum))
