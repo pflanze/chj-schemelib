@@ -32,6 +32,11 @@
 (def. (u8vector.string v)
   (let* ((len (u8vector-length v))
 	 (o (##make-string len)))
+    (declare (fixnum) (not safe))
+    ;; ^ Safe as u8 values are always in the range of valid unicode
+    ;; characters. (Right?..) But then there's not even a
+    ;; ##integer->char so perhaps that's not where the speedup is
+    ;; coming from.
     (for..< (i 0 len)
 	    (string-set!
 	     o i
