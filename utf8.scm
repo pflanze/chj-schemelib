@@ -26,6 +26,9 @@
 	@u8vector-utf8-get!
 	)
 
+(include "cj-standarddeclares.scm")
+
+
 ;; https://en.wikipedia.org/wiki/UTF-32
 ;; UTF-32 (or UCS-4) stands for Unicode Transformation Format 32
 ;; bits. It is a protocol to encode Unicode code points that uses
@@ -112,10 +115,15 @@ ___UCS_4 c;);
 
 
 (def (ucs4-codepoint? v)
-     (and (exact-natural0? v)
-	  ;; be careful about the null value!  valid in UCS-4 but not
-	  ;; necessarily in strings.
-	  (<= v #xFFFFFFFF)))
+     (declare (fixnum) (not safe))
+     (and
+      ;; (exact-natural0? v)
+      (fixnum? v)
+      (>= v 0)
+
+      ;; be careful about the null value!  valid in UCS-4 but not
+      ;; necessarily in strings.
+      (<= v #xFFFFFFFF)))
 
 (TEST
  > (ucs4-codepoint? #\A)
