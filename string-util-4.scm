@@ -1,4 +1,4 @@
-;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,15 +6,20 @@
 ;;;    (at your option) any later version.
 
 
-(require (fixnum inc))
+(require (fixnum inc)
+	 define-macro-star)
 
-(export string-empty?
+(export string-empty?  (macro %string-empty?)
 	string-every
 	string-first-line)
 
 
 (define (string-empty? str)
   (zero? (string-length str)))
+
+;; too early for cj-inline
+(define-macro* (%string-empty? str)
+  `(##fxzero? (string-length ,str)))
 
 
 (define (string-every fn str)

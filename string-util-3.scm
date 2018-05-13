@@ -57,7 +57,7 @@
   (named rec
 	 (lambda (nomatch)
 	   (lambda (s substr withstr)
-	     (if (string-empty? substr)
+	     (if (%string-empty? substr)
 		 (invalid s)
 		 (cond ((string-contains s substr)
 			=> (lambda (pos)
