@@ -10,6 +10,7 @@
 	 cj-functional
 	 (cj-functional-2 =>)
 	 cut
+	 srfi-13-kmp
 	 test
 	 (cj-env named)
 	 (cj-env-2 C)
@@ -395,31 +396,6 @@
 
 (define string-starts? (string-_-starts? char=?))
 (define string-starts-ci? (string-_-starts? char-ci=?))
-
-(define (string-_-contains char=? found)
-  (lambda (str substr)
-    (declare (fixnum))
-    (let ((strlen (string-length str))
-	  (sublen (string-length substr)))
-      (let lp ((stri 0))
-	(let sublp ((subi 0))
-	  (if (< subi sublen)
-	      (let ((stri* (+ stri subi)))
-		(if (< stri* strlen)
-		    (if (char=? (string-ref str stri*)
-				(string-ref substr subi))
-			(sublp (inc subi))
-			(lp (inc stri)))
-		    #f))
-	      (found stri)))))))
-
-;; these return (maybe position)
-(define string-contains (string-_-contains char=? identity))
-(define string-contains-ci (string-_-contains char-ci=? identity))
-
-;; these return boolean
-(define string-contains? (string-_-contains char=? true/1))
-(define string-contains-ci? (string-_-contains char-ci=? true/1))
 
 (TEST
  > (define (test a b)
