@@ -1,7 +1,10 @@
-(require)
+(require (cj-source-util-2 assert))
 
 (export string-contains
-	string-contains-ci)
+	string-contains-ci
+	string-contains?
+	string-contains-ci?
+	string-kmp-partial-search)
 
 (include "cj-standarddeclares.scm")
 
@@ -21,15 +24,37 @@
 ;;; Searching for an occurrence of a substring
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (string-contains text pattern . maybe-starts+ends)
-  (let-string-start+end2 (t-start t-end p-start p-end)
-                         string-contains text pattern maybe-starts+ends
-    (%kmp-search pattern text char=? p-start p-end t-start t-end)))
+(define (string-contains text pattern
+			 #!optional
+			 (t-start 0)
+			 (t-end (string-length text))
+			 (p-start 0)
+			 (p-end (string-length pattern)))
+  (%kmp-search pattern text char=? p-start p-end t-start t-end))
 
-(define (string-contains-ci text pattern . maybe-starts+ends)
-  (let-string-start+end2 (t-start t-end p-start p-end)
-                         string-contains-ci text pattern maybe-starts+ends
-    (%kmp-search pattern text char-ci=? p-start p-end t-start t-end)))
+(define (string-contains-ci text pattern
+			    #!optional
+			    (t-start 0)
+			    (t-end (string-length text))
+			    (p-start 0)
+			    (p-end (string-length pattern)))
+  (%kmp-search pattern text char-ci=? p-start p-end t-start t-end))
+
+(define (string-contains? text pattern
+			  #!optional
+			  (t-start 0)
+			  (t-end (string-length text))
+			  (p-start 0)
+			  (p-end (string-length pattern)))
+  (and (%kmp-search pattern text char=? p-start p-end t-start t-end) #t))
+
+(define (string-contains-ci? text pattern
+			     #!optional
+			     (t-start 0)
+			     (t-end (string-length text))
+			     (p-start 0)
+			     (p-end (string-length pattern)))
+  (and (%kmp-search pattern text char-ci=? p-start p-end t-start t-end) #t))
 
 
 ;;; Knuth-Morris-Pratt string searching
@@ -98,40 +123,35 @@
 ;;;    a b d  a b x
 ;;; #(-1 0 0 -1 1 2)
 
-(define (make-kmp-restart-vector pattern . maybe-c=+start+end)
-  (let-optionals* maybe-c=+start+end
-                  ((c= char=? (procedure? c=))
-		   ((start end) (lambda (args)
-				  (string-parse-start+end make-kmp-restart-vector
-							  pattern args))))
-    (let* ((rvlen (- end start))
-	   (rv (make-vector rvlen -1)))
-      (if (> rvlen 0)
-	  (let ((rvlen-1 (- rvlen 1))
-		(c0 (string-ref pattern start)))
+(define (make-kmp-restart-vector pattern c= start end)
+  (let* ((rvlen (- end start))
+	 (rv (make-vector rvlen -1)))
+    (if (> rvlen 0)
+	(let ((rvlen-1 (- rvlen 1))
+	      (c0 (string-ref pattern start)))
 
-	    ;; Here's the main loop. We have set rv[0] ... rv[i].
-	    ;; K = I + START -- it is the corresponding index into PATTERN.
-	    (let lp1 ((i 0) (j -1) (k start))	
-	      (if (< i rvlen-1)
-		  ;; lp2 invariant:
-		  ;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
-		  ;;   or j = -1.
-		  (let lp2 ((j j))
-		    (cond ((= j -1)
-			   (let ((i1 (+ 1 i)))
-			     (if (not (c= (string-ref pattern (+ k 1)) c0))
-				 (vector-set! rv i1 0))
-			     (lp1 i1 0 (+ k 1))))
-			  ;; pat[(k-j) .. k] matches pat[start..start+j].
-			  ((c= (string-ref pattern k) (string-ref pattern (+ j start)))
-			   (let* ((i1 (+ 1 i))
-				  (j1 (+ 1 j)))
-			     (vector-set! rv i1 j1)
-			     (lp1 i1 j1 (+ k 1))))
+	  ;; Here's the main loop. We have set rv[0] ... rv[i].
+	  ;; K = I + START -- it is the corresponding index into PATTERN.
+	  (let lp1 ((i 0) (j -1) (k start))	
+	    (if (< i rvlen-1)
+		;; lp2 invariant:
+		;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
+		;;   or j = -1.
+		(let lp2 ((j j))
+		  (cond ((= j -1)
+			 (let ((i1 (+ 1 i)))
+			   (if (not (c= (string-ref pattern (+ k 1)) c0))
+			       (vector-set! rv i1 0))
+			   (lp1 i1 0 (+ k 1))))
+			;; pat[(k-j) .. k] matches pat[start..start+j].
+			((c= (string-ref pattern k) (string-ref pattern (+ j start)))
+			 (let* ((i1 (+ 1 i))
+				(j1 (+ 1 j)))
+			   (vector-set! rv i1 j1)
+			   (lp1 i1 j1 (+ k 1))))
 
-			  (else (lp2 (vector-ref rv j)))))))))
-      rv)))
+			(else (lp2 (vector-ref rv j)))))))))
+    rv))
 
 
 ;;; We've matched I chars from PAT. C is the next char from the search string.
@@ -165,30 +185,28 @@
 ;;; input comes in chunks of text. We hand-integrate the KMP-STEP loop
 ;;; for speed.
 
-(define (string-kmp-partial-search pat rv s i . c=+p-start+s-start+s-end)
-  (check-arg vector? rv string-kmp-partial-search)
-  (let-optionals* c=+p-start+s-start+s-end
-		  ((c=      char=? (procedure? c=))
-		   (p-start 0 (and (integer? p-start) (exact? p-start) (<= 0 p-start)))
-		   ((s-start s-end) (lambda (args)
-				      (string-parse-start+end string-kmp-partial-search
-							      s args))))
-    (let ((patlen (vector-length rv)))
-      (check-arg (lambda (i) (and (integer? i) (exact? i) (<= 0 i) (< i patlen)))
-		 i string-kmp-partial-search)
+(define (string-kmp-partial-search pat rv s i
+				   #!optional
+				   (c= char=?)
+				   (p-start 0)
+				   (s-start 0)
+				   (s-end (string-length s)))
+  (let ((patlen (vector-length rv)))
+    (assert ((lambda (i) (and (integer? i) (exact? i) (<= 0 i) (< i patlen)))
+	     i))
 
-      ;; Enough prelude. Here's the actual code.
-      (let lp ((si s-start)		; An index into S.
-	       (vi i))			; An index into RV.
-	(cond ((= vi patlen) (- si))	; Win.
-	      ((= si s-end) vi)		; Ran off the end.
-	      (else			; Match s[si] & loop.
-	       (let ((c (string-ref s si)))
-		 (lp (+ si 1)	
-		     (let lp2 ((vi vi))	; This is just KMP-STEP.
-		       (if (c= c (string-ref pat (+ vi p-start)))
-			   (+ vi 1)
-			   (let ((vi (vector-ref rv vi)))
-			     (if (= vi -1) 0
-				 (lp2 vi)))))))))))))
+    ;; Enough prelude. Here's the actual code.
+    (let lp ((si s-start)		; An index into S.
+	     (vi i))			; An index into RV.
+      (cond ((= vi patlen) (- si))	; Win.
+	    ((= si s-end) vi)		; Ran off the end.
+	    (else			; Match s[si] & loop.
+	     (let ((c (string-ref s si)))
+	       (lp (+ si 1)	
+		   (let lp2 ((vi vi))	; This is just KMP-STEP.
+		     (if (c= c (string-ref pat (+ vi p-start)))
+			 (+ vi 1)
+			 (let ((vi (vector-ref rv vi)))
+			   (if (= vi -1) 0
+			       (lp2 vi))))))))))))
 
