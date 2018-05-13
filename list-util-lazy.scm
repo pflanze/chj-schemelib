@@ -28,7 +28,7 @@
 	(macro if-one))
 
 (include "cj-standarddeclares.scm")
-
+(possibly-use-debuggable-promise)
 
 
 ;; can't use cj-inline yet (circular dependency)
