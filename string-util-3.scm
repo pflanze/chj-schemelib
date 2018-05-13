@@ -27,6 +27,8 @@
 	string.natural0
 	string.natural)
 
+(include "cj-standarddeclares.scm")
+
 
 ;; (define-macro* (for var seq . body)
 ;;   `(.for seq

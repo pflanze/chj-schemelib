@@ -27,6 +27,9 @@
 	one-item?
 	(macro if-one))
 
+(include "cj-standarddeclares.scm")
+
+
 
 ;; can't use cj-inline yet (circular dependency)
 (define (xone/fail x fail)

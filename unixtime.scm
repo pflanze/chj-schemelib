@@ -35,6 +35,8 @@
 	leap-years
 	leap-years-len)
 
+(include "cj-standarddeclares.scm")
+
 
 
 (def localtime-compare:fallback-count 0)

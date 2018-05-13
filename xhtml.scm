@@ -5,6 +5,9 @@
 
 (require easy test)
 
+(include "cj-standarddeclares.scm")
+
+
 (both-times
 
  (def xhtml-element-names

@@ -23,6 +23,8 @@
 	set-TZ!
 	mktime (method localtime.unixtime))
 
+(include "cj-standarddeclares.scm")
+
 
 (c-declare "
 #ifndef _GNU_SOURCE

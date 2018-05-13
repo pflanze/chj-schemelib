@@ -13,6 +13,8 @@
 	string-every
 	string-first-line)
 
+(include "cj-standarddeclares.scm")
+
 
 (define (string-empty? str)
   (zero? (string-length str)))
