@@ -75,6 +75,7 @@
 ;;; leftmost match or #f.
 
 (define (%kmp-search pattern text c= p-start p-end t-start t-end)
+  (declare (fixnum))
   (let ((plen (- p-end p-start))
 	(rv (make-kmp-restart-vector pattern c= p-start p-end)))
 
@@ -124,6 +125,7 @@
 ;;; #(-1 0 0 -1 1 2)
 
 (define (make-kmp-restart-vector pattern c= start end)
+  (declare (fixnum))
   (let* ((rvlen (- end start))
 	 (rv (make-vector rvlen -1)))
     (if (> rvlen 0)
