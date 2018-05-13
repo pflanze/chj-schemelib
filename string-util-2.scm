@@ -398,7 +398,7 @@
 
 (define (string-_-contains char=? found)
   (lambda (str substr)
-    (declare (fixnum))
+    (declare (fixnum) (not safe))
     (let ((strlen (string-length str))
 	  (sublen (string-length substr)))
       (let lp ((stri 0))
