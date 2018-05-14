@@ -4,6 +4,7 @@
 (export (macro iflet)
 	(macro if-let*)
 	(macro if-let)
+	(macro and-let)
 	#!optional
 	if-let*-expand
 	if-let-expand)
@@ -180,4 +181,7 @@
 		 GEN:-11015))
  (exception text: "Unbound variable: GEN:-11015\n"))
 
+
+(defmacro (and-let assignments yes)
+  (if-let-expand `cond assignments yes #f))
 
