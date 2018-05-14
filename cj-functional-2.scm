@@ -267,12 +267,14 @@
 	res
 	(let-pair ((expr exprs*) exprs)
 		  (next exprs*
-			(let ((expr* (source-code expr)))
+			(let ((expr* (source-code expr))
+			      (src (lambda (e)
+				     (possibly-sourcify e expr))))
 			  (cond
 			   ((pair? expr*)
-			    `(,(car expr*) ,res ,@(cdr expr*)))
+			    (src `(,(car expr*) ,res ,@(cdr expr*))))
 			   ((symbol? expr*)
-			    `(,expr ,res))
+			    (src `(,expr ,res)))
 			   (else
 			    (source-error
 			     expr
