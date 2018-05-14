@@ -32,6 +32,9 @@
 	struct-tag-allocate!
 	maybe-struct-tag->metadata
 	struct-tag->metadata
+
+	#!optional
+	cj-struct:type->metadata ;; the table, shouldn't use directly
 	)
 
 ;;(include "cj-standarddeclares.scm")
