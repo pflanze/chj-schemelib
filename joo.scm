@@ -408,7 +408,7 @@
 			     (joo-type.all-field-decls p)))
 		       (else
 			'()))
-		 ;; XXX ah oh btw, no rest arguments and
+		 ;; XX ah oh btw, no rest arguments and
 		 ;; similar allowed! or how to deal with those?
 		 ;; ! Oh, not even key arguments, messes
 		 ;; everything up. For now. (Would have to
@@ -538,7 +538,7 @@
 
 ;; (def (joo:invalidate-caches!)
 ;;      (for-each (lambda (class)
-;; 		 XXX)
+;; 		 XX)
 ;; 	       (joo:classes)))
 ;; BUT then  we do the KISS approach first of just re-using dot-oo right?
 
@@ -925,7 +925,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 ;; this would need mapping from tags to types sigh. Not just from tag
 ;; names.
 '(def. (joo-object.is-a? s #(joo-object? t))
-  (joo-type.is-a? XXX XXX))
+  (joo-type.is-a? XX XX))
 
 
 (TEST
