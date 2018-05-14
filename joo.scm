@@ -318,134 +318,135 @@
 ;; using more-oo here as infrastructure for our coding, but not for
 ;; building the actual oo system on top of it
 
-(more-class joo-type
-       ;; With metadata; still call it joo-metadata instead?  Those
-       ;; are mutable, and singletons, please!
-       (struct #(symbol? class-name)
-	       ;;^ XX should rename that to name ? (is for interfaces, too)
-	       #((maybe symbol?) maybe-constructor-name)
-	       ;; #f means no constructor
-	       #((maybe struct-tag?) maybe-struct-tag)
-	       ;; #f means no cj-struct (i.e. same as above)
-	       #(boolean? interface?)
-	       #( ;;(if interface? false? (maybe joo-type?))  sigh, I
-		 ;; remembered right afterwards: doesn't work in the
-		 ;; code used for setters; fix this in cj-struct?
-		 ;; (~ugh, and heh, C++/Java style object field
-		 ;; accesses, you know, heh)
-		 (maybe joo-type?) maybe-parent)
-	       ;; #f means this is joo-object
-	       #((list-of joo-interface-type?) implements)
-	       #(list? field-decls)
-	       ;; of source-code (never contains constructor-name:)
-	       #(symboltable? members)
-	       ;; mutable; includes self
-	       )
-       (method (members-set! s #(symboltable? members))
-	       (vector-set! s 8 members))
+(more-class
+ joo-type
+ ;; With metadata; still call it joo-metadata instead?  Those
+ ;; are mutable, and singletons, please!
+ (struct [symbol? class-name]
+	 ;;^ XX should rename that to name ? (is for interfaces, too)
+	 [(maybe symbol?) maybe-constructor-name]
+	 ;; #f means no constructor
+	 [(maybe struct-tag?) maybe-struct-tag]
+	 ;; #f means no cj-struct (i.e. same as above)
+	 [boolean? interface?]
+	 [ ;;(if interface? false? (maybe joo-type?))  sigh, I
+	  ;; remembered right afterwards: doesn't work in the
+	  ;; code used for setters; fix this in cj-struct?
+	  ;; (~ugh, and heh, C++/Java style object field
+	  ;; accesses, you know, heh)
+	  (maybe joo-type?) maybe-parent]
+	 ;; #f means this is joo-object
+	 [(list-of joo-interface-type?) implements]
+	 [list? field-decls]
+	 ;; of source-code (never contains constructor-name:)
+	 [symboltable? members]
+	 ;; mutable; includes self
+	 )
+ (method (members-set! s [symboltable? members])
+	 (vector-set! s 8 members))
 
-       (def (joo-interface-type? s)
-	    (and (joo-type? s)
-		 (joo-type.interface? s)))
+ (def (joo-interface-type? s)
+      (and (joo-type? s)
+	   (joo-type.interface? s)))
 
-       (def (joo-class-type? s)
-	    (and (joo-type? s)
-		 (not (joo-type.interface? s))))
+ (def (joo-class-type? s)
+      (and (joo-type? s)
+	   (not (joo-type.interface? s))))
 
-       ;; both `extends` and `implements` parents
-       (method (all-immediate-parents s)
-	       (let ((i (joo-type.implements s)))
-		 (cond ((joo-type.maybe-parent s)
+ ;; both `extends` and `implements` parents
+ (method (all-immediate-parents s)
+	 (let ((i (joo-type.implements s)))
+	   (cond ((joo-type.maybe-parent s)
+		  => (lambda (p)
+		       (cons p i)))
+		 (else i))))
+
+ ;; excluding self
+ (method (all-parents s)
+	 (let ((seen?! (make-seen?! test: eq?)))
+	   (let rec ((s s)
+		     (res '()))
+	     (if (seen?! s)
+		 res
+		 (cons s (fold-right rec
+				     res
+				     (joo-type.all-immediate-parents s)))))))
+
+ (method (struct-tag s)
+	 (or (joo-type.maybe-struct-tag s)
+	     (error "this joo class does not have instances:"
+		    (.class-name s))))
+
+ (method (members-perhaps-add! s t)
+	 ;; but only if it's possible that this class has
+	 ;; instances
+	 (cond ((joo-type.maybe-struct-tag t)
+		=> (lambda (tag)
+		     (joo-type.members-set!
+		      s
+		      ;; (Why not symboltable-add here: calling repeatedly
+		      ;; when already inserted, right? ~Why is it all so
+		      ;; unnice.) XX aha, optimization: could stop adding
+		      ;; once already there
+		      (symboltable-set (joo-type.members s)
+				       (struct-tag.name tag)
+				       tag))))))
+
+ (method (update-parents! s) -> void? ;; just with itself
+	 (for-each (lambda (p)
+		     (joo-type.members-perhaps-add! p s))
+		   (joo-type.all-parents s)))
+
+ ;; build one decl that encompasses all the field declarations
+ ;; of parents and ourselves; take care of #!key etc. so that
+ ;; the new decl is valid DSSSL syntax. Ah, actually don't
+ ;; especially take care of it, just have the user understand
+ ;; that DSSSL syntax *continues across subclassing* ? !
+ (method (all-field-decls s)
+	 (append (cond ((joo-type.maybe-parent s)
 			=> (lambda (p)
-			     (cons p i)))
-		       (else i))))
+			     (joo-type.all-field-decls p)))
+		       (else
+			'()))
+		 ;; XXX ah oh btw, no rest arguments and
+		 ;; similar allowed! or how to deal with those?
+		 ;; ! Oh, not even key arguments, messes
+		 ;; everything up. For now. (Would have to
+		 ;; write a proper abstraction, parser.)
+		 (joo-type.field-decls s)))
 
-       ;; excluding self
-       (method (all-parents s)
-	       (let ((seen?! (make-seen?! test: eq?)))
-		 (let rec ((s s)
-			   (res '()))
-		   (if (seen?! s)
-		       res
-		       (cons s (fold-right rec
-					   res
-					   (joo-type.all-immediate-parents s)))))))
+ (method (all-field-names s)
+	 (joo:args->vars (joo-type.all-field-decls s)))
 
-       (method (struct-tag s)
-	       (or (joo-type.maybe-struct-tag s)
-		   (error "this joo class does not have instances:"
-			  (.class-name s))))
+ ;; is `s` a `t` ?
+ (method (is-a? s [joo-type? t])
+	 (joo:struct-tag.member-of? (joo-type.struct-tag s)
+				    (joo-type.members t)))
 
-       (method (members-perhaps-add! s t)
-	       ;; but only if it's possible that this class has
-	       ;; instances
-	       (cond ((joo-type.maybe-struct-tag t)
-		      => (lambda (tag)
-			   (joo-type.members-set!
-			    s
-			    ;; (Why not symboltable-add here: calling repeatedly
-			    ;; when already inserted, right? ~Why is it all so
-			    ;; unnice.) XX aha, optimization: could stop adding
-			    ;; once already there
-			    (symboltable-set (joo-type.members s)
-					     (struct-tag.name tag)
-					     tag))))))
-
-       (method (update-parents! s) -> void? ;; just with itself
-	       (for-each (lambda (p)
-			   (joo-type.members-perhaps-add! p s))
-			 (joo-type.all-parents s)))
-
-       ;; build one decl that encompasses all the field declarations
-       ;; of parents and ourselves; take care of #!key etc. so that
-       ;; the new decl is valid DSSSL syntax. Ah, actually don't
-       ;; especially take care of it, just have the user understand
-       ;; that DSSSL syntax *continues across subclassing* ? !
-       (method (all-field-decls s)
-	       (append (cond ((joo-type.maybe-parent s)
-			      => (lambda (p)
-				   (joo-type.all-field-decls p)))
-			     (else
-			      '()))
-		       ;; XXX ah oh btw, no rest arguments and
-		       ;; similar allowed! or how to deal with those?
-		       ;; ! Oh, not even key arguments, messes
-		       ;; everything up. For now. (Would have to
-		       ;; write a proper abstraction, parser.)
-		       (joo-type.field-decls s)))
-
-       (method (all-field-names s)
-	       (joo:args->vars (joo-type.all-field-decls s)))
-
-       ;; is `s` a `t` ?
-       (method (is-a? s #(joo-type? t))
-	       (joo:struct-tag.member-of? (joo-type.struct-tag s)
-					  (joo-type.members t)))
-
-       ;; but, usually have to check an instance; hmm, provide method
-       ;; in joo-object class, that everybody inherits? but circular,
-       ;; no? Thus instead revert order of arguments:
-       ;; XX better name? has-instance, no, rev-is-a, gah
-       (method (covers-instance? s v) ;; flip of joo:instance.member-of? 
-	       (declare (block)
-			(standard-bindings)
-			(extended-bindings)
-			(not safe))
-	       (and (##vector? v)
-		    ;; do *not* restrict length
-		    (fx>= (##vector-length v) 1)
-		    (joo:struct-tag.member-of? (##vector-ref v 0)
-					       (@joo-type.members s)))))
+ ;; but, usually have to check an instance; hmm, provide method
+ ;; in joo-object class, that everybody inherits? but circular,
+ ;; no? Thus instead revert order of arguments:
+ ;; XX better name? has-instance, no, rev-is-a, gah
+ (method (covers-instance? s v) ;; flip of joo:instance.member-of? 
+	 (declare (block)
+		  (standard-bindings)
+		  (extended-bindings)
+		  (not safe))
+	 (and (##vector? v)
+	      ;; do *not* restrict length
+	      (fx>= (##vector-length v) 1)
+	      (joo:struct-tag.member-of? (##vector-ref v 0)
+					 (@joo-type.members s)))))
 
 ;; a constructor that also updates the parent's member tables (XX
 ;; *could* also ensure singletons here (keyed on tag), should I ?)
-(def (make-joo-type! #(symbol? class-name)
-		     #((maybe symbol?) constructor-name)
-		     #((maybe struct-tag?) tag)
-		     #(boolean? interface?)
-		     #((maybe joo-type?) parent)
-		     #((list-of joo-type?) implements)
-		     #(list? field-decls))
+(def (make-joo-type! [symbol? class-name]
+		     [(maybe symbol?) constructor-name]
+		     [(maybe struct-tag?) tag]
+		     [boolean? interface?]
+		     [(maybe joo-type?) parent]
+		     [(list-of joo-type?) implements]
+		     [list? field-decls])
      (if tag
 	 (assert (eq? (struct-tag.name tag) class-name)))
      (let ((t (joo-type class-name
@@ -542,7 +543,7 @@
 ;; BUT then  we do the KISS approach first of just re-using dot-oo right?
 
 
-(def (joo:decl.maybe-ref-keyword decl #(keyword? k))
+(def (joo:decl.maybe-ref-keyword decl [keyword? k])
      (let lp ((l (source-code decl)))
        (if (pair? l)
 	   (let-pair ((a l*) l)
