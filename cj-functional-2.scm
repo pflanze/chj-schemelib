@@ -292,10 +292,11 @@
    V
    (if (symbol? (source-code expr0))
        `(##lambda ,V
-	     ,(=>-expand `(##apply ,expr0 ,V) exprs))
+		  ,(=>-expand (possibly-sourcify `(##apply ,expr0 ,V) expr0)
+			      exprs))
        ;; otherwise can't support multiple values:
        `(##lambda (,V)
-	     ,(=>-expand V (cons expr0 exprs))))))
+		  ,(=>-expand V (cons expr0 exprs))))))
 
 (TEST
  > ((=>* (inc)) 10)
@@ -331,7 +332,8 @@
 	(let ((VS (map (lambda (i) (gensym))
 		       (iota n*))))
 	  `(##lambda ,VS
-		     ,(=>-expand `(,expr0 ,@VS) exprs)))
+		     ,(=>-expand (possibly-sourcify `(,expr0 ,@VS) expr0)
+				 exprs)))
 	(source-error n "expecting expression evaluating to natural0"))))
 
 (TEST
@@ -393,13 +395,15 @@
 	res
 	(let-pair ((expr exprs*) exprs)
 		  (next exprs*
-			(let ((expr* (source-code expr)))
+			(let ((expr* (source-code expr))
+			      (src (lambda (e)
+				     (possibly-sourcify e expr))))
 			  (cond
 			   ((pair? expr*)
 			    ;; only change here:
-			    `(,(car expr*) ,@(cdr expr*) ,res))
+			    (src `(,(car expr*) ,@(cdr expr*) ,res)))
 			   ((symbol? expr*)
-			    `(,expr ,res))
+			    (src `(,expr ,res)))
 			   (else
 			    (source-error
 			     expr
@@ -415,10 +419,11 @@
    V
    (if (symbol? (source-code expr0))
        `(##lambda ,V
-	     ,(=>>-expand `(##apply ,expr0 ,V) exprs))
+		  ,(=>>-expand (possibly-sourcify `(##apply ,expr0 ,V) expr0)
+			       exprs))
        ;; otherwise can't support multiple values:
        `(##lambda (,V)
-	     ,(=>>-expand V (cons expr0 exprs))))))
+		  ,(=>>-expand V (cons expr0 exprs))))))
 
 ;; it's actually REALLY all copy-paste except for =>>-expand call,
 ;; which is a function, bah.todo.
