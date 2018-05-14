@@ -31,7 +31,7 @@
 	 (dot-oo define-struct.-expand)
 	 symboltable
 	 (symboltable symboltable-declare @symboltable-ref-inline)
-	 (cj-source source-quote source-dequote)
+	 (cj-source source-quote source-dequote location?)
 	 cj-seen
 	 (improper-list improper-list->list)
 	 (tree-util flatten)
@@ -324,6 +324,8 @@
  ;; are mutable, and singletons, please!
  (struct [symbol? class-name]
 	 ;;^ XX should rename that to name ? (is for interfaces, too)
+	 [(maybe location?) maybe-location]
+	 ;; location of the class definition form (if any)
 	 [(maybe symbol?) maybe-constructor-name]
 	 ;; #f means no constructor
 	 [(maybe struct-tag?) maybe-struct-tag]
@@ -342,8 +344,10 @@
 	 [symboltable? members]
 	 ;; mutable; includes self
 	 )
+
+ ;; XX keep in sync with above and also joo_type_members
  (method (members-set! s [symboltable? members])
-	 (vector-set! s 8 members))
+	 (vector-set! s 9 members))
 
  (def (joo-interface-type? s)
       (and (joo-type? s)
@@ -441,6 +445,7 @@
 ;; a constructor that also updates the parent's member tables (XX
 ;; *could* also ensure singletons here (keyed on tag), should I ?)
 (def (make-joo-type! [symbol? class-name]
+		     [(maybe location?) maybe-location]
 		     [(maybe symbol?) constructor-name]
 		     [(maybe struct-tag?) tag]
 		     [boolean? interface?]
@@ -450,6 +455,7 @@
      (if tag
 	 (assert (eq? (struct-tag.name tag) class-name)))
      (let ((t (joo-type class-name
+			maybe-location
 			constructor-name
 			tag
 			interface?
@@ -464,6 +470,7 @@
 (TEST
  > (def (t-joo-type! class-name parent . implements)
 	(make-joo-type! class-name
+			#f
 			class-name
 			(struct-tag-allocate!
 			 class-name
@@ -572,12 +579,14 @@
 
 (def joo-type:joo-object
      (make-joo-type! 'joo-object
-		     #f
+		     #f ;; maybe-location
+		     #f ;; constructor-name
 		     joo:joo-object-tag
 		     #f ;; not an interface
 		     #f ;; no parent
 		     '() ;; does not implement anything
-		     '()))
+		     '() ;; no field decls
+		     ))
 
 ;; this:
 (def (joo:make-predicate type)
@@ -628,7 +637,7 @@ ___SCMOBJ struct_tag_member_ofP(___SCMOBJ t, ___SCMOBJ members) {
 
 static
 ___SCMOBJ joo_type_members(___SCMOBJ v) {
-    return ___VECTORREF(v, ___FIX(8)); // XX evil, keep in sync with @joo-type.members
+    return ___VECTORREF(v, ___FIX(9)); // XX evil, keep in sync with @joo-type.members-set!
 }
 
 ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
@@ -751,6 +760,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		 (let*
 		     ((class-name (source-code class-name*))
+		      (maybe-location (maybe-source-location decl))
 		      (maybe-constructor-name
 		       (and maybe-constructor-name*
 			    (source-code maybe-constructor-name*)))
@@ -782,6 +792,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		      (type
 		       (make-joo-type! class-name
+				       maybe-location
 				       maybe-constructor-name
 				       fake-tag
 				       interface?
@@ -836,6 +847,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				  ;; expander) wouldn't work either. \SCHEME is so
 				  ;; unfinished! \CL?
 				  (make-joo-type! ',class-name
+						  ',maybe-location
 						  ',maybe-constructor-name
 						  ,(if maybe-constructor-name
 						       tag-symbol
