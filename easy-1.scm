@@ -62,7 +62,8 @@
 ;; make sure there's a set! for the variable in the module scope so
 ;; that block mode won't make it appear immutable for code in the
 ;; module.
-(define-macro* (defvar [(possibly-source-of symbol?) name] expr)
+(define-macro* (defvar name expr)
+  (assert* symbol? name)
   `(begin
      (define ,name #f)
      (set! ,name ,expr)))
