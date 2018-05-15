@@ -23,6 +23,7 @@
 (export (macro defstruct)
 	(macro def)
 	(macro defvar)
+	(macro defvar-once)
 	(macro defmacro)
 	(macro &)
 	(macro def&)
@@ -67,6 +68,12 @@
   `(begin
      (define ,name #f)
      (set! ,name ,expr)))
+
+(define-macro* (defvar-once name expr)
+  (assert* symbol? name)
+  `(begin
+     (define-if-not-defined ,name ,expr)
+     (set! ,name ,name)))
 
 (define-macro* (defmacro . args)
   `(define-macro* ,@args))
