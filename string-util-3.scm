@@ -171,18 +171,20 @@
  > (.drop-while "Hello" char-alpha?)
  "")
 
-(define. (string.take-while str pred)
+(define. (string.take-while str pred #!optional (i0 0))
   (let ((len (string-length str)))
-    (let lp ((i 0))
+    (let lp ((i i0))
       (if (< i len)
 	  (if (pred (string-ref str i))
 	      (lp (inc i))
-	      (substring str 0 i))
+	      (substring str i0 i))
 	  str))))
 
 (TEST
  > (.take-while "Hello World" char-alpha?)
  "Hello"
+ > (.take-while "Hello World" char-alpha? 2)
+ "llo"
  > (.take-while "Hello World" char-digit?)
  ""
  > (.take-while "Hello" char-alpha?)
