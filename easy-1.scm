@@ -22,6 +22,7 @@
 
 (export (macro defstruct)
 	(macro def)
+	(macro defvar)
 	(macro defmacro)
 	(macro &)
 	(macro def&)
@@ -56,6 +57,15 @@
   (if (pair? (source-code first))
       `(define-typed ,first ,@rest)
       `(define ,first ,@rest)))
+
+
+;; make sure there's a set! for the variable in the module scope so
+;; that block mode won't make it appear immutable for code in the
+;; module.
+(define-macro* (defvar [(possibly-source-of symbol?) name] expr)
+  `(begin
+     (define ,name #f)
+     (set! ,name ,expr)))
 
 (define-macro* (defmacro . args)
   `(define-macro* ,@args))
