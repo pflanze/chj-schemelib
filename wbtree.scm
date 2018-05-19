@@ -150,7 +150,7 @@
 (define (empty-wbtree? x)
   (eq? x empty-wbtree))
 
-(compile-time
+(both-times
  (define use-wbtrees-as-leafs? #f))
 
 (IF use-wbtrees-as-leafs?
