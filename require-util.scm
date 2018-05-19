@@ -271,12 +271,14 @@
 	  (load.scm-extract (cons 'begin (call-with-input-file load-path read-all-source))
 			    '())))
 
-(def (check-load.scm #!optional (all? #t) (load-path default-load.scm-path))
+(def (check-load.scm #!key
+		     (all? #t)
+		     (path default-load.scm-path))
      (let ((modulepaths
 	    (if all?
-		(load.scm-files load-path)
+		(load.scm-files path)
 		(filter (C string-starts-with? _ "lib/")
-			(load.scm-files load-path)))))
+			(load.scm-files path)))))
        (vector (length modulepaths)
 	       (modulepaths-satisfying? modulepaths))))
 
