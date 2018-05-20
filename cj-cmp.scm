@@ -392,6 +392,9 @@
     (cmp-not (cmp a b))))
 
 
+;; XX naming: unlike the normal either, here the order of the
+;; combinator arguments is relevant! Should this get a different name?
+
 (define (cmp-either-function cmp1 cmp2)
   ;; run cmp2 if cmp1 gave eq (i.e. treat eq as |either| would #f)
   (lambda (a b)
