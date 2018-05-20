@@ -139,7 +139,7 @@
  > (%try ($s (wbtreesort '("def" "abc" "a" "a" "f"))))
  (exception
   text:
-  "This object was raised: #((wbtree-duplicate-exception) \"a\" \"a\")\n")
+  "This object was raised: [(wbtree-duplicate-exception) \"a\" \"a\"]\n")
  > (define t-input '("def" "abc" "a" "a" "f" "n" "abe" "abba" "berta" "zwerg" "Zwerg"))
  > ($sdefine t (list->wbtree t-input #t))
  )
