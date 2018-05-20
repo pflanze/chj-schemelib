@@ -31,6 +31,7 @@
 	list-cmps->cmp
 	cmps->cmp
 	(macro cmp-or)
+	cmp-either-function (macro cmp-either)
 
 	(inline @boolean-cmp
 		@number-cmp
@@ -391,7 +392,7 @@
     (cmp-not (cmp a b))))
 
 
-(define (cmp-either cmp1 cmp2)
+(define (cmp-either-function cmp1 cmp2)
   ;; run cmp2 if cmp1 gave eq (i.e. treat eq as |either| would #f)
   (lambda (a b)
     (match-cmp (cmp1 a b)
@@ -400,16 +401,65 @@
 	       ((lt) 'lt)
 	       ((gt) 'gt))))
 
+(define-macro* (cmp-either cmp-expr . cmp-exprs)
+  ;; run cmp2 if cmp1 gave eq (i.e. treat eq as |either| would #f)
+  (with-gensyms
+   (a b)
+   `(lambda (,a ,b)
+      ,(let rec ((cmp-expr cmp-expr)
+		 (cmp-exprs cmp-exprs))
+	
+	 `(match-cmp (,cmp-expr ,a ,b)
+		     ((eq)
+		      ,(if (null? cmp-exprs)
+			   `(,cmp-expr ,a ,b)
+			   (rec (car cmp-exprs) (cdr cmp-exprs))))
+		     ((lt) 'lt)
+		     ((gt) 'gt))))))
+
 (TEST
- > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("a" 10) '("a" -2))
+ > (define f (cmp-either-function (on car string-cmp) (on cadr number-cmp)))
+ > (f '("a" 10) '("a" -2))
  gt
- > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("a" -10) '("a" -2))
+ > (f '("a" -10) '("a" -2))
  lt
- > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("b" -10) '("a" -2))
+ > (f '("b" -10) '("a" -2))
  gt
- > ((cmp-either (on car string-cmp) (on cadr number-cmp)) '("b" -10) '("a" 2))
+ > (f '("b" -10) '("a" 2))
  gt
- )
+ > (f '("a" 2) '("a" 2))
+ eq)
+
+;; XX use local-test.scm instead of copy-paste
+(TEST
+ > (define f (cmp-either (on car string-cmp) (on cadr number-cmp)))
+ > (f '("a" 10) '("a" -2))
+ gt
+ > (f '("a" -10) '("a" -2))
+ lt
+ > (f '("b" -10) '("a" -2))
+ gt
+ > (f '("b" -10) '("a" 2))
+ gt
+ > (f '("a" 2) '("a" 2))
+ eq)
+
+(TEST
+ > (define f (cmp-either (on car string-cmp)
+			 (on cadr number-cmp)
+			 (on caddr boolean-cmp)))
+ > (f '("a" 10 #t) '("a" -2 #t))
+ gt
+ > (f '("a" -10 #t) '("a" -2 #t))
+ lt
+ > (f '("a" 2 #t) '("a" 2 #t))
+ eq
+ > (f '("a" 2 #t) '("a" 2 #f))
+ gt
+ > (f '("a" 2 #f) '("a" 2 #t))
+ lt)
+
+
 
 ;; --- keep this?
 ;; turn multiple cmps into a new cmp, that compares by the cmps in
