@@ -27,7 +27,7 @@
 	compose**
 	(macro compose)
 	(macro compose*)
-	(macro compose/arity)
+	(macro compose/)
 	true/0
 	true/1
 	false/0
@@ -160,7 +160,7 @@
 	   ,lam))))
 
 ;; with parametrizable arity:
-(define-macro* (compose/arity n . es)
+(define-macro* (compose/ n . es)
   (early-bind-expressions
    es
    (assert* natural0? n
@@ -189,9 +189,9 @@
  (##let ((GEN:-546 (maybe b)) (GEN:-547 (complement c)))
    (lambda (GEN:V-548) (a (GEN:-546 (GEN:-547 GEN:V-548)))))
 
- > (expansion#compose/arity 1 a b c)
+ > (expansion#compose/ 1 a b c)
  (lambda (GEN:-3382) (a (b (c GEN:-3382))))
- > (expansion#compose/arity 3 a b c)
+ > (expansion#compose/ 3 a b c)
  (lambda (GEN:-3383 GEN:-3384 GEN:-3385)
    (a (b (c GEN:-3383 GEN:-3384 GEN:-3385)))))
 
@@ -205,14 +205,14 @@
  101/2
  > ((compose half inc square) 10)
  101/2
- > ((compose/arity 1 half inc square) 10)
+ > ((compose/ 1 half inc square) 10)
  101/2
 
  > ((compose** half inc-function x*y) (values 10 20))
  201/2
  > ((compose half inc-function x*y) (values 10 20))
  201/2
- > ((compose/arity 1 half inc-function x*y) (values 10 20))
+ > ((compose/ 1 half inc-function x*y) (values 10 20))
  201/2
 
  > (define (inc2values x y) (values (inc x) (inc y)))
@@ -220,7 +220,7 @@
  231/2
  > ((compose* half x*y inc2values) 10 20)
  231/2
- > ((compose/arity 2 half x*y inc2values) 10 20)
+ > ((compose/ 2 half x*y inc2values) 10 20)
  231/2
 
  ;; compose is ("fully") associative (left or right doesn't matter),
