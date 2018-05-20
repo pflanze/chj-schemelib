@@ -1,4 +1,4 @@
-;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 (require easy
 	 jclass
@@ -8,6 +8,7 @@
 	 (cj-functional-2 =>) ;; just for fun, in test
 	 (cj-match mcase) ;; part of easy?
 	 (cj-symbol with-gensym) ;; part of easy?
+	 cj-cmp
 	 show
 	 test)
 
@@ -31,7 +32,8 @@
 		cons
 		prepend
 		improper-prepend
-		take))
+		take)
+	typed-list:cmp-any)
 
 
 ;; Using the names "first" and "rest" as chosen in functional-perl
@@ -296,3 +298,22 @@
  #t
  > (%try-error (.take l 4))
  #(error "list too short (len vs. n):" 3 4))
+
+
+;; adapted copy-paste from cj-cmp.scm
+(define (typed-list:cmp-any cmp)
+  (named lp (lambda (l1 l2)
+	      (if (typed-list-null? l1)
+		  (if (typed-list-null? l2)
+		      'eq
+		      'lt)
+		  (if (typed-list-null? l2)
+		      'gt
+		      (typed-list:let-pair
+		       ((a l1*) l1)
+		       (typed-list:let-pair
+			((b l2*) l2)
+			(match-cmp (cmp a b)
+				   ((eq) (lp l1* l2*))
+				   ((lt) 'lt)
+				   ((gt) 'gt)))))))))

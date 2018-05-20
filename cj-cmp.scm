@@ -629,6 +629,7 @@
  (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
 
 
+;; also see adapted copy-paste in typed-list.scm
 (define (cmp-any cmp)
   (named lp (lambda (l1 l2)
 	      (if (null? l1)
