@@ -36,15 +36,16 @@
    #((compose-function symbol? source-code) class-name)
    #(box? subclasses))
  
- (def (class=> cont)
+ (def (class=> stx cont)
       (if (pair? compile-time:class-ctx)
 	  (cont (car compile-time:class-ctx))
-	  (source-error compile-time:class-ctx
+	  (source-error stx
 			"not placed within a |more-class| form"))))
 
 (defmacro (compile-time#start-class! name subclass?)
   (if (source-code subclass?)
-      (class=> (lambda (superclass)
+      (class=> stx
+	       (lambda (superclass)
 		 (box-push! (.subclasses superclass) name))))
   (push! compile-time:class-ctx
 	 (more-oo-class-ctx name (box '())))
@@ -85,12 +86,14 @@
 
 
 (defmacro (struct . decls)
-  (class=> (lambda (subclass)
+  (class=> stx
+	   (lambda (subclass)
 	     `(defstruct ,(.class-name subclass)
 		,@decls))))
 
 (defmacro (method bind . rest)
-  (class=> (lambda (class)
+  (class=> stx
+	   (lambda (class)
 	     (let ((class-name (.class-name class)))
 	       (mcase bind
 		      (pair?
