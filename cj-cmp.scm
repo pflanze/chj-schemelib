@@ -629,6 +629,8 @@
  (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
 
 
+;; "cmp-any"
+
 (define (list-cmp-for cmp)
   (named lp (lambda (l1 l2)
 	      (if (null? l1)
