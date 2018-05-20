@@ -156,7 +156,7 @@
   `(compose ,@es))
 
 (defmacro (comp/ n . es)
-  `(compose/ ,n ,@es))
+  `(compose// ,n ,@es))
 
 (def maybe-comp maybe-compose)
 
