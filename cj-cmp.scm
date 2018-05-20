@@ -50,7 +50,7 @@
 	
 	length-cmp
 
-	list-cmp-for
+	cmp-any
 	
 	german-char-downcase
 	lc_perhaps-compound-1st
@@ -629,9 +629,7 @@
  (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
 
 
-;; "cmp-any"
-
-(define (list-cmp-for cmp)
+(define (cmp-any cmp)
   (named lp (lambda (l1 l2)
 	      (if (null? l1)
 		  (if (null? l2)
@@ -649,7 +647,7 @@
 				   ((gt) 'gt)))))))))
 
 (TEST
- > (def c (list-cmp-for number-cmp))
+ > (def c (cmp-any number-cmp))
  > (c '() '())
  eq
  > (c '(2) '(2))
