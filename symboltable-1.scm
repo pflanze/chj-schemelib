@@ -404,7 +404,14 @@ ___SCMOBJ symboltable_1__symboltable_ref (___SCMOBJ t, ___SCMOBJ key, ___SCMOBJ 
     (begin						;; not compile
       (define symboltable-ref:c symboltable-ref:scheme) ;; fake
       (define symboltable-ref symboltable-ref:scheme)
-      (define @symboltable-ref symboltable-ref)))
+      (define @symboltable-ref symboltable-ref)
+      (define-macro* (@symboltable-ref-inline t key alternate-value)
+	;; kinda evil, because it embeds non-inlined version into the
+	;; target module, but of course that wouldn't be an issue if
+	;; we tracked compile-time dependencies properly (and
+	;; re-expand and if necessary re-compile on changes including
+	;; compilation flags for this module):
+	`(@symboltable-ref ,t ,key ,alternate-value))))
 
 (define symboltable:nothing (gensym 'nothing))
 
