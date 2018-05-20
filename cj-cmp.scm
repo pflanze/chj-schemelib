@@ -29,7 +29,7 @@
 	2cmp
 	cmp-always-eq
 	list-cmps->cmp
-	cmps->cmp
+	cmps->cmp*
 	(macro cmp-or)
 	cmp-either-function (macro cmp-either)
 
@@ -500,7 +500,7 @@
 	      cmp-always-eq
 	      cmps))
 
-(define (cmps->cmp . cmps)
+(define (cmps->cmp* . cmps)
   (list-cmps->cmp cmps))
 
 ;; (TEST
