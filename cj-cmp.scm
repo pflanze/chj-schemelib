@@ -411,14 +411,31 @@
    `(lambda (,a ,b)
       ,(let rec ((cmp-expr cmp-expr)
 		 (cmp-exprs cmp-exprs))
-	
-	 `(match-cmp (,cmp-expr ,a ,b)
-		     ((eq)
-		      ,(if (null? cmp-exprs)
-			   `(,cmp-expr ,a ,b)
-			   (rec (car cmp-exprs) (cdr cmp-exprs))))
-		     ((lt) 'lt)
-		     ((gt) 'gt))))))
+	 (if (null? cmp-exprs)
+	     `(,cmp-expr ,a ,b)
+	     `(match-cmp (,cmp-expr ,a ,b)
+			 ((eq)
+			  ,(rec (car cmp-exprs) (cdr cmp-exprs)))
+			 ((lt) 'lt)
+			 ((gt) 'gt)))))))
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#cmp-either a)
+ (lambda (GEN:a-2324 GEN:b-2325) (a GEN:a-2324 GEN:b-2325))
+ > (expansion#cmp-either a b c)
+ (lambda (GEN:a-2326 GEN:b-2327)
+   (match-cmp
+    (a GEN:a-2326 GEN:b-2327)
+    ((eq)
+     (match-cmp
+      (b GEN:a-2326 GEN:b-2327)
+      ((eq) (c GEN:a-2326 GEN:b-2327))
+      ((lt) 'lt)
+      ((gt) 'gt)))
+    ((lt) 'lt)
+    ((gt) 'gt))))
+
 
 (TEST
  > (define f (cmp-either-function (on car string-cmp) (on cadr number-cmp)))
