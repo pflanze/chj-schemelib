@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -45,6 +45,7 @@
 	01backtick
 	backtick
 	xbacktick-bash bash
+	bash-command
 	hostname
 	xforwardtick
 	Xforwardtick
@@ -363,6 +364,14 @@
  > (/ (snd (Xbacktick "sh" "-c" "exit 23")) 256)
  23)
 
+
+(define (bash-command str . args)
+  (list path: "bash"
+	arguments: (cons* "-c" str args)))
+
+(TEST
+ > (bash-command "true" "foo" "bar")
+ (path: "bash" arguments: ("-c" "true" "foo" "bar")))
 
 
 (define (xbacktick-bash code)
