@@ -9,7 +9,9 @@
 (require easy
 	 test
 	 (tree-util flatten)
-	 (cj-io-util read-lines xcall-with-input-process)
+	 (cj-io-util read-lines
+		     xcall-with-input-process
+		     process-line-stream)
 	 tsort
 	 Result
 	 (cj-functional complement)
@@ -290,16 +292,22 @@
 ;; (begin (def tc (list->table (map (lambda (p) (cons p #t)) (call-with-input-file "_inactive" read-lines)))) (def tform (list->table (call-with-input-file "_load" read-all))) `(begin ,@(map (lambda (v) (let* ((v* (scm-stripsuffix v)) (e `(,(or (table-ref tform v* #f) `c/load) ,v*))) (if (table-ref tc v* #f) `(quote ,e) e))) (lib))))
 ;; then fix (c/load "lib/math/fftw_Cpart" cc-options: "-O0 -gdwarf-4 -g3" ld-options: "-lfftw3 -lfftw3f -lfftw3l")
 
-(def (regen-lib-load-form)
+(def (regen-lib-load-form #!optional
+			  (path default-load.scm-path))
 
-     (def tc
-	  (list->table
-	   (map (lambda (p) (cons p #t))
-		(call-with-input-file "_inactive" read-lines))))
+     (def tc ;; _inactive
+	  (=> (process-line-stream
+	       (bash-command
+		(string-append "egrep '^ +.*'\\''\\(.*load' " (shell-quote path)"|egrep -v '^;' | perl -wne 'm|\"(.*?)\"| and print \"$1\\n\"'")))
+	      (.map-list (lambda (p) (cons p #t)))
+	      list->table))
 
-     (def tform
-	  (list->table
-	   (call-with-input-file "_load" read-all)))
+     (def tform ;; _load
+	  (=> (process-read-stream
+	       (bash-command
+		(string-append "perl -wne 'm|\\((.?/load).*?(\".*?\")| and print \"($2 . $1)\\n\"' < " (shell-quote path))))
+	      stream->list
+	      list->table))
 
      `(begin
 	,@(map (lambda (v)
