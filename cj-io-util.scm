@@ -59,7 +59,7 @@
 	directory-item-stream
 	file-line-stream
 	file-char/location-stream
-	process-input-line-stream
+	process-line-stream
 	user-name-or-id->id
 	group-name-or-id->id
 	chown
@@ -608,8 +608,8 @@
 			(rec line
 			     (fx+ col 1)))))))))) 
 
-(define (process-input-line-stream process
-				   status-handler)
+(define (process-line-stream process
+			     status-handler)
   (port->stream (open-input-process* process)
 		read-line
 		(lambda (p)
