@@ -61,6 +61,7 @@
 	file-line-stream
 	file-char/location-stream
 	process-line-stream
+	process-read-stream
 	user-name-or-id->id
 	group-name-or-id->id
 	chown
@@ -617,19 +618,32 @@
 			(rec line
 			     (fx+ col 1)))))))))) 
 
+(define process-status-assert-zero
+  (lambda (status)
+    (if (not (zero? status))
+	(error "process exited with non-zero status:"
+	       process))))
+
+(define (make-close-and-assert status-handler)
+  (lambda (p)
+    (close-port p)
+    (status-handler (process-status p))))
+
 (define (process-line-stream
 	 process
-	 #!optional
-	 (status-handler
-	  (lambda (status)
-	    (if (not (zero? status))
-		(error "process exited with non-zero status:"
-		       process)))))
+	 #!key
+	 (status-handler process-status-assert-zero))
   (port->stream (open-input-process* process)
 		read-line
-		(lambda (p)
-		  (close-port p)
-		  (status-handler (process-status p)))))
+		(make-close-and-assert status-handler)))
+
+(define (process-read-stream
+	 process
+	 #!key
+	 (status-handler process-status-assert-zero))
+  (port->stream (open-input-process* process)
+		read
+		(make-close-and-assert status-handler)))
 
 
 (define (_-name-or-id->id get access msg)
