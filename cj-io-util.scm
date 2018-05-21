@@ -608,8 +608,14 @@
 			(rec line
 			     (fx+ col 1)))))))))) 
 
-(define (process-line-stream process
-			     status-handler)
+(define (process-line-stream
+	 process
+	 #!optional
+	 (status-handler
+	  (lambda (status)
+	    (if (not (zero? status))
+		(error "process exited with non-zero status:"
+		       process)))))
   (port->stream (open-input-process* process)
 		read-line
 		(lambda (p)
