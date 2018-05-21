@@ -21,6 +21,7 @@
 	check-load.scm
 	loadorder-in-dirs
 	dependency-graph-in
+	regen-lib-load-form
 
 	#!optional
 	path-string.topo-relation
@@ -281,4 +282,31 @@
 			(load.scm-files path)))))
        (vector (length modulepaths)
 	       (modulepaths-satisfying? modulepaths))))
+
+
+;; The current generic instructions were:
+
+;; egrep '^ +.*'\''\(.*load' .gambc/load.scm|egrep -v '^;' | perl -wne 'm|"(.*?)"| and print "$1\n"' > _inactive; perl -wne 'm|\((.?/load).*?(".*?")| and print "($2 . $1)\n"' < .gambc/load.scm > _load
+;; (begin (def tc (list->table (map (lambda (p) (cons p #t)) (call-with-input-file "_inactive" read-lines)))) (def tform (list->table (call-with-input-file "_load" read-all))) `(begin ,@(map (lambda (v) (let* ((v* (scm-stripsuffix v)) (e `(,(or (table-ref tform v* #f) `c/load) ,v*))) (if (table-ref tc v* #f) `(quote ,e) e))) (lib))))
+;; then fix (c/load "lib/math/fftw_Cpart" cc-options: "-O0 -gdwarf-4 -g3" ld-options: "-lfftw3 -lfftw3f -lfftw3l")
+
+(def (regen-lib-load-form)
+
+     (def tc
+	  (list->table
+	   (map (lambda (p) (cons p #t))
+		(call-with-input-file "_inactive" read-lines))))
+
+     (def tform
+	  (list->table
+	   (call-with-input-file "_load" read-all)))
+
+     `(begin
+	,@(map (lambda (v)
+		 (let* ((v* (scm-stripsuffix v))
+			(e `(,(or (table-ref tform v* #f) `c/load) ,v*)))
+		   (if (table-ref tc v* #f)
+		       `(quote ,e)
+		       e)))
+	       (lib))))
 
