@@ -618,7 +618,7 @@
 			(rec line
 			     (fx+ col 1)))))))))) 
 
-(define process-status-assert-zero
+(define (process-status-assert-zero process)
   (lambda (status)
     (if (not (zero? status))
 	(error "process exited with non-zero status:"
@@ -632,7 +632,7 @@
 (define (process-line-stream
 	 process
 	 #!key
-	 (status-handler process-status-assert-zero))
+	 (status-handler (process-status-assert-zero process)))
   (port->stream (open-input-process* process)
 		read-line
 		(make-close-and-assert status-handler)))
@@ -640,7 +640,7 @@
 (define (process-read-stream
 	 process
 	 #!key
-	 (status-handler process-status-assert-zero))
+	 (status-handler (process-status-assert-zero process)))
   (port->stream (open-input-process* process)
 		read
 		(make-close-and-assert status-handler)))
