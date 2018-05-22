@@ -392,7 +392,7 @@
   ;; bits used by the inversion means that the bits to the left are
   ;; all ones
   (= (first-bit-set x)
-     (integer-length (bitwise-xor x (dec (arithmetic-shift 2 (dec bits)))))))
+     (integer-length (bitwise-xor x (- (arithmetic-shift 2 (dec bits)) 1)))))
 
 (TEST
  > (network-number? 1 8)
