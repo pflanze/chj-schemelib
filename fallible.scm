@@ -87,18 +87,18 @@
 (TEST
  > (define TEST:equal? syntax-equal?)
  > (fallible:and-expand 'if
-		    (lambda (t f)
-		      `(or ,t ,f))
-		    '("a" "b"))
+			(lambda (t f)
+			  `(or ,t ,f))
+			'("a" "b"))
  (##let ((GEN:V-2236 "a"))
 	(if GEN:V-2236
 	    (##let ((GEN:V-2258 "b"))
 		   (or GEN:V-2258
 		       ((current-fallible)
-			'#(serialized-source #u8(17 98))
+			'[(serialized-source) #u8(17 98)]
 			GEN:V-2258)))
 	    ((current-fallible)
-	     '#(serialized-source #u8(17 97))
+	     '[(serialized-source) #u8(17 97)]
 	     GEN:V-2236))))
 
 
@@ -176,8 +176,8 @@
 	   (fallible:and (even? 9) (even? 11))
 	   (fallible:and (even? 10) (even? 12))
 	   (fallible:and (even? -2)
-		     (fallible:and (even? 0)
-			       (odd? 0)))))
+			 (fallible:and (even? 0)
+				       (odd? 0)))))
  > (without-fails tests)
  (2 #f #f #f #f #f #t #f)
  > (cj-desourcify
@@ -187,15 +187,15 @@
 	       v))
 	 (with-fails tests)))
  (2
-  #(fallible (#f))
-  #(fallible (#f))
-  #(fallible ((even? 5)))
-  #(fallible ((even? 7)))
-  #(fallible ((even? 9)))
+  [(fallible) (#f)]
+  [(fallible) (#f)]
+  [(fallible) ((even? 5))]
+  [(fallible) ((even? 7))]
+  [(fallible) ((even? 9))]
   #t
-  #(fallible ((fallible:and (even? 0)
-		    (odd? 0))
-	  (odd? 0)))))
+  [(fallible) ((fallible:and (even? 0)
+			     (odd? 0))
+	       (odd? 0))]))
 
 
 ;; ------------------------------------------------------------------
