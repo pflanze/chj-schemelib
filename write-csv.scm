@@ -143,15 +143,23 @@
 			   [path-string? path]
 			   #!key
 			   [(maybe eol-name?) eol]
-			   [(maybe char?) sep-char])
-  (let* ((p (open-output-file path))
+			   [(maybe char?) sep-char]
+			   ;; Not a boolean to avoid dependency on
+			   ;; tempfile.scm and make it more flexible:
+			   [(maybe procedure?) tempfile])
+  (let* ((tmppath (if tempfile (tempfile path)
+		      path))
+	 (p (open-output-file tmppath))
 	 (w (csv-row-writer port: p
 			    eol: eol
 			    sep-char: sep-char)))
     (let lp ((s s))
       (FV (s)
 	  (if (null? s)
-	      (close-port p)
+	      (begin
+		(close-port p)
+		(if tempfile
+		    (rename-file tmppath path)))
 	      (let-pair ((row s) s)
 			(w row)
 			(lp s)))))))
