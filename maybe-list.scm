@@ -1,6 +1,6 @@
 (require easy)
 
-(include "lib/cj-standarddeclares.scm")
+(include "cj-standarddeclares.scm")
 
 
 (def (list-maybe-ref lis [natural0? n])

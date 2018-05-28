@@ -1,7 +1,7 @@
 (require easy
 	 symboltable)
 
-(include "lib/cj-standarddeclares.scm")
+(include "cj-standarddeclares.scm")
 
 (def (tag)
      (=> 10
