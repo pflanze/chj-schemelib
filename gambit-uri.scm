@@ -4,7 +4,6 @@
 
 (require easy
 	 (srfi-1 fold-right)
-	 (cj-string string-list->string)
 	 if-let
 	 (cj-url-encode url-encode)
 	 test)
@@ -484,7 +483,7 @@
     (*all)))
 
 (define (uri.string uri)
-  (string-list->string (uri.string-list uri)))
+  (strings-append (uri.string-list uri)))
 
 
 (TEST
