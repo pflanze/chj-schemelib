@@ -1,17 +1,39 @@
-; Originally from:
-; File: "http.scm", Time-stamp: <2005-05-11 16:40:58 feeley>
-; Copyright (C) 2005 by Marc Feeley, All Rights Reserved.
+;; Originally from: File: "http.scm", Time-stamp: <2005-05-11 16:40:58 feeley>
+;;                  Copyright (C) 2005 by Marc Feeley, All Rights Reserved.
+;; Copyright 2005, 2018 Christian Jaeger <ch@christianjaeger.ch>
 
-; disassembled into separate files Tue, 26 Jul 2005 17:42:55 +0200
-; by Christian at pflanze mine nu
+(require (srfi-1 fold-right)
+	 cj-string ;; what exactly? probably wrong
+	 if-let
+	 test)
 
-(##include "gambit-default-namespace.scm")
-(declare
-  (standard-bindings)
-  (extended-bindings)
-  (block)
-;  (not safe) ;; cj: why not safe? (and why does it still output e.g. *** ERROR IN gambit-httpd#hex-digit, "gambit-httpd.scm"@120.29 -- (Argument 2) Exact INTEGER expected  (string-ref "Hallo" "fun")  ?
-)
+(export make-uri
+	uri?
+	uri-authority
+	uri-authority-set!
+	uri-fragment
+	uri-fragment-set!
+	uri-path
+	uri-path-set!
+	uri-query
+	uri-query-set!
+	uri-scheme
+	uri-scheme-set!
+	;; XX functional setters?..
+
+	parse-uri
+	parse-uri-query
+
+	string->uri
+	string->uri-query
+	encode-for-uri
+
+	;; cj:
+	uri->string
+
+	)
+
+(include "cj-standarddeclares.scm")
 
 ; URI parsing.
 
@@ -487,28 +509,28 @@
 		       tail))))
 	   (*authority
 	    (& (let ((tail (*path)))
-		 (aif (uri-authority uri)
-		      (cons it tail)
-		      tail))))
+		 (if-let ((ua (uri-authority uri)))
+			 (cons ua tail)
+			 tail))))
 	   (*path
 	    (& (let ((tail (*query)))
 		 (cons (uri-path uri)
 		       tail))))
 	   (*query
 	    (& (let ((tail (*fragment)))
-		 (aif (uri-query uri)
-		      (cond ((pair? it)
-			     (alis->query-string-list it tail))
-			    ((string=? it "")
-			     tail)
-			    (else
-			     (cons "?" (cons it tail))))
-		      tail))))
+		 (if-let ((uq (uri-query uri)))
+			 (cond ((pair? uq)
+				(alis->query-string-list uq tail))
+			       ((string=? uq "")
+				tail)
+			       (else
+				(cons "?" (cons uq tail))))
+			 tail))))
 	   (*fragment
 	    (& (let ((tail '()))
-		 (aif (uri-fragment uri)
-		      (cons it tail)
-		      tail)))))
+		 (if-let ((uf (uri-fragment uri)))
+			 (cons uf tail)
+			 tail)))))
     (*all)))
 
 (define (uri->string uri)
