@@ -6,6 +6,7 @@
 	 (srfi-1 fold-right)
 	 (cj-string string-list->string)
 	 if-let
+	 (cj-url-encode url-encode)
 	 test)
 
 (export (class uri)
@@ -14,7 +15,6 @@
 
 	string->uri
 	string->uri-query
-	encode-for-uri
 
 	uri.string)
 
@@ -421,49 +421,6 @@
                        (and (= end (string-length str))
                             query)))))
 
-(define encode-for-uri
-  (lambda (str)
-    (let ((end (string-length str)))
-
-      (define copy
-        (lambda (result i j n)
-          (if (< i j)
-              (let ((new-j (- j 1))
-                    (new-n (- n 1)))
-                (string-set! result new-n (string-ref str new-j))
-                (copy result i new-j new-n))
-              result)))
-
-      (define hex
-        (lambda (x)
-          (string-ref "0123456789ABCDEF" (bitwise-and x 15))))
-
-      (define encode
-        (lambda (i j n)
-          (if (< j end)
-              (let ((c (string-ref str j)))
-                (cond ((char=? c #\space)
-                       (let ((result (encode (+ j 1) (+ j 1) (+ n 1))))
-                         (string-set! result n #\+)
-                         (copy result i j n)))
-                      ((or (char=? c #\+)
-                           (excluded-char? c))
-                       (let ((result (encode (+ j 1) (+ j 1) (+ n 3))))
-                         (let* ((x (char->integer c))
-                                (hi (hex (arithmetic-shift x -4)))
-                                (lo (hex x)))
-                           (string-set! result n #\%)
-                           (string-set! result (+ n 1) hi)
-                           (string-set! result (+ n 2) lo))
-                         (copy result i j n)))
-                      (else
-                       (encode i (+ j 1) (+ n 1)))))
-              (let ((result (make-string n)))
-                (copy result i j n)))))
-
-      (encode 0 0 0))))
-
-;; cj Fri, 31 Mar 2006 17:18:11 +0200
 
 (define (scheme:after scheme)
   (cond ((or (string-ci=? scheme "http")
@@ -473,16 +430,14 @@
 	 ":")
 	(else
 	 (error "unknown scheme: " scheme))))
-;; hmm aber  dispatch  anhand scheme muss ich eh machen   oder   wegen query string  oder?  knowledge is everything   might be at least  or so.  nvd-uri lesen or so.
-;strut  space   ave   .
 
 
 (define (alis->query-string-list alis tail)
   (let ((l (fold-right (lambda (p tail)
 			 (cons "&"
-			       (cons (encode-for-uri (car p))
+			       (cons (url-encode (car p))
 				     (cons "="
-					   (cons (encode-for-uri (cdr p))
+					   (cons (url-encode (cdr p))
 						 tail)))))
 		       tail
 		       alis)))
