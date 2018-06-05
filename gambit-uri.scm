@@ -2,25 +2,13 @@
 ;;                  Copyright (C) 2005 by Marc Feeley, All Rights Reserved.
 ;; Copyright 2005, 2018 Christian Jaeger <ch@christianjaeger.ch>
 
-(require (srfi-1 fold-right)
-	 cj-string ;; what exactly? probably wrong
+(require easy
+	 (srfi-1 fold-right)
+	 (cj-string string-list->string)
 	 if-let
 	 test)
 
-(export make-uri
-	uri?
-	uri-authority
-	uri-authority-set!
-	uri-fragment
-	uri-fragment-set!
-	uri-path
-	uri-path-set!
-	uri-query
-	uri-query-set!
-	uri-scheme
-	uri-scheme-set!
-	;; XX functional setters?..
-
+(export (class uri)
 	parse-uri
 	parse-uri-query
 
@@ -28,14 +16,12 @@
 	string->uri-query
 	encode-for-uri
 
-	;; cj:
-	uri->string
-
-	)
+	uri.string)
 
 (include "cj-standarddeclares.scm")
 
-; URI parsing.
+
+;; URI parsing.
 
 (define hex-digit
   (lambda (str i)
@@ -105,214 +91,223 @@
                           (+ j 1)))))
             result)))))
 
-(define-type uri
-  id: 62788556-c247-11d9-9598-00039301ba52
+(defclass (uri [string? scheme]
+		      [string? authority] ;; also gets to contain authentication and port info if present!
+		      [string? path]
+		      [(maybe (alist-of string? string?)) query]
+		      [(maybe string?) fragment]))
 
-  scheme
-  authority ;; also gets to contain authentication and port info if present!
-  path
-  query
-  fragment
-)
 
 (define parse-uri
-  (lambda (str start end decode? cont)
-    (let ((uri (make-uri #f #f "" #f #f)))
+  (lambda (str start end decode? cont) -> uri?
 
-      (define extract-string
-        (lambda (i j n)
-          (if decode?
-              (extract-escaped str i n)
-              (substring str i j))))
+     (define (*uri _uri)
+       (insert-result-of `(uri ,@(map (lambda (i)
+					`(vector-ref _uri ,i))
+				      (iota 5)))))
+     (let ((uri (vector #f #f "" #f #f)))
 
-      (define extract-query
-        (lambda (i j n)
-          (if decode?
-              (parse-uri-query
-               str
-               i
-               j
-               decode?
-               (lambda (bindings end)
-                 bindings))
-              (substring str i j))))
+       (define (uri-scheme-set! uri val) (vector-set! uri 0 val))
+       (define (uri-authority-set! uri val) (vector-set! uri 1 val))
+       (define (uri-path-set! uri val) (vector-set! uri 2 val))
+       (define (uri-query-set! uri val) (vector-set! uri 3 val))
+       (define (uri-fragment-set! uri val) (vector-set! uri 4 val))
+      
 
-      (define state0 ; possibly inside the "scheme" part
-        (lambda (i j n)
-          (if (< j end)
-              (let ((c (string-ref str j)))
-                (cond ((char=? c #\:)
-                       (if (= n 0)
-                           (state2 j (+ j 1) 1) ; the ":" is in the "path" part
-                           (let ((scheme (extract-string i j n)))
-                             (and scheme
-                                  (begin
-                                    (uri-scheme-set! uri scheme)
-                                    (if (and (< (+ j 2) end)
-                                             (char=? (string-ref str (+ j 1))
-                                                     #\/)
-                                             (char=? (string-ref str (+ j 2))
-                                                     #\/))
-                                        (state1 (+ j 3) (+ j 3) 0)
-                                        (state2 (+ j 1) (+ j 1) 0)))))))
-                      ((char=? c #\/)
-                       (if (and (= n 0)
-                                (< (+ j 1) end)
-                                (char=? (string-ref str (+ j 1)) #\/))
-                           (state1 (+ j 2) (+ j 2) 0)
-                           (state2 i (+ j 1) (+ n 1))))
-                      ((char=? c #\?)
-                       (let ((path (extract-string i j n)))
-                         (and path
-                              (begin
-                                (uri-path-set! uri path)
-                                (state3 (+ j 1) (+ j 1) 0)))))
-                      ((char=? c #\#)
-                       (let ((path (extract-string i j n)))
-                         (and path
-                              (begin
-                                (uri-path-set! uri path)
-                                (state4 (+ j 1) (+ j 1) 0)))))
-                      ((char=? c #\%)
-                       (and (plausible-hex-escape? str end j)
-                            (state0 i (+ j 3) (+ n 1))))
-                      ((control-or-space-char? c)
-                       (let ((path (extract-string i j n)))
-                         (and path
-                              (begin
-                                (uri-path-set! uri path)
-                                j))))
-                      (else
-                       (state0 i (+ j 1) (+ n 1)))))
-              (let ((path (extract-string i j n)))
-                (and path
-                     (begin
-                       (uri-path-set! uri path)
-                       j))))))
+       (define extract-string
+	 (lambda (i j n)
+	   (if decode?
+	       (extract-escaped str i n)
+	       (substring str i j))))
 
-      (define state1 ; inside the "authority" part
-        (lambda (i j n)
-          (if (< j end)
-              (let ((c (string-ref str j)))
-                (cond ((char=? c #\/)
-                       (let ((authority (extract-string i j n)))
-                         (and authority
-                              (begin
-                                (uri-authority-set! uri authority)
-                                (state2 j (+ j 1) 1)))))
-                      ((char=? c #\?)
-                       (let ((authority (extract-string i j n)))
-                         (and authority
-                              (begin
-                                (uri-authority-set! uri authority)
-                                (state3 (+ j 1) (+ j 1) 0)))))
-                      ((char=? c #\#)
-                       (let ((authority (extract-string i j n)))
-                         (and authority
-                              (begin
-                                (uri-authority-set! uri authority)
-                                (state4 (+ j 1) (+ j 1) 0)))))
-                      ((char=? c #\%)
-                       (and (plausible-hex-escape? str end j)
-                            (state1 i (+ j 3) (+ n 1))))
-                      ((control-or-space-char? c)
-                       (let ((authority (extract-string i j n)))
-                         (and authority
-                              (begin
-                                (uri-authority-set! uri authority)
-                                j))))
-                      (else
-                       (state1 i (+ j 1) (+ n 1)))))
-              (let ((authority (extract-string i j n)))
-                (and authority
-                     (begin
-                       (uri-authority-set! uri authority)
-                       j))))))
+       (define extract-query
+	 (lambda (i j n)
+	   (if decode?
+	       (parse-uri-query
+		str
+		i
+		j
+		decode?
+		(lambda (bindings end)
+		  bindings))
+	       (substring str i j))))
 
-      (define state2 ; inside the "path" part
-        (lambda (i j n)
-          (if (< j end)
-              (let ((c (string-ref str j)))
-                (cond ((char=? c #\?)
-                       (let ((path (extract-string i j n)))
-                         (and path
-                              (begin
-                                (uri-path-set! uri path)
-                                (state3 (+ j 1) (+ j 1) 0)))))
-                      ((char=? c #\#)
-                       (let ((path (extract-string i j n)))
-                         (and path
-                              (begin
-                                (uri-path-set! uri path)
-                                (state4 (+ j 1) (+ j 1) 0)))))
-                      ((char=? c #\%)
-                       (and (plausible-hex-escape? str end j)
-                            (state2 i (+ j 3) (+ n 1))))
-                      ((control-or-space-char? c)
-                       (let ((path (extract-string i j n)))
-                         (and path
-                              (begin
-                                (uri-path-set! uri path)
-                                j))))
-                      (else
-                       (state2 i (+ j 1) (+ n 1)))))
-              (let ((path (extract-string i j n)))
-                (and path
-                     (begin
-                       (uri-path-set! uri path)
-                       j))))))
+       (define state0		   ; possibly inside the "scheme" part
+	 (lambda (i j n)
+	   (if (< j end)
+	       (let ((c (string-ref str j)))
+		 (cond ((char=? c #\:)
+			(if (= n 0)
+			    (state2 j (+ j 1) 1) ; the ":" is in the "path" part
+			    (let ((scheme (extract-string i j n)))
+			      (and scheme
+				   (begin
+				     (uri-scheme-set! uri scheme)
+				     (if (and (< (+ j 2) end)
+					      (char=? (string-ref str (+ j 1))
+						      #\/)
+					      (char=? (string-ref str (+ j 2))
+						      #\/))
+					 (state1 (+ j 3) (+ j 3) 0)
+					 (state2 (+ j 1) (+ j 1) 0)))))))
+		       ((char=? c #\/)
+			(if (and (= n 0)
+				 (< (+ j 1) end)
+				 (char=? (string-ref str (+ j 1)) #\/))
+			    (state1 (+ j 2) (+ j 2) 0)
+			    (state2 i (+ j 1) (+ n 1))))
+		       ((char=? c #\?)
+			(let ((path (extract-string i j n)))
+			  (and path
+			       (begin
+				 (uri-path-set! uri path)
+				 (state3 (+ j 1) (+ j 1) 0)))))
+		       ((char=? c #\#)
+			(let ((path (extract-string i j n)))
+			  (and path
+			       (begin
+				 (uri-path-set! uri path)
+				 (state4 (+ j 1) (+ j 1) 0)))))
+		       ((char=? c #\%)
+			(and (plausible-hex-escape? str end j)
+			     (state0 i (+ j 3) (+ n 1))))
+		       ((control-or-space-char? c)
+			(let ((path (extract-string i j n)))
+			  (and path
+			       (begin
+				 (uri-path-set! uri path)
+				 j))))
+		       (else
+			(state0 i (+ j 1) (+ n 1)))))
+	       (let ((path (extract-string i j n)))
+		 (and path
+		      (begin
+			(uri-path-set! uri path)
+			j))))))
 
-      (define state3 ; inside the "query" part
-        (lambda (i j n)
-          (if (< j end)
-              (let ((c (string-ref str j)))
-                (cond ((char=? c #\#)
-                       (let ((query (extract-query i j n)))
-                         (and query
-                              (begin
-                                (uri-query-set! uri query)
-                                (state4 (+ j 1) (+ j 1) 0)))))
-                      ((char=? c #\%)
-                       (and (plausible-hex-escape? str end j)
-                            (state3 i (+ j 3) (+ n 1))))
-                      ((control-or-space-char? c)
-                       (let ((query (extract-query i j n)))
-                         (and query
-                              (begin
-                                (uri-query-set! uri query)
-                                j))))
-                      (else
-                       (state3 i (+ j 1) (+ n 1)))))
-              (let ((query (extract-query i j n)))
-                (and query
-                     (begin
-                       (uri-query-set! uri query)
-                       j))))))
+       (define state1			; inside the "authority" part
+	 (lambda (i j n)
+	   (if (< j end)
+	       (let ((c (string-ref str j)))
+		 (cond ((char=? c #\/)
+			(let ((authority (extract-string i j n)))
+			  (and authority
+			       (begin
+				 (uri-authority-set! uri authority)
+				 (state2 j (+ j 1) 1)))))
+		       ((char=? c #\?)
+			(let ((authority (extract-string i j n)))
+			  (and authority
+			       (begin
+				 (uri-authority-set! uri authority)
+				 (state3 (+ j 1) (+ j 1) 0)))))
+		       ((char=? c #\#)
+			(let ((authority (extract-string i j n)))
+			  (and authority
+			       (begin
+				 (uri-authority-set! uri authority)
+				 (state4 (+ j 1) (+ j 1) 0)))))
+		       ((char=? c #\%)
+			(and (plausible-hex-escape? str end j)
+			     (state1 i (+ j 3) (+ n 1))))
+		       ((control-or-space-char? c)
+			(let ((authority (extract-string i j n)))
+			  (and authority
+			       (begin
+				 (uri-authority-set! uri authority)
+				 j))))
+		       (else
+			(state1 i (+ j 1) (+ n 1)))))
+	       (let ((authority (extract-string i j n)))
+		 (and authority
+		      (begin
+			(uri-authority-set! uri authority)
+			j))))))
 
-      (define state4 ; inside the "fragment" part
-        (lambda (i j n)
-          (if (< j end)
-              (let ((c (string-ref str j)))
-                (cond ((char=? c #\%)
-                       (and (plausible-hex-escape? str end j)
-                            (state4 i (+ j 3) (+ n 1))))
-                      ((control-or-space-char? c)
-                       (let ((fragment (extract-string i j n)))
-                         (and fragment
-                              (begin
-                                (uri-fragment-set! uri fragment)
-                                j))))
-                      (else
-                       (state4 i (+ j 1) (+ n 1)))))
-              (let ((fragment (extract-string i j n)))
-                (and fragment
-                     (begin
-                       (uri-fragment-set! uri fragment)
-                       j))))))
+       (define state2			; inside the "path" part
+	 (lambda (i j n)
+	   (if (< j end)
+	       (let ((c (string-ref str j)))
+		 (cond ((char=? c #\?)
+			(let ((path (extract-string i j n)))
+			  (and path
+			       (begin
+				 (uri-path-set! uri path)
+				 (state3 (+ j 1) (+ j 1) 0)))))
+		       ((char=? c #\#)
+			(let ((path (extract-string i j n)))
+			  (and path
+			       (begin
+				 (uri-path-set! uri path)
+				 (state4 (+ j 1) (+ j 1) 0)))))
+		       ((char=? c #\%)
+			(and (plausible-hex-escape? str end j)
+			     (state2 i (+ j 3) (+ n 1))))
+		       ((control-or-space-char? c)
+			(let ((path (extract-string i j n)))
+			  (and path
+			       (begin
+				 (uri-path-set! uri path)
+				 j))))
+		       (else
+			(state2 i (+ j 1) (+ n 1)))))
+	       (let ((path (extract-string i j n)))
+		 (and path
+		      (begin
+			(uri-path-set! uri path)
+			j))))))
 
-      (let ((i (state0 start start 0)))
-        (cont (and i uri)
-              (or i start))))))
+       (define state3			; inside the "query" part
+	 (lambda (i j n)
+	   (if (< j end)
+	       (let ((c (string-ref str j)))
+		 (cond ((char=? c #\#)
+			(let ((query (extract-query i j n)))
+			  (and query
+			       (begin
+				 (uri-query-set! uri query)
+				 (state4 (+ j 1) (+ j 1) 0)))))
+		       ((char=? c #\%)
+			(and (plausible-hex-escape? str end j)
+			     (state3 i (+ j 3) (+ n 1))))
+		       ((control-or-space-char? c)
+			(let ((query (extract-query i j n)))
+			  (and query
+			       (begin
+				 (uri-query-set! uri query)
+				 j))))
+		       (else
+			(state3 i (+ j 1) (+ n 1)))))
+	       (let ((query (extract-query i j n)))
+		 (and query
+		      (begin
+			(uri-query-set! uri query)
+			j))))))
+
+       (define state4			; inside the "fragment" part
+	 (lambda (i j n)
+	   (if (< j end)
+	       (let ((c (string-ref str j)))
+		 (cond ((char=? c #\%)
+			(and (plausible-hex-escape? str end j)
+			     (state4 i (+ j 3) (+ n 1))))
+		       ((control-or-space-char? c)
+			(let ((fragment (extract-string i j n)))
+			  (and fragment
+			       (begin
+				 (uri-fragment-set! uri fragment)
+				 j))))
+		       (else
+			(state4 i (+ j 1) (+ n 1)))))
+	       (let ((fragment (extract-string i j n)))
+		 (and fragment
+		      (begin
+			(uri-fragment-set! uri fragment)
+			j))))))
+
+       (let ((i (state0 start start 0)))
+	 (cont (and i (*uri uri))
+	       (or i start))))))
 
 (define parse-uri-query
   (lambda (str start end decode? cont)
@@ -497,8 +492,8 @@
 	l)))
 
 
-(define (uri->string-list uri)
-  (letrec ((scheme (uri-scheme uri))
+(define (uri.string-list uri)
+  (letrec ((scheme (uri.scheme uri))
 	   (*all (& (*scheme)))
 	   (*scheme
 	    (& (let ((tail (*scheme-after)))
@@ -509,16 +504,16 @@
 		       tail))))
 	   (*authority
 	    (& (let ((tail (*path)))
-		 (if-let ((ua (uri-authority uri)))
+		 (if-let ((ua (uri.authority uri)))
 			 (cons ua tail)
 			 tail))))
 	   (*path
 	    (& (let ((tail (*query)))
-		 (cons (uri-path uri)
+		 (cons (uri.path uri)
 		       tail))))
 	   (*query
 	    (& (let ((tail (*fragment)))
-		 (if-let ((uq (uri-query uri)))
+		 (if-let ((uq (uri.query uri)))
 			 (cond ((pair? uq)
 				(alis->query-string-list uq tail))
 			       ((string=? uq "")
@@ -528,17 +523,17 @@
 			 tail))))
 	   (*fragment
 	    (& (let ((tail '()))
-		 (if-let ((uf (uri-fragment uri)))
+		 (if-let ((uf (uri.fragment uri)))
 			 (cons uf tail)
 			 tail)))))
     (*all)))
 
-(define (uri->string uri)
-  (string-list->string (uri->string-list uri)))
+(define (uri.string uri)
+  (string-list->string (uri.string-list uri)))
 
 
 (TEST
-> (uri->string (string->uri "http://www.ethz.ch/grg?ab=k%e3ppeli&d%f6ner=1" #t))
+> (uri.string (string->uri "http://www.ethz.ch/grg?ab=k%e3ppeli&d%f6ner=1" #t))
 "http://www.ethz.ch/grg?ab=k%E3ppeli&d%F6ner=1"
 )
 
