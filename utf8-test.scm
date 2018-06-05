@@ -88,20 +88,20 @@
 (TEST
  > (map (=>* u8vector.utf8-codepoints %try) 3.1.9) ;; heh fun macro
  ;; XX should it really throw exceptions? Return a Result instead?
- ((exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n"))
+ ((exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n"))
  ;; XX also, offer an option to let it re-synchronize!
  > (map (=>* u8vector.utf8-codepoints %try) 3.1.1-8)
- ((exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")
-  (exception text: "utf-8 decoding error, can't proceed\n")))
+ ((exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")
+  (exception text: "utf-8 decoding error\n")))
 
 
 ;; XX continue once functions to re-synchronize-and-continue are

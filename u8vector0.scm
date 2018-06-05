@@ -160,11 +160,11 @@ ___RESULT= ___FIX(res);
  > (.utf8-parse '#u8(195 164 195 182 195 188 0 0))
  "äöü"
  > (%try-error (.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
- #(error "utf-8 decoding error, can't proceed")
+ #(error "utf-8 decoding error")
  > (.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö"
  > (%try-error (.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
- #(error "utf-8 decoding error, can't proceed"))
+ #(error "utf-8 decoding error"))
 
 
 (def (<>.utf8-parse T? T.strlen get return)
@@ -183,7 +183,7 @@ ___RESULT= ___FIX(res);
 			    (cons maybe-c l)
 			    (inc n))
 			(if (= i* i)
-			    (error "utf-8 decoding error, can't proceed")
+			    (error "utf-8 decoding error")
 			    ;; otherwise just skip it, OK?
 			    (begin
 			      (warn "utf-8 decoding error, skipping over bad sequence")
@@ -238,16 +238,16 @@ ___RESULT= ___FIX(res);
  > (u8vector.utf8-parse '#u8(195 164 195 182 195 188 0 0))
  "äöü\0\0"
  > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
- #(error "utf-8 decoding error, can't proceed")
+ #(error "utf-8 decoding error")
  > (%try-error (u8vector.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
- #(error "utf-8 decoding error, can't proceed")
+ #(error "utf-8 decoding error")
  > (u8vector0.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö"
  > (u8vector.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö\0ü\0"
  > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
- #(error "utf-8 decoding error, can't proceed")
+ #(error "utf-8 decoding error")
  > (%try-error (u8vector.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
- #(error "utf-8 decoding error, can't proceed")
+ #(error "utf-8 decoding error")
  )
 
