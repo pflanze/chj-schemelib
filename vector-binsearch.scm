@@ -109,11 +109,12 @@
  > (vector-binsearch (vector) 123 number-cmp)
  #f
  > (def (t nvals)
-	(let* ((range (random-integer 1000))
-	       (shift (random-integer 1000))
+	(let* ((range (inc (random-integer 1000)))
+	       (shift (- (random-integer 1300) 800))
 	       (*ri (& (- (random-integer range) shift)))
 	       (knowncontained (*ri))
 	       (vs (repeatedly nvals (C cons (*ri) _) (list knowncontained)))
+	       (len (inc nvals))
 	       (vs*-list (cmp-sort vs number-cmp))
 	       (vs* (list->vector vs*-list)))
 	  ;; vs* always contains at least 1 value, knowncontained
@@ -145,7 +146,7 @@
 				   #t))
 		       #t
 		       ;; and assured retrieval
-		       > (let* ((i (random-integer nvals))
+		       > (let* ((i (random-integer len))
 				(ri (vector-ref vs* i)))
 			   (= (vector-ref vs* (vector-binsearch vs* ri number-cmp)) ri))
 		       #t))))))
