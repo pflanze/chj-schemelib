@@ -1,15 +1,48 @@
+(require easy
+	 ;; (cj-string-util string-to-identifyer) XX?
+	 )
+
+(export (class http-status)
+
+	http-status-code->name
+
+	;;make-check-http-status-or-code
+	;;maybe-http-status:code
+
+	symbol.http-status)
 
 
-(define-type http-status ;; reply-status ? automtic
-  id: bd6c7604-f299-489e-bed7-223be2b1ab42
+(include "cj-standarddeclares.scm")
 
-  code
-  maybe-name
-  )
 
-(define (http-status-name s) ;; NOTE that this can still return #f if the code does not exist! And it can return a string even if code is not in the table, if the object already carries the name.
-  (or (http-status-maybe-name s)
-      (http-status-code->name (http-status-code s))))
+(define (make-check-http-status-or-code from to)
+  (lambda (hs-or-code)
+    (let ((code (maybe-http-status:code hs-or-code)))
+      (and (>= code from)
+	   (< code to)))))
+
+
+;; reply-status ? automtic
+(defclass (http-status [natural? code]
+		       [(maybe string?) maybe-name])
+  
+
+  (defmethod (name s)
+    ;; was "NOTE that this can still return #f if the code does not
+    ;; exist!  And it can return a string even if code is not in the
+    ;; table, if the object already carries the name."; hmm make it
+    ;; fail now, but what is the idea behind everything?
+    (or maybe-name
+	(http-status-code->name code)
+	(error "unknown http-status code" code)))
+
+  (defmethod is-info? (make-check-http-status-or-code 100 200))
+  (defmethod is-success? (make-check-http-status-or-code 200 300))
+  (defmethod is-redirect? (make-check-http-status-or-code 300 400))
+  (defmethod is-error? (make-check-http-status-or-code 400 600))
+  (defmethod is-client-error? (make-check-http-status-or-code 400 600))
+  (defmethod is-server-error? (make-check-http-status-or-code 500 600)))
+
 
 
 (insert-result-of
@@ -71,7 +104,7 @@
 					; 			   "http-status-"
 					; 			   (string-to-identifyer
 					; 			    (cdr p))))
-					; 		  (make-http-status ,(car p)
+					; 		  (http-status ,(car p)
 					; 				    ,(cdr p))))
 					; 	     alist)
 					;^- currently unsolved problem: cannot auto-generate export list
@@ -82,20 +115,21 @@
 		(map
 		 (lambda (p)
 		   (cons (string->symbol
-			  (string-to-identifyer
+			  (identity ;; XX? string-to-identifyer
 			   (cdr p)))
 			 (list 'unquote
-			       `(make-http-status ,(car p)
-						  ,(cdr p)))))
+			       `(http-status ,(car p)
+					     ,(cdr p)))))
 		 alist))
 	 test: eq?))
+
       (define http-status:%code->name%
 	(list->table
 	 ',alist
 	 test: eq?)))))
 
 
-(define (http-status symbol)
+(define (symbol.http-status symbol)
   (table-ref http-status:%symbol->obj% symbol))
 
 (define (http-status-code->name code)
@@ -107,17 +141,4 @@
 	((##fixnum? hs-or-code)
 	 hs-or-code)
 	(else (error "not a http-status or -code:" hs-or-code))))
-
-(define (make-check-http-status-or-code from to)
-  (lambda (hs-or-code)
-    (let ((code (maybe-http-status:code hs-or-code)))
-      (and (>= code from)
-	   (< code to)))))
-
-(define http-status:is-info? (make-check-http-status-or-code 100 200))
-(define http-status:is-success? (make-check-http-status-or-code 200 300))
-(define http-status:is-redirect? (make-check-http-status-or-code 300 400))
-(define http-status:is-error? (make-check-http-status-or-code 400 600))
-(define http-status:is-client-error? (make-check-http-status-or-code 400 600))
-(define http-status:is-server-error? (make-check-http-status-or-code 500 600))
 
