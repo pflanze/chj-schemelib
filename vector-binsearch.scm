@@ -13,7 +13,9 @@
 	 test-random)
 
 (export vector-binsearch
+	vector-binsearch/start+end
 	#!optional
+	@vector-binsearch/start+end
 	fixnum-natural0?
 	range-of-integer?
 	sorted-integers.maybe-gap)
@@ -29,14 +31,9 @@
 ;; anyway, though.)
 
 
-;; returns index if found.
-(def (vector-binsearch [vector? v] ;; must be sorted using cmp
-		       val
-		       [function? cmp])
-     -> (maybe fixnum-natural0?)
-
-     (let lp ((istart 0)
-	      (iend (vector-length v)))
+(def (@vector-binsearch/start+end v val cmp istart iend)
+     (let lp ((istart istart)
+	      (iend iend))
        (let ((d (fx- iend istart)))
 	 (and (fxpositive? d)
 	      (let ((i (fx+ istart (arithmetic-shift d -1))))
@@ -44,6 +41,29 @@
 			   ((lt) (lp istart i))
 			   ((eq) i)
 			   ((gt) (lp (inc i) iend))))))))
+
+
+(def (vector-binsearch/start+end [vector? v] ;; must be sorted using cmp
+				 val
+				 [function? cmp]
+				 [fixnum-natural0? istart]
+				 [fixnum-natural0? iend])
+     -> (maybe fixnum-natural0?)
+
+     (let ((len (vector-length v)))
+       (assert (<= istart len))
+       (assert (<= iend len))
+       (assert (<= istart iend)))
+     (@vector-binsearch/start+end v val cmp istart iend))
+
+
+(def (vector-binsearch [vector? v] ;; must be sorted using cmp
+		       val
+		       [function? cmp])
+     -> (maybe fixnum-natural0?)
+
+     (@vector-binsearch/start+end v val cmp 0 (vector-length v)))
+
 
 
 (def range-of-integer? (range-of integer?))
