@@ -15,7 +15,8 @@
 	string->uri
 	string->uri-query
 
-	uri.string)
+	(method uri.string-list
+		uri.string))
 
 (include "cj-standarddeclares.scm")
 
@@ -91,10 +92,49 @@
             result)))))
 
 (defclass (uri [string? scheme]
-		      [string? authority] ;; also gets to contain authentication and port info if present!
-		      [string? path]
-		      [(maybe (alist-of string? string?)) query]
-		      [(maybe string?) fragment]))
+	       [string? authority] ;; also gets to contain authentication and port info if present!
+	       [string? path]
+	       [(maybe (alist-of string? string?)) query]
+	       [(maybe string?) fragment])
+
+  (defmethod (string-list uri)
+    (letrec ((scheme (uri.scheme uri))
+	     (*all (& (*scheme)))
+	     (*scheme
+	      (& (let ((tail (*scheme-after)))
+		   (cons scheme tail))))
+	     (*scheme-after
+	      (& (let ((tail (*authority)))
+		   (cons (scheme:after scheme)
+			 tail))))
+	     (*authority
+	      (& (let ((tail (*path)))
+		   (if-let ((ua (uri.authority uri)))
+			   (cons ua tail)
+			   tail))))
+	     (*path
+	      (& (let ((tail (*query)))
+		   (cons (uri.path uri)
+			 tail))))
+	     (*query
+	      (& (let ((tail (*fragment)))
+		   (if-let ((uq (uri.query uri)))
+			   (cond ((pair? uq)
+				  (alis->query-string-list uq tail))
+				 ((string=? uq "")
+				  tail)
+				 (else
+				  (cons "?" (cons uq tail))))
+			   tail))))
+	     (*fragment
+	      (& (let ((tail '()))
+		   (if-let ((uf (uri.fragment uri)))
+			   (cons uf tail)
+			   tail)))))
+      (*all)))
+
+  (defmethod (string uri)
+    (strings-append (uri.string-list uri))))
 
 
 (define parse-uri
@@ -445,45 +485,6 @@
 	(cons "?" (cdr l)) ;; only almost unmeasurably slower
 	l)))
 
-
-(define (uri.string-list uri)
-  (letrec ((scheme (uri.scheme uri))
-	   (*all (& (*scheme)))
-	   (*scheme
-	    (& (let ((tail (*scheme-after)))
-		 (cons scheme tail))))
-	   (*scheme-after
-	    (& (let ((tail (*authority)))
-		 (cons (scheme:after scheme)
-		       tail))))
-	   (*authority
-	    (& (let ((tail (*path)))
-		 (if-let ((ua (uri.authority uri)))
-			 (cons ua tail)
-			 tail))))
-	   (*path
-	    (& (let ((tail (*query)))
-		 (cons (uri.path uri)
-		       tail))))
-	   (*query
-	    (& (let ((tail (*fragment)))
-		 (if-let ((uq (uri.query uri)))
-			 (cond ((pair? uq)
-				(alis->query-string-list uq tail))
-			       ((string=? uq "")
-				tail)
-			       (else
-				(cons "?" (cons uq tail))))
-			 tail))))
-	   (*fragment
-	    (& (let ((tail '()))
-		 (if-let ((uf (uri.fragment uri)))
-			 (cons uf tail)
-			 tail)))))
-    (*all)))
-
-(define (uri.string uri)
-  (strings-append (uri.string-list uri)))
 
 
 (TEST
