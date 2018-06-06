@@ -445,9 +445,8 @@
                       uri)))))
 
 (TEST
-> (cdr (##vector->list (string->uri "http://chris@www.ethz.ch:31/" #t)))
-("http" "chris@www.ethz.ch:31" "/" #f #f)
-)
+ > (struct-values (string->uri "http://chris@www.ethz.ch:31/" #t))
+ ("http" "chris@www.ethz.ch:31" "/" #f #f))
 
 
 (define string->uri-query
@@ -488,9 +487,12 @@
 
 
 (TEST
-> (uri.string (string->uri "http://www.ethz.ch/grg?ab=k%e3ppeli&d%f6ner=1" #t))
-"http://www.ethz.ch/grg?ab=k%E3ppeli&d%F6ner=1"
-)
+ > (%try-error (string->uri "http://www.ethz.ch/grg?ab=k%e3ppeli&d%f6ner=1" #t))
+ xxxx
+ > (string->uri "http://www.ethz.ch/grg?ab=k%C3%A3ppeli&d%c3%b6ner=1" #t)
+ [(uri) "http" "www.ethz.ch" "/grg" (("ab" . "k\343ppeli") ("d\366ner" . "1")) #f]
+ > (.string #)
+ "http://www.ethz.ch/grg?ab=k%C3%A3ppeli&d%C3%B6ner=1")
 
 
 ; todo:
