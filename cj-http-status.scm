@@ -1,6 +1,5 @@
 (require easy
-	 ;; (cj-string-util string-to-identifyer) XX?
-	 )
+	 (oo-vector-lib string-map))
 
 (export (class http-status)
 
@@ -95,9 +94,18 @@
 	  (505 . "HTTP Version Not Supported")
 	  (507 . "Insufficient Storage"))))
 
+   
+   (define (cj-http-status:string-to-identifyer str)
+     (string-map (lambda (c)
+		   (if (char-alphanumeric? c)
+		       (char-downcase c)
+		       #\-))
+		 str))
+
    ;;(newline) ;; GTRRRR immer dies
    ;;(pp-through
    `(begin
+
 					;       ,@(map (lambda (p)
 					; 	       `(define ,(string->symbol
 					; 			  (string-append
@@ -115,7 +123,7 @@
 		(map
 		 (lambda (p)
 		   (cons (string->symbol
-			  (identity ;; XX? string-to-identifyer
+			  (cj-http-status:string-to-identifyer
 			   (cdr p)))
 			 (list 'unquote
 			       `(http-status ,(car p)
