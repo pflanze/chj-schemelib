@@ -21,6 +21,7 @@
 	 Maybe)
 
 (export (class trie)
+	(method alist.trie)
 	#!optional
 	trie-map-vector?)
 
@@ -33,8 +34,6 @@
 (def. number.cmp number-cmp)
 (def. symbol.cmp symbol-cmp)
 (def. u8vector.cmp u8vector-cmp)
-
-(def strings? (list-of string?))
 
 (def (vector-every/start+end t? v istart iend)
      (let ((len (vector-length v)))
@@ -149,8 +148,10 @@
 
 (def empty-trie (trie (vector) (Nothing)))
 
-(def. (strings.trie ss)
-  (fold (flip trie.add) empty-trie ss))
+(def. (alist.trie ss)
+  (fold (lambda (k+v t)
+	  (let-pair ((k v) k+v)
+		    (trie.add t k v))) empty-trie ss))
 
 (def (trie-map-vector.alist entries)
      (let* ((len (vector-length entries))
