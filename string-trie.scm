@@ -6,10 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-;; a simple string-only, vector-as-map based trie
+;; a trie based on a sorted vector as map via binsearch
 
-;; XX Stupid, could trivially (except for helper stuff) change into a
-;; trie accepting lists of anything for which there is a .cmp
+;; Requires .cmp as well as .list for the non-"-list" methods on the
+;; key type.
 
 ;; XX NOTE: this currently has bad complexity for the add operation
 ;; due to copying whole vectors (may not matter for actual usage but
@@ -17,15 +17,22 @@
 
 (require easy
 	 vector-binsearch
+	 cj-cmp
 	 Maybe)
 
-(export (class string-trie)
+(export (class trie)
 	#!optional
-	string-trie-map-vector?)
+	trie-map-vector?)
 
 (include "cj-standarddeclares.scm")
 
 ;; XX move
+
+(def. char.cmp char-cmp)
+(def. string.cmp string-cmp)
+(def. number.cmp number-cmp)
+(def. symbol.cmp symbol-cmp)
+(def. u8vector.cmp u8vector-cmp)
 
 (def strings? (list-of string?))
 
@@ -77,74 +84,75 @@
 ;;/move
 
 
-(defclass (string-trie [string-trie-map-vector? entries]
-		       [Maybe? Maybe-value])
+(defclass (trie [trie-map-vector? entries]
+		[Maybe? Maybe-value])
 
-  (def (entries-alist.string-trie entries-alist Maybe-value)
-       (string-trie (alist.string-trie-map-vector entries-alist)
-		    Maybe-value))
+  (def (entries-alist.trie entries-alist Maybe-value)
+       (trie (alist.trie-map-vector entries-alist)
+	     Maybe-value))
     
   (defmethod (show s)
-    `(entries-alist.string-trie
-      ,(.show (string-trie-map-vector.alist entries))
+    `(entries-alist.trie
+      ,(.show (trie-map-vector.alist entries))
       ,(.show Maybe-value)))
 
-  (defmethod (Maybe-ref-list s chars)
-    (if (null? chars)
+  (defmethod (Maybe-ref-list s cs)
+    (if (null? cs)
 	Maybe-value
-	(let-pair ((c chars*) chars)
-		  (if-let ((s* (string-trie-map-vector.maybe-ref entries c)))
-			  (string-trie.Maybe-ref-list s* chars*)
+	(let-pair ((c cs*) cs)
+		  (if-let ((s* (trie-map-vector.maybe-ref entries c)))
+			  (trie.Maybe-ref-list s* cs*)
 			  (Nothing)))))
 
   (defmethod (Maybe-ref s str)
     ;; XX could optimize
-    (string-trie.Maybe-ref-list s (string.list str)))
+    (trie.Maybe-ref-list s (.list str)))
 
-  (defmethod- (add/set-list s key-chars val
+  (defmethod- (add/set-list s key-cs val
 			    orig-key add?)
     (let rec ((s s)
-	      (cs key-chars))
+	      (cs key-cs))
       (if (null? cs)
-	  (if (and add? (not (Nothing? (string-trie.Maybe-value s))))
+	  (if (and add? (not (Nothing? (trie.Maybe-value s))))
 	      (error "key already set" orig-key)
-	      (string-trie.Maybe-value-set s (Just val)))
+	      (trie.Maybe-value-set s (Just val)))
 	  (let-pair ((c cs*) cs)
-		    (let ((entries (string-trie.entries s)))
-		      (string-trie.entries-set
+		    (let ((entries (trie.entries s)))
+		      (trie.entries-set
 		       s
-		       (string-trie-map-vector.set
+		       (trie-map-vector.set
 			entries
 			c
-			(rec (or (string-trie-map-vector.maybe-ref entries c)
-				 empty-string-trie)
+			(rec (or (trie-map-vector.maybe-ref entries c)
+				 empty-trie)
 			     cs*))))))))
 
-  (defmethod (add-list s key-chars val)
-    (string-trie.add/set-list s key-chars val
-			      key-chars #t))
+  (defmethod (add-list s key-cs val)
+    (trie.add/set-list s key-cs val
+		       key-cs #t))
 
   (defmethod (add s key-str val)
-    (string-trie.add/set-list s (string.list key-str) val
-			      key-str #t))
+    (trie.add/set-list s (.list key-str) val
+		       key-str #t))
 
-  (defmethod (set-list s key-chars val)
-    (string-trie.add/set-list s key-chars val
-			      key-chars #f))
+  (defmethod (set-list s key-cs val)
+    (trie.add/set-list s key-cs val
+		       key-cs #f))
 
   (defmethod (set s key-str val)
-    (string-trie.add/set-list s (string.list key-str) val
-			      key-str #f)))
+    (trie.add/set-list s (.list key-str) val
+		       key-str #f)))
 
 
-(def string-trie-map-vector? (sectioned-vector-of/2 char? string-trie?))
+(def trie-map-vector? (sectioned-vector-of/2 any? trie?))
 
-(def empty-string-trie (string-trie (vector) (Nothing)))
 
-(def. (strings.string-trie ss)
-  (fold (flip string-trie.add) empty-string-trie ss))
+(def empty-trie (trie (vector) (Nothing)))
 
-(def (string-trie-map-vector.alist entries)
+(def. (strings.trie ss)
+  (fold (flip trie.add) empty-trie ss))
+
+(def (trie-map-vector.alist entries)
      (let* ((len (vector-length entries))
 	    (middle (arithmetic-shift len -1)))
        (let lp ((i (dec middle))
@@ -156,8 +164,8 @@
 			     (vector-ref entries (+ middle i)))
 		       out))))))
 
-(def (alist.string-trie-map-vector as) ;; -> string-trie-map-vector?
-     (let* ((as (cmp-sort as (on car char-cmp))) ;; offer sorted-alist. version ?
+(def (alist.trie-map-vector as) ;; -> trie-map-vector?
+     (let* ((as (cmp-sort as (on car .cmp))) ;; offer sorted-alist. version ?
 	    (middle (length as))
 	    (len (arithmetic-shift middle 1))
 	    (entries (make-vector len)))
@@ -172,22 +180,22 @@
 				 (lp as* (inc i))))))))
 
 (TEST
- > (alist.string-trie-map-vector '())
+ > (alist.trie-map-vector '())
  []
- > (string-trie-map-vector.alist #)
+ > (trie-map-vector.alist #)
  ()
- > (alist.string-trie-map-vector '((#\a . 10) (#\x . 30) (#\c . -1)))
+ > (alist.trie-map-vector '((#\a . 10) (#\x . 30) (#\c . -1)))
  [#\a #\c #\x 10 -1 30]
- > (string-trie-map-vector.alist #)
+ > (trie-map-vector.alist #)
  ((#\a . 10) (#\c . -1) (#\x . 30)))
 
 
-(def (string-trie-map-vector.set entries c val)
+(def (trie-map-vector.set entries c val)
      ;; if key already exists, the result has the same length
      (let* ((len (vector-length entries))
 	    (middle (arithmetic-shift len -1)))
        (if-let ((i (vector-binsearch/start+end
-		    entries c char-cmp 0 middle)))
+		    entries c .cmp 0 middle)))
 	       (let ((entries* (vector-copy entries)))
 		 (vector-set! entries* i c)
 		 (vector-set! entries* (+ middle i) val)
@@ -197,39 +205,39 @@
 	       ;; optimization whereas there may be a need to optimize
 	       ;; the complexity instead.
 	       (=> entries
-		   string-trie-map-vector.alist
+		   trie-map-vector.alist
 		   ((flip cons) (cons c val))
-		   alist.string-trie-map-vector))))
+		   alist.trie-map-vector))))
 
-(def (string-trie-map-vector.maybe-ref entries c)
+(def (trie-map-vector.maybe-ref entries c)
      (let* ((len (vector-length entries))
 	    (middle (arithmetic-shift len -1)))
        (if-let ((i (vector-binsearch/start+end
-		    entries c char-cmp 0 middle)))
+		    entries c .cmp 0 middle)))
 	       (vector-ref entries (+ middle i))
 	       #f)))
 
 (TEST
  > (def tv '[#\a #\c #\x 10 -1 30])
- > (string-trie-map-vector.set tv #\x 40)
+ > (trie-map-vector.set tv #\x 40)
  [#\a #\c #\x 10 -1 40]
- > (string-trie-map-vector.set tv #\b 40)
+ > (trie-map-vector.set tv #\b 40)
  [#\a #\b #\c #\x 10 40 -1 30]
  > tv
  [#\a #\c #\x 10 -1 30])
 
 
 (TEST
- > (.show empty-string-trie)
- (entries-alist.string-trie (list) (Nothing))
- > (equal? (entries-alist.string-trie (list) (Nothing)) empty-string-trie)
+ > (.show empty-trie)
+ (entries-alist.trie (list) (Nothing))
+ > (equal? (entries-alist.trie (list) (Nothing)) empty-trie)
  #t
- > (def t (.add empty-string-trie "Hi" "world"))
+ > (def t (.add empty-trie "Hi" "world"))
  > (.show t)
- (entries-alist.string-trie
+ (entries-alist.trie
   (list (cons #\H
-	      (entries-alist.string-trie
-	       (list (cons #\i (entries-alist.string-trie (list) (Just "world"))))
+	      (entries-alist.trie
+	       (list (cons #\i (entries-alist.trie (list) (Just "world"))))
 	       (Nothing))))
   (Nothing))
  > (def t2 (.add t "Hj" "2"))
