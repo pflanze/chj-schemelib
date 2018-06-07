@@ -95,6 +95,9 @@
       ,(.show (trie-map-vector.alist entries))
       ,(.show Maybe-value)))
 
+  (defmethod (entries-alist s)
+    (trie-map-vector.alist entries))
+
   (defmethod (Maybe-ref-list s cs)
     (if (null? cs)
 	Maybe-value
