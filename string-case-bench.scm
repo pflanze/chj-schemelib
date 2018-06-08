@@ -26,6 +26,6 @@
 	   (else 'nomatch)))
 
 (def (string-case-bench str n)
-     (time (repeat n (t1 str)))
-     (time (repeat n (t2 str))))
+     (equal? (time (repeat n (t1 str)))
+	     (time (repeat n (t2 str)))))
 
