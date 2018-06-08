@@ -17,12 +17,16 @@
 		  (("ho") 'ho)
 		  (("hi") 'yes)
 		  (("hello world") 'theworld)
+		  (("hello lovely world how are you today? it's been a long way.")
+		   'theworld2)
 		  (else 'nomatch)))
 
 (def (t2 v)
      (cond ((string=? v "ho") 'ho)
 	   ((string=? v "hi") 'yes)
 	   ((string=? v "hello world") 'theworld)
+	   ((string=? v "hello lovely world how are you today? it's been a long way.")
+	    'theworld2)
 	   (else 'nomatch)))
 
 (def (string-case-bench str n)
