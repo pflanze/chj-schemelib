@@ -15,9 +15,6 @@
 
 ;; Obvious potential optimizations:
 
-;; - use unsafe code within the matcher after proper boundary type
-;;   checks
-
 ;; - check string length for possible matches before going down
 ;;   further? (only reasonably possible when there's only one string
 ;;   left?)
@@ -48,6 +45,7 @@
      (with-gensyms
       (LEN)
       `(let* ((,LEN (string-length ,V)))
+	 (declare (fixnum) (not safe))
 	 ,(let rec ((t (alist.trie
 			(map
 			 (lambda (c)
@@ -83,23 +81,6 @@
 			   (else ,notfound)))))))))
 
 
-(TEST
- > (define TEST:equal? syntax-equal?)
- > (string-case-expand '((("ab") 1) (("ac") 2) (("") 11)) 'ABC 'NOPE)
- (let* ((GEN:LEN-732 (string-length ABC)))
-   (if (= 0 GEN:LEN-732)
-       11
-       (case (string-ref ABC 0)
-	 ((#\a)
-	  (if (= 1 GEN:LEN-732)
-	      NOPE
-	      (case (string-ref ABC 1)
-		((#\b) (if (= 2 GEN:LEN-732) 1 NOPE))
-		((#\c) (if (= 2 GEN:LEN-732) 2 NOPE))
-		(else NOPE))))
-	 (else NOPE)))))
-
-
 ;; The last case must (is this a good idea?) be an |else| case, all
 ;; the others must list strings to match for, the same way cases in
 ;; |case| list atoms. (Are strings atoms, too? "Immediates" is not it:
@@ -110,17 +91,36 @@
       (let-pair ((lastcase cases*) (reverse cases))
 		(mcase lastcase
 		       (`(else . `else-exprs)
-			(early-bind-expressions
-			 ;; XX not hygienic btw, can conflict with our
-			 ;; code, except if using ## / "" namespace
-			 ;; everywhere, which we should...
-			 (val)
-			 ;; XX now also want a late-bind-expressions ?
-			 (with-gensyms
-			  (ELSE)
-			  `(let ((,ELSE (lambda () ,@else-exprs)))
-			     ,(string-case-expand cases* val `(,ELSE))))))))
+			;; Do *not* use early-bind-expressions here,
+			;; because it would break safety in the face
+			;; of threads. (Also, don't have a
+			;; late-bind-expressions, so have to code that
+			;; part manually, too :)
+			(with-gensyms
+			 (V ELSE)
+			 `(let ((,V ,val)
+				(,ELSE (lambda () ,@else-exprs)))
+			    ,(string-case-expand cases* V `(,ELSE)))))))
       (source-error stx "need at least an else case")))
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#string-case ABC (("ab") 1) (("ac") 2) (("") 11) (else NOPE))
+ (let ((GEN:V-1 ABC)
+       (GEN:ELSE-766 (lambda () NOPE)))
+   (let* ((GEN:LEN-767 (string-length GEN:V-1)))
+     (declare (fixnum) (not safe))
+     (if (= 0 GEN:LEN-767)
+	 11
+	 (case (string-ref GEN:V-1 0)
+	   ((#\a)
+	    (if (= 1 GEN:LEN-767)
+		(GEN:ELSE-766)
+		(case (string-ref GEN:V-1 1)
+		  ((#\b) (if (= 2 GEN:LEN-767) 1 (GEN:ELSE-766)))
+		  ((#\c) (if (= 2 GEN:LEN-767) 2 (GEN:ELSE-766)))
+		  (else (GEN:ELSE-766)))))
+	   (else (GEN:ELSE-766)))))))
 
 (TEST
  > (def (t v)
