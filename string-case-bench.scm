@@ -13,6 +13,7 @@
 
 
 (def (t1 v)
+     (declare (fixnum) (not safe)) ;; should be part of the lib instead
      (string-case v
 		  (("ho") 'ho)
 		  (("hi") 'yes)
