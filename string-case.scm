@@ -13,6 +13,19 @@
 ;; keys. Only meant to be used with short keys and when it's used in a
 ;; hot path.
 
+;; Obvious potential optimizations:
+
+;; - use unsafe code within the matcher after proper boundary type
+;;   checks
+
+;; - check string length for possible matches before going down
+;;   further? (only reasonably possible when there's only one string
+;;   left?)
+
+;; - or rather right away: in the 'last mile' use memcmp for the whole
+;;   of the remainder (and also something similar for the intermediate
+;;   stretches?)
+
 (require easy
 	 trie)
 
