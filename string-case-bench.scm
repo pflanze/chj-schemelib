@@ -7,7 +7,8 @@
 
 
 (require easy
-	 string-case)
+	 string-case
+	 memcmp)
 
 (include "cj-standarddeclares.scm")
 
@@ -29,23 +30,6 @@
 	    'theworld2)
 	   (else 'nomatch)))
 
-
-
-(c-declare "
-#include <string.h>
-")
-(def (@memcmp:string=? s1 s2)
-     (##c-code "
-int l1= ___INT(___STRINGLENGTH(___ARG1));
-int l2= ___INT(___STRINGLENGTH(___ARG2));
-
-if (l1==l2) {
-    ___RESULT= memcmp(___BODY(___ARG1), ___BODY(___ARG2), l1*4)==0
-                 ? ___TRU : ___FAL;
-} else {
-    ___RESULT= ___FAL;
-}
-" s1 s2))
 
 (def (t3 v)
      (cond ((@memcmp:string=? v "ho") 'ho)
