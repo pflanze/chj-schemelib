@@ -31,11 +31,13 @@
 	   (else 'nomatch)))
 
 
+(use-memcmp)
+
 (def (t3 v)
-     (cond ((@memcmp:string=? v "ho") 'ho)
-	   ((@memcmp:string=? v "hi") 'yes)
-	   ((@memcmp:string=? v "hello world") 'theworld)
-	   ((@memcmp:string=? v "hello lovely world how are you today? it's been a long way.")
+     (cond ((memcmp:@string=? v "ho") 'ho)
+	   ((memcmp:@string=? v "hi") 'yes)
+	   ((memcmp:@string=? v "hello world") 'theworld)
+	   ((memcmp:@string=? v "hello lovely world how are you today? it's been a long way.")
 	    'theworld2)
 	   (else 'nomatch)))
 
