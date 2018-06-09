@@ -53,6 +53,9 @@ if (l1==l2) {
       `(memcmp:string=?-function ,s1 ,s2)))
 
 
+(compile-time
+ (assert (mod:compiled?)))
+
 (use-memcmp)
 
 (define (memcmp:@string=?-function s1 s2)
