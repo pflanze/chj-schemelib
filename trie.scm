@@ -98,6 +98,27 @@
   (defmethod (entries-alist s)
     (trie-map-vector.alist entries))
 
+  (defmethod (entries-length s)
+    (trie-map-vector.length entries))
+
+  (defmethod (empty? s)
+    (trie-map-vector.empty? entries))
+  
+  ;; report the next branching point or the end
+  (defmethod (next-branch s [fixnum-natural0? current-level])
+    -> (values-of fixnum-natural0? list? trie?)
+
+    (let lp ((l current-level)
+	     (items '())
+	     (t s))
+      (let* ((es (trie.entries t))
+	     (len (trie-map-vector.length es)))
+	(if (= len 1)
+	    (lp (inc l)
+		(cons (trie-map-vector.@the-key es) items)
+		(trie-map-vector.@the-value es))
+	    (values l items t)))))
+
   (defmethod (Maybe-ref-list s cs)
     (if (null? cs)
 	Maybe-value
@@ -229,6 +250,19 @@
  [#\a #\b #\c #\x 10 40 -1 30]
  > tv
  [#\a #\c #\x 10 -1 30])
+
+
+(def (trie-map-vector.length entries)
+     (arithmetic-shift (vector-length entries) -1))
+
+(def (trie-map-vector.empty? entries)
+     (zero? (vector-length entries)))
+
+;; assuming 1 entry:
+(def (trie-map-vector.@the-key entries)
+     (vector-ref entries 0))
+(def (trie-map-vector.@the-value entries)
+     (vector-ref entries 1))
 
 
 (TEST
