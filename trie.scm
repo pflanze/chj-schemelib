@@ -104,20 +104,29 @@
   (defmethod (empty? s)
     (trie-map-vector.empty? entries))
   
-  ;; report the next branching point or the end
-  (defmethod (next-branch s [fixnum-natural0? current-level])
-    -> (values-of fixnum-natural0? list? trie?)
+  ;; report the next branching or value holding point (could be the
+  ;; end)
+  (defmethod (rnext-branch s [fixnum-natural0? current-level])
+    ;; new-level rkeys has-value? remainder
+    -> (values-of fixnum-natural0? list? boolean? trie?)
 
     (let lp ((l current-level)
 	     (items '())
 	     (t s))
-      (let* ((es (trie.entries t))
-	     (len (trie-map-vector.length es)))
-	(if (= len 1)
-	    (lp (inc l)
-		(cons (trie-map-vector.@the-key es) items)
-		(trie-map-vector.@the-value es))
-	    (values l items t)))))
+      (if (Just? (trie.Maybe-value t))
+	  (values l items #t t)
+	  (let* ((es (trie.entries t))
+		 (len (trie-map-vector.length es)))
+	    (if (= len 1)
+		(lp (inc l)
+		    (cons (trie-map-vector.@the-key es) items)
+		    (trie-map-vector.@the-value es))
+		(values l items #f t))))))
+  
+  (defmethod (next-branch s [fixnum-natural0? current-level])
+    (letv ((new-level rkeys has-value? remainder)
+	   (trie.rnext-branch s current-level))
+	  (values new-level (reverse rkeys) has-value? remainder)))
 
   (defmethod (Maybe-ref-list s cs)
     (if (null? cs)
