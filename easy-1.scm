@@ -2,6 +2,7 @@
 
 (require define-macro-star
 	 fixnum
+	 fixnum-more
 	 cj-env ;; identity ?, define-if-not-defined
 	 cj-functional ;; compose etc.
 	 cj-struct
