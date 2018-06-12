@@ -16,14 +16,18 @@
 (define-macro* (fixnum-natural? e)
   (with-gensym x
 	       `(##let ((,x ,e))
-		       (##declare (fixnum) (not safe))
-		       (##and (##fixnum? ,x)
-			      (##< 0 ,x)))))
+		       (##declare (fixnum) (not safe) (standard-bindings)
+				  (extended-bindings) (block))
+		       (##namespace ("" and fixnum? <= <))
+		       (and (fixnum? ,x)
+			    (< 0 ,x)))))
 
 (define-macro* (fixnum-natural0? e)
   (with-gensym x
 	       `(##let ((,x ,e))
-		       (##declare (fixnum) (not safe))
-		       (##and (##fixnum? ,x)
-			      (##<= 0 ,x)))))
+		       (##declare (fixnum) (not safe) (standard-bindings)
+				  (extended-bindings) (block))
+		       (##namespace ("" and fixnum? <= <))
+		       (and (fixnum? ,x)
+			    (<= 0 ,x)))))
 
