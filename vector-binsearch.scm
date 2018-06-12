@@ -22,14 +22,6 @@
 
 (include "cj-standarddeclares.scm")
 
-;;XX move
-(def (fixnum-natural0? x)
-     (and (fixnum? x)
-	  (<= 0 x)))
-;; (Be careful, the above is not enough for making sure it's in vector
-;; boundaries, right? Well, vectors are not usually their max size
-;; anyway, though.)
-
 
 (def (@vector-binsearch/start+end v val cmp istart iend)
      (let lp ((istart istart)
