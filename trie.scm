@@ -52,12 +52,12 @@
   
   ;; report the next branching or value holding point (could be the
   ;; end)
-  (defmethod (rnext-branch s [fixnum-natural0? current-level])
+  (defmethod (rnext-branch s [fixnum-natural0? current-level] [ilist? tail])
     ;; new-level rkeys has-value? remainder
     -> (values-of fixnum-natural0? list? boolean? trie?)
 
     (let lp ((l current-level)
-	     (items '())
+	     (items tail)
 	     (t s))
       (if (Just? (trie.Maybe-value t))
 	  (values l items #t t)
@@ -71,7 +71,7 @@
   
   (defmethod (next-branch s [fixnum-natural0? current-level])
     (letv ((new-level rkeys has-value? remainder)
-	   (trie.rnext-branch s current-level))
+	   (trie.rnext-branch s current-level '()))
 	  (values new-level (reverse rkeys) has-value? remainder)))
 
   (defmethod (Maybe-ref-list s cs)
