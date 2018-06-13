@@ -24,6 +24,7 @@
 		 number.cmp
 		 symbol.cmp
 		 u8vector.cmp) ;; move
+	empty-vectormap
 	vector-every/start+end
 	sectioned-vector-of/2
 	;; these are all functions in spite of dot
@@ -47,6 +48,8 @@
 (def. u8vector.cmp u8vector-cmp)
 
 ;;/move
+
+(def empty-vectormap '[])
 
 (def (vector-every/start+end t? v istart iend)
      (let ((len (vector-length v)))
