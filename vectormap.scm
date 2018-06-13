@@ -35,7 +35,8 @@
 	vectormap.length
 	vectormap.empty?
 	vectormap.@the-key
-	vectormap.@the-value)
+	vectormap.@the-value
+	vectormap.map)
 
 (include "cj-standarddeclares.scm")
 
@@ -183,4 +184,18 @@
      (vector-ref entries 0))
 (def (vectormap.@the-value entries)
      (vector-ref entries 1))
+
+
+;; fn receives key and val, and must return (values key* val*)
+(def (vectormap.map vm fn/key+val)
+     (let* ((siz (vector-length vm))
+	    (res (make-vector siz))
+	    (len (arithmetic-shift siz -1)))
+       (for..< (i 0 len)
+	       (let ((i* (+ len i)))
+		 (letv ((k* v*) (fn/key+val (vector-ref vm i)
+					    (vector-ref vm i*)))
+		       (vector-set! res i k*)
+		       (vector-set! res i* v*))))
+       res))
 
