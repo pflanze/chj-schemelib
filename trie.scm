@@ -21,25 +21,17 @@
 	 cj-cmp
 	 Maybe)
 
-(export (class trie)
+(export (class trie-alike)
+	(class trie)
 	(method alist.trie)
 	#!optional
-	trie-vectormap?)
+	trie-alike-vectormap?)
 
 (include "cj-standarddeclares.scm")
 
 
-(defclass (trie [trie-vectormap? entries]
-		[Maybe? Maybe-value])
-
-  (def (entries-alist.trie entries-alist Maybe-value)
-       (trie (alist.vectormap entries-alist)
-	     Maybe-value))
-    
-  (defmethod (show s)
-    `(entries-alist.trie
-      ,(.show (vectormap.alist entries))
-      ,(.show Maybe-value)))
+(defclass (trie-alike [Maybe? Maybe-value]
+		      [trie-alike-vectormap? entries])
 
   (defmethod (entries-alist s)
     (vectormap.alist entries))
@@ -48,8 +40,25 @@
     (vectormap.length entries))
 
   (defmethod (empty? s)
-    (vectormap.empty? entries))
-  
+    (vectormap.empty? entries)))
+
+
+(def trie-alike-vectormap? (sectioned-vector-of/2 any? trie-alike?))
+
+
+
+(defclass (trie)
+  extends: trie-alike
+
+  (def (Maybe-value&entries-alist->trie Maybe-value entries-alist)
+       (trie Maybe-value
+	     (alist.vectormap entries-alist)))
+    
+  (defmethod (show s)
+    `(Maybe-value&entries-alist->trie
+      ,(.show Maybe-value)
+      ,(.show (vectormap.alist entries))))
+
   ;; report the next branching or value holding point (could be the
   ;; end)
   (defmethod (rnext-branch s [fixnum-natural0? current-level] [ilist? tail])
@@ -122,10 +131,7 @@
 		       key-str #f)))
 
 
-(def trie-vectormap? (sectioned-vector-of/2 any? trie?))
-
-
-(def empty-trie (trie (vector) (Nothing)))
+(def empty-trie (trie (Nothing) (vector)))
 
 (def. (alist.trie ss)
   (fold (lambda (k+v t)
@@ -134,17 +140,18 @@
 
 (TEST
  > (.show empty-trie)
- (entries-alist.trie (list) (Nothing))
- > (equal? (entries-alist.trie (list) (Nothing)) empty-trie)
+ (Maybe-value&entries-alist->trie (Nothing) (list))
+ > (equal? (Maybe-value&entries-alist->trie (Nothing) (list)) empty-trie)
  #t
  > (def t (.add empty-trie "Hi" "world"))
  > (.show t)
- (entries-alist.trie
+ (Maybe-value&entries-alist->trie
+  (Nothing)
   (list (cons #\H
-	      (entries-alist.trie
-	       (list (cons #\i (entries-alist.trie (list) (Just "world"))))
-	       (Nothing))))
-  (Nothing))
+	      (Maybe-value&entries-alist->trie
+	       (Nothing)
+	       (list (cons #\i (Maybe-value&entries-alist->trie (Just "world")
+								(list))))))))
  > (def t2 (.add t "Hj" "2"))
  > (.show (.Maybe-ref t2 "Hi"))
  (Just "world")
