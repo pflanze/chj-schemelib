@@ -8,8 +8,6 @@
 
 ;; A map implementation based on a vector via binary search.
 
-;; Requires .cmp
-
 ;; XX NOTE: complexity for the add operation is bad due to copying
 ;; whole vectors
 
@@ -110,8 +108,8 @@
 			     (vector-ref entries (+ middle i)))
 		       out))))))
 
-(def (alist.vectormap as) ;; -> vectormap?
-     (let* ((as (cmp-sort as (on car .cmp))) ;; offer sorted-alist. version ?
+(def (alist.vectormap as cmp) ;; -> vectormap?
+     (let* ((as (cmp-sort as (on car cmp))) ;; offer sorted-alist. version ?
 	    (middle (length as))
 	    (len (arithmetic-shift middle 1))
 	    (entries (make-vector len)))
@@ -126,22 +124,22 @@
 				 (lp as* (inc i))))))))
 
 (TEST
- > (alist.vectormap '())
+ > (alist.vectormap '() .cmp)
  []
  > (vectormap.alist #)
  ()
- > (alist.vectormap '((#\a . 10) (#\x . 30) (#\c . -1)))
+ > (alist.vectormap '((#\a . 10) (#\x . 30) (#\c . -1)) .cmp)
  [#\a #\c #\x 10 -1 30]
  > (vectormap.alist #)
  ((#\a . 10) (#\c . -1) (#\x . 30)))
 
 
-(def (vectormap.set entries c val)
+(def (vectormap.set entries c val cmp)
      ;; if key already exists, the result has the same length
      (let* ((len (vector-length entries))
 	    (middle (arithmetic-shift len -1)))
        (if-let ((i (vector-binsearch/start+end
-		    entries c .cmp 0 middle)))
+		    entries c cmp 0 middle)))
 	       (let ((entries* (vector-copy entries)))
 		 (vector-set! entries* i c)
 		 (vector-set! entries* (+ middle i) val)
@@ -153,21 +151,21 @@
 	       (=> entries
 		   vectormap.alist
 		   ((flip cons) (cons c val))
-		   alist.vectormap))))
+		   (alist.vectormap cmp)))))
 
-(def (vectormap.maybe-ref entries c)
+(def (vectormap.maybe-ref entries c cmp)
      (let* ((len (vector-length entries))
 	    (middle (arithmetic-shift len -1)))
        (if-let ((i (vector-binsearch/start+end
-		    entries c .cmp 0 middle)))
+		    entries c cmp 0 middle)))
 	       (vector-ref entries (+ middle i))
 	       #f)))
 
 (TEST
  > (def tv '[#\a #\c #\x 10 -1 30])
- > (vectormap.set tv #\x 40)
+ > (vectormap.set tv #\x 40 .cmp)
  [#\a #\c #\x 10 -1 40]
- > (vectormap.set tv #\b 40)
+ > (vectormap.set tv #\b 40 .cmp)
  [#\a #\b #\c #\x 10 40 -1 30]
  > tv
  [#\a #\c #\x 10 -1 30])
