@@ -52,4 +52,3 @@
 		   (values (* n n) (* (+ n 1) n)))
 	       (lambda (a b)
 		 b))))
-
