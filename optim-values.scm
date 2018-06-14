@@ -86,10 +86,17 @@
 
 
 (define (optim-values:error val expected-arity)
-  (error (string-append "%call-with-values: expect "
-			(number->string expected-arity)
-			" values but got:")
-	 val))
+  (define (show vs)
+    (apply error
+	   (string-append "expect "
+			  (number->string expected-arity)
+			  " value(s) but got "
+			  (number->string (length vs))
+			  ":")
+	   vs))
+  (show (if (##values? val)
+	    (##vector->list val)
+	    (list val))))
 
 (define-macro* (%call-with-values producer consumer)
   (define (fallback)
