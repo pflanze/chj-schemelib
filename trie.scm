@@ -40,7 +40,12 @@
     (vectormap.length entries))
 
   (defmethod (empty? s)
-    (vectormap.empty? entries)))
+    (vectormap.empty? entries))
+
+  (defmethod (Maybe-ref s str)
+    ;; XX could optimize
+    (.Maybe-ref-list s (.list str))))
+
 
 
 (def trie-alike-vectormap? (sectioned-vector-of/2 any? trie-alike?))
@@ -90,10 +95,6 @@
 		  (if-let ((s* (vectormap.maybe-ref entries c .cmp)))
 			  (trie.Maybe-ref-list s* cs*)
 			  (Nothing)))))
-
-  (defmethod (Maybe-ref s str)
-    ;; XX could optimize
-    (trie.Maybe-ref-list s (.list str)))
 
   (defmethod- (add/set-list s key-cs val
 			    orig-key add?)
