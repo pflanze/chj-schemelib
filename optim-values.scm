@@ -18,6 +18,7 @@
 	 test)
 
 (export (macro @values-ref)
+	(macro @values-length)
 	(macro %call-with-values))
 
 
@@ -26,6 +27,12 @@
   `(##let ()
 	  (declare (not safe))
 	  (##vector-ref ,v ,i)))
+
+(define-macro* (@values-length v)
+  ;; need unsafe mode here, too?
+  `(##let ()
+	  (declare (not safe))
+	  (##vector-length ,v)))
 
 
 ;; XX finally have one place for scheme syntax analysis please...
