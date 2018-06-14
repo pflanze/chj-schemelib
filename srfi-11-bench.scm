@@ -15,12 +15,21 @@
 
 
 (def (srfi-11-bench n)
-     (repeat n (letv ((a b) (values (* n n) (* (+ n 1) n)))
+     (repeat n (letv ((a b) (let ()
+			      (declare (not safe) (fixnum))
+			      (values (* n n) (* (+ n 1) n))))
 		     b)))
+
+(def (srfi-11-bench-unsafe n)
+     (repeat n (let ()
+		 (declare (not safe))
+		 (letv ((a b) (let ()
+				(declare (not safe) (fixnum))
+				(values (* n n) (* (+ n 1) n))))
+		       b))))
 
 
 (def (srfi-11-bench-manual n)
-     
      (repeat n
 	     (let ()
 	       (let* ((GEN:V-1130
@@ -33,5 +42,14 @@
 		      (b (let ()
 			   (declare (not safe))
 			   (##vector-ref GEN:V-1130 1))))
+		 b))))
+
+(def (srfi-11-bench-call n)
+     (repeat n
+	     (call-with-values
+		 (lambda ()
+		   (declare (not safe) (fixnum))
+		   (values (* n n) (* (+ n 1) n)))
+	       (lambda (a b)
 		 b))))
 
