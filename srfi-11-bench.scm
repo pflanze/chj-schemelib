@@ -22,7 +22,7 @@
 (def (srfi-11-bench-manual n)
      (repeat n
 	     (let* ((GEN:V-1130 (values (* n n) (* (+ n 1) n)))
-		    (a (##vector-ref GEN:V-1130 0))
+		    ;; (a (##vector-ref GEN:V-1130 0))
 		    (b (##vector-ref GEN:V-1130 1)))
 	       b)))
 
