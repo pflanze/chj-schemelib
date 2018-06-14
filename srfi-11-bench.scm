@@ -22,10 +22,7 @@
 (def (srfi-11-bench-manual n)
      (repeat n
 	     (let ((GEN:V-1130 (values (* n n) (* (+ n 1) n))))
-	       (if (and (values? GEN:V-1130)
-			(= (##vector-length GEN:V-1130) 2))
-		   ((lambda (a b) b)
-		    (##vector-ref GEN:V-1130 0)
-		    (##vector-ref GEN:V-1130 1))
-		   (optim-values:error GEN:V-1130 2)))))
+	       ((lambda (a b) b)
+		(##vector-ref GEN:V-1130 0)
+		(##vector-ref GEN:V-1130 1)))))
 
