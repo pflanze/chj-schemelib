@@ -52,3 +52,26 @@
 		   (values (* n n) (* (+ n 1) n)))
 	       (lambda (a b)
 		 b))))
+
+
+;; compiled, unlike in TEST environment
+(def (srfi-11-bench:t1)
+     (letv (() (values))
+	   'ok))
+
+(def (srfi-11-bench:t2)
+     (letv ((a) (values 2 3 4))
+	   a))
+
+(def (srfi-11-bench:t3)
+     (letv ((a) (values (values 2 3 4)))
+	   a))
+
+(TEST
+ > (srfi-11-bench:t1)
+ ok
+ > (.show (srfi-11-bench:t2))
+ (values 2 3 4)
+ > (.show (srfi-11-bench:t3))
+ (values 2 3 4))
+
