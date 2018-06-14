@@ -71,12 +71,12 @@
 		 ,(Maybe:if-let ((exprs (.Maybe-value t)))
 				(perhaps-let exprs)
 				notfound)
-		 ,(let ((as (trie.entries-alist t)))
+		 ,(let ((as (.entries-alist t)))
 		    (if (null? as)
 			notfound
 			`(case (string-ref ,V ,i)
 			   ,@(map (lambda-pair ((k t*))
-					  `((,k) ,(rec t* (inc i))))
+					       `((,k) ,(rec t* (inc i))))
 				  as)
 			   (else ,notfound)))))))))
 
