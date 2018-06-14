@@ -111,7 +111,12 @@
   (cond ((optim-values:maybe-lambda-exact-arity consumer)
 	 => (lambda (arity)
 	      (if (= arity 1)
+		  ;; To be fair, there *could* be values tuples of
+		  ;; length 1 (not when using |values| though);
 		  `(,consumer (,producer))
+		  ;; but definitely by way of making sure we never get
+		  ;; arity 1 for this code, we ensure we do have a
+		  ;; tuple at hands here:
 		  (with-gensym
 		   V
 		   `(##let ((,V (,producer)))
