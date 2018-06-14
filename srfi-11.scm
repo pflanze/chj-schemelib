@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+	 simple-match-1
 	 cj-phasing
 	 test
 	 ;; (cj-env-1 inc dec) cj-source, sigh
