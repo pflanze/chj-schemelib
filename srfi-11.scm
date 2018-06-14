@@ -9,6 +9,7 @@
 (require define-macro-star
 	 simple-match-1
 	 cj-phasing
+	 (optim-values %call-with-values)
 	 test
 	 ;; (cj-env-1 inc dec) cj-source, sigh
 	 (fixnum inc dec)
@@ -55,7 +56,7 @@
 		   bindform
 		   ((vars expr)
 		    (sourcify
-		     `(call-with-values (lambda ()
+		     `(%call-with-values (lambda ()
 					  ,expr)
 			(lambda ,vars
 			  ,body))
@@ -65,12 +66,12 @@
 
 (TEST
  > (expansion#let*-values (((a b) (values 1 2)) ((c d) (values (inc b) (inc a)))) c)
- (call-with-values
-     (lambda () (values 1 2))
-   (lambda (a b)
-     (call-with-values
-	 (lambda () (values (inc b) (inc a)))
-       (lambda (c d) (begin c)))))
+ (%call-with-values
+  (lambda () (values 1 2))
+  (lambda (a b)
+    (%call-with-values
+     (lambda () (values (inc b) (inc a)))
+     (lambda (c d) (begin c)))))
  > (let*-values (((a b) (values 1 2)) ((c d) (values (inc b) (inc a)))) c)
  3
  )
@@ -128,23 +129,23 @@
 	   bindform
 	   ((vars expr)
 	    (let*-values
-	     (((varmap VARS) (improper-mapfold
-			      (lambda (varmap v)
-				(let ((V (assert* symbol? v
-						  gensym)))
-				  (values (cons (cons v V)
-						varmap)
-					  V)))
-			      varmap 
-			      (source-code vars))))
-	     (cons varmap
-		   (lambda (varmap)
-		     (sourcify
-		      `(call-with-values (lambda ()
-					   ,expr)
-			 (lambda ,VARS
-			   ,(body varmap)))
-		      vars))))))))
+		(((varmap VARS) (improper-mapfold
+				 (lambda (varmap v)
+				   (let ((V (assert* symbol? v
+						     gensym)))
+				     (values (cons (cons v V)
+						   varmap)
+					     V)))
+				 varmap 
+				 (source-code vars))))
+	      (cons varmap
+		    (lambda (varmap)
+		      (sourcify
+		       `(%call-with-values (lambda ()
+					     ,expr)
+					   (lambda ,VARS
+					     ,(body varmap)))
+		       vars))))))))
        (cons '()
 	     (lambda (varmap)
 	       `((lambda ,(map car varmap)
@@ -171,17 +172,17 @@
 
  > (define TEST:equal? syntax-equal?)
  > (expansion#let-values (((one . rest) (values 100 200)) ((two . rest2) (values (inc one)))) (vector one two rest rest2))
- (call-with-values
-     (lambda () (values 100 200))
-   (lambda (GEN:one4532 . GEN:rest4531)
-     (call-with-values
-	 (lambda () (values (inc one)))
-       (lambda (GEN:two4530 . GEN:rest24529)
-	 ((lambda (one rest two rest2) (vector one two rest rest2))
-	  GEN:one4532
-	  GEN:rest4531
-	  GEN:two4530
-	  GEN:rest24529)))))
+ (%call-with-values
+  (lambda () (values 100 200))
+  (lambda (GEN:one4532 . GEN:rest4531)
+    (%call-with-values
+     (lambda () (values (inc one)))
+     (lambda (GEN:two4530 . GEN:rest24529)
+       ((lambda (one rest two rest2) (vector one two rest rest2))
+	GEN:one4532
+	GEN:rest4531
+	GEN:two4530
+	GEN:rest24529)))))
 
  )
 
@@ -239,16 +240,15 @@
 			    (let ((id* (gensym)))
 			      (lp r
 				  (cons id* out-ids)
-				  ;; XXX optimization: avoid call-with-values
-				  `(call-with-values
-				       (lambda ()
-					 ,(if force?
-					      ;; XXX optim.: avoid force overhead?
-					      `(force ,id*)
-					      id*))
-				     ;; using the 'cheap' way of recursion:
-				     (lambda-values ,*id-or-ids
-						    ,body))))
+				  `(%call-with-values
+				    (lambda ()
+				      ,(if force?
+					   ;; XXX optim.: avoid force overhead?
+					   `(force ,id*)
+					   id*))
+				    ;; using the 'cheap' way of recursion:
+				    (lambda-values ,*id-or-ids
+						   ,body))))
 			    (lp r
 				(cons *id-or-ids out-ids)
 				body))))
@@ -265,13 +265,13 @@
  (lambda (a b c) mybody)
  > ((lambda-values-expand #f) '(a (b1 b2) c) '() 'mybody)
  (lambda (a GEN:201 c)
-   (call-with-values (lambda () GEN:201) (lambda-values (b1 b2) mybody)))
+   (%call-with-values (lambda () GEN:201) (lambda-values (b1 b2) mybody)))
  > ((lambda-values-expand #f) '(a (b1 . b2) c) '() 'mybody)
  (lambda (a GEN:202 c)
-   (call-with-values (lambda () GEN:202) (lambda-values (b1 . b2) mybody)))
+   (%call-with-values (lambda () GEN:202) (lambda-values (b1 . b2) mybody)))
  > ((lambda-values-expand #f) '(a (b1 . b2) . c) '() 'mybody)
  (lambda (a GEN:71 . c)
-   (call-with-values (lambda () GEN:71) (lambda-values (b1 . b2) mybody)))
+   (%call-with-values (lambda () GEN:71) (lambda-values (b1 . b2) mybody)))
  )
 
 (define-macro* (lambda-values ids . body)
@@ -302,9 +302,9 @@
 ;; function if it is to be used in the same syntactical form.
 
 (define-macro* (apply-values f-expr arg-expr)
-  `(call-with-values (lambda ()
-		       ,arg-expr)
-     ,f-expr))
+  `(%call-with-values (lambda ()
+			,arg-expr)
+		      ,f-expr))
 
 (TEST
  > (apply-values / (values 1 3))
