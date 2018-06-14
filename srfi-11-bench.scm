@@ -20,10 +20,15 @@
 
 
 (def (srfi-11-bench-manual n)
-     (declare (not safe) (fixnum))
+     
      (repeat n
-	     (let* ((GEN:V-1130 (vector (* n n) (* (+ n 1) n)))
-		    (a (vector-ref GEN:V-1130 0))
-		    (b (vector-ref GEN:V-1130 1)))
-	       b)))
+	     (let ()
+	       (declare (not safe) (fixnum))
+	       (let* ((GEN:V-1130
+		       (let ()
+			 (declare (not safe) (fixnum))
+			 (values (* n n) (* (+ n 1) n))))
+		      (a (##vector-ref GEN:V-1130 0))
+		      (b (##vector-ref GEN:V-1130 1)))
+		 b))))
 
