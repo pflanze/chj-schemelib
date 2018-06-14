@@ -29,6 +29,9 @@
 	vectormap.alist
 	alist.vectormap
 	vectormap.set
+	vectormap.maybe-find
+	(macro @vectormap.iref-key)
+	(macro @vectormap.iref-value)
 	vectormap.maybe-ref
 	vectormap.length
 	vectormap.empty?
@@ -153,13 +156,33 @@
 		   ((flip cons) (cons c val))
 		   (alist.vectormap cmp)))))
 
-(def (vectormap.maybe-ref entries c cmp)
+(def (vectormap.maybe-find entries c cmp)
      (let* ((len (vector-length entries))
 	    (middle (arithmetic-shift len -1)))
-       (if-let ((i (vector-binsearch/start+end
-		    entries c cmp 0 middle)))
-	       (vector-ref entries (+ middle i))
-	       #f)))
+       (vector-binsearch/start+end
+	entries c cmp 0 middle)))
+
+;; to be used with vectormap.maybe-find, so as to retrieve key and
+;; value as desired; be careful not to make any mistakes here, unsafe!
+;; Just pass the same entries, and the i retrieved from
+;; vectormap.maybe-find (and before anyone shrink!s entries !)
+(defmacro (@vectormap.iref-key entries i)
+  `(let ()
+     (declare (not safe))
+     (vector-ref ,entries ,i)))
+
+(defmacro (@vectormap.iref-value entries i)
+  (with-gensyms
+   (ENTRIES I)
+   `(let ((,ENTRIES ,entries)
+	  (,I ,i))
+      (declare (fixnum) (not safe))
+      (vector-ref ,ENTRIES (+ ,I (arithmetic-shift (vector-length ,ENTRIES) -1))))))
+
+(def (vectormap.maybe-ref entries c cmp)
+     (if-let ((i (vectormap.maybe-find entries c cmp)))
+	     (@vectormap.iref-value entries i)
+	     #f))
 
 (TEST
  > (def tv '[#\a #\c #\x 10 -1 30])
