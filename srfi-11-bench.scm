@@ -18,3 +18,15 @@
      (repeat n (letv ((a b) (values (* n n) (* (+ n 1) n)))
 		     b)))
 
+
+(def (srfi-11-bench-manual n)
+     (repeat n
+	     (##let ((GEN:V-1130 ((lambda () (values (* n n) (* (+ n 1) n))))))
+		    (##if (##and (##values? GEN:V-1130)
+				 (##= (##vector-length GEN:V-1130) 2))
+			  ((lambda (GEN:a-1129 GEN:b-1128)
+			     ((lambda (a b) b) GEN:a-1129 GEN:b-1128))
+			   (##vector-ref GEN:V-1130 0)
+			   (##vector-ref GEN:V-1130 1))
+			  (optim-values:error GEN:V-1130 2)))))
+
