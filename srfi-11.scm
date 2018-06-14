@@ -9,7 +9,7 @@
 (require define-macro-star
 	 simple-match-1
 	 cj-phasing
-	 (optim-values %call-with-values)
+	 optim-values
 	 test
 	 ;; (cj-env-1 inc dec) cj-source, sigh
 	 (fixnum inc dec)
@@ -45,6 +45,8 @@
 	values?
 	values-equal?
 	values-map)
+
+(include "cj-standarddeclares.scm")
 
 
 (define-macro* (let*-values bindforms* . body)
@@ -93,7 +95,7 @@
 	   (fn state l)))))
 
 (define (values->vector v)
-  (if (##values? v)
+  (if (values? v)
       (##vector-copy v)
       (error "values->vector: not a values tuple:" v)))
 
@@ -315,18 +317,18 @@
 (define (applying-values f)
   (lambda (vals)
     (if (values? vals)
-	(case (##vector-length vals)
+	(case (@values-length vals)
 	  ((0) (f))
-	  ((1) (f (##vector-ref vals 0)))
-	  ((2) (f (##vector-ref vals 0)
-		  (##vector-ref vals 1)))
-	  ((3) (f (##vector-ref vals 0)
-		  (##vector-ref vals 1)
-		  (##vector-ref vals 2)))
-	  ((4) (f (##vector-ref vals 0)
-		  (##vector-ref vals 1)
-		  (##vector-ref vals 2)
-		  (##vector-ref vals 3)))
+	  ((1) (f (@values-ref vals 0)))
+	  ((2) (f (@values-ref vals 0)
+		  (@values-ref vals 1)))
+	  ((3) (f (@values-ref vals 0)
+		  (@values-ref vals 1)
+		  (@values-ref vals 2)))
+	  ((4) (f (@values-ref vals 0)
+		  (@values-ref vals 1)
+		  (@values-ref vals 2)
+		  (@values-ref vals 3)))
 	  (else
 	   (apply f (values->list vals))))
 	(f vals))))
@@ -404,11 +406,11 @@
 (define (values-ref v i)
   (define (err len i)
     (error "values-ref: index out of range (len,i):" len i))
-  (if (##values? v)
-      (let ((len (##vector-length v)))
+  (if (values? v)
+      (let ((len (@values-length v)))
 	(if (and (natural0? i)
 		 (< i len))
-	    (##vector-ref v i)
+	    (@values-ref v i)
 	    (err len i)))
       (if (= i 0)
 	  v
@@ -424,11 +426,11 @@
 (define 4th (lambda (<>) (values-ref <> 3)))
 (define 5th (lambda (<>) (values-ref <> 4)))
 
-(define-macro* (@fst v) `(##vector-ref ,v 0))
-(define-macro* (@snd v) `(##vector-ref ,v 1))
-(define-macro* (@3rd v) `(##vector-ref ,v 2))
-(define-macro* (@4th v) `(##vector-ref ,v 3))
-(define-macro* (@5th v) `(##vector-ref ,v 4))
+(define-macro* (@fst v) `(@values-ref ,v 0))
+(define-macro* (@snd v) `(@values-ref ,v 1))
+(define-macro* (@3rd v) `(@values-ref ,v 2))
+(define-macro* (@4th v) `(@values-ref ,v 3))
+(define-macro* (@5th v) `(@values-ref ,v 4))
 
 (TEST
  > (require (test-random)))
