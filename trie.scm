@@ -8,7 +8,7 @@
 
 ;; a trie based on a vectormap
 
-;; Requires (.cmp as well as) .list for the non-"-list" methods on the
+;; Requires .cmp as well as .list for the non-"-list" methods on the
 ;; key type.
 
 ;; XX NOTE: this currently has bad complexity for the add operation
@@ -52,7 +52,7 @@
 
   (def (Maybe-value&entries-alist->trie Maybe-value entries-alist)
        (trie Maybe-value
-	     (alist.vectormap entries-alist)))
+	     (alist.vectormap entries-alist .cmp)))
     
   (defmethod (show s)
     `(Maybe-value&entries-alist->trie
@@ -87,7 +87,7 @@
     (if (null? cs)
 	Maybe-value
 	(let-pair ((c cs*) cs)
-		  (if-let ((s* (vectormap.maybe-ref entries c)))
+		  (if-let ((s* (vectormap.maybe-ref entries c .cmp)))
 			  (trie.Maybe-ref-list s* cs*)
 			  (Nothing)))))
 
@@ -110,9 +110,10 @@
 		       (vectormap.set
 			entries
 			c
-			(rec (or (vectormap.maybe-ref entries c)
+			(rec (or (vectormap.maybe-ref entries c .cmp)
 				 empty-trie)
-			     cs*))))))))
+			     cs*)
+			.cmp)))))))
 
   (defmethod (add-list s key-cs val)
     (trie.add/set-list s key-cs val
