@@ -17,8 +17,15 @@
 	 (srfi-1 iota)
 	 test)
 
-(export (macro %call-with-values))
+(export (macro @values-ref)
+	(macro %call-with-values))
 
+
+(define-macro* (@values-ref v i)
+  ;; need unsafe mode for ##vector-ref to be compiled efficiently!
+  `(##let ()
+	  (declare (not safe))
+	  (##vector-ref ,v ,i)))
 
 
 ;; XX finally have one place for scheme syntax analysis please...
@@ -97,7 +104,7 @@
 			   (##if (##and (##values? ,V)
 					(##= (##vector-length ,V) ,arity))
 				 (,consumer ,@(map (lambda (i)
-						     `(##vector-ref ,V ,i))
+						     `(@values-ref ,V ,i))
 						   (iota arity)))
 				 (optim-values:error ,V ,arity)))))))
 	(else
@@ -110,9 +117,9 @@
  (##let ((GEN:V-3073 ((lambda () (values 3 4 5)))))
 	(##if (##and (##values? GEN:V-3073) (##= (##vector-length GEN:V-3073) 3))
 	      ((lambda (a b c) b)
-	       (##vector-ref GEN:V-3073 0)
-	       (##vector-ref GEN:V-3073 1)
-	       (##vector-ref GEN:V-3073 2))
+	       (@values-ref GEN:V-3073 0)
+	       (@values-ref GEN:V-3073 1)
+	       (@values-ref GEN:V-3073 2))
 	      (optim-values:error GEN:V-3073 3)))
  > (%call-with-values (lambda () (values 3 4 5)) (lambda (a b c) b))
  4
