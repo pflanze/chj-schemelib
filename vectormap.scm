@@ -177,7 +177,9 @@
    `(let ((,ENTRIES ,entries)
 	  (,I ,i))
       (declare (fixnum) (not safe))
-      (vector-ref ,ENTRIES (+ ,I (arithmetic-shift (vector-length ,ENTRIES) -1))))))
+      ;; XX how is the code quality of arithmetic-shift in this case?
+      (vector-ref ,ENTRIES
+		  (+ ,I (arithmetic-shift (vector-length ,ENTRIES) -1))))))
 
 (def (vectormap.maybe-ref entries c cmp)
      (if-let ((i (vectormap.maybe-find entries c cmp)))
