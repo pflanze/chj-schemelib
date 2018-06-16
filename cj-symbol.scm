@@ -1,4 +1,4 @@
-;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+	 cj-symbol-with
 	 test
 	 cj-env
 	 (fixnum inc)
@@ -29,6 +30,13 @@
 	cj-gensym-maybe-name
 	gensym-count
 	make-syntax-equal?)
+
+;;(include "cj-standarddeclares.scm")
+;; don't have cj-struct yet, so can't use ^
+(declare (block)
+         (standard-bindings)
+         (extended-bindings))
+
 
 ;; COPY to avoid circular dependency on: (cj-functional false/0)
 (define (false/0)
@@ -230,18 +238,6 @@
  )
 
 ;; related, thus put here, too:
-
-(define-macro* (with-gensyms vars . body)
-  (match-list*
-   vars
-   (vars
-    `(let ,(map (lambda (v)
-		  `(,v (gensym ',v)))
-		vars)
-       ,@body))))
-
-(define-macro* (with-gensym var . body)
-  `(with-gensyms (,var) ,@body))
 
 (define-macro* (symbol-case expr . clauses)
   (with-gensyms
