@@ -23,7 +23,7 @@
       ;; and easily used as english punctuation. Similarly, '@', ':'.
       ((char-one-of?/ "-+<>=/*#?") c)))
 
-(define (string-interpolate:expand-with str-expr converter-fn-expr)
+(define (string-interpolate:expand-with str-expr converter-expr-fn)
   (assert*
    string? str-expr
    (lambda (str)
@@ -38,82 +38,91 @@
        (let lp ((cs (string->list str))
 		(rcs '())
 		(fragments '()))
-	 (define (fragments*)
-	   (if (null? rcs)
-	       fragments
-	       (cons (list->string
-		      (reverse rcs))
-		     fragments)))
-	 (if (null? cs)
-	     `(string-append ,@(reverse (fragments*)))
-	     (let-pair
-	      ((c cs) cs)
-	      (if (eq? c #\$)
-		  (if (null? cs)
-		      (err cs "need variable name after $")
-		      (let-pair
-		       ((c cs*) cs)
-		       (case c
-			 ((#\{)
-			  (let* ((var (take-while
-				       (lambda (c)
-					 (not (eq? c #\}))) cs*))
-				 (cs (drop cs* (length var))))
-			    ;; even empty variable name is OK; even allow '{'?
-			    (if (null? cs)
-				(err cs "missing '}' after '${'")
-				(lp (cdr cs)
-				    '()
-				    (cons `(,converter-fn-expr
-					    ,(string->symbol
-					      (list->string var)))
-					  (fragments*))))))
+	 (let* ((fragments*
+		 (lambda ()
+		   (if (null? rcs)
+		       fragments
+		       (cons (list->string
+			      (reverse rcs))
+			     fragments))))
+		(lp-cs (lambda (cs var)
+			 (lp cs
+			     '()
+			     (cons (converter-expr-fn
+				    (string->symbol
+				     (list->string var)))
+				   (fragments*))))))
+	   (if (null? cs)
+	       `(string-append ,@(reverse (fragments*)))
+	       (let-pair
+		((c cs) cs)
+		(if (eq? c #\$)
+		    (if (null? cs)
+			(err cs "need variable name after $")
+			(let-pair
+			 ((c cs*) cs)
+			 (case c
+			   ((#\{)
+			    (let* ((var (take-while
+					 (lambda (c)
+					   (not (eq? c #\}))) cs*))
+				   (cs (drop cs* (length var))))
+			      ;; even empty variable name is OK; even allow '{'?
+			      (if (null? cs)
+				  (err cs "missing '}' after '${'")
+				  (lp-cs (cdr cs) var))))
 
-			 ;; XX case $( )
+			   ;; XX case $( )
 
-			 (else
-			  (let* ((var (take-while
-				       string-interpolate:variable-char? cs))
-				 (cs (drop cs (length var))))
-			    (if (null? var)
-				(err cs "invalid variable name after $ -- use ${ } for names containing unusual characters")
-				(lp cs
-				    '()
-				    (cons `(,converter-fn-expr
-					    ,(string->symbol
-					      (list->string var)))
-					  (fragments*)))))))))
-		  (lp cs (cons c rcs) fragments)))))))))
+			   (else
+			    (let* ((var (take-while
+					 string-interpolate:variable-char? cs))
+				   (cs (drop cs (length var))))
+			      (if (null? var)
+				  (err cs "invalid variable name after $ -- use ${ } for names containing unusual characters")
+				  (lp-cs cs var)))))))
+		    (lp cs (cons c rcs) fragments))))))))))
 
 (TEST
- > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo $ " '.string)))
+ > (define (t.string v)
+     `(.string ,v))
+ > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo $ " t.string)))
  "(at char pos 5) invalid variable name after $ -- use ${ } for names containing unusual characters"
- > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo $" '.string)))
+ > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo $" t.string)))
  "(at char pos 5) need variable name after $"
- > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo $ {abc} d" '.string)))
+ > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo $ {abc} d" t.string)))
  "(at char pos 5) invalid variable name after $ -- use ${ } for names containing unusual characters"
- > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo ${abc d" '.string)))
+ > (with-exception-catcher source-error-message (& (string-interpolate:expand-with "foo ${abc d" t.string)))
  "(at char pos 11) missing '}' after '${'"
  
- > (string-interpolate:expand-with "foo $a" '.string)
+ > (string-interpolate:expand-with "foo $a" t.string)
  (string-append "foo " (.string a))
- > (string-interpolate:expand-with "foo $abc d" '.string)
+ > (string-interpolate:expand-with "foo $abc d" t.string)
  (string-append "foo " (.string abc) " d")
- > (string-interpolate:expand-with "foo ${abc} d" '.string)
+ > (string-interpolate:expand-with "foo ${abc} d" t.string)
  (string-append "foo " (.string abc) " d")
- > (string-interpolate:expand-with "foo ${abc }d" '.string)
+ > (string-interpolate:expand-with "foo ${abc }d" t.string)
  (string-append "foo " (.string |abc |) "d")
- > (string-interpolate:expand-with "foo ${abc{ }d" '.string)
+ > (string-interpolate:expand-with "foo ${abc{ }d" t.string)
  ;; XX worrysome, really allow?
  (string-append "foo " (.string |abc{ |) "d"))
 
 
 
-(define-macro* ($ str #!optional (converter-fn '.string))
-  (string-interpolate:expand-with str converter-fn))
+(define-macro* ($ str #!optional converter-fn)
+  (string-interpolate:expand-with
+   str
+   (if converter-fn (lambda (e)
+		      `(,converter-fn ,e))
+       identity)))
 
 (TEST
  > (define bar-world 11)
- > ($ "foo $bar-world, you")
- "foo 11, you")
+ > (with-exception-catcher type-exception? (& ($ "foo $bar-world, you")))
+ #t
+ > ($ "foo $bar-world, you" number->string)
+ "foo 11, you"
+ > (define world "World")
+ > ($ "Hello $world!")
+ "Hello World!")
 
