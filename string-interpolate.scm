@@ -13,7 +13,7 @@
 	 test)
 
 (export (macro string-interpolate)
-	(macro $))
+	(macro $$))
 
 (include "cj-standarddeclares.scm")
 
@@ -126,7 +126,7 @@
 	 (error "string-interpolate:to-string: don't know how to handle:"
 		v))))
 
-(define-macro* ($ str)
+(define-macro* ($$ str)
   (string-interpolate:expand-with
    str
    (lambda (e)
@@ -139,11 +139,11 @@
  #t
  > (string-interpolate "foo $bar-world, you" number->string)
  "foo 11, you"
- > ($ "foo $bar-world, you")
+ > ($$ "foo $bar-world, you")
  "foo 11, you"
  > (define world "World")
  > (string-interpolate "Hello $world!")
  "Hello World!"
- > ($ "Hello $world!")
+ > ($$ "Hello $world!")
  "Hello World!")
 

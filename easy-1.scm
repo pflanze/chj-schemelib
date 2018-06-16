@@ -48,8 +48,7 @@
 	(macro modimport/prefix)
 	(macro lambda)
 	(macro let)
-	(macro $) ;; re-export
-	(macro $.)
+	(macro $)
 	
 	#!optional
 	module-symbol?)
@@ -409,11 +408,11 @@
  3)
 
 
-(defmacro ($. str)
+(defmacro ($ str)
   `(string-interpolate ,str .string))
 
 (TEST
  > (define bar-world 11)
- > ($. "foo $bar-world, you")
+ > ($ "foo $bar-world, you")
  "foo 11, you")
 
