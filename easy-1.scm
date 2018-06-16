@@ -15,6 +15,7 @@
 	 (cj-source-wraps source:symbol-append)
 	 (enum define-enum)
 	 (cj-source-quasiquote quasiquote-source)
+	 (string-interpolate $)
 	 test
 	 (test-random %try-syntax-error)
 	 (string-util-2 string-any)
@@ -47,6 +48,8 @@
 	(macro modimport/prefix)
 	(macro lambda)
 	(macro let)
+	(macro $) ;; re-export
+	(macro $.)
 	
 	#!optional
 	module-symbol?)
@@ -404,3 +407,13 @@
  2
  > (let ((a 2) (b 3)) b)
  3)
+
+
+(defmacro ($. str)
+  `($ ,str .string))
+
+(TEST
+ > (define bar-world 11)
+ > ($. "foo $bar-world, you")
+ "foo 11, you")
+
