@@ -7,7 +7,8 @@
 
 
 (require cj-source
-	 (scheme-meta self-quoting?))
+	 (scheme-meta self-quoting?)
+	 test)
 
 (export (macros assert
 		assert-privately
