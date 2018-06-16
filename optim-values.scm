@@ -20,7 +20,8 @@
 
 (export (macro @values-ref)
 	(macro @values-length)
-	(macro %call-with-values))
+	(macro %call-with-values)
+	(macro receive))
 
 (include "cj-standarddeclares.scm")
 
@@ -128,4 +129,15 @@
 	 (fallback))))
 
 ;; tests see optim-values-test.scm
+
+
+;; Note: not using ##lambda so as to allow for unhygienically binding
+;; |lambda| from easy-1.scm for typed etc. (fun how this is enabling, in
+;; such an uncomplicated way, well. Hack or clean? They call it
+;; unhygienic.)
+(define-macro* (receive vars generator . body)
+  `(%call-with-values (lambda ()
+			,generator)
+		      (lambda ,vars
+			,@body)))
 
