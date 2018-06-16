@@ -12,7 +12,8 @@
 	 char-util
 	 test)
 
-(export (macro $))
+(export (macro string-interpolate)
+	(macro $))
 
 (include "cj-standarddeclares.scm")
 
@@ -109,20 +110,40 @@
 
 
 
-(define-macro* ($ str #!optional converter-fn)
+(define-macro* (string-interpolate str #!optional converter-fn)
   (string-interpolate:expand-with
    str
-   (if converter-fn (lambda (e)
-		      `(,converter-fn ,e))
+   (if converter-fn
+       (lambda (e)
+	 `(,converter-fn ,e))
        identity)))
+
+
+(define (string-interpolate:to-string v)
+  (cond ((string? v) v)
+	((number? v) (number->string v))
+	(else
+	 (error "string-interpolate:to-string: don't know how to handle:"
+		v))))
+
+(define-macro* ($ str)
+  (string-interpolate:expand-with
+   str
+   (lambda (e)
+     `(string-interpolate:to-string ,e))))
 
 (TEST
  > (define bar-world 11)
- > (with-exception-catcher type-exception? (& ($ "foo $bar-world, you")))
+ > (with-exception-catcher type-exception?
+			   (& (string-interpolate "foo $bar-world, you")))
  #t
- > ($ "foo $bar-world, you" number->string)
+ > (string-interpolate "foo $bar-world, you" number->string)
+ "foo 11, you"
+ > ($ "foo $bar-world, you")
  "foo 11, you"
  > (define world "World")
+ > (string-interpolate "Hello $world!")
+ "Hello World!"
  > ($ "Hello $world!")
  "Hello World!")
 

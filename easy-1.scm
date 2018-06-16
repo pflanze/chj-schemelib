@@ -15,7 +15,7 @@
 	 (cj-source-wraps source:symbol-append)
 	 (enum define-enum)
 	 (cj-source-quasiquote quasiquote-source)
-	 (string-interpolate $)
+	 string-interpolate
 	 test
 	 (test-random %try-syntax-error)
 	 (string-util-2 string-any)
@@ -410,7 +410,7 @@
 
 
 (defmacro ($. str)
-  `($ ,str .string))
+  `(string-interpolate ,str .string))
 
 (TEST
  > (define bar-world 11)
