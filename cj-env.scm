@@ -12,7 +12,8 @@
 	 test
 	 cj-source ;; cj-env-1 included in cj-source
 	 fixnum
-	 (cj-source show-procedure-location))
+	 (cj-source show-procedure-location)
+	 on)
 
 (export (macro IF)
 	(macro If)
@@ -32,8 +33,8 @@
 	int64?  
 	int128? 
 	make-list
-	(macro first-then/)
-	(macro on)
+	(macro first-then/) ;; re-export
+	(macro on) ;; re-export
 	(macro on/registry) ;; "hack", ?
 	(macro path-normalize/origin=source)
 	equal?*
@@ -183,29 +184,6 @@
 
 ;; /move
 
-(both-times
- (define (make-list n v)
-   (let lp ((n n)
-	    (res '()))
-     (if (positive? n)
-	 (lp (dec n)
-	     (cons v res))
-	 res))))
-
-(define-macro* (first-then/ arity* access cmp)
-  (let ((arity (eval arity*)))
-    (if (natural? arity)
-	(let* ((VARS (map gensym (make-list arity 'v)))
-	       (lam (lambda (ACCESS)
-		      `(lambda ,VARS
-			 (,cmp ,@(map (lambda (V)
-					`(,ACCESS ,V))
-				      VARS))))))
-	  (if (symbol? (source-code access))
-	      (lam access)
-	      (let ((ACCESS (gensym 'access)))
-		`(let ((,ACCESS ,access))
-		   ,(lam ACCESS))))))))
 
 (TEST
  > (define TEST:equal? syntax-equal?)
@@ -215,10 +193,6 @@
  (let ((GEN:access-3304 (foo)))
    (lambda (GEN:v-3302 GEN:v-3303)
      ((bar) (GEN:access-3304 GEN:v-3302) (GEN:access-3304 GEN:v-3303)))))
-
-(define-macro* (on access cmp)
-  `(first-then/ 2 ,access ,cmp))
-
 
 
 ;; Hack only because can't analyze code yet :(
