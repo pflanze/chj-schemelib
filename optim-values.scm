@@ -13,13 +13,26 @@
 
 (require define-macro-star
 	 (cj-source-util schemedefinition-arity:pattern->template)
-	 cj-symbol
-	 (srfi-1 iota)
-	 test)
+	 cj-symbol-with
+	 ;;(srfi-1 iota) avoid
+	 ;;test  avoid, see optim-values-test.scm
+	 )
 
 (export (macro @values-ref)
 	(macro @values-length)
 	(macro %call-with-values))
+
+(include "cj-standarddeclares.scm")
+
+;; simplified copy from srfi-1 to avoid dependency
+(define (iota count)
+  (define step 1)
+  (define start 0) ;; huh wow why does it not start with n == start ?
+  (let loop ((n 0) (r '()))
+    (if (= n count)
+	(reverse r)
+	(loop (+ 1 n)
+	      (cons (+ start (* n step)) r)))))
 
 
 (define-macro* (@values-ref v i)
@@ -49,16 +62,7 @@
 (define (optim-values:lambda? v)
   (and (optim-values:maybe-lambda-binds v) #t))
 
-(TEST
- > (optim-values:lambda? '(lambda ()))
- #t
- > (cj-desourcify (optim-values:maybe-lambda-binds '(lambda (x))))
- (x)
- > (optim-values:lambda? '(##lambda (x)))
- #t
- ;; well:
- > (optim-values:lambda? '(lambda-values (x)))
- #f)
+;; tests see optim-values-test.scm
 
 
 (define (optim-values:maybe-lambda-exact-arity v)
@@ -71,18 +75,7 @@
 		     (vector-ref t 1)))))
 	(else #f)))
 
-(TEST
- > (optim-values:maybe-lambda-exact-arity '(lambda ()))
- 0
- > (optim-values:maybe-lambda-exact-arity '(lambda (x a b)))
- 3
- > (optim-values:maybe-lambda-exact-arity '(lambda (x a . b)))
- #f
- > (optim-values:maybe-lambda-exact-arity '(lambda (x a #!optional b)))
- #f
- ;; well:
- > (optim-values:maybe-lambda-exact-arity '(lambda-pair (a)))
- #f)
+;; tests see optim-values-test.scm
 
 
 (define (optim-values:error val expected-arity)
@@ -134,30 +127,5 @@
 	(else
 	 (fallback))))
 
-
-(TEST
- > (define TEST:equal? syntax-equal?)
- > (expansion#%call-with-values (lambda () (values 3 4 5)) (lambda (a b c) b))
- (##let ((GEN:V-3073 ((lambda () (values 3 4 5)))))
-	(##if (##let ()
-		     (##declare
-                      (block)
-                      (standard-bindings)
-                      (extended-bindings)
-                      (not safe)
-                      (fixnum))
-		     (##namespace ("" and values? =))
-		     (and (values? GEN:V-3073)
-			  (= (@values-length GEN:V-3073) 3)))
-	      ((lambda (a b c) b)
-	       (@values-ref GEN:V-3073 0)
-	       (@values-ref GEN:V-3073 1)
-	       (@values-ref GEN:V-3073 2))
-	      (optim-values:error GEN:V-3073 3)))
- > (%call-with-values (lambda () (values 3 4 5)) (lambda (a b c) b))
- 4
- > (expansion#%call-with-values (lambda () (values 3 4 5)) (lambda (a b . c) b))
- (call-with-values (lambda () (values 3 4 5)) (lambda (a b . c) b))
- > (%call-with-values (lambda () (values 3 4 5)) (lambda (a b . c) b))
- 4)
+;; tests see optim-values-test.scm
 
