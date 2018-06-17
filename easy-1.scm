@@ -408,11 +408,11 @@
  3)
 
 
-(defmacro ($ str)
-  `(string-interpolate ,str .string))
+(defmacro ($ . exprs)
+  `(string-interpolate .string ,@exprs))
 
 (TEST
  > (define bar-world 11)
- > ($ "foo $bar-world, you")
- "foo 11, you")
+ > ($ "foo" " $bar-world, you" 12 (inc 13))
+ "foo 11, you1214")
 
