@@ -409,10 +409,25 @@
 
 
 (defmacro ($ . exprs)
-  `(string-interpolate .string ,@exprs))
+  `(string-interpolate (##lambda (v)
+			    (##if (##let ()
+					 (##declare (block)
+						    (standard-bindings)
+						    (extended-bindings)
+						    (not safe) (fixnum))
+					 (##namespace (""))
+					 (string? v))
+				  v
+				  (.string v)))
+		       ,@exprs))
 
 (TEST
  > (define bar-world 11)
  > ($ "foo" " $bar-world, you" 12 (inc 13))
- "foo 11, you1214")
+ "foo 11, you1214"
+ > (let ((foo#bar-world 100))
+     (##namespace ("foo#"))
+     (##namespace ("" $ string-interpolate string-append .string inc fx+))
+     ($ "foo" " $bar-world, you" 12 (inc 13)))
+ "foo 100, you1214")
 
