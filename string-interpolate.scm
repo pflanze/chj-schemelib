@@ -60,33 +60,41 @@
 		    (rappend (fragments*) tail)
 		    (let-pair
 		     ((c cs) cs)
-		     (if (eq? c #\$)
-			 (if (null? cs)
-			     (err cs "need variable name after $")
-			     (let-pair
-			      ((c cs*) cs)
-			      (case c
-				((#\{)
-				 (let* ((var (take-while
-					      (lambda (c)
-						(not (eq? c #\}))) cs*))
-					(cs (drop cs* (length var))))
-				   ;; even empty variable name is OK;
-				   ;; even allow '{'?
-				   (if (null? cs)
-				       (err cs "missing '}' after '${'")
-				       (lp-cs (cdr cs) var))))
+		     (case c
+		       ((#\$)
+			(if (null? cs)
+			    (err cs "need variable name after $")
+			    (let-pair
+			     ((c cs*) cs)
+			     (case c
+			       ((#\{)
+				(let* ((var (take-while
+					     (lambda (c)
+					       (not (eq? c #\}))) cs*))
+				       (cs (drop cs* (length var))))
+				  ;; even empty variable name is OK;
+				  ;; even allow '{'?
+				  (if (null? cs)
+				      (err cs "missing '}' after '${'")
+				      (lp-cs (cdr cs) var))))
 
-				;; XX case $( )
+			       ;; XX case $( )
 
-				(else
-				 (let* ((var (take-while
-					      string-interpolate:variable-char? cs))
-					(cs (drop cs (length var))))
-				   (if (null? var)
-				       (err cs "invalid variable name after $ -- use ${ } for names containing unusual characters")
-				       (lp-cs cs var)))))))
-			 (lp cs (cons c rcs) fragments)))))))
+			       (else
+				(let* ((var (take-while
+					     string-interpolate:variable-char? cs))
+				       (cs (drop cs (length var))))
+				  (if (null? var)
+				      (err cs "invalid variable name after $ -- use ${ } for names containing unusual characters")
+				      (lp-cs cs var))))))))
+		       ((#\\)
+			(if (null? cs)
+			    (err cs "need character after \\")
+			    (let-pair
+			     ((c cs) cs)
+			     (lp cs (cons c rcs) fragments))))
+		       (else
+			(lp cs (cons c rcs) fragments))))))))
 	  (cons (converter-expr-fn expr*) tail)))))
 
 (define (string-interpolate-expand-with converter-fn-expr exprs)
@@ -154,6 +162,10 @@
  "Hello World!"
  > ($$ "Hello $world!")
  "Hello World!"
+ > ($$ "Hello \\$world!")
+ "Hello $world!"
+ > ($$ "Hel\\lo\\\\$world \\$world!")
+ "Hello\\World $world!"
 
  > (define bar-world 11)
  > ($$ "foo" " $bar-world, you" 12 (inc 13))
