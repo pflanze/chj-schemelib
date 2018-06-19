@@ -68,15 +68,28 @@
 			     ((c cs*) cs)
 			     (case c
 			       ((#\{)
-				(let* ((var (take-while
-					     (lambda (c)
-					       (not (eq? c #\}))) cs*))
-				       (cs (drop cs* (length var))))
-				  ;; even empty variable name is OK;
-				  ;; even allow '{'?
+				;; even empty variable name is OK;
+				;; even allow '{'. Handle escaping
+				;; here, too.
+				(let getvar ((rvar '())
+					     (cs cs*))
 				  (if (null? cs)
+				      ;; say "non-escaped"?
 				      (err cs "missing '}' after '${'")
-				      (lp-cs (cdr cs) var))))
+				      (let-pair
+				       ((c cs) cs)
+				       (case c
+					 ((#\})
+					  (lp-cs cs (reverse rvar)))
+					 ((#\\)
+					  (if (null? cs)
+					      (err cs "need character after \\ within { }")
+					      (let-pair
+					       ((c cs) cs)
+					       (getvar (cons c rvar) cs))))
+					 (else
+					  (getvar (cons c rvar)
+						  cs)))))))
 
 			       ;; XX case $( )
 
@@ -166,6 +179,21 @@
  "Hello $world!"
  > ($$ "Hel\\lo\\\\$world \\$world!")
  "Hello\\World $world!"
+ > (define |a}b| 10)
+ > (define |a| "A")
+ > ($$ "Hello ${a}b} ${a\\}b}!")
+ "Hello Ab} 10!"
+ > (with-exception-catcher source-error-message (& (eval '($$ "${foo\\"))))
+ "(at char pos 6) need character after \\ within { }"
+ > (with-exception-catcher source-error-message (& (eval '($$ "${foo\\f"))))
+ "(at char pos 7) missing '}' after '${'"
+ > (define wo "hm")
+ > ($$ "Hello $wo\\rld!")
+ ;; hm, OK to let this "slide", since, makes search/replace of
+ ;; variable names more difficult if supported, and, using this trick
+ ;; to cut off variable name might actually come in handy (alternative
+ ;; to { })
+ "Hello hmrld!"
 
  > (define bar-world 11)
  > ($$ "foo" " $bar-world, you" 12 (inc 13))
