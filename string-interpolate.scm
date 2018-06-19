@@ -21,8 +21,10 @@
   (or (char-alphanumeric? c)
       ;; do not allow '!', '.', ',', as those shouldn't be likely ('!'
       ;; and '.'  being used for procedure names hence unprintable)
-      ;; and easily used as english punctuation. Similarly, '@', ':'.
-      ((char-one-of?/ "-+<>=/*#?") c)))
+      ;; and easily used as english punctuation. Similarly, '@',
+      ;; ':'. '=' is used for "$a=$b" style stuff, and '/' for
+      ;; "$a/$b"..
+      ((char-one-of?/ "-+<>*#?") c)))
 
 (define (string-interpolate:expand/ converter-expr-fn)
   (lambda (expr* tail)
