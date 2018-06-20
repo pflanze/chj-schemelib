@@ -48,15 +48,16 @@ auto_gdb_handler(int signum) {
         {
             char procpath[200];
             snprintf(procpath, 200, \"/proc/%s/exe\", pidstr);
-            ssize_t i= readlink(procpath, exepath, EXEPATH_SIZE);
+            ssize_t i= readlink(procpath, exepath, EXEPATH_SIZE-1);
             if (i < 0) {
                 perror(\"readlink\");
             }
-            if (i >= EXEPATH_SIZE) {
+            if (i >= (EXEPATH_SIZE-1)) {
                 fprintf(stderr, \"readlink: buffer too short, truncated\\n\");
                 fclose(stderr);
                 _exit(77);
             }
+            exepath[i]=0;
         }
         char* gdbpath= \"gdb\";
         char* cmd[]= { gdbpath, exepath, pidstr, NULL };
