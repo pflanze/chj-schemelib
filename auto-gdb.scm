@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 static struct sigaction original_segv_action;
 
@@ -37,7 +38,12 @@ auto_gdb_handler(int signum) {
         perror(\"fork\");
     }
     if (pid) {
-        while(1) { sleep(1); };
+        int wstatus;
+        waitpid(pid, &wstatus, 0);
+        // XX instead call original_segv_action.sa_handler (in
+        // the original context? How?)
+        sigaction(SIGSEGV, &original_segv_action, NULL);
+        kill(errpid, SIGSEGV);
     } else {
         char pidstr[100];
         snprintf(pidstr, 100, \"%i\", errpid);
