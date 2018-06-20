@@ -7,10 +7,17 @@
 
 
 (require define-macro-star
+	 (fixnum-more fixnum-natural0?)
 	 cj-symbol)
 
 (export (macro memcmp:@string=?) memcmp:@string=?-function
-	(macro memcmp:string=?) memcmp:string=?-function)
+	(macro memcmp:string=?) memcmp:string=?-function
+	(macro memcmp:@substring=?) memcmp:@substring=?-function
+	(macro memcmp:substring=?) memcmp:substring=?-function)
+
+(compile-time
+ (assert (mod:compiled?)))
+
 
 (include "cj-standarddeclares.scm")
 
@@ -53,9 +60,6 @@ if (l1==l2) {
       `(memcmp:string=?-function ,s1 ,s2)))
 
 
-(compile-time
- (assert (mod:compiled?)))
-
 (use-memcmp)
 
 (define (memcmp:@string=?-function s1 s2)
@@ -65,3 +69,53 @@ if (l1==l2) {
   (memcmp:string=? s1 s2))
 
 
+(define-macro* (memcmp:@substring=? s1 i1 s2 i2 len)
+  (if (mod:compiled?)
+      `(##c-code "
+___WCHAR* s1= ___CAST(___WCHAR*,___BODY(___ARG1));
+int i1= ___INT(___ARG2);
+___WCHAR* s2= ___CAST(___WCHAR*,___BODY(___ARG3));
+int i2= ___INT(___ARG4);
+int len= ___INT(___ARG5);
+
+int l1= ___INT(___STRINGLENGTH(___ARG1));
+int l2= ___INT(___STRINGLENGTH(___ARG3));
+
+if (((i1 + len) <= l1) && ((i2 + len) <= l2)) {
+    ___RESULT= memcmp(&(s1[i1]), &(s2[i2]), len*4)==0
+                 ? ___TRU : ___FAL;
+} else {
+    ___RESULT= ___FAL;
+}
+" ,s1 ,i1 ,s2 ,i2 ,len)
+      `(memcmp:@substring=?-function ,s1 ,i1 ,s2 ,i2 ,len)))
+
+(define (memcmp:@substring=?-function s1 i1 s2 i2 len)
+  (memcmp:@substring=? s1 i1 s2 i2 len))
+
+
+(define (memcmp:substring=?-error s1 i1 s2 i2 len)
+  (error "memcmp:substring=?: need string, natural0 (start), string, natural0 (start), natural0 (len):" s1 i1 s2 i2 len))
+
+(define-macro* (memcmp:substring=? s1 i1 s2 i2 len)
+  (if (mod:compiled?)
+      (with-gensyms
+       (S1 I1 S2 I2 LEN)
+       `(let ((,S1 ,s1)
+	      (,I1 ,i1)
+	      (,S2 ,s2)
+	      (,I2 ,i2)
+	      (,LEN ,len))
+	  (if (and (string? ,S1)
+		   (fixnum-natural0? ,I1)
+		   (string? ,S2)
+		   (fixnum-natural0? ,I2)
+		   (fixnum-natural0? ,LEN))
+	      ;; overflow check is being done in memcmp:@substring=?
+	      (memcmp:@substring=? ,S1 ,I1 ,S2 ,I2 ,LEN)
+	      (memcmp:substring=?-error ,S1 ,I1 ,S2 ,I2 ,LEN))))
+      `(memcmp:substring=?-function ,s1 ,i1 ,s2 ,i2 ,len)))
+
+
+(define (memcmp:substring=?-function s1 i1 s2 i2 len)
+  (memcmp:substring=? s1 i1 s2 i2 len))
