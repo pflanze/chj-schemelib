@@ -19,6 +19,7 @@
 	 ;; debuggable-promise-everywhere now which is optional.
 	 (lazy-debug S)
 	 cj-source
+	 (string-util-2 string-starts-with? string-ends-with?)
 	 test)
 
 
@@ -77,8 +78,12 @@
 		;; location
 		location-container
 		location-line&column)
-  (make-source code (make-location location-container
-				   location-line&column)))
+  (let ((c (if (string? location-container)
+	       (if (string-starts-with? location-container "/")
+		   location-container
+		   (path-normalize location-container))
+	       location-container)))
+    (make-source code (make-location c location-line&column))))
 
 (define (@source-location-container s)
   (vector-ref s 2))
@@ -86,9 +91,22 @@
   (vector-ref s 3))
 ;; /move
 
+
+(define (show:path-show-relative s)
+  (let ((dir (current-directory)))
+    (assert (string-ends-with? dir "/"))
+    ;; and absolute, too:
+    (assert (string-starts-with? dir "/"))
+    (if (string-starts-with? s dir)
+	(substring s (string-length dir) (string-length s))
+	s)))
+
 (define. (source.show v)
   `(source ,(.show (source-code v))
-	   ,(@source-location-container v)
+	   ,(let ((c (@source-location-container v)))
+	      (if (string? c)
+		  (show:path-show-relative c)
+		  c))
 	   ,(@source-location-line&column v)))
 
 
