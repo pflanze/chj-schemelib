@@ -18,6 +18,7 @@
 	 ;; ^ now we have to always load it. But, have
 	 ;; debuggable-promise-everywhere now which is optional.
 	 (lazy-debug S)
+	 cj-source
 	 test)
 
 
@@ -27,6 +28,8 @@
 	#!optional
 	toplevel-procedure?
 	struct-values)
+
+(include "cj-standarddeclares.scm")
 
 
 (define. (self-quoting.show v)
@@ -59,6 +62,34 @@
 ;; good or bad idea?
 (define. (void.show v)
   `(void))
+
+
+;; XX should rename original ones instead? anyway, move to cj-source.scm
+;; (define source make-source)
+;; (define location make-location)
+;; (define position make-position)
+;; (define position* make-position*)
+;; or actually use a different constructor than make-source, given its flat representation.
+
+;;(define source:tag '[source1]) sigh, don't have it
+
+(define (source code
+		;; location
+		location-container
+		location-line&column)
+  (make-source code (make-location location-container
+				   location-line&column)))
+
+(define (@source-location-container s)
+  (vector-ref s 2))
+(define (@source-location-line&column s)
+  (vector-ref s 3))
+;; /move
+
+(define. (source.show v)
+  `(source ,(.show (source-code v))
+	   ,(@source-location-container v)
+	   ,(@source-location-line&column v)))
 
 
 ;; XX move? to predicates or rather cj-gambit-sys?
