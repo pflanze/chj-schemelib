@@ -29,6 +29,8 @@
 	source.map
 	source.improper*-map)
 
+(include "cj-standarddeclares.scm")
+
 
 (define (source-wrap-1 fn)
   (lambda (x)

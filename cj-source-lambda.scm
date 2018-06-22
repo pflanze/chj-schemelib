@@ -19,6 +19,9 @@
 	#!optional
 	source.list-of-length-2?)
 
+(include "cj-standarddeclares.scm")
+
+
 ;; XX move somewhere?
 (define (source.list-of-length-2? v)
   (let ((v (source-code v)))

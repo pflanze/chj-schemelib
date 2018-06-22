@@ -18,6 +18,8 @@
 	(macro quote-source-list)
 	(macro enable-unquoting))
 
+(include "cj-standarddeclares.scm")
+
 
 (define (source-quasiquote-run u8vec alis)
   ;; alis is list of (symbol splice? . val)

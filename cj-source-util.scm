@@ -10,6 +10,16 @@
 
 (require)
 
+(export schemedefinition-arity:template->checker
+	schemedefinition-arity:pattern->template
+	schemedefinition-arity-checker
+	;;via (include "improper-length.scm"), already in cj-source:
+	;; improper-length 
+	safer-apply)
+
+(include "cj-standarddeclares-1--include.scm")
+
+
 ;; tests see cj-source-util-test.scm
 
 

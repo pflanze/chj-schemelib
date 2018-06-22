@@ -20,6 +20,8 @@
 	(macros with-source
 		with-source*))
 
+(include "cj-standarddeclares-1--include.scm")
+
 
 (define (maybe-if-form-1ary-head v then)
   (and (pair? v)

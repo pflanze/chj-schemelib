@@ -2,6 +2,14 @@
 	 (fixnum inc)
 	 test)
 
+(export vector-equal?
+	source-equal?
+	(macro template:quote)
+	(macro force-source-code))
+
+
+(include "cj-standarddeclares.scm")
+
 
 (define (vector-equal? equal? a b)
   (let ((la (vector-length a))
