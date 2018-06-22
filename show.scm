@@ -74,16 +74,19 @@
 
 ;;(define source:tag '[source1]) sigh, don't have it
 
-(define (source code
-		;; location
-		location-container
-		location-line&column)
+(define (source* code
+		 ;; location
+		 location-container
+		 location-line
+		 location-column)
   (let ((c (if (string? location-container)
 	       (if (string-starts-with? location-container "/")
 		   location-container
 		   (path-normalize location-container))
 	       location-container)))
-    (make-source code (make-location c location-line&column))))
+    (make-source code (make-location c (make-position
+					location-line
+					location-column)))))
 
 (define (@source-location-container s)
   (vector-ref s 2))
@@ -102,12 +105,14 @@
 	s)))
 
 (define. (source.show v)
-  `(source ,(.show (source-code v))
-	   ,(let ((c (@source-location-container v)))
-	      (if (string? c)
-		  (show:path-show-relative c)
-		  c))
-	   ,(@source-location-line&column v)))
+  (let ((lc (@source-location-line&column v)))
+    `(source* ,(.show (source-code v))
+	      ,(let ((c (@source-location-container v)))
+		 (if (string? c)
+		     (show:path-show-relative c)
+		     c))
+	      ,(position-line lc)
+	      ,(position-column lc))))
 
 
 ;; XX move? to predicates or rather cj-gambit-sys?
