@@ -6,25 +6,12 @@
 ;;;    (at your option) any later version.
 
 
-;; A matcher for static strings that implements the search via trie
-;; like static code branching.
-
-;; Wasteful for code size, for sure, especially with long match
-;; keys. Only meant to be used with short keys and when it's used in a
-;; hot path.
-
-;; Obvious potential optimizations:
-
-;; - check string length for possible matches before going down
-;;   further? (only reasonably possible when there's only one string
-;;   left?)
-
-;; - or rather right away: in the 'last mile' use memcmp for the whole
-;;   of the remainder (and also something similar for the intermediate
-;;   stretches?)
+;; A matcher for static strings that implements the search via radix
+;; tree like static code branching.
 
 (require easy
-	 trie)
+	 radixtree
+	 memcmp)
 
 (export (macro string-case)
 	#!optional
@@ -46,7 +33,7 @@
       (LEN)
       `(let* ((,LEN (string-length ,V)))
 	 (declare (fixnum) (not safe))
-	 ,(let rec ((t (alist.trie
+	 ,(let rec ((t (alist.radixtree
 			(map
 			 (lambda (c)
 			   (assert*
@@ -72,11 +59,38 @@
 				(perhaps-let exprs)
 				notfound)
 		 ,(let ((as (.entries-alist t)))
+		    (def (rec-segment t* segment i*)
+			 (let* ((len (string-length segment)))
+			   (if (zero? len)
+			       ;; no remainder to compare
+			       (rec t* i*)
+			       ;; compare remainder
+			       `(if ,(if (= len 1)
+					 `(eq? (string-ref ,V ,i*)
+					       ,(string-ref segment 0))
+					 `(memcmp:@substring=?
+					   ,V
+					   ,i*
+					   ,segment
+					   0
+					   ,len))
+				    ,(rec t* (+ i* len))
+				    ,notfound))))
 		    (if (null? as)
 			notfound
+			;; multiple comparisons: since each has to use a
+			;; different starting character, dispatch on
+			;; that character first using case, then compare
+			;; with the rest of the string (if any)
 			`(case (string-ref ,V ,i)
-			   ,@(map (lambda-pair ((k t*))
-					       `((,k) ,(rec t* (inc i))))
+			   ,@(map (lambda-pair
+				   ((k t*))
+				   (let-pair
+				    ((k0 k*) (vector.list k))
+				    `((,k0)
+				      ,(rec-segment t*
+						    (list->string k*)
+						    (inc i)))))
 				  as)
 			   (else ,notfound)))))))))
 
