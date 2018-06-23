@@ -82,7 +82,10 @@
   (let ((c (if (string? location-container)
 	       (if (string-starts-with? location-container "/")
 		   location-container
-		   (path-normalize location-container))
+		   ;; do not use path-normalize here, makes a test
+		   ;; like (equal? (eval (.show matchcases))
+		   ;; matchcases) fail:
+		   (string-append (current-directory) location-container))
 	       location-container)))
     (make-source code (make-location c (make-position
 					location-line
@@ -113,6 +116,11 @@
 		     c))
 	      ,(position-line lc)
 	      ,(position-column lc))))
+
+;; XX add tests!!
+;; > (equal? (eval (.show matchcases)) matchcases)
+;; #t
+
 
 
 ;; XX move? to predicates or rather cj-gambit-sys?
