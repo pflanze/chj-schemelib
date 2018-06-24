@@ -37,6 +37,7 @@
 	"hello lovely world how are you today? it's been a long way.")))
 
 (def (t1 v)
+     (declare (fixnum) (not safe))
      (enable-unquoting
       (string-case v
 		   ,@(map (lambda (str)
@@ -45,6 +46,7 @@
 		   (else 'nomatch))))
 
 (def (t2 v)
+     (declare (fixnum) (not safe))
      (enable-unquoting
       (cond ,@(map (lambda (str)
 		     `((string=? v ,str) ',(.symbol str)))
