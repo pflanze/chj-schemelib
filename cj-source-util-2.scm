@@ -215,7 +215,8 @@
 
 (define-macro* (with-source* vars . body)
   `(let ,(source-map (lambda (var)
-		       `(,(symbol-append (source-code var) "*") (source-code ,var)))
+		       `(,(symbol-append (source-code var) "*")
+			 (source-code ,var)))
 		     vars)
      ,@body))
 
