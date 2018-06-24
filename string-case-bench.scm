@@ -34,10 +34,14 @@
 	"not"
 	"int"
 	"hello world"
-	"hello lovely world how are you today? it's been a long way.")))
+	"hello lovely world how are you today? it's been a long way."))
+
+ (def string-case-bench:safe #t))
+
 
 (def (t1 v)
-     (declare (fixnum) (not safe))
+     (IF (not string-case-bench:safe)
+	 (declare (fixnum) (not safe)))
      (enable-unquoting
       (string-case v
 		   ,@(map (lambda (str)
@@ -46,7 +50,8 @@
 		   (else 'nomatch))))
 
 (def (t2 v)
-     (declare (fixnum) (not safe))
+     (IF (not string-case-bench:safe)
+	 (declare (fixnum) (not safe)))
      (enable-unquoting
       (cond ,@(map (lambda (str)
 		     `((string=? v ,str) ',(.symbol str)))
@@ -57,6 +62,8 @@
 (use-memcmp)
 
 (def (t3 v)
+     (IF string-case-bench:safe
+	 (assert (string? v)))
      (enable-unquoting
       (cond ,@(map (lambda (str)
 		     `((memcmp:@string=? v ,str) ',(.symbol str)))
