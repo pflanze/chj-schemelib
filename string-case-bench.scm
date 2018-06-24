@@ -8,12 +8,15 @@
 
 (require easy
 	 string-case
-	 memcmp)
+	 memcmp
+	 random)
 
 (include "cj-standarddeclares.scm")
 
+(namespace ("string-case-bench#" t1 t2 t3))
 
-(compile-time
+
+(both-times
  (def string-case-bench:cases
       '("ho"
 	"hi"
@@ -75,4 +78,26 @@
      (assert (equal?* (time (repeat n (t1 str)))
 		      (time (repeat n (t2 str)))
 		      (time (repeat n (t3 str))))))
+
+
+(def (string-case-bench2 str n)
+     (assert (equal?* (time (repeat n (t1 str)))
+		      (time (repeat n (t3 str))))))
+
+(TEST
+ > (for-each (lambda (str)
+	       (assert (equal?* (string-case-bench#t1 str)
+				(string-case-bench#t2 str)
+				(string-case-bench#t3 str))))
+	     (cons "nonexisting case" string-case-bench:cases)))
+
+(def (string-case-bench-all n t)
+     (time (for-each (lambda (str)
+		       (repeat n (t str)))
+		     string-case-bench:cases)))
+
+(def (string-case-bench-nonmatches n t)
+     (time (repeat 30
+		   (let ((str (random-string (random-integer 40))))
+		     (repeat n (t str))))))
 
