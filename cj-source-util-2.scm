@@ -59,10 +59,11 @@
 
 (define assert:stopping-syntax-forms
   ;; forms that stop from recursing inside
-  '(quote quasiquote lambda))
+  '(quote quasiquote lambda let let* letrec))
 
 (define assert:syntax-forms
-  (append '(if unless and or)
+  ;; note: define-macro* forms are automatically handled independently
+  (append '(if unless and or time cond case)
 	  assert:stopping-syntax-forms))
 
 (define (assert:possibly-symbolize v)
