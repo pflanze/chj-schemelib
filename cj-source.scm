@@ -10,7 +10,6 @@
 
 '(require
  ;; vector-util-1 ;; included directly
- ;; improper-length ;; dito
  ;; cj-env-1 dito
  ;; list-util-1 ;; improper-map now copied directly
  )
@@ -52,9 +51,7 @@
 	 show-procedure-location
 	 source-quote ;; deprecated, use source-quote* instead?
 	 source-dequote ;; dito
-	 source-quote*
-	 ;; included from improper-length.scm
-	 improper-length)
+	 source-quote*)
 
 
 (include "cj-env-1--include.scm")

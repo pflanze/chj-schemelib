@@ -1,4 +1,4 @@
-;;; Copyright 2010-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -10,9 +10,9 @@
 
 (require test
 	 (list-util-1 improper-map) ;; can this be moved here?
-	 ;; implementation in improper-length.scm, included in
+	 ;; implementation in improper-length--include.scm, included in
 	 ;; cj-source-util.scm:
-	 (cj-source improper-length))
+	 (cj-source-util improper-length))
 
 (export improper-list->list
 	improper-map

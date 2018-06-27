@@ -13,8 +13,7 @@
 (export schemedefinition-arity:template->checker
 	schemedefinition-arity:pattern->template
 	schemedefinition-arity-checker
-	;;via (include "improper-length.scm"), already in cj-source:
-	;; improper-length 
+	improper-length ;;via (include "improper-length--source.scm")
 	safer-apply)
 
 (include "cj-standarddeclares-1--include.scm")
@@ -120,7 +119,7 @@
     x)))
 
 
-(include "improper-length.scm")
+(include "improper-length--include.scm")
 
 (define (safer-apply template fn args err cont)
   (let ((len (improper-length args)))
