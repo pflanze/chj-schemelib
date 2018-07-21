@@ -115,8 +115,26 @@
  -15)
 
 
-(define (natural0.bitsize n)
-  (integer-ceiling (/ (log (+ n 1)) (log 2))))
+
+(define natural0.bitsize integer-length)
+
+;; I had this as (integer-ceiling (/ (log (+ n 1)) (log 2))) but that
+;; actually fell down at around 64 bit numbers since it would
+;; underflow the double range...
+
+;; (define (natural0.bitsize* n)
+;;   (/ (log (+ n 1)) (log 2)))
+;; > (natural0.bitsize* (expt 2 20))
+;; 20.000001375860553
+;; > (natural0.bitsize* (dec* (expt 2 20)))
+;; 20.
+;; > (natural0.bitsize* (expt 2 100))
+;; 100.
+;; > (natural0.bitsize* (dec* (expt 2 100)))
+;; 100.
+
+;; and integer-ceiling would round up 20.000001375860553 but not 100.
+
 
 (TEST
  > (map natural0.bitsize (iota 5))
