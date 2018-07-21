@@ -24,10 +24,7 @@
 (def (Lforall vs pred)
      (stream-filter (complement pred) vs))
 
-(def ∀ Lforall)
-;; ok? also, should it be curried? also.. ?
-
-;; also, value sources actually abstract i guess 'for randomized
+;; value sources actually abstract i guess 'for randomized
 ;; trials' .  hm.  branch-tracking  whatever.
 ;; [hmm  |natural0| as  a source. possibly. ?]
 
@@ -43,6 +40,10 @@
      (force (Lforall vs pred)))
 ;; yes really the same as the current qcheck, but the latter may
 ;; change. OK?
+
+(def ∀ for-all)
+;; ok? also, should it be curried?
+
 
 ;; shouldn't the order of arguments be reversed, both for wording (we
 ;; check pred, not vs), and to make n-ary in the future?
