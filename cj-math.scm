@@ -1,4 +1,5 @@
-(require test)
+(require test
+	 (test-logic ∀))
 
 ;; can this calculation be optimized?
 (define (quotient+modulo x y)
@@ -119,5 +120,40 @@
 
 (TEST
  > (map natural0.bitsize (iota 5))
- (0 1 2 2 3))
+ (0 1 2 2 3)
+ > (natural0.bitsize 15)
+ 4
+ > (natural0.bitsize 16)
+ 5
+ > (∀ (map (C expt 2 _) (iota 10))
+      (lambda (bits)
+	(define ex (expt 2 bits))
+	(and (= (natural0.bitsize (dec* ex)) bits)
+	     (= (natural0.bitsize ex) (inc bits)))))
+ ()
+ > (map (comp (C map natural0.bitsize _)
+	      (dup dec* id inc*)
+	      (C arithmetic-shift 1 _))
+	(append (iota 15) (iota 6 62)))
+ ((0 1 2)
+  (1 2 2)
+  (2 3 3)
+  (3 4 4)
+  (4 5 5)
+  (5 6 6)
+  (6 7 7)
+  (7 8 8)
+  (8 9 9)
+  (9 10 10)
+  (10 11 11)
+  (11 12 12)
+  (12 13 13)
+  (13 14 14)
+  (14 15 15)
+  (62 63 63)
+  (63 64 64)
+  (64 65 65)
+  (65 66 66)
+  (66 67 67)
+  (67 68 68)))
 
