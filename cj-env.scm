@@ -79,7 +79,9 @@
 	symbol-or-string->string
 	symbol-append
 	symbol=?
-	keyword=?)
+	keyword=?
+	dup
+	one?)
 
 
 (declare (block)(standard-bindings)(extended-bindings))
@@ -666,3 +668,9 @@
 
 ;; deprecated, OK?
 (define keyword-equal? keyword=?)
+
+
+(define (dup . fs) (lambda (v) (map (lambda (f) (f v)) fs)))
+
+(define (one? x) (= x 1))
+
