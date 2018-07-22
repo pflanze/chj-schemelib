@@ -37,6 +37,9 @@
 (define (square x)
   (* x x))
 
+
+;; Use "namespace" approach to indicate desired operation kind
+
 ;;(define integer:double (cut arithmetic-shift <> 1))
 (define integer:half (cut arithmetic-shift <> -1))
 
@@ -57,6 +60,9 @@
  1
  > (integer-average 3 -4)
  -1)
+
+;; Again 'Use "namespace" approach to indicate desired operation kind'
+;; (then the above shouldn't be offered though?)
 
 (define integer:average integer-average)
 
