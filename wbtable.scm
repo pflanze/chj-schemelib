@@ -184,10 +184,14 @@
    (wbtree:members $data))
 
  (def-wbtable-method (show s)
-   `((list->wbtable-of ,(.show $key?)
-		       ,(.show $key-cmp)
-		       ,(.show $value?))
-     (list ,@(map .show (.list s)))))
+   (if (.empty? s)
+       `(empty-wbtable-of ,(.show $key?)
+			  ,(.show $key-cmp)
+			  ,(.show $value?))
+       `((list->wbtable-of ,(.show $key?)
+			   ,(.show $key-cmp)
+			   ,(.show $value?))
+	 (list ,@(map .show (.list s))))))
 
  ;; wbtable.keys
  ;; wbtable.sortedkeys  same ?
