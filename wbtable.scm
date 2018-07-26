@@ -202,20 +202,20 @@
    (assert ($key? (car key.val)))
    (assert ($value? (cdr key.val)))
 
-   (.data-set s (wbtree:add $data key.val)))
+   (wbtable.data-set s (wbtree:add $data key.val)))
 
  (def-wbtable-method (set-pair s #(pair? key.val))
    (assert ($key? (car key.val)))
    (assert ($value? (cdr key.val)))
 
-   (.data-set s (wbtree:set $data key.val)))
+   (wbtable.data-set s (wbtree:set $data key.val)))
 
  ;; call it remove as symboltable or delete as wbcollection, wbtree,
  ;; Perl?
  (def-wbtable-method (delete-pair s #(pair? key.val))
    (assert ($key? (car key.val)))
 
-   (.data-set s (wbtree:delete $data key.val)))
+   (wbtable.data-set s (wbtree:delete $data key.val)))
 
  ;; ^ XX what about missing keys here? Compatibility with symboltable,
  ;; or?
@@ -234,9 +234,9 @@
    (let ((h1 (.table-head s))
 	 (h2 (.table-head t)))
      (if (.compatible? h1 h2)
-	 (.data-set s
-		    (wbtree:union $data
-				  (.data t)))
+	 (wbtable.data-set s
+			   (wbtree:union $data
+					 (.data t)))
 	 ;; worry about huge data or not, forever? only show heads?
 	 (error "incompatible table heads:"
 		;; and do an error that does .show implicitely rather
