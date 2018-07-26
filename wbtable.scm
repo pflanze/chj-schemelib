@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -174,7 +174,14 @@
    (and (wbtable.maybe-ref-pair s (cons key #f))
 	#t))
 
- ;; XX wbtable.update
+ (def-wbtable-method (update s key fn initial-value-thunk)
+   (if-let ((kv (wbtree:maybe-ref $data (cons key #f))))
+	   (let* ((v (cdr kv))
+		  (v* (fn v)))
+	     (if (eq? v v*)
+		 s
+		 (wbtable.data-set s (wbtree:set $data (cons key v*)))))
+	   (wbtable.data-set s (wbtree:set $data (cons key (fn (initial-value-thunk)))))))
 
  ;; XX wbtable.fold
 
@@ -288,5 +295,17 @@
   (list (cons 'a 11)
 	(cons 'b 12)
 	(cons 'x 10)
-	(cons 'y 2)))
- )
+	(cons 'y 2))))
+
+
+(TEST
+ > (def t (empty-wbtable-of string? string-cmp any?))
+ > (.ref t "foo" 'nope)
+ nope
+ > (def t (.update t "foo" inc-function (& 10)))
+ > (.ref t "foo" 'nope)
+ 11
+ > (def t (.update t "foo" inc-function (& 10)))
+ > (.ref t "foo" 'nope)
+ 12)
+
