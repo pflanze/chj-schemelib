@@ -8,9 +8,9 @@
 
 ;; XX move to cj-source-lambda.scm?
 
-(require)
+'(require)
 
-(export schemedefinition-arity:template->checker
+'(export schemedefinition-arity:template->checker
 	schemedefinition-arity:pattern->template
 	schemedefinition-arity-checker
 	improper-length ;;via (include "improper-length--source.scm")

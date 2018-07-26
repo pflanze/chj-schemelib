@@ -33,7 +33,7 @@
 
 
 ;; quoted forms (since not normally defined yet) for require.scm
-'(require cj-source)
+'(require cj-source) ;; and cj-source-util--include, well
 '(export define-macro*)
 
 ; (compile-time
@@ -70,7 +70,7 @@
      (source-code stx))
     stx)))
 
-(include-and-compiletimeload "cj-source-util.scm")
+(include-and-compiletimeload "cj-source-util--include.scm")
 
 (define-macro (both-times . body)
   (let ((code
