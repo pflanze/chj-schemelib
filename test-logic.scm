@@ -6,7 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require easy test)
+(require stream
+	 cj-struct
+	 on
+	 slib-sort
+	 test)
 
 (export for-all
 	#!optional
@@ -21,8 +25,8 @@
 ;; -- Universal quantification ---
 ;; forall
 
-(def (Lforall vs pred)
-     (stream-filter (complement pred) vs))
+(define (Lforall vs pred)
+  (stream-filter (complement pred) vs))
 
 ;; value sources actually abstract i guess 'for randomized
 ;; trials' .  hm.  branch-tracking  whatever.
@@ -36,19 +40,19 @@
  )
 
 
-(def (for-all vs pred)
-     (force (Lforall vs pred)))
+(define (for-all vs pred)
+  (force (Lforall vs pred)))
 ;; yes really the same as the current qcheck, but the latter may
 ;; change. OK?
 
-(def ∀ for-all)
+(define ∀ for-all)
 ;; ok? also, should it be curried?
 
 
 ;; shouldn't the order of arguments be reversed, both for wording (we
 ;; check pred, not vs), and to make n-ary in the future?
-(def (qcheck vs pred)
-     (force (Lforall vs pred)))
+(define (qcheck vs pred)
+  (force (Lforall vs pred)))
 
 (TEST
  > (qcheck (iota 5) integer?)
@@ -59,24 +63,25 @@
  ;; *expected* failure
  (0))
 
-(defstruct testfailure
+(define-struct testfailure
+  constructor-name: testfailure
   value
   results)
 
-(def (Lforall* vs equal? . fs)
-     (stream-fold-right
-      (lambda (v res)
-	(let ((vs (map (lambda (f)
-			 (f v)) fs)))
-	  (if (apply equal? vs)
-	      res
-	      (cons (testfailure v vs)
-		    res))))
-      '()
-      vs))
+(define (Lforall* vs equal? . fs)
+  (stream-fold-right
+   (lambda (v res)
+     (let ((vs (map (lambda (f)
+		      (f v)) fs)))
+       (if (apply equal? vs)
+	   res
+	   (cons (testfailure v vs)
+		 res))))
+   '()
+   vs))
 
-(def (qcheck* vs #!key (equal? equal?) #!rest fs)
-     (force (apply Lforall* vs equal? fs)))
+(define (qcheck* vs #!key (equal? equal?) #!rest fs)
+  (force (apply Lforall* vs equal? fs)))
 
 (TEST
  > (F (qcheck* (iota 4) square identity))
@@ -90,7 +95,7 @@
 ;; again, returns null if true. --- or should this be something else
 ;; entirely anyway (conts? what else to try?)?
 
-'(def ( )
+'(define ( )
      )
 ;; ∃
 
@@ -99,10 +104,10 @@
 
 ;; -- utilities --
 
-(def (random:permutate l)
-     (map cdr
-	  (sort (map (lambda (v)
-		       (cons (random-real) v))
-		     (stream->list l))
-		(on car <))))
+(define (random:permutate l)
+  (map cdr
+       (sort (map (lambda (v)
+		    (cons (random-real) v))
+		  (stream->list l))
+	     (on car <))))
 
