@@ -14,7 +14,7 @@
 	 (srfi-11 apply-values)
 	 (lazy FV)
 	 (cj-gambit-sys maybe-decompile)
-	 (cj-source-util schemedefinition-arity:pattern->template)
+	 ;;(cj-source-util schemedefinition-arity:pattern->template)
 	 (cj-functional-2 compose compose-function either)
 	 (code-util early-bind-expressions))
 

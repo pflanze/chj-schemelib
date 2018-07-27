@@ -12,7 +12,8 @@
 	 (list-util-1 improper-map) ;; can this be moved here?
 	 ;; implementation in improper-length--include.scm, included in
 	 ;; cj-source-util.scm:
-	 (cj-source-util improper-length))
+	 ;;(cj-source-util improper-length)
+	 )
 
 (export improper-list->list
 	improper-map

@@ -12,7 +12,7 @@
 ;; documentation)
 
 (require define-macro-star
-	 (cj-source-util schemedefinition-arity:pattern->template)
+	 ;; (cj-source-util schemedefinition-arity:pattern->template)
 	 cj-symbol-with
 	 ;;(srfi-1 iota) avoid
 	 ;;test  avoid, see optim-values-test.scm

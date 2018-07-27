@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (cj-source-util improper-length)
+(require ;; (cj-source-util improper-length)
 	 test)
 
 (TEST
