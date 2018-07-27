@@ -10,12 +10,11 @@
 
 (require easy
 	 show
-	 joo
 	 cj-cmp
 	 wbtree
 	 test)
 
-(export (joo-class wbtable)
+(export (class wbtable)
 	wbtable?
 	wbtable-of
 	empty-wbtable-of
@@ -39,7 +38,7 @@
 	 wbtable.set
 	 wbtable.remove)
 	#!optional
-	(joo-class wbtable-head)
+	(class wbtable-head)
 	wbtable:list->_)
 
 
@@ -47,7 +46,7 @@
 ;; FINALLY give already in and make some sort of a TYPE? Kinda give
 ;; in only.
 
-;; (joo-class (wbtable-key-type #(predicate? predicate?)
+;; (defclass (wbtable-key-type #(predicate? predicate?)
 ;; 			     #(function? cmp))
 ;; 	   (def-method- (wbtreeparameter t)
 ;; 	     (wbtreeparameter (on car (.cmp t))
@@ -61,28 +60,27 @@
 ;; XX The real uglyness with the following is the possibility for
 ;; usage errors (cmp not matching key?).
 
-(joo-class
- ((wbtable-head _wbtable-head)
-  #(predicate? key?)
-  #(function? key-cmp)
-  #(predicate? value?)
-  ;; and cached to avoid reallocating it:
-  #(wbtreeparameter? wbtreeparameter))
+(defclass ((wbtable-head _wbtable-head)
+	   #(predicate? key?)
+	   #(function? key-cmp)
+	   #(predicate? value?)
+	   ;; and cached to avoid reallocating it:
+	   #(wbtreeparameter? wbtreeparameter))
  
- (def (wbtable-head key? key-cmp value?)
-      (_wbtable-head key? key-cmp value?
-		     (wbtreeparameter (on car key-cmp)
-				      pair?)))
+  (def (wbtable-head key? key-cmp value?)
+       (_wbtable-head key? key-cmp value?
+		      (wbtreeparameter (on car key-cmp)
+				       pair?)))
 
- (def-method- (compatible? s #(wbtable-head? t))
-   ;; pessimistic for now...
-   (let-wbtable-head
-    ((a b c _) s)
+  (def-method- (compatible? s #(wbtable-head? t))
+    ;; pessimistic for now...
     (let-wbtable-head
-     ((x y z _) t)
-     (and (eq? a x)
-	  (eq? b y)
-	  (eq? c z))))))
+     ((a b c _) s)
+     (let-wbtable-head
+      ((x y z _) t)
+      (and (eq? a x)
+	   (eq? b y)
+	   (eq? c z))))))
 
 
 (defmacro (def-wbtable-method name+args . body)
@@ -98,159 +96,158 @@
 				  $wbtable-head)
 				 ,@body)))))))
 
-(joo-class
- ((wbtable _wbtable)
-  #(wbtable-head? table-head)
-  #(wbtree? data))
+(defclass ((wbtable _wbtable)
+	   #(wbtable-head? table-head)
+	   #(wbtree? data))
 
- (def (wbtable key? key-cmp value?
-	       data)
-      (_wbtable (wbtable-head key? key-cmp value?)
-		data))
+  (def (wbtable key? key-cmp value?
+		data)
+       (_wbtable (wbtable-head key? key-cmp value?)
+		 data))
 
- (def (empty-wbtable-of key? key-cmp value?)
-      (wbtable key? key-cmp value? empty-wbtree))
+  (def (empty-wbtable-of key? key-cmp value?)
+       (wbtable key? key-cmp value? empty-wbtree))
 
- (def (wbtable-of key? value?)
-      (lambda (v)
-	(and (wbtable? v)
-	     (let ((h (.table-head v)))
-	       ;; XX function comparison by eq?: evil or ? (equal?
-	       ;; really (of the type language?), REALLY.?!)
-	       (and (eq? (.key? h) key?)
-		    (eq? (.value? h) value?))))))
+  (def (wbtable-of key? value?)
+       (lambda (v)
+	 (and (wbtable? v)
+	      (let ((h (.table-head v)))
+		;; XX function comparison by eq?: evil or ? (equal?
+		;; really (of the type language?), REALLY.?!)
+		(and (eq? (.key? h) key?)
+		     (eq? (.value? h) value?))))))
 
- ;; compare with:
- ;; (define* (list->wbtree l)
- ;;   (fold (lambda (x t)
- ;; 	  (wbtree:add t x))
- ;; 	empty-wbtree
- ;; 	l))
+  ;; compare with:
+  ;; (define* (list->wbtree l)
+  ;;   (fold (lambda (x t)
+  ;; 	  (wbtree:add t x))
+  ;; 	empty-wbtree
+  ;; 	l))
 
- ;; (assert ((list-of (pair-of key? value?)) l))
- ;; better: throw exception while iterating
+  ;; (assert ((list-of (pair-of key? value?)) l))
+  ;; better: throw exception while iterating
 
- ;; make re-usable by inheriting classes..:
+  ;; make re-usable by inheriting classes..:
  
- (def (wbtable:list->_ empty l)
-      (fold (lambda (k.v t)
-	      ;; re-use pairs, ah (dimly remember)
-	      (.add-pair t k.v))
-	    empty
-	    l))
+  (def (wbtable:list->_ empty l)
+       (fold (lambda (k.v t)
+	       ;; re-use pairs, ah (dimly remember)
+	       (.add-pair t k.v))
+	     empty
+	     l))
  
- (def ((list->wbtable-of key? key-cmp value?) l)
-      (wbtable:list->_ (empty-wbtable-of key? key-cmp value?) l))
+  (def ((list->wbtable-of key? key-cmp value?) l)
+       (wbtable:list->_ (empty-wbtable-of key? key-cmp value?) l))
  
 
 
- ;; yeah, should really rename size in wbcollection ? !
- (def-wbtable-method (length s)
-   (wbtree:size $data))
+  ;; yeah, should really rename size in wbcollection ? !
+  (def-wbtable-method (length s)
+    (wbtree:size $data))
 
- (def-wbtable-method (empty? s)
-   (empty-wbtree? $data))
- ;; ^ uh a case where the compiler really should optimize away unused
- ;; code wow. (Dead code elimination btw? Kinda.)
+  (def-wbtable-method (empty? s)
+    (empty-wbtree? $data))
+  ;; ^ uh a case where the compiler really should optimize away unused
+  ;; code wow. (Dead code elimination btw? Kinda.)
 
- (def-wbtable-method (maybe-ref-pair s #(pair? key.val))
-   (assert ($key? (car key.val)))
-   (wbtree:maybe-ref $data key.val))
+  (def-wbtable-method (maybe-ref-pair s #(pair? key.val))
+    (assert ($key? (car key.val)))
+    (wbtree:maybe-ref $data key.val))
 
- ;; XX gah dimly remember, too: useless cons. Should add some
- ;; maybe-ref-key to wbtree? Hm, how is cmp used, always in same
- ;; order?? todo.
- (def-method- (ref s key alt)
-   (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
-	 (else alt)))
+  ;; XX gah dimly remember, too: useless cons. Should add some
+  ;; maybe-ref-key to wbtree? Hm, how is cmp used, always in same
+  ;; order?? todo.
+  (def-method- (ref s key alt)
+    (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
+	  (else alt)))
 
- (def-method- (refx s key)
-   (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
-	 (else (error "key not found:" key))))
+  (def-method- (refx s key)
+    (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
+	  (else (error "key not found:" key))))
 
- ;; restrict `contains?` to collections, i.e. full items? And follow
- ;; Perl with `exists`, OK?
- (def-method- (exists? s key)
-   (and (wbtable.maybe-ref-pair s (cons key #f))
-	#t))
+  ;; restrict `contains?` to collections, i.e. full items? And follow
+  ;; Perl with `exists`, OK?
+  (def-method- (exists? s key)
+    (and (wbtable.maybe-ref-pair s (cons key #f))
+	 #t))
 
- (def-wbtable-method (update s key fn initial-value-thunk)
-   (if-let ((kv (wbtree:maybe-ref $data (cons key #f))))
-	   (let* ((v (cdr kv))
-		  (v* (fn v)))
-	     (if (eq? v v*)
-		 s
-		 (wbtable.data-set s (wbtree:set $data (cons key v*)))))
-	   (wbtable.data-set s (wbtree:set $data (cons key (fn (initial-value-thunk)))))))
+  (def-wbtable-method (update s key fn initial-value-thunk)
+    (if-let ((kv (wbtree:maybe-ref $data (cons key #f))))
+	    (let* ((v (cdr kv))
+		   (v* (fn v)))
+	      (if (eq? v v*)
+		  s
+		  (wbtable.data-set s (wbtree:set $data (cons key v*)))))
+	    (wbtable.data-set s (wbtree:set $data (cons key (fn (initial-value-thunk)))))))
 
- ;; XX wbtable.fold
+  ;; XX wbtable.fold
 
- ;; wbtable.every?
+  ;; wbtable.every?
 
- (def-wbtable-method (list s)
-   (wbtree:members $data))
+  (def-wbtable-method (list s)
+    (wbtree:members $data))
 
- (def-wbtable-method (show s)
-   (if (.empty? s)
-       `(empty-wbtable-of ,(.show $key?)
-			  ,(.show $key-cmp)
-			  ,(.show $value?))
-       `((list->wbtable-of ,(.show $key?)
+  (def-wbtable-method (show s)
+    (if (.empty? s)
+	`(empty-wbtable-of ,(.show $key?)
 			   ,(.show $key-cmp)
 			   ,(.show $value?))
-	 (list ,@(map .show (.list s))))))
+	`((list->wbtable-of ,(.show $key?)
+			    ,(.show $key-cmp)
+			    ,(.show $value?))
+	  (list ,@(map .show (.list s))))))
 
- ;; wbtable.keys
- ;; wbtable.sortedkeys  same ?
+  ;; wbtable.keys
+  ;; wbtable.sortedkeys  same ?
 
- ;; wbtable.update-all  what was that?
+  ;; wbtable.update-all  what was that?
 
- (def-wbtable-method (add-pair s #(pair? key.val))
-   (assert ($key? (car key.val)))
-   (assert ($value? (cdr key.val)))
+  (def-wbtable-method (add-pair s #(pair? key.val))
+    (assert ($key? (car key.val)))
+    (assert ($value? (cdr key.val)))
 
-   (wbtable.data-set s (wbtree:add $data key.val)))
+    (wbtable.data-set s (wbtree:add $data key.val)))
 
- (def-wbtable-method (set-pair s #(pair? key.val))
-   (assert ($key? (car key.val)))
-   (assert ($value? (cdr key.val)))
+  (def-wbtable-method (set-pair s #(pair? key.val))
+    (assert ($key? (car key.val)))
+    (assert ($value? (cdr key.val)))
 
-   (wbtable.data-set s (wbtree:set $data key.val)))
+    (wbtable.data-set s (wbtree:set $data key.val)))
 
- ;; call it remove as symboltable or delete as wbcollection, wbtree,
- ;; Perl?
- (def-wbtable-method (delete-pair s #(pair? key.val))
-   (assert ($key? (car key.val)))
+  ;; call it remove as symboltable or delete as wbcollection, wbtree,
+  ;; Perl?
+  (def-wbtable-method (delete-pair s #(pair? key.val))
+    (assert ($key? (car key.val)))
 
-   (wbtable.data-set s (wbtree:delete $data key.val)))
+    (wbtable.data-set s (wbtree:delete $data key.val)))
 
- ;; ^ XX what about missing keys here? Compatibility with symboltable,
- ;; or?
+  ;; ^ XX what about missing keys here? Compatibility with symboltable,
+  ;; or?
  
- (def-method- (add s key val)
-   (wbtable.add-pair s (cons key val)))
+  (def-method- (add s key val)
+    (wbtable.add-pair s (cons key val)))
 
- (def-method- (set s key val)
-   (wbtable.set-pair s (cons key val)))
+  (def-method- (set s key val)
+    (wbtable.set-pair s (cons key val)))
 
- (def-method- (delete s key)
-   (wbtable.delete-pair s (cons key #f)))
+  (def-method- (delete s key)
+    (wbtable.delete-pair s (cons key #f)))
 
- ;; XX die or not on conflicting elements?
- (def-wbtable-method (union s t)
-   (let ((h1 (.table-head s))
-	 (h2 (.table-head t)))
-     (if (.compatible? h1 h2)
-	 (wbtable.data-set s
-			   (wbtree:union $data
-					 (.data t)))
-	 ;; worry about huge data or not, forever? only show heads?
-	 (error "incompatible table heads:"
-		;; and do an error that does .show implicitely rather
-		;; than use .show here, k?
-		h1 h2))))
+  ;; XX die or not on conflicting elements?
+  (def-wbtable-method (union s t)
+    (let ((h1 (.table-head s))
+	  (h2 (.table-head t)))
+      (if (.compatible? h1 h2)
+	  (wbtable.data-set s
+			    (wbtree:union $data
+					  (.data t)))
+	  ;; worry about huge data or not, forever? only show heads?
+	  (error "incompatible table heads:"
+		 ;; and do an error that does .show implicitely rather
+		 ;; than use .show here, k?
+		 h1 h2))))
  
- )
+  )
 
 
 (TEST
