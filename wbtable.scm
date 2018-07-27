@@ -72,7 +72,7 @@
 		      (wbtreeparameter (on car key-cmp)
 				       pair?)))
 
-  (def-method- (compatible? s #(wbtable-head? t))
+  (def-method- (compatible? s t)
     ;; pessimistic for now...
     (let-wbtable-head
      ((a b c _) s)
