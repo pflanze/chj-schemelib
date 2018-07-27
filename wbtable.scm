@@ -178,7 +178,8 @@
 	      (if (eq? v v*)
 		  s
 		  (wbtable.data-set s (wbtree:set $data (cons key v*)))))
-	    (wbtable.data-set s (wbtree:set $data (cons key (fn (initial-value-thunk)))))))
+	    (wbtable.data-set
+	     s (wbtree:set $data (cons key (fn (initial-value-thunk)))))))
 
   ;; XX wbtable.fold
 
