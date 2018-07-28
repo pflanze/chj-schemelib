@@ -123,14 +123,15 @@
   (def (empty-wbtable-of key? key-cmp value?)
        (wbtable key? key-cmp value? empty-wbtree))
 
-  (def (wbtable-of key? value?)
+  (def (wbtable-of _key? _value?)
        (lambda (v)
 	 (and (wbtable? v)
-	      (let ((h (.table-head v)))
-		;; XX function comparison by eq?: evil or ? (equal?
-		;; really (of the type language?), REALLY.?!)
-		(and (eq? (.key? h) key?)
-		     (eq? (.value? h) value?))))))
+	      (@with-wbtable
+	       v (key? value?)
+	       ;; XX function comparison by eq?: evil or ? (equal?
+	       ;; really (of the type language?), REALLY.?!)
+	       (and (eq? key? _key?)
+		    (eq? value? _value?))))))
 
   ;; compare with:
   ;; (define* (list->wbtree l)
