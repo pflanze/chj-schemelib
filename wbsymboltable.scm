@@ -109,9 +109,8 @@
  > (map wbsymboltable? (list t t2 t3 empty-wbtree))
  (#t #t #t #f)
  > (%try-error (list.wbsymboltable-of '((z "2/3") (a . "a") (b . "b")) number?))
- #(error
-   "assertment failure: ($value? (cdr key.val))"
-   (number? (cdr '(z "2/3"))))
+ [error "assertment failure: (value? (cdr key.val))"
+	(number? (cdr '(z "2/3")))]
  ;; OH well? Ugly or actually okay?
  > (def u (list.wbsymboltable-of '((z . "2/3") (a . "a") (b . "b")) string?))
  > (.show u)
@@ -120,14 +119,11 @@
 			      (cons 'z "2/3"))
 			string?)
  > (%try-error (.add u "q" "qq"))
- #(error
-   "assertment failure: ($key? (car key.val))"
-   (symbol? (car '("q" . "qq")))) 
+ [error "assertment failure: (key? (car key.val))"
+	(symbol? (car '("q" . "qq")))]
  > (%try-error (.add u 'q 23))
- #(error
-   "assertment failure: ($value? (cdr key.val))"
-   (string? (cdr '(q . 23)))) 
+ [error "assertment failure: (value? (cdr key.val))"
+	(string? (cdr '(q . 23)))]
  > (map (wbsymboltable-of string?) (list t t2 t3 empty-wbtree u))
- (#f #f #f #f #t)
- )
+ (#f #f #f #f #t))
 
