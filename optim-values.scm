@@ -16,7 +16,7 @@
 	 cj-symbol-with
 	 ;;(srfi-1 iota) avoid
 	 ;;test  avoid, see optim-values-test.scm
-	 )
+	 (cj-gambit-sys-0 @vector-ref @vector-length))
 
 (export (macro @values-ref)
 	(macro @values-length)
@@ -37,16 +37,10 @@
 
 
 (define-macro* (@values-ref v i)
-  ;; need unsafe mode for ##vector-ref to be compiled efficiently!
-  `(##let ()
-	  (declare (not safe))
-	  (##vector-ref ,v ,i)))
+  `(@vector-ref ,v ,i))
 
 (define-macro* (@values-length v)
-  ;; need unsafe mode here, too?
-  `(##let ()
-	  (declare (not safe))
-	  (##vector-length ,v)))
+  `(@vector-length ,v))
 
 
 ;; XX finally have one place for scheme syntax analysis please...
