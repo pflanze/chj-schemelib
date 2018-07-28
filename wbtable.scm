@@ -61,11 +61,11 @@
 ;; make accessing the (nested) fields easy (defmethod would allow
 ;; access to data easily, but not the nested ones)
 (defmacro (@with-wbtable s vars . body)
-  (def exprs `((key? (@wbtable-head.key? $table-head))
+  (def exprs `((data (@wbtable.data ,s))
+	       (key? (@wbtable-head.key? $table-head))
 	       (key-cmp (@wbtable-head.key-cmp $table-head))
 	       (value? (@wbtable-head.value? $table-head))
-	       ($wbtreeparameter (@wbtable-head.wbtreeparameter $table-head))
-	       (data (@wbtable.data ,s))))
+	       ($wbtreeparameter (@wbtable-head.wbtreeparameter $table-head))))
   (assert* symbol? s) ;; since I'm not eval-ing to a var
   (assert*
    list? vars
