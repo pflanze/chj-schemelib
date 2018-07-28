@@ -10,7 +10,7 @@
 	 (cj-env define-if-not-defined) ;; in macro expansion
 	 ;; (predicates-1 list-of-length)
 	 (cj-inline-1 define-inline.1) ;; cj-inline would give cycle
-	 )
+	 (cj-gambit-sys-0 @vector-ref @vector-length @vector-set!))
 
 (export struct-tag?
 	;; ^ XX inconsistent: struct-type etc. are all talking about
@@ -60,8 +60,8 @@
 
 (define (struct-metadata? v)
   (and (##vector? v)
-       (fx> (##vector-length v) 1)
-       (eq? (##vector-ref v 0) struct-metadata:tag)))
+       (fx> (@vector-length v) 1)
+       (eq? (@vector-ref v 0) struct-metadata:tag)))
 
 (define (make-struct-metadata-accessor slot-number)
   (lambda (v)
@@ -171,8 +171,8 @@
 
 (define (cj-struct#vector? v)
   (and (##vector? v)
-       (if (fx>= (##vector-length v) 1)
-	   (not (struct-tag? (##vector-ref v 0)))
+       (if (fx>= (@vector-length v) 1)
+	   (not (struct-tag? (@vector-ref v 0)))
 	   #t)))
 
 (set! vector? cj-struct#vector?)

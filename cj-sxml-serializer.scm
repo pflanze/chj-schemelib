@@ -24,6 +24,7 @@
 		  sxml-element-attribute-ref
 		  sxml-element:add-attributes-unless-present)
 	 (stream stream-for-each)
+	 (cj-gambit-sys-0 @vector-ref)
 	 (test TEST)
 	 cj-warn
 	 srfi-1-macros

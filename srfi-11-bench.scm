@@ -7,7 +7,8 @@
 
 
 (require easy
-	 srfi-11)
+	 srfi-11
+	 (cj-gambit-sys-0 @vector-ref))
 
 (export srfi-11-bench)
 
@@ -36,12 +37,8 @@
 		       (let ()
 			 (declare (not safe) (fixnum))
 			 (values (* n n) (* (+ n 1) n))))
-		      (a (let ()
-			   (declare (not safe))
-			   (##vector-ref GEN:V-1130 0)))
-		      (b (let ()
-			   (declare (not safe))
-			   (##vector-ref GEN:V-1130 1))))
+		      (a (@vector-ref GEN:V-1130 0))
+		      (b (@vector-ref GEN:V-1130 1)))
 		 b))))
 
 (def (srfi-11-bench-call n)

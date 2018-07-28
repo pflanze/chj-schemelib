@@ -7,8 +7,8 @@
 ;; _gambit#.scm
 (##define-macro (macro-slot index struct . val)
   (if (null? val)
-    `(##vector-ref ,struct ,index)
-    `(##vector-set! ,struct ,index ,@val)))
+    `(@vector-ref ,struct ,index)
+    `(@vector-set! ,struct ,index ,@val)))
 
 ;; _thread#.scm
 (##define-macro (macro-btq-owner node)           `(macro-slot 7 ,node))

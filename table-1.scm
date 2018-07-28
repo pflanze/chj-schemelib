@@ -7,7 +7,8 @@
 
 
 (require cj-typed
-	 (list-util let-pair))
+	 (list-util let-pair)
+	 (cj-gambit-sys-0 @vector-ref))
 
 (export table-test
 	table-hash
@@ -32,30 +33,30 @@
 (define-typed (table-test #(table? t))
   ;; wow, `eq?` is turned into #f by Gambit; but the default procedure
   ;; is `equal?`, and passing #f to test: is not allowed.
-  (or (##vector-ref t 2)
+  (or (@vector-ref t 2)
       eq?))
 
 (define-typed (table-hash #(table? t))
   ;; dito
-  (or (##vector-ref t 3)
+  (or (@vector-ref t 3)
       eq?-hash))
 
 ;; 4 is the data vector
 
 ;; XX doesn't work
 (define-typed (table-weak-keys #(table? t))
-  (if (##gc-hash-table? (##vector-ref t 5))
+  (if (##gc-hash-table? (@vector-ref t 5))
       #f
       '?))
 
 ;; XX doesn't work
 (define-typed (table-weak-values #(table? t))
-  (if (##gc-hash-table? (##vector-ref t 5))
+  (if (##gc-hash-table? (@vector-ref t 5))
       #f
       '?))
 
 (define-typed (table-init #(table? t))
-  (##vector-ref t 6))
+  (@vector-ref t 6))
 
 (define table:absent (table-init (list->table '())))
 

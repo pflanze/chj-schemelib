@@ -7,7 +7,8 @@
 
 (require define-macro-star
 	 (cj-struct-tag struct-tag-allocate! struct-metadata)
-	 lazy-1)
+	 lazy-1
+	 (cj-gambit-sys-0 @vector-ref @vector-length @vector-set!))
 
 (export (macro possibly-use-debuggable-promise) ;; see docs below
 	(macro delay)
@@ -53,16 +54,16 @@
 
 (define (debuggable-promise? v)
   (and (##vector? v)
-       (fx= (##vector-length v) 4)
-       (eq? (##vector-ref v 0) debuggable-promise-tag)))
+       (fx= (@vector-length v) 4)
+       (eq? (@vector-ref v 0) debuggable-promise-tag)))
 
-(define (@debuggable-promise-thunk-or-value v) (##vector-ref v 1))
-(define (@debuggable-promise-thunk-or-value-set! v val) (##vector-set! v 1 val))
+(define (@debuggable-promise-thunk-or-value v) (@vector-ref v 1))
+(define (@debuggable-promise-thunk-or-value-set! v val) (@vector-set! v 1 val))
 
-(define (@debuggable-promise-evaluated? v) (##vector-ref v 2))
-(define (@debuggable-promise-evaluated?-set! v val) (##vector-set! v 2 val))
+(define (@debuggable-promise-evaluated? v) (@vector-ref v 2))
+(define (@debuggable-promise-evaluated?-set! v val) (@vector-set! v 2 val))
 
-(define (@debuggable-promise-capturectx v) (##vector-ref v 3))
+(define (@debuggable-promise-capturectx v) (@vector-ref v 3))
 
 
 

@@ -39,6 +39,7 @@
 	 cj-source-quasiquote ;; all in the name of optimization
 	 debuggable-promise
 	 cj-functional
+	 (cj-gambit-sys-0 @vector-ref)
 	 test)
 
 (export (macro joo-class)
@@ -439,7 +440,7 @@
 	 (and (##vector? v)
 	      ;; do *not* restrict length
 	      (fx>= (##vector-length v) 1)
-	      (joo:struct-tag.member-of? (##vector-ref v 0)
+	      (joo:struct-tag.member-of? (@vector-ref v 0)
 					 (@joo-type.members s)))))
 
 ;; a constructor that also updates the parent's member tables (XX

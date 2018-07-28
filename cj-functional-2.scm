@@ -16,7 +16,8 @@
 	 test
 	 (fixnum inc dec)
 	 srfi-1
-	 (cj-symbol syntax-equal?))
+	 (cj-symbol syntax-equal?)
+	 (cj-gambit-sys-0 @vector-ref @vector-length @vector-set!))
 
 (export flip-function        (macro flip)
 	complement-function  (macro complement complement-2ary)
@@ -603,9 +604,9 @@
 	 V
 	 `(lambda (,V)
 	    (and (##values? ,V)
-		 (##fx= (##vector-length ,V) ,len)
+		 (##fx= (@vector-length ,V) ,len)
 		 ,@(map/iota (lambda (pred i)
-			       `(,pred (##vector-ref ,V ,i)))
+			       `(,pred (@vector-ref ,V ,i)))
 			     preds)))))))
 
 (TEST

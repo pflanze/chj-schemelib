@@ -16,7 +16,7 @@
 	 (cj-env symbol-append define-if-not-defined list-max) ;; in macro expansion
 	 (predicates-1 list-of-length)
 	 (cj-inline-1 define-inline.1) ;; cj-inline would give cycle
-	 )
+	 (cj-gambit-sys-0 @vector-ref @vector-length @vector-set!))
 
 (export (macro define-struct)
 	(macro define-struct*)
@@ -190,8 +190,8 @@
 	    `(define ,predicate-name
 	       (lambda (v)
 		 (and (##vector? v)
-		      (= (##vector-length v) ,(add-offset numfields))
-		      (eq? (##vector-ref v 0)
+		      (= (@vector-length v) ,(add-offset numfields))
+		      (eq? (@vector-ref v 0)
 			   ,tag-binding)))))
        (define ,error-name
 	 (lambda (v)
@@ -206,15 +206,15 @@
 	   ;; least if a "-" or "." separator is used)
 	   (if (,predicate-name v)
 	       (let ((v* (##vector-copy v)))
-		 (vector-set! v* offset value)
+		 (vector-set! v* offset value) ;; XXX use @vector-set!, safe?
 		 v*)
 	       (,error-name v))))
        (define ,genericupdater-name
 	 (lambda (v offset fn)
 	   (if (,predicate-name v)
 	       (let ((v* (##vector-copy v)))
-		 (##vector-set! v* offset
-				(fn (##vector-ref v offset)))
+		 (@vector-set! v* offset ;; XXX is use of @vector-set! safe?
+			       (fn (@vector-ref v offset)))
 		 v*)
 	       (,error-name v))))
        ,@(map (lambda (field field+ i)
@@ -233,7 +233,7 @@
 						    separator
 						    field) v)
 		      ,(list 'quasiquote
-			     `(##vector-ref ,(list 'unquote 'v) ,(add-offset i))))
+			     `(@vector-ref ,(list 'unquote 'v) ,(add-offset i))))
 		    ;; functional setter:
 		    (,DEFINE ,(safe-setter-for-field field)
 		      (,LAMBDA (v ,(wrap-var 'value field+))
@@ -308,7 +308,7 @@
 						      real-v+f+i-s)))))
 				    (,C
 				     ,@(map (lambda (v+f+i)
-					      `(##vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
+					      `(@vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
 					    real-v+f+i-s))
 				    ,(if ,let-fallback?
 					 ;; use type-name.field-name
@@ -419,8 +419,8 @@
   ;; corresponding class? or not since that would fail with
   ;; multiversioning?
   (and (##vector? v)
-       (fx>= (##vector-length v) 1)
-       (struct-tag? (##vector-ref v 0))))
+       (fx>= (@vector-length v) 1)
+       (struct-tag? (@vector-ref v 0))))
 
 (define (struct-of pred)
   (lambda (v)
