@@ -74,10 +74,9 @@
 	(let ,(map (lambda (var)
 		     (assert* symbol? var
 			      (lambda (var*)
-				(if-let ((expr (assq var* exprs)))
-					;; heh use key and val right together
-					expr
-					(source-error var "request for a var I don't know about")))))
+				;; heh use key and val right together
+				(or (assq var* exprs)
+				    (source-error var "request for a var I don't know about")))))
 		   vars*)
 	  
 	  ,@body)))))
