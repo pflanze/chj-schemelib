@@ -42,6 +42,8 @@
 	wbtable:list->_)
 
 
+(include "cj-standarddeclares.scm")
+
 
 ;; FINALLY give already in and make some sort of a TYPE? Kinda give
 ;; in only.
