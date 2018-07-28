@@ -148,7 +148,7 @@
   (def (wbtable:list->_ empty l)
        (fold (lambda (k.v t)
 	       ;; re-use pairs, ah (dimly remember)
-	       (.add-pair t k.v))
+	       (wbtable.add-pair t k.v))
 	     empty
 	     l))
  
