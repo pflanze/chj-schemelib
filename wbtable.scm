@@ -82,6 +82,12 @@
 	  
 	  ,@body)))))
 
+(defmacro (with-wbtable s vars . body)
+  (assert* symbol? s) ;; since I'm not eval-ing to a var
+  `(begin
+     (assert (wbtable? ,s))
+     (@with-wbtable ,s ,vars ,@body)))
+
 
 
 ;; XX The real uglyness with the following is the possibility for
@@ -159,16 +165,16 @@
 
   ;; yeah, should really rename size in wbcollection ? !
   (defmethod- (length s)
-    (@with-wbtable s ($wbtreeparameter data)
-		   (wbtree:size data)))
+    (with-wbtable s ($wbtreeparameter data)
+		  (wbtree:size data)))
 
   (defmethod (empty? s)
     (empty-wbtree? data))
 
   (defmethod- (maybe-ref-pair s #(pair? key.val))
-    (@with-wbtable s (key? $wbtreeparameter data)
-		   (assert (key? (car key.val)))
-		   (wbtree:maybe-ref data key.val)))
+    (with-wbtable s (key? $wbtreeparameter data)
+		  (assert (key? (car key.val)))
+		  (wbtree:maybe-ref data key.val)))
 
   ;; XX gah dimly remember, too: useless cons. Should add some
   ;; maybe-ref-key to wbtree? Hm, how is cmp used, always in same
@@ -188,7 +194,7 @@
 	 #t))
 
   (def-method- (update s key fn initial-value-thunk)
-    (@with-wbtable
+    (with-wbtable
      s ($wbtreeparameter data)
      (if-let ((kv (wbtree:maybe-ref data (cons key #f))))
 	     (let* ((v (cdr kv))
@@ -204,12 +210,12 @@
   ;; wbtable.every?
 
   (defmethod- (list s)
-    (@with-wbtable
+    (with-wbtable
      s ($wbtreeparameter data)
      (wbtree:members data)))
 
   (defmethod- (show s)
-    (@with-wbtable
+    (with-wbtable
      s (key? key-cmp value?)
      (if (.empty? s)
 	 `(empty-wbtable-of ,(.show key?)
@@ -226,7 +232,7 @@
   ;; wbtable.update-all  what was that?
 
   (defmethod- (add-pair s #(pair? key.val))
-    (@with-wbtable
+    (with-wbtable
      s ($wbtreeparameter key? value? data)
 
      (assert (key? (car key.val)))
@@ -235,7 +241,7 @@
      (wbtable.data-set s (wbtree:add data key.val))))
 
   (defmethod- (set-pair s #(pair? key.val))
-    (@with-wbtable
+    (with-wbtable
      s ($wbtreeparameter key? value? data)
     
      (assert (key? (car key.val)))
@@ -246,7 +252,7 @@
   ;; call it remove as symboltable or delete as wbcollection, wbtree,
   ;; Perl?
   (defmethod- (delete-pair s #(pair? key.val))
-    (@with-wbtable
+    (with-wbtable
      s ($wbtreeparameter key? data)
 
      (assert (key? (car key.val)))
