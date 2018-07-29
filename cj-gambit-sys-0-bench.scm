@@ -22,6 +22,9 @@
 
 (TEST
  > (cj-gambit-sys-0-bench:run 100000000 (vector 39 20 10 4) 2 7)
+ ;; expecting around 100 ms or so of real or cpu time for each time,
+ ;; or about 3-4 cycles for each iteration. Todo: add this to the
+ ;; actual test...?
  [10 4 [39 20 7 4]])
 
 
