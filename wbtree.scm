@@ -83,23 +83,24 @@
 
 
 
-(defstruct wbtreeparameter
+(define-struct wbtreeparameter
+  constructor-name: wbtreeparameter
   cmp
   element?)
 
 
 ;; XXX: shouldn't we simply drop element? from wbtreeparameter
 ;; instead?
-(def (not-_wbtree? v) (not (_wbtree? v)))
-(def (wbtreeparameter* cmp)
-     (wbtreeparameter cmp not-_wbtree?))
+(define (not-_wbtree? v) (not (_wbtree? v)))
+(define (wbtreeparameter* cmp)
+  (wbtreeparameter cmp not-_wbtree?))
 
 ;; (also a ~general thing ? Almost 'on x cmp'? 'on x eq?') 
-(def (wbtreeparameter-equal? a b)
-     (let-wbtreeparameter ((a-cmp a-element?) a)
-			  (let-wbtreeparameter ((b-cmp b-element?) b)
-					       (and (eq? a-cmp b-cmp)
-						    (eq? a-element? b-element?)))))
+(define (wbtreeparameter-equal? a b)
+  (let-wbtreeparameter ((a-cmp a-element?) a)
+		       (let-wbtreeparameter ((b-cmp b-element?) b)
+					    (and (eq? a-cmp b-cmp)
+						 (eq? a-element? b-element?)))))
 
 
 (define (wbtreeparameter:wrap-in tp type? access)
