@@ -13,7 +13,7 @@
 	(I (gensym 'I)))
     `(##let ((,V ,v)
 	     (,I ,i))
-	    (declare (not safe))
+	    (##declare (not safe))
 	    (##vector-ref ,V ,I))))
 
 (define-macro* (@vector-set! v i val)
@@ -24,13 +24,13 @@
     `(##let ((,V ,v)
 	     (,I ,i)
 	     (,VAL ,val))
-	    (declare (not safe))
+	    (##declare (not safe))
 	    (##vector-set! ,V ,I ,VAL))))
 
 (define-macro* (@vector-length v)
   ;; need unsafe mode here, too?
   (let ((V (gensym 'V)))
     `(##let ((,V ,v))
-	    (declare (not safe))
+	    (##declare (not safe))
 	    (##vector-length ,V))))
 
