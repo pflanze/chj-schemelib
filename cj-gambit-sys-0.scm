@@ -9,19 +9,28 @@
 
 (define-macro* (@vector-ref v i)
   ;; need unsafe mode for ##vector-ref to be compiled efficiently!
-  `(##let ()
-	  (declare (not safe))
-	  (##vector-ref ,v ,i)))
+  (let ((V (gensym 'V))
+	(I (gensym 'I)))
+    `(##let ((,V ,v)
+	     (,I ,i))
+	    (declare (not safe))
+	    (##vector-ref ,V ,I))))
 
 (define-macro* (@vector-set! v i val)
   ;; need unsafe mode here, too?
-  `(##let ()
-	  (declare (not safe))
-	  (##vector-set! ,v ,i ,val)))
+  (let ((V (gensym 'V))
+	(I (gensym 'I))
+	(VAL (gensym 'VAL)))
+    `(##let ((,V ,v)
+	     (,I ,i)
+	     (,VAL ,val))
+	    (declare (not safe))
+	    (##vector-set! ,V ,I ,VAL))))
 
 (define-macro* (@vector-length v)
   ;; need unsafe mode here, too?
-  `(##let ()
-	  (declare (not safe))
-	  (##vector-length ,v)))
+  (let ((V (gensym 'V)))
+    `(##let ((,V ,v))
+	    (declare (not safe))
+	    (##vector-length ,V))))
 
