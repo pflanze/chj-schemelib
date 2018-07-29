@@ -33,3 +33,8 @@
 				    (wbtable.refx t1 v)))))
        (.length t1)))
 
+
+(TEST
+ > (< 9300 (wbtable-bench:run 1 10000) 9700)
+ #t)
+
