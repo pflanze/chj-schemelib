@@ -24,3 +24,17 @@
  > (cj-gambit-sys-0-bench:run 100000000 (vector 39 20 10 4) 2 7)
  [10 4 [39 20 7 4]])
 
+
+;; and unsafety test; needs to be compiled code hence also put here in
+;; -bench module, instead of a TEST form in main module.
+
+(def (cj-gambit-sys-0-bench:test n)
+     (declare (fixnum))
+     (@vector-ref (vector 1 2 3) (+ n 1)))
+
+(TEST
+ > (cj-gambit-sys-0-bench:test 1)
+ 3
+ > (%try (cj-gambit-sys-0-bench:test "fun"))
+ (exception text: "(Argument 1) FIXNUM expected\n(fx+ \"fun\" 1)\n"))
+
