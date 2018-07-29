@@ -12,7 +12,7 @@
 
 (include "cj-standarddeclares.scm")
 
-;; XX move ... also rename number-cmp to real-cmp
+;; XX move ... also rename real-cmp to real-cmp
 (def (fixnum-cmp a b)
      (if (fx< a b)
 	 'lt

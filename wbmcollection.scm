@@ -141,7 +141,7 @@
 		     (list->wbtree l))))
 
 (TEST
- > (def tcmp (on caar number-cmp))
+ > (def tcmp (on caar real-cmp))
  > (def m (empty-wbmcollection tcmp '() cons))
  > (.show m)
  (lists.wbmcollection tcmp (list) cons (list))

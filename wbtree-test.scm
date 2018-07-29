@@ -16,7 +16,7 @@
 		      string?))
 
 (define wbtreeparameter-number
-  (wbtreeparameter number-cmp
+  (wbtreeparameter real-cmp
 		      number? ;; ##fixnum? but well not inlined anyway anymore
 		      ))
 

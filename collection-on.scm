@@ -254,13 +254,13 @@
 
 
 ;; (TEST
-;;  > (def. number.cmp number-cmp)
+;;  > (def. number.cmp real-cmp)
 ;;  > (def c ((collection-on car) (cons 4 "four") (cons 2 "two")))
 ;;  > (.show c)
 ;;  ((collection-on car) (cons 2 "two") (cons 4 "four")))
 
 
 (TEST
- > (def c ((collection-on first number-cmp) '(1 a) '(3 b) '(2 x)))
+ > (def c ((collection-on first real-cmp) '(1 a) '(3 b) '(2 x)))
  
  )

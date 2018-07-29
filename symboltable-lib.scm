@@ -29,14 +29,14 @@
 
 (TEST
  > (define t (vector->symboltable '#(a b c)))
- > (cmp-sort (symboltable->list t) (on cdr number-cmp))
+ > (cmp-sort (symboltable->list t) (on cdr real-cmp))
  ((a . 0) (b . 1) (c . 2))
  ;; being lazy, reusing the above test data for symboltable-update-all:
  > (cmp-sort (symboltable->list
 	      (symboltable-update-all t
 				      (lambda (k v)
 					(dec v))))
-	     (on cdr number-cmp))
+	     (on cdr real-cmp))
  ((a . -1) (b . 0) (c . 1))
  )
 

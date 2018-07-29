@@ -246,11 +246,11 @@
  > (.show
     (with-exception-catcher
      identity
-     (& (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3)))))
+     (& (list.wbcollection real-cmp '(1 3 2 9 -2 3.3 3)))))
  (wbtree-duplicate-exception 3 3)
- > (.list (list.wbcollection number-cmp '(1 3 2 9 -2 3.3 3) #t))
+ > (.list (list.wbcollection real-cmp '(1 3 2 9 -2 3.3 3) #t))
  (-2 1 2 3 3.3 9)
- > (def c (list.wbcollection number-cmp '(1 3 2 9 -2 3.3)))
+ > (def c (list.wbcollection real-cmp '(1 3 2 9 -2 3.3)))
  > (.contains? c 3)
  #t
  > (.contains? c 3.3)
@@ -281,7 +281,7 @@
  not-found ;; perhaps todo: also add .Maybe-rank
 
  ;; site and emptyness:
- > (def c (list.wbcollection number-cmp '(1 9)))
+ > (def c (list.wbcollection real-cmp '(1 9)))
  > (.size c)
  2
  > (.empty? c)
@@ -314,9 +314,9 @@
  (-2 1 2 3 3.3 9)
 
  > (.show r)
- (list.wbcollection number-cmp (list -2 1 2 3 3.3 9))
- > (.show (list.wbcollection number-cmp (list -2 1 2 3 3.3 9)))
- (list.wbcollection number-cmp (list -2 1 2 3 3.3 9))
+ (list.wbcollection real-cmp (list -2 1 2 3 3.3 9))
+ > (.show (list.wbcollection real-cmp (list -2 1 2 3 3.3 9)))
+ (list.wbcollection real-cmp (list -2 1 2 3 3.3 9))
  
  ;; > (with-exception-catcher identity (& (set! c (.delete c 1))))
  ;; not-found  XXX why does this give #!void instead of exception?
@@ -334,14 +334,14 @@
  #(error "can't get max from empty wbtree")
 
  > (.show c)
- (list.wbcollection number-cmp (list))
+ (list.wbcollection real-cmp (list))
  )
 
 ;; Set operations
 (TEST
  > (def (binarytest fn l1 l2 post)
 	(let ((c (comp-function post
-		       (on (C list.wbcollection number-cmp _)
+		       (on (C list.wbcollection real-cmp _)
 			   fn))))
 	  (list (c l1 l2)
 		(c l2 l1))))

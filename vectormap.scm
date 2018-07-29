@@ -45,7 +45,7 @@
 
 (def. char.cmp char-cmp)
 (def. string.cmp string-cmp)
-(def. number.cmp number-cmp)
+(def. number.cmp real-cmp)
 (def. symbol.cmp symbol-cmp)
 (def. u8vector.cmp u8vector-cmp)
 

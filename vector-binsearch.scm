@@ -98,7 +98,7 @@
 
 (TEST
  ;; with no values, any value is outside it
- > (vector-binsearch (vector) 123 number-cmp)
+ > (vector-binsearch (vector) 123 real-cmp)
  #f
  > (def (t nvals)
 	(let* ((range (inc (random-integer 1000)))
@@ -107,7 +107,7 @@
 	       (knowncontained (*ri))
 	       (vs (repeatedly nvals (C cons (*ri) _) (list knowncontained)))
 	       (len (inc nvals))
-	       (vs*-list (cmp-sort vs number-cmp))
+	       (vs*-list (cmp-sort vs real-cmp))
 	       (vs* (list->vector vs*-list)))
 	  ;; vs* always contains at least 1 value, knowncontained
 	  (let ((vmin (vector.first vs*))
@@ -117,30 +117,30 @@
 			   (range.from r)
 			   #f)))
 	      (local-TEST
-	       > (fixnum-natural0? (vector-binsearch vs* knowncontained number-cmp))
+	       > (fixnum-natural0? (vector-binsearch vs* knowncontained real-cmp))
 	       #t
 	       > (if maybe-not-contained
-		     (vector-binsearch vs* maybe-not-contained number-cmp)
+		     (vector-binsearch vs* maybe-not-contained real-cmp)
 		     #f)
 	       #f
-	       ;; > (vector-binsearch vs* vmin number-cmp)
+	       ;; > (vector-binsearch vs* vmin real-cmp)
 	       ;; 0
 	       ;; ^ fails, makes sense when coming from the center.
-	       > (= (vector-ref vs* (vector-binsearch vs* vmin number-cmp)) vmin)
+	       > (= (vector-ref vs* (vector-binsearch vs* vmin real-cmp)) vmin)
 	       #t
-	       > (= (vector-ref vs* (vector-binsearch vs* vmax number-cmp)) vmax)
+	       > (= (vector-ref vs* (vector-binsearch vs* vmax real-cmp)) vmax)
 	       #t)
 	      (repeat 30
 		      (local-TEST
 		       > (let ((ri (*ri)))
-			   (if-let ((i (vector-binsearch vs* ri number-cmp)))
+			   (if-let ((i (vector-binsearch vs* ri real-cmp)))
 				   (= (vector-ref vs* i) ri)
 				   #t))
 		       #t
 		       ;; and assured retrieval
 		       > (let* ((i (random-integer len))
 				(ri (vector-ref vs* i)))
-			   (= (vector-ref vs* (vector-binsearch vs* ri number-cmp)) ri))
+			   (= (vector-ref vs* (vector-binsearch vs* ri real-cmp)) ri))
 		       #t))))))
  > (repeat 20 (t (random-integer 1000))))
 

@@ -34,11 +34,11 @@
 	cmp-either-function (macro cmp-either)
 
 	(inline @boolean-cmp
-		@number-cmp
+		@real-cmp
 		@symbol-cmp
 		@string-cmp)
 	boolean-cmp
-	number-cmp
+	real-cmp
 	symbol-cmp
 	string-cmp
 	u8vector-cmp
@@ -116,7 +116,7 @@
 	 'lt)
 	(else
 	 'gt)))
-(define-inline (@number-cmp v1 v2)
+(define-inline (@real-cmp v1 v2)
   (cond ((< v1 v2)
 	 'lt)
 	((< v2 v1)
@@ -150,7 +150,11 @@
 			   (,(symbol-append "@" typ "-cmp") v1 v2)
 			   (err v2))
 		       (err v1)))))
-	    '("boolean" "number" "symbol" "string"))))
+	    '("boolean" "real" "symbol" "string"))))
+
+;; ^ used to have "number", i.e. number-cmp, but can't order non-real
+;; numbers
+
 
 (define (u8vector-cmp v1 v2)
   ;; Gambit doesn't offer u8vector>? or similar, so..
@@ -201,7 +205,7 @@
 	(if (eq? t1 t2)
 	    (case t1
 	      ((1) (@boolean-cmp v1 v2))
-	      ((2) (@number-cmp v1 v2))
+	      ((2) (@real-cmp v1 v2))
 	      ((3) (@symbol-cmp v1 v2))
 	      ((4) (@string-cmp v1 v2))
 	      (else
@@ -225,7 +229,7 @@
 (define (pointer-cmp v1 v2)
   ;; use a let to force evaluation order of the arguments
   (let ((s1 (xserial-number v1)))
-    (number-cmp s1
+    (real-cmp s1
 		(xserial-number v2))))
 
 (TEST
@@ -438,7 +442,7 @@
 
 
 (TEST
- > (define f (cmp-either-function (on car string-cmp) (on cadr number-cmp)))
+ > (define f (cmp-either-function (on car string-cmp) (on cadr real-cmp)))
  > (f '("a" 10) '("a" -2))
  gt
  > (f '("a" -10) '("a" -2))
@@ -452,7 +456,7 @@
 
 ;; XX use local-test.scm instead of copy-paste
 (TEST
- > (define f (cmp-either (on car string-cmp) (on cadr number-cmp)))
+ > (define f (cmp-either (on car string-cmp) (on cadr real-cmp)))
  > (f '("a" 10) '("a" -2))
  gt
  > (f '("a" -10) '("a" -2))
@@ -466,7 +470,7 @@
 
 (TEST
  > (define f (cmp-either (on car string-cmp)
-			 (on cadr number-cmp)
+			 (on cadr real-cmp)
 			 (on caddr boolean-cmp)))
  > (f '("a" 10 #t) '("a" -2 #t))
  gt
@@ -648,7 +652,7 @@
 				   ((gt) 'gt)))))))))
 
 (TEST
- > (def c (cmp-any number-cmp))
+ > (def c (cmp-any real-cmp))
  > (c '() '())
  eq
  > (c '(2) '(2))

@@ -174,7 +174,7 @@
 			       (cond ((formula-opapplication? item)
 				      (match-cmp
 				       ((on (compose-function .precedence-level .op)
-					    number-cmp)
+					    real-cmp)
 					item
 					e)
 				       ((lt) #f)

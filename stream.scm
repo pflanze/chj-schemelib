@@ -166,8 +166,8 @@
 		  (error "improper stream:" s)))))))
 
 (TEST
-;  > (stream-for-each pp (Set->stream (Set-intersection (list->Set number-cmp (list 1)) (list->Set number-cmp (list 2)))))
-;  > (stream-for-each pp (Set->stream (Set-union (list->Set number-cmp (list 1)) (list->Set number-cmp (list 2)))))
+;  > (stream-for-each pp (Set->stream (Set-intersection (list->Set real-cmp (list 1)) (list->Set real-cmp (list 2)))))
+;  > (stream-for-each pp (Set->stream (Set-union (list->Set real-cmp (list 1)) (list->Set real-cmp (list 2)))))
 ;  1
 ;  2
 )
@@ -1140,19 +1140,19 @@
 
 (TEST
  ;; just random adapted COPY from above
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+ > (cmp-list-union real-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
 		   '(31 35 49 65 68 74 74 88 93 94 98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+ > (cmp-list-union real-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
 		   '(31 35 49 65 68 74 74) '(88 93 94) '(98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+ > (cmp-list-union real-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
 		   '(88 93 94) '(31 35 49 65 68 74 74) '(98))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 98 99)
- > (cmp-list-union number-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
+ > (cmp-list-union real-cmp '(1 11 13 14) '(27 47 61 84 93 98 99)
 		   '(88 93 94) '(31 35 49 65 68 74 74) '())
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 99)
- > (cmp-list-union number-cmp '() '(27 47 61 84 93 98 99) '(88 93 94)
+ > (cmp-list-union real-cmp '() '(27 47 61 84 93 98 99) '(88 93 94)
 		   '(1 11 13 14) '(31 35 49 65 68 74 74))
  (1 11 13 14 27 31 35 47 49 61 65 68 74 74 84 88 93 93 94 98 99)
  )
@@ -1165,9 +1165,9 @@
 (define cmp-stream-uniq (equalfn->cmpfn stream-uniq))
 
 (TEST
- > (cmp-list-uniq number-cmp '(1 1 2 3 4 4.0 4 5 7 1))
+ > (cmp-list-uniq real-cmp '(1 1 2 3 4 4.0 4 5 7 1))
  (1 2 3 4 5 7 1)
- > (cmp-list-uniq number-cmp '(1))
+ > (cmp-list-uniq real-cmp '(1))
  (1)
  )
 
@@ -1551,9 +1551,9 @@
  > (values->vector (stream-min&max '(3)))
  #(3 3)
  > (def l '((3 a) (5 b) (9 c) (-3 d) (7 e) (9 f) (8 g)))
- > (stream-max l cmp: (on car number-cmp))
+ > (stream-max l cmp: (on car real-cmp))
  (9 f)
- > (stream-max l cmp: (on car number-cmp) all?: #t)
+ > (stream-max l cmp: (on car real-cmp) all?: #t)
  ((9 f) (9 c)))
 
 
