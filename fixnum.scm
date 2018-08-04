@@ -30,16 +30,18 @@
 
 (define-macro* (inc e)
   (if (mod:compiled?)
-      `(let ()
-	 (declare (fixnum))
-	 (+ ,e 1))
+      (let ((v (gensym)))
+	`(let ((,v ,e))
+	   (declare (fixnum))
+	   (+ ,v 1)))
       `(fx+ ,e 1)))
 
 (define-macro* (dec e)
   (if (mod:compiled?)
-      `(let ()
-	 (declare (fixnum))
-	 (- ,e 1))
+      (let ((v (gensym)))
+	`(let ((,v ,e))
+	   (declare (fixnum))
+	   (- ,v 1)))
       `(fx- ,e 1)))
 
 
