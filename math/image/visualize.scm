@@ -21,6 +21,7 @@
 	min+max-values
 	min+max-values-values)
 
+(include "../../cj-standarddeclares.scm")
 
 (define (min+max-values v mima)
   (letv ((mi ma) mima)
