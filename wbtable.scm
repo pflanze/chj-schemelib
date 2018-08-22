@@ -25,18 +25,22 @@
 	 wbtable.length
 	 wbtable.ref ;; with required alternative value if missing
 	 wbtable.refx ;; exception
-	 wbtable.contains?
+	 wbtable.exists?
 	 wbtable.update
-	 wbtable.fold
-	 wbtable.every?
+	 ;; wbtable.fold
+	 ;; wbtable.every?
 	 wbtable.list
 	 wbtable.show
-	 wbtable.keys
-	 wbtable.sortedkeys
-	 wbtable.update-all
+	 ;; wbtable.keys
+	 ;; wbtable.sortedkeys
+	 ;; wbtable.update-all
+	 wbtable.add-pair
+	 wbtable.set-pair
+	 wbtable.delete-pair
 	 wbtable.add
 	 wbtable.set
-	 wbtable.remove)
+	 wbtable.delete
+	 wbtable.union)
 	#!optional
 	(class wbtable-head)
 	wbtable:list->_)
