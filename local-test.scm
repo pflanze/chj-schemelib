@@ -52,6 +52,10 @@
 ;;  > (%test (t-foo foo))
 ;;  > (%test (t-foo foo*)))
 
+;; If wanting to run from outside a run-tests scope:
+
+;; > (run-test (t-foo f))
+
 
 ;; (XX vs. expansion function in test.scm?)
 
