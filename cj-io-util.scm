@@ -201,9 +201,10 @@
 	v)))
 
 
-(define (writeln obj)
-  (write obj)
-  (newline))
+(define (writeln obj #!optional maybe-port)
+  (let ((port (or maybe-port (current-output-port))))
+    (write obj port)
+    (newline port)))
 
 (define (pathspec.xcontent pathspec)
   (let* ((p (open-input-file pathspec))
