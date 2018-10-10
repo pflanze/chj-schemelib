@@ -27,7 +27,8 @@
 	 wbtable.refx ;; exception
 	 wbtable.exists?
 	 wbtable.update
-	 ;; wbtable.fold
+	 wbtable.fold
+	 wbtable.fold-right
 	 ;; wbtable.every?
 	 wbtable.list
 	 wbtable.show
@@ -210,7 +211,15 @@
 	     (wbtable.data-set
 	      s (wbtree:set data (cons key (fn (initial-value-thunk))))))))
 
-  ;; XX wbtable.fold
+  (defmethod (fold s fn start)
+    (with-wbtable
+     s ($wbtreeparameter data)
+     (wbtree:inorder-fold-reverse data fn start)))
+
+  (defmethod (fold-right s fn start)
+    (with-wbtable
+     s ($wbtreeparameter data)
+     (wbtree:inorder-fold data fn start)))
 
   ;; wbtable.every?
 
@@ -356,3 +365,23 @@
  > (.ref t "foo" 'nope)
  12)
 
+
+(TEST
+ > (def t ((list->wbtable-of symbol? symbol-cmp integer?)
+	   '((a . 1) (c . 2) (b . 3))))
+ > (.fold t cons '())
+ ((c . 2) (b . 3) (a . 1))
+ > (.fold-right t cons '())
+ ((a . 1) (b . 3) (c . 2))
+ > (.fold t (lambda (k.v t) (+ (cdr k.v) t)) 0)
+ 6
+ > (.fold-right t (lambda (k.v t) (/ (cdr k.v) t)) 1)
+ 2/3
+ > (.fold t (lambda (k.v t) (/ (cdr k.v) t)) 1)
+ 2/3
+ > (def t ((list->wbtable-of symbol? symbol-cmp integer?)
+	   '((a . 1) (c . 2) (b . 3) (d . 4))))
+ > (.fold-right t (lambda (k.v t) (/ (cdr k.v) t)) 1)
+ 1/6
+ > (.fold t (lambda (k.v t) (/ (cdr k.v) t)) 1)
+ 6)
