@@ -211,12 +211,12 @@
 	     (wbtable.data-set
 	      s (wbtree:set data (cons key (fn (initial-value-thunk))))))))
 
-  (defmethod (fold s fn start)
+  (defmethod- (fold s fn start)
     (with-wbtable
      s ($wbtreeparameter data)
      (wbtree:inorder-fold-reverse data fn start)))
 
-  (defmethod (fold-right s fn start)
+  (defmethod- (fold-right s fn start)
     (with-wbtable
      s ($wbtreeparameter data)
      (wbtree:inorder-fold data fn start)))
