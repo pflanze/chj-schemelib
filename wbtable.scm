@@ -27,6 +27,7 @@
 	 wbtable.refx ;; exception
 	 wbtable.exists?
 	 wbtable.update
+	 wbtable.update*
 	 wbtable.fold
 	 wbtable.fold-right
 	 ;; wbtable.every?
@@ -199,7 +200,7 @@
     (and (wbtable.maybe-ref-pair s (cons key #f))
 	 #t))
 
-  (def-method- (update s key fn initial-value-thunk)
+  (def (wbtable:_update s key fn fn-initial initial-value-thunk)
     (with-wbtable
      s ($wbtreeparameter data)
      (if-let ((kv (wbtree:maybe-ref data (cons key #f))))
@@ -209,8 +210,16 @@
 		   s
 		   (wbtable.data-set s (wbtree:set data (cons key v*)))))
 	     (wbtable.data-set
-	      s (wbtree:set data (cons key (fn (initial-value-thunk))))))))
+	      s (wbtree:set data (cons key (fn-initial
+					    (initial-value-thunk))))))))
 
+  (def-method- (update s key fn initial-value-thunk)
+    (wbtable:_update s key fn fn initial-value-thunk))
+
+  ;; alternative that doesn't apply fn in the initial case
+  (def-method- (update* s key fn initial-value-thunk)
+    (wbtable:_update s key fn identity initial-value-thunk))
+    
   (defmethod- (fold s fn start)
     (with-wbtable
      s ($wbtreeparameter data)
@@ -364,6 +373,17 @@
  > (def t (.update t "foo" inc-function (& 10)))
  > (.ref t "foo" 'nope)
  12)
+
+(TEST
+ > (def t (empty-wbtable-of string? string-cmp any?))
+ > (.ref t "foo" 'nope)
+ nope
+ > (def t (.update* t "foo" inc-function (& 10)))
+ > (.ref t "foo" 'nope)
+ 10
+ > (def t (.update* t "foo" inc-function (& 10)))
+ > (.ref t "foo" 'nope)
+ 11)
 
 
 (TEST
