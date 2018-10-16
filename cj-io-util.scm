@@ -53,6 +53,7 @@
 	file-info->mtime
 	file-basename
 	file-mtime
+	file-exists-and-newer?
 	basepath
 	basename
 	dirname
@@ -442,6 +443,11 @@
   (time->seconds
    (file-info-last-modification-time
     (file-info path))))
+
+(define (file-exists-and-newer? existingfile newfile)
+  (and (file-exists? newfile)
+       (> (file-mtime newfile)
+	  (file-mtime existingfile))))
 
 
 ;; -- for a different libary?  not full path lib but simple path manipul
