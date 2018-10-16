@@ -20,6 +20,7 @@
 	 (lazy-debug S)
 	 cj-source
 	 (string-util-2 string-starts-with? string-ends-with?)
+	 (cj-path path-absolute?)
 	 test)
 
 
@@ -80,7 +81,7 @@
 		 location-line
 		 location-column)
   (let ((c (if (string? location-container)
-	       (if (string-starts-with? location-container "/")
+	       (if (path-absolute? location-container "/")
 		   location-container
 		   ;; do not use path-normalize here, makes a test
 		   ;; like (equal? (eval (.show matchcases))
