@@ -6,8 +6,7 @@
 	 (unclean make-unclean-string)
 	 (list-util let-pair))
 
-(export string-contains-char?
-	make-replace-substring
+(export make-replace-substring
 	replace-substring-error
 	string.replace-substring
 	string.replace-substring-ci
@@ -34,22 +33,6 @@
 ;;   `(.for seq
 ;; 	 (lambda (,var return)
 ;; 	   ,@body)))
-
-
-;; XX rename to string-contains-charpred? or so?
-(define (string-contains-char? str pred)
-  (let ((len (string-length str)))
-    (let lp ((i 0))
-      (and (< i len)
-	   (or (pred (string-ref str i))
-	       (lp (inc i)))))))
-
-(TEST
- > (string-contains-char? "Hello" char-newline?)
- #f
- > (string-contains-char? "Hello\n" char-newline?)
- #t
- )
 
 
 ;; The name string-replace is already used in srfi-13;

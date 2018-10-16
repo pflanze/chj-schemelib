@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010, 2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -10,9 +10,27 @@
 	 ;;(list-util-1 list-split)
 	 )
 
-(export string-split)
+(export string-contains-char?
+	string-split)
 
 (include "cj-standarddeclares.scm")
+
+
+;; XX rename to string-contains-charpred? or so?
+(define (string-contains-char? str pred)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (and (< i len)
+	   (or (pred (string-ref str i))
+	       (lp (inc i)))))))
+
+(TEST
+ > (string-contains-char? "Hello" char-newline?)
+ #f
+ > (string-contains-char? "Hello\n" char-newline?)
+ #t
+ )
+
 
 ;; (define (string-split str char-or-pred)
 ;;   (map list->string (list-split (string->list str) char-or-pred)))

@@ -1,4 +1,4 @@
-;;; Copyright 2013-2014 by Christian Jaeger, ch at christianjaeger ch
+;;; Copyright 2013-2018 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,7 @@
 (require test
 	 cut
 	 string-util-2
-	 string-util-3)
+	 (string-util-1 string-contains-char?))
 
 
 (define (path-string? v)
