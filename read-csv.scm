@@ -26,17 +26,33 @@
 		 (close-port port)
 		 (assert (zero? (process-status port)))
 		 tail)
-	       (let ((vals (xone (call-with-input-string line read-all)))
+	       (let ((vals-or-signal
+		      (xone (call-with-input-string line read-all)))
 		     (rest (lp (inc lineno))))
-		 (cons (if maybe-file-or-port
-			   (map/iota (lambda (val colno)
-				       (csv-cell val
-						 maybe-file-or-port
-						 lineno
-						 colno))
+		 (xcond ((and (vector? vals-or-signal)
+			      (> (vector-length vals-or-signal) 0))
+			 (let ((signal vals-or-signal))
+			   (xcase (vector-ref signal 0)
+				  ((OK)
+				   (if (null? (force rest))
+				       tail
+				       (error "bug: did get OK signal before end of output")))
+				  ((ERROR)
+				   (error "read-csv error (path, line(natural1), message): "
+					  (vector-ref signal 1)
+					  (vector-ref signal 2)
+					  (vector-ref signal 3))))))
+			((ilist? vals-or-signal)
+			 (let ((vals vals-or-signal))
+			   (cons (if maybe-file-or-port
+				     (map/iota (lambda (val colno)
+						 (csv-cell val
+							   maybe-file-or-port
+							   lineno
+							   colno))
+					       vals)
 				     vals)
-			   vals)
-		       rest)))))))
+				 rest))))))))))
 
 
 (def (csv-file-stream path

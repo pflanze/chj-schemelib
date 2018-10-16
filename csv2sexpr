@@ -82,6 +82,7 @@ my $csv= new_csv_instance(+{sep_char=> $sep_char,
 			    die "invalid eol_symbol '$eol_symbol'",
 			   });
 
+my $lineno=1;
 while (my $row= $csv->getline($in)) {
     print "(" or die $!;
     for (@$row) {
@@ -89,13 +90,25 @@ while (my $row= $csv->getline($in)) {
 	  or die $!;
     }
     print ")\n" or die $!;
+    $lineno++;
 }
 
 # XX wow another thing missing from FP::Text::CSV:
 # WOW and man page is even wrong, does not have 'die'; ah ugh
 # overloaded.
-$csv->eof
-  or die $csv->error_diag();
+if ($csv->eof) {
+    print "#(OK)\n"
+      or die $!;
+} else {
+    print("#(ERROR ",
+	  schemestring_oneline($inpath),
+	  " ",
+	  $lineno,
+	  " ",
+	  schemestring_oneline(scalar $csv->error_diag()),
+	  ")\n")
+      or die $!;
+}
 
 
 close $in or die "input: $!";
