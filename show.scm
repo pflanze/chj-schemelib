@@ -113,7 +113,7 @@
 	      ,(let ((c (@source-location-container v)))
 		 (if (string? c)
 		     (show:path-show-relative c)
-		     c))
+		     (.show c)))
 	      ,(position-line lc)
 	      ,(position-column lc))))
 
