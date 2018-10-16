@@ -11,8 +11,8 @@
 	(jinterface input-provider
 		    (jclass file-input-provider)))
 
-(def (_csv-port-stream port #!optional (tail '()))
-     (let lp ()
+(def (_csv-port-stream port line-numbers? #!optional (tail '()))
+     (let lp ((i 1))
        (delay
 	 (let ((line (read-line port)))
 	   (if (eof-object? line)
@@ -21,15 +21,19 @@
 		 (assert (zero? (process-status port)))
 		 tail)
 	       (let ((vals (xone (call-with-input-string line read-all)))
-		     (rest (lp)))
-		 (cons vals rest)))))))
+		     (rest (lp (inc i))))
+		 (cons (if line-numbers?
+			   (cons i vals)
+			   vals)
+		       rest)))))))
 
 
 (def (csv-file-stream path
 		      #!key
 		      ([char? sep-char] (current-csv-sep-char))
 		      ([eol-name? eol] (current-csv-eol))
-		      (tail '()))
+		      (tail '())
+		      line-numbers?)
      (_csv-port-stream
       (open-input-process
        (list path: "lib/csv2sexpr"
@@ -38,6 +42,7 @@
 			      (string sep-char)
 			      (symbol.string eol))
 	     char-encoding: 'UTF-8))
+      line-numbers?
       tail))
 
 
@@ -52,7 +57,8 @@
 		      #!key
 		      ([char? sep-char] (current-csv-sep-char))
 		      ([eol-name? eol] (current-csv-eol))
-		      (tail '()))
+		      (tail '())
+		      line-numbers?)
      (let ((p (open-process
 	       (list path: "./csv2sexpr"
 		     arguments: (list "-"
@@ -76,7 +82,7 @@
 	  (close-output-port p)
 	  ;; XX btw TODO: check status, don't even do that in csv-file-stream!
 	  (close-port port)))
-       (_csv-port-stream p tail)))
+       (_csv-port-stream p line-numbers? tail)))
 
 
 
