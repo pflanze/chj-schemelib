@@ -206,8 +206,7 @@
 			s))
 		 (s (if maybe-columns
 			(stream-map (lambda (row)
-				      (map (let* ((row* (list.vector row))
-						  (len (vector.length row*)))
+				      (map (let ((row* (list.vector row)))
 					     (lambda (i)
 					       (vector.ref row* i)))
 					   maybe-columns))
