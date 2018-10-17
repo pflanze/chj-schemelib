@@ -11,8 +11,14 @@
 	(jinterface input-provider
 		    (jclass file-input-provider)))
 
-(def (_csv-port-stream port line-numbers? #!optional (tail '()))
-     (let lp ((i 1))
+
+(defclass (csv-cell [(maybe string?) value]
+		    [(either string? port?) path-or-port]
+		    [fixnum-natural0? lineno]
+		    [fixnum-natural0? colno]))
+
+(def (_csv-port-stream port maybe-file-or-port #!optional (tail '()))
+     (let lp ((lineno 0))
        (delay
 	 (let ((line (read-line port)))
 	   (if (eof-object? line)
@@ -21,9 +27,14 @@
 		 (assert (zero? (process-status port)))
 		 tail)
 	       (let ((vals (xone (call-with-input-string line read-all)))
-		     (rest (lp (inc i))))
-		 (cons (if line-numbers?
-			   (cons i vals)
+		     (rest (lp (inc lineno))))
+		 (cons (if maybe-file-or-port
+			   (map/iota (lambda (val colno)
+				       (csv-cell val
+						 maybe-file-or-port
+						 lineno
+						 colno))
+				     vals)
 			   vals)
 		       rest)))))))
 
@@ -33,7 +44,7 @@
 		      ([char? sep-char] (current-csv-sep-char))
 		      ([eol-name? eol] (current-csv-eol))
 		      (tail '())
-		      line-numbers?)
+		      source?)
      (_csv-port-stream
       (open-input-process
        (list path: "lib/csv2sexpr"
@@ -42,7 +53,7 @@
 			      (string sep-char)
 			      (symbol.string eol))
 	     char-encoding: 'UTF-8))
-      line-numbers?
+      (and source? path)
       tail))
 
 
@@ -58,7 +69,7 @@
 		      ([char? sep-char] (current-csv-sep-char))
 		      ([eol-name? eol] (current-csv-eol))
 		      (tail '())
-		      line-numbers?)
+		      maybe-source)
      (let ((p (open-process
 	       (list path: "./csv2sexpr"
 		     arguments: (list "-"
@@ -82,7 +93,7 @@
 	  (close-output-port p)
 	  ;; XX btw TODO: check status, don't even do that in csv-file-stream!
 	  (close-port port)))
-       (_csv-port-stream p line-numbers? tail)))
+       (_csv-port-stream p maybe-source tail)))
 
 
 
