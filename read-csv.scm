@@ -12,10 +12,18 @@
 		    (jclass file-input-provider)))
 
 
+;; error reporting
+(defclass (read-csv-error [(either string? port?) path-or-port]
+			  [fixnum-natural0? lineno]
+			  ;; message from the perl library
+			  [string? message]))
+
+;; location tracking
 (defclass (csv-cell [(maybe string?) value]
 		    [(either string? port?) path-or-port]
 		    [fixnum-natural0? lineno]
 		    [fixnum-natural0? colno]))
+
 
 (def (_csv-port-stream port maybe-file-or-port #!optional (tail '()))
      (let lp ((lineno 0))
@@ -36,12 +44,13 @@
 				  ((OK)
 				   (if (null? (force rest))
 				       tail
-				       (error "bug: did get OK signal before end of output")))
+				       (error "read-csv bug: did get OK signal before end of output")))
 				  ((ERROR)
-				   (error "read-csv error (path, line(natural1), message): "
-					  (vector-ref signal 1)
-					  (vector-ref signal 2)
-					  (vector-ref signal 3))))))
+				   (read-csv-error (vector-ref signal 1)
+						   ;; ^ OK re SECURITY? alternative:
+						   ;;(or maybe-file-or-port port)
+						   (vector-ref signal 2)
+						   (vector-ref signal 3))))))
 			((ilist? vals-or-signal)
 			 (let ((vals vals-or-signal))
 			   (cons (if maybe-file-or-port
