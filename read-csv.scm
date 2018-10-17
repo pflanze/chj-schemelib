@@ -5,7 +5,8 @@
 	 jclass
 	 stream
 	 oo-lib-vector
-	 (string-util-3 string.replace-substrings))
+	 (string-util-3 string.replace-substrings)
+	 error)
 
 (export csv-file-stream
 	(jclass csv-reader)
@@ -20,6 +21,8 @@
 			  [fixnum-natural0? cde]
 			  [string? message]
 			  [(maybe fixnum-natural0?) pos])
+  implements: error
+
   (defmethod (string s)
     ($ (string.replace-substrings message "QUO character" "quote character")
        " in " (object->string path-or-port) " line " lineno (if pos
