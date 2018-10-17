@@ -81,8 +81,8 @@
 
 (def (csv-file-stream path
 		      #!key
-		      ([char? sep-char] (current-csv-sep-char))
-		      ([eol-name? eol] (current-csv-eol))
+		      ([char? sep-char] (current-csv-input-sep-char))
+		      ([eol-name? eol] (current-csv-input-eol))
 		      (tail '())
 		      source?)
      (_csv-port-stream
@@ -106,8 +106,8 @@
 
 (def (csv-port-stream port
 		      #!key
-		      ([char? sep-char] (current-csv-sep-char))
-		      ([eol-name? eol] (current-csv-eol))
+		      ([char? sep-char] (current-csv-input-sep-char))
+		      ([eol-name? eol] (current-csv-input-eol))
 		      (tail '())
 		      maybe-source)
      (let ((p (open-process

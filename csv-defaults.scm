@@ -2,6 +2,9 @@
 	 eol)
 
 
-(defparameter current-csv-sep-char #\,)
-(defparameter current-csv-eol 'LF)
+(defparameter current-csv-input-sep-char #\,)
+(defparameter current-csv-input-eol 'LF)
+
+(defparameter current-csv-output-sep-char #\,)
+(defparameter current-csv-output-eol 'LF)
 

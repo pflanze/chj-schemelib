@@ -128,8 +128,8 @@
 		     [(maybe eol-name?) eol]
 		     [(maybe char?) sep-char]
 		     [output-port? port])
-     (let ((eol (or eol (current-csv-eol)))
-	   (sep-char (or sep-char (current-csv-sep-char))))
+     (let ((eol (or eol (current-csv-output-eol)))
+	   (sep-char (or sep-char (current-csv-output-sep-char))))
        (let ((eol* (list (eol-name.newline-string eol))))
 	 (lambda (row)
 	   (print port: port
