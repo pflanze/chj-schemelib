@@ -15,8 +15,10 @@
 ;; error reporting
 (defclass (read-csv-error [(either string? port?) path-or-port]
 			  [fixnum-natural0? lineno]
-			  ;; message from the perl library
-			  [string? message]))
+			  ;; error_diag values from the perl library
+			  [fixnum-natural0? cde]
+			  [string? message]
+			  [(maybe fixnum-natural0?) pos]))
 
 ;; location tracking
 (defclass (csv-cell [(maybe string?) value]
@@ -46,11 +48,15 @@
 				       tail
 				       (error "read-csv bug: did get OK signal before end of output")))
 				  ((ERROR)
+				   (assert (= (vector-length signal) 6))
 				   (read-csv-error (vector-ref signal 1)
 						   ;; ^ OK re SECURITY? alternative:
 						   ;;(or maybe-file-or-port port)
-						   (vector-ref signal 2)
-						   (vector-ref signal 3))))))
+						   (vector-ref signal 2) ;; lineno
+						   (vector-ref signal 3) ;; cde
+						   (vector-ref signal 4) ;; message
+						   (vector-ref signal 5) ;; maybe pos
+						   )))))
 			((ilist? vals-or-signal)
 			 (let ((vals vals-or-signal))
 			   (cons (if maybe-file-or-port

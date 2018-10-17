@@ -100,12 +100,14 @@ if ($csv->eof) {
     print "#(OK)\n"
       or die $!;
 } else {
+    my ($cde, $str, $pos)= $csv->error_diag();
     print("#(ERROR ",
-	  schemestring_oneline($inpath),
-	  " ",
-	  $lineno,
-	  " ",
-	  schemestring_oneline(scalar $csv->error_diag()),
+	  join(" ",
+	       schemestring_oneline($inpath), # 1
+	       $lineno, # 2
+	       $cde, # 3
+	       schemestring_oneline($str), # 4
+	       defined($pos)? $pos : "#f"), # 5
 	  ")\n")
       or die $!;
 }
