@@ -9,7 +9,7 @@
 (require dot-oo
 	 cj-struct
 	 (cj-source-util-2 assert)
-	 (scheme-meta self-quoting)
+	 (scheme-meta self-quoting?)
 	 (cj-gambit-sys procedure-name)
 	 (srfi-11 values? values->list)
 	 ;; dot-oo depends on cj-env already, and we want to add on/registry.show :
@@ -172,7 +172,11 @@
 	  ;; it is ugly, since error arguments (usually?) are already
 	  ;; show'n "or so" (still have to examine correctly). Thus
 	  ;; just quote, OK?
-	  ,@(map (lambda_ `',_) (error-exception-parameters e))))
+	  ,@(map (lambda (arg)
+		   (if (self-quoting? arg)
+		       arg
+		       `',arg))
+		 (error-exception-parameters e))))
 
 
 (define (unbound-global-exception var)
