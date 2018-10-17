@@ -4,7 +4,8 @@
 	 (predicates length-=)
 	 jclass
 	 stream
-	 oo-lib-vector)
+	 oo-lib-vector
+	 (string-util-3 string.replace-substrings))
 
 (export csv-file-stream
 	(jclass csv-reader)
@@ -18,7 +19,12 @@
 			  ;; error_diag values from the perl library
 			  [fixnum-natural0? cde]
 			  [string? message]
-			  [(maybe fixnum-natural0?) pos]))
+			  [(maybe fixnum-natural0?) pos])
+  (defmethod (string s)
+    ($ (string.replace-substrings message "QUO character" "quote character")
+       " in " (object->string path-or-port) " line " lineno (if pos
+								($ " pos $pos")
+								""))))
 
 ;; location tracking
 (defclass (csv-cell [(maybe string?) value]
