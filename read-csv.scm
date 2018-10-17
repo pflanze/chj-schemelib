@@ -8,10 +8,13 @@
 	 (string-util-3 string.replace-substrings)
 	 error)
 
-(export csv-file-stream
-	(jclass csv-reader)
-	(jinterface input-provider
-		    (jclass file-input-provider)))
+(export (class read-csv-error)
+	(class csv-cell)
+	csv-cell-of
+	csv-file-stream
+	(class csv-reader)
+	(interface input-provider
+		   (class file-input-provider)))
 
 
 ;; error reporting
@@ -34,6 +37,11 @@
 		    [(either string? port?) path-or-port]
 		    [fixnum-natural0? lineno]
 		    [fixnum-natural0? colno]))
+
+(def (csv-cell-of pred)
+     (lambda (v)
+       (and (csv-cell? v)
+	    (pred (@csv-cell.value v)))))
 
 
 (def (_csv-port-stream port maybe-file-or-port #!optional (tail '()))
