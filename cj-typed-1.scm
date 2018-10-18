@@ -10,6 +10,13 @@
 	 ;; (cj-env-1 scm:object->string) cj-source, sigh
 	 )
 
+(export (mutable cj-typed-1:error?)
+	(mutable cj-typed-1:.string)
+	cj-typed#type-check-error
+	type-failure-handling?
+	current-type-failure-handling
+	cj-typed#type-check-warn)
+
 
 ;; mostly-COPY from cj-warn to avoid circular dependency
 (define cj-typed#warn
@@ -28,6 +35,12 @@
 	      (else (error "improper list:" objs)))))))
 
 
+
+;; for late binding (resolution of circular dependency) in error.scm
+(define cj-typed-1:error? #f)
+(set! cj-typed-1:error? (lambda (v) #f))
+(define cj-typed-1:.string #f)
+(set! cj-typed-1:.string (lambda (v) (error "bug")))
 
 
 (define (cj-typed#_type-check-error error)
@@ -49,6 +62,8 @@
 	     (err))
 	    ((fallible? w)
 	     (err " " (fallible-string w)))
+	    ((cj-typed-1:error? w)
+	     (err " " (cj-typed-1:.string w)))
 	    (else
 	     (error "predicate "
 		    predstr

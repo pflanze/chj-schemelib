@@ -6,7 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require class)
+(require class
+	 (cj-typed-1 (mutable cj-typed-1:error?)
+		     (mutable cj-typed-1:.string)))
 
 ;; Base trait/interface for all exception/error values.
 
@@ -19,4 +21,9 @@
 ;; Note that |error?| now doesn't return true for Gambit's own error
 ;; objects. Is that OK since Gambit only ever throws them, unlike the
 ;; purpose for |error?| ones?
+
+
+;; let cj-typed know about us
+(set! cj-typed-1:error? error?)
+(set! cj-typed-1:.string .string)
 
