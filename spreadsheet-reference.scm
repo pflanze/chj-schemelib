@@ -4,11 +4,11 @@
 	 parse1
 	 test)
 
-(export (class formula-reference-absolute)
-	(class formula-reference-relative)
+(export (class spreadsheet-reference-absolute)
+	(class spreadsheet-reference-relative)
 	excel-col-char-list.natural
-	string.formula-reference-absolute
-	string.formula-reference
+	string.spreadsheet-reference-absolute
+	string.spreadsheet-reference
 	#!optional
 	parse-formula:reference
 	natural.excel-col-list
@@ -26,10 +26,10 @@
 
 
 
-(defclass ((formula-reference #f) [(maybe string?) sheet-name])
+(defclass ((spreadsheet-reference #f) [(maybe string?) sheet-name])
 
-  (defclass (formula-reference-absolute [natural? row]
-					[natural? col])
+  (defclass (spreadsheet-reference-absolute [natural? row]
+					    [natural? col])
 
     (defmethod (excel-formula-string-fragment s)
       ;; but this one is not used in XML but user interface, only
@@ -39,15 +39,15 @@
 		     (number.string row)))
 
     (defmethod (relative-to a b)
-      (let-formula-reference-absolute
+      (let-spreadsheet-reference-absolute
        ((sheet-name row1 col1) b)
 
-       (formula-reference-relative sheet-name
-				   (- row1 row)
-				   (- col1 col)))))
+       (spreadsheet-reference-relative sheet-name
+				       (- row1 row)
+				       (- col1 col)))))
 
-  (defclass (formula-reference-relative [integer? row]
-					[integer? col])
+  (defclass (spreadsheet-reference-relative [integer? row]
+					    [integer? col])
 		
     (defmethod (excel-formula-string-fragment s)
       (string-append (if sheet-name (string-append sheet-name "!")
@@ -57,12 +57,12 @@
 		     (if (zero? col) "C"
 			 (string-append "C[" (number.string col) "]"))))
 
-    (defmethod (absolute s [formula-reference-absolute? t])
-      (let-formula-reference-absolute
+    (defmethod (absolute s [spreadsheet-reference-absolute? t])
+      (let-spreadsheet-reference-absolute
        ((_ r0 c0) t)
-       (formula-reference-absolute sheet-name
-				   (+ r0 row)
-				   (+ c0 col))))))
+       (spreadsheet-reference-absolute sheet-name
+				       (+ r0 row)
+				       (+ c0 col))))))
 
 (def (excel-col-char-list.natural l)
      (let lp ((l l)
@@ -131,15 +131,15 @@
 
 
 ;; "$IDs.C40"
-(def. (string.formula-reference-absolute s)
+(def. (string.spreadsheet-reference-absolute s)
   (let* ((l (.list s))
 	 (name (take-until (C char=? _ #\!) l))
 	 (l (drop l (inc (length name))))
 	 (col (take-while char-alpha? l))
 	 (l (drop l (length col))))
-    (formula-reference-absolute (.string name)
-				(string.natural (.string l))
-				(excel-col-char-list.natural col))))
+    (spreadsheet-reference-absolute (.string name)
+				    (string.natural (.string l))
+				    (excel-col-char-list.natural col))))
 
 
 (def parse-formula:reference
@@ -160,55 +160,55 @@
 				    (return (.number col))))))
 
 		   (return
-		    (formula-reference-relative (and maybe-name
-						     (.string maybe-name))
-						row
-						col))))))
+		    (spreadsheet-reference-relative (and maybe-name
+							 (.string maybe-name))
+						    row
+						    col))))))
 
-(def. (string.formula-reference str)
+(def. (string.spreadsheet-reference str)
   (letv ((v rem) (parse-formula:reference (.list str)))
 	(assert (null? rem))
 	v))
 
 
 (TEST
- > (def r (.formula-reference "IDs!R[-20]C[1]"))
+ > (def r (.spreadsheet-reference "IDs!R[-20]C[1]"))
  > r
- [(formula-reference-relative) "IDs" -20 1]
+ [(spreadsheet-reference-relative) "IDs" -20 1]
  > (.excel-formula-string-fragment r)
  "IDs!R[-20]C[1]"
- > (.absolute r (formula-reference-absolute "Anode DFMEA" 29 7))
- [(formula-reference-absolute) "IDs" 9 8]
+ > (.absolute r (spreadsheet-reference-absolute "Anode DFMEA" 29 7))
+ [(spreadsheet-reference-absolute) "IDs" 9 8]
  > (.col #)
  8
 
  ;; The formula showing up within Excel as "=IDs!C40" in sheet 11, B22:
  ;; (XX and in LibreOffice as IDs.C40, todo)
- > (.absolute (.formula-reference "IDs!R[18]C[1]")
-	      (.formula-reference-absolute "Anode DFMEA!B22"))
- [(formula-reference-absolute) "IDs" 40 3]
+ > (.absolute (.spreadsheet-reference "IDs!R[18]C[1]")
+	      (.spreadsheet-reference-absolute "Anode DFMEA!B22"))
+ [(spreadsheet-reference-absolute) "IDs" 40 3]
  > (.excel-formula-string-fragment #)
  "IDs!C40" ;; and not "IDs!R[40]C[3]", which would be relative...
 
  > (.excel-formula-string-fragment
-    (.relative-to (.formula-reference-absolute "IDs!C40")
-		  (.formula-reference-absolute "IDs!C40")))
+    (.relative-to (.spreadsheet-reference-absolute "IDs!C40")
+		  (.spreadsheet-reference-absolute "IDs!C40")))
  "IDs!RC" ;; self-reference, probably invalid?
  > (.excel-formula-string-fragment
-    (.relative-to (.formula-reference-absolute "IDs!C40")
-		  (.formula-reference-absolute "Foo!B42")))
+    (.relative-to (.spreadsheet-reference-absolute "IDs!C40")
+		  (.spreadsheet-reference-absolute "Foo!B42")))
  "Foo!R[2]C[-1]"
 
 
  ;; various formats:
- > (def p (comp .show .formula-reference))
+ > (def p (comp .show .spreadsheet-reference))
  > (p "IDs!R[-20]C[1]")
- (formula-reference-relative "IDs" -20 1)
+ (spreadsheet-reference-relative "IDs" -20 1)
  > (p "R[-20]C[1]")
- (formula-reference-relative #f -20 1)
+ (spreadsheet-reference-relative #f -20 1)
  > (p "RC[1]")
- (formula-reference-relative #f 0 1)
+ (spreadsheet-reference-relative #f 0 1)
  ;; > (p "R[5]C")  ?
- ;; (formula-reference-relative #f 5 0)
+ ;; (spreadsheet-reference-relative #f 5 0)
  )
 
