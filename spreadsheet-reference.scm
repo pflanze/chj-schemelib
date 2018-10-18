@@ -28,8 +28,8 @@
 
 (defclass ((spreadsheet-reference #f) [(maybe string?) sheet-name])
 
-  (defclass (spreadsheet-reference-absolute [natural? row]
-					    [natural? col])
+  (defclass (spreadsheet-reference-absolute [exact-natural? row]
+					    [exact-natural? col])
 
     (defmethod (excel-formula-string-fragment s)
       ;; but this one is not used in XML but user interface, only
@@ -46,8 +46,8 @@
 				       (- row1 row)
 				       (- col1 col)))))
 
-  (defclass (spreadsheet-reference-relative [integer? row]
-					    [integer? col])
+  (defclass (spreadsheet-reference-relative [exact-integer? row]
+					    [exact-integer? col])
 		
     (defmethod (excel-formula-string-fragment s)
       (string-append (if sheet-name (string-append sheet-name "!")
