@@ -13,6 +13,7 @@
 	(class csv-cell)
 	csv-cell-of
 	x-csv-cell-of
+	X-csv-cell-of ;; allows unwrapped inputs, too (if match predicate)
 	(method csv-cell.xvalue-of)
 	csv-file-stream
 	(class csv-reader)
@@ -81,12 +82,39 @@
 	       (csv-type-error w v)))
 	 #f))
 
+
+(def (@x-csv-cell-of v pred msg)
+     (let* ((val (@csv-cell.value v))
+	    (w (pred val)))
+       (if (eq? w #t)
+	   val
+	   (error ($ (if msg ($ msg ": ") "")
+		     "expecting a "
+		     ;; XX oh, ()almost?) need macro for this,
+		     ;; too?
+		     (object->string (try-show pred))
+		     " "
+		     ;; XX show actual value? consistency?
+		     (csv-type-error w v))))))
+
 ;; could be a method but then order of arguments would be wrong and
 ;; dunno?; (Should this be a macro to tell the expression like
 ;; cj-typed does? No, right?)
-(def (x-csv-cell-of pred v #!optional msg)
+(def (x-csv-cell-of v pred #!optional msg)
      (if (csv-cell? v)
-	 (let* ((val (@csv-cell.value v))
+	 (@x-csv-cell-of v pred msg)
+	 (error "not a csv-cell:" v)))
+
+;; and then, still, too?
+(def. csv-cell.xvalue-of x-csv-cell-of)
+
+;; Variant that allows unwrapped values, too:
+(def (X-csv-cell-of v pred #!optional msg)
+     (if (csv-cell? v)
+	 (@x-csv-cell-of v pred msg)
+	 ;; (-> pred v) no, since it's not a macro now we have to do
+	 ;; runtime:
+	 (let* ((val v)
 		(w (pred val)))
 	   (if (eq? w #t)
 	       val
@@ -97,12 +125,10 @@
 			 (object->string (try-show pred))
 			 " "
 			 ;; XX show actual value? consistency?
-			 (csv-type-error w v)))))
-	 (error "not a csv-cell:" v)))
+			 (if w
+			     (.string w)
+			     "")))))))
 
-;; and then I still want this, too, in some places, argh:
-(def. (csv-cell.xvalue-of v pred #!optional msg)
-  (x-csv-cell-of pred v msg))
 
 
 (TEST
@@ -113,16 +139,27 @@
  #t
  > (.show ((csv-cell-of nothing?) c))
  (csv-type-error #f (csv-cell "hi" "foo.csv" 1039 4))
- > (x-csv-cell-of string? c)
+ > (x-csv-cell-of c string?)
  "hi"
- > (%try (x-csv-cell-of symbol? c))
+ > (%try (x-csv-cell-of c symbol?))
  (exception
   text:
   "expecting a symbol? at row 1039 col 4 (D1039) in file \"foo.csv\"\n")
- > (%try (x-csv-cell-of number? c "expecting the number of beers"))
+ > (%try (x-csv-cell-of c number? "expecting the number of beers"))
  (exception
   text:
-  "expecting the number of beers: expecting a number? at row 1039 col 4 (D1039) in file \"foo.csv\"\n"))
+  "expecting the number of beers: expecting a number? at row 1039 col 4 (D1039) in file \"foo.csv\"\n")
+ > (%try (X-csv-cell-of c number? "expecting the number of beers"))
+ (exception
+  text:
+  "expecting the number of beers: expecting a number? at row 1039 col 4 (D1039) in file \"foo.csv\"\n")
+ > (%try (X-csv-cell-of "foo" number? "expecting the number of beers"))
+ (exception text: "expecting the number of beers: expecting a number? \n")
+ > (%try (X-csv-cell-of "foo" number?))
+ (exception text: "expecting a number? \n")
+ > (X-csv-cell-of 123 number? "expecting the number of beers")
+ 123
+ )
 
 
 
