@@ -82,17 +82,18 @@
 ;; could be a method but then order of arguments would be wrong and
 ;; dunno?; (Should this be a macro to tell the expression like
 ;; cj-typed does? No, right?)
-(def (x-csv-cell-of pred v)
+(def (x-csv-cell-of pred v #!optional msg)
      (if (csv-cell? v)
 	 (let* ((val (@csv-cell.value v))
 		(w (pred val)))
 	   (if (eq? w #t)
 	       val
-	       (error ($ "expecting a "
+	       (error ($ (if msg ($ msg ": ") "")
+			 "expecting a "
 			 ;; XX oh, ()almost?) need macro for this,
 			 ;; too?
 			 (object->string (try-show pred))
-			 ": "
+			 " "
 			 ;; XX show actual value? consistency?
 			 (csv-type-error w v)))))
 	 (error "not a csv-cell:" v)))
@@ -110,8 +111,13 @@
  "hi"
  > (%try (x-csv-cell-of symbol? c))
  (exception
- text:
- "expecting a symbol?: at row 1039 col 4 (D1039) in file \"foo.csv\"\n"))
+  text:
+  "expecting a symbol? at row 1039 col 4 (D1039) in file \"foo.csv\"\n")
+ > (%try (x-csv-cell-of number? c "expecting the number of beers"))
+ (exception
+  text:
+  "expecting the number of beers: expecting a number? at row 1039 col 4 (D1039) in file \"foo.csv\"\n"))
+
 
 
 
