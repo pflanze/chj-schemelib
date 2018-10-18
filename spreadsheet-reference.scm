@@ -31,7 +31,7 @@
   (defclass (spreadsheet-reference-absolute [exact-natural? row]
 					    [exact-natural? col])
 
-    (defmethod (excel-formula-string-fragment s)
+    (defmethod (formula-string-fragment s)
       ;; but this one is not used in XML but user interface, only
       (string-append (if sheet-name (string-append sheet-name "!")
 			 "")
@@ -49,7 +49,7 @@
   (defclass (spreadsheet-reference-relative [exact-integer? row]
 					    [exact-integer? col])
 		
-    (defmethod (excel-formula-string-fragment s)
+    (defmethod (formula-string-fragment s)
       (string-append (if sheet-name (string-append sheet-name "!")
 			 "")
 		     (if (zero? row) "R"
@@ -175,7 +175,7 @@
  > (def r (.spreadsheet-reference "IDs!R[-20]C[1]"))
  > r
  [(spreadsheet-reference-relative) "IDs" -20 1]
- > (.excel-formula-string-fragment r)
+ > (.formula-string-fragment r)
  "IDs!R[-20]C[1]"
  > (.absolute r (spreadsheet-reference-absolute "Anode DFMEA" 29 7))
  [(spreadsheet-reference-absolute) "IDs" 9 8]
@@ -187,14 +187,14 @@
  > (.absolute (.spreadsheet-reference "IDs!R[18]C[1]")
 	      (.spreadsheet-reference-absolute "Anode DFMEA!B22"))
  [(spreadsheet-reference-absolute) "IDs" 40 3]
- > (.excel-formula-string-fragment #)
+ > (.formula-string-fragment #)
  "IDs!C40" ;; and not "IDs!R[40]C[3]", which would be relative...
 
- > (.excel-formula-string-fragment
+ > (.formula-string-fragment
     (.relative-to (.spreadsheet-reference-absolute "IDs!C40")
 		  (.spreadsheet-reference-absolute "IDs!C40")))
  "IDs!RC" ;; self-reference, probably invalid?
- > (.excel-formula-string-fragment
+ > (.formula-string-fragment
     (.relative-to (.spreadsheet-reference-absolute "IDs!C40")
 		  (.spreadsheet-reference-absolute "Foo!B42")))
  "Foo!R[2]C[-1]"
