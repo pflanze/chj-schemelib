@@ -6,7 +6,8 @@
 	 stream
 	 oo-lib-vector
 	 (string-util-3 string.replace-substrings)
-	 error)
+	 error
+	 (spreadsheet-reference (class spreadsheet-reference-absolute)))
 
 (export (class read-csv-error)
 	(class csv-cell)
@@ -17,7 +18,24 @@
 		   (class file-input-provider)))
 
 
-;; error reporting
+;; type error reporting
+(defclass (csv-type-error maybe-nested-error ;; force |error?| here instead of BUG msg below?
+			  [csv-cell? cell])
+  implements: error
+
+  (defmethod (string s)
+    (string-append
+     (if maybe-nested-error
+	 (if (error? maybe-nested-error)
+	     (string-append (.string maybe-nested-error)
+			    " ")
+	     "(BUG while reporting: invalid type of nested error) ")
+	 "")
+     " from cell "
+     (.error-string cell))))
+
+
+;; read/parse error reporting
 (defclass (read-csv-error [(either string? port?) path-or-port]
 			  [fixnum-natural0? lineno]
 			  ;; error_diag values from the perl library
@@ -30,22 +48,42 @@
     ($ (string.replace-substrings message "QUO character" "quote character")
        " in " (object->string path-or-port) " line " lineno (if pos
 								($ " pos $pos")
-								""))))
+								"")))
+
+  (defmethod (csv-type-error s maybe-nested-error)
+    (csv-type-error maybe-nested-error)))
+
 
 ;; location tracking
+
 (defclass (csv-cell [(maybe string?) value]
 		    [(either string? port?) path-or-port]
-		    [fixnum-natural0? lineno]
-		    [fixnum-natural0? colno]))
+		    [fixnum-natural? rowno]
+		    [fixnum-natural? colno])
+
+  (defmethod (error-string s)
+    
+    ($ " row "
+       rowno
+       " col "
+       colno
+       " ("
+       (spreadsheet-reference-absolute #f rowno colno)
+       ") in file "
+       (object->string path-or-port))))
 
 (def (csv-cell-of pred)
      (lambda (v)
-       (and (csv-cell? v)
-	    (pred (@csv-cell.value v)))))
+       (if (csv-cell? v)
+	   (let ((w (pred (@csv-cell.value v))))
+	     (if (eq? w #t)
+		 #t
+		 (csv-cell.csv-type-error v w)))
+	   #f)))
 
 
 (def (_csv-port-stream port maybe-file-or-port #!optional (tail '()))
-     (let lp ((lineno 0))
+     (let lp ((rowno 1))
        (delay
 	 (let ((line (read-line port)))
 	   (if (eof-object? line)
@@ -55,7 +93,7 @@
 		 tail)
 	       (let ((vals-or-signal
 		      (xone (call-with-input-string line read-all)))
-		     (rest (lp (inc lineno))))
+		     (rest (lp (inc rowno))))
 		 (xcond ((and (vector? vals-or-signal)
 			      (> (vector-length vals-or-signal) 0))
 			 (let ((signal vals-or-signal))
@@ -80,8 +118,8 @@
 				     (map/iota (lambda (val colno)
 						 (csv-cell val
 							   maybe-file-or-port
-							   lineno
-							   colno))
+							   rowno
+							   (inc colno)))
 					       vals)
 				     vals)
 				 rest))))))))))
