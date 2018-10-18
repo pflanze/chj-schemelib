@@ -12,6 +12,8 @@
 (export (class read-csv-error)
 	(class csv-cell)
 	csv-cell-of
+	x-csv-cell-of
+	(method csv-cell.xvalue-of)
 	csv-file-stream
 	(class csv-reader)
 	(interface input-provider
@@ -97,6 +99,10 @@
 			 ;; XX show actual value? consistency?
 			 (csv-type-error w v)))))
 	 (error "not a csv-cell:" v)))
+
+;; and then I still want this, too, in some places, argh:
+(def. (csv-cell.xvalue-of v pred #!optional msg)
+  (x-csv-cell-of pred v msg))
 
 
 (TEST
