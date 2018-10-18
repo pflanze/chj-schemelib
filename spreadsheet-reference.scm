@@ -6,13 +6,13 @@
 
 (export (class spreadsheet-reference-absolute)
 	(class spreadsheet-reference-relative)
-	excel-col-char-list.natural
 	string.spreadsheet-reference-absolute
 	string.spreadsheet-reference
 	#!optional
 	parse-formula:reference
 	natural.excel-col-list
 	natural.excel-col-string
+	excel-col-char-list.natural
 	take-until)
 
 
