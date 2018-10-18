@@ -18,6 +18,7 @@
 (require easy
 	 more-oo
 	 (Result Error)
+	 error
 	 test)
 
 (export failure
@@ -32,6 +33,7 @@
 (jclass (failure [symbol? kind]
 		 [string? message]
 		 [list? arguments])
+	implements: error
 
 	(def-method (string v)
 	  (string-append
@@ -66,7 +68,11 @@
  > (foo-failure? 'foo)
  #f
  > (foo-failure? (failure 'bar "bla" '()))
- #f)
+ #f
+ ;; But now just follow the error protocol (instead?):
+ > (error? (.value (fail 'f "a")))
+ #t)
+
 
 
 (def (fail #(symbol? kind) #(string? msg) . args)
