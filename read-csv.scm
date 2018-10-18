@@ -31,7 +31,7 @@
 			    " ")
 	     "(BUG while reporting: invalid type of nested error) ")
 	 "")
-     " from cell "
+     "at "
      (.error-string cell))))
 
 
@@ -62,24 +62,58 @@
 		    [fixnum-natural? colno])
 
   (defmethod (error-string s)
-    
-    ($ " row "
+    ($ "row "
        rowno
        " col "
        colno
        " ("
-       (spreadsheet-reference-absolute #f rowno colno)
+       (.formula-string-fragment (spreadsheet-reference-absolute #f rowno colno))
        ") in file "
        (object->string path-or-port))))
 
-(def (csv-cell-of pred)
-     (lambda (v)
-       (if (csv-cell? v)
-	   (let ((w (pred (@csv-cell.value v))))
-	     (if (eq? w #t)
-		 #t
-		 (csv-cell.csv-type-error v w)))
-	   #f)))
+(def ((csv-cell-of pred) v)
+     (if (csv-cell? v)
+	 (let ((w (pred (@csv-cell.value v))))
+	   (if (eq? w #t)
+	       #t
+	       (csv-type-error w v)))
+	 #f))
+
+;; could be a method but then order of arguments would be wrong and
+;; dunno?; (Should this be a macro to tell the expression like
+;; cj-typed does? No, right?)
+(def (x-csv-cell-of pred v)
+     (if (csv-cell? v)
+	 (let* ((val (@csv-cell.value v))
+		(w (pred val)))
+	   (if (eq? w #t)
+	       val
+	       (error ($ "expecting a "
+			 ;; XX oh, ()almost?) need macro for this,
+			 ;; too?
+			 (object->string (try-show pred))
+			 ": "
+			 ;; XX show actual value? consistency?
+			 (csv-type-error w v)))))
+	 (error "not a csv-cell:" v)))
+
+
+(TEST
+ > (def c (csv-cell "hi" "foo.csv" 1039 4))
+ > (.error-string c)
+ "row 1039 col 4 (D1039) in file \"foo.csv\""
+ > ((csv-cell-of string?) c)
+ #t
+ > (.show ((csv-cell-of nothing?) c))
+ (csv-type-error #f (csv-cell "hi" "foo.csv" 1039 4))
+ > (x-csv-cell-of string? c)
+ "hi"
+ > (%try (x-csv-cell-of symbol? c))
+ (exception
+ text:
+ "expecting a symbol?: at row 1039 col 4 (D1039) in file \"foo.csv\"\n"))
+
+
 
 
 (def (_csv-port-stream port maybe-file-or-port #!optional (tail '()))
