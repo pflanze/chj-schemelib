@@ -123,6 +123,11 @@
  "\"foo\"\"\""
  )
 
+;; XX should I always just create a type (value bundle) right away for
+;; the options?! Are (openly placed) keywords even just a stupid idea?
+;; Even in Perl you rather bundle them up in hashes?
+
+;; (But then PG is very fond of them...)
 
 (def (csv-row-writer #!key
 		     [(maybe eol-name?) eol]
@@ -163,10 +168,4 @@
 	      (let-pair ((row s) s)
 			(w row)
 			(lp s)))))))
-
-;; XX should I always just create a type (value bundle) right away for
-;; the options?! Are (openly placed) keywords even just a stupid idea?
-;; Even in Perl you rather bundle them up in hashes?
-
-;; (But then PG is very fond of them...)
 
