@@ -12,7 +12,9 @@
 	 eol
 	 csv-defaults
 	 (char-util char-alphanumeric+?)
-	 test)
+	 test
+	 ;;safe-fx
+	 )
 
 ;; https://en.wikipedia.org/wiki/Comma-separated_values
 ;; https://www.ietf.org/rfc/rfc4180.txt
@@ -33,35 +35,61 @@
 	    ((#\; #\, #\:) #t)
 	    (else #f))))
 
+
+;; https://www.codeproject.com/Articles/231582/Auto-detect-CSV-separator :
+
+;; "Rules for writing CSV files are pretty simple:
+;;     If value contains separator character or new line character or begins with a quote – enclose the value in quotes.
+;;     If value is enclosed in quotes – any quote character contained in the value should be followed by an additional quote character.
+;; "
+
+;; but that may not be true, only do not escape char-alphanumeric+?;
+;; also, escape empty strings.
+
 (def (csv-escape* sep-char str)
-     (if (string-any
-	  ;; (lambda (c)
-	  ;;   (or (char=? c sep-char)
-	  ;; 	(char=? c #\")
-	  ;; 	(char=? c #\newline)
-	  ;; 	(char=? c #\return)))
+     (declare (fixnum))
 
-	  ;; but, maybe, probably, that was too lenient, need more
-	  ;; quotes to prevent errors:
+     (let ((strlen (string-length str)))
+       ;; check whether it needs quoting, and if so, also count the
+       ;; number of quotes (can be 0)
+       (if-let ((num-quotes
+		 (let lp ((i 0)
+			  (need-quoting? #f)
+			  (num-quotes 0))
+		   (if (< i strlen)
+		       (let ((c (string-ref str i)))
+			 (cond ((char=? c #\")
+				(lp (inc i)
+				    #t
+				    (inc num-quotes)))
+			       ((or (char=? c sep-char)
+				    (not (char-alphanumeric+? c)))
+				(lp (inc i)
+				    #t
+				    num-quotes))
+			       (else
+				(lp (inc i)
+				    need-quoting?
+				    num-quotes))))
+		       (and need-quoting? num-quotes)))))
 
-	  (lambda (c)
-	    (or (char=? c sep-char)
-		(not (char-alphanumeric+? c))))
-	  str)
-	 ;; XX more efficient would be to count the number of #\"
-	 ;; first (perhaps as part of the above), then.
-	 (list->string
-	  (cons #\"
-		(fold-right (lambda (c rest)
-			      (let ((r (cons c rest)))
-				(if (char=? c #\")
-				    (cons #\" r)
-				    r)))
-			    '(#\")
-			    (string->list str))))
-	 (if (string-empty? str)
-	     "\"\"" ;; make it different from #f which gives ""
-	     str)))
+	       (let* ((outlen (+ strlen num-quotes 2))
+		      (out (make-string outlen #\")))
+		 (let lp ((i 0)
+			  (j 1))
+		   (if (< i strlen)
+		       (let ((c (string-ref str i)))
+			 (if (char=? c #\")
+			     (lp (inc i) (+ j 2))
+			     (begin
+			       (string-set! out j c)
+			       (lp (inc i) (inc j)))))
+		       (assert (= j (dec outlen)))))
+		 out)
+	       
+	       (if (string-empty? str)
+		   "\"\"" ;; make it different from #f which gives ""
+		   str))))
 
 
 ;; map a Scheme value to a string representation that's fine to use in
