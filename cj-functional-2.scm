@@ -261,25 +261,38 @@
 
 ;; Also see source.=> in code-cj-functional.scm
 
-(define (=>-expand start exprs)
-  (let next ((exprs exprs)
-	     (res start))
-    (if (null? exprs)
-	res
-	(let-pair ((expr exprs*) exprs)
-		  (next exprs*
-			(let ((expr* (source-code expr))
-			      (src (lambda (e)
-				     (possibly-sourcify e expr))))
-			  (cond
-			   ((pair? expr*)
-			    (src `(,(car expr*) ,res ,@(cdr expr*))))
-			   ((symbol? expr*)
-			    (src `(,expr ,res)))
-			   (else
-			    (source-error
-			     expr
-			     "expecting a form or a symbol")))))))))
+
+(define (=>*-expand/placement placement)
+  (lambda (start exprs)
+    (let next ((exprs exprs)
+	       (res start))
+      (if (null? exprs)
+	  res
+	  (let-pair ((expr exprs*) exprs)
+		    (next exprs*
+			  (let ((expr* (source-code expr))
+				(src (lambda (e)
+				       (possibly-sourcify e expr))))
+			    (cond
+			     ((pair? expr*)
+			      (src `(,(car expr*)
+				     ,@(placement res (cdr expr*)))))
+			     ((symbol? expr*)
+			      (src `(,expr ,res)))
+			     (else
+			      (source-error
+			       expr
+			       "expecting a form or a symbol"))))))))))
+
+
+(define =>-expand (=>*-expand/placement
+		   (lambda (prev-result rest)
+		     `(,prev-result ,@rest))))
+
+(define =>>-expand (=>*-expand/placement
+		    (lambda (prev-result rest)
+		      `(,@rest ,prev-result))))
+
 
 (TEST
  > (=>-expand 'input '((foo-set 1) (bar-set 2)))
@@ -386,29 +399,6 @@
  > (expansion#=>* car string)
  (##lambda GEN:V-670 (string (##apply car GEN:V-670))))
 
-
-
-;; bah, copy-paste except for one line
-(define (=>>-expand start exprs)
-  (let next ((exprs exprs)
-	     (res start))
-    (if (null? exprs)
-	res
-	(let-pair ((expr exprs*) exprs)
-		  (next exprs*
-			(let ((expr* (source-code expr))
-			      (src (lambda (e)
-				     (possibly-sourcify e expr))))
-			  (cond
-			   ((pair? expr*)
-			    ;; only change here:
-			    (src `(,(car expr*) ,@(cdr expr*) ,res)))
-			   ((symbol? expr*)
-			    (src `(,expr ,res)))
-			   (else
-			    (source-error
-			     expr
-			     "expecting a form or a symbol")))))))))
 
 
 ;; dito
