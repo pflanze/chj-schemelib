@@ -162,55 +162,6 @@
    (lambda ()
      (.show v))))
 
-;; (def. (exception.show e)
-;;   `(raise ,e))
-;; oh {##,}exception? doesn't exist
-
-(define. (error-exception.show e)
-  `(error ,(error-exception-message e)
-	  ;; used to map try-show over it, but, even though correct,
-	  ;; it is ugly, since error arguments (usually?) are already
-	  ;; show'n "or so" (still have to examine correctly). Thus
-	  ;; just quote, OK?
-	  ,@(map (lambda (arg)
-		   (if (self-quoting? arg)
-		       arg
-		       `',arg))
-		 (error-exception-parameters e))))
-
-
-(define (unbound-global-exception var)
-  (error "(XX unbound-global-exception not implemented)" var))
-
-(define. (unbound-global-exception.show e)
-  ;;`(unbound-global-exception )  hmm or really simply?:
-  `(unbound-global-exception ',(unbound-global-exception-variable e)))
-
-
-(define (no-such-file-or-directory-exception procedure arguments)
-  ;; need to use Gambit header file, looks like it's macro only
-  (error "XX no-such-file-or-directory-exception not implemented"))
-
-(define. (no-such-file-or-directory-exception.show e)
-  `(no-such-file-or-directory-exception
-    ,(.show (no-such-file-or-directory-exception-procedure e))
-    ,(.show (no-such-file-or-directory-exception-arguments e))))
-
-
-(define (type-exception procedure
-			arguments
-			arg-num
-			type-id)
-  ;; need to use Gambit header file, looks like it's macro only
-  (error "XX no-such-file-or-directory-exception not implemented"))
-
-(define. (type-exception.show e)
-  `(type-exception
-    ,(.show (type-exception-procedure e))
-    ,(.show (type-exception-arguments e))
-    ,(.show (type-exception-arg-num e))
-    ,(.show (type-exception-type-id e))))
-
 
 
 (define. (u8vector.show v)

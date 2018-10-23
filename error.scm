@@ -62,8 +62,72 @@
 (define-type error#exception
   id: 0bf9b656-b071-404a-a514-0fb9d05cf518
   constructor: #f
-  extender: define-library-type-of-exception
+  extender: define-type-of-error#exception
   opaque:)
+
+;; adapted from lib/_nonstd#.scm
+(define-type-of-error#exception error#error-exception
+  id: efe252c3-9391-4acf-993b-1ad2a9035636
+  constructor: error#error-exception
+  opaque:
+
+  (message    unprintable: read-only:)
+  (parameters unprintable: read-only:)
+  )
+
+(def error-exception error#error-exception)
+
+
+
+;; (def. (exception.show e)
+;;   `(raise ,e))
+;; oh {##,}exception? doesn't exist
+
+(define. (error-exception.show e)
+  `(error-exception ,(.show (error-exception-message e))
+		    ,(.show (error-exception-parameters e))))
+
+(TEST
+ > (.show (error-exception 1 '(2 3)))
+ (error-exception 1 (list 2 3))
+ > (with-exception-catcher .show (& (error "foo" "bar" 2)))
+ (error-exception "foo" (list "bar" 2)))
+
+
+;; (define (unbound-global-exception var)
+;;   (error "(XX unbound-global-exception not implemented)" var))
+
+;; (define. (unbound-global-exception.show e)
+;;   ;;`(unbound-global-exception )  hmm or really simply?:
+;;   `(unbound-global-exception ',(unbound-global-exception-variable e)))
+
+
+;; (define (no-such-file-or-directory-exception procedure arguments)
+;;   ;; need to use Gambit header file, looks like it's macro only
+;;   (error "XX no-such-file-or-directory-exception not implemented"))
+
+;; (define. (no-such-file-or-directory-exception.show e)
+;;   `(no-such-file-or-directory-exception
+;;     ,(.show (no-such-file-or-directory-exception-procedure e))
+;;     ,(.show (no-such-file-or-directory-exception-arguments e))))
+
+
+;; (define (type-exception procedure
+;; 			arguments
+;; 			arg-num
+;; 			type-id)
+;;   ;; need to use Gambit header file, looks like it's macro only
+;;   (error "XX no-such-file-or-directory-exception not implemented"))
+
+;; (define. (type-exception.show e)
+;;   `(type-exception
+;;     ,(.show (type-exception-procedure e))
+;;     ,(.show (type-exception-arguments e))
+;;     ,(.show (type-exception-arg-num e))
+;;     ,(.show (type-exception-type-id e))))
+
+
+
 
 
 (def error+?
