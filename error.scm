@@ -8,13 +8,11 @@
 
 (require class
 	 (cj-typed-1 (mutable cj-typed-1:error?)
-		     (mutable cj-typed-1:.string)))
+		     (mutable cj-typed-1:.string))
+	 gambit-error)
 
 (export (interface error)
-	error+?
-	#!optional
-	error#exception?
-	)
+	error+?)
 
 
 
@@ -55,28 +53,6 @@
 ;; also allow all of 'the other' (Gambit, modules?) error/exception
 ;; types; careful: they all need to implement the methods from the
 ;; error interface, too!
-
-
-;; XX move to gambit-error, hack just to get error#exception?
-;; predicate
-(define-type error#exception
-  id: 0bf9b656-b071-404a-a514-0fb9d05cf518
-  constructor: #f
-  extender: define-type-of-error#exception
-  opaque:)
-
-;; adapted from lib/_nonstd#.scm
-(define-type-of-error#exception error#error-exception
-  id: efe252c3-9391-4acf-993b-1ad2a9035636
-  constructor: error#error-exception
-  opaque:
-
-  (message    unprintable: read-only:)
-  (parameters unprintable: read-only:)
-  )
-
-(def error-exception error#error-exception)
-
 
 
 ;; (def. (exception.show e)
@@ -132,7 +108,7 @@
 
 (def error+?
      (either error?
-	     error#exception?))
+	     gambit-error#exception?))
 
 
 (TEST
@@ -142,61 +118,8 @@
  #t
  > (error? e)
  #f
- > (error#exception? e)
+ > (gambit-error#exception? e)
  #t
  > (no-such-file-or-directory-exception? e)
  #t)
-
-
-(compile-time
- (def (error:define-library-type-of-exception-expand
-       name
-       #!key
-       id
-       constructor
-       opaque ;; sigh, :opaque kind of flag, meh, have to give it
-       #!rest
-       r)
-
-      (def (cont defs)
-	   (let ((fieldnames (map car defs))
-		 (accessor
-		  (lambda (fieldname)
-		    (symbol-append name "-" fieldname)))
-		 (S (gensym)))
-
-	     `(begin
-		;; hacked constructor, wow?
-		(def (,name ,@fieldnames)
-		     ;; aha, allocate a structure of the required
-		     ;; length, how? also, how to find #<type #34
-		     ;; error-exception> etc.? Is it in a global?
-		     (error "unfinished"))
-		    
-		(def. (,(symbol-append name '.show) ,S)
-		  (list ',name
-			,@(map (lambda (fieldname)
-				 `(.show (,(accessor fieldname) ,S)))
-			       fieldnames))))))
-      
-      (if opaque
-	  (cont (cons opaque r))
-	  (if (eq? (car r) opaque:)
-	      (cont (cdr r))
-	      (cont r)))))
-
-(define-macro (define-library-type-of-exception . args)
-  (apply error:define-library-type-of-exception-expand args))
-
-(include "gambit-error--include.scm")
-
-;; error-exception is missing in there ^, but error-exception.show is
-;; already defined elsewhere. XX clean up this mess.
-
-
-(TEST
- > (with-exception-catcher .show (& (error "hum f" #f)))
- (error-exception "hum f" (list #f))
- > (with-exception-catcher .show (& (car "hum f" #f)))
- (wrong-number-of-arguments-exception car (list "hum f" #f)))
 
