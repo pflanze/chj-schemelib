@@ -196,7 +196,7 @@
 
 (TEST
  > (with-exception-catcher .show (& (error "hum f" #f)))
- (error "hum f" #f) ;; XX bad, value vs throwing, FIX this!
+ (error-exception "hum f" (list #f))
  > (with-exception-catcher .show (& (car "hum f" #f)))
  (wrong-number-of-arguments-exception car (list "hum f" #f)))
 
