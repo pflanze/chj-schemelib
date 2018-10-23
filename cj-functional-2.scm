@@ -268,21 +268,27 @@
 	       (res start))
       (if (null? exprs)
 	  res
-	  (let-pair ((expr exprs*) exprs)
-		    (next exprs*
-			  (let ((expr* (source-code expr))
-				(src (lambda (e)
-				       (possibly-sourcify e expr))))
-			    (cond
-			     ((pair? expr*)
-			      (src `(,(car expr*)
-				     ,@(placement res (cdr expr*)))))
-			     ((symbol? expr*)
-			      (src `(,expr ,res)))
-			     (else
-			      (source-error
-			       expr
-			       "expecting a form or a symbol"))))))))))
+
+	  (let-pair
+	   ((expr exprs*) exprs)
+
+	   (let ((var (gensym 'tmp)))
+	     `(##let ((,var
+		       ,(let ((expr* (source-code expr))
+			      (src (lambda (e)
+				     (possibly-sourcify e expr))))
+			  (cond
+			   ((pair? expr*)
+			    (src `(,(car expr*)
+				   ,@(placement res (cdr expr*)))))
+			   ((symbol? expr*)
+			    (src `(,expr ,res)))
+			   (else
+			    (source-error
+			     expr
+			     "expecting a form or a symbol"))))))
+		     ,(next exprs*
+			    var))))))))
 
 
 (define =>-expand (=>*-expand/placement
@@ -295,8 +301,12 @@
 
 
 (TEST
+ > (define TEST:equal? syntax-equal?)
  > (=>-expand 'input '((foo-set 1) (bar-set 2)))
- (bar-set (foo-set input 1) 2))
+ ;; (bar-set (foo-set input 1) 2)
+ (##let ((GEN:tmp-6131 (foo-set input 1)))
+   (##let ((GEN:tmp-6132 (bar-set GEN:tmp-6131 2))) GEN:tmp-6132)))
+
 
 (define-macro* (=> start . exprs)
   (=>-expand start exprs))
@@ -371,33 +381,74 @@
  > (define TEST:equal? syntax-equal?)
  
  > (expansion#=>-lambda ((lambda (x) #\y)) string)
- (##lambda (GEN:V-668) (string ((lambda (x) #\y) GEN:V-668)))
+ ;; (##lambda (GEN:V-668) (string ((lambda (x) #\y) GEN:V-668)))
+ (##lambda
+  (GEN:V-6479)
+  (##let ((GEN:tmp-6480 ((lambda (x) #\y) GEN:V-6479)))
+	 (##let ((GEN:tmp-6481 (string GEN:tmp-6480))) GEN:tmp-6481)))
  > (expansion#=>-lambda car string)
- (##lambda (GEN:V-671) (string (car GEN:V-671)))
+ ;; (##lambda (GEN:V-671) (string (car GEN:V-671)))
+ (##lambda
+  (GEN:V-6482)
+  (##let ((GEN:tmp-6483 (car GEN:V-6482)))
+	 (##let ((GEN:tmp-6484 (string GEN:tmp-6483))) GEN:tmp-6484)))
 
  > (expansion#=>-lambda/arity 1 (lambda (x) #\y) string)
- (##lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
+ ;; (##lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
+ (##lambda
+  (GEN:-6695)
+  (##let ((GEN:tmp-6696 (string ((lambda (x) #\y) GEN:-6695)))) GEN:tmp-6696))
+ 
  > (expansion#=>-lambda/arity 0 (lambda (x) #\y) string)
- (##lambda () (string ((lambda (x) #\y))))
+ ;; (##lambda () (string ((lambda (x) #\y))))
+ (##lambda () (##let ((GEN:tmp-6907 (string ((lambda (x) #\y))))) GEN:tmp-6907))
+ 
  > (expansion#=>-lambda/arity 2 (lambda (x y) #\y) string)
- (##lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
+ ;; (##lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
+ (##lambda
+  (GEN:-6908 GEN:-6909)
+  (##let ((GEN:tmp-6910 (string ((lambda (x y) #\y) GEN:-6908 GEN:-6909))))
+	 GEN:tmp-6910))
 
  > (expansion#=>-lambda/arity 1 e0 e1 e2)
- (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
+ ;; (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
+ ;;XX bummer, can't see intermediate after e0
+ (##lambda
+  (GEN:-7121)
+  (##let ((GEN:tmp-7122 (e1 (e0 GEN:-7121))))
+	 (##let ((GEN:tmp-7123 (e2 GEN:tmp-7122))) GEN:tmp-7123)))
+ 
  > (expansion#=>-lambda/arity 1 (e0) e1 e2)
- (##lambda (GEN:-724) (e2 (e1 ((e0) GEN:-724))))
+ ;; (##lambda (GEN:-724) (e2 (e1 ((e0) GEN:-724))))
+ (##lambda
+  (GEN:-7337)
+  (##let ((GEN:tmp-7338 (e1 ((e0) GEN:-7337))))
+	 (##let ((GEN:tmp-7339 (e2 GEN:tmp-7338))) GEN:tmp-7339)))
+ 
  > (expansion#=>-lambda/arity 1 e0 (e1) e2)
- (##lambda (GEN:-725) (e2 (e1 (e0 GEN:-725))))
+ ;;(##lambda (GEN:-725) (e2 (e1 (e0 GEN:-725))))
+ (##lambda
+  (GEN:-7550)
+  (##let ((GEN:tmp-7551 (e1 (e0 GEN:-7550))))
+	 (##let ((GEN:tmp-7552 (e2 GEN:tmp-7551))) GEN:tmp-7552)))
+ 
 
  ;; Compared to =>* :
  ;; currently this is the same with non-symbol expressions:
  > (expansion#=>* ((lambda (x) #\y)) string)
- (##lambda (GEN:V-669) (string ((lambda (x) #\y) GEN:V-669)))
+ ;;(##lambda (GEN:V-669) (string ((lambda (x) #\y) GEN:V-669)))
+ (##lambda
+  (GEN:V-7763)
+  (##let ((GEN:tmp-7764 ((lambda (x) #\y) GEN:V-7763)))
+	 (##let ((GEN:tmp-7765 (string GEN:tmp-7764))) GEN:tmp-7765)))
  ;;   ^ BTW it does *not* evaluate expressions once-only like on,
  ;;     comp, either do.
  ;; but not this:
  > (expansion#=>* car string)
- (##lambda GEN:V-670 (string (##apply car GEN:V-670))))
+ ;;(##lambda GEN:V-670 (string (##apply car GEN:V-670)))
+ (##lambda
+  GEN:V-7766
+  (##let ((GEN:tmp-7767 (string (##apply car GEN:V-7766)))) GEN:tmp-7767)))
 
 
 
