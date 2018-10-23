@@ -264,31 +264,33 @@
 
 (define (=>*-expand/placement placement)
   (lambda (start exprs)
-    (let next ((exprs exprs)
-	       (res start))
-      (if (null? exprs)
-	  res
+    (early-bind-expressions
+     (start)
+     (let next ((exprs exprs)
+		(res start))
+       (if (null? exprs)
+	   res
 
-	  (let-pair
-	   ((expr exprs*) exprs)
+	   (let-pair
+	    ((expr exprs*) exprs)
 
-	   (let ((var (gensym 'tmp)))
-	     `(##let ((,var
-		       ,(let ((expr* (source-code expr))
-			      (src (lambda (e)
-				     (possibly-sourcify e expr))))
-			  (cond
-			   ((pair? expr*)
-			    (src `(,(car expr*)
-				   ,@(placement res (cdr expr*)))))
-			   ((symbol? expr*)
-			    (src `(,expr ,res)))
-			   (else
-			    (source-error
-			     expr
-			     "expecting a form or a symbol"))))))
-		     ,(next exprs*
-			    var))))))))
+	    (let ((var (gensym 'tmp)))
+	      `(##let ((,var
+			,(let ((expr* (source-code expr))
+			       (src (lambda (e)
+				      (possibly-sourcify e expr))))
+			   (cond
+			    ((pair? expr*)
+			     (src `(,(car expr*)
+				    ,@(placement res (cdr expr*)))))
+			    ((symbol? expr*)
+			     (src `(,expr ,res)))
+			    (else
+			     (source-error
+			      expr
+			      "expecting a form or a symbol"))))))
+		      ,(next exprs*
+			     var)))))))))
 
 
 (define =>-expand (=>*-expand/placement
@@ -397,40 +399,47 @@
  ;; (##lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
  (##lambda
   (GEN:-6695)
-  (##let ((GEN:tmp-6696 (string ((lambda (x) #\y) GEN:-6695)))) GEN:tmp-6696))
+  (##let ((GEN:-1 ((lambda (x) #\y) GEN:-6695)))
+	 (##let ((GEN:tmp-6696 (string GEN:-1))) GEN:tmp-6696)))
  
  > (expansion#=>-lambda/arity 0 (lambda (x) #\y) string)
  ;; (##lambda () (string ((lambda (x) #\y))))
- (##lambda () (##let ((GEN:tmp-6907 (string ((lambda (x) #\y))))) GEN:tmp-6907))
+ (##lambda ()
+	   (##let ((GEN:-1 ((lambda (x) #\y))))
+		  (##let ((GEN:tmp-6907 (string GEN:-1))) GEN:tmp-6907)))
  
  > (expansion#=>-lambda/arity 2 (lambda (x y) #\y) string)
  ;; (##lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
  (##lambda
   (GEN:-6908 GEN:-6909)
-  (##let ((GEN:tmp-6910 (string ((lambda (x y) #\y) GEN:-6908 GEN:-6909))))
-	 GEN:tmp-6910))
+  (##let ((GEN:-1 ((lambda (x y) #\y) GEN:-6908 GEN:-6909)))
+	 (##let ((GEN:tmp-6910 (string GEN:-1)))
+		GEN:tmp-6910)))
 
  > (expansion#=>-lambda/arity 1 e0 e1 e2)
  ;; (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
  ;;XX bummer, can't see intermediate after e0
  (##lambda
   (GEN:-7121)
-  (##let ((GEN:tmp-7122 (e1 (e0 GEN:-7121))))
-	 (##let ((GEN:tmp-7123 (e2 GEN:tmp-7122))) GEN:tmp-7123)))
+  (##let ((GEN:-1 (e0 GEN:-7121)))
+	 (##let ((GEN:tmp-7122 (e1 GEN:-1)))
+		(##let ((GEN:tmp-7123 (e2 GEN:tmp-7122))) GEN:tmp-7123))))
  
  > (expansion#=>-lambda/arity 1 (e0) e1 e2)
  ;; (##lambda (GEN:-724) (e2 (e1 ((e0) GEN:-724))))
  (##lambda
   (GEN:-7337)
-  (##let ((GEN:tmp-7338 (e1 ((e0) GEN:-7337))))
-	 (##let ((GEN:tmp-7339 (e2 GEN:tmp-7338))) GEN:tmp-7339)))
+  (##let ((GEN:-1 ((e0) GEN:-7337)))
+	 (##let ((GEN:tmp-7338 (e1 GEN:-1)))
+		(##let ((GEN:tmp-7339 (e2 GEN:tmp-7338))) GEN:tmp-7339))))
  
  > (expansion#=>-lambda/arity 1 e0 (e1) e2)
  ;;(##lambda (GEN:-725) (e2 (e1 (e0 GEN:-725))))
  (##lambda
   (GEN:-7550)
-  (##let ((GEN:tmp-7551 (e1 (e0 GEN:-7550))))
-	 (##let ((GEN:tmp-7552 (e2 GEN:tmp-7551))) GEN:tmp-7552)))
+  (##let ((GEN:-1 (e0 GEN:-7550)))
+	 (##let ((GEN:tmp-7551 (e1 GEN:-1)))
+		(##let ((GEN:tmp-7552 (e2 GEN:tmp-7551))) GEN:tmp-7552))))
  
 
  ;; Compared to =>* :
@@ -448,7 +457,8 @@
  ;;(##lambda GEN:V-670 (string (##apply car GEN:V-670)))
  (##lambda
   GEN:V-7766
-  (##let ((GEN:tmp-7767 (string (##apply car GEN:V-7766)))) GEN:tmp-7767)))
+  (##let ((GEN:-1 (##apply car GEN:V-7766)))
+	 (##let ((GEN:tmp-7767 (string GEN:-1))) GEN:tmp-7767))))
 
 
 
