@@ -12,6 +12,7 @@
 (export (class read-csv-error)
 	(class csv-cell)
 	csv-cell-of
+	possibly-csv-cell-of
 	x-csv-cell-of
 	X-csv-cell-of ;; allows unwrapped inputs, too (if match predicate)
 	(method csv-cell.xvalue-of)
@@ -81,6 +82,14 @@
 	       #t
 	       (csv-type-error w v)))
 	 #f))
+
+(def ((possibly-csv-cell-of pred) v)
+     (if (csv-cell? v)
+	 (let ((w (pred (@csv-cell.value v))))
+	   (if (eq? w #t)
+	       #t
+	       (csv-type-error w v)))
+	 (pred v)))
 
 
 (def (@x-csv-cell-of v pred msg)
