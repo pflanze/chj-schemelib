@@ -54,6 +54,7 @@
 	not*
 	(macro if*)
 	(macro or*)
+	run-loop (macro loop)
 	pp-through
 	no-pp-through
 	number->integer ;; XX vs |integer| ?
@@ -403,6 +404,15 @@
  ()
  > (or* '() #f 1 2)
  1)
+
+
+(define (run-loop proc)
+  (let lp ()
+    (proc)
+    (lp)))
+
+(define-macro* (loop . exprs)
+  `(run-loop (lambda () ,@exprs)))
 
 
 
