@@ -13,6 +13,7 @@
 	(class csv-cell)
 	csv-cell-of
 	possibly-csv-cell-of
+	possibly-csv-cell.value ;; *not* a method
 	x-csv-cell-of
 	X-csv-cell-of ;; allows unwrapped inputs, too (if match predicate)
 	(method csv-cell.xvalue-of)
@@ -74,6 +75,15 @@
        (.formula-string-fragment (spreadsheet-reference-absolute #f rowno colno))
        ") in file "
        (object->string path-or-port))))
+
+
+;; evil naming to use a dot if it's not a method; sigh, but I don't
+;; want to have to change more than prefix possibly- to change the
+;; usage case.
+(def (possibly-csv-cell.value v)
+     (if (csv-cell? v)
+	 (@csv-cell.value v)
+	 v))
 
 (def ((csv-cell-of pred) v)
      (if (csv-cell? v)
