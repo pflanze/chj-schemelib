@@ -14,14 +14,17 @@
 	 (char-util char-alphanumeric+?)
 	 test
 	 ;;safe-fx
-	 )
+	 error)
 
 ;; https://en.wikipedia.org/wiki/Comma-separated_values
 ;; https://www.ietf.org/rfc/rfc4180.txt
 
 
 (export (method iseq.write-csv-file)
+	(class maybe-row/maybe-error)
+	(method iseq-of-maybe-row/maybe-error.write-csv-file)
 	#!optional
+	iseq-of-maybe-row/maybe-error?
 	sep-chars
 	sep-char?
 	write-csv:value->string
@@ -149,7 +152,9 @@
  "\"foo\"\"bar\""
  > ((csv-escape #\,) "foo\"")
  "\"foo\"\"\""
- )
+ > ((csv-escape #\,) #f)
+ "")
+
 
 ;; XX should I always just create a type (value bundle) right away for
 ;; the options?! Are (openly placed) keywords even just a stupid idea?
@@ -172,6 +177,7 @@
 			     eol*))))))
 
 
+;; see COPY-PASTE in iseq-of-maybe-row/maybe-error.write-csv-file
 (def. (iseq.write-csv-file s
 			   [path-string? path]
 			   #!key
@@ -195,5 +201,50 @@
 		    (rename-file tmppath path)))
 	      (let-pair ((row s) s)
 			(w row)
-			(lp s)))))))
+			(lp s)))))
+    ;; for compatibility with iseq-of-maybe-row/maybe-error.write-csv-file,
+    ;; OK?
+    '()))
+
+
+(defclass (maybe-row/maybe-error
+	   [(maybe (list-of (either string? number? nothing?))) maybe-row]
+	   [(maybe error+?) maybe-error]))
+
+(def iseq-of-maybe-row/maybe-error? (iseq-of maybe-row/maybe-error?))
+
+;; adapted COPY-PASTE from iseq.write-csv-file
+(def. (iseq-of-maybe-row/maybe-error.write-csv-file
+       s
+       [path-string? path]
+       #!key
+       [(maybe eol-name?) eol]
+       [(maybe char?) sep-char]
+       ;; Not a boolean to avoid dependency on
+       ;; tempfile.scm and make it more flexible:
+       [(maybe procedure?) tempfile])
+  (let* ((tmppath (if tempfile (tempfile path)
+		      path))
+	 (p (open-output-file tmppath))
+	 (w (csv-row-writer port: p
+			    eol: eol
+			    sep-char: sep-char)))
+    (let lp ((s s)
+	     (errs '()))
+      (FV (s)
+	  (if (null? s)
+	      (begin
+		(close-port p)
+		(if tempfile
+		    (rename-file tmppath path))
+		(reverse errs))
+	      (let-pair ((row/err s) s)
+			(let-maybe-row/maybe-error
+			 ((maybe-row maybe-err) row/err)
+			 (if maybe-row
+			     (w maybe-row))
+			 (lp s
+			     (if maybe-err
+				 (cons maybe-err errs)
+				 errs)))))))))
 
