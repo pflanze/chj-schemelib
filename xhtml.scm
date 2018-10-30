@@ -367,3 +367,6 @@
 (def (xhtml:begin . body)
      `(##begin ,@body))
 
+;; Safer:
+(def (xhtml:begin* body)
+     (cons `##begin body))
