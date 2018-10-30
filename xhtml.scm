@@ -259,6 +259,17 @@
 			     ;; stop processing keywords
 			     (construct))))))))
 
+;; construct (export ) form; didn't expect this to be valid, but hey,
+;; why not (and actually maybe a sensible way to go about it in
+;; general: expand the form itself in its module's context, too?)
+(insert-result-of
+ (cons 'export
+       (append '((macro XHTML)
+		 (macro HTML)
+		 xhtml:begin
+		 xhtml:begin*)
+	       xhtml-element-names)))
+
 (insert-result-of
  (cons 'begin
        (map (lambda (name)
