@@ -1098,6 +1098,19 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  > (.foo3 (boo 10 11 12))
  (11 12))
 
+;; Test that sub-forms are expanded
+(TEST
+ > (defmacro (my-def-method . args) `(def-method ,@args))
+ ;; note that this fails:
+ ;; > (defmacro (my-def-method . args) `(begin (void)
+ ;; 					    (def-method ,@args)))
+ > (joo-class (boo c)
+	      (my-def-method (foo1 s) (list c)))
+ > (.foo1 (boo 10))
+ (10))
+
+
+
 
 ;; Whether a class or interface "extends" or "implements" a particular
 ;; 'parent' (not used within joo.scm).
