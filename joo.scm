@@ -878,34 +878,36 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		      ;; instead.
 
 		      ,@(map
-			 (C macro-expand/symtbl
-			    _
-			    (let ((m-
-				   (if interface?
-				       joo:implementation-method-expander-forbidden
-				       (joo:implementation-method-expander-for
-					class-name
-					#f
-					nofields?)))
-				  (m
-				   (if interface?
-				       joo:implementation-method-expander-forbidden
-				       (joo:implementation-method-expander-for
-					class-name
-					(joo-type.all-field-names type)
-					nofields?))))
-			      (symboltable*
-			       ;; abstract methods
-			       method:
-			       (if (or interface? nofields?)
-				   (joo:abstract-method-expander-for class-name)
-				   joo:abstract-method-expander-forbidden)
-			       ;; implementations
-			       def-method-: m-
-			       defmethod-: m-
-			       ;; with fields bound to variables
-			       def-method: m
-			       defmethod: m)))
+			 ((lambda (symtable)
+			    (lambda (def)
+			      (macro-expand/symtbl def symtable)))
+			  ;; with symtable:
+			  (let ((m-
+				 (if interface?
+				     joo:implementation-method-expander-forbidden
+				     (joo:implementation-method-expander-for
+				      class-name
+				      #f
+				      nofields?)))
+				(m
+				 (if interface?
+				     joo:implementation-method-expander-forbidden
+				     (joo:implementation-method-expander-for
+				      class-name
+				      (joo-type.all-field-names type)
+				      nofields?))))
+			    (symboltable*
+			     ;; abstract methods
+			     method:
+			     (if (or interface? nofields?)
+				 (joo:abstract-method-expander-for class-name)
+				 joo:abstract-method-expander-forbidden)
+			     ;; implementations
+			     def-method-: m-
+			     defmethod-: m-
+			     ;; with fields bound to variables
+			     def-method: m
+			     defmethod: m)))
 			 defs))))))))
 
        (joo:parse-decl decl
