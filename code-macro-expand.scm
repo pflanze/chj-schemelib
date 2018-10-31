@@ -22,20 +22,17 @@
 ;; Expanders are found in symtbl (which has precedence) and
 ;; define-macro-star's table.
 
-(define (macro-expand/symtbl expr symtbl) ;; note, *also* uses define-macro-star defs
+(define (macro-expand/symtbl expr symtbl)
   (let ((expr* (source-code expr)))
     (if (pair? expr*)
 	(let ((a (source-code (car expr*))))
 	  (cond ((and (symbol? a)
 		      (or (symboltable-ref symtbl a #f)
-			  ;; Need to expand other
-			  ;; macros, too, to handle
-			  ;; entries in their
-			  ;; expansions!
+			  ;; Need to expand other macros, too, to
+			  ;; handle entries in their expansions!
 			  (define-macro-star-maybe-ref a)))
 		 => (lambda (expand)
-		      ;; recurse until no macro
-		      ;; expander found anymore
+		      ;; iterate until no macro expander found anymore
 		      (macro-expand/symtbl (expand expr) symtbl)))
 		(else
 		 expr)))
