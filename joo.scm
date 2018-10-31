@@ -31,6 +31,7 @@
 	 (dot-oo define-struct.-expand)
 	 symboltable
 	 (symboltable symboltable-declare @symboltable-ref-inline)
+	 (code-macro-expand macro-expander/symtbl)
 	 (cj-source source-quote source-dequote location?)
 	 cj-seen
 	 (improper-list improper-list->list)
@@ -46,37 +47,10 @@
 	(macro joo-interface)
 	(macro def.*) ;; XX should I provide |define.*|, too?
 	#!optional
-	joo:parse-decl
-	macro-expand/symtbl)
+	joo:parse-decl)
 
 (include "cj-standarddeclares.scm")
 (possibly-use-debuggable-promise)
-
-;; XX move elsewhere? (Depends on symboltable! *And* )
-
-;; Makeshift "manual" ##let-syntax. Only top-level exprs are expanded!
-;; (Should it be extended to enter ##begin forms?  Probably. Need to
-;; know what |begin| is bound to, though. Forever.)
-(def (macro-expand/symtbl expr symtbl) ;; note, *also* uses define-macro-star defs
-     (let ((expr* (source-code expr)))
-       (if (pair? expr*)
-	   (let ((a (source-code (car expr*))))
-	     (cond ((and (symbol? a)
-			 (or (symboltable-ref symtbl a #f)
-			     ;; Need to expand other
-			     ;; macros, too, to handle
-			     ;; entries in their
-			     ;; expansions!
-			     (define-macro-star-maybe-ref a)))
-		    => (lambda (expand)
-			 ;; recurse until no macro
-			 ;; expander found anymore
-			 (macro-expand/symtbl (expand expr) symtbl)))
-		   (else
-		    expr)))
-	   expr)))
-
-;; /move
 
 
 ;; inline a local copy
@@ -878,10 +852,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		      ;; instead.
 
 		      ,@(map
-			 ((lambda (symtable)
-			    (lambda (def)
-			      (macro-expand/symtbl def symtable)))
-			  ;; with symtable:
+			 (macro-expander/symtbl 
 			  (let ((m-
 				 (if interface?
 				     joo:implementation-method-expander-forbidden
