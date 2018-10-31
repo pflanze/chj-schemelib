@@ -11,7 +11,7 @@
 ;; (originally) partially following
 ;; http://hackage.haskell.org/packages/archive/system-filepath/0.4.6/doc/html/src/Filesystem-Path.html
 
-(require easy ;; incl. more-oo
+(require easy
 	 test
 	 string-util-1
 	 (cj-functional-2 =>))
