@@ -33,7 +33,8 @@
 			  (define-macro-star-maybe-ref a)))
 		 => (lambda (expand)
 		      ;; iterate until no macro expander found anymore
-		      (macro-expand/symtbl (expand expr) symtbl)))
+		      (macro-expand/symtbl (possibly-sourcify (expand expr) expr)
+					   symtbl)))
 		(else
 		 expr)))
 	expr)))
