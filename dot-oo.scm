@@ -238,8 +238,10 @@
 		 ,@rest))))))
 
 ;; [*] Note: this now resolves the type predicate at run time, so that
-;; later redefinitions of other modules are respected, and so that
-;; more-oo can work (without a hack that broke compilation).
+;; later redefinitions of other modules are respected[, and so that
+;; more-oo can work (without a hack that broke compilation).--Now
+;; more-oo is in its own namespace, so, ok? XX look into this some
+;; time.]
 
 ;; Redefinitions of the same method by using define. in the running
 ;; system will keep the previous definition chained in the
