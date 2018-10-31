@@ -16,7 +16,6 @@
 
 
 (require easy
-	 more-oo
 	 (Result Error)
 	 error
 	 test)
