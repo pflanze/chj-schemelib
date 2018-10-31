@@ -23,9 +23,9 @@
 ;; define-macro-star's table.
 
 (define (macro-expand/symtbl expr symtbl)
-  (let ((expr* (source-code expr)))
-    (if (pair? expr*)
-	(let ((a (source-code (car expr*))))
+  (let ((_expr (source-code expr)))
+    (if (pair? _expr)
+	(let ((a (source-code (car _expr))))
 	  (cond ((and (symbol? a)
 		      (or (symboltable-ref symtbl a #f)
 			  ;; Need to expand other macros, too, to
