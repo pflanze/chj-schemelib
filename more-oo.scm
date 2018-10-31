@@ -14,10 +14,10 @@
 	 (string-util-2 string-contains?)
 	 (oo-util string.symbol symbol.string))
 
-(export (macro more-class)
-	(macro more-subclass)
-	(macro struct)
-	(macro method)
+(export (macro more-oo#class)
+	(macro more-oo#subclass)
+	(macro more-oo#struct)
+	(macro more-oo#method)
 	(macro let.)
 	(macro let.-static)
 	#!optional
@@ -40,9 +40,9 @@
       (if (pair? compile-time:class-ctx)
 	  (cont (car compile-time:class-ctx))
 	  (source-error stx
-			"not placed within a |more-class| form"))))
+			"not placed within a |more-oo#class| form"))))
 
-(defmacro (compile-time#start-class! name subclass?)
+(defmacro (more-oo#start-class! name subclass?)
   (if (source-code subclass?)
       (class=> stx
 	       (lambda (superclass)
@@ -59,7 +59,7 @@
 (def (current-more-oo-class-name)
      (.class-name (current-more-oo-class-ctx)))
 
-(defmacro (compile-time#end-class!)
+(defmacro (more-oo#end-class!)
   (let* ((c (pop! compile-time:class-ctx))
 	 (subclasses (unbox (.subclasses c))))
     ;; (warn "ending class:" (cj-desourcify c))
@@ -70,28 +70,28 @@
 	    (%either ,@(map (C source:symbol-append _ "?")
 			    subclasses)))))))
 
-(defmacro (more-class name . body)
+(defmacro (more-oo#class name . body)
   `(begin
-     (compile-time#start-class! ,name #f)
+     (more-oo#start-class! ,name #f)
      ,@body
-     (compile-time#end-class!)))
+     (more-oo#end-class!)))
 
-(defmacro (more-subclass name . body)
+(defmacro (more-oo#subclass name . body)
   ;;XXX + predicate constr
   `(begin
-     (compile-time#start-class! ,name #t)
+     (more-oo#start-class! ,name #t)
      ,@body
-     (compile-time#end-class!)))
+     (more-oo#end-class!)))
 
 
 
-(defmacro (struct . decls)
+(defmacro (more-oo#struct . decls)
   (class=> stx
 	   (lambda (subclass)
 	     `(defstruct ,(.class-name subclass)
 		,@decls))))
 
-(defmacro (method bind . rest)
+(defmacro (more-oo#method bind . rest)
   (class=> stx
 	   (lambda (class)
 	     (let ((class-name (.class-name class)))
