@@ -293,7 +293,9 @@
 ;; using more-oo here as infrastructure for our coding, but not for
 ;; building the actual oo system on top of it
 
-(more-class
+(##namespace ("more-oo#" class subclass struct method))
+
+(class
  joo-type
  ;; With metadata; still call it joo-metadata instead?  Those
  ;; are mutable, and singletons, please!
@@ -416,6 +418,10 @@
 	      (fx>= (##vector-length v) 1)
 	      (joo:struct-tag.member-of? (@vector-ref v 0)
 					 (@joo-type.members s)))))
+
+;; end of more-oo.
+(##namespace ("" class subclass struct method))
+
 
 ;; a constructor that also updates the parent's member tables (XX
 ;; *could* also ensure singletons here (keyed on tag), should I ?)
