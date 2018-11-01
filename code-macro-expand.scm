@@ -22,6 +22,10 @@
 ;; Expanders are found in symtbl (which has precedence) and
 ;; define-macro-star's table.
 
+;; If a symtbl value is #t (instead of a function) then the given form
+;; is left unchanged (this even disables top-level macros for the
+;; given form).
+
 (define (macro-expand/symtbl expr symtbl)
   (let ((_expr (source-code expr)))
     (if (pair? _expr)
@@ -32,9 +36,12 @@
 			  ;; handle entries in their expansions!
 			  (define-macro-star-maybe-ref a)))
 		 => (lambda (expand)
-		      ;; iterate until no macro expander found anymore
-		      (macro-expand/symtbl (possibly-sourcify (expand expr) expr)
-					   symtbl)))
+		      ;; Check for special signal to disable a macro (is this a hack?)
+		      (if (eq? expand #t)
+			  expr
+			  ;; iterate until no macro expander found anymore
+			  (macro-expand/symtbl (possibly-sourcify (expand expr) expr)
+					       symtbl))))
 		(else
 		 expr)))
 	expr)))
