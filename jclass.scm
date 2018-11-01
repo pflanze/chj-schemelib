@@ -39,14 +39,13 @@
 ;; found forms.
 
 
-(def (jclass:expand
-      interface-syms
-      class-syms
-      stx
-      is-class?
-      args
-      maybe-super-name
-      super-is-class?)
+(def (jclass:expand interface-syms
+		    class-syms
+		    stx
+		    [boolean? is-class?]
+		    args
+		    maybe-super-name
+		    [boolean? super-is-class?])
 
      (warn "jclass:expand, stx="(cj-desourcify stx))
      (let-pair
@@ -81,10 +80,10 @@
       interface-syms
       class-syms
       ;; other arguments:
-      require-match?
+      [boolean? require-match?]
       expr
       maybe-super-name
-      super-is-class?)
+      [boolean? super-is-class?])
 
      (let ((expr*
 
