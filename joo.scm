@@ -790,7 +790,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		   ;; expanded in the same compilation run (sigh, the old
 		   ;; schizophrenia is back) (ah and crazy, in two-step process
 		   ;; here, for storing run time value):
-		   (eval `(define ,type-symbol #f))
+		   (eval (pp-through-source "sideeffect"`(define ,type-symbol #f)))
 		   ((eval `(lambda (v) (set! ,type-symbol v))) type)
 
 		   `(begin
