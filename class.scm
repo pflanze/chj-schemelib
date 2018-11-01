@@ -15,15 +15,15 @@
 
 (define-macro* (definterface decl . forms)
   (jclass:perhaps-expand-in-context '(definterface expansion#definterface
-						jinterface expansion#jinterface)
+				       jinterface expansion#jinterface)
 				    '(defclass expansion#defclass
-					    jclass expansion#jclass)
+				       jclass expansion#jclass)
 				    #t stx #f #f))
 
 (define-macro* (defclass decl . forms)
   (jclass:perhaps-expand-in-context '(definterface expansion#definterface
-						jinterface expansion#jinterface)
+				       jinterface expansion#jinterface)
 				    '(defclass expansion#defclass
-					    jclass expansion#jclass)
+				       jclass expansion#jclass)
 				    #t stx #f #t))
 
