@@ -111,41 +111,41 @@
       maybe-super-name
       [boolean? super-is-class?])
 
-     (let ((_expr (source-code expr)))
-       (if (pair? _expr)
-	   (let ((expr*
+     (if (pair? (source-code expr))
+	 (let ((expr*
 
-		  (let ((r (cdr _expr)))
-		    (macro-expand/symtbl
-		     expr
-		     (list.symboltable
-		      (append (map (C cons _
-				      (lambda (expr)
-					(jclass:expand interface-syms
-						       class-syms
-						       expr
-						       #f r
-						       maybe-super-name
-						       super-is-class?)))
-				   interface-syms)
-			      (map (C cons _
-				      (lambda (expr)
-					(jclass:expand interface-syms
-						       class-syms
-						       expr
-						       #t r
-						       maybe-super-name
-						       super-is-class?)))
-				   class-syms)
-			      jclass:do-not-expand))))))
+		(macro-expand/symtbl
+		 expr
+		 (list.symboltable
+		  (append (map (C cons _
+				  (lambda (expr)
+				    (jclass:expand interface-syms
+						   class-syms
+						   expr
+						   #f
+						   (cdr (source-code expr))
+						   maybe-super-name
+						   super-is-class?)))
+			       interface-syms)
+			  (map (C cons _
+				  (lambda (expr)
+				    (jclass:expand interface-syms
+						   class-syms
+						   expr
+						   #t
+						   (cdr (source-code expr))
+						   maybe-super-name
+						   super-is-class?)))
+			       class-syms)
+			  jclass:do-not-expand)))))
 
-	     (if (or (not require-match?)
-		     (not (eq? (source-code expr*) (source-code expr))))
-		 (possibly-sourcify expr* expr)
-		 (source-error expr "BUG")))
-	   (if require-match?
-	       (source-error expr "BUG1")
-	       expr))))
+	   (if (or (not require-match?)
+		   (not (eq? (source-code expr*) (source-code expr))))
+	       (possibly-sourcify expr* expr)
+	       (source-error expr "BUG")))
+	 (if require-match?
+	     (source-error expr "BUG1")
+	     expr)))
 
 
 (defmacro (jinterface decl . forms)
