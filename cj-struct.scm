@@ -289,44 +289,49 @@
 						   (vector-ref v+f+i 0))
 						 real-v+f+i-s)
 					  ,(rec (cdr vars+inp-s)))))
-				(if (and (,',predicate-name ,V)
-					 ;; XX is the following check
-					 ;; really needed? (does the
-					 ;; predicate not already
-					 ;; always include it? But
-					 ;; better be safe: reloaded
-					 ;; code!, i.e. changing
-					 ;; definitions); don't even
-					 ;; count on it being a
-					 ;; vector?
-					 (fx> (vector-length ,V)
-					      ,(list-max
-						(cons
-						 (add-offset 0)
-						 (map (lambda (v+f+i)
-							(add-offset (vector-ref v+f+i 2)))
-						      real-v+f+i-s)))))
-				    (,C
-				     ,@(map (lambda (v+f+i)
-					      `(@vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
-					    real-v+f+i-s))
-				    ,(if ,let-fallback?
-					 ;; use type-name.field-name
-					 ;; style accessors for cases
-					 ;; when those work even if
-					 ;; the type check fails
-					 `(,C
-					   ,@(map (lambda (v+f+i)
-						    `(,(generic-accessor-for-field (vector-ref v+f+i 1))
-						      ,V))
-						  real-v+f+i-s))
-					 ;; by default, it's just a
-					 ;; type error (e.g. joo's
-					 ;; type predicates already
-					 ;; allow for subtyping and
-					 ;; the vector-ref approach
-					 ;; works in that case, too)
-					 `(,',error-name ,V)))))
+				(if
+				 (and (,',predicate-name ,V)
+				      ;; XX is the following check
+				      ;; really needed? (does the
+				      ;; predicate not already
+				      ;; always include it? But
+				      ;; better be safe: reloaded
+				      ;; code!, i.e. changing
+				      ;; definitions); don't even
+				      ;; count on it being a
+				      ;; vector?
+				      ,(if (null? real-v+f+i-s)
+					   ;; no variable accesses,
+					   ;; thus no need for any
+					   ;; size check
+					   `#t
+					   `(fx> (vector-length ,V)
+						 ,(list-max
+						   (map (lambda (v+f+i)
+							  (add-offset
+							   (vector-ref v+f+i 2)))
+							real-v+f+i-s)))))
+				 (,C
+				  ,@(map (lambda (v+f+i)
+					   `(@vector-ref ,V ,(add-offset (vector-ref v+f+i 2))))
+					 real-v+f+i-s))
+				 ,(if ,let-fallback?
+				      ;; use type-name.field-name
+				      ;; style accessors for cases
+				      ;; when those work even if
+				      ;; the type check fails
+				      `(,C
+					,@(map (lambda (v+f+i)
+						 `(,(generic-accessor-for-field (vector-ref v+f+i 1))
+						   ,V))
+					       real-v+f+i-s))
+				      ;; by default, it's just a
+				      ;; type error (e.g. joo's
+				      ;; type predicates already
+				      ;; allow for subtyping and
+				      ;; the vector-ref approach
+				      ;; works in that case, too)
+				      `(,',error-name ,V)))))
 			   (source-error vars*
 					 "invalid number of variables")))))))))))
        (define-macro* (,let-name vars+inp . body)
