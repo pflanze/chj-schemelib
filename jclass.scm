@@ -53,6 +53,8 @@
       ((decl forms) args)
       (if *jclass-debug*
 	  (pp-through-source "jclass:expand expanding..." decl))
+      (if (equal? '(gui-markup-element#br) (cj-desourcify decl))
+	  (repl))
       (let* ((c
 	      (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
 		`(,(if is-class? `joo-class `joo-interface)
