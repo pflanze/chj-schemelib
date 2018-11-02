@@ -129,7 +129,9 @@
 		     (not (eq? (source-code expr*) (source-code expr))))
 		 (possibly-sourcify expr* expr)
 		 (source-error expr "BUG")))
-	   expr)))
+	   (if require-match?
+	       (source-error expr "BUG1")
+	       expr))))
 
 
 (defmacro (jinterface decl . forms)
