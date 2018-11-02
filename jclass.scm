@@ -47,30 +47,42 @@
 		    maybe-super-name
 		    [boolean? super-is-class?])
 
-     (warn "jclass:expand, stx="(cj-desourcify stx))
      (let-pair
       ((decl forms) args)
-      (let ((c (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
-		 `(,(if is-class? `joo-class `joo-interface)
-		   ,decl
-		   ,@(if maybe-super-name
-			 (list (joo-extends-or-implements
-				stx super-is-class? is-class?)
-			       maybe-super-name)
-			 '())
-		   ,@(map (C jclass:perhaps-expand-in-context
-			     interface-syms
-			     class-syms
-			     #f
-			     _
-			     name
-			     is-class?)
-			  forms)))))
+      (let ((c
+	     (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
+	       `(,(if is-class? `joo-class `joo-interface)
+		 ,decl
+		 ,@(if maybe-super-name
+		       (list (joo-extends-or-implements
+			      stx super-is-class? is-class?)
+			     maybe-super-name)
+		       '())
+		 ,@(map (C jclass:perhaps-expand-in-context
+			   interface-syms
+			   class-syms
+			   #f
+			   _
+			   name
+			   is-class?)
+			forms)))))
 	(joo:parse-decl decl
 			cont-renamedconstructor: c
 			cont-samename: c
 			cont-nofields: c))))
 
+
+
+;; Prevent triggering the top-level joo-class / joo-interface macro
+;; expanders in nested scopes during expansion time of jclass, since
+;; we need the top-level one to be evaluated to maintain correct
+;; ordering of the side-effects via eval in joo:joo-expand. Ain't that
+;; ugly? But how to improve? Use a logic engine?  (Monads wouldn't
+;; help either, right, other than via providing logic engine?)
+(def jclass:do-not-expand
+     (map (C cons _ #t)
+	  '(joo-class expansion#joo-class
+		      joo-interface expansion#joo-interface)))
 
 (def (jclass:perhaps-expand-in-context
       ;; the symbols used for interface and class definition forms
@@ -85,48 +97,50 @@
       maybe-super-name
       [boolean? super-is-class?])
 
-     (let ((expr*
+     (let ((_expr (source-code expr)))
+       (if (pair? _expr)
+	   (let ((expr*
 
-	    (let ((r (pp-through-source "r" (cdr (source-code expr)))))
-	      (macro-expand/symtbl
-	       expr
-	       (list.symboltable
-		(append (map (C cons _
-				(lambda (expr)
-				  (jclass:expand interface-syms
-						 class-syms
-						 expr
-						 #f r
-						 maybe-super-name
-						 super-is-class?)))
-			     interface-syms)
-			(map (C cons _
-				(lambda (expr)
-				  (jclass:expand interface-syms
-						 class-syms
-						 expr
-						 #t r
-						 maybe-super-name
-						 super-is-class?)))
-			     class-syms)))))))
+		  (let ((r (cdr _expr)))
+		    (macro-expand/symtbl
+		     expr
+		     (list.symboltable
+		      (append (map (C cons _
+				      (lambda (expr)
+					(jclass:expand interface-syms
+						       class-syms
+						       expr
+						       #f r
+						       maybe-super-name
+						       super-is-class?)))
+				   interface-syms)
+			      (map (C cons _
+				      (lambda (expr)
+					(jclass:expand interface-syms
+						       class-syms
+						       expr
+						       #t r
+						       maybe-super-name
+						       super-is-class?)))
+				   class-syms)
+			      jclass:do-not-expand))))))
 
-       (if (or (not require-match?)
-	       (not (eq? (source-code expr*) (source-code expr))))
-	   (possibly-sourcify expr* expr)
-	   (source-error expr "BUG"))))
+	     (if (or (not require-match?)
+		     (not (eq? (source-code expr*) (source-code expr))))
+		 (possibly-sourcify expr* expr)
+		 (source-error expr "BUG")))
+	   expr)))
 
 
 (defmacro (jinterface decl . forms)
-  (pp-through-source
-   (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
-				     '(jclass expansion#jclass)
-				     #t stx #f #f)))
+  (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
+				    '(jclass expansion#jclass)
+				    #t stx #f #f))
 
 (defmacro (jclass decl . forms)
-  (pp-through-source
-   (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
-				     '(jclass expansion#jclass)
-				     #t stx #f #t)))
+  (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
+				    '(jclass expansion#jclass)
+				    #t stx #f #t))
 
 ;; ^ XX btw double extends: or implements: keywords, how to handle?
 ;; Really \SCHEME[keyword arguments should handle duplicate argument
