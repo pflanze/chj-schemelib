@@ -39,6 +39,8 @@
 ;; found forms.
 
 
+(defvar *jclass-debug* #f)
+
 (def (jclass:expand interface-syms
 		    class-syms
 		    stx
@@ -49,27 +51,37 @@
 
      (let-pair
       ((decl forms) args)
-      (let ((c
-	     (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
-	       `(,(if is-class? `joo-class `joo-interface)
-		 ,decl
-		 ,@(if maybe-super-name
-		       (list (joo-extends-or-implements
-			      stx super-is-class? is-class?)
-			     maybe-super-name)
-		       '())
-		 ,@(map (C jclass:perhaps-expand-in-context
-			   interface-syms
-			   class-syms
-			   #f
-			   _
-			   name
-			   is-class?)
-			forms)))))
-	(joo:parse-decl decl
-			cont-renamedconstructor: c
-			cont-samename: c
-			cont-nofields: c))))
+      (if *jclass-debug*
+	  (pp-through-source "jclass:expand expanding..." decl))
+      (let* ((c
+	      (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
+		`(,(if is-class? `joo-class `joo-interface)
+		  ,decl
+		  ,@(if maybe-super-name
+			(list (joo-extends-or-implements
+			       stx super-is-class? is-class?)
+			      maybe-super-name)
+			'())
+		  ,@(map (C jclass:perhaps-expand-in-context
+			    interface-syms
+			    class-syms
+			    #f
+			    _
+			    name
+			    is-class?)
+			 forms))))
+
+	     (res
+	      (joo:parse-decl decl
+			      cont-renamedconstructor: c
+			      cont-samename: c
+			      cont-nofields: c)))
+
+	(if *jclass-debug*
+	    (pp-through-source "jclass:expand"
+			       (vector stx res)))
+
+	res)))
 
 
 
