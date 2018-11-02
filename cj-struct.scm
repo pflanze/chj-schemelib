@@ -51,7 +51,7 @@
 	   (let ((v (source-code v*)))
 	     (cond ((symbol? v)
 		    v*)
-		   ((meta-object? v)
+		   ((dsssl-meta-object? v)
 		    #f)
 		   (((list-of-length 2) v)
 		    ;; `(`definition `default-value)
@@ -59,7 +59,7 @@
 		   (else
 		    (source-error
 		     v*
-		     "expecting symbol or meta-object")))))))
+		     "expecting symbol or dsssl-meta-object")))))))
 
 (define (define-struct-expand
 	  DEFINE	;; what definition forms to use
@@ -102,7 +102,7 @@
 		  `(##quote ,name*))))
 	 (tag-binding (symbol-append "cj-struct:tag:" name))
 	 (fields* (filter identity (map arg->maybe-fieldname args*)))
-	 (fields+ (filter (lambda (arg) (not (meta-object? (source-code arg))))
+	 (fields+ (filter (lambda (arg) (not (dsssl-meta-object? (source-code arg))))
 			  ;; ^ assuming that DEFINE/LAMBDA won't ever need anything else
 			  args*))
 	 (_ (or (= (length fields*) (length fields+)) (error "assertion failure")))

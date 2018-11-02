@@ -112,7 +112,7 @@
 				    `(type-check ,pred ,var
 						 ,body)))))
 	       (err)))
-	  ((meta-object? arg*)
+	  ((dsssl-meta-object? arg*)
 	   (values (cons arg* args)
 		   body))
 	  ((pair? arg*)

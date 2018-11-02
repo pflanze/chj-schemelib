@@ -100,13 +100,13 @@
 (define source-code/clean-keywords
   (mk-source-code/? keyword?))
 
-(define (meta-object? v)
+(define (dsssl-meta-object? v)
   (or (eq? v #!optional)
       (eq? v #!rest)
       (eq? v #!key)))
 
-(define source-code/clean-meta-objects
-  (mk-source-code/? meta-object?))
+(define source-code/clean-dsssl-meta-objects
+  (mk-source-code/? dsssl-meta-object?))
 
 
 (define source-location (source-check ##source-locat))

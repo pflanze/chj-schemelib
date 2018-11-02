@@ -284,7 +284,7 @@
 		    v*)
 		   ((typed? v)
 		    (@typed.var v))
-		   ((meta-object? v)
+		   ((dsssl-meta-object? v)
 		    #f)
 		   (((list-of-length 2) v)
 		    ;; `(`definition `default-value)
@@ -292,7 +292,7 @@
 		   (else
 		    (source-error
 		     v*
-		     "expecting symbol or typed symbol or meta-object")))))))
+		     "expecting symbol or typed symbol or dsssl-meta-object")))))))
 
 
 (both-times
@@ -423,7 +423,7 @@
  > (%try-error (foo b: 11 x: 10))
  #(error "b does not match boolean?:" 11)
  ;; > (define-struct. foo #(integer? x) #!optional (b #t))
- ;; "expecting symbol or typed symbol or meta-object" XX hmm, still not complete.
+ ;; "expecting symbol or typed symbol or dsssl-meta-object" XX hmm, still not complete.
 
  ;; typecheck feature
  ;; (Now need to acess cj-struct:tag: variables; otherwise .typecheck!
