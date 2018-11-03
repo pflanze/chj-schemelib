@@ -48,8 +48,9 @@
        (let* ((loc (source-location relpath))
 	      (container (location-container loc))
 	      (container-path
-	       (if (with-exception-catcher (lambda (e) #f) 
-					   (lambda () (eval '##container->path-hook)))
+	       (if (with-exception-catcher
+		    (lambda (e) #f) 
+		    (lambda () (eval '##container->path-hook)))
 		   (##container->path-hook container)
 		   container))
 	      (relpath (source-code relpath)))
@@ -139,7 +140,8 @@
 			`(lambda (stx) ;; make stx visible?
 			   (safer-apply
 			    ',(schemedefinition-arity:pattern->template
-			       (cons 'the-macroname (source/clean-dsssl-meta-objects args)))
+			       (cons 'the-macronamer
+				     (source/clean-dsssl-meta-objects args)))
 			    (lambda (macroname ,@args)
 			      ,@body)
 			    (source/clean-keywords stx)
@@ -202,7 +204,8 @@
 		(apply-code
 		 `(safer-apply
 		   ',(schemedefinition-arity:pattern->template
-		      (cons 'the-macroname (source/clean-dsssl-meta-objects args)))
+		      (cons 'the-macroname
+			    (source/clean-dsssl-meta-objects args)))
 		   (lambda (macroname ,@args)
 		     ,@body)
 		   (source/clean-keywords stx)
@@ -248,7 +251,8 @@
 		,name
 		,normal-code)
 
-	       ;; for debugging, introspection: a macro that returns the result quoted
+	       ;; for debugging, introspection: a macro that returns
+	       ;; the result quoted
 	       ,@(if maybe-local-callback
 		     '()
 		     `(;; both ##top-cte-add-macro! for runtime:
