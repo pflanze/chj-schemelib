@@ -548,7 +548,7 @@ ___result= waitpid(___arg1, ___CAST(int*,___BODY(___arg2)), ___arg3);
 ;;  int socketpair(int d, int type, int protocol, int sv[2]);
 (define/check posix:_socketpair posix:socketpair (#!optional (type SOCK_STREAM))
   (error-to-posix-exception
-   (let ((v (##make-s32vector 2))) ;; (dito, see above)
+   (let ((v (##make-s32vector 2))) ;; (ditto, see above)
      (let ((r ((c-lambda (int scheme-object)
 			 int
 			 "
@@ -788,7 +788,7 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 ;; (define/check->integer "write" posix:_write-u8vector posix:write-u8vector
 ;;   ((int fd) ((pointer unsigned-int8) buf) (size_t count))
 ;;   ssize_t)
-;; dito, aha, less expansion needed:
+;; ditto, aha, less expansion needed:
 (define/check
   posix:_write-u8vector
   posix:write-u8vector

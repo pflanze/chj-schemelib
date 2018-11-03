@@ -845,7 +845,7 @@
  > '>3 ;; must not warn, because it's understood as a sideeffecting form
  > 4)
 (TEST
- > '>4 ;; (dito)
+ > '>4 ;; (ditto)
  > 5
  5)
 

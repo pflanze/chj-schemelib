@@ -107,7 +107,7 @@
  ;; 'full' inversion, in linear space; XX does this make sense? See
  ;; tests, search for "sense"
  (method (invert v) -> rgb?)
- ;; dito; saturating at the top
+ ;; ditto; saturating at the top
  (method (scale v factor) -> rgb?)
 
  (jclass rgb01
@@ -175,7 +175,7 @@
 		 (def-method- b8 (compose-function 01.uint8 rgb01l.b01t))
 
 		 (def-method- (rgb01t x)
-		   ;; XX dito duplication ~
+		   ;; XX ditto duplication ~
 		   (let-rgb01l ((r g b) x)
 			       (let ((conv srgb:lum.transfer))
 				 (rgb01t (conv r)

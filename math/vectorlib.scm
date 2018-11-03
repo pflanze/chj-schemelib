@@ -523,7 +523,7 @@
 			   (iota s0)))))
 
        (define (,(T 'M_:ones) s0 s1)
-	 ;;~dito
+	 ;;~ditto
 	 (,_M_ s0 s1 (list->vector
 		      (map (lambda (_)
 			     (,(T 'V_:ones) s1))

@@ -37,7 +37,7 @@
       eq?))
 
 (define-typed (table-hash #(table? t))
-  ;; dito
+  ;; ditto
   (or (@vector-ref t 3)
       eq?-hash))
 

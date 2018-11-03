@@ -183,7 +183,7 @@
 	  ;; joo:implementation-method-expander-for
 	  (if (length-= rest 1)
 	      ;; XX should macro-expand that form before checking for
-	      ;; lambda, dito for the copy in
+	      ;; lambda, ditto for the copy in
 	      ;; joo:implementation-method-expander-for
 	      (mcase (car rest)
 		     (`(lambda `binds . `body)

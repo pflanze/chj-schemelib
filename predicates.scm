@@ -38,7 +38,7 @@
 	char-one-of	  ;; move to char lib?
 	possibly-source-of
 	source-of
-	perhaps-source*-of ;; dito
+	perhaps-source*-of ;; ditto
 	source*-of
 	length-=
 	length-<=

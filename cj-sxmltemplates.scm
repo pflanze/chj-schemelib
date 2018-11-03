@@ -15,7 +15,7 @@
 
 (require cj-env
 	 ;;XXX: todo port over srfi-13
-	 ;;XXX dito? cj-expr
+	 ;;XXX ditto? cj-expr
 	 (list-util improper-map)
 	 (test TEST))
 

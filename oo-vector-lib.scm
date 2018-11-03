@@ -17,7 +17,7 @@
 	(macro def-oo-vector-lib-for)
 
 	string->u8vector string.u8vector ;; XX remove this?
-	u8vector.string			 ;; dito?
+	u8vector.string			 ;; ditto?
 	)
 
 (include "cj-standarddeclares.scm")

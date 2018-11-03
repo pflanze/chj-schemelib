@@ -223,7 +223,7 @@
  3
  > (T 3 + 2 3) ;; this one should make it to stderr
  5
- > (T 3 "ey" + 3 3) ;; dito
+ > (T 3 "ey" + 3 3) ;; ditto
  6
  > (T "ey" + 3 4)
  7)

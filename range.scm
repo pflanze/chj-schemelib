@@ -569,9 +569,9 @@
  > (.contains-range? (range 10 20) (range 30 30))
  #f ;; *??* what should it be, "division by zero?"
  > (.contains-range? (range 10 20) (range 30 0))
- #t ;; dito ??
+ #t ;; ditto ??
 
- ;; dito, reversals of those above
+ ;; ditto, reversals of those above
  > (.contains-range? (range 20 10) (range 12 15))
  #f
  > (.contains-range? (range 20 10) (range 12 20))

@@ -325,7 +325,7 @@
 (define. (symboltable.fold s fn start)
   ;; heh confusing API here, good I wrap it...
   (symboltable:fold s start fn))
-;; and unusual naming, dito:
+;; and unusual naming, ditto:
 (define. symboltable.every symboltable:every?)
 (define. symboltable.list symboltable->list)
 (define. symboltable.keys symboltable-keys)

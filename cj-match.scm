@@ -590,7 +590,7 @@
 	   (car (source-code cl)))
 	 l)))
 
- ;; XX todo dito.
+ ;; XX todo ditto.
  ;; for predicate based matches
  (define (mcaseclauses-other-matchexpressions c)
    (let-mcaseclauses
@@ -787,7 +787,7 @@
  ;; top level (improper list) quasiquote match
  > (mcase '(quasiquote x) (`(quasiquote y) y))
  `x
- ;; dito improper list
+ ;; ditto improper list
  > (mcase '(foo quasiquote x) (`(foo quasiquote y) y))
  `x
  ;; first quasiquote is verbatim

@@ -10,7 +10,7 @@
 
 '(require
  ;; vector-util-1 ;; included directly
- ;; cj-env-1 dito
+ ;; cj-env-1 ditto
  ;; list-util-1 ;; improper-map now copied directly
  )
 
@@ -50,7 +50,7 @@
 	 source-error->string
 	 show-procedure-location
 	 source-quote ;; deprecated, use source-quote* instead?
-	 source-dequote ;; dito
+	 source-dequote ;; ditto
 	 source-quote*)
 
 

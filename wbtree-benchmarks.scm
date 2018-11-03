@@ -181,7 +181,7 @@
 ;     4160000 bytes allocated
 ;     no minor faults
 ;     no major faults
-;dito
+;ditto
 ; (time (fetch t 20000 0))
 ;     66 ms real time
 ;     68 ms cpu time (68 user, 0 system)

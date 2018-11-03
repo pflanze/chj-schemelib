@@ -332,7 +332,7 @@
  > ((sorted-list-of number? <) '(1 2 2))
  #t
  > ((sorted-list-of number? <=) '(1 2 2))
- #f ;; dito
+ #f ;; ditto
  > ((sorted-list-of number? >) '())
  #t)
 

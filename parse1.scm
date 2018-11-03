@@ -527,7 +527,7 @@
 					    (lambda (,var)
 					      ,(rec binds*
 						    vars*)))
-			       ;; dito (see mlet*)
+			       ;; ditto (see mlet*)
 			       bind)))))))))
 
 

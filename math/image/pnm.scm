@@ -50,10 +50,10 @@
 	  ;;     channels, explicit-maxval?, bpc(bitsperchannel),
 	  ("P1" bit ascii "pbm" 1 #f 1)
 	  ("P2" gray ascii "pgm" 1 #t #f) ;; 8 or 16 bpc, right?
-	  ("P3" pix ascii "ppm" 3 #t #f)  ;; dito
+	  ("P3" pix ascii "ppm" 3 #t #f)  ;; ditto
 	  ("P4" bit raw "pbm" 1 #f 1)
 	  ("P5" gray raw "pgm" 1 #t #f) ;; right?
-	  ("P6" pix raw "ppm" 3 #t #f) ;; dito
+	  ("P6" pix raw "ppm" 3 #t #f) ;; ditto
 	  ;; and own inventions:
 	  ;; A= alpha channel
 	  ;; H= high quality (16 bit/channel)

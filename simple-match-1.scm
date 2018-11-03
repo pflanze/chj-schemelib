@@ -74,7 +74,7 @@
 			   ;; otherwise var arg match:
 			   ;; (could optimize: if len is -1, the clause matches everything, no test needed and stop recursing, ignore remaining clauses (XXX croak about it when there *are* further clauses))
 			   `(if (>= ,LEN ,(dec (- len)))
-				;; XX dito above
+				;; XX ditto above
 				,(let rec2 ((pro pro))
 				   (cond ((pair? pro)
 					  `(let* ((,(car pro) (car ,V))

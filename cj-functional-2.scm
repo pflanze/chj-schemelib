@@ -462,7 +462,7 @@
 
 
 
-;; dito
+;; ditto
 (define-macro* (=>> start . exprs)
   (=>>-expand start exprs))
 

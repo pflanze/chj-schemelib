@@ -82,7 +82,7 @@
 		       #((maybe ssxpath-path-item?) pathhead)
 		       ;; ^ #f for the first entry (initial list)
 		       #((maybe ssxpath-match?) maybe-parent)
-		       ;; ^ dito
+		       ;; ^ ditto
 		       )
 
 	;; wait wrong orderanyway?
@@ -324,7 +324,7 @@
 		  path
 		  (list (ssxpath-match element #f '() #f #f))
 		  #t
-		  ;; XX dito
+		  ;; XX ditto
 		  #t)))
 
 ;; auto-currying:
@@ -472,7 +472,7 @@
  ()
  > (.list (ssxpath-matches* '(p 1 "etc.")
 			    '((p "hello" " world") (p "etc."))))
- ((p "etc.")) ;; dito
+ ((p "etc.")) ;; ditto
 
  ;; and, asking for booleans:
  > (ssxpath-matches*? '(p 0 "hello world") '((p "hello" " world") (p "etc.")))
