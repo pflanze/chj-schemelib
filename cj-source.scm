@@ -77,7 +77,7 @@
 	;;(warn "not source code:" x)
 	x)))
 
-(define (mk-source-code/? type?)
+(define (mk-source/? type?)
   (lambda (v)
     ;; need a copy of improper-map (~bootstrapping issue):
     (define (improper-map fn l #!optional (tail '()))
@@ -97,16 +97,16 @@
 			  v)))
 		  (source-code v))))
 
-(define source-code/clean-keywords
-  (mk-source-code/? keyword?))
+(define source/clean-keywords
+  (mk-source/? keyword?))
 
 (define (dsssl-meta-object? v)
   (or (eq? v #!optional)
       (eq? v #!rest)
       (eq? v #!key)))
 
-(define source-code/clean-dsssl-meta-objects
-  (mk-source-code/? dsssl-meta-object?))
+(define source/clean-dsssl-meta-objects
+  (mk-source/? dsssl-meta-object?))
 
 
 (define source-location (source-check ##source-locat))

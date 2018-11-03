@@ -139,10 +139,10 @@
 			`(lambda (stx) ;; make stx visible?
 			   (safer-apply
 			    ',(schemedefinition-arity:pattern->template
-			       (cons 'the-macroname (source-code/clean-dsssl-meta-objects args)))
+			       (cons 'the-macroname (source/clean-dsssl-meta-objects args)))
 			    (lambda (macroname ,@args)
 			      ,@body)
-			    (source-code/clean-keywords stx)
+			    (source/clean-keywords stx)
 			    (lambda (msg)
 			      (source-error stx msg))
 			    (lambda (v)
@@ -202,10 +202,10 @@
 		(apply-code
 		 `(safer-apply
 		   ',(schemedefinition-arity:pattern->template
-		      (cons 'the-macroname (source-code/clean-dsssl-meta-objects args)))
+		      (cons 'the-macroname (source/clean-dsssl-meta-objects args)))
 		   (lambda (macroname ,@args)
 		     ,@body)
-		   (source-code/clean-keywords stx)
+		   (source/clean-keywords stx)
 		   (lambda (msg)
 		     (source-error stx msg))
 		   (lambda (v)
