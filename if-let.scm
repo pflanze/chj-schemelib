@@ -21,6 +21,8 @@
 ;; iflet here, and let-and for what we call if-let:
 ;; https://news.ycombinator.com/item?id=13213304
 
+;; Also see https://news.ycombinator.com/item?id=17491228 (Fun with
+;; Macros: If-Let and When-Let)
 
 (defmacro (iflet bind+test yes #!optional no)
   (mcase bind+test
