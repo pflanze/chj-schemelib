@@ -10,7 +10,8 @@
 	 symboltable)
 
 (export macro-expand/symtbl
-	macro-expander/symtbl)
+	macro-expander/symtbl
+	begin-flatten)
 
 (include "cj-standarddeclares.scm")
 
@@ -73,4 +74,23 @@
  (begin (b (bar))
 	(##begin (beb (bar))
 		 (b (foo)))))
+
+
+
+;; note: always returns a list of expressions, not a begin form!
+(define (begin-flatten expr tail)
+  (let ((_expr (source-code expr)))
+    (if (pair? _expr)
+	(let ((a (source-code (car _expr))))
+	  (case a
+	    ((begin ##begin)
+	     (fold-right begin-flatten tail (cdr _expr)))
+	    (else (cons expr tail))))
+	(cons expr tail))))
+
+(TEST
+ > (begin-flatten '1 '())
+ (1)
+ > (begin-flatten '(begin (bar) (begin (foo))) '())
+ ((bar) (foo)))
 
