@@ -31,7 +31,7 @@
 	 (dot-oo define-struct.-expand)
 	 symboltable
 	 (symboltable symboltable-declare @symboltable-ref-inline)
-	 (code-macro-expand macro-expander/symtbl)
+	 (code-macro-expand macro-expander/symtbl begin-flatten)
 	 (cj-source source-quote source-dequote location?)
 	 cj-seen
 	 (improper-list improper-list->list)
@@ -885,7 +885,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 			     ;; with fields bound to variables
 			     def-method: m
 			     defmethod: m)))
-			 defs))))))))
+			 (begin-flatten (cons 'begin defs)
+					'())))))))))
 
        (joo:parse-decl decl
 		       cont-renamedconstructor: (cc #f)
