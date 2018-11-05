@@ -23,6 +23,7 @@
 	improper-find
 	improper-append
 	improper-last
+	maybe-improper-butlast
 	improper-for-each
 	improper-length
 	improper-any)
@@ -180,6 +181,39 @@
  > (improper-last '())
  ()
  )
+
+
+
+(define (maybe-improper-butlast v)
+  (if (pair? v)
+      (let ((a (car v)))
+	(cond ((maybe-improper-butlast (cdr v))
+	       => (lambda (r)
+		    (cons a r)))
+	      (else #f)))
+      (if (null? v)
+	  #f
+	  '())))
+
+(TEST
+ > (maybe-improper-butlast #f)
+ ()
+ > (maybe-improper-butlast 'a)
+ ()
+ > (maybe-improper-butlast '())
+ #f
+ > (maybe-improper-butlast '(a b))
+ #f
+ > (maybe-improper-butlast '(a . b))
+ (a))
+
+
+;; (define (improper-butlast v)
+;;   (or (maybe-improper-butlast v)
+;;       (error "not an improper list:" v)))
+
+
+
 
 
 (define (improper-for-each proc v)
