@@ -8,7 +8,8 @@
 
 (require easy-1
 	 joo
-	 (joo expand-forms-in-exprs)
+	 (code-macro-expand macro-expand/symtbl)
+	 symboltable
 	 test)
 
 (include "cj-standarddeclares.scm")
@@ -46,6 +47,8 @@
       args
       maybe-super-name
       super-is-class?)
+
+     (warn "jclass:expand, stx="(cj-desourcify stx))
      (let-pair
       ((decl forms) args)
       (let ((c (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
@@ -83,45 +86,48 @@
       maybe-super-name
       super-is-class?)
 
-     ;; XX should use expand-forms-in-exprs from joo.scm to get more
-     ;; proper macro treatment
-     (mcase expr
-	    (pair?
-	     (let-pair ((a r) (source-code expr))
-		       (if (pair? r)
-			   (let ((a* (source-code a)))
-			     (if (symbol? a*)
-				 (cond ((memq a* interface-syms)
-					(jclass:expand interface-syms
-						       class-syms
-						       expr
-						       #f r
-						       maybe-super-name
-						       super-is-class?))
-				       ((memq a* class-syms)
-					(jclass:expand interface-syms
-						       class-syms
-						       expr
-						       #t r
-						       maybe-super-name
-						       super-is-class?))
-				       (else expr))
-				 expr))
-			   (source-error expr "missing decl"))))
-	    (else
-	     (if require-match?
-		 (source-error expr "BUG")
-		 expr))))
+     (let ((expr*
+
+	    (let ((r (pp-through-source "r" (cdr (source-code expr)))))
+	      (macro-expand/symtbl
+	       expr
+	       (list.symboltable
+		(append (map (C cons _
+				(lambda (expr)
+				  (jclass:expand interface-syms
+						 class-syms
+						 expr
+						 #f r
+						 maybe-super-name
+						 super-is-class?)))
+			     interface-syms)
+			(map (C cons _
+				(lambda (expr)
+				  (jclass:expand interface-syms
+						 class-syms
+						 expr
+						 #t r
+						 maybe-super-name
+						 super-is-class?)))
+			     class-syms)))))))
+
+       (if (or (not require-match?)
+	       (not (eq? (source-code expr*) (source-code expr))))
+	   (possibly-sourcify expr* expr)
+	   (source-error expr "BUG"))))
+
 
 (defmacro (jinterface decl . forms)
-  (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
-				    '(jclass expansion#jclass)
-				    #t stx #f #f))
+  (pp-through-source
+   (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
+				     '(jclass expansion#jclass)
+				     #t stx #f #f)))
 
 (defmacro (jclass decl . forms)
-  (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
-				    '(jclass expansion#jclass)
-				    #t stx #f #t))
+  (pp-through-source
+   (jclass:perhaps-expand-in-context '(jinterface expansion#jinterface)
+				     '(jclass expansion#jclass)
+				     #t stx #f #t)))
 
 ;; ^ XX btw double extends: or implements: keywords, how to handle?
 ;; Really \SCHEME[keyword arguments should handle duplicate argument
