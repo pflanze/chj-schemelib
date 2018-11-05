@@ -26,28 +26,51 @@
 ;; is left unchanged (this even disables top-level macros for the
 ;; given form).
 
+;; This is only macroexpand, not macroexpand-all, *except* it also
+;; enters (begin ) expressions and then expands all subexpressions,
+;; recursively.
+
 (define (macro-expand/symtbl expr symtbl)
   (let ((_expr (source-code expr)))
     (if (pair? _expr)
 	(let ((a (source-code (car _expr))))
-	  (cond ((and (symbol? a)
-		      (or (symboltable-ref symtbl a #f)
-			  ;; Need to expand other macros, too, to
-			  ;; handle entries in their expansions!
-			  (define-macro-star-maybe-ref a)))
-		 => (lambda (expand)
-		      ;; Check for special signal to disable a macro (is this a hack?)
-		      (if (eq? expand #t)
-			  expr
-			  ;; iterate until no macro expander found anymore
-			  (macro-expand/symtbl (possibly-sourcify (expand expr) expr)
-					       symtbl))))
-		(else
-		 expr)))
+	  (if (or (eq? a 'begin) (eq? a '##begin))
+	      ;; ^ use some begin predicate, forever
+	      (cons a
+		    (map (C macro-expand/symtbl _ symtbl)
+			 (cdr _expr)))
+	      
+	      ;; expand the form at point
+	      (cond ((and (symbol? a)
+			  (or (symboltable-ref symtbl a #f)
+			      ;; Need to expand other macros, too, to
+			      ;; handle entries in their expansions!
+			      (define-macro-star-maybe-ref a)))
+		     => (lambda (expand)
+			  ;; Check for special signal to disable a macro (is this a hack?)
+			  (if (eq? expand #t)
+			      expr
+			      ;; iterate until no macro expander found anymore
+			      (macro-expand/symtbl (possibly-sourcify (expand expr) expr)
+						   symtbl))))
+		    (else
+		     expr))))
 	expr)))
-
 
 (define (macro-expander/symtbl symtbl)
   (lambda (expr)
     (macro-expand/symtbl expr symtbl)))
+
+
+(TEST
+ > (def t (symboltable* foo: (lambda (stx) `(bar ,@(cdr stx)))
+			bar: (lambda (stx) `(b ,@(cdr stx)))))
+ > (macro-expand/symtbl '(foo (bar)) t)
+ (b (bar))
+ > (macro-expand/symtbl '(begin (foo (bar))
+				(##begin (beb (bar))
+					 (bar (foo)))) t)
+ (begin (b (bar))
+	(##begin (beb (bar))
+		 (b (foo)))))
 
