@@ -93,9 +93,17 @@
 (TEST
  ;; well those are evil of course, will break upon module changes
  > (path-string.topo-relation "lib/require-util.scm")
- #((topo-relation)
-   require-util
-   (easy test tree-util cj-io-util tsort Result cj-functional require cj-source))
+ [(topo-relation)
+ require-util
+ (easy test
+       tree-util
+       cj-io-util
+       tsort
+       Result
+       cj-functional
+       require
+       cj-source
+       string-quote)]
  ;; > (path-string.topo-relation "tsort.scm")
  ;; #((topo-relation) tsort (easy test alist))
  )
