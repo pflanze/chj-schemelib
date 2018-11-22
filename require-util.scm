@@ -16,7 +16,8 @@
 	 Result
 	 (cj-functional complement)
 	 (require path-string.relation)
-	 (cj-source read-all-source))
+	 (cj-source read-all-source)
+	 (string-quote shell-quote))
 
 (export lib
 	mydb
