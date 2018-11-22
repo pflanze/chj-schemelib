@@ -299,7 +299,8 @@
 	  (=> (process-line-stream
 	       (bash-command
 		(string-append "egrep '^ +.*'\\''\\(.*load' " (shell-quote path)"|egrep -v '^;' | perl -wne 'm|\"(.*?)\"| and print \"$1\\n\"'")))
-	      (.map-list (lambda (p) (cons p #t)))
+	      stream->list
+	      ((flip map) (lambda (p) (cons p #t)))
 	      list->table))
 
      (def tform ;; _load
