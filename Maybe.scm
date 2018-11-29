@@ -44,9 +44,9 @@
 
 
 ;; optimization:
-(def __Nothing (_Nothing))
+(def _Nothing_ (_Nothing))
 (def (Nothing)
-     __Nothing)
+     _Nothing_)
 
 (TEST
  > (eq? (Nothing) (Nothing))
