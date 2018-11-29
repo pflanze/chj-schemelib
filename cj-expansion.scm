@@ -1,9 +1,12 @@
-;; Copyright 2011-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;; Copyright 2011-2018 by Christian Jaeger <ch@christianjaeger.ch>
 
 
 (require define-macro-star
 	 (simple-match-1 match*)
 	 (cj-source-util-2 assert))
+
+(export (macro expansion)
+	(macro macro-expand-all))
 
 
 (define-macro* (expansion expr . exprs)
@@ -25,4 +28,7 @@
 	((LAMBDA _ form end)
 	 (assert (equal? end CONT))
 	 form))))))
+
+(define-macro* (macro-expand-all expr)
+  `(expansion ,expr))
 
