@@ -30,6 +30,9 @@
 (define. (try-error-error.show v)
   `(%error ,@(map .show (cdr (vector->list v)))))
 
+;; XX merge with error-exception.show (actually better approach
+;; here--except, now, actually, going to error values anyway and
+;; making that uniform)
 (define-macro* (%error . args)
   `(%try-error (error ,@args)))
 
