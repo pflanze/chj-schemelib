@@ -1,3 +1,4 @@
+;; Copied from Gambit Scheme source code, copyright and license see there.
 
 ;; from lib/_kernel#.scm 144b72bf174d1f4baa17aaa11ca5909726076d50
 

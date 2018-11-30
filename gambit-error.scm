@@ -1,3 +1,14 @@
+;; Added parts are
+;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+;; Parts copied from Gambit and modified are copyright by Marc Feeley,
+;; for the license see Gambit Scheme distribution.
+
 
 ;; Since Gambit's built-ins don't offer predicates (it speficies
 ;; constructor: #f, and/or might use macros), define its internals

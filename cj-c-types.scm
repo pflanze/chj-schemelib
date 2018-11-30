@@ -1,3 +1,11 @@
+;;; Copyright 2006-2007 by Christian Jaeger <ch@christianjaeger.ch>
+
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
 ;; imports for dev/testing purposes only--usually the cj-c-types.scm file is meant to be include'd.
 (require
  ;; the user including cj-c-types.scm must add these manually to his own module requirements!

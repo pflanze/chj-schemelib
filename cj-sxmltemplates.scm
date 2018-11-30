@@ -1,7 +1,13 @@
-;; cj Fri, 30 Jun 2006 21:18:29 +0200
+;;; Copyright 2006 by Christian Jaeger <ch@christianjaeger.ch>
 
-;; emulate namespacing based functioncall/syntax-vs-staticstuff  unterscheidung.
-;; oder einfach mal nur   namespacing eben hinkrieg
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
+;; emulate namespacing based functioncall/syntax-vs-staticstuff distinction;
+;; or even just try to get some kind of namespacing working
 
 ;;(page (modified (info:now)))
 ;;to

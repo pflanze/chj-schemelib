@@ -1,3 +1,13 @@
+;; Added Parts are
+;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+;; Parts copied from Gambit are copyright by Marc Feeley, license see
+;; Gambit Scheme distribution.
+
 
 ;; for macro-write-char
 ;;(include "~~/lib/_io#.scm")
