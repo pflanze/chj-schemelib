@@ -9,7 +9,7 @@
 (require template
 	 easy-1
 	 test
-	 (cj-test %try)
+	 (test-lib-1 %try)
 	 char-util)
 
 (export sum

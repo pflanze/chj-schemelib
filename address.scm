@@ -9,8 +9,7 @@
 (require easy
 	 jclass
 	 test
-	 (cj-test %try);; should move
-	 )
+	 (test-lib-1 %try))
 
 (export maybe-parse-common-hex-string
 	(method natural0.common-hex-string)

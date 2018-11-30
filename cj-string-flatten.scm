@@ -9,7 +9,8 @@
 (require cj-env
 	 (srfi-1 fold fold-right)
 	 (cj-string string-copy! @string-copy!_end)
-	 cj-test)
+	 test
+	 test-lib-1)
 
 (export flat-append-strings
 	#!optional

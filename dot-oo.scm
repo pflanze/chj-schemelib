@@ -17,7 +17,7 @@
 	 (string-util strings-join)
 	 (string-util-2 string-split-once)
 	 (cj-env-2 for..<)
-	 (cj-test %try)
+	 (test-lib-1 %try)
 	 (cj-struct define-struct-expand)
 	 C
 	 (list-util-lazy xone)

@@ -9,7 +9,7 @@
 	 define-macro-star
 	 (cj-env IF)
 	 test
-	 (cj-test %try))
+	 (test-lib-1 %try))
 
 (define wbtreeparameter-string
   (wbtreeparameter string-cmp

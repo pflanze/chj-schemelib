@@ -9,7 +9,8 @@
 ;; TODO: eliminate
 
 (require cj-env ;; testing only
-	 (cj-test TEST %try))
+	 test
+	 (test-lib-1 %try))
 
 (export string-list->string
 	#!optional

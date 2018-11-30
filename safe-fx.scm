@@ -18,7 +18,7 @@
 
 (require define-macro-star
 	 test
-	 cj-test
+	 test-lib-1
 	 (cj-inline inline-through-decompile)
 	 (string-util-3 string.replace-substring)
 	 (cj-env inc*))

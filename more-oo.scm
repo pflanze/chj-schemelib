@@ -7,7 +7,8 @@
 
 
 (require easy-1
-	 test cj-test
+	 test
+	 test-lib-1
 	 cj-env
 	 dot-oo
 	 (cj-source-wraps source:symbol-append)
