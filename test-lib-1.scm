@@ -1,4 +1,4 @@
-;;; Copyright 2010-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2006-2016 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,7 +7,8 @@
 
 
 (require define-macro-star
-	 test)
+	 test
+	 cj-exception)
 
 
 ;; A library of helper functions for writing tests
@@ -17,6 +18,7 @@
 
 (export (macro time-cpu)
 	(macro %try-error)
+	(macro %try)
 	(macro %error?)
 	(macro %try-syntax-error))
 
@@ -47,6 +49,7 @@
 		     error-exception-message
 		     error-exception-parameters))
 
+
 (define (%try-error-f thunk)
   (with-exception-catcher
    error-exception->structure
@@ -54,6 +57,20 @@
 
 (define-macro* (%try-error form)
   `(%try-error-f (thunk ,form)))
+
+
+(define (test-lib-1:try thunk)
+  (with-exception/continuation-catcher
+   (lambda (e)
+     (list 'exception text: (exception/continuation-text e)))
+   (lambda ()
+     (list 'value (thunk)))))
+
+(define-macro* (%try expr)
+  `(test-lib-1:try (lambda ()
+		     ,expr)))
+
+
 
 (define (%error?-f thunk)
   (with-exception-catcher
