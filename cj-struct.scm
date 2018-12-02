@@ -102,6 +102,7 @@
 		  `(##quote ,name*))))
 	 (tag-binding (symbol-append "cj-struct:tag:" name))
 	 (fields* (filter identity (map arg->maybe-fieldname args*)))
+	 ;; XX isn't fields* already dsssl-filtered, i.e. fields+ the same?
 	 (fields+ (filter (lambda (arg) (not (dsssl-meta-object? (source-code arg))))
 			  ;; ^ assuming that DEFINE/LAMBDA won't ever need anything else
 			  args*))
