@@ -16,7 +16,8 @@
 	 (cj-env symbol-append define-if-not-defined list-max) ;; in macro expansion
 	 (predicates-1 list-of-length)
 	 (cj-inline-1 define-inline.1) ;; cj-inline would give cycle
-	 (cj-gambit-sys-0 @vector-ref @vector-length @vector-set!))
+	 (cj-gambit-sys-0 @vector-ref @vector-length @vector-set!)
+	 (srfi-1 filter cons*))
 
 (export (macro define-struct)
 	(macro define-struct*)
@@ -89,6 +90,11 @@
 	  let-fallback?
 	  tag
 	  tag-prefix
+	  ;; whether to generate a purely positional constructor with
+	  ;; constructor-name/positional as name:
+	  /positional?
+	  ;; whether to generate a constructor-name/keywords macro:
+	  /keywords?
 	  #!rest args*)
 
   (let* ((name (source-code name*))
@@ -115,6 +121,9 @@
 	 (separator (source-code separator))
 	 (constructor-name (or constructor-name
 			       (symbol-append prefix "make-" name)))
+	 (positional-constructor-name
+	  (symbol-append (source-code constructor-name)
+			 '/positional))
 	 (predicate-name
 	  (if predicate-name
 	      (source-code predicate-name)
@@ -184,6 +193,25 @@
 		   `(,(construct UNSAFE-LAMBDA
 				 unsafe-constructor-name))
 		   '())))
+
+       ;; always purely positional constructor, even when keyword or
+       ;; rest arguments were given (only safe variant for now, OK?):
+       ,@(if (or /positional? /keywords?)
+	     (if 
+	      `((define ,positional-constructor-name ,constructor-name))
+	      `((define (,positional-constructor-name
+			 ,@fields)
+		  (##vector ,tag-binding
+			    ,@fields)))))
+       ,@(if /keywords?
+	     `((define-macro* (,(symbol-append constructor-name
+					       '/keywords)
+			       #!key
+			       ,@fields)
+		 ,(cons* 'list
+			 (list 'quote constructor-name)
+			 fields)))
+	     '())
        
        ,(if predicate-code
 	    (predicate-code predicate-name tag-binding
@@ -337,6 +365,7 @@
 					 "invalid number of variables")))))))))))
        (define-macro* (,let-name vars+inp . body)
 	 `(,',let*-name (,vars+inp) ,@body)))))
+
 
 (define-macro* (define-struct . args)
   ;; (sigh, had safer-apply right? What for again?)
