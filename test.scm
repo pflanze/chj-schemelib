@@ -73,6 +73,7 @@
 
 (export (macro TEST)
 	run-tests
+	run-all-tests
 	load ;; ? global override needed? XX
 
 	#!optional
@@ -830,6 +831,13 @@
 		  (TEST:count-fail) " failure(s), "
 		  (TEST:count-fail-ignored) " ignored failure(s)"
 		  "\n")))))
+
+
+;; superfluous since run-tests without arguments (currently) does the
+;; same, except that it will be nice to be able to search backwards in
+;; the history for run-all, also, clearer?
+(define (run-all-tests #!key (verbose #t))
+  (run-tests verbose: verbose))
 
 
 ;; testing TEST:
