@@ -18,27 +18,22 @@
 
 	#!optional
 	;; AST:
-	(class formula-opapplication)
-	(class formula-functiondefinition)
-	(class formula-constantdefinition)
-	(class formula-functionapplication)
-	(class formula-constant)
-	(class formula-variable)
-	formula-expr?
-	formula-item?
-	symbol.formula-string
 	(class formula-ctx)
-	(methods formula-functiondefinition.string/ctx
-		 formula-constantdefinition.string/ctx
-		 formula-functionapplication.string/ctx
-		 formula-opapplication.string/ctx
-		 formula-variable.string/ctx
-		 formula-constant.string/ctx
-		 )
+	(interface formula-item
+		   (interface formula-expr
+			      (class formula-opapplication)
+			      (class formula-functionapplication)
+			      (class formula-constant)
+			      (class formula-variable))
+		   (class formula-functiondefinition)
+		   (class formula-constantdefinition))
+	symbol.formula-string
 	formula-def
 	formula ;; scheme-sexpr -> formula-AST
 	)
 
+
+;; Metainformation about ops for parsing
 
 (defenum associativity
   left right)
@@ -67,36 +62,140 @@
 (defformula-op ^  2 30 #f #f 'right)
 
 
-;; AST:
+;; AST
+
+
+(defclass (formula-ctx
+	   [formula-item? item]
+	   [boolean? left-is-first-argument?]))
+
 
 ;; only toplevel functions for now
 (definterface formula-item
 
+  (method (string/ctx e [(maybe formula-ctx?) ctx]))
+
+  
   (definterface formula-expr
 
     (defclass (formula-opapplication
 	       [formula-op? op]
-	       [(list-of formula-expr?) args]))
+	       [(list-of formula-expr?) args])
+
+      (defmethod (string/ctx e ctx)
+	(let* ((op (.op e))
+	       (opstr (string-append " "
+				     (symbol.formula-string (.name op))
+				     " "))
+	       (numargs (length (.args e))))
+	  (cond ((= numargs 0)
+		 (error "XXX"))
+		((= numargs 1)
+		 ;; fix it on the fly?
+		 (if (eq? op formula-/)
+		     (.string/ctx (formula-opapplication
+				   formula-/
+				   (cons (formula-constant 1)
+					 (.args e)))
+				  ctx)
+		     (error "don't know how to handle numargs 1 with op:" op)))
+		(else
+		 (let* ((need-parens?
+			 (if ctx
+			     (let-formula-ctx
+			      ((item left-is-first-argument?) ctx)
+			      (cond
+			       ((formula-expr? item)
+				(cond
+				 ((formula-opapplication? item)
+				  (match-cmp
+				   ((on (compose-function .precedence-level .op)
+					real-cmp)
+				    item
+				    e)
+				   ((lt) #f)
+				   ((eq)
+				    (if left-is-first-argument?
+					(not (associativity-eq?
+					      (.associativity (.op item))
+					      'left))
+					(not (.associative? (.op item)))))
+				   ((gt) #t)))
+				 ((formula-functionapplication? item)
+				  #f)
+				 ((formula-constant? item)
+				  #f)
+				 ((formula-variable? item)
+				  #f)
+				 (else
+				  (error 'missing-case))))
+			       ((formula-functiondefinition? item)
+				#f)
+			       (else 
+				(error 'missing-case))))
+			     #f))
+			(perhaps-wrap (lambda (x)
+					(if need-parens?
+					    (string-append "(" x ")")
+					    x))))
+		   (perhaps-wrap
+		    (strings-join
+		     (map/iota (lambda (e* i)
+				 (.string/ctx e* (formula-ctx e (zero? i))))
+			       (.args e))
+		     opstr))))))))
 
     ;; same as formula-opapplication except for the formatting..
     (defclass (formula-functionapplication
 	       [symbol? name] ;; no first class functions for now
-	       [(list-of formula-expr?) args]))
+	       [(list-of formula-expr?) args])
+
+      (defmethod (string/ctx e ctx)
+	(string-append (symbol.formula-string (.name e))
+		       "("
+		       (strings-join
+			(map/iota (lambda (e* i)
+				    (.string/ctx e* (formula-ctx e (zero? i))))
+				  (.args e))
+			",")
+		       ")")))
 
     (defclass (formula-constant
-	       value))
+	       value)
+
+      (defmethod (string/ctx e ctx)
+	;; XX is scheme formatting ok?
+	(object->string (.value e))))
 
     (defclass (formula-variable
-	       [symbol? name])))
+	       [symbol? name])
+
+      (defmethod (string/ctx e ctx)
+	(symbol.formula-string (.name e)))))
+  
 
   (defclass (formula-functiondefinition
 	     [symbol? name]
 	     [(list-of symbol?) vars]
-	     [formula-expr? body]))
+	     [formula-expr? body])
+
+    (defmethod (string/ctx e ctx)
+      (string-append (symbol.formula-string (.name e))
+		     "("
+		     (strings-join (map symbol.formula-string (.vars e)) ",")
+		     ") = "
+		     (.string/ctx (.body e)
+				  (formula-ctx e #f)))))
 
   (defclass (formula-constantdefinition
 	     [symbol? name]
-	     [formula-expr? body])))
+	     [formula-expr? body])
+
+    (defmethod (string/ctx e ctx)
+      (string-append (symbol.formula-string (.name e))
+		     " = "
+		     (.string/ctx (.body e)
+				  (formula-ctx e #f))))))
 
 
 ;; pretty print
@@ -146,101 +245,6 @@
  > (symbol.formula-string 'foo*b*)
  "foo*b'")
 
-
-(defclass (formula-ctx
-	   [formula-item? item]
-	   [boolean? left-is-first-argument?]))
-
-;; ctx is a (maybe formula-ctx?) of the outer item.
-
-(def. (formula-functiondefinition.string/ctx e ctx)
-  (string-append (symbol.formula-string (.name e))
-		 "("
-		 (strings-join (map symbol.formula-string (.vars e)) ",")
-		 ") = "
-		 (.string/ctx (.body e)
-			      (formula-ctx e #f))))
-
-(def. (formula-constantdefinition.string/ctx e ctx)
-  (string-append (symbol.formula-string (.name e))
-		 " = "
-		 (.string/ctx (.body e)
-			      (formula-ctx e #f))))
-
-(def. (formula-functionapplication.string/ctx e ctx)
-  (string-append (symbol.formula-string (.name e))
-		 "("
-		 (strings-join
-		  (map/iota (lambda (e* i)
-			      (.string/ctx e* (formula-ctx e (zero? i))))
-			    (.args e))
-		  ",")
-		 ")"))
-
-(def. (formula-opapplication.string/ctx e ctx)
-  (let* ((op (.op e))
-	 (opstr (string-append " " (symbol.formula-string (.name op)) " "))
-	 (numargs (length (.args e))))
-    (cond ((= numargs 0)
-	   (error "XXX"))
-	  ((= numargs 1)
-	   ;; fix it on the fly?
-	   (if (eq? op formula-/)
-	       (.string/ctx (formula-opapplication formula-/
-						   (cons (formula-constant 1)
-							 (.args e)))
-			    ctx)
-	       (error "don't know how to handle numargs 1 with op:" op)))
-	  (else
-	   (let* ((need-parens?
-		   (if ctx
-		       (let-formula-ctx
-			((item left-is-first-argument?) ctx)
-			(cond ((formula-expr? item)
-			       (cond ((formula-opapplication? item)
-				      (match-cmp
-				       ((on (compose-function .precedence-level .op)
-					    real-cmp)
-					item
-					e)
-				       ((lt) #f)
-				       ((eq)
-					(if left-is-first-argument?
-					    (not (associativity-eq?
-						  (.associativity (.op item))
-						  'left))
-					    (not (.associative? (.op item)))))
-				       ((gt) #t)))
-				     ((formula-functionapplication? item)
-				      #f)
-				     ((formula-constant? item)
-				      #f)
-				     ((formula-variable? item)
-				      #f)
-				     (else
-				      (error 'missing-case))))
-			      ((formula-functiondefinition? item)
-			       #f)
-			      (else 
-			       (error 'missing-case))))
-		       #f))
-		  (perhaps-wrap (lambda (x)
-				  (if need-parens?
-				      (string-append "(" x ")")
-				      x))))
-	     (perhaps-wrap
-	      (strings-join (map/iota (lambda (e* i)
-					(.string/ctx e* (formula-ctx e (zero? i))))
-				      (.args e))
-			    opstr)))))))
-
-
-(def. (formula-variable.string/ctx e ctx)
-  (symbol.formula-string (.name e)))
-
-(def. (formula-constant.string/ctx e ctx)
-  ;; XX is scheme formatting ok?
-  (object->string (.value e)))
 
 
 (define (formula-def bs e*)
@@ -297,7 +301,9 @@
 			 (`(`f . `args)
 			  (mcase f
 				 (symbol?
-				  (formula-functionapplication f (map formula args)))))))))
+				  (formula-functionapplication
+				   f
+				   (map formula args)))))))))
 	 (number?
 	  (formula-constant e))
 	 (symbol?
