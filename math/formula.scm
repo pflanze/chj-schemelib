@@ -85,6 +85,7 @@
     (defclass (formula-opapplication
 	       [formula-op? op]
 	       [(list-of formula-expr?) args])
+      "application of an operator"
 
       (defmethod (string/ctx e ctx)
 	(let* ((op (.op e))
@@ -153,6 +154,7 @@
     (defclass (formula-functionapplication
 	       [symbol? name] ;; no first class functions for now
 	       [(list-of formula-expr?) args])
+      "application of a function (not operator)"
 
       (defmethod (string/ctx e ctx)
 	(string-append (symbol.formula-string (.name e))
