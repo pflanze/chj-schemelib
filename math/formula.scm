@@ -18,16 +18,16 @@
 
 	#!optional
 	;; AST:
-	(struct formula-opapplication)
-	(struct formula-functiondefinition)
-	(struct formula-constantdefinition)
-	(struct formula-functionapplication)
-	(struct formula-constant)
-	(struct formula-variable)
+	(class formula-opapplication)
+	(class formula-functiondefinition)
+	(class formula-constantdefinition)
+	(class formula-functionapplication)
+	(class formula-constant)
+	(class formula-variable)
 	formula-expr?
 	formula-item?
 	symbol.formula-string
-	(struct formula-ctx)
+	(class formula-ctx)
 	(methods formula-functiondefinition.string/ctx
 		 formula-constantdefinition.string/ctx
 		 formula-functionapplication.string/ctx
@@ -43,14 +43,18 @@
 (defenum associativity
   left right)
 
-(defstruct formula-op
-  [symbol? name]
-  [(maybe natural?) arity]
-  [rational? precedence-level] ;; higher means higher precedence
-  [boolean? associative?] ;; #f means, left-associative, #t means doesn't matter
-  [boolean? commutative?] ;; 'flippability'. unused
-  [associativity? associativity] ;; weird, seems we need that, too.
-  )
+(defclass (formula-op
+	   [symbol? name]
+	   [(maybe natural?) arity]
+	   ;; higher means higher precedence:
+	   [rational? precedence-level]
+	   ;; #f means, left-associative, #t means doesn't matter:
+	   [boolean? associative?]
+	   ;; 'flippability'. unused. :
+	   [boolean? commutative?]
+	   ;; weird, seems we need that, too:
+	   [associativity? associativity]))
+
 
 (defmacro (defformula-op name . args)
   `(def ,(source:symbol-append 'formula- name)
@@ -65,40 +69,34 @@
 
 ;; AST:
 
-(defstruct formula-opapplication
-  [formula-op? op]
-  [(list-of formula-expr?) args])
-
-(defstruct formula-functiondefinition
-  [symbol? name]
-  [(list-of symbol?) vars]
-  [formula-expr? body])
-
-(defstruct formula-constantdefinition
-  [symbol? name]
-  [formula-expr? body])
-
-;; same as formula-opapplication except for the formatting..
-(defstruct formula-functionapplication
-  [symbol? name] ;; no first class functions for now
-  [(list-of formula-expr?) args])
-
-(defstruct formula-constant
-  value)
-
-(defstruct formula-variable
-  [symbol? name])
-
-(def formula-expr? (either formula-opapplication?
-			   formula-functionapplication?
-			   formula-constant?
-			   formula-variable?))
-
 ;; only toplevel functions for now
+(definterface formula-item
 
-(def formula-item? (either formula-expr?
-			   formula-functiondefinition?
-			   formula-constantdefinition?))
+  (definterface formula-expr
+
+    (defclass (formula-opapplication
+	       [formula-op? op]
+	       [(list-of formula-expr?) args]))
+
+    ;; same as formula-opapplication except for the formatting..
+    (defclass (formula-functionapplication
+	       [symbol? name] ;; no first class functions for now
+	       [(list-of formula-expr?) args]))
+
+    (defclass (formula-constant
+	       value))
+
+    (defclass (formula-variable
+	       [symbol? name])))
+
+  (defclass (formula-functiondefinition
+	     [symbol? name]
+	     [(list-of symbol?) vars]
+	     [formula-expr? body]))
+
+  (defclass (formula-constantdefinition
+	     [symbol? name]
+	     [formula-expr? body])))
 
 
 ;; pretty print
@@ -149,9 +147,9 @@
  "foo*b'")
 
 
-(defstruct formula-ctx
-  [formula-item? item]
-  [boolean? left-is-first-argument?])
+(defclass (formula-ctx
+	   [formula-item? item]
+	   [boolean? left-is-first-argument?]))
 
 ;; ctx is a (maybe formula-ctx?) of the outer item.
 
