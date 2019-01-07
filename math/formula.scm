@@ -11,6 +11,35 @@
 
 ;; math formulas
 
+(export pp-formula
+	;; nice-wrappers:
+	pp-formula-symbol
+	pp-formulas
+
+	#!optional
+	;; AST:
+	(struct formula-opapplication)
+	(struct formula-functiondefinition)
+	(struct formula-constantdefinition)
+	(struct formula-functionapplication)
+	(struct formula-constant)
+	(struct formula-variable)
+	formula-expr?
+	formula-item?
+	symbol.formula-string
+	(struct formula-ctx)
+	(methods formula-functiondefinition.string/ctx
+		 formula-constantdefinition.string/ctx
+		 formula-functionapplication.string/ctx
+		 formula-opapplication.string/ctx
+		 formula-variable.string/ctx
+		 formula-constant.string/ctx
+		 )
+	formula-def
+	formula ;; scheme-sexpr -> formula-AST
+	)
+
+
 (defenum associativity
   left right)
 
