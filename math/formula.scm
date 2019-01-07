@@ -17,6 +17,9 @@
 	pp-formulas
 
 	#!optional
+	(enum associativity)
+	(class formula-op)
+	
 	;; AST:
 	(class formula-ctx)
 	(interface formula-item
@@ -27,6 +30,7 @@
 			      (class formula-variable))
 		   (class formula-functiondefinition)
 		   (class formula-constantdefinition))
+	
 	symbol.formula-string
 	formula-def
 	formula ;; scheme-sexpr -> formula-AST
