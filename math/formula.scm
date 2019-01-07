@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -15,12 +15,12 @@
   left right)
 
 (defstruct formula-op
-  #(symbol? name)
-  #((maybe natural?) arity)
-  #(rational? precedence-level) ;; higher means higher precedence
-  #(boolean? associative?) ;; #f means, left-associative, #t means doesn't matter
-  #(boolean? commutative?) ;; 'flippability'. unused
-  #(associativity? associativity) ;; weird, seems we need that, too.
+  [symbol? name]
+  [(maybe natural?) arity]
+  [rational? precedence-level] ;; higher means higher precedence
+  [boolean? associative?] ;; #f means, left-associative, #t means doesn't matter
+  [boolean? commutative?] ;; 'flippability'. unused
+  [associativity? associativity] ;; weird, seems we need that, too.
   )
 
 (defmacro (defformula-op name . args)
@@ -37,28 +37,28 @@
 ;; AST:
 
 (defstruct formula-opapplication
-  #(formula-op? op)
-  #((list-of formula-expr?) args))
+  [formula-op? op]
+  [(list-of formula-expr?) args])
 
 (defstruct formula-functiondefinition
-  #(symbol? name)
-  #((list-of symbol?) vars)
-  #(formula-expr? body))
+  [symbol? name]
+  [(list-of symbol?) vars]
+  [formula-expr? body])
 
 (defstruct formula-constantdefinition
-  #(symbol? name)
-  #(formula-expr? body))
+  [symbol? name]
+  [formula-expr? body])
 
 ;; same as formula-opapplication except for the formatting..
 (defstruct formula-functionapplication
-  #(symbol? name) ;; no first class functions for now
-  #((list-of formula-expr?) args))
+  [symbol? name] ;; no first class functions for now
+  [(list-of formula-expr?) args])
 
 (defstruct formula-constant
   value)
 
 (defstruct formula-variable
-  #(symbol? name))
+  [symbol? name])
 
 (def formula-expr? (either formula-opapplication?
 			   formula-functionapplication?
@@ -117,13 +117,12 @@
  > (symbol.formula-string 'foo**)
  "foo''"
  > (symbol.formula-string 'foo*b*)
- "foo*b'"
- )
+ "foo*b'")
 
 
 (defstruct formula-ctx
-  #(formula-item? item)
-  #(boolean? left-is-first-argument?))
+  [formula-item? item]
+  [boolean? left-is-first-argument?])
 
 ;; ctx is a (maybe formula-ctx?) of the outer item.
 
@@ -279,10 +278,9 @@
 
 (TEST
  > (formula '(+ 1 2))
- #((formula-opapplication)
-   #((formula-op) + #f 10 #t #t left)
-   (#((formula-constant) 1) #((formula-constant) 2)))
- )
+ [(formula-opapplication)
+  [(formula-op) + #f 10 #t #t left]
+  ([(formula-constant) 1] [(formula-constant) 2])])
 
 
 (define pp-formula (compose-function (C .string/ctx _ #f) formula))
@@ -327,14 +325,12 @@
  > (pp-formula '(expt (square x) -1/3))
  "(x ^ 2) ^ -1/3"
  > (pp-formula '(define (f x y) (+ (square x) y)))
- "f(x,y) = x ^ 2 + y"
- )
-
+ "f(x,y) = x ^ 2 + y")
 
 
 ;; nice-wrappers:
 
-(def (pp-formula-symbol #(symbol? sym))
+(def (pp-formula-symbol [symbol? sym])
      (let ((v (eval sym)))
        (if (procedure? v)
 	   (pp-formula `(def ,sym ,(##decompile v)))
