@@ -246,16 +246,16 @@
   (mcase bs
 	 (symbol?
 	  (let ((name (source-code bs)))
+	    (define (lamb bs* e**)
+	      (formula-functiondefinition name
+					  bs*
+					  (sexpr.formula e**)))
 	    (mcase e*
-		   (`(lambda `bs* `e**)
-		    (formula-functiondefinition
-		     name
-		     bs*
-		     (sexpr.formula e**)))
-		   (else
-		    (formula-constantdefinition
-		     name
-		     (sexpr.formula e*))))))
+	 	   (`(lambda `bs* `e**) (lamb bs* e**))
+		   (`(##lambda `bs* `e**) (lamb bs* e**))
+	 	   (else
+	 	    (formula-constantdefinition name
+						(sexpr.formula e*))))))
 	 (pair?
 	  (mcase bs
 		 (`(`name . `vars) ;; XX only fixed args supported.
@@ -273,8 +273,11 @@
 		 (`(def `bs `e*)
 		  (def->formula bs e*))
 		 (`(lambda `bs `e*)
-		  ;; HACK. pretend it's named f
-		  (def->formula (cons 'f bs) e*))
+		  ;; HACK: fake name
+		  (def->formula (cons 'ANON bs) e*))
+		 (`(##lambda `bs `e*)
+		  ;; HACK: fake name
+		  (def->formula (cons 'ANON bs) e*))
 		 (`(+ . `args)
 		  (formula-opapplication formula-+ (map sexpr.formula args)))
 		 (`(- . `args)
@@ -353,7 +356,11 @@
  > (pp-formula '(expt (square x) -1/3))
  "(x ^ 2) ^ -1/3"
  > (pp-formula '(define (f x y) (+ (square x) y)))
- "f(x,y) = x ^ 2 + y")
+ "f(x,y) = x ^ 2 + y"
+ > (pp-formula `(def sq (lambda (x) (* x x))))
+ "sq(x) = x * x"
+ > (pp-formula `(def sq (##lambda (x) (* x x))))
+ "sq(x) = x * x")
 
 
 ;; nice-wrappers:
@@ -361,9 +368,13 @@
 (def (pp-formula-symbol [symbol? sym])
      (let ((v (eval sym)))
        (if (procedure? v)
-	   (pp-formula `(def ,sym ,(##decompile v)))
+	   (pp-formula `(def ,sym ,(decompile v)))
 	   (pp-formula `(def ,sym ,v)))))
 
 (def (pp-formulas syms)
      (for-each println (map pp-formula-symbol syms)))
 
+
+(TEST
+ > (pp-formula-symbol 'square)
+ "square(x) = x * x")
