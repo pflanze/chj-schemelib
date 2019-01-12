@@ -7,7 +7,8 @@
 
 
 (require easy
-	 (cj-source-wraps source:symbol-append))
+	 (cj-source-wraps source:symbol-append)
+	 (warn-plus WARN-ONCE))
 
 ;; math formulas
 
@@ -273,9 +274,11 @@
 		 (`(def `bs `e*)
 		  (def->formula bs e*))
 		 (`(lambda `bs `e*)
+		  (WARN-ONCE "does this happen?")
 		  ;; HACK: fake name
 		  (def->formula (cons 'ANON bs) e*))
 		 (`(##lambda `bs `e*)
+		  (WARN-ONCE "does this happen?")
 		  ;; HACK: fake name
 		  (def->formula (cons 'ANON bs) e*))
 		 (`(+ . `args)
