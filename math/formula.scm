@@ -78,6 +78,8 @@ sexpr, and to \"math\" string.
 ;; only toplevel functions for now
 (definterface formula-item
 
+  ;; (ctx is really optional: used for calculating need-parens?, which
+  ;; is just #f if missing)
   (method (string/ctx e [(maybe formula-ctx?) ctx]))
 
   
