@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -12,6 +12,11 @@
 	 parallel
 	 cj-gambit-sys
 	 math/fftw_Cpart-macros)
+
+(options always-compile: #t
+	 cc-options: "-O0 -gdwarf-4 -g3" ;; XX -O1?
+	 ld-options: "-lfftw3 -lfftw3f -lfftw3l")
+
 
 ;; Dependency: apt-get install libfftw3-dev
 

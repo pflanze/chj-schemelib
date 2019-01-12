@@ -296,3 +296,6 @@
 (define-macro* (export . forms)
   '(begin))
 
+(define-macro* (options . forms)
+  '(begin))
+
