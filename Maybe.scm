@@ -9,14 +9,13 @@
 ;; Also see Result.scm
 
 (require easy
-	 jclass
 	 test
 	 (if-let if-let*-expand
 		 if-let-expand))
 
-(export (jclass Maybe
-		(jclass Nothing)
-		(jclass Just))
+(export (class Maybe ;; yes a class, not an interface
+	       (class Nothing)
+	       (class Just))
 	(macro Maybe:if)
 	(macro Maybe:cond)
 	(macro Maybe:if-let*)
@@ -25,22 +24,24 @@
 
 
 
-(jclass Maybe
+(defclass Maybe
 
-	(jclass ((Nothing _Nothing))
-		(def-method- (maybe-value s)
-		  #f)
-		(def-method- (show s)
-		  `(Nothing)))
+  (defclass ((Nothing _Nothing))
 
-	(jclass (Just value)
-		(def-method- maybe-value Just.value))
+    (defmethod (maybe-value s)
+      #f)
 
-	;; name if-present instead?
-	(def-method- (if-Just v then els)
-	  (if (Just? v)
-	      (then (@Just.value v))
-	      (els))))
+    (defmethod (show s)
+      `(Nothing)))
+
+  (defclass (Just value)
+    (defmethod maybe-value Just.value))
+
+  ;; name if-present instead?
+  (defmethod (if-Just v then els)
+    (if (Just? v)
+	(then (@Just.value v))
+	(els))))
 
 
 ;; optimization:
