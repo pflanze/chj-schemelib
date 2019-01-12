@@ -27,12 +27,12 @@ sexpr, and to \"math\" string.
 	(class formula-ctx)
 	(interface formula-item
 		   (interface formula-expr
-			      (class formula-opapplication)
-			      (class formula-functionapplication)
+			      (class formula-operatorapp)
+			      (class formula-functionapp)
 			      (class formula-constant)
 			      (class formula-variable))
-		   (class formula-functiondefinition)
-		   (class formula-constantdefinition))
+		   (class formula-functiondef)
+		   (class formula-def))
 	
 	symbol.formula-string
 	def->formula
@@ -85,8 +85,8 @@ sexpr, and to \"math\" string.
   
   (definterface formula-expr
 
-    (defclass (formula-opapplication [formula-op? op]
-				     [(list-of formula-expr?) args])
+    (defclass (formula-operatorapp [formula-op? op]
+				   [(list-of formula-expr?) args])
       "application of an operator"
 
       (defmethod (string/ctx e ctx)
@@ -100,7 +100,7 @@ sexpr, and to \"math\" string.
 		((= numargs 1)
 		 ;; fix it on the fly?
 		 (if (eq? op formula-/)
-		     (.string/ctx (formula-opapplication
+		     (.string/ctx (formula-operatorapp
 				   formula-/
 				   (cons (formula-constant 1)
 					 (.args e)))
@@ -114,7 +114,7 @@ sexpr, and to \"math\" string.
 			      (cond
 			       ((formula-expr? item)
 				(cond
-				 ((formula-opapplication? item)
+				 ((formula-operatorapp? item)
 				  (match-cmp
 				   ((on (compose-function .precedence-level .op)
 					real-cmp)
@@ -128,7 +128,7 @@ sexpr, and to \"math\" string.
 					      'left))
 					(not (.associative? (.op item)))))
 				   ((gt) #t)))
-				 ((formula-functionapplication? item)
+				 ((formula-functionapp? item)
 				  #f)
 				 ((formula-constant? item)
 				  #f)
@@ -136,7 +136,7 @@ sexpr, and to \"math\" string.
 				  #f)
 				 (else
 				  (error 'missing-case))))
-			       ((formula-functiondefinition? item)
+			       ((formula-functiondef? item)
 				#f)
 			       (else 
 				(error 'missing-case))))
@@ -152,10 +152,10 @@ sexpr, and to \"math\" string.
 			       (.args e))
 		     opstr))))))))
 
-    ;; same as formula-opapplication except for the formatting..
-    (defclass (formula-functionapplication [symbol? name]
-					   ;; ^ no first class functions for now
-					   [(list-of formula-expr?) args])
+    ;; same as formula-operatorapp except for the formatting..
+    (defclass (formula-functionapp [symbol? name]
+				   ;; ^ no first class functions for now
+				   [(list-of formula-expr?) args])
       "application of a function (not operator)"
 
       (defmethod (string/ctx e ctx)
@@ -180,9 +180,9 @@ sexpr, and to \"math\" string.
 	(symbol.formula-string (.name e)))))
   
 
-  (defclass (formula-functiondefinition [symbol? name]
-					[(list-of symbol?) vars]
-					[formula-expr? body])
+  (defclass (formula-functiondef [symbol? name]
+				 [(list-of symbol?) vars]
+				 [formula-expr? body])
 
     (defmethod (string/ctx e ctx)
       (string-append (symbol.formula-string (.name e))
@@ -192,8 +192,8 @@ sexpr, and to \"math\" string.
 		     (.string/ctx (.body e)
 				  (formula-ctx e #f)))))
 
-  (defclass (formula-constantdefinition [symbol? name]
-					[formula-expr? body])
+  (defclass (formula-def [symbol? name]
+			 [formula-expr? body])
 
     (defmethod (string/ctx e ctx)
       (string-append (symbol.formula-string (.name e))
@@ -252,19 +252,19 @@ sexpr, and to \"math\" string.
 	 (symbol?
 	  (let ((name (source-code bs)))
 	    (define (lamb bs* e**)
-	      (formula-functiondefinition name
-					  bs*
-					  (sexpr.formula e**)))
+	      (formula-functiondef name
+				   bs*
+				   (sexpr.formula e**)))
 	    (mcase e*
 	 	   (`(lambda `bs* `e**) (lamb bs* e**))
 		   (`(##lambda `bs* `e**) (lamb bs* e**))
 	 	   (else
-	 	    (formula-constantdefinition name
-						(sexpr.formula e*))))))
+	 	    (formula-def name
+				 (sexpr.formula e*))))))
 	 (pair?
 	  (mcase bs
 		 (`(`name . `vars) ;; XX only fixed args supported.
-		  (formula-functiondefinition
+		  (formula-functiondef
 		   name
 		   vars
 		   (sexpr.formula e*)))))))
@@ -286,27 +286,27 @@ sexpr, and to \"math\" string.
 		  ;; HACK: fake name
 		  (def->formula (cons 'ANON bs) e*))
 		 (`(+ . `args)
-		  (formula-opapplication formula-+ (map sexpr.formula args)))
+		  (formula-operatorapp formula-+ (map sexpr.formula args)))
 		 (`(- . `args)
-		  (formula-opapplication formula-- (map sexpr.formula args)))
+		  (formula-operatorapp formula-- (map sexpr.formula args)))
 		 (`(* . `args)
-		  (formula-opapplication formula-* (map sexpr.formula args)))
+		  (formula-operatorapp formula-* (map sexpr.formula args)))
 		 (`(/ . `args)
-		  (formula-opapplication formula-/ (map sexpr.formula args)))
+		  (formula-operatorapp formula-/ (map sexpr.formula args)))
 		 (`(square `x)
-		  (formula-opapplication formula-^
-					 (list (sexpr.formula x)
-					       (formula-constant 2))))
+		  (formula-operatorapp formula-^
+				       (list (sexpr.formula x)
+					     (formula-constant 2))))
 		 (`(expt `x `y)
-		  (formula-opapplication formula-^
-					 (list (sexpr.formula x)
-					       (sexpr.formula y))))
+		  (formula-operatorapp formula-^
+				       (list (sexpr.formula x)
+					     (sexpr.formula y))))
 		 (else
 		  (mcase e
 			 (`(`f . `args)
 			  (mcase f
 				 (symbol?
-				  (formula-functionapplication
+				  (formula-functionapp
 				   f
 				   (map sexpr.formula args)))))))))
 	 (number?
@@ -316,7 +316,7 @@ sexpr, and to \"math\" string.
 
 (TEST
  > (sexpr.formula '(+ 1 2))
- [(formula-opapplication)
+ [(formula-operatorapp)
   [(formula-op) + #f 10 #t #t left]
   ([(formula-constant) 1] [(formula-constant) 2])])
 
