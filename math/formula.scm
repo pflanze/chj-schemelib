@@ -42,17 +42,16 @@
 (defenum associativity
   left right)
 
-(defclass (formula-op
-	   [symbol? name]
-	   [(maybe natural?) arity]
-	   ;; higher means higher precedence:
-	   [rational? precedence-level]
-	   ;; #f means, left-associative, #t means doesn't matter:
-	   [boolean? associative?]
-	   ;; 'flippability'. unused. :
-	   [boolean? commutative?]
-	   ;; weird, seems we need that, too:
-	   [associativity? associativity]))
+(defclass (formula-op [symbol? name]
+		      [(maybe natural?) arity]
+		      ;; higher means higher precedence:
+		      [rational? precedence-level]
+		      ;; #f means, left-associative, #t means doesn't matter:
+		      [boolean? associative?]
+		      ;; 'flippability'. unused. :
+		      [boolean? commutative?]
+		      ;; weird, seems we need that, too:
+		      [associativity? associativity]))
 
 
 (defmacro (defformula-op name . args)
@@ -69,9 +68,8 @@
 ;; AST
 
 
-(defclass (formula-ctx
-	   [formula-item? item]
-	   [boolean? left-is-first-argument?]))
+(defclass (formula-ctx [formula-item? item]
+		       [boolean? left-is-first-argument?]))
 
 
 ;; only toplevel functions for now
@@ -82,9 +80,8 @@
   
   (definterface formula-expr
 
-    (defclass (formula-opapplication
-	       [formula-op? op]
-	       [(list-of formula-expr?) args])
+    (defclass (formula-opapplication [formula-op? op]
+				     [(list-of formula-expr?) args])
       "application of an operator"
 
       (defmethod (string/ctx e ctx)
@@ -151,9 +148,9 @@
 		     opstr))))))))
 
     ;; same as formula-opapplication except for the formatting..
-    (defclass (formula-functionapplication
-	       [symbol? name] ;; no first class functions for now
-	       [(list-of formula-expr?) args])
+    (defclass (formula-functionapplication [symbol? name]
+					   ;; ^ no first class functions for now
+					   [(list-of formula-expr?) args])
       "application of a function (not operator)"
 
       (defmethod (string/ctx e ctx)
@@ -166,24 +163,21 @@
 			",")
 		       ")")))
 
-    (defclass (formula-constant
-	       value)
+    (defclass (formula-constant value)
 
       (defmethod (string/ctx e ctx)
 	;; XX is scheme formatting ok?
 	(object->string (.value e))))
 
-    (defclass (formula-variable
-	       [symbol? name])
+    (defclass (formula-variable [symbol? name])
 
       (defmethod (string/ctx e ctx)
 	(symbol.formula-string (.name e)))))
   
 
-  (defclass (formula-functiondefinition
-	     [symbol? name]
-	     [(list-of symbol?) vars]
-	     [formula-expr? body])
+  (defclass (formula-functiondefinition [symbol? name]
+					[(list-of symbol?) vars]
+					[formula-expr? body])
 
     (defmethod (string/ctx e ctx)
       (string-append (symbol.formula-string (.name e))
@@ -193,9 +187,8 @@
 		     (.string/ctx (.body e)
 				  (formula-ctx e #f)))))
 
-  (defclass (formula-constantdefinition
-	     [symbol? name]
-	     [formula-expr? body])
+  (defclass (formula-constantdefinition [symbol? name]
+					[formula-expr? body])
 
     (defmethod (string/ctx e ctx)
       (string-append (symbol.formula-string (.name e))
