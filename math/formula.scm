@@ -6,10 +6,6 @@
 ;;;    (at your option) any later version.
 
 
-"math formulas: currently just an AST with conversion from Scheme
-sexpr, and to \"math\" string.
-"
-
 (require easy
 	 (cj-source-wraps source:symbol-append)
 	 (warn-plus WARN-ONCE))
@@ -38,6 +34,10 @@ sexpr, and to \"math\" string.
 	def->formula
 	sexpr.formula ;; scheme-sexpr -> formula-AST
 	)
+
+"math formulas: currently just an AST with conversion from Scheme
+sexpr, and to \"math\" string.
+"
 
 
 ;; Metainformation about ops for parsing
