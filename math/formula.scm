@@ -206,36 +206,30 @@
 
 ;; pretty print
 
-;; (def (symbol.formula-string s)
-;;      (list->string
-;;       (map (lambda (c)
-;; 	     (case c
-;; 	       ((#\*) #\')
-;; 	       (else
-;; 		c)))
-;; 	   (string->list (symbol.string s)))))
-;; wrong, only at the end
-
 (def (symbol.formula-string s)
-     (let* ((s* (string->list (symbol.string s)))
+     (let* ((s-str (symbol.string s))
+	    (s-len (string.length s-str))
+	    (s* (string->list s-str))
 	    (sr (reverse s*)))
-       (if (or (< (length s*) 2)
-	       (char=? (car s*) #\*))
-	   (list->string s*)
-	   
-	   (let lp ((s '())
-		    (sr sr))
-	     (if (null? sr)
-		 (list->string s)
-		 (let-pair ((c sr*) sr)
-			   (case c
-			     ((#\*)
-			      (lp (cons #\' s)
-				  sr*))
-			     (else
-			      ;; end special processing
-			      (lp (rappend sr s)
-				  '())))))))))
+
+       ;; current rules rather random / ad-hoc, ok?
+       (cond ((= s-len 0) (error "dunno how to format")) ;; ok?
+	     ((= s-len 1) s-str)
+	     ((char=? (car s*) #\*) s-str)
+	     (else
+	      (let lp ((s '())
+		       (sr sr))
+		(if (null? sr)
+		    (list->string s)
+		    (let-pair ((c sr*) sr)
+			      (case c
+				((#\*)
+				 (lp (cons #\' s)
+				     sr*))
+				(else
+				 ;; end special processing
+				 (lp (rappend sr s)
+				     '()))))))))))
 
 (TEST
  > (symbol.formula-string 'f)
@@ -244,6 +238,8 @@
  "*"
  > (symbol.formula-string 'foo)
  "foo"
+ > (symbol.formula-string '*foo*)
+ "*foo*"
  > (symbol.formula-string 'foo*)
  "foo'"
  > (symbol.formula-string 'foo**)
