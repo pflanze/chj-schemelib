@@ -32,8 +32,8 @@
 		   (class formula-constantdefinition))
 	
 	symbol.formula-string
-	formula-def
-	formula ;; scheme-sexpr -> formula-AST
+	def->formula
+	sexpr.formula ;; scheme-sexpr -> formula-AST
 	)
 
 
@@ -242,7 +242,7 @@
 
 
 
-(define (formula-def bs e*)
+(define (def->formula bs e*)
   (mcase bs
 	 (symbol?
 	  (let ((name (source-code bs)))
@@ -251,46 +251,46 @@
 		    (formula-functiondefinition
 		     name
 		     bs*
-		     (formula e**)))
+		     (sexpr.formula e**)))
 		   (else
 		    (formula-constantdefinition
 		     name
-		     (formula e*))))))
+		     (sexpr.formula e*))))))
 	 (pair?
 	  (mcase bs
 		 (`(`name . `vars) ;; XX only fixed args supported.
 		  (formula-functiondefinition
 		   name
 		   vars
-		   (formula e*)))))))
+		   (sexpr.formula e*)))))))
 
-(define (formula e)
+(define (sexpr.formula e)
   (mcase e
 	 (pair?
 	  (mcase e
 		 (`(define `bs `e*)
-		  (formula-def bs e*))
+		  (def->formula bs e*))
 		 (`(def `bs `e*)
-		  (formula-def bs e*))
+		  (def->formula bs e*))
 		 (`(lambda `bs `e*)
 		  ;; HACK. pretend it's named f
-		  (formula-def (cons 'f bs) e*))
+		  (def->formula (cons 'f bs) e*))
 		 (`(+ . `args)
-		  (formula-opapplication formula-+ (map formula args)))
+		  (formula-opapplication formula-+ (map sexpr.formula args)))
 		 (`(- . `args)
-		  (formula-opapplication formula-- (map formula args)))
+		  (formula-opapplication formula-- (map sexpr.formula args)))
 		 (`(* . `args)
-		  (formula-opapplication formula-* (map formula args)))
+		  (formula-opapplication formula-* (map sexpr.formula args)))
 		 (`(/ . `args)
-		  (formula-opapplication formula-/ (map formula args)))
+		  (formula-opapplication formula-/ (map sexpr.formula args)))
 		 (`(square `x)
 		  (formula-opapplication formula-^
-					 (list (formula x)
+					 (list (sexpr.formula x)
 					       (formula-constant 2))))
 		 (`(expt `x `y)
 		  (formula-opapplication formula-^
-					 (list (formula x)
-					       (formula y))))
+					 (list (sexpr.formula x)
+					       (sexpr.formula y))))
 		 (else
 		  (mcase e
 			 (`(`f . `args)
@@ -298,20 +298,20 @@
 				 (symbol?
 				  (formula-functionapplication
 				   f
-				   (map formula args)))))))))
+				   (map sexpr.formula args)))))))))
 	 (number?
 	  (formula-constant e))
 	 (symbol?
 	  (formula-variable e))))
 
 (TEST
- > (formula '(+ 1 2))
+ > (sexpr.formula '(+ 1 2))
  [(formula-opapplication)
   [(formula-op) + #f 10 #t #t left]
   ([(formula-constant) 1] [(formula-constant) 2])])
 
 
-(define pp-formula (compose-function (C .string/ctx _ #f) formula))
+(define pp-formula (compose-function (C .string/ctx _ #f) sexpr.formula))
 
 (TEST
  > (pp-formula '1)
