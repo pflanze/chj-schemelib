@@ -315,10 +315,10 @@ sexpr, and to \"math\" string.
 	  (formula-variable e))))
 
 (TEST
- > (sexpr.formula '(+ 1 2))
- [(formula-operatorapp)
-  [(formula-op) + #f 10 #t #t left]
-  ([(formula-constant) 1] [(formula-constant) 2])])
+ > (.show (sexpr.formula '(+ 1 2)))
+ (formula-operatorapp (formula-op '+ #f 10 #t #t 'left)
+		      (list (formula-constant 1)
+			    (formula-constant 2))))
 
 
 (define pp-formula (compose-function (C .string/ctx _ #f) sexpr.formula))
