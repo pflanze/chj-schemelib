@@ -8,7 +8,8 @@
 
 (require easy
 	 (cj-source-wraps source:symbol-append)
-	 (warn-plus WARN-ONCE))
+	 (warn-plus WARN-ONCE)
+	 throwing)
 
 (export pp-formula
 	;; nice-wrappers:
@@ -57,19 +58,25 @@ sexpr, and to \"math\" string.
 		      [associativity? associativity]))
 
 
-(defmacro (defformula-op name . args)
-  `(def ,(source:symbol-append 'formula- name)
-	(formula-op ',name ,@args)))
+;; Scheme-symbol to formula-op
+(define symbol.maybe-formula-op
+  (=> '((+ + #f 10 #t #t left)
+	(* * #f 20 #t #t left)
+	(- - #f 10 #f #f left)
+	(/ / #f 20 #f #f left) ;;?
+	(expt ^  2 30 #f #f right))
+      (.map (lambda-pair ((scheme-name args))
+		    (cons scheme-name
+			  (apply formula-op args))))
+      list->symboltable-function))
 
-(defformula-op + #f 10 #t #t 'left)
-(defformula-op * #f 20 #t #t 'left)
-(defformula-op - #f 10 #f #f 'left)
-(defformula-op / #f 20 #f #f 'left);;?
-(defformula-op ^  2 30 #f #f 'right)
+(define symbol.formula-op (throwing symbol.maybe-formula-op))
+
+(define formula-^ (symbol.formula-op 'expt))
+
 
 
 ;; AST
-
 
 (defclass (formula-ctx [formula-item? item]
 		       [boolean? left-is-first-argument?]))
@@ -275,6 +282,7 @@ sexpr, and to \"math\" string.
   (mcase e
 	 (pair?
 	  (mcase e
+
 		 (`(define `bs `e*)
 		  (def->formula bs e*))
 		 (`(def `bs `e*)
@@ -287,30 +295,32 @@ sexpr, and to \"math\" string.
 		  (WARN-ONCE "does this happen?")
 		  ;; HACK: fake name
 		  (def->formula (cons 'ANON bs) e*))
-		 (`(+ . `args)
-		  (formula-operatorapp formula-+ (map sexpr.formula args)))
-		 (`(- . `args)
-		  (formula-operatorapp formula-- (map sexpr.formula args)))
-		 (`(* . `args)
-		  (formula-operatorapp formula-* (map sexpr.formula args)))
-		 (`(/ . `args)
-		  (formula-operatorapp formula-/ (map sexpr.formula args)))
+
+		 ;; really use this rule?
 		 (`(square `x)
 		  (formula-operatorapp formula-^
 				       (list (sexpr.formula x)
 					     (formula-constant 2))))
-		 (`(expt `x `y)
-		  (formula-operatorapp formula-^
-				       (list (sexpr.formula x)
-					     (sexpr.formula y))))
+
 		 (else
-		  (mcase e
-			 (`(`f . `args)
-			  (mcase f
-				 (symbol?
-				  (formula-functionapp
-				   f
-				   (map sexpr.formula args)))))))))
+		  (let-pair
+		   ((a args) (source-code e))
+		   (let ((a* (source-code a)))
+		  
+		     ;; operator application? Note: allows (expr a b c
+		     ;; ..), why not, shouldn't Scheme allow it?
+		     (cond ((symbol.maybe-formula-op a*)
+			    => (C formula-operatorapp _
+				  (map sexpr.formula args)))
+			   (else
+			    ;; normal function application
+			    (mcase e
+				   (`(`f . `args)
+				    (mcase f
+					   (symbol?
+					    (formula-functionapp
+					     f
+					     (map sexpr.formula args)))))))))))))
 	 (number?
 	  (formula-constant e))
 	 (symbol?
