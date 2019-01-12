@@ -6,11 +6,13 @@
 ;;;    (at your option) any later version.
 
 
+"math formulas: currently just an AST with conversion from Scheme
+sexpr, and to \"math\" string.
+"
+
 (require easy
 	 (cj-source-wraps source:symbol-append)
 	 (warn-plus WARN-ONCE))
-
-;; math formulas
 
 (export pp-formula
 	;; nice-wrappers:
