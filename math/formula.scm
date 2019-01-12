@@ -338,13 +338,15 @@ sexpr, and to \"math\" string.
  "2 - 1 - (3 + 3) / 2"
  > (pp-formula '(- (- 2 1) (- 5 4)))
  "2 - 1 - (5 - 4)"
- ;; just a couple more. Systematic, please?
+ ;; just a few more. Systematic, please?
  > (pp-formula '(- 5 (- 2 1) (- 3 2)))
  "5 - (2 - 1) - (3 - 2)"
  > (pp-formula '(+ 5 (- 2 1) (- 3 2)))
  "5 + 2 - 1 + 3 - 2"
  > (pp-formula '(+ 5 (- 2 1) (/ 3 2)))
  "5 + 2 - 1 + 3 / 2"
+ > (pp-formula '(+ 5 (- 2 1 (* 7 (+ 1 2))) (/ 3 (- 2 8))))
+ "5 + 2 - 1 - 7 * (1 + 2) + 3 / (2 - 8)"
 
  > (pp-formula '(* (+ (- 2 1) (/ 3 2)) x))
  "(2 - 1 + 3 / 2) * x"
