@@ -269,6 +269,8 @@ sexpr, and to \"math\" string.
 		   vars
 		   (sexpr.formula e*)))))))
 
+;; XX should maintain lexical context! (Or use Scheme AST.)
+
 (define (sexpr.formula e)
   (mcase e
 	 (pair?
