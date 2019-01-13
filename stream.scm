@@ -1,4 +1,4 @@
-;;; Copyright 2010-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -277,18 +277,18 @@
  > (promise? (stream-fold-right/iota vector '(the rest) '(a b c)))
  #t
  > (fold-right/iota vector '(the rest) '(a b c))
- #(a #(b #(c (the rest) 2) 1) 0)
+ [a [b [c (the rest) 2] 1] 0]
  > (fold-right/iota+rest vector '(the rest) '(a b c))
- #(a
-   #(b
-     #(c
-       (the rest)
-       2
-       ())
-     1
-     (c))
-   0
-   (b c)))
+ [a
+  [b
+   [c
+    (the rest)
+    2
+    ()]
+   1
+   (c)]
+  0
+  (b c)])
 
 
 (define (stream-map/tail func s tail)
@@ -321,8 +321,8 @@
  > (F (stream-map/tail inc-function (list) '(a b)))
  (a b)
  > (F (stream-map vector (stream-iota) '(a b c)))
- (#(0 a) #(1 b) #(2 c))
- )
+ ([0 a] [1 b] [2 c]))
+
 
 (define (stream-map-list fn s)
   (define tail '())
@@ -775,7 +775,7 @@
 
 (TEST
  > (stream-fold-left vector 0 '(1 2 3))
- #(3 #(2 #(1 0)))
+ [3 [2 [1 0]]]
  > (stream-fold-left cons '() '(1 2 3))
  (3 2 1)
 ;; hm fold right.
@@ -1227,7 +1227,7 @@
 (define-strict-and-lazy
   chop/map
   stream-chop/map
-  (typed-lambda (#(natural? n) s #(procedure? f) #!optional (tail '()))
+  (typed-lambda ([natural? n] s [procedure? f] #!optional (tail '()))
 	   (let buildup ((s s)
 			 (l '())
 			 (m n))
@@ -1269,9 +1269,9 @@
  ((a b c d) (e))
  ;; ok?:
  > (%try-error (chop 0 '(a b c d e)))
- #(error "n does not match natural?:" 0)
+ [error "n does not match natural?:" 0]
  > (%try-error (chop -1 '(a b c d e)))
- #(error "n does not match natural?:" -1))
+ [error "n does not match natural?:" -1])
 
 
 
@@ -1373,7 +1373,7 @@
 
 (TEST
  > (F (stream-map values->vector (stream-zip2 (stream-iota) (list "a" "b"))))
- (#(0 "a") #(1 "b"))
+ ([0 "a"] [1 "b"])
  > (.show (zip2 '(1 2) '(a b)))
  (list (values 1 'a) (values 2 'b)))
 
@@ -1410,7 +1410,7 @@
  )
 
 
-(define-typed (stream-ref s #(natural0? i))
+(define-typed (stream-ref s [natural0? i])
   (let rec ((s s) (i i))
     (FV (s)
 	(if (zero? i)
@@ -1545,11 +1545,11 @@
 
 (TEST
  > (values->vector (stream-min&max '(3 5 9 -3 7)))
- #(-3 9)
+ [-3 9]
  > (values->vector (stream-min&max '(3 5 9 -3 9 7)))
- #(-3 9)
+ [-3 9]
  > (values->vector (stream-min&max '(3)))
- #(3 3)
+ [3 3]
  > (def l '((3 a) (5 b) (9 c) (-3 d) (7 e) (9 f) (8 g)))
  > (stream-max l cmp: (on car real-cmp))
  (9 f)
