@@ -14,7 +14,7 @@
 	 test)
 
 (export sequential-pairs
-	sequencialpairs->pairs ;; older, obsolete ?
+	sequentialpairs->pairs ;; older, obsolete ?
 	dsssl-maybe-ref ;; should move to Maybe ?
 	dsssl-ref
 	dsssl-delete
@@ -64,7 +64,7 @@
 
 
 ;; obsolete?, also see sequential-pairs
-(define (sequencialpairs->pairs lis
+(define (sequentialpairs->pairs lis
 				#!optional
 				key-type?
 				value-type?)
@@ -79,14 +79,14 @@
 		(rec (cddr lis)))))))
 
 (TEST
- > (sequencialpairs->pairs '(a 1) symbol? number?)
+ > (sequentialpairs->pairs '(a 1) symbol? number?)
  ((a . 1)))
 
 
 
 ;; 'restargs-keyref' 'keyargs-maybe-ref'
 (def (dsssl-maybe-ref args #(keyword? key))
-     (let ((alis (sequencialpairs->pairs args keyword? true/1)))
+     (let ((alis (sequentialpairs->pairs args keyword? true/1)))
        (eq-alist-maybe-ref alis key)))
 
 (TEST

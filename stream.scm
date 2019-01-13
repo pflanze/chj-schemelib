@@ -1222,7 +1222,7 @@
 ;; https://hackage.haskell.org/package/split-0.2.3.1/docs/Data-List-Split.html#v:chunksOf
 ;; <jcowan> group-by-size works for me
 
-;; Also see sequential-pairs and sequencialpairs->pairs in dsssl.scm
+;; Also see sequential-pairs and sequentialpairs->pairs in dsssl.scm
 
 (define-strict-and-lazy
   chop/map
