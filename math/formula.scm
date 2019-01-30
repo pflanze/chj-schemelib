@@ -375,7 +375,7 @@ sexpr, and to \"math\" string.
  > (pp-formula '(expt 2 3))
  "2 ^ 3"
  > (pp-formula '(expt (square x) -1/3))
- "(x ^ 2) ^ -1/3"
+ "(x ^ 2) ^ -1/3" ;; XX problem? vs. (/ (expt (square x) -1) 3)
  > (pp-formula '(define (f x y) (+ (square x) y)))
  "f(x,y) = x ^ 2 + y"
  > (pp-formula `(def sq (lambda (x) (* x x))))
