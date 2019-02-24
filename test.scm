@@ -1,4 +1,4 @@
-;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -77,6 +77,9 @@
 
 	#!optional
 	TEST:parse/)
+
+(include "cj-standarddeclares.scm") ;; -1--include.scm really?
+
 
 ;; copy from cj-functional to avoid circular dependency:
 (define (complement fn)
