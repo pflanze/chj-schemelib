@@ -694,7 +694,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		     implements
 		     ;; (improper-list-of class-name), for type
 		     ;; checking (i.e. predicates)
-		     defs)
+		     defs
+		     /keywords?)
      (let ((cc
 	    (lambda (nofields?)
 	      ;; parsed decl:
@@ -814,6 +815,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 				      `(begin))
 				    constructor-name:
 				    maybe-constructor-name
+				    /keywords?:
+				    /keywords?
 				    (joo-type.all-field-decls type)))
 			   `(begin))
 
@@ -897,8 +900,11 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		     #!key
 		     (extends 'joo-object)
 		     (implements '())
+		     /keywords?
+		     keywords
 		     . defs)
-  (joo:joo-expand #f decl extends implements defs))
+  (joo:joo-expand #f decl extends implements defs
+		  (or /keywords? keywords)))
 
 (defmacro (joo-interface decl
 			 #!key
@@ -909,7 +915,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 			 ;; http://docs.oracle.com/javase/specs/jls/se8/html/jls-9.html
 			 ;; but then tests show that not.
 			 . defs)
-  (joo:joo-expand #t decl #f extends defs))
+  (joo:joo-expand #t decl #f extends defs
+		  #f))
 
 
 (def. (joo-object.instance-of? s #(joo-type? t))
@@ -1089,6 +1096,13 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  > (.foo1 (boo 10))
  (10))
 
+;; Test /keywords feature:
+(TEST
+ > (defclass (foom b c) /keywords?: #t)
+ > (foom 10 30)
+ [(foom) 10 30]
+ > (foom/keywords c: 10 b: 20)
+ [(foom) 20 10])
 
 
 
