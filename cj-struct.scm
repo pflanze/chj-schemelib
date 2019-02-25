@@ -436,7 +436,14 @@
  > (define-struct foo #!key quote x y z)
  > (make-foo quote: 10)
  #((foo) 10 #f #f #f)
- )
+
+ ;; keywords feature:
+ > (define-struct foon /keywords?: #t b c)
+ > (make-foon c: 3)
+ [(foon) c: 3]
+ > (make-foon/keywords c: 3)
+ [(foon) #f 3])
+
 
 ;; omit the |make-| prefix for the constructor name
 (define-macro* (define-struct* name . defs)
