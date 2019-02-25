@@ -385,12 +385,12 @@
  > (struct-constructor-name (make-foo 1 2))
  make-foo
  > (make-foo 10 11)
- #((foo) 10 11)
+ [(foo) 10 11]
  > (foo? #)
  #t
  > (foo? #)
  #f
- > (foo? '#((foo) 10 11))
+ > (foo? '[(foo) 10 11])
  ;; unlike TEST comparisons which are based on equal?, this is
  ;; comparing more strictly
  #f
@@ -409,11 +409,11 @@
  > (define-struct foo1 tag: 'myvery:foo a b)
  > (define v1 (make-foo1 10 11))
  > v1
- #((myvery:foo) 10 11)
+ [(myvery:foo) 10 11]
  > (define-struct foo2 tag: 'myvery:foo a b)
  > (define v2 (make-foo2 10 11))
  > v2
- #((myvery:foo) 10 11)
+ [(myvery:foo) 10 11]
  > (foo1? v1)
  #t
  > (foo1? v2)
@@ -426,16 +426,16 @@
  ;; updaters
  > (define-struct foo a b)
  > (make-foo 1 2)
- #((foo) 1 2)
+ [(foo) 1 2]
  > (foo-b-update # inc-function)
- #((foo) 1 3)
+ [(foo) 1 3]
  > (foo-b-update # inc-function)
- #((foo) 1 4)
+ [(foo) 1 4]
  > (foo-a-update # inc-function)
- #((foo) 2 4)
+ [(foo) 2 4]
  > (define-struct foo #!key quote x y z)
  > (make-foo quote: 10)
- #((foo) 10 #f #f #f)
+ [(foo) 10 #f #f #f]
 
  ;; keywords feature:
  > (define-struct foon /keywords?: #t b c)
@@ -479,16 +479,16 @@
 		  ,cj-struct:tag:foo
 		  (foo)
 		  (,cj-struct:tag:foo)
-		  #(foo)
+		  [foo]
 		  ,(list->vector cj-struct:tag:foo)
-		  #((foo))
-		  #(,cj-struct:tag:foo)
-		  #((foo) 1)
-		  #(,cj-struct:tag:foo 1)
-		  #(1 foo)
-		  #(,cj-struct:tag:foo 1 2)
-		  #(,cj-struct:tag:foo 1 -2)
-		  #(,cj-struct:tag:foo 1 "-2")))
+		  [(foo)]
+		  [,cj-struct:tag:foo]
+		  [(foo) 1]
+		  [,cj-struct:tag:foo 1]
+		  [1 foo]
+		  [,cj-struct:tag:foo 1 2]
+		  [,cj-struct:tag:foo 1 -2]
+		  [,cj-struct:tag:foo 1 "-2"]))
  > (map (struct-of natural0?) vals)
  (#f #f #f #f #f #f #f #t #f #t #f #t #f #f))
 
