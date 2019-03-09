@@ -80,7 +80,9 @@
    '()
    vs))
 
-(define (qcheck* vs #!key (equal? equal?) #!rest fs)
+(define (qcheck* vs
+                 #!key (equal? equal?)
+                 #!rest fs)
   (force (apply Lforall* vs equal? fs)))
 
 (TEST
