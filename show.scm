@@ -27,6 +27,7 @@
 (export (method .show)
 	(method .show-string)
 	try-show
+        promise#
 	procedure#
 	#!optional
 	toplevel-procedure?
@@ -190,7 +191,7 @@
   (let ((v (serial-number->object n)))
     (if (promise? v)
 	v
-	(error "not a promise:" n))))
+	(error "not a promise:" v))))
 
 (define. (debuggable-promise.show v)
   (if (debuggable-promise? v)
