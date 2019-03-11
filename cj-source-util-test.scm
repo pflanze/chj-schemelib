@@ -59,6 +59,41 @@
  ok
  > (c 5)
  ok
+
+ ;; Mixing #!rest and #!key
+ ;; (A)
+ > (def (t a #!rest r #!key b) (vector a rest: r key: b))
+ > (t 10)
+ [10 rest: () key: #f]
+ > (t 10 20)
+ [10 rest: (20) key: #f]
+ > (t 10 20 30)
+ [10 rest: (20 30) key: #f]
+ > (t 10 20 30 b: 3)
+ [10 rest: (20 30 b: 3) key: #f]
+ > (t 10 b: 3 20 30)
+ [10 rest: (b: 3 20 30) key: 3]
+ ;; (B)
+ > (def (t a #!key b #!rest r) (vector a rest: r key: b))
+ > (t 10)
+ [10 rest: () key: #f]
+ > (t 10 20)
+ [10 rest: (20) key: #f]
+ > (t 10 20 30)
+ [10 rest: (20 30) key: #f]
+ > (t 10 20 30 b: 3)
+ [10 rest: (20 30 b: 3) key: #f]
+ > (t 10 b: 3 20 30)
+ [10 rest: (20 30) key: 3] ;; this is the only change to (A)
+
+ > (schemedefinition-arity:pattern->template '(#!rest r #!key b))
+ [at-least 0]
+ > (schemedefinition-arity:pattern->template '(#!key b #!rest r ))
+ [at-least 0]
+ > (schemedefinition-arity:pattern->template '(a #!key b #!rest r ))
+ [at-least 1]
+ > (schemedefinition-arity:pattern->template '(a #!rest r #!key b))
+ [at-least 1]
  > (define c (schemedefinition-arity-checker '(a b c #!key d #!rest e)))
  > (c 2)
  not-enough
