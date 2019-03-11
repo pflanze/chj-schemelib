@@ -61,8 +61,36 @@
       (vector 'at-least min-count))
     (define (up-to max-count)
       (vector 'up-to min-count max-count))
+
+    (define (handle-key l max-count)
+      ;; l is the remainder after #!key.  Each key argument
+      ;; requires two args.  [and we still don't check for
+      ;; correct keys yet, not even for even number of
+      ;; arguments in key area]
+
+      (let lp ((l l)
+               (max-count max-count))
+        (cond ((null? l)
+               (up-to max-count))
+              ((pair? l)
+               ;; *almost* copy from above, hm.
+               (let ((a (car l)))
+                 (cond ((eq? a #!rest)
+                        (at-least))
+                       ((eq? a #!optional)
+                        (error "#!optional after #!key in argument list:"
+                               lis))
+                       ((eq? a #!key)
+                        (error "more than one #!key in argument list:" lis))
+                       (else
+                        (lp (cdr l)
+                            (+ max-count 2))))))
+              (else
+               (at-least)))))
+
     (cond ((pair? l)
 	   (let ((a (car l)))
+             
 	     (cond ((eq? a #!rest)
 		    (at-least))
 		   ((eq? a #!optional)
@@ -75,36 +103,17 @@
 			       (cond ((eq? a #!rest)
 				      (at-least))
 				     ((eq? a #!optional)
-				      (error "more than one #!optional in argument list:" lis))
+				      (error "more than one #!optional in argument list:"
+                                             lis))
 				     ((eq? a #!key)
-				      (error "XXX unfinished"))
+				      (handle-key (cdr l) max-count))
 				     (else
 				      (lp (cdr l)
 					  (inc max-count))))))
 			    (else
 			     (at-least)))))
 		   ((eq? a #!key)
-		    ;; each one requires two args.  [and we still
-		    ;; don't check for correct keys yet, not even for
-		    ;; even number of arguments in key area]
-		    (let lp ((l (cdr l))
-			     (max-count min-count))
-		      (cond ((null? l)
-			     (up-to max-count))
-			    ((pair? l)
-			     ;; *almost* copy from above, hm.
-			     (let ((a (car l)))
-			       (cond ((eq? a #!rest)
-				      (at-least))
-				     ((eq? a #!optional)
-				      (error "XXX unfinished2"))
-				     ((eq? a #!key)
-				      (error "more than one #!key in argument list:" lis))
-				     (else
-				      (lp (cdr l)
-					  (+ max-count 2))))))
-			    (else
-			     (at-least)))))
+                    (handle-key (cdr l) min-count))
 		   (else
 		    (lp (cdr l)
 			(inc min-count))))))
