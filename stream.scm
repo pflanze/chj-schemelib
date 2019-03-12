@@ -55,8 +55,8 @@
 	list-split-at stream-split-at
 	stream-sublist
 	stream-length
-	stream-length>=
-	stream-length>
+	stream-length->=
+	stream-length->
 	(struct difference-at)
 	(struct no-difference)
 	stream-difference
@@ -628,18 +628,18 @@
 
 
 ;; also see improper-list/length>=
-;; (also, strict-and-lazy list-length>=  -- why bother?)
-(define (stream-length>= l len)
+;; (also, strict-and-lazy list-length->=  -- why bother?)
+(define (stream-length->= l len)
   (if (positive? len)
       (FV (l)
 	  ;; does not report failures hitting improper stream, OK?
 	  (and (pair? l)
-	       (stream-length>= (cdr l)
+	       (stream-length->= (cdr l)
 				(dec len))))
       #t))
 
-(define (stream-length> l len)
-  (stream-length>= l (inc len)))
+(define (stream-length-> l len)
+  (stream-length->= l (inc len)))
 
 
 (define-struct difference-at

@@ -186,7 +186,7 @@
 (def show-parse1-input-maxlen 12)
 
 (def. (iseq.show-parse1-input s)
-  (if (stream-length> s show-parse1-input-maxlen)
+  (if (stream-length-> s show-parse1-input-maxlen)
       `(cons*
 	,@(map .show (.list (.take s show-parse1-input-maxlen)))
 	'...
@@ -209,7 +209,7 @@
 	       l))))
 
 (def. (source-char-istream.show-parse1-input s)
-  (let ((long? (stream-length> s show-parse1-input-maxlen)))
+  (let ((long? (stream-length-> s show-parse1-input-maxlen)))
     `(stream#
       ,(object->serial-number s)
       ,(if long?
