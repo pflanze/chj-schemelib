@@ -221,15 +221,22 @@
 	 form))))
 
 (TEST
+ > (defmacro (TE . body)
+     `(values->vector
+       (with-error-to-string
+        (lambda ()
+          ,@body))))
  > (both-times (def *debug* 2))
- > (T + 1 2)
- 3
- > (T 3 + 2 3) ;; this one should make it to stderr
- 5
- > (T 3 "ey" + 3 3) ;; ditto
- 6
- > (T "ey" + 3 4)
- 7)
+ > (TE (T + 1 2))
+ ["" 3]
+ ;; these should make it to stderr:
+ > (TE (T 3 + 2 3))
+ ["T: (+ 2 3) ...\n : (+ 2 3) -> 5\n" 5]
+ > (TE (T 3 "ey" + 3 3))
+ ["T ey: (+ 3 3) ...\n  ey: (+ 3 3) -> 6\n" 6]
+ ;; /stderr
+ > (TE (T "ey" + 3 4))
+ ["" 7])
 
 
 (def debug:default-port (current-error-port))
