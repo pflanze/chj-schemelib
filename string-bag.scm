@@ -83,5 +83,5 @@
 
 
 (TEST
- > (with-output-to-string (& (string-bag-display '("a" ("b" () . "c")))))
+ > (fst (with-output-to-string (& (string-bag-display '("a" ("b" () . "c"))))))
  "abc")

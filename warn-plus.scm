@@ -67,7 +67,7 @@
  > (def (trim-digitdot-left str)
 	(.drop-while str (either char-digit? (char-one-of?/ "."))))
  > (def (t proc)
-	(=> (with-error-to-string proc)
+	(=> (fst (with-error-to-string proc))
 	    (string-split (char-one-of?/ "@#"))
 	    rest
 	    (.map trim-digitdot-left)))

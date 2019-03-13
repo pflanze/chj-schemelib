@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+         srfi-11
 	 test)
 
 (export with-output-to-string
@@ -20,11 +21,14 @@
 
 (define (make-with-_-to-string current-_-port)
   (lambda (thunk)
-    (call-with-output-string
-     ""
-     (lambda (port)
-       (parameterize ((current-_-port port))
-		     (thunk))))))
+    (let* ((res 'make-with-_-to-string-unbound)
+           (str (call-with-output-string
+                 ""
+                 (lambda (port)
+                   (set! res
+                         (parameterize ((current-_-port port))
+                                       (thunk)))))))
+      (values str res))))
 
 (define with-output-to-string
   (make-with-_-to-string current-output-port))
@@ -42,8 +46,9 @@
                            ,expr)))
 
 (TEST
- > (%with-output-to-string (begin (display "Hello ") (display "World")))
- "Hello World")
+ > (values->vector
+    (%with-output-to-string (begin (display "Hello ") (display "World") 10)))
+ ["Hello World" 10])
 
 
 (define (make-with-_-to-string* current-_-port)
