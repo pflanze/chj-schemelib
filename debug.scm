@@ -17,7 +17,8 @@
 (export STRING
 	(macro DEBUG)
 	(macro DEBUG*)
-	(macro T)
+	(macro T) ;; trace call
+        (macro TT) ;; trace tail call
 
 	*debug* ;; well, by alias? Hey, have syntax that sets compile
 		;; time variables scoped by the compilation unit?
@@ -173,52 +174,66 @@
  123)
 
 
-;; T supports an optional level then an optional marker string as the
-;; first arg(s)
+;; The syntax supports an optional level then an optional marker
+;; string as the first arg(s)
+
+(def (debug:T-expand form tailcall?)
+     (def Tstr (if tailcall? "TT" "T"))
+     (def Tunstr (if tailcall? "  " " "))
+     (if *debug*
+         (debug:parse-level
+          form #t
+          (lambda (form level maybe-marker)
+            (with-gensym
+             res
+             (let ((vs (map (comp gensym .string)
+                            (cdr (iota (length form))))))
+               `(let ,(map (lambda (v arg)
+                             `(,v ,arg))
+                           vs
+                           (cdr form))
+                  (if (and *debug* (<= *debug* ,level))
+                      (warn ,(if maybe-marker
+                                 (string-append Tstr
+                                                " "
+                                                (source-code maybe-marker)
+                                                ":")
+                                 (string-append Tstr
+                                                ":"))
+                            (list
+                             ',(car form)
+                             ,@(map (lambda (v)
+                                      `(.show ,v))
+                                    vs))
+                            ,@(if tailcall? '() '('...))))
+                  ,(let ((call-code `(,(car form) ,@vs)))
+                     (if tailcall?
+                         call-code
+                         `(let ((,res ,call-code))
+                            (if (and *debug* (<= *debug* ,level))
+                                (warn ,(if maybe-marker
+                                           (string-append
+                                            "  "
+                                            (source-code maybe-marker)
+                                            ":")
+                                           " :")
+                                      (list ',(car form)
+                                            ,@(map (lambda (v)
+                                                     `(.show ,v))
+                                                   vs))
+                                      '->
+                                      (.show ,res)))
+                            ,res))))))))
+         (debug:parse-level
+          form #t
+          (lambda (form level maybe-marker)
+            form))))
+
 (defmacro (T . form)
-  (if *debug*
-      (debug:parse-level
-       form #t
-       (lambda (form level maybe-marker)
-	 (with-gensym
-	  res
-	  (let ((vs (map (comp-function gensym .string)
-                         (cdr (iota (length form))))))
-	    `(let ,(map (lambda (v arg)
-			  `(,v ,arg))
-			vs
-			(cdr form))
-	       (if (and *debug* (<= *debug* ,level))
-		   (warn ,(if maybe-marker
-			      (string-append "T "
-                                             (source-code maybe-marker)":")
-			      "T:")
-			 ;;,(object->string (cj-desourcify (car form)))
-			 (list
-			  ',(car form)
-			  ,@(map (lambda (v)
-				   `(.show ,v))
-				 vs))
-			 '...))
-	       (let ((,res (,(car form) ,@vs)))
-		 (if (and *debug* (<= *debug* ,level))
-		     (warn ,(if maybe-marker
-                                (string-append "  "
-                                               (source-code maybe-marker)":")
-                                " :")
-			   ;;,(object->string (cj-desourcify (car form)))
-			   (list
-			    ',(car form)
-			    ,@(map (lambda (v)
-				     `(.show ,v))
-				   vs))
-			   '->
-			   (.show ,res)))
-		 ,res))))))
-      (debug:parse-level
-       form #t
-       (lambda (form level maybe-marker)
-	 form))))
+  (debug:T-expand form #f))
+
+(defmacro (TT . form)
+  (debug:T-expand form #t))
 
 (TEST
  > (defmacro (TE . body)
@@ -234,6 +249,10 @@
  ["T: (+ 2 3) ...\n : (+ 2 3) -> 5\n" 5]
  > (TE (T 3 "ey" + 3 3))
  ["T ey: (+ 3 3) ...\n  ey: (+ 3 3) -> 6\n" 6]
+ > (TE (TT 3 + 2 3))
+ ["TT: (+ 2 3)\n" 5]
+ > (TE (TT 3 "ey" + 3 3))
+ ["TT ey: (+ 3 3)\n" 6]
  ;; /stderr
  > (TE (T "ey" + 3 4))
  ["" 7])
