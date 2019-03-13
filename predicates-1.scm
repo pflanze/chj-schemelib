@@ -331,11 +331,7 @@
 
 
 (define (length-< l len)
-  (if (<= len 0)
-      #f
-      (if (null? l)
-          #t
-          (length-< (cdr l) (dec len)))))
+  (length-<= l (dec len)))
 
 (TEST
  > (define l '(-1 0 1 2))
@@ -348,11 +344,7 @@
 
 
 (define (length-> l len)
-  (if (< len 0)
-      #t
-      (if (null? l)
-          #f
-          (length-> (cdr l) (dec len)))))
+  (length->= l (inc len)))
 
 (TEST
  > (define l '(-1 0 1 2))
