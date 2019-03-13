@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -182,14 +182,16 @@
        (lambda (form level maybe-marker)
 	 (with-gensym
 	  res
-	  (let ((vs (map (comp-function gensym .string) (cdr (iota (length form))))))
+	  (let ((vs (map (comp-function gensym .string)
+                         (cdr (iota (length form))))))
 	    `(let ,(map (lambda (v arg)
 			  `(,v ,arg))
 			vs
 			(cdr form))
 	       (if (and *debug* (<= *debug* ,level))
 		   (warn ,(if maybe-marker
-			      (string-append "T " (source-code maybe-marker)":")
+			      (string-append "T "
+                                             (source-code maybe-marker)":")
 			      "T:")
 			 ;;,(object->string (cj-desourcify (car form)))
 			 (list
@@ -201,8 +203,9 @@
 	       (let ((,res (,(car form) ,@vs)))
 		 (if (and *debug* (<= *debug* ,level))
 		     (warn ,(if maybe-marker
-			      (string-append "  " (source-code maybe-marker)":")
-			      " :")
+                                (string-append "  "
+                                               (source-code maybe-marker)":")
+                                " :")
 			   ;;,(object->string (cj-desourcify (car form)))
 			   (list
 			    ',(car form)
@@ -263,18 +266,19 @@
 (def *single-step?* #t)
 
 (def (warn-stop-on-line! n)
-     (port-add-hook! (current-error-port)
-		     (named self
-			    (lambda (port)
-			      (let ((m (output-port-line port)))
-				;; (= m n) is no good as can have multi-line warn statements
-				(if (>= m n)
-				    (begin
-				      (force-output port)
-				      (port-remove-hook! port self)
-				      (if *single-step?*
-					  (begin
-					    (displayln (STRING "reached error-port line " n)
-						       (console-port))
-					    (step))
-					  (error "reached error-port line" n)))))))))
+     (port-add-hook!
+      (current-error-port)
+      (named self
+             (lambda (port)
+               (let ((m (output-port-line port)))
+                 ;; (= m n) is no good as can have multi-line warn statements
+                 (if (>= m n)
+                     (begin
+                       (force-output port)
+                       (port-remove-hook! port self)
+                       (if *single-step?*
+                           (begin
+                             (displayln (STRING "reached error-port line " n)
+                                        (console-port))
+                             (step))
+                           (error "reached error-port line" n)))))))))
