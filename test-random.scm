@@ -338,9 +338,17 @@
 
 
 ;; name?
-(define (produce-stream thunk)
-  (delay (cons (thunk)
-	       (produce-stream thunk))))
+;; XX hm, make-list takes len first.
+(define (produce-stream thunk #!optional len)
+  (if len
+      (let lp ((n len))
+        (delay (if (> n 0)
+                   (cons (thunk)
+                         (lp (dec n)))
+                   '())))
+      (let lp ()
+        (delay (cons (thunk)
+                     (lp))))))
 
 ;; how skewed should it be?
 (define (random-natural0-above min)
