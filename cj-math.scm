@@ -7,20 +7,19 @@
 
 
 (require test
-	 (test-logic ∀))
+	 (test-logic ∀)
+         (srfi-11 values->vector))
 
 ;; can this calculation be optimized?
 (define (quotient+modulo x y)
   (values (quotient x y)
 	  (modulo x y)))
 
-;; > (quotient+modulo 14 12)
-;; 1
-;; 2
-;; Uh?:
-;; > (quotient+modulo -14 12)
-;; -1
-;; 10
+(TEST
+ > (values->vector (quotient+modulo 14 12))
+ [1 2]
+ > (values->vector (quotient+modulo -14 12))
+ [-1 10])
 
 
 (define (/= a b)
