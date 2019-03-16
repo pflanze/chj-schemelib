@@ -10,6 +10,22 @@
 	 (test-logic ∀)
          (srfi-11 values->vector letv))
 
+(export quotient+modulo
+        /=
+        integer
+        integer-ceiling
+        exact
+        square
+        integer:half
+        integer-average integer:average
+        pi
+        (macro let-complex)
+        conj
+        quotient-ceiling
+        natural0.bitsize ;; just an alias for integer-length
+        integer->alphabetic26-string)
+
+
 ;; can this calculation be optimized?
 (define (quotient+modulo x y)
   (values (quotient x y)
