@@ -46,6 +46,7 @@
 (export (macro joo-class)
 	(macro joo-interface)
 	(macro def.*) ;; XX should I provide |define.*|, too?
+        (macro with.)
 	#!optional
 	joo:parse-decl)
 
@@ -114,14 +115,18 @@
 
 
 
-;; for |def-method| and |def.*|: make fields visible in the body
+;; for |def-method|, |def.*| and |with.|: make fields visible in the
+;; body
 (def (joo:body* [symbol? class-name]
 		[(list-of (source-of symbol?)) fields]
-		bind ;; raw method arguments
+		bind
+                ;; ^ raw method arguments; maybe should separate first
+                ;; argument (used in `(car bindvars) below) so that it
+                ;; doesn't have to be a symbol, for |with.|
 		rest
 		;; ^ body plus possibly -> from method definition or lambda
 		)
-     ;; -> list?
+     ;; -> list? -- why? so it is compatible with body itself, right
      (let* ((used (list->symbolcollection (joo:body-symbols rest)))
 	    (bindvars (joo:args->vars bind))
 	    (bind-used (list->symbolcollection (map source-code bindvars))))
@@ -155,6 +160,10 @@
 		,@body)))))
 
 
+(def (joo:class-name.all-field-names class-name)
+     (joo-type.all-field-names (eval
+                                (joo:joo-type-symbol class-name))))
+
 ;; XX now that def-method* has been renamed to def-method, should
 ;; probably rename this, too, but then it needs safe detection if
 ;; class-name is a class or not (just see whether the eval fails?
@@ -175,8 +184,7 @@
 	     (let ((class-name (string.symbol class-name-str)))
 	       `(def. (,class-name.method ,@binds)
 		  ,@(joo:body* class-name
-			       (joo-type.all-field-names
-				(eval (joo:joo-type-symbol class-name)))
+			       (joo:class-name.all-field-names class-name)
 			       binds
 			       body)))))
   
@@ -195,6 +203,21 @@
 		     (`(lambda `binds . `body)
 		      (expand bind binds body)))
 	      (joo:source-error-len-1 stx)))))
+
+
+;; a macro to get at joo:body* in other contexts
+(defmacro (with. class-name val . body)
+  (assert* symbol? class-name
+           (lambda (class-name)
+             (early-bind-expressions
+              ;; needed for no good reason except to make joo:body*
+              ;; happy
+              (val)
+              (the (joo:body* class-name
+                              (joo:class-name.all-field-names class-name)
+                              (list val)
+                              body))))))
+
 
 ;; def-method- and def-method
 (def (joo:implementation-method-expander-for
@@ -1095,6 +1118,16 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
      (lambda (_) y))
  > (.testdefstar2 myfooagain2)
  (1 . 2))
+
+;; with.
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#with. fooagain2 p (list z x a n))
+ (let-fooagain2 ((x _ z) p) (list z x a n))
+ > (expansion#with. fooagain2 (a bc) (list y z a n))
+ (##let ((GEN:-23362 (a bc)))
+        (let-fooagain2 ((_ y z) GEN:-23362)
+                       (list y z a n))))
 
 
 
