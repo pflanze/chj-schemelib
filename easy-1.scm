@@ -27,7 +27,8 @@
 	 test
 	 (test-random %try-syntax-error)
 	 (string-util-2 string-any)
-	 list-util
+         list-util ;; e.g. let-pair
+         list-util-3 ;; e.g. if-let-pair
 	 list-util-lazy)
 
 (export (macro defstruct)
