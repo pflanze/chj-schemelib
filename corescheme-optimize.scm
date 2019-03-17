@@ -90,7 +90,9 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
 
 
 (def.* (corescheme-lambda.optimize s)
-  (let ((expr* (.optimize expr)))
+  (let* ((expr* (.optimize expr))
+         (return-s* (lambda ()
+                      (corescheme-lambda vars expr*))))
     ;; remove needless lambda wrappers: (lambda (x y) (f x y))
     (if (corescheme-app? expr*)
         (with. corescheme-app expr*
@@ -100,8 +102,8 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
                                               arg->maybe-var
                                               id))
                    proc
-                   s))
-        s)))
+                   (return-s*)))
+        (return-s*))))
 
 
 
