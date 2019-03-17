@@ -69,36 +69,36 @@
 		    (improper-list-of corescheme:literal?))
 	      (vector-of corescheme:literal?)) x))
 
-(jclass (corescheme-var #((possibly-source-of symbol?) name)
-			#(natural0? id)))
+(jclass (corescheme-var [(possibly-source-of symbol?) name]
+			[natural0? id]))
 
 (jclass corescheme-expr
-	(jclass (corescheme-literal #(corescheme:literal? val)))
+	(jclass (corescheme-literal [corescheme:literal? val]))
 
-	(jclass (corescheme-lambda #((improper-list-of corescheme-var?) vars)
-				   #(corescheme-expr? expr)))
+	(jclass (corescheme-lambda [(improper-list-of corescheme-var?) vars]
+				   [corescheme-expr? expr]))
        
-	(jclass (corescheme-app #(corescheme-expr? proc)
-				#((list-of corescheme-expr?) args)))
+	(jclass (corescheme-app [corescheme-expr? proc]
+				[(list-of corescheme-expr?) args]))
        
-	(jclass (corescheme-ref #(corescheme-var? var)))
+	(jclass (corescheme-ref [corescheme-var? var]))
 
-	(jclass (corescheme-def #(corescheme-var? var)
-				#(corescheme-expr? val)))
+	(jclass (corescheme-def [corescheme-var? var]
+				[corescheme-expr? val]))
 
-	(jclass (corescheme-begin #((list-of corescheme-expr?) body)))
+	(jclass (corescheme-begin [(list-of corescheme-expr?) body]))
        
-	(jclass (corescheme-if #(corescheme-expr? test)
-			       #(corescheme-expr? then)
+	(jclass (corescheme-if [corescheme-expr? test]
+			       [corescheme-expr? then]
 			       ;; should the missing-else case be encoded as
 			       ;; explicit (void) ?
-			       #((maybe corescheme-expr?) else)))
+			       [(maybe corescheme-expr?) else]))
        
-	(jclass (corescheme-set! #(corescheme-var? var)
-				 #(corescheme-expr? val)))
+	(jclass (corescheme-set! [corescheme-var? var]
+				 [corescheme-expr? val]))
 
-	(jclass (corescheme-letrec #((list-of corescheme-var?) vars)
-				   #((list-of corescheme-expr?) exprs))))
+	(jclass (corescheme-letrec [(list-of corescheme-var?) vars]
+				   [(list-of corescheme-expr?) exprs])))
 
 
 (defparameter current-corescheme-id #f)
@@ -123,7 +123,7 @@
 ;; a naked data structure? (Or at least doesn't currently offer a
 ;; predicate for it?)
 ;; > empty-corescheme-ctx
-;; #((typed-list-null) #<procedure #2 corescheme-var?>)
+;; [(typed-list-null) #<procedure #2 corescheme-var?>]
 ;; Nah, could do it.
 (def corescheme-ctx? (typed-list-of corescheme-var?))
 (def empty-corescheme-ctx (typed-list corescheme-var?))
@@ -136,8 +136,8 @@
 
 
 (def (_source->corescheme:begin rest
-				#(corescheme-ctx? ctx)
-				#(boolean? realmode?))
+				[corescheme-ctx? ctx]
+				[boolean? realmode?])
      -> (if realmode? corescheme-expr? corescheme-ctx?)
 
      (if (one-item? rest)
@@ -205,8 +205,8 @@
 
 
 (def (_source->corescheme expr
-			  #(corescheme-ctx? ctx)
-			  #(boolean? realmode?))
+			  [corescheme-ctx? ctx]
+			  [boolean? realmode?])
      -> (if realmode? corescheme-expr? corescheme-ctx?)
 
      (def (if-ctx-var sym *then *else)
