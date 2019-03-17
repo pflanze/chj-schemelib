@@ -95,26 +95,72 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
   (let* ((expr* (.optimize expr))
          (return-s* (lambda ()
                       (corescheme-lambda vars expr*))))
-    ;; remove needless lambda wrappers: (lambda (x y) (f x y))
     (if (corescheme-app? expr*)
         (with. corescheme-app expr*
-               (if (and (possibly-vars-equal? args
-                                              vars
-                                              arg->maybe-var
-                                              id)
-                        (or (corescheme-ref? proc)
-                            (and (corescheme-lambda? proc)
-                                 (not (.references? proc vars)))))
-                   proc
-                   (return-s*)))
+               (cond
+                ;; remove needless lambda wrappers: (lambda (x y) (f x y))
+                ((and (possibly-vars-equal? args
+                                            vars
+                                            arg->maybe-var
+                                            id)
+                      (or (corescheme-ref? proc)
+                          (and (corescheme-lambda? proc)
+                               (not (.references? proc vars)))))
+                 proc)
+
+                (else
+                 (return-s*))))
         (return-s*))))
 
 (def.* (corescheme-app.optimize s)
-  ;; just passing through for now. Why is passing-through code so
-  ;; verbose...
   (let ((proc* (.optimize proc))
         (args* (map .optimize args)))
-    (corescheme-app proc* args*)))
+
+    (cond
+     
+     ;; interpolate lexical lambda arguments which are
+     ;; variables, or literals or lambdas and are only used once
+     ;; (to, currently, avoid undue code bloat) (XX losing
+     ;; naming for values, bad esp. for lambdas?)
+
+     ;; XX hm schould instead really move args inside until
+     ;; endofpossibilities, THEN if ((lambda ()..)) then move
+     ;; .. out.  this way, makes lambdas smaller,
+     ;; too. well.
+
+     ;; ((lambda (x) (g x y)) y)
+
+     ;; If none of the argument expressions are self-evaluating
+     ;; (i.e. their evaluation results in itself--XX add a
+     ;; predicate?), replace the app with the body of proc*, with the
+     ;; variables interpolated positionally like the args* (this is
+     ;; function application!..). |vars| and |expr| are |proc*|'s.
+     ((and (corescheme-lambda? proc*)
+           (with. corescheme-lambda proc* ;; expr and vars
+
+                  ;; (can't use |every| since also need to walk vars)
+                  (let lp ((vars vars)
+                           (args args*))
+                    (if-let-pair
+                     ((var vars*) vars)
+                     (let-pair
+                      ((arg args*) args)
+                                           
+                      (and (or (corescheme-ref? arg)
+                               (and (or (corescheme-lambda? arg)
+                                        (corescheme-literal? arg))
+                                    ;; the corresponding variable is only
+                                    ;; used max once
+                                    (<= (.num-references expr var) 1)))
+                           (lp vars* args*)))
+                     (begin
+                       (assert (null? args))
+                       #t)))))
+      (with. corescheme-lambda proc*
+             (.interpolate expr vars args*)))
+
+     (else
+      (corescheme-app proc* args*)))))
 
 (def.* (corescheme-def.optimize s)
   (let ((val* (.optimize val)))
@@ -151,13 +197,40 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
  ;; can't optimize this since it would change evaluation order:
  > (t '(lambda (x y) ((f) x y)))
  (lambda (x y) ((f) x y))
+
  ;; lambda instead of symbol in call position:
+ ;; > (t '(lambda (y) ((lambda (x) (.>>= (g x) h)) y))) XX just enable that optim
+ ;; (lambda (x) (.>>= (g x) h))
+ ;; > (t '(lambda (q) (lambda (y) ((lambda (x) (.>>= (g x q) h)) y))))
+ ;; (lambda (q) (lambda (x) (.>>= (g x q) h)))
+ ;; XX ^ re-enable
+
+ ;; with app optimization turned on as well, that one happens first,
+ ;; hence we get variables renamed
  > (t '(lambda (y) ((lambda (x) (.>>= (g x) h)) y)))
- (lambda (x) (.>>= (g x) h))
+ (lambda (y) (.>>= (g y) h))
  > (t '(lambda (q) (lambda (y) ((lambda (x) (.>>= (g x q) h)) y))))
- (lambda (q) (lambda (x) (.>>= (g x q) h)))
+ (lambda (q) (lambda (y) (.>>= (g y q) h)))
+ ;;XX and add test to see conflict handling. Already easily happens.
+ 
  ;; lambda that captures a variable of its parent lambda thus can't be
  ;; optimized: (could interpolate y though instead to get rid of it)
  > (t '(lambda (y) ((lambda (x) (.>>= (g x y) h)) y)))
- (lambda (y) ((lambda (x) (.>>= (g x y) h)) y))
+ ;; (lambda (y) ((lambda (x) (.>>= (g x y) h)) y))
+ ;; now since interpolation:
+ (lambda (y) (.>>= (g y y) h))
+
+ ;; interpolate lexical lambda arguments which are variables or literals
+ > (t '(lambda (y) ((lambda (x) (g x y)) y)))
+ (lambda (y) (g y y))
+ > (t '(lambda (y) ((lambda (x) (g x)) y)))
+ g
+ > (t '(lambda (y) ((lambda (x z) (g x y z)) y 10)))
+ (lambda (y) (g y y 10))
+ ;; or lambdas
+ > (t '(lambda (y) ((lambda (x) (g x y)) (lambda () y))))
+ (lambda (y) (g (lambda () y) y))
+ ;; when used twice, do not inline:  (XX wording: inline==interpolate?)
+ > (t '(lambda (y) ((lambda (x) (g x x y)) (lambda () y))))
+ (lambda (y) ((lambda (x) (g x x y)) (lambda () y)))
  )
