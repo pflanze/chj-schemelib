@@ -26,25 +26,24 @@
 ;; - systematic (property or tracing based?) tests
 
 (require easy
-	 jclass
-	 typed-list
+         typed-list
 	 typed-alist
 	 Maybe
 	 show)
 
 (export corescheme:literal-atom?
 	corescheme:literal?
-	(jclass corescheme-var)
-	(jclass corescheme-expr
-		(subclasses corescheme-literal
-			    corescheme-lambda
-			    corescheme-app
-			    corescheme-ref
-			    corescheme-def
-			    corescheme-begin
-			    corescheme-if
-			    corescheme-set!
-			    corescheme-letrec))
+	(class corescheme-var)
+	(class corescheme-expr
+               (classes corescheme-literal
+                        corescheme-lambda
+                        corescheme-app
+                        corescheme-ref
+                        corescheme-def
+                        corescheme-begin
+                        corescheme-if
+                        corescheme-set!
+                        corescheme-letrec))
 	(method source.corescheme)
 	
 	#!optional
@@ -69,36 +68,37 @@
 		    (improper-list-of corescheme:literal?))
 	      (vector-of corescheme:literal?)) x))
 
-(jclass (corescheme-var [(possibly-source-of symbol?) name]
-			[natural0? id]))
+(defclass (corescheme-var [(possibly-source-of symbol?) name]
+                          [natural0? id]))
 
-(jclass corescheme-expr
-	(jclass (corescheme-literal [corescheme:literal? val]))
+(defclass corescheme-expr
 
-	(jclass (corescheme-lambda [(improper-list-of corescheme-var?) vars]
-				   [corescheme-expr? expr]))
+  (defclass (corescheme-literal [corescheme:literal? val]))
+
+  (defclass (corescheme-lambda [(improper-list-of corescheme-var?) vars]
+                               [corescheme-expr? expr]))
        
-	(jclass (corescheme-app [corescheme-expr? proc]
-				[(list-of corescheme-expr?) args]))
+  (defclass (corescheme-app [corescheme-expr? proc]
+                            [(list-of corescheme-expr?) args]))
        
-	(jclass (corescheme-ref [corescheme-var? var]))
+  (defclass (corescheme-ref [corescheme-var? var]))
 
-	(jclass (corescheme-def [corescheme-var? var]
-				[corescheme-expr? val]))
+  (defclass (corescheme-def [corescheme-var? var]
+                            [corescheme-expr? val]))
 
-	(jclass (corescheme-begin [(list-of corescheme-expr?) body]))
+  (defclass (corescheme-begin [(list-of corescheme-expr?) body]))
        
-	(jclass (corescheme-if [corescheme-expr? test]
-			       [corescheme-expr? then]
-			       ;; should the missing-else case be encoded as
-			       ;; explicit (void) ?
-			       [(maybe corescheme-expr?) else]))
+  (defclass (corescheme-if [corescheme-expr? test]
+                           [corescheme-expr? then]
+                           ;; should the missing-else case be encoded as
+                           ;; explicit (void) ?
+                           [(maybe corescheme-expr?) else]))
        
-	(jclass (corescheme-set! [corescheme-var? var]
-				 [corescheme-expr? val]))
+  (defclass (corescheme-set! [corescheme-var? var]
+                             [corescheme-expr? val]))
 
-	(jclass (corescheme-letrec [(list-of corescheme-var?) vars]
-				   [(list-of corescheme-expr?) exprs])))
+  (defclass (corescheme-letrec [(list-of corescheme-var?) vars]
+                               [(list-of corescheme-expr?) exprs])))
 
 
 (defparameter current-corescheme-id #f)
