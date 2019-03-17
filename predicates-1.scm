@@ -56,7 +56,7 @@
 	length-<
 	length->
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
-	length=
+	lengths-=
 	list-of-length
 	list-of/length
 	lists?
@@ -265,25 +265,25 @@
  > (t-length= length-=)
  (#t #f #t #f #t #f))
 
-(define (length= l1 l2)
+(define (lengths-= l1 l2)
   (if (null? l1)
       (null? l2)
       (if (null? l2)
 	  #f
-	  (length= (cdr l1) (cdr l2)))))
+	  (lengths-= (cdr l1) (cdr l2)))))
 
 (TEST
- > (length= '() '())
+ > (lengths-= '() '())
  #t
- > (length= '(a) '())
+ > (lengths-= '(a) '())
  #f
- > (length= '(a) '(1))
+ > (lengths-= '(a) '(1))
  #t
- > (length= '(a) '(1 2))
+ > (lengths-= '(a) '(1 2))
  #f
- > (length= '(a b) '(1 2))
+ > (lengths-= '(a b) '(1 2))
  #t
- > (%try (length= '(a . b) '(1 . 2)))
+ > (%try (lengths-= '(a . b) '(1 . 2)))
  (exception text: "(Argument 1) PAIR expected\n(cdr 'b)\n"))
 
 

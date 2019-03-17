@@ -44,7 +44,7 @@
 	length-<=
 	length->=
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
-	length=
+	lengths-=
 	list-of-length
 	lists?
 	0..1? ;; see also rgb:0..1?

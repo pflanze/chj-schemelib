@@ -608,7 +608,7 @@
 
 
 
-;; XX compare with length= in predicates.scm, these both really should
+;; XX compare with lengths-= in predicates.scm, these both really should
 ;; be in list library right? *!*
 
 (define (length-cmp l1 l2)
