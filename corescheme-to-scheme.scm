@@ -104,47 +104,47 @@
 	     .
 	     ((lambda (x) x) '()))
 
-	    ((define (square n)
+	    ((define (corescheme-to-scheme:square n)
 	       (* n n))
 	     .
-	     (define square (lambda (n) (* n n))))
+	     (define corescheme-to-scheme:square (lambda (n) (* n n))))
 
-	    ((define (fact n)
+	    ((define (corescheme-to-scheme:fact n)
 	       (if (zero? n)
 		   1
-		   (* n (fact (- n 1)))))
+		   (* n (corescheme-to-scheme:fact (- n 1)))))
 	     .
-	     (define fact
+	     (define corescheme-to-scheme:fact
 	       (lambda (n)
 		 (if (zero? n)
 		     1
-		     (* n (fact (- n 1)))))))
+		     (* n (corescheme-to-scheme:fact (- n 1)))))))
 	    
 	    ((begin (define a 1) (define b a))
 	     .
 	     (begin (define a 1) (define b a)))
 
 	    ((begin
-	       (define (odd? n)
+	       (define (corescheme-to-scheme:odd? n)
 	    	 (if (zero? n)
 	    	     #f
-	    	     (even? (- n 1))))
-	       (define (even? n)
+	    	     (corescheme-to-scheme:even? (- n 1))))
+	       (define (corescheme-to-scheme:even? n)
 	    	 (if (zero? n)
 	    	     #t
-	    	     (odd? (- n 1)))))
+	    	     (corescheme-to-scheme:odd? (- n 1)))))
 	     .
 	     (begin
-	       (define odd?
+	       (define corescheme-to-scheme:odd?
 		 (lambda (n)
 		   (if (zero? n)
 		       #f
-		       (even? (- n 1)))))
-	       (define even?
+		       (corescheme-to-scheme:even? (- n 1)))))
+	       (define corescheme-to-scheme:even?
 		 (lambda (n)
 		   (if (zero? n)
 		       #t
-		       (odd? (- n 1)))))))
+		       (corescheme-to-scheme:odd? (- n 1)))))))
 	    )))
 	 t-scheme-code*))
  > failures
