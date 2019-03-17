@@ -10,6 +10,11 @@
          corescheme
          test)
 
+
+(export corescheme-optimize ;; avoid using .optimize directly
+        )
+
+
 ;; helpers, move to corescheme-helpers.scm?
 
 (def (possibly-vars-equal? vars1 vars2 fn1 fn2)
@@ -73,6 +78,13 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
 ;; /helpers
 
 
+(def (corescheme-optimize s)
+     (let ((r (parameterize ((current-optimizing? #t))
+                            (.optimize s))))
+       (assert (corescheme.optimized? r))
+       r))
+
+
 (def. (corescheme.optimize s)
   s)
 
@@ -95,7 +107,7 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
 
 (TEST
  > (def t (=>* (source.corescheme globals: '(f))
-               .optimize
+               corescheme-optimize
                .scheme))
 
  ;; remove needless lambda wrappers:
