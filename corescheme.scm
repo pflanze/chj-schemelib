@@ -304,40 +304,40 @@
 		(parameterize ((current-corescheme-id 0))
 			      (_source->corescheme:begin v (get-env) #f))))
  > (.show (t-_cs:begin '((define a 1) (define b 2))))
- (values (corescheme-begin
+ (values (_corescheme-begin
           #f
-	  (list (corescheme-def #f
+	  (list (_corescheme-def #f
                                 (corescheme-var 'a 1)
-                                (corescheme-literal #f 1))
-		(corescheme-def #f
+                                (_corescheme-literal #f 1))
+		(_corescheme-def #f
                                 (corescheme-var 'b 2)
-                                (corescheme-literal #f 2))))
+                                (_corescheme-literal #f 2))))
 	 (typed-list corescheme-var?
                      (corescheme-var 'b 2)
                      (corescheme-var 'a 1)))
  > (.show (t-_cs:begin '((define a 1) (define b a))))
- (values (corescheme-begin
+ (values (_corescheme-begin
           #f
-	  (list (corescheme-def #f
+	  (list (_corescheme-def #f
                                 (corescheme-var 'a 1)
-                                (corescheme-literal #f 1))
-		(corescheme-def #f
+                                (_corescheme-literal #f 1))
+		(_corescheme-def #f
                                 (corescheme-var 'b 2)
-                                (corescheme-ref #f (corescheme-var 'a 1)))))
+                                (_corescheme-ref #f (corescheme-var 'a 1)))))
 	 (typed-list corescheme-var?
                      (corescheme-var 'b 2)
                      (corescheme-var 'a 1)))
  > (.show (t-_cs:begin '((define a b) (define b a))))
  ;; this might be invalid Scheme, but valid Ocaml; XXX: ah, actually
  ;; ambiguous?, if b was defined earlier, that one is used instead!
- (values (corescheme-begin
+ (values (_corescheme-begin
           #f
-          (list (corescheme-def #f
+          (list (_corescheme-def #f
                                 (corescheme-var 'a 1)
-                                (corescheme-ref #f (corescheme-var 'b 2)))
-                (corescheme-def #f
+                                (_corescheme-ref #f (corescheme-var 'b 2)))
+                (_corescheme-def #f
                                 (corescheme-var 'b 2)
-                                (corescheme-ref #f (corescheme-var 'a 1)))))
+                                (_corescheme-ref #f (corescheme-var 'a 1)))))
          (typed-list corescheme-var?
                      (corescheme-var 'b 2)
                      (corescheme-var 'a 1)))
@@ -631,67 +631,67 @@
 	(.show (source.corescheme c get-ctx: empty-environment)))
 
  > (cs/empty '(define x 2))
- (corescheme-def #f (corescheme-var 'x 1) (corescheme-literal #f 2))
+ (_corescheme-def #f (corescheme-var 'x 1) (_corescheme-literal #f 2))
  > (cs/empty '(lambda x 2))
- (corescheme-lambda #f (corescheme-var 'x 1) (corescheme-literal #f 2))
+ (_corescheme-lambda #f (corescheme-var 'x 1) (_corescheme-literal #f 2))
  > (catching (& (source.corescheme '(f x))))
  "undefined variable in function position"
  > (catching (& (source.corescheme '(begin x 2))))
  "undefined variable"
  > (cs/empty '(let ((x 4))
 		(begin x 2)))
- (corescheme-app #f
-                 (corescheme-lambda
+ (_corescheme-app #f
+                 (_corescheme-lambda
                   #f
 		  (list (corescheme-var 'x 1))
-		  (corescheme-begin
+		  (_corescheme-begin
                    #f
-                   (list (corescheme-ref #f (corescheme-var 'x 1))
-                         (corescheme-literal #f 2))))
-		 (list (corescheme-literal #f 4)))
+                   (list (_corescheme-ref #f (corescheme-var 'x 1))
+                         (_corescheme-literal #f 2))))
+		 (list (_corescheme-literal #f 4)))
  > (catching (& (source.corescheme '(let ((x 4) (y x)) (begin x 2)))))
  "undefined variable"
  > (cs/empty '(let ((x 4) (y 5)) (begin x 2)))
- (corescheme-app
-  #f (corescheme-lambda
+ (_corescheme-app
+  #f (_corescheme-lambda
       #f
       (list (corescheme-var 'x 1) (corescheme-var 'y 2))
-      (corescheme-begin #f
-                        (list (corescheme-ref #f (corescheme-var 'x 1))
-                              (corescheme-literal #f 2))))
-  (list (corescheme-literal #f 4) (corescheme-literal #f 5)))
+      (_corescheme-begin #f
+                        (list (_corescheme-ref #f (corescheme-var 'x 1))
+                              (_corescheme-literal #f 2))))
+  (list (_corescheme-literal #f 4) (_corescheme-literal #f 5)))
  > (cs/empty '(let* ((x 4) (y x)) (begin x 2)))
- (corescheme-app
-  #f (corescheme-lambda
+ (_corescheme-app
+  #f (_corescheme-lambda
       #f
       (list (corescheme-var 'x 1))
-      (corescheme-app
-       #f (corescheme-lambda
+      (_corescheme-app
+       #f (_corescheme-lambda
            #f
            (list (corescheme-var 'y 2))
-           (corescheme-begin
+           (_corescheme-begin
             #f
-            (list (corescheme-ref #f (corescheme-var 'x 1))
-                  (corescheme-literal #f 2))))
-       (list (corescheme-ref #f (corescheme-var 'x 1)))))
-  (list (corescheme-literal #f 4)))
+            (list (_corescheme-ref #f (corescheme-var 'x 1))
+                  (_corescheme-literal #f 2))))
+       (list (_corescheme-ref #f (corescheme-var 'x 1)))))
+  (list (_corescheme-literal #f 4)))
 
 
  > (def (cs/default c)
 	(.show (source.corescheme c get-ctx: default-scheme-env)))
 
  > (cs/default '(+ - * /))
- (corescheme-app #f
-                 (corescheme-ref #f (corescheme-var '+ 1))
-		 (list (corescheme-ref #f (corescheme-var '- 2))
-		       (corescheme-ref #f (corescheme-var '* 3))
-		       (corescheme-ref #f (corescheme-var '/ 4))))
+ (_corescheme-app #f
+                 (_corescheme-ref #f (corescheme-var '+ 1))
+		 (list (_corescheme-ref #f (corescheme-var '- 2))
+		       (_corescheme-ref #f (corescheme-var '* 3))
+		       (_corescheme-ref #f (corescheme-var '/ 4))))
  > (cs/default '(lambda (n) (* n n)))
- (corescheme-lambda
+ (_corescheme-lambda
   #f
   (list (corescheme-var 'n 10))
-  (corescheme-app #f
-                  (corescheme-ref #f (corescheme-var '* 3))
-		  (list (corescheme-ref #f (corescheme-var 'n 10))
-                        (corescheme-ref #f (corescheme-var 'n 10))))))
+  (_corescheme-app #f
+                  (_corescheme-ref #f (corescheme-var '* 3))
+		  (list (_corescheme-ref #f (corescheme-var 'n 10))
+                        (_corescheme-ref #f (corescheme-var 'n 10))))))
 
