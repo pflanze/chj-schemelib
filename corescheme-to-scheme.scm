@@ -145,6 +145,12 @@
 		   (if (zero? n)
 		       #t
 		       (corescheme-to-scheme:odd? (- n 1)))))))
+
+            ((define (corescheme-to-scheme:foo fn)
+               ((lambda (x) (fn x)) 10))
+             .
+             (define corescheme-to-scheme:foo
+               (lambda (fn) ((lambda (x) (fn x)) 10))))
 	    )))
 	 t-scheme-code*))
  > failures

@@ -217,6 +217,23 @@
   `(return-normal (& ,e)))
 
 
+(def (ctx-add-args [corescheme-ctx? ctx]
+                   [(possibly-source-of any?) args])
+     -> (values-of any? ;; args passed through new-corescheme-var!
+                   corescheme-ctx?)
+     ;; args can be a list of variables, or a single variable (rest
+     ;; argument), or in the future DSSSL style declaration. |any?|
+     ;; for now.
+     (let* ((args* 
+             (improper-map new-corescheme-var!
+                           ;; if it's a pair, location info has to be
+                           ;; stripped so that improper-map works.
+                           (let ((args* (source-code args)))
+                             (if (pair? args*) args* args))))
+            (ctx* (.improper-prepend ctx args*)))
+       (values args* ctx*)))
+
+
 (def (_source->corescheme expr
 			  [corescheme-ctx? ctx]
 			  [boolean? realmode?])
@@ -253,153 +270,178 @@
       (pair?
        (let-pair
 	((a r) (source-code expr))
-	(Maybe:cond
-	 ((ctx:Maybe-ref ctx (source-code a)) =>
-	  (lambda (var)
-	    (%return-normal
-	     (corescheme-app (corescheme-ref var)
-			     (map (comp fst
-					;; dropping ctx changes; XX
-					;; interesting: this is where ##begin
-					;; would be invalid ~?
-					(C _source->corescheme _ ctx realmode?))
-				  r)))))
-	 (else
-	  (mcase
-	   expr
 
-	   (`(quote `val)
-	    (%return-normal
-	     (corescheme-literal val)))
-	   (`(define `what . `rest)
-	    (mcase what
-		   (symbol?
-		    (mcase rest
-			   (`(`expr)
-			    (let* ((what* (new-corescheme-var! what))
-				   (ctx* (.cons ctx what*)))
-			      ;; XX really letrec behaviour?
-			      (if realmode?
-				  (corescheme-def
-                                   what*
-                                   (if realmode?
-                                       (fst (_source->corescheme expr
-                                                                 ctx*
-                                                                 realmode?))
-                                       (corescheme-dummy)))
-				  ctx*)))))
-		   (pair?
-		    (let-pair
-		     ((var args) (source-code what))
-		     (let* ((var* (new-corescheme-var! var))
-			    (ctx* (.cons ctx var*)))
-		       (if realmode?
-			   ;; XX copypaste from above, see improper-* usage
-			   (let* ((args* (improper-map new-corescheme-var! args))
-				  (ctx** (.improper-prepend ctx* args*)))
-			     (corescheme-def var*
-					     (corescheme-lambda
-					      args*
-					      (fst ;; dropping ctx changes
-					       (_source->corescheme:begin
-                                                rest
-                                                ctx**
-                                                realmode?)))))
-			   ctx*))))))
-	   (`(let `binds . `body)
-	    (assert*
-	     list? binds
-	     (lambda (bs)
-	       (let* ((v+e-s
-		       (map (lambda (bind)
-			      ;; XX dedup?
-			      (mcase bind
-				     (`(`var `expr)
-				      (values var expr))))
-			    (source-code binds)))
-		      (vs (map (comp new-corescheme-var! fst) v+e-s))
-		      (es (map (comp* fst
-                                      (C _source->corescheme _ ctx realmode?)
-                                      snd)
-                               v+e-s))
-		      (ctx* (.improper-prepend ctx vs)))
-		 (%return-normal
-		  (corescheme-app
-		   (corescheme-lambda
-		    vs
-		    (fst ;; dropping ctx changes
-		     (_source->corescheme:begin body ctx* realmode?)))
-		   es))))))
-	   (`(let* `binds . `body)
-	    ;; XX dedup code with let ?
-	    (assert*
-	     list? binds
-	     (lambda (bs)
-	       (let lp ( ;; in
-			(bs bs)
-			;; out
-			(ctx ctx)
-			(vars '())
-			;; ^ could save this if we
-			;; had an n-ary map that
-			;; doesn't error out on
-			;; uneven list lengths
-			(exprs '()))
-		 (if (null? bs)
-		     ;; process body and wrap
-		     ;; preprocessed outer scopes
-		     ;; around it
-		     (%return-normal
-		      (fold (lambda (v+e expr)
-			      (corescheme-app
-			       (corescheme-lambda (list (fst v+e))
-						  expr)
-			       (list (snd v+e))))
-			    (fst ;; dropping ctx changes
-			     (_source->corescheme:begin body ctx realmode?))
-			    (map values vars exprs)))
+        (let ((a* (source-code a)))
+          (cond
+           ((symbol? a*)
+        
+            (Maybe:if-let
+             ((var (ctx:Maybe-ref ctx a*)))
+             (%return-normal
+              (corescheme-app
+               (corescheme-ref var)
+               ;; XX copy pasted further down
+               (map (comp fst
+                          ;; dropping ctx changes; XX
+                          ;; interesting: this is where ##begin
+                          ;; would be invalid ~?
+                          (C _source->corescheme _ ctx realmode?))
+                    r)))
 
-		     (let-pair
-		      ((b bs*) bs)
-		      (mcase
-		       b
-		       (`(`var `expr)
-			(let ((var* (new-corescheme-var! var)))
-			  (lp bs*
-			      (.cons ctx var*)
-			      (cons var* vars)
-			      (cons
-			       (fst
-				;; dropping ctx changes; XX really
-				;; interesting: this is "why" (let*
-				;; ((y (begin (define x ..))) ..) is
-				;; disallowed; "can't" (shouldn't?)
-				;; carry over ctx changes.
-				(_source->corescheme expr ctx realmode?))
-			       exprs)))))))))))
-	   (`(lambda `vars . `rest)
-	    (%return-normal
-	     (let* ((vars* (improper-map new-corescheme-var! vars))
-		    (ctx* (.improper-prepend ctx vars*)))
-	       (corescheme-lambda
-                vars*
-                (_source->corescheme:begin rest ctx* realmode?)))))
-	   (`(begin . `rest)
-	    (_source->corescheme:begin rest ctx realmode?))
-	   (`(if `test `then)
-	    (%return-normal
-	     ;; dropping ctx changes
-	     (corescheme-if (fst (_source->corescheme test ctx realmode?))
-			    (fst (_source->corescheme then ctx realmode?))
-			    #f)))
-	   (`(if `test `then `else)
-	    (%return-normal
-	     (corescheme-if (fst (_source->corescheme test ctx realmode?))
-			    (fst (_source->corescheme then ctx realmode?))
-			    (fst (_source->corescheme else ctx realmode?)))))
-	   (else
-	    (source-error a
-			  "undefined variable in function position")))))))))
+             ;; else:
+             (mcase
+              expr
+
+              (`(quote `val)
+               (%return-normal
+                (corescheme-literal val)))
+              (`(define `what . `rest)
+               (mcase what
+                      (symbol?
+                       (mcase rest
+                              (`(`expr)
+                               (let* ((what* (new-corescheme-var! what))
+                                      (ctx* (.cons ctx what*)))
+                                 ;; XX really letrec behaviour?
+                                 (if realmode?
+                                     (corescheme-def
+                                      what*
+                                      (if realmode?
+                                          (fst (_source->corescheme
+                                                expr
+                                                ctx*
+                                                realmode?))
+                                          (corescheme-dummy)))
+                                     ctx*)))))
+                      (pair?
+                       (let-pair
+                        ((var args) (source-code what))
+                        (let* ((var* (new-corescheme-var! var))
+                               (ctx* (.cons ctx var*)))
+                          (if realmode?
+                              (letv ((args* ctx**) (ctx-add-args ctx* args))
+                                    (corescheme-def
+                                     var*
+                                     (corescheme-lambda
+                                      args*
+                                      (fst ;; dropping ctx changes
+                                       (_source->corescheme:begin
+                                        rest
+                                        ctx**
+                                        realmode?)))))
+                              ctx*))))))
+              (`(let `binds . `body)
+               (assert*
+                list? binds
+                (lambda (bs)
+                  (let* ((v+e-s
+                          (map (lambda (bind)
+                                 ;; XX dedup?
+                                 (mcase bind
+                                        (`(`var `expr)
+                                         (values var expr))))
+                               (source-code binds)))
+                         (vs (map (comp new-corescheme-var! fst) v+e-s))
+                         (es (map (comp*
+                                   fst
+                                   (C _source->corescheme _ ctx realmode?)
+                                   snd)
+                                  v+e-s))
+                         (ctx* (.improper-prepend ctx vs)))
+                    (%return-normal
+                     (corescheme-app
+                      (corescheme-lambda
+                       vs
+                       (fst ;; dropping ctx changes
+                        (_source->corescheme:begin body ctx* realmode?)))
+                      es))))))
+              (`(let* `binds . `body)
+               ;; XX dedup code with let ?
+               (assert*
+                list? binds
+                (lambda (bs)
+                  (let lp ( ;; in
+                           (bs bs)
+                           ;; out
+                           (ctx ctx)
+                           (vars '())
+                           ;; ^ could save this if we
+                           ;; had an n-ary map that
+                           ;; doesn't error out on
+                           ;; uneven list lengths
+                           (exprs '()))
+                    (if (null? bs)
+                        ;; process body and wrap
+                        ;; preprocessed outer scopes
+                        ;; around it
+                        (%return-normal
+                         (fold (lambda (v+e expr)
+                                 (corescheme-app
+                                  (corescheme-lambda (list (fst v+e))
+                                                     expr)
+                                  (list (snd v+e))))
+                               (fst ;; dropping ctx changes
+                                (_source->corescheme:begin body ctx realmode?))
+                               (map values vars exprs)))
+
+                        (let-pair
+                         ((b bs*) bs)
+                         (mcase
+                          b
+                          (`(`var `expr)
+                           (let ((var* (new-corescheme-var! var)))
+                             (lp bs*
+                                 (.cons ctx var*)
+                                 (cons var* vars)
+                                 (cons
+                                  (fst
+                                   ;; dropping ctx changes; XX really
+                                   ;; interesting: this is "why" (let*
+                                   ;; ((y (begin (define x ..))) ..) is
+                                   ;; disallowed; "can't" (shouldn't?)
+                                   ;; carry over ctx changes.
+                                   (_source->corescheme expr ctx realmode?))
+                                  exprs)))))))))))
+              (`(lambda `vars . `rest)
+               (%return-normal
+                (letv ((vars* ctx*) (ctx-add-args ctx vars))
+                      (corescheme-lambda
+                       vars*
+                       (_source->corescheme:begin rest ctx* realmode?)))))
+              (`(begin . `rest)
+               (_source->corescheme:begin rest ctx realmode?))
+              (`(if `test `then)
+               (%return-normal
+                ;; dropping ctx changes
+                (corescheme-if
+                 (fst (_source->corescheme test ctx realmode?))
+                 (fst (_source->corescheme then ctx realmode?))
+                 #f)))
+              (`(if `test `then `else)
+               (%return-normal
+                (corescheme-if
+                 (fst (_source->corescheme test ctx realmode?))
+                 (fst (_source->corescheme then ctx realmode?))
+                 (fst (_source->corescheme else ctx realmode?)))))
+              (else
+               (source-error a
+                             "undefined variable in function position")))))
+
+           (else
+            ;; head is not a symbol: function application
+            (if (list? r)
+                (corescheme-app
+                 (_source->corescheme a ctx realmode?)
+                 ;; XX copy paste
+                 (map
+                  (comp fst
+                        ;; dropping ctx changes; XX
+                        ;; interesting: this is where ##begin
+                        ;; would be invalid ~?
+                        (C _source->corescheme _ ctx realmode?))
+                  r))
+                (source-error
+                 expr "improper list can't be function application")))))))))
 
 
 (TEST
