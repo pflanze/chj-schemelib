@@ -66,7 +66,7 @@
 (TEST
  > (def (corescheme-back source)
 	(.scheme
-	 (source.corescheme source default-scheme-env)))
+	 (source.corescheme source get-ctx: default-scheme-env)))
  > (def t-scheme-code
 	(lambda (source result)
 	  (and

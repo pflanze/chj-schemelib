@@ -45,7 +45,8 @@
                         corescheme-set!
                         corescheme-letrec))
 	(method source.corescheme)
-	
+	make-scheme-env
+        
 	#!optional
 	current-corescheme-id
 	corescheme-next-id!
@@ -128,11 +129,13 @@
 (def corescheme-ctx? (typed-list-of corescheme-var?))
 (def empty-corescheme-ctx (typed-list corescheme-var?))
 
-(def (default-scheme-env) -> corescheme-ctx?
+(def (make-scheme-env [(list-of symbol?) ss]) -> corescheme-ctx?
      (list->typed-list
       corescheme-var?
-      (map new-corescheme-var!
-	   '(+ - * / cons car cdr zero? null?))))
+      (map new-corescheme-var! ss)))
+
+(def (default-scheme-env) -> corescheme-ctx?
+     (make-scheme-env '(+ - * / cons car cdr zero? null?)))
 
 
 (def (_source->corescheme:begin rest
@@ -384,13 +387,20 @@
  (typed-list corescheme-var? (corescheme-var 'even? 1)))
 
 (def. (source.corescheme expr
-			 #!optional
+			 #!key
+                         ;; globals and get-ctx are doing the same,
+                         ;; hence redundant, globals is simply
+                         ;; easier.
+                         globals
 			 (get-ctx default-scheme-env)
 			 (realmode? #t))
   -> corescheme-expr?
 
-  (fst (parameterize ((current-corescheme-id 0))
-		     (_source->corescheme expr (get-ctx) realmode?))))
+  (let ((actual-get-ctx (if globals
+                            (C make-scheme-env globals)
+                            get-ctx)))
+    (fst (parameterize ((current-corescheme-id 0))
+                       (_source->corescheme expr (actual-get-ctx) realmode?)))))
 
 
 (TEST
@@ -407,7 +417,7 @@
 
  > (def (empty-environment) empty-corescheme-ctx)
  > (def (cs/empty c)
-	(.show (source.corescheme c empty-environment)))
+	(.show (source.corescheme c get-ctx: empty-environment)))
 
  > (cs/empty '(define x 2))
  (corescheme-def (corescheme-var 'x 1) (corescheme-literal 2))
@@ -441,7 +451,7 @@
 
 
  > (def (cs/default c)
-	(.show (source.corescheme c default-scheme-env)))
+	(.show (source.corescheme c get-ctx: default-scheme-env)))
 
  > (cs/default '(+ - * /))
  (corescheme-app (corescheme-ref (corescheme-var '+ 1))
