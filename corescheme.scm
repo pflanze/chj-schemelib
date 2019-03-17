@@ -34,7 +34,7 @@
 (export corescheme:literal-atom?
 	corescheme:literal?
 	(class corescheme-var)
-	(class corescheme-expr
+	(class corescheme
                (classes corescheme-literal
                         corescheme-lambda
                         corescheme-app
@@ -78,34 +78,34 @@
            (assert (eq? name (corescheme-var.name b)))
            #t))))
 
-(defclass corescheme-expr
+(defclass corescheme
 
   (defclass (corescheme-literal [corescheme:literal? val]))
 
   (defclass (corescheme-lambda [(improper-list-of corescheme-var?) vars]
-                               [corescheme-expr? expr]))
+                               [corescheme? expr]))
        
-  (defclass (corescheme-app [corescheme-expr? proc]
-                            [(list-of corescheme-expr?) args]))
+  (defclass (corescheme-app [corescheme? proc]
+                            [(list-of corescheme?) args]))
        
   (defclass (corescheme-ref [corescheme-var? var]))
 
   (defclass (corescheme-def [corescheme-var? var]
-                            [corescheme-expr? val]))
+                            [corescheme? val]))
 
-  (defclass (corescheme-begin [(list-of corescheme-expr?) body]))
+  (defclass (corescheme-begin [(list-of corescheme?) body]))
        
-  (defclass (corescheme-if [corescheme-expr? test]
-                           [corescheme-expr? then]
+  (defclass (corescheme-if [corescheme? test]
+                           [corescheme? then]
                            ;; should the missing-else case be encoded as
                            ;; explicit (void) ?
-                           [(maybe corescheme-expr?) else]))
+                           [(maybe corescheme?) else]))
        
   (defclass (corescheme-set! [corescheme-var? var]
-                             [corescheme-expr? val]))
+                             [corescheme? val]))
 
   (defclass (corescheme-letrec [(list-of corescheme-var?) vars]
-                               [(list-of corescheme-expr?) exprs])))
+                               [(list-of corescheme?) exprs])))
 
 
 (defparameter current-corescheme-id #f)
@@ -147,7 +147,7 @@
 (def (_source->corescheme:begin rest
 				[corescheme-ctx? ctx]
 				[boolean? realmode?])
-     -> (if realmode? corescheme-expr? corescheme-ctx?)
+     -> (if realmode? corescheme? corescheme-ctx?)
 
      (if (one-item? rest)
 	 (_source->corescheme (car rest) ctx realmode?)
@@ -243,7 +243,7 @@
 (def (_source->corescheme expr
 			  [corescheme-ctx? ctx]
 			  [boolean? realmode?])
-     -> (if realmode? corescheme-expr? corescheme-ctx?)
+     -> (if realmode? corescheme? corescheme-ctx?)
 
      (def (if-ctx-var sym *then *else)
 	  (cond
@@ -467,7 +467,7 @@
                          globals
 			 (get-ctx default-scheme-env)
 			 (realmode? #t))
-  -> corescheme-expr?
+  -> corescheme?
 
   (let ((actual-get-ctx (if globals
                             (C make-scheme-env globals)
