@@ -89,6 +89,13 @@
          (let ((opt (current-optimizing?)))
            (_corescheme-literal opt val))))
 
+  (defclass ((corescheme-ref _corescheme-ref)
+             [corescheme-var? var])
+
+    (def (corescheme-ref var)
+         (let ((opt (current-optimizing?)))
+           (_corescheme-ref opt var))))
+
   (defclass ((corescheme-lambda _corescheme-lambda)
              [(improper-list-of corescheme-var?) vars]
              [corescheme? expr])
@@ -108,13 +115,6 @@
                                 (every corescheme.optimized? args))))
            (_corescheme-app opt proc args))))
        
-  (defclass ((corescheme-ref _corescheme-ref)
-             [corescheme-var? var])
-
-    (def (corescheme-ref var)
-         (let ((opt (current-optimizing?)))
-           (_corescheme-ref opt var))))
-
   (defclass ((corescheme-def _corescheme-def)
              [corescheme-var? var]
              [corescheme? val])
@@ -123,6 +123,15 @@
          (let ((opt (current-optimizing?)))
            (If opt (assert (corescheme.optimized? val)))
            (_corescheme-def opt var val))))
+
+  (defclass ((corescheme-set! _corescheme-set!)
+             [corescheme-var? var]
+             [corescheme? val])
+
+    (def (corescheme-set! var val)
+         (let ((opt (current-optimizing?)))
+           (If opt (assert (corescheme.optimized? val)))
+           (_corescheme-set! opt var val))))
 
   (defclass ((corescheme-begin _corescheme-begin)
              [(list-of corescheme?) body])
@@ -146,15 +155,6 @@
                                 (if else (corescheme.optimized? else) #t))))
            (_corescheme-if opt test then else))))
        
-  (defclass ((corescheme-set! _corescheme-set!)
-             [corescheme-var? var]
-             [corescheme? val])
-
-    (def (corescheme-set! var val)
-         (let ((opt (current-optimizing?)))
-           (If opt (assert (corescheme.optimized? val)))
-           (_corescheme-set! opt var val))))
-
   (defclass ((corescheme-letrec _corescheme-letrec)
              [(list-of corescheme-var?) vars]
              [(list-of corescheme?) exprs])
