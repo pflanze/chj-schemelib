@@ -22,45 +22,39 @@
 ;; corescheme-var type to represent the result.)
 
 
-(def. (corescheme-literal.scheme v)
-  (let-corescheme-literal
-   ((val) v)
-   (cond (((either symbol? keyword? null?)
-	   (source-code val))
-	  `(quote ,val))
-	 (else
-	  val))))
+(def.* (corescheme-literal.scheme v)
+  (cond (((either symbol? keyword? null?)
+          (source-code val))
+         `(quote ,val))
+        (else
+         val)))
 
-(def. (corescheme-lambda.scheme v)
-  (let-corescheme-lambda ((vars expr) v)
-			 `(lambda ,(map .name vars)
-			    ,@(map .scheme
-				   (if (corescheme-begin? expr)
-				       (.body expr)
-				       (list expr))))))
+(def.* (corescheme-lambda.scheme v)
+  `(lambda ,(map .name vars)
+     ,@(map .scheme
+            (if (corescheme-begin? expr)
+                (.body expr)
+                (list expr)))))
 
-(def. (corescheme-app.scheme v)
-  (let-corescheme-app ((proc args) v)
-		      `(,(.scheme proc)
-			,@(map .scheme args))))
+(def.* (corescheme-app.scheme v)
+  `(,(.scheme proc)
+    ,@(map .scheme args)))
 
 (def. corescheme-ref.scheme (comp .name .var))
 
-(def. (corescheme-def.scheme v)
-  (let-corescheme-def ((var val) v)
-		      `(define ,(.name var)
-			 ,(.scheme val))))
+(def.* (corescheme-def.scheme v)
+  `(define ,(.name var)
+     ,(.scheme val)))
 
 (def. (corescheme-begin.scheme v)
   `(begin ,@(map .scheme (.body v))))
 
-(def. (corescheme-if.scheme v)
-  (let-corescheme-if ((test then else) v)
-		     `(if ,(.scheme test)
-			  ,(.scheme then)
-			  ,@(if else
-				(list (.scheme else))
-				'()))))
+(def.* (corescheme-if.scheme v)
+  `(if ,(.scheme test)
+       ,(.scheme then)
+       ,@(if else
+             (list (.scheme else))
+             '())))
 
 (def. (corescheme-set!.scheme v)
   `(set! ,(.name var)
