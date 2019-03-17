@@ -84,7 +84,13 @@
   (method (references? s [(list-of corescheme-var?) vars]) -> boolean?
           "whether s contains any references to any of the vars")
   (method (num-references s [corescheme-var? var]) -> natural0?
-          "how many references to var s contains"))
+          "how many references to var s contains")
+  (method (interpolate s
+                       [(list-of corescheme-var?) vars]
+                       [(list-of corescheme?) exprs])
+          -> corescheme?
+          (assert (lengths-= vars exprs))
+          "replace references to the given vars with the corresponding exprs."))
 
 
 (defclass (corescheme [boolean? optimized?])
@@ -98,7 +104,8 @@
            (_corescheme-literal opt val)))
 
     (defmethod (references? s vars) #f)
-    (defmethod (num-references s var) 0))
+    (defmethod (num-references s var) 0)
+    (defmethod (interpolate s vars exprs) s))
 
   (defclass ((corescheme-ref _corescheme-ref)
              [corescheme-var? var])
@@ -110,7 +117,17 @@
     (defmethod (references? s vars)
       (any (C corescheme-var.equal? _ var) vars))
     (defmethod (num-references s var*)
-      (if (corescheme-var.equal? var var*) 1 0)))
+      (if (corescheme-var.equal? var var*) 1 0))
+    (defmethod (interpolate s vars exprs)
+      (let lp ((vars vars)
+               (exprs exprs))
+        (if-let-pair ((v vars*) vars)
+                     (if (corescheme-var.equal? v var)
+                         (first exprs)
+                         (lp vars* (rest exprs)))
+                     ;; hmm *was* s already optimized? good Question; ?
+                     ;;(corescheme-ref var)
+                     s))))
 
   (defclass ((corescheme-lambda _corescheme-lambda)
              [(improper-list-of corescheme-var?) vars]
@@ -126,7 +143,10 @@
     (defmethod (num-references S var)
       ;; possible optimization: stop analyzing if var's name is in one
       ;; of vars' name?
-      (.num-references expr var)))
+      (.num-references expr var))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-lambda vars
+                         (.interpolate expr vars* exprs*))))
        
   (defclass ((corescheme-app _corescheme-app)
              [corescheme? proc]
@@ -145,7 +165,11 @@
       (fold (lambda (arg tot)
               (+ tot (.num-references arg var)))
             (.num-references proc var)
-            args)))
+            args))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-app (.interpolate proc vars* exprs*)
+                      (map (C .interpolate _ vars* exprs*)
+                           args))))
        
   (defclass ((corescheme-def _corescheme-def)
              [corescheme-var? var]
@@ -159,7 +183,9 @@
     (defmethod (references? s vars)
       (.references? val vars))
     (defmethod (num-references s var*)
-      (.num-references val var*)))
+      (.num-references val var*))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-def var (.interpolate val vars* exprs*))))
 
   (defclass ((corescheme-set! _corescheme-set!)
              [corescheme-var? var]
@@ -171,7 +197,11 @@
            (_corescheme-set! opt var val)))
 
     (defmethod (references? s vars)
-      (.references? val vars)))
+      (.references? val vars))
+    (defmethod (num-references s var*)
+      (.num-references val var*))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-set! var (.interpolate val vars* exprs*))))
 
   (defclass ((corescheme-begin _corescheme-begin)
              [(list-of corescheme?) body])
@@ -187,7 +217,10 @@
       (fold (lambda (expr tot)
               (+ tot (.num-references expr var)))
             0
-            body)))
+            body))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-begin (map (C .interpolate _ vars* exprs*)
+                             body))))
        
   (defclass ((corescheme-if _corescheme-if)
              [corescheme? test]
@@ -210,7 +243,11 @@
     (defmethod (num-references s var)
       (+ (.num-references test var)
          (.num-references then var)
-         (if else (.num-references else var) 0))))
+         (if else (.num-references else var) 0)))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-if (.interpolate test vars* exprs*)
+                     (.interpolate then vars* exprs*)
+                     (and else (.interpolate else vars* exprs*)))))
        
   (defclass ((corescheme-letrec _corescheme-letrec)
              [(list-of corescheme-var?) vars]
@@ -230,7 +267,11 @@
       (fold (lambda (expr tot)
               (+ tot (.num-references expr var)))
             (.num-references body-expr var)
-            exprs))))
+            exprs))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-letrec vars
+                         (map (C .interpolate _ vars* exprs*) exprs)
+                         (.interpolate body-expr vars* exprs*)))))
 
 
 (defparameter current-corescheme-id #f)
@@ -695,3 +736,14 @@
 		  (list (_corescheme-ref #f (corescheme-var 'n 10))
                         (_corescheme-ref #f (corescheme-var 'n 10))))))
 
+
+
+(TEST
+ > (parameterize ((current-optimizing? #f))
+                 (.interpolate (corescheme-ref (corescheme-var 'x 1))
+                               (list (corescheme-var 'y 2)
+                                     (corescheme-var 'x 1))
+                               (list (corescheme-literal 99)
+                                     (corescheme-literal 77))))
+ ;; #f since it's interpolated in non-optimizing context
+ [(corescheme-literal) #f 77])
