@@ -82,7 +82,9 @@
 
 (definterface corescheme-interface
   (method (references? s [(list-of corescheme-var?) vars]) -> boolean?
-          "whether s contains any references to any of the vars"))
+          "whether s contains any references to any of the vars")
+  (method (num-references s [corescheme-var? var]) -> natural0?
+          "how many references to var s contains"))
 
 
 (defclass (corescheme [boolean? optimized?])
@@ -95,8 +97,8 @@
          (let ((opt (current-optimizing?)))
            (_corescheme-literal opt val)))
 
-    (defmethod (references? s vars)
-      #f))
+    (defmethod (references? s vars) #f)
+    (defmethod (num-references s var) 0))
 
   (defclass ((corescheme-ref _corescheme-ref)
              [corescheme-var? var])
@@ -106,7 +108,9 @@
            (_corescheme-ref opt var)))
 
     (defmethod (references? s vars)
-      (any (C corescheme-var.equal? _ var) vars)))
+      (any (C corescheme-var.equal? _ var) vars))
+    (defmethod (num-references s var*)
+      (if (corescheme-var.equal? var var*) 1 0)))
 
   (defclass ((corescheme-lambda _corescheme-lambda)
              [(improper-list-of corescheme-var?) vars]
@@ -118,7 +122,11 @@
            (_corescheme-lambda opt vars expr)))
 
     (defmethod (references? s vars)
-      (.references? expr vars)))
+      (.references? expr vars))
+    (defmethod (num-references S var)
+      ;; possible optimization: stop analyzing if var's name is in one
+      ;; of vars' name?
+      (.num-references expr var)))
        
   (defclass ((corescheme-app _corescheme-app)
              [corescheme? proc]
@@ -132,7 +140,12 @@
 
     (defmethod (references? s vars)
       (or (.references? proc vars)
-          (any (C .references? _ vars) args))))
+          (any (C .references? _ vars) args)))
+    (defmethod (num-references s var)
+      (fold (lambda (arg tot)
+              (+ tot (.num-references arg var)))
+            (.num-references proc var)
+            args)))
        
   (defclass ((corescheme-def _corescheme-def)
              [corescheme-var? var]
@@ -144,7 +157,9 @@
            (_corescheme-def opt var val)))
 
     (defmethod (references? s vars)
-      (.references? val vars)))
+      (.references? val vars))
+    (defmethod (num-references s var*)
+      (.num-references val var*)))
 
   (defclass ((corescheme-set! _corescheme-set!)
              [corescheme-var? var]
@@ -167,7 +182,12 @@
            (_corescheme-begin opt body)))
 
     (defmethod (references? s vars)
-      (any (C .references? _ vars) body)))
+      (any (C .references? _ vars) body))
+    (defmethod (num-references s var)
+      (fold (lambda (expr tot)
+              (+ tot (.num-references expr var)))
+            0
+            body)))
        
   (defclass ((corescheme-if _corescheme-if)
              [corescheme? test]
@@ -186,19 +206,31 @@
     (defmethod (references? s vars)
       (or (.references? test vars)
           (.references? then vars)
-          (and else (.references? else vars)))))
+          (and else (.references? else vars))))
+    (defmethod (num-references s var)
+      (+ (.num-references test var)
+         (.num-references then var)
+         (if else (.num-references else var) 0))))
        
   (defclass ((corescheme-letrec _corescheme-letrec)
              [(list-of corescheme-var?) vars]
-             [(list-of corescheme?) exprs])
+             [(list-of corescheme?) exprs]
+             [corescheme? body-expr])
 
-    (def (corescheme-letrec vars exprs)
+    (def (corescheme-letrec vars exprs body-expr)
          (let ((opt (current-optimizing?)))
-           (If opt (assert (every corescheme.optimized? exprs)))
-           (_corescheme-letrec opt vars exprs)))
+           (If opt (assert (and (every corescheme.optimized? exprs)
+                                (corescheme.optimized? body-expr))))
+           (_corescheme-letrec opt vars exprs body-expr)))
 
     (defmethod (references? s vars)
-      (any (C .references? _ vars) exprs))))
+      (or (any (C .references? _ vars) exprs)
+          (.references? body-expr vars)))
+    (defmethod (num-references s var)
+      (fold (lambda (expr tot)
+              (+ tot (.num-references expr var)))
+            (.num-references body-expr var)
+            exprs))))
 
 
 (defparameter current-corescheme-id #f)
