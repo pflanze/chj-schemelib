@@ -15,6 +15,13 @@
 (export (method .scheme))
 
 
+;; XXX careful. After optimizations, there might be different
+;; variables with the same name in the same scope, and hence actually
+;; *do* need to be renamed for code gen. Not done yet. (Could be a
+;; processing step, though? Although bad to still use the
+;; corescheme-var type to represent the result.)
+
+
 (def. (corescheme-literal.scheme v)
   (let-corescheme-literal
    ((val) v)
