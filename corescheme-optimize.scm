@@ -85,9 +85,11 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
        r))
 
 
-(def. (corescheme.optimize s)
-  s)
+(def.* (corescheme-literal.optimize s)
+  (corescheme-literal.optimized?-set s #t))
 
+(def.* (corescheme-ref.optimize  s)
+  (corescheme-ref.optimized?-set s #t))
 
 (def.* (corescheme-lambda.optimize s)
   (let* ((expr* (.optimize expr))
@@ -105,6 +107,32 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
                    (return-s*)))
         (return-s*))))
 
+(def.* (corescheme-app.optimize s)
+  ;; just passing through for now. Why is passing-through code so
+  ;; verbose...
+  (let ((proc* (.optimize proc))
+        (args* (map .optimize args)))
+    (corescheme-app proc* args*)))
+
+(def.* (corescheme-def.optimize s)
+  (let ((val* (.optimize val)))
+    (corescheme-def var val*)))
+
+(def.* (corescheme-set!.optimize s)
+  (let ((val* (.optimize val)))
+    (corescheme-set! var val*)))
+
+(def.* (corescheme-begin.optimize s)
+  (corescheme-begin (map .optimize body)))
+
+(def.* (corescheme-if.optimize s)
+  (corescheme-if (.optimize test)
+                 (.optimize then)
+                 (and else (.optimize else))))
+
+(def.* (corescheme-letrec.optimize s)
+  (corescheme-letrec vars
+                     (map .optimize exprs)))
 
 
 (TEST
