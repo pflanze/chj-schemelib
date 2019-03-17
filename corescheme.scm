@@ -69,7 +69,7 @@
 		    (improper-list-of corescheme:literal?))
 	      (vector-of corescheme:literal?)) x))
 
-(jclass (corescheme-var #((perhaps-source-of symbol?) name)
+(jclass (corescheme-var #((possibly-source-of symbol?) name)
 			#(natural0? id)))
 
 (jclass corescheme-expr
@@ -140,7 +140,7 @@
 				#(boolean? realmode?))
      -> (if realmode? corescheme-expr? corescheme-ctx?)
 
-     (if (one? rest)
+     (if (one-item? rest)
 	 (_source->corescheme (car rest) ctx realmode?)
      
 	 ;; ctx changes need to be reflected both forward and
