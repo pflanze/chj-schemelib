@@ -252,6 +252,7 @@
     (and v
 	 (fn v))))
 
+;; function variant of (maybe pred), now that maybe is a macro
 (define (maybe-function pred)
   (either not pred))
 

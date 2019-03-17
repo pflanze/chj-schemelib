@@ -53,6 +53,8 @@
 	length-=
 	length-<=
 	length->=
+	length-<
+	length->
 	length-is ;; see also list-of/length  -- rename to list-of-length ?
 	length=
 	list-of-length
@@ -286,26 +288,72 @@
 
 
 (define (length-<= l len)
-  (if (null? l)
-      #t
-      (if (zero? len)
-	  #f
-	  (length-<= (cdr l) (dec len)))))
+  (if (< len 0)
+      #f
+      (if (null? l)
+          #t
+          (length-<= (cdr l) (dec len)))))
 
 (TEST
  > (t-length= length-<=)
  (#t #t #t #f #t #t))
 
+(TEST
+ > (define l '(-1 0 1 2))
+ > (map (C length-<= '() _) l)
+ (#f #t #t #t)
+ > (map (C length-<= '(a) _) l)
+ (#f #f #t #t)
+ > (map (C length-<= '(a b) _) l)
+ (#f #f #f #t))
+
+
+
 (define (length->= l len)
-  (if (null? l)
-      (zero? len)
-      (if (zero? len)
-	  #t
-	  (length->= (cdr l) (dec len)))))
+  (if (<= len 0)
+      #t
+      (if (null? l)
+          #f
+          (length->= (cdr l) (dec len)))))
 
 (TEST
  > (t-length= length->=)
  (#t #f #t #t #t #f))
+
+(TEST
+ > (define l '(-1 0 1 2))
+ > (map (C length->= '() _) l)
+ (#t #t #f #f)
+ > (map (C length->= '(a) _) l)
+ (#t #t #t #f)
+ > (map (C length->= '(a b) _) l)
+ (#t #t #t #t))
+
+
+(define (length-< l len)
+  (length-<= l (dec len)))
+
+(TEST
+ > (define l '(-1 0 1 2))
+ > (map (C length-< '() _) l)
+ (#f #f #t #t)
+ > (map (C length-< '(a) _) l)
+ (#f #f #f #t)
+ > (map (C length-< '(a b) _) l)
+ (#f #f #f #f))
+
+
+(define (length-> l len)
+  (length->= l (inc len)))
+
+(TEST
+ > (define l '(-1 0 1 2))
+ > (map (C length-> '() _) l)
+ (#t #f #f #f)
+ > (map (C length-> '(a) _) l)
+ (#t #t #f #f)
+ > (map (C length-> '(a b) _) l)
+ (#t #t #t #f))
 
 
 ;; see also list-of/length

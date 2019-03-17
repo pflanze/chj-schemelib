@@ -1,4 +1,4 @@
-;;; Copyright 2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -14,7 +14,7 @@
 	 test)
 
 (export sequential-pairs
-	sequencialpairs->pairs ;; older, obsolete ?
+	sequentialpairs->pairs ;; older, obsolete ?
 	dsssl-maybe-ref ;; should move to Maybe ?
 	dsssl-ref
 	dsssl-delete
@@ -63,26 +63,30 @@
  #(error "improper list:" (a . 1)))
 
 
-(define (sequencialpairs->pairs lis key-type? value-type?)
+;; obsolete?, also see sequential-pairs
+(define (sequentialpairs->pairs lis
+				#!optional
+				key-type?
+				value-type?)
   (let rec ((lis lis))
     (if (null? lis)
 	'()
 	(let ((key (car lis))
 	      (val (cadr lis)))
-	  (assert (key-type? key))
-	  (assert (value-type? val))
+	  (if key-type? (assert (key-type? key)))
+	  (if value-type? (assert (value-type? val)))
 	  (cons (cons key val)
 		(rec (cddr lis)))))))
 
 (TEST
- > (sequencialpairs->pairs '(a 1) symbol? number?)
+ > (sequentialpairs->pairs '(a 1) symbol? number?)
  ((a . 1)))
 
 
 
 ;; 'restargs-keyref' 'keyargs-maybe-ref'
 (def (dsssl-maybe-ref args #(keyword? key))
-     (let ((alis (sequencialpairs->pairs args keyword? true/1)))
+     (let ((alis (sequentialpairs->pairs args keyword? true/1)))
        (eq-alist-maybe-ref alis key)))
 
 (TEST

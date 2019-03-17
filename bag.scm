@@ -1,4 +1,4 @@
-;;; Copyright 2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -92,7 +92,7 @@
 
 
 (def (bag->string b #!optional (display display))
-     (with-output-to-string (C bag-for-each b display)))
+     (fst (with-output-to-string (C bag-for-each b display))))
 
 (TEST
  > (def bags '(()
@@ -150,7 +150,8 @@
 		  bags))
  #t
 
- > (map (lambda_ (with-output-to-string (& (bag-for-each _ print))))
+ > (map (lambda_
+         (fst (with-output-to-string (& (bag-for-each _ print)))))
 	bags)
  (""
   "a"

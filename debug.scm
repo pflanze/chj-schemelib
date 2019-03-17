@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -17,7 +17,8 @@
 (export STRING
 	(macro DEBUG)
 	(macro DEBUG*)
-	(macro T)
+	(macro T) ;; trace call
+        (macro TT) ;; trace tail call
 
 	*debug* ;; well, by alias? Hey, have syntax that sets compile
 		;; time variables scoped by the compilation unit?
@@ -173,60 +174,88 @@
  123)
 
 
-;; T supports an optional level then an optional marker string as the
-;; first arg(s)
+;; The syntax supports an optional level then an optional marker
+;; string as the first arg(s)
+
+(def (debug:T-expand form tailcall?)
+     (def Tstr (if tailcall? "TT" "T"))
+     (def Tunstr (if tailcall? "  " " "))
+     (if *debug*
+         (debug:parse-level
+          form #t
+          (lambda (form level maybe-marker)
+            (with-gensym
+             res
+             (let ((vs (map (comp gensym .string)
+                            (cdr (iota (length form))))))
+               `(let ,(map (lambda (v arg)
+                             `(,v ,arg))
+                           vs
+                           (cdr form))
+                  (if (and *debug* (<= *debug* ,level))
+                      (warn ,(if maybe-marker
+                                 (string-append Tstr
+                                                " "
+                                                (source-code maybe-marker)
+                                                ":")
+                                 (string-append Tstr
+                                                ":"))
+                            (list
+                             ',(car form)
+                             ,@(map (lambda (v)
+                                      `(.show ,v))
+                                    vs))
+                            ,@(if tailcall? '() '('...))))
+                  ,(let ((call-code `(,(car form) ,@vs)))
+                     (if tailcall?
+                         call-code
+                         `(let ((,res ,call-code))
+                            (if (and *debug* (<= *debug* ,level))
+                                (warn ,(if maybe-marker
+                                           (string-append
+                                            "  "
+                                            (source-code maybe-marker)
+                                            ":")
+                                           " :")
+                                      (list ',(car form)
+                                            ,@(map (lambda (v)
+                                                     `(.show ,v))
+                                                   vs))
+                                      '->
+                                      (.show ,res)))
+                            ,res))))))))
+         (debug:parse-level
+          form #t
+          (lambda (form level maybe-marker)
+            form))))
+
 (defmacro (T . form)
-  (if *debug*
-      (debug:parse-level
-       form #t
-       (lambda (form level maybe-marker)
-	 (with-gensym
-	  res
-	  (let ((vs (map (comp-function gensym .string) (cdr (iota (length form))))))
-	    `(let ,(map (lambda (v arg)
-			  `(,v ,arg))
-			vs
-			(cdr form))
-	       (if (and *debug* (<= *debug* ,level))
-		   (warn ,(if maybe-marker
-			      (string-append "T " (source-code maybe-marker)":")
-			      "T:")
-			 ;;,(object->string (cj-desourcify (car form)))
-			 (list
-			  ',(car form)
-			  ,@(map (lambda (v)
-				   `(.show ,v))
-				 vs))
-			 '...))
-	       (let ((,res (,(car form) ,@vs)))
-		 (if (and *debug* (<= *debug* ,level))
-		     (warn ,(if maybe-marker
-			      (string-append "  " (source-code maybe-marker)":")
-			      " :")
-			   ;;,(object->string (cj-desourcify (car form)))
-			   (list
-			    ',(car form)
-			    ,@(map (lambda (v)
-				     `(.show ,v))
-				   vs))
-			   '->
-			   (.show ,res)))
-		 ,res))))))
-      (debug:parse-level
-       form #t
-       (lambda (form level maybe-marker)
-	 form))))
+  (debug:T-expand form #f))
+
+(defmacro (TT . form)
+  (debug:T-expand form #t))
 
 (TEST
+ > (defmacro (TE . body)
+     `(values->vector
+       (with-error-to-string
+        (lambda ()
+          ,@body))))
  > (both-times (def *debug* 2))
- > (T + 1 2)
- 3
- > (T 3 + 2 3) ;; this one should make it to stderr
- 5
- > (T 3 "ey" + 3 3) ;; ditto
- 6
- > (T "ey" + 3 4)
- 7)
+ > (TE (T + 1 2))
+ ["" 3]
+ ;; these should make it to stderr:
+ > (TE (T 3 + 2 3))
+ ["T: (+ 2 3) ...\n : (+ 2 3) -> 5\n" 5]
+ > (TE (T 3 "ey" + 3 3))
+ ["T ey: (+ 3 3) ...\n  ey: (+ 3 3) -> 6\n" 6]
+ > (TE (TT 3 + 2 3))
+ ["TT: (+ 2 3)\n" 5]
+ > (TE (TT 3 "ey" + 3 3))
+ ["TT ey: (+ 3 3)\n" 6]
+ ;; /stderr
+ > (TE (T "ey" + 3 4))
+ ["" 7])
 
 
 (def debug:default-port (current-error-port))
@@ -263,18 +292,19 @@
 (def *single-step?* #t)
 
 (def (warn-stop-on-line! n)
-     (port-add-hook! (current-error-port)
-		     (named self
-			    (lambda (port)
-			      (let ((m (output-port-line port)))
-				;; (= m n) is no good as can have multi-line warn statements
-				(if (>= m n)
-				    (begin
-				      (force-output port)
-				      (port-remove-hook! port self)
-				      (if *single-step?*
-					  (begin
-					    (displayln (STRING "reached error-port line " n)
-						       (console-port))
-					    (step))
-					  (error "reached error-port line" n)))))))))
+     (port-add-hook!
+      (current-error-port)
+      (named self
+             (lambda (port)
+               (let ((m (output-port-line port)))
+                 ;; (= m n) is no good as can have multi-line warn statements
+                 (if (>= m n)
+                     (begin
+                       (force-output port)
+                       (port-remove-hook! port self)
+                       (if *single-step?*
+                           (begin
+                             (displayln (STRING "reached error-port line " n)
+                                        (console-port))
+                             (step))
+                           (error "reached error-port line" n)))))))))

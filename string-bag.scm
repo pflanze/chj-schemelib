@@ -70,16 +70,18 @@
 
 (def (string-bag-display b #!optional (port (current-output-port)))
      (let disp ((b b))
-       (xcond ((pair? b)
-	       (let-pair ((a b*) b)
-			 (disp a)
-			 (disp b*)))
-	      ((string? b)
-	       (display b port))
-	      ((null? b)
-	       (void)))))
+       (cond ((pair? b)
+	      (let-pair ((a b*) b)
+			(disp a)
+			(disp b*)))
+	     ((string? b)
+	      (display b port))
+	     ((null? b)
+	      (void))
+	     (else
+	      (error "string-bag-display: improper string bag:" b)))))
 
 
 (TEST
- > (with-output-to-string (& (string-bag-display '("a" ("b" () . "c")))))
+ > (fst (with-output-to-string (& (string-bag-display '("a" ("b" () . "c"))))))
  "abc")

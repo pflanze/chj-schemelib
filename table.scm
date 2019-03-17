@@ -12,8 +12,7 @@
 	 (predicates alist?)
 	 test
 	 cj-cmp
-	 srfi-1
-	 (srfi-1 any))
+	 srfi-1)
 
 (export table-sorted-keys
 	table-sorted-values

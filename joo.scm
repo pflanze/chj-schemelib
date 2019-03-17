@@ -46,6 +46,7 @@
 (export (macro joo-class)
 	(macro joo-interface)
 	(macro def.*) ;; XX should I provide |define.*|, too?
+        (macro with.)
 	#!optional
 	joo:parse-decl)
 
@@ -114,14 +115,18 @@
 
 
 
-;; for |def-method| and |def.*|: make fields visible in the body
+;; for |def-method|, |def.*| and |with.|: make fields visible in the
+;; body
 (def (joo:body* [symbol? class-name]
 		[(list-of (source-of symbol?)) fields]
-		bind ;; raw method arguments
+		bind
+                ;; ^ raw method arguments; maybe should separate first
+                ;; argument (used in `(car bindvars) below) so that it
+                ;; doesn't have to be a symbol, for |with.|
 		rest
 		;; ^ body plus possibly -> from method definition or lambda
 		)
-     ;; -> list?
+     ;; -> list? -- why? so it is compatible with body itself, right
      (let* ((used (list->symbolcollection (joo:body-symbols rest)))
 	    (bindvars (joo:args->vars bind))
 	    (bind-used (list->symbolcollection (map source-code bindvars))))
@@ -155,10 +160,20 @@
 		,@body)))))
 
 
+(def (joo:class-name.all-field-names class-name)
+     (joo-type.all-field-names (eval
+                                (joo:joo-type-symbol class-name))))
+
 ;; XX now that def-method* has been renamed to def-method, should
 ;; probably rename this, too, but then it needs safe detection if
 ;; class-name is a class or not (just see whether the eval fails?
 ;; Sigh.)
+
+(def (joo:source-error-len-1 stx)
+     (source-error stx (string-append
+			"bare symbol given, but remainder "
+			" after it is not of length 1")))
+
 (defmacro (def.* bind . rest)
 
   (def (expand class-name.method binds body)
@@ -169,8 +184,7 @@
 	     (let ((class-name (string.symbol class-name-str)))
 	       `(def. (,class-name.method ,@binds)
 		  ,@(joo:body* class-name
-			       (joo-type.all-field-names
-				(eval (joo:joo-type-symbol class-name)))
+			       (joo:class-name.all-field-names class-name)
 			       binds
 			       body)))))
   
@@ -188,7 +202,21 @@
 	      (mcase (car rest)
 		     (`(lambda `binds . `body)
 		      (expand bind binds body)))
-	      (source-error stx "bare symbol given, but remainder after it is not of length 1")))))
+	      (joo:source-error-len-1 stx)))))
+
+
+;; a macro to get at joo:body* in other contexts
+(defmacro (with. class-name val . body)
+  (assert* symbol? class-name
+           (lambda (class-name)
+             (early-bind-expressions
+              ;; needed for no good reason except to make joo:body*
+              ;; happy
+              (val)
+              (the (joo:body* class-name
+                              (joo:class-name.all-field-names class-name)
+                              (list val)
+                              body))))))
 
 
 ;; def-method- and def-method
@@ -242,7 +270,7 @@
 			    (expand-with-bindings bind binds body))
 			   (else
 			    (expand-without-bindings)))
-		    (source-error stx "bare symbol given, but remainder after it is not of length 1"))
+		    (joo:source-error-len-1 stx))
 
 		;; no fields given, i.e. |def-method-|
 		(expand-without-bindings))))))
@@ -508,9 +536,10 @@
 
 ;; - tag-binding from cj-struct
 ;; - XX table with struct tag entries for that class' predicate
-;; - joo-field-decls:<class-name> : field defs for that class (including parent fields right)
-;; (- what about methods, I said no right? see later, hope doesnt depend on order)
-;; 
+;; - joo-field-decls:<class-name> : field defs for that class
+;;                                   (including parent fields right)
+;; (- what about methods, I said no right? see later,
+;;     hope doesnt depend on order)
 
 
 (def (joo:joo-type-symbol class-name) -> symbol?
@@ -611,14 +640,17 @@ ___SCMOBJ struct_tag_member_ofP(___SCMOBJ t, ___SCMOBJ members) {
     if (tag_name == ___FAL) {
         return ___FAL;
     } else {
-        ___SCMOBJ tag= symboltable_1__symboltable_ref(members, tag_name, ___FAL);
+        ___SCMOBJ tag= symboltable_1__symboltable_ref(members,
+                                                      tag_name,
+                                                      ___FAL);
         return (tag == ___FAL) ? ___FAL : ((t == tag) ? ___TRU : ___FAL);
     }
 }
 
 static
 ___SCMOBJ joo_type_members(___SCMOBJ v) {
-    return ___VECTORREF(v, ___FIX(9)); // XX evil, keep in sync with @joo-type.members-set!
+    return ___VECTORREF(v, ___FIX(9));
+       // XX evil, keep in sync with @joo-type.members-set!
 }
 
 ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
@@ -637,7 +669,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
        (if (mod:compiled?)
 	   (quasiquote-source
 	    (lambda (,V)
-	      (##c-code "___RESULT=  joo__joo_type_covers_instanceP(___ARG1, ___ARG2);"
+	      (##c-code "___RESULT=  joo__joo_type_covers_instanceP(___ARG1,
+                                                                    ___ARG2);"
 			,type-symbol ,V)))
 	   (quasiquote-source
 	    (lambda (,V)
@@ -673,7 +706,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 		    ;; constructor has the same name as the class
 		    (symbol?
-		     (let ((n (source-code class-name+perhaps-constructor-name*)))
+		     (let ((n (source-code
+			       class-name+perhaps-constructor-name*)))
 		       (cont-samename constructor-stx
 				      class-name+perhaps-constructor-name*
 				      class-name+perhaps-constructor-name*
@@ -694,199 +728,220 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		     implements
 		     ;; (improper-list-of class-name), for type
 		     ;; checking (i.e. predicates)
-		     defs)
-     (let ((cc
-	    (lambda (nofields?)
-	      ;; parsed decl:
-	      (lambda (constructor-stx class-name* maybe-constructor-name* field-decls)
-		;; If maybe-constructor-name is #f, that means, no
-		;; constructor at all (abstract class or interface).
+		     defs
+		     /keywords?)
+     (let
+	 ((cc
+	   (lambda (nofields?)
+	     ;; parsed decl:
+	     (lambda (constructor-stx
+		 class-name*
+		 maybe-constructor-name*
+		 field-decls)
+	       ;; If maybe-constructor-name is #f, that means, no
+	       ;; constructor at all (abstract class or interface).
 
-		;; (Whereas if nofields? is #f then no fields are
-		;; being defined (and of course no constructor, since
-		;; even if a parent class has fields, there's no point
-		;; defining a new constructor with the same fields as
-		;; the parent class, or is there? XX)
+	       ;; (Whereas if nofields? is #f then no fields are
+	       ;; being defined (and of course no constructor, since
+	       ;; even if a parent class has fields, there's no point
+	       ;; defining a new constructor with the same fields as
+	       ;; the parent class, or is there? XX)
 
-		;; ** Summary on the different cases: **
+	       ;; ** Summary on the different cases: **
 		
-		;; interface: only declarations, no definitions
-		;; (neither method nor field)
+	       ;; interface: only declarations, no definitions
+	       ;; (neither method nor field)
 
-		;; abstract class: allows method definitions (but no
-		;; declarations), and fields (i.e. there are two
-		;; variants, the nofields? case, and the (not
-		;; maybe-constructor-name) case)
+	       ;; abstract class: allows method definitions (but no
+	       ;; declarations), and fields (i.e. there are two
+	       ;; variants, the nofields? case, and the (not
+	       ;; maybe-constructor-name) case)
 
-		;; normal class: method definitions, fields, and
-		;; constructor (but the constructor can have a
-		;; different name than the class name).
+	       ;; normal class: method definitions, fields, and
+	       ;; constructor (but the constructor can have a
+	       ;; different name than the class name).
 
-		;; (NOTE: we don't implement "static fields" in
-		;; interfaces like Java does. Do we need them? We
-		;; don't have fields anyway, only methods, so would be
-		;; difficult. Just use abstract class instead, OK?)
+	       ;; (NOTE: we don't implement "static fields" in
+	       ;; interfaces like Java does. Do we need them? We
+	       ;; don't have fields anyway, only methods, so would be
+	       ;; difficult. Just use abstract class instead, OK?)
 
-		(if
-		 (and interface? maybe-constructor-name*)
-		 ;; Note: an idea could be to allow field
-		 ;; *declarations* in interface, and treat them as
-		 ;; accessor method requirements (including for
-		 ;; setters), but not actually prepending the fields
-		 ;; to classes implementing the interface,
-		 ;; i.e. requiring the jclass forms to re-specify
-		 ;; those fields (perhaps in slices).
-		 (source-error
-		  decl "field definitions not allowed in interface")
+	       (if
+		(and interface? maybe-constructor-name*)
+		;; Note: an idea could be to allow field
+		;; *declarations* in interface, and treat them as
+		;; accessor method requirements (including for
+		;; setters), but not actually prepending the fields
+		;; to classes implementing the interface,
+		;; i.e. requiring the jclass forms to re-specify
+		;; those fields (perhaps in slices).
+		(source-error
+		 decl "field definitions not allowed in interface")
 
-		 (let*
-		     ((class-name (source-code class-name*))
-		      (maybe-location (maybe-source-location decl))
-		      (maybe-constructor-name
-		       (and maybe-constructor-name*
-			    (source-code maybe-constructor-name*)))
-		      ;; XX HACKy, especially since now we depend on internals of
-		      ;; cj-struct. Also, not the same as allocated at runtime,
-		      ;; so....?!
-		      (fake-tag
-		       (struct-tag-allocate!
-			class-name
-			(struct-metadata maybe-constructor-name)))
-		      ;; Why are we doing the hack? Because need, at compile
-		      ;; time, the list of fields, right? Need to append parent
-		      ;; classes' field lists (all-field-decls), before
-		      ;; generating code. So yes. And then we've got 1 data
-		      ;; structure for everything. Also in the future should
-		      ;; access parent class storage from lexical scope, to make
-		      ;; it work with define-module (good luck implementing the
-		      ;; module system / meta-language expander).
+		(let*
+		    ((class-name (source-code class-name*))
+		     (maybe-location (maybe-source-location decl))
+		     (maybe-constructor-name
+		      (and maybe-constructor-name*
+			   (source-code maybe-constructor-name*)))
+		     ;; XX HACKy, especially since now we depend on
+		     ;; internals of cj-struct. Also, not the same as
+		     ;; allocated at runtime, so....?!
+		     (fake-tag
+		      (struct-tag-allocate!
+		       class-name
+		       (struct-metadata maybe-constructor-name)))
+		     ;; Why are we doing the hack? Because need, at
+		     ;; compile time, the list of fields, right? Need
+		     ;; to append parent classes' field lists
+		     ;; (all-field-decls), before generating code. So
+		     ;; yes. And then we've got 1 data structure for
+		     ;; everything. Also in the future should access
+		     ;; parent class storage from lexical scope, to
+		     ;; make it work with define-module (good luck
+		     ;; implementing the module system /
+		     ;; meta-language expander).
 
-		      (maybe-parent-type-symbol
-		       (and extends (joo:joo-type-symbol extends)))
+		     (maybe-parent-type-symbol
+		      (and extends (joo:joo-type-symbol extends)))
 	   
-		      (type-symbol
-		       (joo:joo-type-symbol class-name))
+		     (type-symbol
+		      (joo:joo-type-symbol class-name))
 
-		      (implements-type-symbols
-		       (map joo:joo-type-symbol
-			    (improper-list->list (source-code implements))))
+		     (implements-type-symbols
+		      (map joo:joo-type-symbol
+			   (improper-list->list (source-code implements))))
 
-		      (type
-		       (make-joo-type! class-name
-				       maybe-location
-				       maybe-constructor-name
-				       fake-tag
-				       interface?
-				       (and maybe-parent-type-symbol
-					    (eval maybe-parent-type-symbol))
-				       ;; ^ XX as mentioned above should really pass
-				       ;; context to eval
-				       (map eval implements-type-symbols)
-				       field-decls))
+		     (type
+		      (make-joo-type! class-name
+				      maybe-location
+				      maybe-constructor-name
+				      fake-tag
+				      interface?
+				      (and maybe-parent-type-symbol
+					   (eval maybe-parent-type-symbol))
+				      ;; ^ XX as mentioned above
+				      ;; should really pass context
+				      ;; to eval
+				      (map eval implements-type-symbols)
+				      field-decls))
 
-		      (saved-values (values #f #f)))
+		     (saved-values (values #f #f)))
 
-		   ;; store in the symbol in case another joo-class is being
-		   ;; expanded in the same compilation run (sigh, the old
-		   ;; schizophrenia is back) (ah and crazy, in two-step process
-		   ;; here, for storing run time value):
-		   (eval `(define ,type-symbol #f))
-		   ((eval `(lambda (v) (set! ,type-symbol v))) type)
+		  ;; store in the symbol in case another joo-class is being
+		  ;; expanded in the same compilation run (sigh, the old
+		  ;; schizophrenia is back) (ah and crazy, in two-step process
+		  ;; here, for storing run time value):
+		  (eval `(define ,type-symbol #f))
+		  ((eval `(lambda (v) (set! ,type-symbol v))) type)
 
-		   `(begin
-		      (%joo-declare)
-		      ;; XX TODO: in the case of a class definition
-		      ;; with fields but no constructor, we would
-		      ;; still like to be able to use def-method, but
-		      ;; currently can't as let-classname is defined
-		      ;; by define-struct.-expand. Split that out so
-		      ;; that we can.
-		      ,(if maybe-constructor-name
-			   (define-struct.-expand
-			     constructor-stx ;; for location info only
-			     class-name
-			     (cons* predicate-code:
-				    (lambda (predicate-symbol tag-symbol add-offset numfields)
-				      ;; ugh ugly but so, to break up circular dependency
-				      ;; between cj-struct and make-joo-type!:
-				      (set! saved-values (values predicate-symbol tag-symbol))
-				      ;; output no predicate code yet, will that work?
-				      `(begin))
-				    constructor-name:
-				    maybe-constructor-name
-				    (joo-type.all-field-decls type)))
-			   `(begin))
+		  `(begin
+		     (%joo-declare)
+		     ;; XX TODO: in the case of a class definition
+		     ;; with fields but no constructor, we would
+		     ;; still like to be able to use def-method, but
+		     ;; currently can't as let-classname is defined
+		     ;; by define-struct.-expand. Split that out so
+		     ;; that we can.
+		     ,(if maybe-constructor-name
+			  (define-struct.-expand
+			    constructor-stx ;; for location info only
+			    class-name
+			    (cons* predicate-code:
+				   (lambda (predicate-symbol
+				       tag-symbol
+				       add-offset
+				       numfields)
+				     ;; ugh ugly but so, to break up
+				     ;; circular dependency between
+				     ;; cj-struct and make-joo-type!:
+				     (set! saved-values
+					   (values predicate-symbol
+						   tag-symbol))
+				     ;; output no predicate code yet,
+				     ;; will that work?
+				     `(begin))
+				   constructor-name:
+				   maybe-constructor-name
+				   /keywords?:
+				   /keywords?
+				   (joo-type.all-field-decls type)))
+			  `(begin))
 
-		      ,(letv ((predicate-symbol tag-symbol) saved-values)
-			     `(begin
-				(define ,type-symbol
-				  ;; XX and as mentioned gah, since here ge create
-				  ;; another version of the joo-type object, when it
-				  ;; should be a singleton. Hope the kind of mutations
-				  ;; done don't matter. And can't even use the same
-				  ;; code since eval with *our* lexical context (macro
-				  ;; expander) wouldn't work either. \SCHEME is so
-				  ;; unfinished! \CL?
-				  (make-joo-type! ',class-name
-						  ',maybe-location
-						  ',maybe-constructor-name
-						  ,(if maybe-constructor-name
-						       tag-symbol
-						       #f)
-						  ,interface?
-						  ,maybe-parent-type-symbol
-						  ;; ^ heh, otherwise #f
-						  ;; which is also valid
-						  ;; source for the
-						  ;; purpose
-						  (list ,@implements-type-symbols)
-						  ,(source-quote* field-decls)))
+		     ,(letv ((predicate-symbol tag-symbol) saved-values)
+			    `(begin
+			       (define ,type-symbol
+				 ;; XX and as mentioned gah, since
+				 ;; here ge create another version of
+				 ;; the joo-type object, when it
+				 ;; should be a singleton. Hope the
+				 ;; kind of mutations done don't
+				 ;; matter. And can't even use the
+				 ;; same code since eval with *our*
+				 ;; lexical context (macro expander)
+				 ;; wouldn't work either. \SCHEME is
+				 ;; so unfinished! \CL?
+				 (make-joo-type!
+				  ',class-name
+				  ',maybe-location
+				  ',maybe-constructor-name
+				  ,(if maybe-constructor-name
+				       tag-symbol
+				       #f)
+				  ,interface?
+				  ,maybe-parent-type-symbol
+				  ;; ^ heh, otherwise #f
+				  ;; which is also valid
+				  ;; source for the
+				  ;; purpose
+				  (list ,@implements-type-symbols)
+				  ,(source-quote* field-decls)))
 
-				(define ,(let ((predicate-symbol*
-						(symbol-append class-name "?")))
-					   (if predicate-symbol
-					       (assert (eq? predicate-symbol*
-							    predicate-symbol)))
-					   predicate-symbol*)
-				  (%joo:make-predicate ,type-symbol))))
+			       (define ,(let ((predicate-symbol*
+					       (symbol-append class-name "?")))
+					  (if predicate-symbol
+					      (assert (eq? predicate-symbol*
+							   predicate-symbol)))
+					  predicate-symbol*)
+				 (%joo:make-predicate ,type-symbol))))
 
 
-		      ;; Can't use ##define-syntax, as it leaves the
-		      ;; scope of the |begin| forms, and hence the
-		      ;; original joo-* forms (would need
-		      ;; ##let-syntax). Use macro-expand/symtbl
-		      ;; instead.
+		     ;; Can't use ##define-syntax, as it leaves the
+		     ;; scope of the |begin| forms, and hence the
+		     ;; original joo-* forms (would need
+		     ;; ##let-syntax). Use macro-expand/symtbl
+		     ;; instead.
 
-		      ,@(map
-			 (macro-expander/symtbl 
-			  (let ((m-
-				 (if interface?
-				     joo:implementation-method-expander-forbidden
-				     (joo:implementation-method-expander-for
-				      class-name
-				      #f
-				      nofields?)))
-				(m
-				 (if interface?
-				     joo:implementation-method-expander-forbidden
-				     (joo:implementation-method-expander-for
-				      class-name
-				      (joo-type.all-field-names type)
-				      nofields?))))
-			    (symboltable*
-			     ;; abstract methods
-			     method:
-			     (if (or interface? nofields?)
-				 (joo:abstract-method-expander-for class-name)
-				 joo:abstract-method-expander-forbidden)
-			     ;; implementations
-			     def-method-: m-
-			     defmethod-: m-
-			     ;; with fields bound to variables
-			     def-method: m
-			     defmethod: m)))
-			 (begin-flatten (cons 'begin defs)
-					'())))))))))
+		     ,@(map
+			(macro-expander/symtbl 
+			 (let ((m-
+				(if interface?
+				    joo:implementation-method-expander-forbidden
+				    (joo:implementation-method-expander-for
+				     class-name
+				     #f
+				     nofields?)))
+			       (m
+				(if interface?
+				    joo:implementation-method-expander-forbidden
+				    (joo:implementation-method-expander-for
+				     class-name
+				     (joo-type.all-field-names type)
+				     nofields?))))
+			   (symboltable*
+			    ;; abstract methods
+			    method:
+			    (if (or interface? nofields?)
+				(joo:abstract-method-expander-for class-name)
+				joo:abstract-method-expander-forbidden)
+			    ;; implementations
+			    def-method-: m-
+			    defmethod-: m-
+			    ;; with fields bound to variables
+			    def-method: m
+			    defmethod: m)))
+			(begin-flatten (cons 'begin defs)
+				       '())))))))))
 
        (joo:parse-decl decl
 		       cont-renamedconstructor: (cc #f)
@@ -897,19 +952,22 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		     #!key
 		     (extends 'joo-object)
 		     (implements '())
+		     /keywords?
+		     keywords
 		     . defs)
-  (joo:joo-expand #f decl extends implements defs))
+  (joo:joo-expand #f decl extends implements defs
+		  (or /keywords? keywords)))
 
 (defmacro (joo-interface decl
 			 #!key
 			 (extends '())
-			 ;;(implements '())
-			 ;; XX is `implements` allowed for interfaces
-			 ;; in Java? Seems that yes?
-			 ;; http://docs.oracle.com/javase/specs/jls/se8/html/jls-9.html
-			 ;; but then tests show that not.
+			 ;;(implements '()) -- XX[1]
 			 . defs)
-  (joo:joo-expand #t decl #f extends defs))
+  (joo:joo-expand #t decl #f extends defs
+		  #f))
+;; [1] is `implements` allowed for interfaces in Java? Seems that yes?
+;; http://docs.oracle.com/javase/specs/jls/se8/html/jls-9.html but
+;; then tests show that not.
 
 
 (def. (joo-object.instance-of? s #(joo-type? t))
@@ -1061,6 +1119,16 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  > (.testdefstar2 myfooagain2)
  (1 . 2))
 
+;; with.
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#with. fooagain2 p (list z x a n))
+ (let-fooagain2 ((x _ z) p) (list z x a n))
+ > (expansion#with. fooagain2 (a bc) (list y z a n))
+ (##let ((GEN:-23362 (a bc)))
+        (let-fooagain2 ((_ y z) GEN:-23362)
+                       (list y z a n))))
+
 
 
 ;; def-method and inheritance, or, test the let-<classname> feature
@@ -1089,6 +1157,13 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  > (.foo1 (boo 10))
  (10))
 
+;; Test /keywords feature:
+(TEST
+ > (defclass (foom b c) /keywords?: #t)
+ > (foom 10 30)
+ [(foom) 10 30]
+ > (foom/keywords c: 10 b: 20)
+ [(foom) 20 10])
 
 
 

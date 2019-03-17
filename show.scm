@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -13,7 +13,7 @@
 	 (cj-gambit-sys procedure-name)
 	 (srfi-11 values? values->list)
 	 ;; dot-oo depends on cj-env already, and we want to add on/registry.show :
-	 (cj-env on/registry? on/registry-ref)
+	 (cj-env on/registry? on/registry-ref natural0?)
 	 debuggable-promise
 	 ;; ^ now we have to always load it. But, have
 	 ;; debuggable-promise-everywhere now which is optional.
@@ -27,6 +27,8 @@
 (export (method .show)
 	(method .show-string)
 	try-show
+        promise#
+	procedure#
 	#!optional
 	toplevel-procedure?
 	struct-values)
@@ -123,6 +125,15 @@
 ;; #t
 
 
+(define (procedure# num)
+  (let ((v (serial-number->object num)))
+    (if (procedure? v)
+	v
+	(error "procedure#: not actually resolving to a procedure:"
+	       num v))))
+
+(define. (procedure.show p)
+  `(procedure# ,(object->serial-number p)))
 
 ;; XX move? to predicates or rather cj-gambit-sys?
 (define (toplevel-procedure? v)
@@ -180,7 +191,7 @@
   (let ((v (serial-number->object n)))
     (if (promise? v)
 	v
-	(error "not a promise:" n))))
+	(error "not a promise:" v))))
 
 (define. (debuggable-promise.show v)
   (if (debuggable-promise? v)

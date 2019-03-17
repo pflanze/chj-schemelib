@@ -1,4 +1,4 @@
-;;; Copyright 2017-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -186,7 +186,7 @@
 (def show-parse1-input-maxlen 12)
 
 (def. (iseq.show-parse1-input s)
-  (if (stream-length> s show-parse1-input-maxlen)
+  (if (stream-length-> s show-parse1-input-maxlen)
       `(cons*
 	,@(map .show (.list (.take s show-parse1-input-maxlen)))
 	'...
@@ -209,7 +209,7 @@
 	       l))))
 
 (def. (source-char-istream.show-parse1-input s)
-  (let ((long? (stream-length> s show-parse1-input-maxlen)))
+  (let ((long? (stream-length-> s show-parse1-input-maxlen)))
     `(stream#
       ,(object->serial-number s)
       ,(if long?
@@ -274,8 +274,8 @@
     (.exception-message v))
 
   (def-method- (message-string v)
-    (with-output-to-string
-      (& (write-exception-message (.maybe-exception-message v)))))
+    (fst (with-output-to-string
+           (& (write-exception-message (.maybe-exception-message v))))))
 
   (def-method- (show-input-location e fallback)
     ;; don't use the input at the start of a match, but the point

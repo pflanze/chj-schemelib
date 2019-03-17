@@ -7,20 +7,35 @@
 
 
 (require test
-	 (test-logic ∀))
+	 (test-logic ∀)
+         (srfi-11 values->vector letv))
+
+(export quotient+modulo
+        /=
+        integer
+        integer-ceiling
+        exact
+        square
+        integer:half
+        integer-average integer:average
+        pi
+        (macro let-complex)
+        conj
+        quotient-ceiling
+        natural0.bitsize ;; just an alias for integer-length
+        integer->alphabetic26-string)
+
 
 ;; can this calculation be optimized?
 (define (quotient+modulo x y)
   (values (quotient x y)
 	  (modulo x y)))
 
-;; > (quotient+modulo 14 12)
-;; 1
-;; 2
-;; Uh?:
-;; > (quotient+modulo -14 12)
-;; -1
-;; 10
+(TEST
+ > (values->vector (quotient+modulo 14 12))
+ [1 2]
+ > (values->vector (quotient+modulo -14 12))
+ [-1 10])
 
 
 (define (/= a b)
@@ -189,3 +204,27 @@
   (66 67 67)
   (67 68 68)))
 
+
+
+(define (integer->alphabetic26-string c) ;; -> string?
+  (let lp ((c c)
+           (res '()))
+    (letv ((r n) (quotient+modulo c 26))
+          (let ((res (cons (integer->char
+                            (+ n (insert-result-of (char->integer #\A))))
+                           res)))
+            (if (zero? r)
+                (list->string res)
+                (lp r res))))))
+
+(TEST
+ > (integer->alphabetic26-string 0)
+ "A"
+ > (integer->alphabetic26-string 25)
+ "Z"
+ > (integer->alphabetic26-string 26)
+ "BA"
+ ;; ^ ever interesting. Had this already some time some where. It's
+ ;; consistent with how we handle numbers so don't change it, okay?
+ > (integer->alphabetic26-string (square 26))
+ "BAA")
