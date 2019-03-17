@@ -80,21 +80,33 @@
 
 (defparameter current-optimizing? 'current-optimizing-is-unset)
 
+(definterface corescheme-interface
+  (method (references? s [(list-of corescheme-var?) vars]) -> boolean?
+          "whether s contains any references to any of the vars"))
+
+
 (defclass (corescheme [boolean? optimized?])
+  implements: corescheme-interface
 
   (defclass ((corescheme-literal _corescheme-literal)
              [corescheme:literal? val])
 
     (def (corescheme-literal val)
          (let ((opt (current-optimizing?)))
-           (_corescheme-literal opt val))))
+           (_corescheme-literal opt val)))
+
+    (defmethod (references? s vars)
+      #f))
 
   (defclass ((corescheme-ref _corescheme-ref)
              [corescheme-var? var])
 
     (def (corescheme-ref var)
          (let ((opt (current-optimizing?)))
-           (_corescheme-ref opt var))))
+           (_corescheme-ref opt var)))
+
+    (defmethod (references? s vars)
+      (any (C corescheme-var.equal? _ var) vars)))
 
   (defclass ((corescheme-lambda _corescheme-lambda)
              [(improper-list-of corescheme-var?) vars]
@@ -103,7 +115,10 @@
     (def (corescheme-lambda vars expr)
          (let ((opt (current-optimizing?)))
            (If opt (assert (corescheme.optimized? expr)))
-           (_corescheme-lambda opt vars expr))))
+           (_corescheme-lambda opt vars expr)))
+
+    (defmethod (references? s vars)
+      (.references? expr vars)))
        
   (defclass ((corescheme-app _corescheme-app)
              [corescheme? proc]
@@ -113,7 +128,11 @@
          (let ((opt (current-optimizing?)))
            (If opt (assert (and (corescheme.optimized? proc)
                                 (every corescheme.optimized? args))))
-           (_corescheme-app opt proc args))))
+           (_corescheme-app opt proc args)))
+
+    (defmethod (references? s vars)
+      (or (.references? proc vars)
+          (any (C .references? _ vars) args))))
        
   (defclass ((corescheme-def _corescheme-def)
              [corescheme-var? var]
@@ -122,7 +141,10 @@
     (def (corescheme-def var val)
          (let ((opt (current-optimizing?)))
            (If opt (assert (corescheme.optimized? val)))
-           (_corescheme-def opt var val))))
+           (_corescheme-def opt var val)))
+
+    (defmethod (references? s vars)
+      (.references? val vars)))
 
   (defclass ((corescheme-set! _corescheme-set!)
              [corescheme-var? var]
@@ -131,7 +153,10 @@
     (def (corescheme-set! var val)
          (let ((opt (current-optimizing?)))
            (If opt (assert (corescheme.optimized? val)))
-           (_corescheme-set! opt var val))))
+           (_corescheme-set! opt var val)))
+
+    (defmethod (references? s vars)
+      (.references? val vars)))
 
   (defclass ((corescheme-begin _corescheme-begin)
              [(list-of corescheme?) body])
@@ -139,7 +164,10 @@
     (def (corescheme-begin body)
          (let ((opt (current-optimizing?)))
            (If opt (assert (every corescheme.optimized? body)))
-           (_corescheme-begin opt body))))
+           (_corescheme-begin opt body)))
+
+    (defmethod (references? s vars)
+      (any (C .references? _ vars) body)))
        
   (defclass ((corescheme-if _corescheme-if)
              [corescheme? test]
@@ -153,7 +181,12 @@
            (If opt (assert (and (corescheme.optimized? test)
                                 (corescheme.optimized? then)
                                 (if else (corescheme.optimized? else) #t))))
-           (_corescheme-if opt test then else))))
+           (_corescheme-if opt test then else)))
+
+    (defmethod (references? s vars)
+      (or (.references? test vars)
+          (.references? then vars)
+          (and else (.references? else vars)))))
        
   (defclass ((corescheme-letrec _corescheme-letrec)
              [(list-of corescheme-var?) vars]
@@ -162,7 +195,10 @@
     (def (corescheme-letrec vars exprs)
          (let ((opt (current-optimizing?)))
            (If opt (assert (every corescheme.optimized? exprs)))
-           (_corescheme-letrec opt vars exprs)))))
+           (_corescheme-letrec opt vars exprs)))
+
+    (defmethod (references? s vars)
+      (any (C .references? _ vars) exprs))))
 
 
 (defparameter current-corescheme-id #f)
