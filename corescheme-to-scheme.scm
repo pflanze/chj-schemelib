@@ -12,6 +12,8 @@
 	 test
 	 test-logic)
 
+(export (method .scheme))
+
 
 (def. (corescheme-literal.scheme v)
   (let-corescheme-literal
