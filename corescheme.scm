@@ -70,7 +70,13 @@
 	      (vector-of corescheme:literal?)) x))
 
 (defclass (corescheme-var [(possibly-source-of symbol?) name]
-                          [natural0? id]))
+                          [natural0? id])
+
+  (defmethod (equal? a b)
+    (and (= id (corescheme-var.id b))
+         (begin
+           (assert (eq? name (corescheme-var.name b)))
+           #t))))
 
 (defclass corescheme-expr
 
