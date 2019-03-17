@@ -98,11 +98,13 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
     ;; remove needless lambda wrappers: (lambda (x y) (f x y))
     (if (corescheme-app? expr*)
         (with. corescheme-app expr*
-               (if (and (corescheme-ref? proc)
-                        (possibly-vars-equal? args
+               (if (and (possibly-vars-equal? args
                                               vars
                                               arg->maybe-var
-                                              id))
+                                              id)
+                        (or (corescheme-ref? proc)
+                            (and (corescheme-lambda? proc)
+                                 (not (.references? proc vars)))))
                    proc
                    (return-s*)))
         (return-s*))))
@@ -136,7 +138,7 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
 
 
 (TEST
- > (def t (=>* (source.corescheme globals: '(f))
+ > (def t (=>* (source.corescheme globals: '(f g h .>>=))
                corescheme-optimize
                .scheme))
 
@@ -146,6 +148,16 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
  > (%try (t '(lambda (x #!optional y) (f x y))))
  ;; in future: (lambda (x #!optional y) (f x y))
  (exception text: "name does not match (possibly-source-of symbol?): #!optional\n")
+ ;; can't optimize this since it would change evaluation order:
  > (t '(lambda (x y) ((f) x y)))
  (lambda (x y) ((f) x y))
+ ;; lambda instead of symbol in call position:
+ > (t '(lambda (y) ((lambda (x) (.>>= (g x) h)) y)))
+ (lambda (x) (.>>= (g x) h))
+ > (t '(lambda (q) (lambda (y) ((lambda (x) (.>>= (g x q) h)) y))))
+ (lambda (q) (lambda (x) (.>>= (g x q) h)))
+ ;; lambda that captures a variable of its parent lambda thus can't be
+ ;; optimized: (could interpolate y though instead to get rid of it)
+ > (t '(lambda (y) ((lambda (x) (.>>= (g x y) h)) y)))
+ (lambda (y) ((lambda (x) (.>>= (g x y) h)) y))
  )
