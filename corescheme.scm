@@ -464,7 +464,10 @@
 		    (source-error expr "undefined variable"))))
 
       (corescheme:literal-atom?
-       (%return-normal (corescheme-literal expr)))
+       (if (self-quoting? (source-code expr))
+           (%return-normal (corescheme-literal expr))
+           (source-error
+            expr "unquoted empty list treated as invalid function application")))
 
       (pair?
        (let-pair

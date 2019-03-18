@@ -80,8 +80,8 @@
  foo:
  > (ROUNDTRIP 'foo:)
  foo: ;; loses the unnecessary quote, which is per spec
- > (%try (ROUNDTRIP ()))
- ( parse ERR XX)
+ > (with-exception-catcher source-error-message (& (ROUNDTRIP ())))
+ "unquoted empty list treated as invalid function application"
  > (ROUNDTRIP '())
  '()
  > (ROUNDTRIP ''())
