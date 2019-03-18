@@ -46,6 +46,7 @@
                         corescheme-letrec))
 	(method source.corescheme)
 	make-scheme-env
+        run-corescheme (macro RUN-CORESCHEME)
         
 	#!optional
 	current-corescheme-id
@@ -78,7 +79,19 @@
            (assert (eq? name (corescheme-var.name b)))
            #t))))
 
+
+(defparameter current-corescheme-id #f)
 (defparameter current-optimizing? 'current-optimizing-is-unset)
+
+;; "Monad runner" 
+(def (run-corescheme thunk #!key optimizing? (corescheme-id 0))
+     (parameterize ((current-corescheme-id corescheme-id)
+                    (current-optimizing? optimizing?))
+                   (thunk)))
+(defmacro (RUN-CORESCHEME . body)
+  `(run-corescheme (lambda () ,@body)))
+
+
 
 (definterface corescheme-interface
   (method (references? s [(list-of corescheme-var?) vars]) -> boolean?
@@ -273,8 +286,6 @@
                          (map (C .interpolate _ vars* exprs*) exprs)
                          (.interpolate body-expr vars* exprs*)))))
 
-
-(defparameter current-corescheme-id #f)
 
 (def (corescheme-next-id!)
      ;; forever the same  too.
@@ -637,6 +648,7 @@
             #f)))
  (typed-list corescheme-var? (corescheme-var 'even? 1)))
 
+
 (def. (source.corescheme expr
 			 #!key
                          ;; globals and get-ctx are doing the same,
@@ -650,9 +662,7 @@
   (let ((actual-get-ctx (if globals
                             (C make-scheme-env globals)
                             get-ctx)))
-    (fst (parameterize ((current-corescheme-id 0)
-                        (current-optimizing? #f))
-                       (_source->corescheme expr (actual-get-ctx) realmode?)))))
+    (fst (RUN-CORESCHEME (_source->corescheme expr (actual-get-ctx) realmode?)))))
 
 
 (TEST
