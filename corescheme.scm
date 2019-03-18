@@ -8,6 +8,10 @@
 
 ;; Parse source into a core Scheme AST.
 
+;; This is lossy for program representation: let and let* are
+;; translated to lambda, for example. Also, quoted self-quoting values
+;; (`'10) will lose the quote (become equivalent to `10).
+
 ;; Todo:
 
 ;; - DSSSL style arguments
