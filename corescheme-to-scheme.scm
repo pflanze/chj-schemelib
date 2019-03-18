@@ -9,10 +9,23 @@
 (require easy
 	 corescheme
 	 (failing <failing-on> <failing-off>)
+         (scheme-meta self-quoting?)
 	 test
 	 test-logic)
 
 (export (method .scheme))
+
+(TEST
+ > (def roundtrip
+        (=>* (source.corescheme globals: '(.>>= return * + - f))
+             .scheme))
+
+ > (defmacro (ROUNDTRIP* expr)
+     `(roundtrip (quote-source ,expr)))
+
+ > (defmacro (ROUNDTRIP expr)
+     `(cj-desourcify (roundtrip (quote-source ,expr)))))
+
 
 
 ;; XXX careful. After optimizations, there might be different
@@ -23,11 +36,62 @@
 
 
 (def.* (corescheme-literal.scheme v)
-  (cond (((either symbol? keyword? null?)
-          (source-code val))
-         `(quote ,val))
-        (else
-         val)))
+  (let ((val* (source-code val)))
+    (cond ((self-quoting? val*)
+           val)
+          (else
+           `(quote ,val)))))
+
+(TEST
+ > (.scheme (RUN-CORESCHEME (corescheme-literal foo:)))
+ foo:
+ > (.scheme (RUN-CORESCHEME (corescheme-literal `foo)))
+ 'foo
+ > (.scheme (RUN-CORESCHEME (corescheme-literal `())))
+ '()
+ ;; quoted lists
+ > (source.corescheme ` (car))
+ [(corescheme-app) #f [(corescheme-ref) #f [(corescheme-var) car 6]] ()]
+ > (source.corescheme ` '(car))
+ [(corescheme-literal) #f (car)]
+ > (.scheme #)
+ '(car)
+ > (source.corescheme ` '())
+ [(corescheme-literal) #f ()]
+ > (source.corescheme ` ''())
+ [(corescheme-literal) #f '()]
+
+ > (.scheme (RUN-CORESCHEME (corescheme-literal `(1))))
+ '(1)
+ > (.scheme (RUN-CORESCHEME (corescheme-literal `'())))
+ ''()
+ > (.scheme (RUN-CORESCHEME (corescheme-literal `'foo)))
+ ''foo
+
+ > (ROUNDTRIP f)
+ f
+ > (ROUNDTRIP 'f)
+ 'f
+ > (ROUNDTRIP ''f)
+ ''f
+ > (ROUNDTRIP '''f)
+ '''f
+ > (ROUNDTRIP foo:)
+ foo:
+ > (ROUNDTRIP 'foo:)
+ foo: ;; loses the unnecessary quote, which is per spec
+ > (%try (ROUNDTRIP ()))
+ ( parse ERR XX)
+ > (ROUNDTRIP '())
+ '()
+ > (ROUNDTRIP ''())
+ ''()
+ > (ROUNDTRIP 10)
+ 10
+ > (ROUNDTRIP '10)
+ 10
+ )
+
 
 (def.* (corescheme-lambda.scheme v)
   `(lambda ,(map .name vars)
