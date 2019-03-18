@@ -78,8 +78,36 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
 ;; /helpers
 
 
-(def (corescheme-optimize s)
-     (let ((r (parameterize ((current-optimizing? #t))
+(defclass (corescheme-optimize-parameters
+           [boolean? lambda-unwrap?]
+           [boolean? apply?])
+  /keywords?: #t)
+
+
+(def corescheme-optimize-parameters-off
+     (apply corescheme-optimize-parameters (make-list 2 #f)))
+(def corescheme-optimize-parameters-on
+     (apply corescheme-optimize-parameters (make-list 2 #t)))
+
+(defparameter current-corescheme-optimize-parameters
+  corescheme-optimize-parameters-on)
+
+;; (def (corescheme-optimize-parameter accessor)
+;;      (accessor (corescheme-optimize-parameters)))
+(defmacro (CORESCHEME-OPTIMIZE-PARAMETER name)
+  (assert* symbol? name
+           (lambda (name)
+             `(,(symbol-append 'corescheme-optimize-parameters. name)
+               (current-corescheme-optimize-parameters)))))
+
+
+(def (corescheme-optimize s
+                          #!key
+                          [(maybe corescheme-optimize-parameters?) parameters])
+     (let ((r (parameterize ((current-optimizing? #t)
+                             (current-corescheme-optimize-parameters
+                              (or parameters
+                                  (current-corescheme-optimize-parameters))))
                             (.optimize s))))
        (assert (corescheme.optimized? r))
        r))
@@ -95,7 +123,8 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
   (let* ((expr* (.optimize expr))
          (return-s* (lambda ()
                       (corescheme-lambda vars expr*))))
-    (if (corescheme-app? expr*)
+    (if (and (CORESCHEME-OPTIMIZE-PARAMETER lambda-unwrap?)
+             (corescheme-app? expr*))
         (with. corescheme-app expr*
                (cond
                 ;; remove needless lambda wrappers: (lambda (x y) (f x y))
@@ -135,7 +164,8 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
      ;; predicate?), replace the app with the body of proc*, with the
      ;; variables interpolated positionally like the args* (this is
      ;; function application!..). |vars| and |expr| are |proc*|'s.
-     ((and (corescheme-lambda? proc*)
+     ((and (CORESCHEME-OPTIMIZE-PARAMETER apply?)
+           (corescheme-lambda? proc*)
            (with. corescheme-lambda proc* ;; expr and vars
 
                   ;; (can't use |every| since also need to walk vars)
@@ -184,29 +214,33 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
 
 
 (TEST
- > (def t (=>* (source.corescheme globals: '(f g h .>>=))
-               corescheme-optimize
-               .scheme))
+ > (def parameters corescheme-optimize-parameters-on)
+ > (def t
+        (=>* (source.corescheme globals: '(f g h .>>=))
+             (corescheme-optimize parameters: parameters)
+             .scheme))
 
  ;; remove needless lambda wrappers:
  > (t '(lambda (x y) (f x y)))
  f
  > (%try (t '(lambda (x #!optional y) (f x y))))
  ;; in future: (lambda (x #!optional y) (f x y))
- (exception text: "name does not match (possibly-source-of symbol?): #!optional\n")
+ (exception
+  text: "name does not match (possibly-source-of symbol?): #!optional\n")
  ;; can't optimize this since it would change evaluation order:
  > (t '(lambda (x y) ((f) x y)))
  (lambda (x y) ((f) x y))
 
  ;; lambda instead of symbol in call position:
- ;; > (t '(lambda (y) ((lambda (x) (.>>= (g x) h)) y))) XX just enable that optim
- ;; (lambda (x) (.>>= (g x) h))
- ;; > (t '(lambda (q) (lambda (y) ((lambda (x) (.>>= (g x q) h)) y))))
- ;; (lambda (q) (lambda (x) (.>>= (g x q) h)))
- ;; XX ^ re-enable
+ > (def parameters (=> corescheme-optimize-parameters-off (.apply?-set #t)))
+ > (t '(lambda (y) ((lambda (x) (.>>= (g x) h)) y)))
+ (lambda (y) (.>>= (g y) h))
+ > (t '(lambda (q) (lambda (y) ((lambda (x) (.>>= (g x q) h)) y))))
+ (lambda (q) (lambda (y) (.>>= (g y q) h)))
 
  ;; with app optimization turned on as well, that one happens first,
  ;; hence we get variables renamed
+ > (def parameters corescheme-optimize-parameters-on)
  > (t '(lambda (y) ((lambda (x) (.>>= (g x) h)) y)))
  (lambda (y) (.>>= (g y) h))
  > (t '(lambda (q) (lambda (y) ((lambda (x) (.>>= (g x q) h)) y))))
