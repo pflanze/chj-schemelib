@@ -8,7 +8,8 @@
 
 (require easy
          corescheme
-         test)
+         test
+         corescheme-to-scheme)
 
 
 (export corescheme-optimize ;; avoid using .optimize directly
