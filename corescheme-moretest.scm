@@ -15,76 +15,76 @@
 "Some random additional tests for the corescheme libraries."
 
 (TEST
- > (def simplify
+ > (def optimize
         (=>* (source.corescheme globals: '(.>>= return * + - f))
              corescheme-optimize
              .scheme))
 
- > (defmacro (SIMPLIFY* expr)
-     `(simplify (quote-source ,expr)))
+ > (defmacro (OPTIMIZE* expr)
+     `(optimize (quote-source ,expr)))
 
- > (defmacro (SIMPLIFY expr)
-     `(cj-desourcify (simplify (quote-source ,expr)))))
+ > (defmacro (OPTIMIZE expr)
+     `(cj-desourcify (optimize (quote-source ,expr)))))
 
 
 (TEST
- > (SIMPLIFY (lambda (x) (f x)))
+ > (OPTIMIZE (lambda (x) (f x)))
  f
- > (SIMPLIFY (lambda (x) ((f f) x)))
+ > (OPTIMIZE (lambda (x) ((f f) x)))
  ;; because (f f) would run in different dynamic context
  (lambda (x) ((f f) x))
- > (SIMPLIFY (lambda (x) (x f)))
+ > (OPTIMIZE (lambda (x) (x f)))
  (lambda (x) (x f))
- > (SIMPLIFY (let ((x 100)) (+ x x)))
+ > (OPTIMIZE (let ((x 100)) (+ x x)))
  ((lambda (x) (+ x x)) 100)
- > (SIMPLIFY (let ((x 100)) (+ x 10)))
+ > (OPTIMIZE (let ((x 100)) (+ x 10)))
  (+ 100 10)
- > (SIMPLIFY (let ((x 100) (y 120)) (f (* x 10))))
+ > (OPTIMIZE (let ((x 100) (y 120)) (f (* x 10))))
  (f (* 100 10))
- > (SIMPLIFY (let ((x 100) (y 120)) (f (* x 10 y))))
+ > (OPTIMIZE (let ((x 100) (y 120)) (f (* x 10 y))))
  (f (* 100 10 120))
- > (SIMPLIFY (let ((x 100) (y 120)) (f (* x 10 y y))))
+ > (OPTIMIZE (let ((x 100) (y 120)) (f (* x 10 y y))))
  ((lambda (x y) (f (* x 10 y y))) 100 120)
- ;; so, now want to simplify it partially, ok?
+ ;; so, now want to optimize it partially, ok?
  )
 
 
 (TEST
- > (SIMPLIFY (let ((x f)) 1))
+ > (OPTIMIZE (let ((x f)) 1))
  1
- > (SIMPLIFY (let ((x f)) x))
+ > (OPTIMIZE (let ((x f)) x))
  f
- > (SIMPLIFY (let* ((x f) (y x)) x))
+ > (OPTIMIZE (let* ((x f) (y x)) x))
  f
- > (SIMPLIFY (let* ((x f) (y x)) y))
+ > (OPTIMIZE (let* ((x f) (y x)) y))
  f
- > (SIMPLIFY (let ((let 1)) let))
+ > (OPTIMIZE (let ((let 1)) let))
  1
- > (SIMPLIFY (let ((let 1)) (let)))
+ > (OPTIMIZE (let ((let 1)) (let)))
  (1)
  > (with-exception-catcher source-error-message
-                           (& (SIMPLIFY (let* ((let 1) (lambda let)) (lambda () 2)))))
+                           (& (OPTIMIZE (let* ((let 1) (lambda let)) (lambda () 2)))))
  "unquoted empty list treated as invalid function application"
- > (SIMPLIFY (let* ((let 1) (lambda let)) (lambda (quote x) 2)))
+ > (OPTIMIZE (let* ((let 1) (lambda let)) (lambda (quote x) 2)))
  (1 'x 2)
  > ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2)
  3
- > (SIMPLIFY ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2))
+ > (OPTIMIZE ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2))
  ((lambda (x) (+ x 1)) 2) ;; XXX  apply simplification again!
- > (simplify (SIMPLIFY ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2)))
+ > (optimize (OPTIMIZE ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2)))
  (+ 2 1) ;; and then, constant folding hehe ?
 
- > (SIMPLIFY (let* ((let 1) (lambda let)) (lambda (f) 2)))
+ > (OPTIMIZE (let* ((let 1) (lambda let)) (lambda (f) 2)))
  (1 (f) 2)
- > (SIMPLIFY (let* ((let 1) (lambda let) (f 3)) (lambda (f) 2)))
+ > (OPTIMIZE (let* ((let 1) (lambda let) (f 3)) (lambda (f) 2)))
  (1 (3) 2)
- > (SIMPLIFY f)
+ > (OPTIMIZE f)
  f
- > (SIMPLIFY 'f)
+ > (OPTIMIZE 'f)
  'f
- > (SIMPLIFY ''f)
+ > (OPTIMIZE ''f)
  ''f
- > (SIMPLIFY '''f)
+ > (OPTIMIZE '''f)
  '''f
  )
 
@@ -94,9 +94,9 @@
 
 
 (TEST
- > (SIMPLIFY ((lambda (x f) (f x)) f 10))
+ > (OPTIMIZE ((lambda (x f) (f x)) f 10))
  (10 f)
- > (SIMPLIFY ((lambda (x f) (lambda (f) (f x))) f 10))
+ > (OPTIMIZE ((lambda (x f) (lambda (f) (f x))) f 10))
  (lambda (f) (f f)) ;; and that is WRONG, needs renaming
  )
 
