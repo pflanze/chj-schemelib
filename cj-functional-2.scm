@@ -30,8 +30,8 @@
 	(macro =>)
 	(macro =>*)
 	exact-natural0? ;; can't be in predicates-1 for dependency reasons
-	(macro =>-lambda)
-	(macro =>-lambda/arity)
+	(macro =>*/1)
+	(macro =>*/arity)
 	(macro =>>)
 	(macro =>>*)
 	list-of/2
@@ -327,7 +327,7 @@
 (TEST
  > ((=>* (inc)) 10)
  11
- > ((=>-lambda inc inc) 10)
+ > ((=>*/1 inc inc) 10)
  12
  ;; multiple arguments:
  > ((=>* + inc))
@@ -343,7 +343,7 @@
 
 ;; always 1-ary, OK? XX or change =>* to this, how is Clojure dealing
 ;; with this?
-(define-macro* (=>-lambda expr0 . exprs)
+(define-macro* (=>*/1 expr0 . exprs)
   (with-gensym
    V
    `(##lambda (,V)
@@ -352,7 +352,7 @@
 
 (define exact-natural0? (both natural0? exact?))
 
-(define-macro* (=>-lambda/arity n expr0 . exprs)
+(define-macro* (=>*/arity n expr0 . exprs)
   (let ((n* (eval n)))
     (if (exact-natural0? n*)
 	(let ((VS (map (lambda (i) (gensym))
@@ -363,17 +363,17 @@
 	(source-error n "expecting expression evaluating to natural0"))))
 
 (TEST
- > ((=>-lambda car string) '(#\a #\b))
+ > ((=>*/1 car string) '(#\a #\b))
  "a"
  > (with-exception-catcher wrong-number-of-arguments-exception?
-			   (lambda () ((=>-lambda car string) '(#\a #\b) 3)))
+			   (lambda () ((=>*/1 car string) '(#\a #\b) 3)))
  #t
- > ((=>-lambda/arity 1 car string) '(#\a #\b))
+ > ((=>*/arity 1 car string) '(#\a #\b))
  "a"
 
- > ((=>-lambda ((lambda (x) #\y)) string) '(#\a #\b))
+ > ((=>*/1 ((lambda (x) #\y)) string) '(#\a #\b))
  "y"
- > ((=>-lambda/arity 1 (lambda (x) #\y) string) '(#\a #\b))
+ > ((=>*/arity 1 (lambda (x) #\y) string) '(#\a #\b))
  "y"
  ;; ^ unlike =>-lambda, the first expression does *not* need an
  ;; additional paren wrap! XX messy, what to do?
@@ -382,33 +382,33 @@
 (TEST
  > (define TEST:equal? syntax-equal?)
  
- > (expansion#=>-lambda ((lambda (x) #\y)) string)
+ > (expansion#=>*/1 ((lambda (x) #\y)) string)
  ;; (##lambda (GEN:V-668) (string ((lambda (x) #\y) GEN:V-668)))
  (##lambda
   (GEN:V-6479)
   (##let ((GEN:tmp-6480 ((lambda (x) #\y) GEN:V-6479)))
 	 (##let ((GEN:tmp-6481 (string GEN:tmp-6480))) GEN:tmp-6481)))
- > (expansion#=>-lambda car string)
+ > (expansion#=>*/1 car string)
  ;; (##lambda (GEN:V-671) (string (car GEN:V-671)))
  (##lambda
   (GEN:V-6482)
   (##let ((GEN:tmp-6483 (car GEN:V-6482)))
 	 (##let ((GEN:tmp-6484 (string GEN:tmp-6483))) GEN:tmp-6484)))
 
- > (expansion#=>-lambda/arity 1 (lambda (x) #\y) string)
+ > (expansion#=>*/arity 1 (lambda (x) #\y) string)
  ;; (##lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
  (##lambda
   (GEN:-6695)
   (##let ((GEN:-1 ((lambda (x) #\y) GEN:-6695)))
 	 (##let ((GEN:tmp-6696 (string GEN:-1))) GEN:tmp-6696)))
  
- > (expansion#=>-lambda/arity 0 (lambda (x) #\y) string)
+ > (expansion#=>*/arity 0 (lambda (x) #\y) string)
  ;; (##lambda () (string ((lambda (x) #\y))))
  (##lambda ()
 	   (##let ((GEN:-1 ((lambda (x) #\y))))
 		  (##let ((GEN:tmp-6907 (string GEN:-1))) GEN:tmp-6907)))
  
- > (expansion#=>-lambda/arity 2 (lambda (x y) #\y) string)
+ > (expansion#=>*/arity 2 (lambda (x y) #\y) string)
  ;; (##lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
  (##lambda
   (GEN:-6908 GEN:-6909)
@@ -416,7 +416,7 @@
 	 (##let ((GEN:tmp-6910 (string GEN:-1)))
 		GEN:tmp-6910)))
 
- > (expansion#=>-lambda/arity 1 e0 e1 e2)
+ > (expansion#=>*/arity 1 e0 e1 e2)
  ;; (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
  ;;XX bummer, can't see intermediate after e0
  (##lambda
@@ -425,7 +425,7 @@
 	 (##let ((GEN:tmp-7122 (e1 GEN:-1)))
 		(##let ((GEN:tmp-7123 (e2 GEN:tmp-7122))) GEN:tmp-7123))))
  
- > (expansion#=>-lambda/arity 1 (e0) e1 e2)
+ > (expansion#=>*/arity 1 (e0) e1 e2)
  ;; (##lambda (GEN:-724) (e2 (e1 ((e0) GEN:-724))))
  (##lambda
   (GEN:-7337)
@@ -433,7 +433,7 @@
 	 (##let ((GEN:tmp-7338 (e1 GEN:-1)))
 		(##let ((GEN:tmp-7339 (e2 GEN:tmp-7338))) GEN:tmp-7339))))
  
- > (expansion#=>-lambda/arity 1 e0 (e1) e2)
+ > (expansion#=>*/arity 1 e0 (e1) e2)
  ;;(##lambda (GEN:-725) (e2 (e1 (e0 GEN:-725))))
  (##lambda
   (GEN:-7550)
