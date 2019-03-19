@@ -30,7 +30,9 @@
          list-util ;; e.g. let-pair
 	 list-util-lazy)
 
-(export (macro defstruct)
+(export (macro if)
+        (macro when)
+        (macro defstruct)
 	(macro def)
 	(macro defvar)
 	(macro defvar-once)
@@ -60,6 +62,56 @@
 	
 	#!optional
 	module-symbol?)
+
+
+;; Paul Graham's idea for nested paren-less |if| (Arc)
+(define-macro* (if t b1 b2 . args)
+  (let rec ((t t)
+            (b1 b1)
+            (b2 b2)
+            (args args))
+    `(##if ,t
+           ,b1
+           ,(if (null? args)
+                b2
+                (let-pair ((b1* args) args)
+                          (if-let-pair ((b2* args) args)
+                                       (rec b2 ;; becomes test
+                                            b1*
+                                            b2*
+                                            args)
+                                       (source-error stx "if requires an uneven number of arguments (and at least 3)")))))))
+
+(TEST
+ > (if #t 'yes 'no)
+ yes
+ > (if #f 'yes 'no)
+ no
+ > (if #f 'yes #t 'yes2 'no2)
+ yes2
+ > (if #f 'yes #f 'yes2 'no2)
+ no2
+ > (if #t 'yes #f 'yes2 'no2)
+ yes
+ > (with-exception-catcher source-error-message
+                           (& (eval '(if #t 'yes #f 'yes2))))
+ "if requires an uneven number of arguments (and at least 3)")
+
+
+;; To compensate for the inability to use |if| for selective side
+;; effects, provide |when|
+(define-macro* (when t . body)
+  `(##if ,t
+         (##begin ,@body)))
+
+(TEST
+ > (when #t 1)
+ 1
+ > (when #t 1 2 3)
+ 3
+ > (when #f 1 2 3)
+ #!void)
+
 
 
 (define-macro* (defstruct . args)
