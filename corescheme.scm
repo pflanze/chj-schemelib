@@ -14,6 +14,9 @@
 
 ;; Todo:
 
+;; - XXX oh, |or| and |and| need their forms? Different evaluation
+;;   order. OR should they be converted to chains of ifs, actually yes.
+
 ;; - DSSSL style arguments
 
 ;; - macro expander?
