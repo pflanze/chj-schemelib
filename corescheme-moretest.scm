@@ -19,7 +19,7 @@
 (TEST
  > (def optimize
         (=>* (source.corescheme
-              globals: '( .>>= return * + - f or inexact? and number?
+              globals: '( .>>= return * + - f inexact? number?
                                string-length < string? vector-length
                                vector? ...?))
              corescheme-optimize
