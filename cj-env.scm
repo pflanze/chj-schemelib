@@ -55,6 +55,7 @@
 	not*
 	(macro if*)
 	(macro or*)
+	(macro and*)
 	run-loop (macro loop)
 	pp-through
 	no-pp-through
@@ -420,6 +421,43 @@
  ()
  > (or* '() #f 1 2)
  1)
+
+
+(define (and*-expand expr exprs)
+  (if (null? exprs)
+      expr
+      (let ((V (gensym 'V)))
+	`(let ((,V ,expr))
+	   (if* ,V
+	       ,(and*-expand (car exprs) (cdr exprs))
+	       ,V)))))
+
+(define-macro* (and* . exprs)
+  (if (null? exprs)
+      #t
+      (and*-expand (car exprs) (cdr exprs))))
+
+(TEST
+ > (expansion#and*)
+ #t
+ > (expansion#and* 1)
+ 1
+ ;; don't have syntax-equal? from cj-symbol yet
+ ;; > (expansion#and* 1 2)
+ ;; (let ((GEN:V-6804 1)) (if* GEN:V-6804 2 GEN:V-6804))
+ > (def (f l1 l2)
+        (if* (or* l1 l2)
+             (if* (and* l1 l2)
+                  `(both ,@l1 ,@l2)
+                  `(begin ,@l1 ,@l2))
+             `(void)))
+ > (f '() '(a))
+ (begin a)
+ > (f '(b c) '(a))
+ (both b c a)
+ > (f '(b c) '())
+ (begin b c)
+ )
 
 
 (define (run-loop proc)
