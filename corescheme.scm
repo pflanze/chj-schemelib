@@ -19,7 +19,8 @@
 
 ;; - DSSSL style arguments
 
-;; - macro expander?
+;; - macro expander? Currently needs macro-expanded source (doesn't
+;;   maintain lexical information other than variable bindings).
 
 ;; - how to handle environments across compilation units? (build in
 ;;   module system?)
