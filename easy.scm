@@ -4,7 +4,6 @@
 	 oo-util
 	 named
 	 show
-         list-util-3 ;; e.g. if-let-pair
 	 test
 	 test-lib
 	 cj-functional-2
