@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -61,7 +61,8 @@
 
 (TEST
  > (def fstable:test-path ".fstable:test-dir")
- > (if (not (file-exists? fstable:test-path)) (create-directory fstable:test-path))
+ > (when (not (file-exists? fstable:test-path))
+         (create-directory fstable:test-path))
  > (def t (fstable fstable:test-path))
  > (fstable.set! t "a" "b")
  > (fstable.ref t "a" 'nah)

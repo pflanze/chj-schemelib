@@ -115,14 +115,14 @@
 ;; whether debugging is active or not).
 
 (def (debug:perhaps-warn/cont level maybe-cont maybe-msg vals)
-     (if (and *debug* (<= *debug* level))
-	 (let ((msg (if maybe-cont
-			(let ((cstr (object->string maybe-cont)))
-			  (if maybe-msg
-			      (string-append cstr " " maybe-msg)
-			      cstr))
-			(or maybe-msg ""))))
-	   (apply warn msg vals))))
+     (when (and *debug* (<= *debug* level))
+           (let ((msg (if maybe-cont
+                          (let ((cstr (object->string maybe-cont)))
+                            (if maybe-msg
+                                (string-append cstr " " maybe-msg)
+                                cstr))
+                          (or maybe-msg ""))))
+             (apply warn msg vals))))
 
 
 (def (debug:continuation-capture recv)
@@ -192,37 +192,37 @@
                              `(,v ,arg))
                            vs
                            (cdr form))
-                  (if (and *debug* (<= *debug* ,level))
-                      (warn ,(if maybe-marker
-                                 (string-append Tstr
-                                                " "
-                                                (source-code maybe-marker)
-                                                ":")
-                                 (string-append Tstr
-                                                ":"))
-                            (list
-                             ',(car form)
-                             ,@(map (lambda (v)
-                                      `(.show ,v))
-                                    vs))
-                            ,@(if tailcall? '() '('...))))
+                  (when (and *debug* (<= *debug* ,level))
+                        (warn ,(if maybe-marker
+                                   (string-append Tstr
+                                                  " "
+                                                  (source-code maybe-marker)
+                                                  ":")
+                                   (string-append Tstr
+                                                  ":"))
+                              (list
+                               ',(car form)
+                               ,@(map (lambda (v)
+                                        `(.show ,v))
+                                      vs))
+                              ,@(if tailcall? '() '('...))))
                   ,(let ((call-code `(,(car form) ,@vs)))
                      (if tailcall?
                          call-code
                          `(let ((,res ,call-code))
-                            (if (and *debug* (<= *debug* ,level))
-                                (warn ,(if maybe-marker
-                                           (string-append
-                                            "  "
-                                            (source-code maybe-marker)
-                                            ":")
-                                           " :")
-                                      (list ',(car form)
-                                            ,@(map (lambda (v)
-                                                     `(.show ,v))
-                                                   vs))
-                                      '->
-                                      (.show ,res)))
+                            (when (and *debug* (<= *debug* ,level))
+                                  (warn ,(if maybe-marker
+                                             (string-append
+                                              "  "
+                                              (source-code maybe-marker)
+                                              ":")
+                                             " :")
+                                        (list ',(car form)
+                                              ,@(map (lambda (v)
+                                                       `(.show ,v))
+                                                     vs))
+                                        '->
+                                        (.show ,res)))
                             ,res))))))))
          (debug:parse-level
           form #t
@@ -298,8 +298,7 @@
              (lambda (port)
                (let ((m (output-port-line port)))
                  ;; (= m n) is no good as can have multi-line warn statements
-                 (if (>= m n)
-                     (begin
+                 (when (>= m n)
                        (force-output port)
                        (port-remove-hook! port self)
                        (if *single-step?*
@@ -307,4 +306,4 @@
                              (displayln (STRING "reached error-port line " n)
                                         (console-port))
                              (step))
-                           (error "reached error-port line" n)))))))))
+                           (error "reached error-port line" n))))))))

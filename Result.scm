@@ -1,4 +1,4 @@
-;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -90,13 +90,15 @@
 		 #!optional
 		 else)
   `(let ((it-Result ,t))
-     (if (Ok? it-Result)
-	 (let ((it (@Ok.value it-Result)))
-	   ,then)
-	 ,@(if else
-	       (list `(let ((it (Error.value it-Result)))
-			,else))
-	       '()))))
+     ;; use |scheme:if| since |if| is overridden to not allow not
+     ;; having an else branch, and |when| is impractical here.
+     (scheme:if (Ok? it-Result)
+                (let ((it (@Ok.value it-Result)))
+                  ,then)
+                ,@(if else
+                      (list `(let ((it (Error.value it-Result)))
+                               ,else))
+                      '()))))
 
 (TEST
  > (if-Ok (Ok '()) 'ok 'fail)

@@ -127,6 +127,6 @@
 
 (defmacro (WARN-ONCE message . args)
   (let ((key (gensym 'warn-once-name)))
-    `(if (warn-plus:warn?-inc! ',key)
-	 (WARN ,message ,@args))))
+    `(when (warn-plus:warn?-inc! ',key)
+           (WARN ,message ,@args))))
 

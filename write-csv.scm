@@ -197,8 +197,8 @@
 	  (if (null? s)
 	      (begin
 		(close-port p)
-		(if tempfile
-		    (rename-file tmppath path)))
+		(when tempfile
+                      (rename-file tmppath path)))
 	      (let-pair ((row s) s)
 			(w row)
 			(lp s)))))
@@ -235,14 +235,14 @@
 	  (if (null? s)
 	      (begin
 		(close-port p)
-		(if tempfile
-		    (rename-file tmppath path))
+		(when tempfile
+                      (rename-file tmppath path))
 		(reverse errs))
 	      (let-pair ((row/err s) s)
 			(let-maybe-row/maybe-error
 			 ((maybe-row maybe-err) row/err)
-			 (if maybe-row
-			     (w maybe-row))
+			 (when maybe-row
+                               (w maybe-row))
 			 (lp s
 			     (if maybe-err
 				 (cons maybe-err errs)

@@ -89,12 +89,12 @@
 		       (with-gensyms
 			(OLDV NAME)
 			`(let ((,OLDV (,PARM)))
-			   (if (not (eq? ,OLDV parameter-once:nothing))
-			       (let ((,NAME (3rd ,META)))
-				 (if (eq? ,OLDV ,V)
-				     (WARN-ONCE "parameter set to identical value again"
-						,NAME)
-				     (error "parameter already set" ,NAME))))))))
+			   (when (not (eq? ,OLDV parameter-once:nothing))
+                                 (let ((,NAME (3rd ,META)))
+                                   (if (eq? ,OLDV ,V)
+                                       (WARN-ONCE "parameter set to identical value again"
+                                                  ,NAME)
+                                       (error "parameter already set" ,NAME))))))))
 	      (parameterize ,(.map parms*
 				   (lambda-values
 				    ((parm-once val META PARM V))

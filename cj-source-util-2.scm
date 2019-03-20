@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -123,10 +123,12 @@
  )
 
 (define-macro* (assert expr)
-  `(if (not ,expr)
-       (error ,(string-append "assertment failure: "
-			      (scm:object->string (cj-desourcify expr)))
-	      ,(assert-replace-expand expr))))
+  ;; namespacing ##if is important here, to avoid confusion with if
+  ;; from easy-1.scm (yeah, when am I going to do namespacing?)
+  `(##if (not ,expr)
+         (error ,(string-append "assertment failure: "
+                                (scm:object->string (cj-desourcify expr)))
+                ,(assert-replace-expand expr))))
 
 (define (assert-privately:error)
   (error "assertment failure"))

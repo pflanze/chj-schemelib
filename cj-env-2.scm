@@ -59,10 +59,10 @@
           (with-gensyms
 	   (LP)
 	   `(let ,LP ((,var ,from))
-		 (if (fx< ,var ,to)
-		     (begin
-		       ,@body
-		       (,LP (fx+ ,var 1)))))))))
+		 (##if (fx< ,var ,to)
+                       (begin
+                         ,@body
+                         (,LP (fx+ ,var 1)))))))))
 
 (define-macro* (for.. var-from-to . body)
   (mcase var-from-to
@@ -85,10 +85,10 @@
 	   `(let ((,TO ,to))
 	      (assert (fixnum? ,TO))
 	      (let ,LP ((,var ,from))
-		   (if (##fixnum.< ,var ,TO)
-		       (begin
-			 ,@body
-			 (,LP (##fixnum.+ ,var 1))))))))))
+		   (##if (##fixnum.< ,var ,TO)
+                         (begin
+                           ,@body
+                           (,LP (##fixnum.+ ,var 1))))))))))
 
 (TEST
  > (let ((v (make-vector 5))) (for..< (i 0 5) (vector-set! v i (* i i))) v)
