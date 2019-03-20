@@ -153,56 +153,88 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
       (corescheme-lambda? proc*)
       (with.
        corescheme-lambda proc* ;; expr and vars
-       (cond
-        ;; Apply if the lambda is trivial: it only has one argument and its
-        ;; body is the variable for that argument:
-        ((and (length-= vars 1)
-              (corescheme-ref? expr)
-              (corescheme-var.equal? (corescheme-ref.var expr)
-                                     (first vars)))
-         (assert (length-= args* 1))
-         (first args*))
+
+       (if (lengths-= args* vars)
+
+           (cond
+            ;; Apply if the lambda is trivial (it only has one argument and
+            ;; its body is the variable for that argument), or the
+            ;; body is an app and the variable is used only once and
+            ;; no app calls are to its left (left-to-right evaluation
+            ;; order?)--no, be safe and check that *no* other sub-app
+            ;; arguments are apps--or, allow it since order of eval in
+            ;; app is unspecified by Scheme:
+            ((or (and (length-= vars 1)
+                      (corescheme-ref? expr)
+                      (corescheme-var.equal? (corescheme-ref.var expr)
+                                             (first vars)))
+                 (and (corescheme-app? expr)
+                      (let
+                          ;; this is the sub-application, i.e.
+                          ;; ((lambda (a b c) (c b a) ;; <-- this
+                          ;;     ) (g) (h) f)
+                          ;; BTW order of evaluation: I see. Thanks to
+                          ;; leaving it open, this case *can* be
+                          ;; optimized.
+                          ((proc** (corescheme-app.proc expr))
+                           (args** (corescheme-app.args expr)))
+                        (and (.every args**
+                                     ;; corescheme-lambda? nope; really
+                                     ;; only these two:
+                                     (either corescheme-ref?
+                                             corescheme-literal?))
+                             (.every vars
+                                     (lambda (var)
+                                       ;; must occur, otherwise the
+                                       ;; orig expr would not be
+                                       ;; evaluated anymore.
+                                       (one? (.num-references expr var))))))))
+             (.interpolate expr vars args*))
      
-        ;; Interpolate lexical lambda arguments which are
-        ;; variables, or literals or lambdas and are only used once
-        ;; (to, currently, avoid undue code bloat) (XX losing
-        ;; naming for values, bad esp. for lambdas?)
+            ;; Interpolate lexical lambda arguments which are
+            ;; variables, or literals or lambdas and are only used once
+            ;; (to, currently, avoid undue code bloat) (XX losing
+            ;; naming for values, bad esp. for lambdas?)
 
-        ;; XX hm schould instead really move args inside until
-        ;; endofpossibilities, THEN if ((lambda ()..)) then move
-        ;; .. out.  this way, makes lambdas smaller,
-        ;; too. well.
+            ;; XX hm schould instead really move args inside until
+            ;; endofpossibilities, THEN if ((lambda ()..)) then move
+            ;; .. out.  this way, makes lambdas smaller,
+            ;; too. well.
 
-        ;; ((lambda (x) (g x y)) y)
+            ;; ((lambda (x) (g x y)) y)
 
-        ;; If none of the argument expressions are self-evaluating
-        ;; (i.e. their evaluation results in itself--XX add a
-        ;; predicate?), replace the app with the body of proc*, with the
-        ;; variables interpolated positionally like the args* (this is
-        ;; function application!..). |vars| and |expr| are |proc*|'s.
+            ;; If none of the argument expressions are self-evaluating
+            ;; (i.e. their evaluation results in itself--XX add a
+            ;; predicate?), replace the app with the body of proc*, with the
+            ;; variables interpolated positionally like the args* (this is
+            ;; function application!..). |vars| and |expr| are |proc*|'s.
 
-        ;; (can't use |every| since also need to walk vars)
-        ((let lp ((vars vars)
-                  (args args*))
-           (if-let-pair
-            ((var vars*) vars)
-            (let-pair
-             ((arg args*) args)
+            ;; (can't use |every| since also need to walk vars)
+            ((let lp ((vars vars)
+                      (args args*))
+               (if-let-pair
+                ((var vars*) vars)
+                (let-pair
+                 ((arg args*) args)
                                            
-             (and (or (corescheme-ref? arg)
-                      (and (or (corescheme-lambda? arg)
-                               (corescheme-literal? arg))
-                           ;; the corresponding variable is only
-                           ;; used max once
-                           (<= (.num-references expr var) 1)))
-                  (lp vars* args*)))
-            (begin
-              (assert (null? args))
-              #t)))
-         (.interpolate expr vars args*))
+                 (and (or (corescheme-ref? arg)
+                          (and (or (corescheme-lambda? arg)
+                                   (corescheme-literal? arg))
+                               ;; the corresponding variable is only
+                               ;; used max once
+                               (<= (.num-references expr var) 1)))
+                      (lp vars* args*)))
+                (begin
+                  (assert (null? args))
+                  #t)))
+             (.interpolate expr vars args*))
 
-        (else
-         (fallback))))
+            (else
+             (fallback)))
+
+           (source-error
+            s
+            "immediate lambda application with different number of arguments than variables")))
       (fallback))
      (fallback))))
 
