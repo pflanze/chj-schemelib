@@ -17,6 +17,7 @@
 
 (export (macro IF)
 	(macro If)
+        (macro when)
 	natural?
 	natural0?
 	fxnatural?
@@ -115,6 +116,21 @@
 
 (define (If-error v)
   (error "If: expecting boolean, got:" v))
+
+
+(define-macro* (when t . body)
+  `(##if ,t
+         (##begin ,@body)))
+
+(TEST
+ > (when #t 1)
+ 1
+ > (when #t 1 2 3)
+ 3
+ > (when #f 1 2 3)
+ #!void)
+
+
 
 
 (both-times
