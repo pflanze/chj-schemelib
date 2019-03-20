@@ -103,6 +103,20 @@
  (lambda (f) (f f)) ;; and that is WRONG, needs renaming
  )
 
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (ROUNDTRIP (lambda (d e) (##and d e)))
+ (lambda (d e) (if d e #f))
+ > (ROUNDTRIP (lambda (a b c)
+                (and a (or b c))))
+ (lambda (a b c) (if a
+                ((lambda (GEN:-1)
+                   (if GEN:-1
+                       GEN:-1
+                       c))
+                 b)
+                #f)))
+
 
 
 (TEST
