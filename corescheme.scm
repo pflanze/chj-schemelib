@@ -189,6 +189,29 @@
           "replace references to the given vars with the corresponding exprs."))
 
 
+(defmacro (def-corescheme-constructor
+            classname
+            #!key
+            cs  ;; list of fields that contain an expr
+            lcs ;; list of fields that contain lists of exprs
+            #!rest fieldnames)
+  (let ((l (append (map (lambda (fn) `(corescheme.optimized? ,fn))
+                        (if cs
+                            (source-code cs)
+                            '()))
+                   (map (lambda (fn) `(every corescheme.optimized? ,fn))
+                        (if lcs
+                            (source-code lcs)
+                            '())))))
+    `(def (,classname ,@fieldnames)
+          (let ((opt (current-optimizing?)))
+            ,@(if* l
+                   `((If opt (assert ,(if (length-> l 1)
+                                          `(and ,@l)
+                                          (first l)))))
+                   '())
+            (,(source.symbol-append '_ classname) opt ,@fieldnames)))))
+
 (defclass (corescheme-extended [boolean? optimized?])
 
 
@@ -232,11 +255,9 @@
     (defclass ((corescheme-lambda _corescheme-lambda)
                [(improper-list-of corescheme-var?) vars]
                [corescheme? expr])
-
-      (def (corescheme-lambda vars expr)
-           (let ((opt (current-optimizing?)))
-             (If opt (assert (corescheme.optimized? expr)))
-             (_corescheme-lambda opt vars expr)))
+      (def-corescheme-constructor corescheme-lambda
+        cs: (expr)
+        vars expr)
 
       (defmethod (references? s vars)
         (.references? expr vars))
@@ -251,12 +272,10 @@
     (defclass ((corescheme-app _corescheme-app)
                [corescheme? proc]
                [(list-of corescheme?) args])
-
-      (def (corescheme-app proc args)
-           (let ((opt (current-optimizing?)))
-             (If opt (assert (and (corescheme.optimized? proc)
-                                  (every corescheme.optimized? args))))
-             (_corescheme-app opt proc args)))
+      (def-corescheme-constructor corescheme-app
+        cs: (proc)
+        lcs: (args)
+        proc args)
 
       (defmethod (proc&args s)
         (cons proc args))
@@ -277,6 +296,8 @@
     (defclass ((corescheme-def _corescheme-def)
                [corescheme-var? var]
                [corescheme? val])
+      ;; (def-corescheme-constructor corescheme-def
+      ;;   )
 
       (def (corescheme-def var val)
            (let ((opt (current-optimizing?)))
