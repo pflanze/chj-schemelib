@@ -32,6 +32,7 @@
 	 list-util-lazy)
 
 (export (macro if)
+        (macro scheme:if)
         (macro defstruct)
 	(macro def)
 	(macro defvar)
@@ -99,7 +100,11 @@
 
 
 ;; To compensate for the inability to use |if| for selective side
-;; effects, use |when| from cj-env.scm
+;; effects, use |when| from cj-env.scm, or this:
+
+(define-macro* (scheme:if t then #!optional else)
+  `(##if ,t ,then ,@(if else (list else) '())))
+
 
 
 (define-macro* (defstruct . args)
