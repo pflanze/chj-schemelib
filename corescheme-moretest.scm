@@ -16,7 +16,10 @@
 
 (TEST
  > (def optimize
-        (=>* (source.corescheme globals: '(.>>= return * + - f))
+        (=>* (source.corescheme
+              globals: '( .>>= return * + - f or inexact? and number?
+                               string-length < string? vector-length
+                               vector? ...?))
              corescheme-optimize
              .scheme))
 
@@ -100,3 +103,78 @@
  (lambda (f) (f f)) ;; and that is WRONG, needs renaming
  )
 
+
+
+(TEST
+ ;; The macro expansion of:
+ ;; (either (both number?
+ ;;               (either inexact?
+ ;;                       ...?))
+ ;;         (both string?
+ ;;               (=>*/1 string-length (< 500)))
+ ;;         (all-of vector?
+ ;;                 (=>*/1 vector-length (< 500))
+ ;;                 ...?))
+ > (OPTIMIZE
+    (let ((GEN:-8906
+           (let ((GEN:-8910
+                  (let ((GEN:-8912 ...?))
+                    (lambda (GEN:V-8913)
+                      (or (inexact? GEN:V-8913)
+                          (GEN:-8912 GEN:V-8913))))))
+             (lambda (GEN:V-8911)
+               (and (number? GEN:V-8911)
+                    (GEN:-8910 GEN:V-8911)))))
+          (GEN:-8907
+           (let ((GEN:-8914
+                  (lambda (GEN:V-8916)
+                    (let ((GEN:tmp-8917 (string-length GEN:V-8916)))
+                      (let ((GEN:tmp-8918 (< GEN:tmp-8917 500)))
+                        GEN:tmp-8918)))))
+             (lambda (GEN:V-8915)
+               (and (string? GEN:V-8915)
+                    (GEN:-8914 GEN:V-8915)))))
+          (GEN:-8908
+           (let ((GEN:-8919
+                  (lambda (GEN:V-8922)
+                    (let ((GEN:tmp-8923 (vector-length GEN:V-8922)))
+                      (let ((GEN:tmp-8924 (< GEN:tmp-8923 500)))
+                        GEN:tmp-8924))))
+                 (GEN:-8920 ...?))
+             (lambda (GEN:V-8921)
+               (and (vector? GEN:V-8921)
+                    (GEN:-8919 GEN:V-8921)
+                    (GEN:-8920 GEN:V-8921))))))
+      (lambda (GEN:V-8909)
+        (or (GEN:-8906 GEN:V-8909)
+            (GEN:-8907 GEN:V-8909)
+            (GEN:-8908 GEN:V-8909)))))
+
+ (lambda (GEN:V-8909)
+   (or ((lambda (GEN:V-8911)
+          (and (number? GEN:V-8911)
+               ((lambda (GEN:V-8913)
+                  (or (inexact? GEN:V-8913) (...? GEN:V-8913)))
+                GEN:V-8911)))
+        GEN:V-8909)
+       ((lambda (GEN:V-8915)
+          (and (string? GEN:V-8915)
+               ((lambda (GEN:V-8916)
+                  ((lambda (GEN:tmp-8917)
+                     ((lambda (GEN:tmp-8918) GEN:tmp-8918)
+                      (< GEN:tmp-8917 500)))
+                   (string-length GEN:V-8916)))
+                GEN:V-8915)))
+        GEN:V-8909)
+       ((lambda (GEN:V-8921)
+          (and (vector? GEN:V-8921)
+               ((lambda (GEN:V-8922)
+                  ((lambda (GEN:tmp-8923)
+                     ((lambda (GEN:tmp-8924) GEN:tmp-8924)
+                      (< GEN:tmp-8923 500)))
+                   (vector-length GEN:V-8922)))
+                GEN:V-8921)
+               (...? GEN:V-8921)))
+        GEN:V-8909)))
+ 
+ )
