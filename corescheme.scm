@@ -175,6 +175,9 @@
                                 (every corescheme.optimized? args))))
            (_corescheme-app opt proc args)))
 
+    (defmethod (proc&args s)
+      (cons proc args))
+
     (defmethod (references? s vars)
       (or (.references? proc vars)
           (any (C .references? _ vars) args)))

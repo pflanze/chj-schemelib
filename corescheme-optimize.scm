@@ -169,26 +169,23 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
                       (corescheme-var.equal? (corescheme-ref.var expr)
                                              (first vars)))
                  (and (corescheme-app? expr)
-                      (let
-                          ;; this is the sub-application, i.e.
-                          ;; ((lambda (a b c) (c b a) ;; <-- this
-                          ;;     ) (g) (h) f)
-                          ;; BTW order of evaluation: I see. Thanks to
-                          ;; leaving it open, this case *can* be
-                          ;; optimized.
-                          ((proc** (corescheme-app.proc expr))
-                           (args** (corescheme-app.args expr)))
-                        (and (.every (cons proc** args**)
-                                     ;; corescheme-lambda? nope; really
-                                     ;; only these two:
-                                     (either corescheme-ref?
-                                             corescheme-literal?))
-                             (.every vars
-                                     (lambda (var)
-                                       ;; must occur, otherwise the
-                                       ;; orig expr would not be
-                                       ;; evaluated anymore.
-                                       (one? (.num-references expr var))))))))
+                      ;; this is the sub-application, i.e.
+                      ;; ((lambda (a b c) (c b a) ;; <-- this
+                      ;;     ) (g) (h) f)
+                      ;; BTW order of evaluation: I see. Thanks to
+                      ;; leaving it open, this case *can* be
+                      ;; optimized.
+                      (and (.every (corescheme-app.proc&args expr)
+                                   ;; corescheme-lambda? nope; really
+                                   ;; only these two:
+                                   (either corescheme-ref?
+                                           corescheme-literal?))
+                           (.every vars
+                                   (lambda (var)
+                                     ;; must occur, otherwise the
+                                     ;; orig expr would not be
+                                     ;; evaluated anymore.
+                                     (one? (.num-references expr var)))))))
              (.interpolate expr vars args*))
      
             ;; Interpolate lexical lambda arguments which are
