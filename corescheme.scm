@@ -40,13 +40,13 @@
         (class corescheme-extended
                (class corescheme
                       (classes corescheme-literal
+                               corescheme-ref
                                corescheme-lambda
                                corescheme-app
-                               corescheme-ref
                                corescheme-def
+                               corescheme-set!
                                corescheme-begin
                                corescheme-if
-                               corescheme-set!
                                corescheme-letrec))
                (class corescheme-extension
                       ))
