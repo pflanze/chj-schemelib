@@ -116,7 +116,7 @@
  ;;                 (=>*/1 vector-length (< 500))
  ;;                 ...?))
  > (repeatedly
-    2 optimize
+    3 optimize
     (OPTIMIZE
      (let ((GEN:-8906
             (let ((GEN:-8910
@@ -156,11 +156,11 @@
    (or (and (number? GEN:V-8909) (or (inexact? GEN:V-8909) (...? GEN:V-8909)))
        (and (string? GEN:V-8909)
             ((lambda (GEN:tmp-8917)
-               ((lambda (GEN:tmp-8918) GEN:tmp-8918) (< GEN:tmp-8917 500)))
+               (< GEN:tmp-8917 500))
              (string-length GEN:V-8909)))
        (and (vector? GEN:V-8909)
             ((lambda (GEN:tmp-8923)
-               ((lambda (GEN:tmp-8924) GEN:tmp-8924) (< GEN:tmp-8923 500)))
+               (< GEN:tmp-8923 500))
              (vector-length GEN:V-8909))
             (...? GEN:V-8909))))
  
