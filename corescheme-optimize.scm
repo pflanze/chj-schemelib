@@ -178,7 +178,7 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
                           ;; optimized.
                           ((proc** (corescheme-app.proc expr))
                            (args** (corescheme-app.args expr)))
-                        (and (.every args**
+                        (and (.every (cons proc** args**)
                                      ;; corescheme-lambda? nope; really
                                      ;; only these two:
                                      (either corescheme-ref?
