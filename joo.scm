@@ -461,8 +461,8 @@
 		     [(maybe joo-type?) parent]
 		     [(list-of joo-type?) implements]
 		     [list? field-decls])
-     (if tag
-	 (assert (eq? (struct-tag.name tag) class-name)))
+     (when tag
+           (assert (eq? (struct-tag.name tag) class-name)))
      (let ((t (joo-type class-name
 			maybe-location
 			constructor-name
@@ -899,9 +899,9 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 
 			       (define ,(let ((predicate-symbol*
 					       (symbol-append class-name "?")))
-					  (if predicate-symbol
-					      (assert (eq? predicate-symbol*
-							   predicate-symbol)))
+					  (when predicate-symbol
+                                                (assert (eq? predicate-symbol*
+                                                             predicate-symbol)))
 					  predicate-symbol*)
 				 (%joo:make-predicate ,type-symbol))))
 
