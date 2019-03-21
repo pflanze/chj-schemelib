@@ -34,7 +34,9 @@
          typed-list
 	 typed-alist
 	 Maybe
-	 show)
+	 show
+         (cj-typed perhaps-typed.var
+                   perhaps-typed.maybe-predicate))
 
 (export (class corescheme-var)
         (class corescheme-extended
@@ -189,28 +191,75 @@
           "replace references to the given vars with the corresponding exprs."))
 
 
-(defmacro (def-corescheme-constructor
-            classname
-            #!key
-            cs  ;; list of fields that contain an expr
-            lcs ;; list of fields that contain lists of exprs
-            #!rest fieldnames)
-  (let ((l (append (map (lambda (fn) `(corescheme.optimized? ,fn))
-                        (if cs
-                            (source-code cs)
-                            '()))
-                   (map (lambda (fn) `(every corescheme.optimized? ,fn))
-                        (if lcs
-                            (source-code lcs)
-                            '())))))
-    `(def (,classname ,@fieldnames)
-          (let ((opt (current-optimizing?)))
-            ,@(if* l
-                   `((If opt (assert ,(if (length-> l 1)
-                                          `(and ,@l)
-                                          (first l)))))
-                   '())
-            (,(source.symbol-append '_ classname) opt ,@fieldnames)))))
+(compile-time
+
+ (def (corescheme:def-constructor-expand*
+       classname
+       cs  ;; list of fields that contain an expr
+       lcs ;; list of fields that contain lists of exprs
+       mcs ;; list of fields that contain a maybe expr
+       fieldnames)
+      (let ((l (append (map (lambda (fn) `(corescheme.optimized? ,fn))
+                            cs)
+                       (map (lambda (fn) `(every corescheme.optimized? ,fn))
+                            lcs)
+                       (map (lambda (fn) `(if ,fn (corescheme.optimized? ,fn) #t))
+                            mcs))))
+        `(def (,classname ,@fieldnames)
+              (let ((opt (current-optimizing?)))
+                ,@(if* l
+                       `((If opt (assert ,(if (length-> l 1)
+                                              `(and ,@l)
+                                              (first l)))))
+                       '())
+                (,(source.symbol-append '_ classname) opt ,@fieldnames)))))
+
+ (def (corescheme:def-constructor-expand classname)
+      (let* ((decls (joo:class-name.field-decls (source-code classname)))
+             (decls* (map (lambda (decl)
+                            ((on cj-desourcify values)
+                             (perhaps-typed.var decl)
+                             (or (perhaps-typed.maybe-predicate decl)
+                                 (error "need predicate"))))
+                          decls))
+             (cs (map fst (filter (lambda-values ((var pred))
+                                            (equal? pred 'corescheme?))
+                                  decls*)))
+             (lcs (map fst (filter (lambda-values ((var pred))
+                                             (equal? pred '(list-of corescheme?)))
+                                   decls*)))
+             (mcs (map fst (filter (lambda-values ((var pred))
+                                             (equal? pred '(maybe corescheme?)))
+                                   decls*)))
+             (fieldnames (map fst decls*)))
+        (corescheme:def-constructor-expand* classname
+                                            cs
+                                            lcs
+                                            mcs
+                                            fieldnames))))
+
+(TEST
+ > (corescheme:def-constructor-expand 'corescheme-letrec)
+ (def (corescheme-letrec vars exprs body-expr)
+      (let ((opt (current-optimizing?)))
+        (If opt
+            (assert (and (corescheme.optimized? body-expr)
+                         (every corescheme.optimized? exprs))))
+        (_corescheme-letrec opt vars exprs body-expr)))
+ > (corescheme:def-constructor-expand 'corescheme-if)
+ (def (corescheme-if test then else)
+      (let ((opt (current-optimizing?)))
+        (If opt
+            (assert (and (corescheme.optimized? test)
+                         (corescheme.optimized? then)
+                         (if else (corescheme.optimized? else) #t))))
+        (_corescheme-if opt test then else))))
+
+
+(defmacro (corescheme:def-constructor classname)
+  (corescheme:def-constructor-expand classname))
+
+
 
 (defclass (corescheme-extended [boolean? optimized?])
 
@@ -222,20 +271,12 @@
     (defclass ((corescheme-literal _corescheme-literal)
                [corescheme:literal? val])
 
-      (def (corescheme-literal val)
-           (let ((opt (current-optimizing?)))
-             (_corescheme-literal opt val)))
-
       (defmethod (references? s vars) #f)
       (defmethod (num-references s var) 0)
       (defmethod (interpolate s vars exprs) s))
 
     (defclass ((corescheme-ref _corescheme-ref)
                [corescheme-var? var])
-
-      (def (corescheme-ref var)
-           (let ((opt (current-optimizing?)))
-             (_corescheme-ref opt var)))
 
       (defmethod (references? s vars)
         (any (C corescheme-var.equal? _ var) vars))
@@ -255,9 +296,6 @@
     (defclass ((corescheme-lambda _corescheme-lambda)
                [(improper-list-of corescheme-var?) vars]
                [corescheme? expr])
-      (def-corescheme-constructor corescheme-lambda
-        cs: (expr)
-        vars expr)
 
       (defmethod (references? s vars)
         (.references? expr vars))
@@ -272,10 +310,6 @@
     (defclass ((corescheme-app _corescheme-app)
                [corescheme? proc]
                [(list-of corescheme?) args])
-      (def-corescheme-constructor corescheme-app
-        cs: (proc)
-        lcs: (args)
-        proc args)
 
       (defmethod (proc&args s)
         (cons proc args))
@@ -296,13 +330,6 @@
     (defclass ((corescheme-def _corescheme-def)
                [corescheme-var? var]
                [corescheme? val])
-      ;; (def-corescheme-constructor corescheme-def
-      ;;   )
-
-      (def (corescheme-def var val)
-           (let ((opt (current-optimizing?)))
-             (If opt (assert (corescheme.optimized? val)))
-             (_corescheme-def opt var val)))
 
       (defmethod (references? s vars)
         (.references? val vars))
@@ -315,11 +342,6 @@
                [corescheme-var? var]
                [corescheme? val])
 
-      (def (corescheme-set! var val)
-           (let ((opt (current-optimizing?)))
-             (If opt (assert (corescheme.optimized? val)))
-             (_corescheme-set! opt var val)))
-
       (defmethod (references? s vars)
         (.references? val vars))
       (defmethod (num-references s var*)
@@ -329,11 +351,6 @@
 
     (defclass ((corescheme-begin _corescheme-begin)
                [(list-of corescheme?) body])
-
-      (def (corescheme-begin body)
-           (let ((opt (current-optimizing?)))
-             (If opt (assert (every corescheme.optimized? body)))
-             (_corescheme-begin opt body)))
 
       (defmethod (references? s vars)
         (any (C .references? _ vars) body))
@@ -353,13 +370,6 @@
                ;; explicit (void) ?
                [(maybe corescheme?) else])
 
-      (def (corescheme-if test then else)
-           (let ((opt (current-optimizing?)))
-             (If opt (assert (and (corescheme.optimized? test)
-                                  (corescheme.optimized? then)
-                                  (if else (corescheme.optimized? else) #t))))
-             (_corescheme-if opt test then else)))
-
       (defmethod (references? s vars)
         (or (.references? test vars)
             (.references? then vars)
@@ -377,12 +387,6 @@
                [(list-of corescheme-var?) vars]
                [(list-of corescheme?) exprs]
                [corescheme? body-expr])
-
-      (def (corescheme-letrec vars exprs body-expr)
-           (let ((opt (current-optimizing?)))
-             (If opt (assert (and (every corescheme.optimized? exprs)
-                                  (corescheme.optimized? body-expr))))
-             (_corescheme-letrec opt vars exprs body-expr)))
 
       (defmethod (references? s vars)
         (or (any (C .references? _ vars) exprs)
@@ -405,6 +409,17 @@
 
     ))
 
+;; these can't be within the class definitions because of the
+;; evaluation ordering
+(corescheme:def-constructor corescheme-literal)
+(corescheme:def-constructor corescheme-ref)
+(corescheme:def-constructor corescheme-lambda)
+(corescheme:def-constructor corescheme-app)
+(corescheme:def-constructor corescheme-def)
+(corescheme:def-constructor corescheme-set!)
+(corescheme:def-constructor corescheme-begin)
+(corescheme:def-constructor corescheme-if)
+(corescheme:def-constructor corescheme-letrec)
 
 ;; XX this should (probably?) be done automatically by dot-oo/joo?
 (def. corescheme.optimized? corescheme-extended.optimized?)
