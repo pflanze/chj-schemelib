@@ -111,8 +111,7 @@
                 (and a (or b c))))
  (lambda (a b c) (and a
                 (let ((GEN:-1 b))
-                  (if GEN:-1
-                      GEN:-1
+                  (or GEN:-1
                       c)))))
 
 
@@ -131,21 +130,18 @@
  > (ROUNDTRIP (lambda (a b c d e) (and (or a (and b c d) e))))
  (lambda (a b c d e)
    (let ((GEN:V-6063 a))
-     (if GEN:V-6063
-         GEN:V-6063
-         (let ((GEN:V-6062 (and b (and c d)))) (if GEN:V-6062 GEN:V-6062 e)))))
+     (or GEN:V-6063
+         (let ((GEN:V-6062 (and b (and c d)))) (or GEN:V-6062 e)))))
  ;;XXX also why was nested |and| not flattened
  > (ROUNDTRIP (lambda (a b c d e) (and (or a (or b c d) e))))
  (lambda (a b c d e)
    (let ((GEN:V-6065 a))
-     (if GEN:V-6065
-         GEN:V-6065
+     (or GEN:V-6065
          (let ((GEN:V-6064
                 (let ((GEN:V-6067 b))
-                  (if GEN:V-6067
-                      GEN:V-6067
-                      (let ((GEN:V-6066 c)) (if GEN:V-6066 GEN:V-6066 d))))))
-           (if GEN:V-6064 GEN:V-6064 e)))))
+                  (or GEN:V-6067
+                      (let ((GEN:V-6066 c)) (or GEN:V-6066 d))))))
+           (or GEN:V-6064 e)))))
  ;; XX or
  > (ROUNDTRIP (lambda (a b c d e) (and a)))
  (lambda (a b c d e) a)
@@ -160,12 +156,12 @@
 
  ;; fun, optimizer can re-use existing variables in scope:
  > (ROUNDTRIP (lambda (a b c d e) (or a b)))
- (lambda (a b c d e) (let ((GEN:V-8915 a)) (if GEN:V-8915 GEN:V-8915 b)))
+ (lambda (a b c d e) (let ((GEN:V-8915 a)) (or GEN:V-8915 b)))
  > (OPTIMIZE (lambda (a b c d e) (or a b)))
- (lambda (a b c d e) (if a a b))
+ (lambda (a b c d e) (or a b))
  ;; ^ although, upcoming |or|-prettyfier will undo this again.
  > (OPTIMIZE (lambda (a b c d e) (or (+ a c) b)))
- (lambda (a b c d e) (let ((GEN:V-8917 (+ a c))) (if GEN:V-8917 GEN:V-8917 b)))
+ (lambda (a b c d e) (let ((GEN:V-8917 (+ a c))) (or GEN:V-8917 b)))
  )
 
 

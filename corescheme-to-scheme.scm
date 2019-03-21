@@ -157,8 +157,9 @@
 ;; ------------------------------------------------------------------
 
 ;; Translate corescheme-core to corescheme-extended and make use of
-;; the |let|, |let*|, |and| and |or| forms in the latter, to get
-;; proper nice Scheme code back from |.scheme|.
+;; the |let|, |let*|, |and| and |or| forms in the latter
+;; ("reconstruction"), to get proper nice Scheme code back from
+;; |.scheme|.
 
 (def (corescheme-to-scheme s #!optional (n 3));; XX n is a hack
      (let ((r (parameterize ((current-optimizing? #f)
@@ -211,10 +212,17 @@
         (then* (.corescheme-extended then))
         (else* (and else (.corescheme-extended else))))
     (cond
-     ;; detect |and|
+     ;; reconstruct |and|
      ((corescheme:eq? else* #f)
       (corescheme-and (list test* then*)))
-     ;; |or| must be handled in |let| -- or hmm ?
+     ;; reconstruct |or|
+     ((and (corescheme-ref? test*)
+           (corescheme-ref? then*)
+           ((on corescheme-ref.var corescheme-var.equal?) test* then*)
+           ;; and don't allow #!void to come in here. Need an
+           ;; expression here.
+           else*)
+      (corescheme-or (list test* else*)))
      (else ;; fallback
       (corescheme-if test* then* else*)))))
 
