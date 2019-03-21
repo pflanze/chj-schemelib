@@ -157,6 +157,15 @@
  (lambda (a b c d e) (a) (b) (c) (d) e)
  > (OPTIMIZE (lambda (a b c d e) (and (begin a (begin b c d) e))))
  (lambda (a b c d e) a b c d e) ;; XX optimize away unused constants
+
+ ;; fun, optimizer can re-use existing variables in scope:
+ > (ROUNDTRIP (lambda (a b c d e) (or a b)))
+ (lambda (a b c d e) (let ((GEN:V-8915 a)) (if GEN:V-8915 GEN:V-8915 b)))
+ > (OPTIMIZE (lambda (a b c d e) (or a b)))
+ (lambda (a b c d e) (if a a b))
+ ;; ^ although, upcoming |or|-prettyfier will undo this again.
+ > (OPTIMIZE (lambda (a b c d e) (or (+ a c) b)))
+ (lambda (a b c d e) (let ((GEN:V-8917 (+ a c))) (if GEN:V-8917 GEN:V-8917 b)))
  )
 
 
