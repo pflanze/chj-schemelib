@@ -239,12 +239,14 @@
                    (.corescheme-extended body-expr)))
 
 (def.* (corescheme-and.corescheme-extended s)
-  (corescheme-and (corescheme:flatten<T> corescheme-and?
-                                         (map .corescheme-extended body))))
+  (corescheme:flatten<T> corescheme-and?
+                         corescheme-and
+                         (map .corescheme-extended body)))
 
 (def.* (corescheme-or.corescheme-extended s)
-  (corescheme-or (corescheme:flatten<T> corescheme-or?
-                                        (map .corescheme-extended body))))
+  (corescheme:flatten<T> corescheme-or?
+                         corescheme-or
+                         (map .corescheme-extended body)))
 
 ;; ------------------------------------------------------------------
 

@@ -879,13 +879,16 @@
           (_source->corescheme expr (actual-get-ctx) realmode?)))))
 
 
-(def (corescheme:flatten<T> T? body)
-     (fold-right (lambda (e r)
-                   (if (T? e)
-                       (append (.body e) r)
-                       (cons e r)))
-                 '()
-                 body))
+(def (corescheme:flatten<T> T? T body)
+     (let ((body* (fold-right (lambda (e r)
+                                (if (T? e)
+                                    (append (.body e) r)
+                                    (cons e r)))
+                              '()
+                              body)))
+       (if (one-item? body*)
+           (first body*)
+           (T body*))))
 
 
 (TEST
