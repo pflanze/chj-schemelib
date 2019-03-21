@@ -237,19 +237,20 @@
                    (map .corescheme-extended exprs)
                    (.corescheme-extended body-expr)))
 
+(def (corescheme:flatten body T?)
+     (let ((body* (map .corescheme-extended body)))
+       (fold-right (lambda (e r)
+                     (if (T? e)
+                         (append (.body e) r)
+                         (cons e r)))
+                   '()
+                   body*)))
+
 (def.* (corescheme-and.corescheme-extended s)
-  (let ((body* (map .corescheme-extended body)))
-    (corescheme-and
-     ;; nested |and| can be flattened
-     (fold-right (lambda (e r)
-                   (if (corescheme-and? e)
-                       (append (corescheme-and.body e) r)
-                       (cons e r)))
-                 '()
-                 body*))))
+  (corescheme-and (corescheme:flatten body corescheme-and?)))
 
 (def.* (corescheme-or.corescheme-extended s)
-  (corescheme-or (map .corescheme-extended body)))
+  (corescheme-or (corescheme:flatten body corescheme-or?)))
 
 ;; ------------------------------------------------------------------
 

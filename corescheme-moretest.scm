@@ -123,7 +123,31 @@
  > (OPTIMIZE (let ((x ((lambda (z) (* z z)) 10))) x))
  (let ((z 10)) (* z z)))
 
-
+;; |and|, |or|
+(TEST
+ > (ROUNDTRIP (lambda (a b c d e) (and (and a (and b c d) e))))
+ (lambda (a b c d e) (and a b c d e))
+ > (ROUNDTRIP (lambda (a b c d e) (and (or a (and b c d) e))))
+ (lambda (a b c d e)
+   (let ((GEN:V-6063 a))
+     (if GEN:V-6063
+         GEN:V-6063
+         (let ((GEN:V-6062 (and b (and c d)))) (if GEN:V-6062 GEN:V-6062 e)))))
+ ;;XXX also why was nested |and| not flattened
+ > (ROUNDTRIP (lambda (a b c d e) (and (or a (or b c d) e))))
+ (lambda (a b c d e)
+   (let ((GEN:V-6065 a))
+     (if GEN:V-6065
+         GEN:V-6065
+         (let ((GEN:V-6064
+                (let ((GEN:V-6067 b))
+                  (if GEN:V-6067
+                      GEN:V-6067
+                      (let ((GEN:V-6066 c)) (if GEN:V-6066 GEN:V-6066 d))))))
+           (if GEN:V-6064 GEN:V-6064 e)))))
+ ;; XX or
+ > (ROUNDTRIP (lambda (a b c d e) (and a)))
+ (lambda (a b c d e) a))
 
 
 (TEST
