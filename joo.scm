@@ -48,7 +48,11 @@
 	(macro def.*) ;; XX should I provide |define.*|, too?
         (macro with.)
 	#!optional
-	joo:parse-decl)
+	joo:parse-decl
+        joo:class-name.all-field-names
+        joo:class-name.all-field-decls
+        joo:class-name.field-decls)
+
 
 (include "cj-standarddeclares.scm")
 (possibly-use-debuggable-promise)
@@ -161,8 +165,12 @@
 
 
 (def (joo:class-name.all-field-names class-name)
-     (joo-type.all-field-names (eval
-                                (joo:joo-type-symbol class-name))))
+     (joo-type.all-field-names (eval (joo:joo-type-symbol class-name))))
+(def (joo:class-name.all-field-decls class-name)
+     (joo-type.all-field-decls (eval (joo:joo-type-symbol class-name))))
+(def (joo:class-name.field-decls class-name)
+     (joo-type.field-decls (eval (joo:joo-type-symbol class-name))))
+
 
 ;; XX now that def-method* has been renamed to def-method, should
 ;; probably rename this, too, but then it needs safe detection if
