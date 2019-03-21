@@ -108,7 +108,8 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
      (let ((r (parameterize ((current-optimizing? #t)
                              (current-corescheme-optimize-parameters
                               (or parameters
-                                  (current-corescheme-optimize-parameters))))
+                                  (current-corescheme-optimize-parameters)))
+                             (current-corescheme? corescheme-core?))
                             (.optimize s))))
        (assert (corescheme.optimized? r))
        r))

@@ -168,11 +168,24 @@
 
 (defparameter current-corescheme-id #f)
 (defparameter current-optimizing? 'current-optimizing-is-unset)
+;; dynamic typing, hey, :^) -- I don't know how else right now (I
+;; still can't combine dot-oo/joo with defmodule yet.)
+(defparameter current-corescheme? #f)
+(def (corescheme? v)
+     ((current-corescheme?) v))
+
 
 ;; "Monad runner" 
-(def (run-corescheme thunk #!key optimizing? (corescheme-id 0))
+(def (run-corescheme thunk
+                     #!key
+                     optimizing?
+                     (corescheme-id 0)
+                     extended?)
      (parameterize ((current-corescheme-id corescheme-id)
-                    (current-optimizing? optimizing?))
+                    (current-optimizing? optimizing?)
+                    (current-corescheme? (if extended?
+                                             corescheme-extended?
+                                             corescheme-core?)))
                    (thunk)))
 (defmacro (RUN-CORESCHEME . body)
   `(run-corescheme (lambda () ,@body)))
@@ -265,7 +278,7 @@
 (defclass (corescheme-extended [boolean? optimized?])
 
 
-  (defclass corescheme
+  (defclass corescheme-core
     implements: corescheme-interface
     "core elements"
 
@@ -434,8 +447,11 @@
 (corescheme:def-constructor corescheme-let)
 (corescheme:def-constructor corescheme-let*)
 
-;; XX this should (probably?) be done automatically by dot-oo/joo?
-(def. corescheme.optimized? corescheme-extended.optimized?)
+;; Should this (probably?) be done automatically by dot-oo/joo?  or
+;; well now it would be corescheme-core.optimized?; avoid slow
+;; dispatch on dynamic variable (current-corescheme?), and make it a
+;; plain function now.
+(def corescheme.optimized? corescheme-extended.optimized?)
 
 
 (def (corescheme-next-id!)
@@ -498,11 +514,8 @@
 
 (TEST
  > (def (t-_cs:begin v #!optional (get-env (lambda () empty-corescheme-ctx)))
-	(values (parameterize ((current-corescheme-id 0)
-                               (current-optimizing? #f))
-			      (_source->corescheme:begin v (get-env) #t))
-		(parameterize ((current-corescheme-id 0))
-			      (_source->corescheme:begin v (get-env) #f))))
+	(values (RUN-CORESCHEME (_source->corescheme:begin v (get-env) #t))
+		(RUN-CORESCHEME (_source->corescheme:begin v (get-env) #f))))
  > (.show (t-_cs:begin '((define a 1) (define b 2))))
  (values (_corescheme-begin
           #f
@@ -845,7 +858,8 @@
                          globals
 			 (get-ctx default-scheme-env)
 			 (realmode? #t))
-  -> corescheme?
+  ;; -> corescheme?  can't use outside RUN-CORESCHEME, hence:
+  -> corescheme-extended?
 
   (let ((actual-get-ctx (if globals
                             (C make-scheme-env globals)
