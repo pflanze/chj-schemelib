@@ -75,7 +75,7 @@
  > ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2)
  3
  > (OPTIMIZE ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2))
- (let ((x 2)) (+ x 1)) ;; XXX  apply simplification again!
+ (let ((x 2)) (+ x 1)) ;; XX  apply simplification again!
  > (optimize (OPTIMIZE ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2)))
  (+ 2 1) ;; and then, constant folding hehe ?
 
@@ -94,15 +94,11 @@
  )
 
 
-;; can I generate programs that  are   runnable?  (only 1 data type? but ops that are  order of application sensitive; / or string-append or such)
-;; cons, list  
-
-
 (TEST
  > (OPTIMIZE ((lambda (x f) (f x)) f 10))
  (10 f)
  > (OPTIMIZE ((lambda (x f) (lambda (f) (f x))) f 10))
- (lambda (f) (f f)) ;; and that is WRONG, needs renaming
+ (lambda (f) (f f)) ;; XXX WRONG, needs renaming
  )
 
 (TEST
