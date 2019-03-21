@@ -110,12 +110,17 @@
  > (ROUNDTRIP (lambda (a b c)
                 (and a (or b c))))
  (lambda (a b c) (if a
-                ((lambda (GEN:-1)
-                   (if GEN:-1
-                       GEN:-1
-                       c))
-                 b)
+                (let ((GEN:-1 b))
+                  (if GEN:-1
+                      GEN:-1
+                      c))
                 #f)))
+
+
+;; let
+(TEST
+ > (ROUNDTRIP (let ((x ((lambda (z) (* z z)) 10))) x))
+ (let ((x (let ((z 10)) (* z z)))) x))
 
 
 
