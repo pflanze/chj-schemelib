@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,8 +7,9 @@
 
 
 (require define-macro-star
+         cj-env
 	 (cj-source source-error)
-	 (list-util let-pair)
+	 (list-util let-pair lambda-pair)
 	 (list-util-1 map/iota)
 	 (cj-symbol with-gensym)
 	 (code-util early-bind-expressions)
@@ -42,7 +43,8 @@
 	pair-of-function (macro pair-of)
 	strictly-monotonic-list-of
 	values-of-function (macro values-of)
-	applying)
+	applying
+        applying-pair)
 
 (include "cj-standarddeclares.scm")
 
@@ -647,8 +649,8 @@
 
 (define-macro* (values-of . preds)
   (let ((len (length preds)))
-    (if (not (fixnum? len))
-	(error "bug"))
+    (when (not (fixnum? len))
+          (error "bug"))
     (if (= len 1)
 	(car preds)
 	(with-gensym
@@ -686,4 +688,12 @@
 
 ;; should it take optional args to insert before |args|? Or leave that
 ;; to usage of cut?
+
+(define (applying-pair fn)
+  (lambda-pair ((a b))
+          (fn a b)))
+
+(TEST
+ > ((applying-pair vector) (cons 1 2))
+ [1 2])
 
