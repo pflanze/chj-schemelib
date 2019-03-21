@@ -52,7 +52,9 @@
                                corescheme-letrec))
                (class corescheme-extension
                       (classes corescheme-let
-                               corescheme-let*)))
+                               corescheme-let*
+                               corescheme-and
+                               corescheme-or)))
 	(method source.corescheme)
         (method corescheme.optimized?)
 	make-scheme-env
@@ -431,7 +433,13 @@
     (defclass ((corescheme-let* _corescheme-let*)
                [(list-of corescheme-var?) vars]
                [(list-of corescheme?) exprs]
-               [corescheme? body-expr]))))
+               [corescheme? body-expr]))
+
+    (defclass ((corescheme-and _corescheme-and)
+               [(list-of corescheme?) body]))
+
+    (defclass ((corescheme-or _corescheme-or)
+               [(list-of corescheme?) body]))))
 
 ;; these can't be within the class definitions because of the
 ;; evaluation ordering
@@ -446,6 +454,8 @@
 (corescheme:def-constructor corescheme-letrec)
 (corescheme:def-constructor corescheme-let)
 (corescheme:def-constructor corescheme-let*)
+(corescheme:def-constructor corescheme-and)
+(corescheme:def-constructor corescheme-or)
 
 ;; Should this (probably?) be done automatically by dot-oo/joo?  or
 ;; well now it would be corescheme-core.optimized?; avoid slow
