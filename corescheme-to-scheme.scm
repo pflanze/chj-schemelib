@@ -168,6 +168,7 @@
        ;;    -- XX adapt for here, too, change boolean to levels or bitmask?
        (.scheme r)))
 
+
 (def.* (corescheme-literal.corescheme-extended s)
   s)
 
@@ -199,10 +200,22 @@
 (def.* (corescheme-begin.corescheme-extended s)
   (corescheme-begin (map .corescheme-extended body)))
 
+
+(def (corescheme:eq? cs schemeval)
+     (and (corescheme-literal? cs)
+          (eq? (@corescheme-literal.val cs) schemeval)))
+
 (def.* (corescheme-if.corescheme-extended s)
-  (corescheme-if (.corescheme-extended test)
-                 (.corescheme-extended then)
-                 (and else (.corescheme-extended else))))
+  (let ((test* (.corescheme-extended test))
+        (then* (.corescheme-extended then))
+        (else* (and else (.corescheme-extended else))))
+    (cond
+     ;; detect |and|
+     ((corescheme:eq? else* #f)
+      (corescheme-and (list test* then*)))
+     ;; |or| must be handled in |let| -- or hmm ?
+     (else ;; fallback
+      (corescheme-if test* then* else*)))))
 
 (def.* (corescheme-letrec.corescheme-extended s)
   (corescheme-letrec vars
@@ -225,7 +238,16 @@
                    (.corescheme-extended body-expr)))
 
 (def.* (corescheme-and.corescheme-extended s)
-  (corescheme-and (map .corescheme-extended body)))
+  (let ((body* (map .corescheme-extended body)))
+    (corescheme-and
+     ;; nested |and| can be flattened
+     (fold-right (lambda (e r)
+                   (if (corescheme-and? e)
+                       (append (corescheme-and.body e) r)
+                       (cons e r)))
+                 '()
+                 body*))))
+
 (def.* (corescheme-or.corescheme-extended s)
   (corescheme-or (map .corescheme-extended body)))
 

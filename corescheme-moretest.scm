@@ -105,16 +105,17 @@
 
 (TEST
  > (define TEST:equal? syntax-equal?)
+ > (ROUNDTRIP (lambda (a b c) (and a b c)))
+ (lambda (a b c) (and a b c))
  > (ROUNDTRIP (lambda (d e) (##and d e)))
- (lambda (d e) (if d e #f))
+ (lambda (d e) (and d e))
  > (ROUNDTRIP (lambda (a b c)
                 (and a (or b c))))
- (lambda (a b c) (if a
+ (lambda (a b c) (and a
                 (let ((GEN:-1 b))
                   (if GEN:-1
                       GEN:-1
-                      c))
-                #f)))
+                      c)))))
 
 
 ;; let
