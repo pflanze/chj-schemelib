@@ -27,6 +27,10 @@
         integer->alphabetic26-string)
 
 
+(include "cj-standarddeclares.scm")
+
+
+
 ;; can this calculation be optimized?
 (define (quotient+modulo x y)
   (values (quotient x y)
