@@ -439,10 +439,7 @@
 
 
 (def (corescheme-next-id!)
-     ;; forever the same  too.
-     (let ((newid (inc (current-corescheme-id))))
-       (current-corescheme-id newid)
-       newid))
+     (parameter-inc! current-corescheme-id))
 
 (def (new-corescheme-var! name)
      (corescheme-var name (corescheme-next-id!)))
