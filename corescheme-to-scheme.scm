@@ -110,8 +110,13 @@
   `(define ,(.name var)
      ,(.scheme val)))
 
-(def. (corescheme-begin.scheme v)
-  `(begin ,@(map .scheme (.body v))))
+
+(def (corescheme-<seq>.scheme <seq>)
+     (lambda (v)
+       (let. ((body) v)
+             `(,<seq> ,@(map .scheme body)))))
+
+(def. corescheme-begin.scheme (corescheme-<seq>.scheme `begin))
 
 (def.* (corescheme-if.scheme v)
   `(if ,(.scheme test)
@@ -124,7 +129,25 @@
   `(set! ,(.name var)
 	 ,(.scheme val)))
 
-;; corescheme-letrec
+(def (corescheme-<let>.scheme <let>)
+     (lambda (v)
+       (let. ((vars exprs body-expr) v)
+             `(,<let> ,(map (lambda (var expr)
+                              ;;XX handle variable conflicts
+                              `(,(corescheme-var.name var) ,(.scheme expr)))
+                            vars exprs)
+                      ,@(map .scheme
+                             (if (corescheme-begin? body-expr)
+                                 (corescheme-begin.body body-expr)
+                                 (list body-expr)))))))
+
+(def. corescheme-letrec.scheme (corescheme-<let>.scheme `letrec))
+(def. corescheme-let.scheme (corescheme-<let>.scheme `let))
+(def. corescheme-let*.scheme (corescheme-<let>.scheme `let*))
+
+(def. corescheme-and.scheme (corescheme-<seq>.scheme `and))
+(def. corescheme-or.scheme (corescheme-<seq>.scheme `or))
+
 
 
 ;; change to <failing-on> for debugging
