@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,10 +7,11 @@
 
 
 (require test
-	 (test-logic ∀)
+	 (test-logic ∀ qcheck*)
          (srfi-11 values->vector letv))
 
 (export quotient+modulo
+        quotient+remainder
         /=
         integer
         integer-ceiling
@@ -36,6 +37,37 @@
  [1 2]
  > (values->vector (quotient+modulo -14 12))
  [-1 10])
+
+
+(define (quotient+remainder.1 x y)
+  (values (quotient x y)
+	  (remainder x y)))
+
+(define (quotient+remainder x y)
+  (let ((q (quotient x y)))
+    (values q
+            (- x (* q y)))))
+
+(TEST
+ > (values->vector (quotient+remainder 14 12))
+ [1 2]
+ > (values->vector (quotient+remainder -14 12))
+ [-1 -2]
+ > (define (wrap f)
+     ;; oh, need to change to vector here, too, as Gambit's equal?
+     ;; silently returns #f for values tuples! :( XX patch it! ?
+     (lambda-pair ((a b))
+             (with-exception-catcher
+              (lambda (e)
+                (if (divide-by-zero-exception? e)
+                    'divide-by-zero
+                    (raise e)))
+              (lambda ()
+                (values->vector (f a b))))))
+ > (qcheck* (cartesian-product-2 (iota 10 -5) (iota 10 -5))
+            (wrap quotient+remainder.1)
+            (wrap quotient+remainder))
+ ())
 
 
 (define (/= a b)
