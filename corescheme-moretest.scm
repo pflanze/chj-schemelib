@@ -21,7 +21,7 @@
                                string-length < string? vector-length
                                vector? ...?))
              corescheme-optimize
-             .scheme))
+             corescheme-to-scheme))
 
  > (defmacro (OPTIMIZE* expr)
      `(optimize (quote-source ,expr)))
@@ -39,7 +39,7 @@
  > (OPTIMIZE (lambda (x) (x f)))
  (lambda (x) (x f))
  > (OPTIMIZE (let ((x 100)) (+ x x)))
- ((lambda (x) (+ x x)) 100)
+ (let ((x 100)) (+ x x))
  > (OPTIMIZE (let ((x 100)) (+ x 10)))
  (+ 100 10)
  > (OPTIMIZE (let ((x 100) (y 120)) (f (* x 10))))
@@ -47,7 +47,7 @@
  > (OPTIMIZE (let ((x 100) (y 120)) (f (* x 10 y))))
  (f (* 100 10 120))
  > (OPTIMIZE (let ((x 100) (y 120)) (f (* x 10 y y))))
- ((lambda (x y) (f (* x 10 y y))) 100 120)
+ (let ((x 100) (y 120)) (f (* x 10 y y)))
  ;; so, now want to optimize it partially, ok?
  )
 
@@ -73,7 +73,7 @@
  > ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2)
  3
  > (OPTIMIZE ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2))
- ((lambda (x) (+ x 1)) 2) ;; XXX  apply simplification again!
+ (let ((x 2)) (+ x 1)) ;; XXX  apply simplification again!
  > (optimize (OPTIMIZE ((lambda (quote x) 'x) (lambda (x) (+ x 1)) 2)))
  (+ 2 1) ;; and then, constant folding hehe ?
 
