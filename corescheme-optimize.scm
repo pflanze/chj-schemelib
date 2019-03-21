@@ -8,6 +8,7 @@
 
 (require easy
          corescheme
+         (corescheme corescheme:flatten<T>)
          test
          corescheme-to-scheme)
 
@@ -245,7 +246,8 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
     (corescheme-set! var val*)))
 
 (def.* (corescheme-begin.optimize s)
-  (corescheme-begin (map .optimize body)))
+  (corescheme-begin (corescheme:flatten<T> corescheme-begin?
+                                           (map .optimize body))))
 
 (def.* (corescheme-if.optimize s)
   (corescheme-if (.optimize test)

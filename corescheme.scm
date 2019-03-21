@@ -63,6 +63,7 @@
 	#!optional
         corescheme:literal-atom?
 	corescheme:literal?
+        corescheme:flatten<T>
 	current-corescheme-id
 	corescheme-next-id!
 	new-corescheme-var!
@@ -874,7 +875,17 @@
   (let ((actual-get-ctx (if globals
                             (C make-scheme-env globals)
                             get-ctx)))
-    (fst (RUN-CORESCHEME (_source->corescheme expr (actual-get-ctx) realmode?)))))
+    (fst (RUN-CORESCHEME
+          (_source->corescheme expr (actual-get-ctx) realmode?)))))
+
+
+(def (corescheme:flatten<T> T? body)
+     (fold-right (lambda (e r)
+                   (if (T? e)
+                       (append (.body e) r)
+                       (cons e r)))
+                 '()
+                 body))
 
 
 (TEST

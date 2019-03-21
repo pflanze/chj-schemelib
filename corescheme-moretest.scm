@@ -123,8 +123,9 @@
  > (OPTIMIZE (let ((x ((lambda (z) (* z z)) 10))) x))
  (let ((z 10)) (* z z)))
 
-;; |and|, |or|
+;; |and|, |or|, |begin|
 (TEST
+ > (define TEST:equal? syntax-equal?)
  > (ROUNDTRIP (lambda (a b c d e) (and (and a (and b c d) e))))
  (lambda (a b c d e) (and a b c d e))
  > (ROUNDTRIP (lambda (a b c d e) (and (or a (and b c d) e))))
@@ -147,7 +148,16 @@
            (if GEN:V-6064 GEN:V-6064 e)))))
  ;; XX or
  > (ROUNDTRIP (lambda (a b c d e) (and a)))
- (lambda (a b c d e) a))
+ (lambda (a b c d e) a)
+ > (ROUNDTRIP (lambda (a b c d e) (and (begin (a) (begin (b) (c) (d)) e))))
+ (lambda (a b c d e) (a) (begin (b) (c) (d)) e)
+ ;; ^ because optimization other than on corescheme-extended is not
+ ;; part of roundtrip
+ > (OPTIMIZE (lambda (a b c d e) (and (begin (a) (begin (b) (c) (d)) e))))
+ (lambda (a b c d e) (a) (b) (c) (d) e)
+ > (OPTIMIZE (lambda (a b c d e) (and (begin a (begin b c d) e))))
+ (lambda (a b c d e) a b c d e) ;; XX optimize away unused constants
+ )
 
 
 (TEST

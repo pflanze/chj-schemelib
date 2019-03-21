@@ -8,6 +8,7 @@
 
 (require easy
 	 corescheme
+         (corescheme corescheme:flatten<T>)
 	 (failing <failing-on> <failing-off>)
          (scheme-meta self-quoting?)
 	 test
@@ -237,20 +238,13 @@
                    (map .corescheme-extended exprs)
                    (.corescheme-extended body-expr)))
 
-(def (corescheme:flatten body T?)
-     (let ((body* (map .corescheme-extended body)))
-       (fold-right (lambda (e r)
-                     (if (T? e)
-                         (append (.body e) r)
-                         (cons e r)))
-                   '()
-                   body*)))
-
 (def.* (corescheme-and.corescheme-extended s)
-  (corescheme-and (corescheme:flatten body corescheme-and?)))
+  (corescheme-and (corescheme:flatten<T> corescheme-and?
+                                         (map .corescheme-extended body))))
 
 (def.* (corescheme-or.corescheme-extended s)
-  (corescheme-or (corescheme:flatten body corescheme-or?)))
+  (corescheme-or (corescheme:flatten<T> corescheme-or?
+                                        (map .corescheme-extended body))))
 
 ;; ------------------------------------------------------------------
 
