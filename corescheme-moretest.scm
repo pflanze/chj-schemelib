@@ -14,6 +14,8 @@
 
 "Some random additional tests for the corescheme libraries."
 
+;; (run-tests "lib/corescheme" "lib/corescheme-to-scheme" "lib/corescheme-optimize" "lib/corescheme-moretest")
+
 (TEST
  > (def optimize
         (=>* (source.corescheme
@@ -121,7 +123,10 @@
 ;; let
 (TEST
  > (ROUNDTRIP (let ((x ((lambda (z) (* z z)) 10))) x))
- (let ((x (let ((z 10)) (* z z)))) x))
+ (let ((x (let ((z 10)) (* z z)))) x)
+ > (OPTIMIZE (let ((x ((lambda (z) (* z z)) 10))) x))
+ (let ((z 10)) (* z z)))
+
 
 
 
