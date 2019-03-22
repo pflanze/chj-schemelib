@@ -386,7 +386,10 @@ reconstruction work)"))
       (corescheme-set! var (.interpolate val vars* exprs*))))
 
 
-  (defclass ((corescheme-beginlike #f)
+  (defclass ((corescheme-beginlike
+              ;; #f gives Unbound variable: let-corescheme-beginlike
+              ;; XX grr didn't I fix this some time? 
+              __corescheme-beginlike)
              [(list-of corescheme?) body])
 
     (defmethod (references? s vars)
@@ -436,7 +439,9 @@ reconstruction work)"))
                      (and else (.interpolate else vars* exprs*)))))
 
 
-  (defclass ((corescheme-letlike #f)
+  (defclass ((corescheme-letlike
+              ;; #f see above
+              __corescheme-letlike)
              [(list-of corescheme-var?) vars]
              [(list-of corescheme?) exprs]
              [corescheme? body-expr])
