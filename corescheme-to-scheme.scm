@@ -161,14 +161,23 @@
 ;; ("reconstruction"), to get proper nice Scheme code back from
 ;; |.scheme|.
 
-(def (corescheme-to-scheme s #!optional (n 3));; XX n is a hack
-     (let ((r (parameterize ((current-optimizing? #f)
-                             (current-corescheme? corescheme-extended?))
+(def (corescheme-to-scheme s #!optional (n 3)) ;; XX n is a hack
+     (let* ((r (parameterize ((current-optimizing? #f)
+                              (current-corescheme? corescheme-extended?))
 
-                            (repeatedly n .corescheme-extended s))))
+                             (repeatedly n .corescheme-extended s)))
+            ;; then optimize again to finish |or| reconstruction
+            ;; (messy?; explicitly specify what optims to use? Or,
+            ;; hackily, just enable those optimizations via ?)
+            (r* (parameterize ((current-optimizing? #t) ;; well, complete mix?
+                               (current-corescheme? corescheme-extended?))
+
+                              ;; XX hard code 2 for n here? Really
+                              ;; solve this properly
+                              (repeatedly 2 .optimize s))))
        ;; (assert (corescheme.optimized? r))
        ;;    -- XX adapt for here, too, change boolean to levels or bitmask?
-       (.scheme r)))
+       (.scheme r*)))
 
 
 (def.* (corescheme-literal.corescheme-extended s)
