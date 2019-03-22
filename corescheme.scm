@@ -661,7 +661,8 @@ reconstruction work)"))
        (Maybe:cond ((ctx:Maybe-ref ctx (source-code expr)) =>
 		    (comp return-normal-value corescheme-ref))
 		   (else
-		    (source-error expr "undefined variable"))))
+		    (source-error expr "undefined variable"
+                                  (source-code expr)))))
 
       (corescheme:literal-atom?
        (if (self-quoting? (source-code expr))
@@ -865,7 +866,8 @@ reconstruction work)"))
               
               (else
                (source-error a
-                             "undefined variable in function position"))))
+                             "undefined variable in function position"
+                             a*))))
 
            ;; head is not a symbol: function application
            (if (list? r)
