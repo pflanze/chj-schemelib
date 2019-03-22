@@ -39,22 +39,26 @@
                    perhaps-typed.maybe-predicate))
 
 (export (class corescheme-var)
+        (interface corescheme-interface
+                   (interface corescheme-core)
+                   (interface corescheme-extension))
         (class corescheme-extended
-               (class corescheme
-                      (classes corescheme-literal
-                               corescheme-ref
-                               corescheme-lambda
-                               corescheme-app
-                               corescheme-def
-                               corescheme-set!
-                               corescheme-begin
-                               corescheme-if
-                               corescheme-letrec))
-               (class corescheme-extension
-                      (classes corescheme-let
-                               corescheme-let*
-                               corescheme-and
-                               corescheme-or)))
+               (classes corescheme-literal
+                        corescheme-ref
+                        corescheme-lambda
+                        corescheme-app
+                        corescheme-def
+                        corescheme-set!
+                        (class corescheme-beginlike
+                               (classes corescheme-begin
+                                        corescheme-and
+                                        corescheme-or))
+                        corescheme-if
+                        (class corescheme-letlike
+                               (classes
+                                corescheme-letrec
+                                corescheme-let
+                                corescheme-let*))))
 	(method source.corescheme)
         (method corescheme.optimized?)
 	make-scheme-env
@@ -205,7 +209,15 @@
                        [(list-of corescheme?) exprs])
           -> corescheme?
           (assert (lengths-= vars exprs))
-          "replace references to the given vars with the corresponding exprs."))
+          "replace references to the given vars with the corresponding exprs.")
+
+  (definterface corescheme-core
+    "core elements; only these are used by source.corescheme")
+  
+  (definterface corescheme-extension
+    "elements probably only for pretty-printing (but some 'normal'
+optimizers can be useful on those, too, to optimize after
+reconstruction work)"))
 
 
 (compile-time
@@ -232,21 +244,27 @@
                 (,(source.symbol-append '_ classname) opt ,@fieldnames)))))
 
  (def (corescheme:def-constructor-expand classname)
-      (let* ((decls (joo:class-name.field-decls (source-code classname)))
+      (let* ((decls (joo:class-name.all-field-decls (source-code classname)))
+             (decls (let-pair ((a decls) decls)
+                              (assert (source-equal? a `[boolean? optimized?]))
+                              decls))
              (decls* (map (lambda (decl)
                             ((on cj-desourcify values)
                              (perhaps-typed.var decl)
                              (or (perhaps-typed.maybe-predicate decl)
                                  (error "need predicate"))))
                           decls))
-             (cs (map fst (filter (lambda-values ((var pred))
-                                            (equal? pred 'corescheme?))
+             (cs (map fst (filter (lambda-values
+                                   ((var pred))
+                                   (equal? pred 'corescheme?))
                                   decls*)))
-             (lcs (map fst (filter (lambda-values ((var pred))
-                                             (equal? pred '(list-of corescheme?)))
+             (lcs (map fst (filter (lambda-values
+                                    ((var pred))
+                                    (equal? pred '(list-of corescheme?)))
                                    decls*)))
-             (mcs (map fst (filter (lambda-values ((var pred))
-                                             (equal? pred '(maybe corescheme?)))
+             (mcs (map fst (filter (lambda-values
+                                    ((var pred))
+                                    (equal? pred '(maybe corescheme?)))
                                    decls*)))
              (fieldnames (map fst decls*)))
         (corescheme:def-constructor-expand* classname
@@ -280,167 +298,176 @@
 
 (defclass (corescheme-extended [boolean? optimized?])
 
+  (defclass ((corescheme-literal _corescheme-literal)
+             [corescheme:literal? val])
+    implements: corescheme-core
 
-  (defclass corescheme-core
-    implements: corescheme-interface
-    "core elements"
+    (defmethod (references? s vars) #f)
+    (defmethod (num-references s var) 0)
+    (defmethod (interpolate s vars exprs) s))
 
-    (defclass ((corescheme-literal _corescheme-literal)
-               [corescheme:literal? val])
+  (defclass ((corescheme-ref _corescheme-ref)
+             [corescheme-var? var])
+    implements: corescheme-core
 
-      (defmethod (references? s vars) #f)
-      (defmethod (num-references s var) 0)
-      (defmethod (interpolate s vars exprs) s))
+    (defmethod (references? s vars)
+      (any (C corescheme-var.equal? _ var) vars))
+    (defmethod (num-references s var*)
+      (if (corescheme-var.equal? var var*) 1 0))
+    (defmethod (interpolate s vars exprs)
+      (let lp ((vars vars)
+               (exprs exprs))
+        (if-let-pair ((v vars*) vars)
+                     (if (corescheme-var.equal? v var)
+                         (first exprs)
+                         (lp vars* (rest exprs)))
+                     ;; hmm *was* s already optimized? good Question; ?
+                     ;;(corescheme-ref var)
+                     s))))
 
-    (defclass ((corescheme-ref _corescheme-ref)
-               [corescheme-var? var])
+  (defclass ((corescheme-lambda _corescheme-lambda)
+             [(improper-list-of corescheme-var?) vars]
+             [corescheme? expr])
+    implements: corescheme-core
 
-      (defmethod (references? s vars)
-        (any (C corescheme-var.equal? _ var) vars))
-      (defmethod (num-references s var*)
-        (if (corescheme-var.equal? var var*) 1 0))
-      (defmethod (interpolate s vars exprs)
-        (let lp ((vars vars)
-                 (exprs exprs))
-          (if-let-pair ((v vars*) vars)
-                       (if (corescheme-var.equal? v var)
-                           (first exprs)
-                           (lp vars* (rest exprs)))
-                       ;; hmm *was* s already optimized? good Question; ?
-                       ;;(corescheme-ref var)
-                       s))))
-
-    (defclass ((corescheme-lambda _corescheme-lambda)
-               [(improper-list-of corescheme-var?) vars]
-               [corescheme? expr])
-
-      (defmethod (references? s vars)
-        (.references? expr vars))
-      (defmethod (num-references S var)
-        ;; possible optimization: stop analyzing if var's name is in one
-        ;; of vars' name?
-        (.num-references expr var))
-      (defmethod (interpolate s vars* exprs*)
-        (corescheme-lambda vars
-                           (.interpolate expr vars* exprs*))))
+    (defmethod (references? s vars)
+      (.references? expr vars))
+    (defmethod (num-references S var)
+      ;; possible optimization: stop analyzing if var's name is in one
+      ;; of vars' name?
+      (.num-references expr var))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-lambda vars
+                         (.interpolate expr vars* exprs*))))
        
-    (defclass ((corescheme-app _corescheme-app)
-               [corescheme? proc]
-               [(list-of corescheme?) args])
+  (defclass ((corescheme-app _corescheme-app)
+             [corescheme? proc]
+             [(list-of corescheme?) args])
+    implements: corescheme-core
 
-      (defmethod (proc&args s)
-        (cons proc args))
+    (defmethod (proc&args s)
+      (cons proc args))
 
-      (defmethod (references? s vars)
-        (or (.references? proc vars)
-            (any (C .references? _ vars) args)))
-      (defmethod (num-references s var)
-        (fold (lambda (arg tot)
-                (+ tot (.num-references arg var)))
-              (.num-references proc var)
-              args))
-      (defmethod (interpolate s vars* exprs*)
-        (corescheme-app (.interpolate proc vars* exprs*)
-                        (map (C .interpolate _ vars* exprs*)
-                             args))))
+    (defmethod (references? s vars)
+      (or (.references? proc vars)
+          (any (C .references? _ vars) args)))
+    (defmethod (num-references s var)
+      (fold (lambda (arg tot)
+              (+ tot (.num-references arg var)))
+            (.num-references proc var)
+            args))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-app (.interpolate proc vars* exprs*)
+                      (map (C .interpolate _ vars* exprs*)
+                           args))))
        
-    (defclass ((corescheme-def _corescheme-def)
-               [corescheme-var? var]
-               [corescheme? val])
+  (defclass ((corescheme-def _corescheme-def)
+             [corescheme-var? var]
+             [corescheme? val])
+    implements: corescheme-core
 
-      (defmethod (references? s vars)
-        (.references? val vars))
-      (defmethod (num-references s var*)
-        (.num-references val var*))
-      (defmethod (interpolate s vars* exprs*)
-        (corescheme-def var (.interpolate val vars* exprs*))))
+    (defmethod (references? s vars)
+      (.references? val vars))
+    (defmethod (num-references s var*)
+      (.num-references val var*))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-def var (.interpolate val vars* exprs*))))
 
-    (defclass ((corescheme-set! _corescheme-set!)
-               [corescheme-var? var]
-               [corescheme? val])
+  (defclass ((corescheme-set! _corescheme-set!)
+             [corescheme-var? var]
+             [corescheme? val])
+    implements: corescheme-core
 
-      (defmethod (references? s vars)
-        (.references? val vars))
-      (defmethod (num-references s var*)
-        (.num-references val var*))
-      (defmethod (interpolate s vars* exprs*)
-        (corescheme-set! var (.interpolate val vars* exprs*))))
+    (defmethod (references? s vars)
+      (.references? val vars))
+    (defmethod (num-references s var*)
+      (.num-references val var*))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-set! var (.interpolate val vars* exprs*))))
 
-    (defclass ((corescheme-begin _corescheme-begin)
-               [(list-of corescheme?) body])
 
-      (defmethod (references? s vars)
-        (any (C .references? _ vars) body))
-      (defmethod (num-references s var)
-        (fold (lambda (expr tot)
-                (+ tot (.num-references expr var)))
-              0
-              body))
-      (defmethod (interpolate s vars* exprs*)
-        (corescheme-begin (map (C .interpolate _ vars* exprs*)
-                               body))))
+  (defclass ((corescheme-beginlike #f)
+             [(list-of corescheme?) body])
+
+    (defmethod (references? s vars)
+      (any (C .references? _ vars) body))
+    (defmethod (num-references s var)
+      (fold (lambda (expr tot)
+              (+ tot (.num-references expr var)))
+            0
+            body))
+    (defmethod (interpolate s vars* exprs*)
+      ((.constructor s) (map (C .interpolate _ vars* exprs*)
+                             body)))
+     
+
+    (defclass ((corescheme-begin _corescheme-begin))
+      implements: corescheme-core
+      (defmethod (constructor s) corescheme-begin))
+
+    (defclass ((corescheme-and _corescheme-and))
+      implements: corescheme-extension
+      (defmethod (constructor s) corescheme-and))
+
+    (defclass ((corescheme-or _corescheme-or))
+      implements: corescheme-extension
+      (defmethod (constructor s) corescheme-or)))
+    
        
-    (defclass ((corescheme-if _corescheme-if)
-               [corescheme? test]
-               [corescheme? then]
-               ;; should the missing-else case be encoded as
-               ;; explicit (void) ?
-               [(maybe corescheme?) else])
+  (defclass ((corescheme-if _corescheme-if)
+             [corescheme? test]
+             [corescheme? then]
+             ;; should the missing-else case be encoded as
+             ;; explicit (void) ?
+             [(maybe corescheme?) else])
+    implements: corescheme-core
 
-      (defmethod (references? s vars)
-        (or (.references? test vars)
-            (.references? then vars)
-            (and else (.references? else vars))))
-      (defmethod (num-references s var)
-        (+ (.num-references test var)
-           (.num-references then var)
-           (if else (.num-references else var) 0)))
-      (defmethod (interpolate s vars* exprs*)
-        (corescheme-if (.interpolate test vars* exprs*)
-                       (.interpolate then vars* exprs*)
-                       (and else (.interpolate else vars* exprs*)))))
-       
-    (defclass ((corescheme-letrec _corescheme-letrec)
-               [(list-of corescheme-var?) vars]
-               [(list-of corescheme?) exprs]
-               [corescheme? body-expr])
-
-      (defmethod (references? s vars)
-        (or (any (C .references? _ vars) exprs)
-            (.references? body-expr vars)))
-      (defmethod (num-references s var)
-        (fold (lambda (expr tot)
-                (+ tot (.num-references expr var)))
-              (.num-references body-expr var)
-              exprs))
-      (defmethod (interpolate s vars* exprs*)
-        (corescheme-letrec vars
-                           (map (C .interpolate _ vars* exprs*) exprs)
-                           (.interpolate body-expr vars* exprs*)))))
+    (defmethod (references? s vars)
+      (or (.references? test vars)
+          (.references? then vars)
+          (and else (.references? else vars))))
+    (defmethod (num-references s var)
+      (+ (.num-references test var)
+         (.num-references then var)
+         (if else (.num-references else var) 0)))
+    (defmethod (interpolate s vars* exprs*)
+      (corescheme-if (.interpolate test vars* exprs*)
+                     (.interpolate then vars* exprs*)
+                     (and else (.interpolate else vars* exprs*)))))
 
 
-  (defclass corescheme-extension
-    ;; does *not* implement corescheme-interface, OK?
-    "elements for optimizers to use, probably just for
-     pretty-printing"
+  (defclass ((corescheme-letlike #f)
+             [(list-of corescheme-var?) vars]
+             [(list-of corescheme?) exprs]
+             [corescheme? body-expr])
 
-    ;; much adapted-copypaste going on here
+    (defmethod (references? s vars)
+      (or (any (C .references? _ vars) exprs)
+          (.references? body-expr vars)))
+    (defmethod (num-references s var)
+      (fold (lambda (expr tot)
+              (+ tot (.num-references expr var)))
+            (.num-references body-expr var)
+            exprs))
+    (defmethod (interpolate s vars* exprs*)
+      ((.constructor s)
+       vars
+       (map (C .interpolate _ vars* exprs*) exprs)
+       (.interpolate body-expr vars* exprs*)))
 
-    (defclass ((corescheme-let _corescheme-let)
-               [(list-of corescheme-var?) vars]
-               [(list-of corescheme?) exprs]
-               [corescheme? body-expr]))
 
-    (defclass ((corescheme-let* _corescheme-let*)
-               [(list-of corescheme-var?) vars]
-               [(list-of corescheme?) exprs]
-               [corescheme? body-expr]))
+    (defclass ((corescheme-letrec _corescheme-letrec))
+      implements: corescheme-core
+      (defmethod (constructor s) corescheme-letrec))
 
-    (defclass ((corescheme-and _corescheme-and)
-               [(list-of corescheme?) body]))
+    (defclass ((corescheme-let _corescheme-let))
+      implements: corescheme-extension
+      (defmethod (constructor s) corescheme-let))
 
-    (defclass ((corescheme-or _corescheme-or)
-               [(list-of corescheme?) body]))))
+    (defclass ((corescheme-let* _corescheme-let*))
+      implements: corescheme-extension
+      (defmethod (constructor s) corescheme-let*))))
+
 
 ;; these can't be within the class definitions because of the
 ;; evaluation ordering
