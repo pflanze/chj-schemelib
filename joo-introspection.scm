@@ -14,7 +14,8 @@
  ;; joo.scm already has (re-export?):
  joo:class-name.joo-type
  joo-object? ;; should this be renamed to joo-instance? ?
- 
+
+ class-name.joo-type ;; alias for joo:class-name.joo-type
  (method joo-object.joo-type)
  (methods joo-type.subclasses
           ;; joo.scm already has these (re-export?):
@@ -45,6 +46,10 @@
 "Introspection facilities for joo"
 
 ;; Didn't I write some of those already, I'm sure I did, where, sigh.
+
+
+;; wanna avoid the joo: prefix, okay?
+(def class-name.joo-type joo:class-name.joo-type)
 
 
 (def. (joo-object.joo-type o)
