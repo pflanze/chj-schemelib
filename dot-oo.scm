@@ -41,6 +41,7 @@
 	define-struct.-expand
 	(generic .typecheck!) ;; ?
 	(variable *dot-oo:method-trace*)
+        (variable *dot-oo:method-stats*)
 	)
 
 (include "cj-standarddeclares.scm")
