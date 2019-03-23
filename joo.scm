@@ -49,6 +49,7 @@
         (macro with.)
 	#!optional
 	joo:parse-decl
+        joo:class-name.joo-type
         joo:class-name.all-field-names
         joo:class-name.all-field-decls
         joo:class-name.field-decls)
@@ -164,12 +165,17 @@
 		,@body)))))
 
 
+(def (joo:class-name.joo-type class-name)
+     ;; XX avoid need for eval?; should still be safe though as
+     ;; joo:joo-type-symbol prefixes it (although not Gambit
+     ;; namespaces, todo change?)
+     (eval (joo:joo-type-symbol class-name)))
 (def (joo:class-name.all-field-names class-name)
-     (joo-type.all-field-names (eval (joo:joo-type-symbol class-name))))
+     (joo-type.all-field-names (joo:class-name.joo-type class-name)))
 (def (joo:class-name.all-field-decls class-name)
-     (joo-type.all-field-decls (eval (joo:joo-type-symbol class-name))))
+     (joo-type.all-field-decls (joo:class-name.joo-type class-name)))
 (def (joo:class-name.field-decls class-name)
-     (joo-type.field-decls (eval (joo:joo-type-symbol class-name))))
+     (joo-type.field-decls (joo:class-name.joo-type class-name)))
 
 
 ;; XX now that def-method* has been renamed to def-method, should
