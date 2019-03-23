@@ -77,6 +77,15 @@
 "Core Scheme AST representation"
 
 
+;; COPY from unmerged monad library:
+
+(defmacro (mdo . args)
+  `(RA >> ,@args))
+
+(defmacro (>> a b)
+  `(.>> ,a (lambda () ,b)))
+
+
 ;; move to some more general scheme lib?
 
 (def (scheme:and-expand r)
@@ -166,8 +175,8 @@
 (defclass (corescheme-var [(possibly-source-of symbol?) name]
                           [natural0? id])
 
-  (defmethod (equal? a b)
-    (and (= id (corescheme-var.id b))
+  (defmethod (equal? a [corescheme-var? b])
+    (and (= id (@corescheme-var.id b))
          (begin
            (assert (eq? name (corescheme-var.name b)))
            #t))))
@@ -204,6 +213,17 @@
           "whether s contains any references to any of the vars")
   (method (num-references s [corescheme-var? var]) -> natural0?
           "how many references to var s contains")
+
+  (def corescheme:path? (pair-of corescheme-ref?
+                                 (ilist-of corescheme?)))
+  (def corescheme:path-stream? (istream-of corescheme:path?))
+  (method (references s
+                      [corescheme-var? var]
+                      [corescheme:path? path]
+                      [corescheme:path-stream? tail])
+          -> corescheme:path-stream?
+          "stream of 'paths' (list of nodes) where references to the
+given var are found; the first item of the path is the found node")
   (method (interpolate s
                        [(list-of corescheme-var?) vars]
                        [(list-of corescheme?) exprs])
@@ -304,6 +324,7 @@ reconstruction work)"))
 
     (defmethod (references? s vars) #f)
     (defmethod (num-references s var) 0)
+    (defmethod (references s var path tail) tail)
     (defmethod (interpolate s vars exprs) s))
 
   (defclass ((corescheme-ref _corescheme-ref)
@@ -314,6 +335,10 @@ reconstruction work)"))
       (any (C corescheme-var.equal? _ var) vars))
     (defmethod (num-references s var*)
       (if (corescheme-var.equal? var var*) 1 0))
+    (defmethod (references s var* path tail)
+      (delay (if (corescheme-var.equal? var var*)
+                 (cons (cons s path) tail)
+                 tail)))
     (defmethod (interpolate s vars exprs)
       (let lp ((vars vars)
                (exprs exprs))
@@ -336,6 +361,8 @@ reconstruction work)"))
       ;; possible optimization: stop analyzing if var's name is in one
       ;; of vars' name?
       (.num-references expr var))
+    (defmethod (references s var path tail)
+      (.references expr var (cons s path) tail))
     (defmethod (interpolate s vars* exprs*)
       (corescheme-lambda vars
                          (.interpolate expr vars* exprs*))))
@@ -356,6 +383,12 @@ reconstruction work)"))
               (+ tot (.num-references arg var)))
             (.num-references proc var)
             args))
+    (defmethod (references s var path tail)
+      (stream-fold-right (let ((path* (cons s path)))
+                           (lambda (expr tail)
+                             (.references expr var path* tail)))
+                         tail
+                         (cons proc args)))
     (defmethod (interpolate s vars* exprs*)
       (corescheme-app (.interpolate proc vars* exprs*)
                       (map (C .interpolate _ vars* exprs*)
@@ -370,9 +403,12 @@ reconstruction work)"))
       (.references? val vars))
     (defmethod (num-references s var*)
       (.num-references val var*))
+    (defmethod (references s var path tail)
+      (.references val var (cons s path) tail))
     (defmethod (interpolate s vars* exprs*)
       (corescheme-def var (.interpolate val vars* exprs*))))
 
+  ;; XXX unify implementation with corescheme-def, too
   (defclass ((corescheme-set! _corescheme-set!)
              [corescheme-var? var]
              [corescheme? val])
@@ -382,6 +418,8 @@ reconstruction work)"))
       (.references? val vars))
     (defmethod (num-references s var*)
       (.num-references val var*))
+    (defmethod (references s var path tail)
+      (.references val var (cons s path) tail))
     (defmethod (interpolate s vars* exprs*)
       (corescheme-set! var (.interpolate val vars* exprs*))))
 
@@ -399,6 +437,13 @@ reconstruction work)"))
               (+ tot (.num-references expr var)))
             0
             body))
+    ;; XX almost copy-paste with -app
+    (defmethod (references s var path tail)
+      (stream-fold-right (let ((path* (cons s path)))
+                           (lambda (expr tail)
+                             (.references expr var path* tail)))
+                         tail
+                         body))
     (defmethod (interpolate s vars* exprs*)
       ((.constructor s) (map (C .interpolate _ vars* exprs*)
                              body)))
@@ -433,6 +478,17 @@ reconstruction work)"))
       (+ (.num-references test var)
          (.num-references then var)
          (if else (.num-references else var) 0)))
+    (defmethod (references s var path tail)
+      ;; could use =>> but, the |if| form kinda spoils it. Thus go
+      ;; proper monads.
+      (def ((>> a b) tail)
+           (=> (a tail)
+               b))
+      (let ((path* (cons s path)))
+        (=> tail
+            ((mdo (C .references test var path* _)
+                  (C .references then var path* _)
+                  (if else (C .references else var path* _) id))))))
     (defmethod (interpolate s vars* exprs*)
       (corescheme-if (.interpolate test vars* exprs*)
                      (.interpolate then vars* exprs*)
@@ -454,6 +510,8 @@ reconstruction work)"))
               (+ tot (.num-references expr var)))
             (.num-references body-expr var)
             exprs))
+    (defmethod (references s var path tail)
+      (.fold-right ç))
     (defmethod (interpolate s vars* exprs*)
       ((.constructor s)
        vars
@@ -1017,3 +1075,27 @@ reconstruction work)"))
                                      (corescheme-literal 77))))
  ;; #f since it's interpolated in non-optimizing context
  [(corescheme-literal) #f 77])
+
+
+;; .references
+(TEST
+ > (.show (F (RUN-CORESCHEME (.references (corescheme-ref
+                                           (corescheme-var 'foo 1))
+                                          (corescheme-var 'foo 1)
+                                          '(a)
+                                          '()))))
+ (list (list (_corescheme-ref #f (corescheme-var 'foo 1)) 'a))
+ > (.show (F (RUN-CORESCHEME (.references (corescheme-begin
+                                           (list (corescheme-ref
+                                                  (corescheme-var 'foo 1))))
+                                          (corescheme-var 'foo 1)
+                                          '()
+                                          '()))))
+ (list (list (_corescheme-ref #f (corescheme-var 'foo 1))
+             (_corescheme-begin
+              #f (list (_corescheme-ref #f (corescheme-var 'foo 1))))))
+
+ ;; generative tests? Could do if keeping random decisions (e.g.
+ ;; generating the code and the expected results from the same
+ ;; decisions).
+ )
