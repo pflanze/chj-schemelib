@@ -270,6 +270,29 @@
 ;; Tests:
 
 
+(TEST
+ > (.scheme (source.corescheme '(define a (let () (define x (and))))))
+ ;; (define a ((lambda () (define x #t))))
+ ;; ;; body must contain at least one expression
+ (define a ((lambda () (define x #t) (void))))
+ > (%try (.scheme (source.corescheme '(define a (begin (define x (and)))))))
+ ;; (define a (begin (define x (and)) (void))) ;; still ill-placed 'define'
+ XX-some-error?
+ > (%try (.scheme (source.corescheme '(set! a (begin (define x (and)))))))
+ XX-some-error?
+ > (%try (.scheme (source.corescheme '(if #f (define x 1) 2))))
+ ;; (if #f (define x 1) 2)
+ XX-some-error?
+ > (%try (.scheme (source.corescheme '(if (begin (define x (and))) 1 2))))
+ ;; (if (define x #t) 1 2)
+ XX-some-error?
+
+ > (ROUNDTRIP (define a (let () (define x (and)))))
+ ;; (define a (define x #t))
+ ;; ;; ^ wrong, and syntactically invalid in Gambit.
+ (define a (let () (define x #t) (void))))
+
+
 ;; change to <failing-on> for debugging
 (modimport/prefix failing: <failing-off>)
 
