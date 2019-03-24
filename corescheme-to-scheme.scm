@@ -129,7 +129,7 @@
              (list (.scheme else))
              '())))
 
-(def. (corescheme-set!.scheme v)
+(def.* (corescheme-set!.scheme v)
   `(set! ,(.name var)
 	 ,(.scheme val)))
 
