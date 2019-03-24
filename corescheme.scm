@@ -35,8 +35,11 @@
 	 typed-alist
 	 Maybe
 	 show
+         joo-introspection
          (cj-typed perhaps-typed.var
-                   perhaps-typed.maybe-predicate))
+                   perhaps-typed.maybe-predicate)
+         test
+         (random random-hexstring))
 
 (export (class corescheme-var)
         (interface corescheme-interface
@@ -203,8 +206,8 @@
                                              corescheme-extended?
                                              corescheme-core?)))
                    (thunk)))
-(defmacro (RUN-CORESCHEME . body)
-  `(run-corescheme (lambda () ,@body)))
+(defmacro (RUN-CORESCHEME expr . args)
+  `(run-corescheme (lambda () ,expr) ,@args))
 
 
 
@@ -263,30 +266,41 @@ reconstruction work)"))
                        '())
                 (,(source.symbol-append '_ classname) opt ,@fieldnames)))))
 
+ (def (corescheme:joo-type.var+pred-s t)
+      -> (ilist-of (values-of (possibly-source-of symbol?)
+                              (possibly-source-of any?)))
+      (=> t
+          .all-field-decls
+          ((lambda-pair ((a decls))
+                   (assert (source-equal? a `[boolean? optimized?]))
+                   decls))
+          (.map (lambda (decl)
+                  ((on cj-desourcify values)
+                   (perhaps-typed.var decl)
+                   (or (perhaps-typed.maybe-predicate decl)
+                       (error "need predicate")))))))
+
+ (def corescheme:classname.var+pred-s
+      (=>*/1 class-name.joo-type
+             corescheme:joo-type.var+pred-s))
+ 
  (def (corescheme:def-constructor-expand classname)
-      (let* ((decls (joo:class-name.all-field-decls (source-code classname)))
-             (decls (let-pair ((a decls) decls)
-                              (assert (source-equal? a `[boolean? optimized?]))
-                              decls))
-             (decls* (map (lambda (decl)
-                            ((on cj-desourcify values)
-                             (perhaps-typed.var decl)
-                             (or (perhaps-typed.maybe-predicate decl)
-                                 (error "need predicate"))))
-                          decls))
+      (let* ((var+pred-s (corescheme:classname.var+pred-s classname))
              (cs (map fst (filter (lambda-values
                                    ((var pred))
                                    (equal? pred 'corescheme?))
-                                  decls*)))
+                                  var+pred-s)))
              (lcs (map fst (filter (lambda-values
                                     ((var pred))
+                                    ;; XXXX update, and  report if none matches!
+                                    ;; (list-of/length corescheme? (length vars))
                                     (equal? pred '(list-of corescheme?)))
-                                   decls*)))
+                                   var+pred-s)))
              (mcs (map fst (filter (lambda-values
                                     ((var pred))
                                     (equal? pred '(maybe corescheme?)))
-                                   decls*)))
-             (fieldnames (map fst decls*)))
+                                   var+pred-s)))
+             (fieldnames (map fst var+pred-s)))
         (corescheme:def-constructor-expand* classname
                                             cs
                                             lcs
@@ -483,7 +497,7 @@ reconstruction work)"))
       ;; proper monads.
       (def ((>> a b) tail)
            (=> (a tail)
-               b))
+               ((b))))
       (let ((path* (cons s path)))
         (=> tail
             ((mdo (C .references test var path* _)
@@ -499,7 +513,14 @@ reconstruction work)"))
               ;; #f see above
               __corescheme-letlike)
              [(list-of corescheme-var?) vars]
-             [(list-of corescheme?) exprs]
+             [(list-of/length corescheme? (length vars)) exprs]
+             ;; the nice part of an alist is that it doesn't require
+             ;; this cross check ^. Also, this will be giving a |vars|
+             ;; not bound warning from the generated code in the exprs
+             ;; setter. (Q: should I make setters macros, or via
+             ;; define-inline ? Or, more correctly, not generate
+             ;; setters at all for fields which have cross
+             ;; dependencies for value correctness.)
              [corescheme? body-expr])
 
     (defmethod (references? s vars)
@@ -981,6 +1002,125 @@ reconstruction work)"))
        (if (one-item? body*)
            (first body*)
            (T body*))))
+
+
+;; ------------------------------------------------------------------
+;; Testing
+
+(def list.string list->string);; WHYnot have???XX
+
+(def (random-nonnull-alpha-list)
+     (let lp ((res '()))
+       (if (and (pair? res) (zero? (random-integer 5)))
+           res
+           (lp (cons (integer.char (+ (char.integer #\a) (random-integer 26)))
+                     res)))))
+
+(def (random-nonnull-alpha-string)
+     (=> (random-nonnull-alpha-list) list.string))
+
+(def (random-variable-name)
+     (=> (random-nonnull-alpha-string) 
+         string.symbol))
+
+
+;;XX ctx
+
+;;XX where should level be incremented  uniformly ?
+
+;;XX separate into create vs. use
+;; corescheme-var is not part of corescheme hierarchy:
+(def (random-corescheme-var level)
+     (new-corescheme-var! (random-variable-name)))
+
+
+(def (random-corescheme:literal level)
+     ;; for now, simply:
+     (random-integer 1000))
+
+;;XX a heh  of same length   thing  for app etc--but then far anyway not working. need static typing for that. type ctx? dynamic as well tho r 
+(def (corescheme:random-list-of construct level)
+     (let rec ()
+       (if (zero? (random-integer 3))
+           '()
+           (cons (construct level) (rec)))))
+
+(def (corescheme:random-list-of/length construct [natural0? len] level)
+     (let rec ((len len))
+       (if (zero? len)
+           '()
+           (cons (construct level) (rec (dec len))))))
+
+;; XX actually make improper, but then have to finish parsing
+(def corescheme:random-improper-list-of corescheme:random-list-of)
+
+(def (corescheme:random-maybe construct level)
+     (if (zero? (random-integer 2))
+         (construct level)
+         #f))
+
+(compile-time
+ (def (corescheme:random-code)
+      (let* ((joo-types (=> 'corescheme-interface
+                            class-name.joo-type
+                            joo-type.all-subclasses
+                            (.map class-name.joo-type)
+                            (.filter (complement .interface?))))
+             (randomconstructor-name
+              (lambda (classname)
+                (symbol-append 'random- classname)))
+             (randomconstructor-name/?
+              (lambda (predicatename)
+                (=> (symbol.string predicatename)
+                    .butlast
+                    string.symbol
+                    randomconstructor-name))))
+        (quasiquote-source
+         (begin
+           ,@(.map
+              joo-types
+              (lambda (t)
+                (=>
+                 t
+                 corescheme:joo-type.var+pred-s
+                 ((lambda (var+pred-s)
+                    (let ((classname (.class-name t)))
+                      (quasiquote-source
+                       (def (,(randomconstructor-name classname) level)
+                            (let* ((level* (inc level))
+                                   ,@(.map
+                                      var+pred-s
+                                      (lambda-values
+                                       ((var pred))
+                                       (quasiquote-source
+                                        (,var
+                                         ,(mcase
+                                           pred
+                                           (`(`<container>-of `T? . `args)
+                                            (quasiquote-source
+                                             (,(symbol-append 'corescheme:random-
+                                                              <container>-of)
+                                              ,(randomconstructor-name/? T?)
+                                              ,@args
+                                              level*)))
+                                           (symbol?
+                                            (quasiquote-source
+                                             (,(randomconstructor-name/? pred)
+                                              level)))))))))
+                              (,classname
+                               ,@(.map var+pred-s fst)))))))))))
+           (def (random-corescheme level)
+                (xcase (random-integer ,(length joo-types))
+                       ,@(.map/iota joo-types
+                                    (lambda (t i)
+                                      (quasiquote-source
+                                       ((,i)
+                                        (,(randomconstructor-name
+                                           (.class-name t))
+                                         level))))))))))))
+
+(insert-result-of (corescheme:random-code))
+
 
 
 (TEST
