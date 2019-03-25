@@ -143,10 +143,9 @@
 	 (list '(foo x)
 	       '(set! foo x)
 	       '(define foo x)))
-  (
-   #(() ((GEN:-5888 (foo x))))
-   #(() ((GEN:-5889 (set! foo x))))
-   #(() ((foo x)))))
+  ([() ((GEN:-5888 (foo x)))]
+   [() ((GEN:-5889 (set! foo x)))]
+   [() ((foo x))]))
 
 
  (define (define-module:convert-forms forms *local-expanders)
@@ -168,12 +167,12 @@
 			(##define-syntax X foo)
 			(define a 3))
 		      (box '())))
-  #( ;; convertedforms
-    ((a 1)
-     (GEN:1 (set! a 2))
-     (GEN:2 (set! a 3)))
-    ;; movedout
-    ((##define-syntax X foo))))
+  [ ;; convertedforms
+   ((a 1)
+    (GEN:1 (set! a 2))
+    (GEN:2 (set! a 3)))
+   ;; movedout
+   ((##define-syntax X foo))])
  
  (define (convert-module-body forms bodytail)
 
@@ -220,18 +219,18 @@
        ((mod:compiled? #t))
        (convert-module-body forms body))))
  > (conv '((define a 1) (define a 12) (define b (a 2))) '(mybody))
- #((let ((a define-module:unbound)
-	 (b define-module:unbound))
-     (set! a 1)
-     (set! a 12)
-     (set! b (a 2))
-     mybody)
-   (begin (letrec ((a 1) (GEN:1 (set! a 12)) (b (a 2))) mybody)))
+ [(let ((a define-module:unbound)
+        (b define-module:unbound))
+    (set! a 1)
+    (set! a 12)
+    (set! b (a 2))
+    mybody)
+  (begin (letrec ((a 1) (GEN:1 (set! a 12)) (b (a 2))) mybody))]
  > (conv '((define a 1) (set! a list) (define b (a 2))) '(b))
- #((let ((a define-module:unbound) (b define-module:unbound))
-     (set! a 1) (set! a list) (set! b (a 2))
-     b)
-   (begin (letrec ((a 1) (GEN:3716 (set! a list)) (b (a 2))) b)))
+ [(let ((a define-module:unbound) (b define-module:unbound))
+    (set! a 1) (set! a list) (set! b (a 2))
+    b)
+  (begin (letrec ((a 1) (GEN:3716 (set! a list)) (b (a 2))) b))]
  > (eval (vector-ref # 0))
  (2)
  ;; macro expansion test see further below (expansion too big to use here)
