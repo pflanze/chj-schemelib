@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,7 +7,7 @@
 
 
 (require easy
-	 jclass
+	 class
 	 (cj-gambit-sys maybe-procedure-name maybe-decompile)
 	 (list-util let-pair)
 	 (cj-functional flip complement)
@@ -19,9 +19,9 @@
 	 test)
 
 (export typed-list? ;;
-	(jclass typed-list)
-	(jclass typed-list-pair)
-	(jclass typed-list-cons)
+	(class typed-list)
+	(class typed-list-pair)
+	(class typed-list-cons)
 	typed-list-cons
 	typed-list-of
 	list->typed-list
@@ -46,131 +46,131 @@
 ;; now, instead of "head" and "tail" like Haskell. Good or bad idea?
 ;; (See overview of other languages in functional-perl docs.)
 
-(jclass typed-list
+(defclass typed-list
 
-	(jclass (typed-list-pair #(procedure? pred)
-				 #(natural? length)
-				 first
-				 rest)
+  (defclass (typed-list-pair #(procedure? pred)
+                             #(natural? length)
+                             first
+                             rest)
 
-		(def-method (list l)
-		  (cons first
-			(.list rest)))
+    (defmethod (list l)
+      (cons first
+            (.list rest)))
 
-		(def-method (reverse-list l #!optional (tail '()))
-		  (.reverse-list rest
-				 (cons first tail)))
+    (defmethod (reverse-list l #!optional (tail '()))
+      (.reverse-list rest
+                     (cons first tail)))
 
-		(def-method- (filter l f)
-		  (let-typed-list-pair
-		   ((pred _ v r) l)
-		   (let ((r* (.filter r f)))
-		     (if (f v)
-			 ;; tail sharing optimization
-			 (if (eq? r* r)
-			     l
-			     ;; omit type check since already
-			     ;; proven right
-			     (typed-list-pair pred
-					      (inc (.length r*))
-					      v
-					      r*))
-			 r*))))
+    (defmethod- (filter l f)
+      (let-typed-list-pair
+       ((pred _ v r) l)
+       (let ((r* (.filter r f)))
+         (if (f v)
+             ;; tail sharing optimization
+             (if (eq? r* r)
+                 l
+                 ;; omit type check since already
+                 ;; proven right
+                 (typed-list-pair pred
+                                  (inc (.length r*))
+                                  v
+                                  r*))
+             r*))))
 
-		(def-method- (remove l f)
-		  (typed-list-pair.filter l (complement f)))
+    (defmethod- (remove l f)
+      (typed-list-pair.filter l (complement f)))
 
-		(def-method- (the l
-				 #!optional
-				 (none (& (error "no element")))
-				 (more (& (error "more than one element"))))
-		  (let-typed-list-pair
-		   ((_ len v _) l)
-		   (if (= len 1)
-		       v
-		       (if (= len 0)
-			   (none)
-			   (more)))))
+    (defmethod- (the l
+                     #!optional
+                     (none (& (error "no element")))
+                     (more (& (error "more than one element"))))
+      (let-typed-list-pair
+       ((_ len v _) l)
+       (if (= len 1)
+           v
+           (if (= len 0)
+               (none)
+               (more)))))
 
-		(def-method (null l)
-		  (typed-list-null pred)))
+    (defmethod (null l)
+      (typed-list-null pred)))
 
-	(jclass (typed-list-null #(procedure? pred))
+  (defclass (typed-list-null #(procedure? pred))
 
-		(def-method- (length l)
-		  0)
+    (defmethod- (length l)
+      0)
 
-		(def-method- (list l)
-		  '())
+    (defmethod- (list l)
+      '())
 
-		(def-method- (reverse-list l #!optional (tail '()))
-		  tail)
+    (defmethod- (reverse-list l #!optional (tail '()))
+      tail)
 
-		(def-method- (filter l f)
-		  l)
+    (defmethod- (filter l f)
+      l)
 
-		(def-method- (remove l f)
-		  l)
+    (defmethod- (remove l f)
+      l)
 
-		(def-method- (the l)
-		  (error "fewer than one element"))
+    (defmethod- (the l)
+      (error "fewer than one element"))
 
-		(def-method- (null l)
-		  l))
+    (defmethod- (null l)
+      l))
 
-	(def-method- (show v)
-	  `(typed-list ,(.show (.pred v))
-		       ,@(map .show (.list v))))
+  (defmethod- (show v)
+    `(typed-list ,(.show (.pred v))
+                 ,@(map .show (.list v))))
 
-	(def-method- (cons rst fst)
-	  (let ((pred (.pred rst)))
-	    (if (pred fst)
-		(typed-list-pair pred
-				 (inc (.length rst))
-				 fst
-				 rst)
-		(error "typed-list: value does not meet predicate:"
-		       fst
-		       (or (maybe-procedure-name pred)
-			   (maybe-decompile pred))))))
+  (defmethod- (cons rst fst)
+    (let ((pred (.pred rst)))
+      (if (pred fst)
+          (typed-list-pair pred
+                           (inc (.length rst))
+                           fst
+                           rst)
+          (error "typed-list: value does not meet predicate:"
+                 fst
+                 (or (maybe-procedure-name pred)
+                     (maybe-decompile pred))))))
 
-	;; XX should actually not be a method since it's generic by
-	;; way of .cons anyway?
-	(def-method- prepend
-	  (named rec
-		 (lambda (l v)
-		   (cond ((null? v)
-			  l)
-			 ((pair? v)
-			  (let-pair ((val v*) v)
-				    (.cons (rec l v*) val)))
-			 (else
-			  ;; only difference to improper-prepend
-			  (error "improper list:" v))))))
+  ;; XX should actually not be a method since it's generic by
+  ;; way of .cons anyway?
+  (defmethod- prepend
+    (named rec
+           (lambda (l v)
+             (cond ((null? v)
+                    l)
+                   ((pair? v)
+                    (let-pair ((val v*) v)
+                              (.cons (rec l v*) val)))
+                   (else
+                    ;; only difference to improper-prepend
+                    (error "improper list:" v))))))
 
-	(def-method- improper-prepend
-	  (named rec
-		 (lambda (l v)
-		   (cond ((null? v)
-			  l)
-			 ((pair? v)
-			  (let-pair ((val v*) v)
-				    (.cons (rec l v*) val)))
-			 (else
-			  (.cons l v))))))
+  (defmethod- improper-prepend
+    (named rec
+           (lambda (l v)
+             (cond ((null? v)
+                    l)
+                   ((pair? v)
+                    (let-pair ((val v*) v)
+                              (.cons (rec l v*) val)))
+                   (else
+                    (.cons l v))))))
 
-	(def-method- (take l #(natural0? n))
-	  (let ((len (.length l)))
-	    (cond ((= n len)
-		   l)
-		  ((> n len)
-		   (error "list too short (len vs. n):" len n))
-		  (else
-		   (let rec ((l l) (n n))
-		     (if (positive? n)
-			 (.cons (rec (.rest l) (dec n))
-				(.first l))
-			 (.null l))))))))
+  (defmethod- (take l #(natural0? n))
+    (let ((len (.length l)))
+      (cond ((= n len)
+             l)
+            ((> n len)
+             (error "list too short (len vs. n):" len n))
+            (else
+             (let rec ((l l) (n n))
+               (if (positive? n)
+                   (.cons (rec (.rest l) (dec n))
+                          (.first l))
+                   (.null l))))))))
 
 
 
