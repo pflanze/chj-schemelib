@@ -48,8 +48,8 @@
 
 (defclass typed-list
 
-  (defclass (typed-list-pair #(procedure? pred)
-                             #(natural? length)
+  (defclass (typed-list-pair [procedure? pred]
+                             [natural? length]
                              first
                              rest)
 
@@ -95,7 +95,7 @@
     (defmethod (null l)
       (typed-list-null pred)))
 
-  (defclass (typed-list-null #(procedure? pred))
+  (defclass (typed-list-null [procedure? pred])
 
     (defmethod- (length l)
       0)
@@ -159,7 +159,7 @@
                    (else
                     (.cons l v))))))
 
-  (defmethod- (take l #(natural0? n))
+  (defmethod- (take l [natural0? n])
     (let ((len (.length l)))
       (cond ((= n len)
              l)
@@ -225,9 +225,9 @@
  > (.reverse-list (typed-list number? ))
  ()
  > (%try-error (.list (.cons (.cons (typed-list number?) "10") 11)))
- #(error "typed-list: value does not meet predicate:" "10" number?)
+ [error "typed-list: value does not meet predicate:" "10" number?]
  > (%try-error (.list (.cons (.cons (typed-list number?) 10) "11")))
- #(error "typed-list: value does not meet predicate:" "11" number?)
+ [error "typed-list: value does not meet predicate:" "11" number?]
  > (=> (typed-list number?) (.cons 10) (.cons 11) (.list))
  (11 10))
 
@@ -244,9 +244,9 @@
  > (.the (typed-list number? 19))
  19
  > (%try-error (.the (typed-list number? )))
- #(error "fewer than one element")
+ [error "fewer than one element"]
  > (%try-error (.the (typed-list number? 19 20)))
- #(error "more than one element"))
+ [error "more than one element"])
 
 (TEST
  > ((typed-list-of number?) (typed-list number?))
@@ -262,11 +262,11 @@
  > (typed-list:let-pair ((a r) (typed-list number? 3 4)) (list a (.list r)))
  (3 (4))
  > (%try-error (typed-list:let-pair ((a r) (cons 3 4)) a))
- #(error "expecting a typed-list-pair, got:" (3 . 4))
+ [error "expecting a typed-list-pair, got:" (3 . 4)]
  ;; > (%try-error (typed-list:let-pair ((a r) (typed-list-null number?)) a))
- ;; #(error
+ ;; [error
  ;;   "expecting a typed-list-pair, got:"
- ;;   #((typed-list-null) #<procedure #12 number?>))
+ ;;   [(typed-list-null) #<procedure #12 number?>]]
  )
 
 (TEST
@@ -278,13 +278,13 @@
  > (.show (.improper-prepend z 3))
  (typed-list number? 3)
  > (%try-error (.show (.improper-prepend z '(a))))
- #(error "typed-list: value does not meet predicate:" a number?))
+ [error "typed-list: value does not meet predicate:" a number?])
 
 (TEST
  > (.show (.prepend z '(1 2)))
  (typed-list number? 1 2)
  > (%try-error (.show (.prepend z '(1 . 2))))
- #(error "improper list:" 2))
+ [error "improper list:" 2])
 
 (TEST
  > (def l (typed-list number? 5 6 7))
@@ -303,7 +303,7 @@
  > (eq? (.take l 3) l)
  #t
  > (%try-error (.take l 4))
- #(error "list too short (len vs. n):" 3 4))
+ [error "list too short (len vs. n):" 3 4])
 
 
 ;; adapted copy-paste from cj-cmp.scm
