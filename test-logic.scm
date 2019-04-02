@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -16,7 +16,7 @@
         qcheck
         (struct testfailure)
         Lforall*
-        qcheck*
+        qcheck* for-all*
         random:permutate
 	#!optional
 	Lforall)
@@ -95,6 +95,9 @@
  (#((testfailure) 2 (4 2)) #((testfailure) 3 (9 3))))
 
 
+;; or go back to for-all style naming? Since qcheck could be reserved
+;; for syntactically deriving types or something.
+(define for-all* qcheck*)
 
 ;; -- Existential quantification ---
 ;; there exists
