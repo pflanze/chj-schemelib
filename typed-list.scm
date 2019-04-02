@@ -46,10 +46,11 @@
 ;; now, instead of "head" and "tail" like Haskell. Good or bad idea?
 ;; (See overview of other languages in functional-perl docs.)
 
-(defclass typed-list
+(defclass ((typed-list __typed-list)
+           ;;  ^ XX abstract class let-* macro missing bug 
+           [procedure? pred])
 
-  (defclass (typed-list-pair [procedure? pred]
-                             [natural? length]
+  (defclass (typed-list-pair [natural? length]
                              first
                              rest)
 
@@ -61,78 +62,73 @@
       (.reverse-list rest
                      (cons first tail)))
 
-    (defmethod- (filter l f)
-      (let-typed-list-pair
-       ((pred _ v r) l)
-       (let ((r* (.filter r f)))
-         (if (f v)
-             ;; tail sharing optimization
-             (if (eq? r* r)
-                 l
-                 ;; omit type check since already
-                 ;; proven right
-                 (typed-list-pair pred
-                                  (inc (.length r*))
-                                  v
-                                  r*))
-             r*))))
+    (defmethod (filter l fn)
+      (let ((rest* (.filter rest fn)))
+        (if (fn first)
+            ;; tail sharing optimization
+            (if (eq? rest* rest)
+                l
+                ;; omit type check since already
+                ;; proven right
+                (typed-list-pair pred
+                                 (inc (.length rest*))
+                                 first
+                                 rest*))
+            rest*)))
 
-    (defmethod- (remove l f)
-      (typed-list-pair.filter l (complement f)))
+    (defmethod (remove l fn)
+      (typed-list-pair.filter l (complement fn)))
 
-    (defmethod- (the l
-                     #!optional
-                     (none (& (error "no element")))
-                     (more (& (error "more than one element"))))
-      (let-typed-list-pair
-       ((_ len v _) l)
-       (if (= len 1)
-           v
-           (if (= len 0)
-               (none)
-               (more)))))
+    (defmethod (the l
+                    #!optional
+                    (none (& (error "no element")))
+                    (more (& (error "more than one element"))))
+      (if (= length 1)
+          first
+          (if (= length 0)
+              (none)
+              (more))))
 
     (defmethod (null l)
       (typed-list-null pred)))
 
-  (defclass (typed-list-null [procedure? pred])
+  (defclass (typed-list-null)
 
-    (defmethod- (length l)
+    (defmethod (length l)
       0)
 
-    (defmethod- (list l)
+    (defmethod (list l)
       '())
 
-    (defmethod- (reverse-list l #!optional (tail '()))
+    (defmethod (reverse-list l #!optional (tail '()))
       tail)
 
-    (defmethod- (filter l f)
+    (defmethod (filter l f)
       l)
 
-    (defmethod- (remove l f)
+    (defmethod (remove l f)
       l)
 
-    (defmethod- (the l)
+    (defmethod (the l)
       (error "fewer than one element"))
 
-    (defmethod- (null l)
+    (defmethod (null l)
       l))
 
-  (defmethod- (show v)
-    `(typed-list ,(.show (.pred v))
+  (defmethod (show v)
+    `(typed-list ,(.show pred)
                  ,@(map .show (.list v))))
 
-  (defmethod- (cons rst fst)
-    (let ((pred (.pred rst)))
-      (if (pred fst)
-          (typed-list-pair pred
-                           (inc (.length rst))
-                           fst
-                           rst)
-          (error "typed-list: value does not meet predicate:"
-                 fst
-                 (or (maybe-procedure-name pred)
-                     (maybe-decompile pred))))))
+  (defmethod (cons rst fst)
+    (if (pred fst)
+        (typed-list-pair pred
+                         (inc (.length rst))
+                         fst
+                         rst)
+        (error "typed-list: value does not meet predicate:"
+               fst
+               (or (maybe-procedure-name pred)
+                   (maybe-decompile pred)))))
 
   ;; XX should actually not be a method since it's generic by
   ;; way of .cons anyway?
