@@ -12,7 +12,12 @@
 	 slib-sort
 	 test)
 
-(export for-all
+(export for-all ∀
+        qcheck
+        (struct testfailure)
+        Lforall*
+        qcheck*
+        random:permutate
 	#!optional
 	Lforall)
 
