@@ -15,7 +15,8 @@
 (export format-time-relative-to
 	format-time-local)
 
-(declare (standard-bindings)
+(declare (block)
+         (standard-bindings)
 	 (extended-bindings)
 	 (fixnum))
 
