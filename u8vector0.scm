@@ -105,7 +105,7 @@ ___RESULT= ___FIX(res);
 ;; Also see string->u8vector0 in cj-u8vector-util.scm which can't do
 ;; UTF-8; XX eliminate it.
 
-(def (make-string->utf8-u8vector* 0?)
+(def (make-string->utf8-u8vector* 0? allow-nulls?)
      (lambda (s)
        (let* ((len (string-length s))
 	      (bytes (string.utf8-bytes s len))
@@ -114,18 +114,22 @@ ___RESULT= ___FIX(res);
 		  (i* 0))
 	   (if (< i len)
 	       (lp (inc i)
-		   (u8vector.utf8-put! out i*
-				       ;; don't accept 0 byte, ok?
-				       (-> positive?
-					   (char->integer (string-ref s i)))))
+		   (u8vector.utf8-put!
+                    out i*
+                    (let ((n
+                           (char->integer (string-ref s i))))
+                      (if (or allow-nulls? (not (zero? n)))
+                          n
+                          (error "null character not allowed")))
+                    ))
 	       (begin
 		 (if 0?
 		     (u8vector-set! out bytes 0)
                      (void))
 		 out))))))
 
-(def. string.utf8-u8vector (make-string->utf8-u8vector* #f))
-(def. string.utf8-u8vector0 (make-string->utf8-u8vector* #t))
+(def. string.utf8-u8vector (make-string->utf8-u8vector* #f #t))
+(def. string.utf8-u8vector0 (make-string->utf8-u8vector* #t #f))
 
 
 (TEST
@@ -146,13 +150,8 @@ ___RESULT= ___FIX(res);
  > (string.utf8-u8vector0 "äöü")
  ;; #u8(#xC3 #xA4  #xC3 #xB6  #xC3 #xBC  0) =
  #u8(195 164 195 182 195 188 0)
- 
- ;; > (string.utf8-u8vector0 "Hel\0lo")
- ;; #u8(72 101 108 0 108 111 0)
- ;; That would be bad, thus now:
  > (%try-error (string.utf8-u8vector0 "Hel\0lo"))
- ;; XX better error message?
- #(error "value fails to meet predicate:" (positive? 0)))
+ [error "null character not allowed"])
 
 
 (TEST
