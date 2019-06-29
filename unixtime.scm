@@ -38,6 +38,8 @@
 (include "cj-standarddeclares.scm")
 
 
+;; TODO: test leap seconds?
+
 
 (def localtime-compare:fallback-count 0)
 

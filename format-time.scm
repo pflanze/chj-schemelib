@@ -22,6 +22,8 @@
 
 
 
+;; TODO: test leap seconds?
+
 
 (defparameter current-now-range 3)
 
