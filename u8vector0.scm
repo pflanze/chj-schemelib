@@ -120,7 +120,8 @@ ___RESULT= ___FIX(res);
 					   (char->integer (string-ref s i)))))
 	       (begin
 		 (if 0?
-		     (u8vector-set! out bytes 0))
+		     (u8vector-set! out bytes 0)
+                     (void))
 		 out))))))
 
 (def. string.utf8-u8vector (make-string->utf8-u8vector* #f))
