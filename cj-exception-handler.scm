@@ -18,7 +18,9 @@
 (export current-exception
 	write-exception-message
 	cj-exception-handler:activate!
-	cj-exception-handler:activate-if-primordial!)
+	cj-exception-handler:activate-if-primordial!
+        (method any.maybe-exception-message)
+        (method error-exception.maybe-exception-message))
 
 
 (define current-exception (make-parameter #f))
@@ -29,6 +31,13 @@
 ;; will be written via write or pretty-print (i.e. no .show call is
 ;; being applied, OK?)
 (define. (any.maybe-exception-message _) #f)
+
+;; And hey, why not start adding the method to Gambit's objects, too,
+;; so that I can call .maybe-exception-message in other contexts, too?
+(define. (error-exception.maybe-exception-message e)
+  (cons (error-exception-message e)
+        (error-exception-parameters e)))
+
 
 ;; without a newline afterwards, i.e. do not wrap arond lines, OK?
 (define (write-exception-message v #!optional (p (current-output-port)))
