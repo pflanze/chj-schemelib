@@ -52,7 +52,8 @@
 		     (begin
 		       (display " " p)
 		       (lp r))
-                     (void))))))
+                     (void)))
+               (void))))
 	((string? v)
 	 (display v p))
 	(else
