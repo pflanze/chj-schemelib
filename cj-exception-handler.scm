@@ -42,7 +42,8 @@
 		 (if (pair? r)
 		     (begin
 		       (display " " p)
-		       (lp r)))))))
+		       (lp r))
+                     (void))))))
 	((string? v)
 	 (display v p))
 	(else
