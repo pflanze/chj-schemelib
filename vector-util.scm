@@ -12,7 +12,8 @@
 	 test
 	 ;; vector-util-1 ;; well, cj-source or mod/mod.scm since those include it?
 	 srfi-1
-	 (list-util-1 map/iota))
+	 (list-util-1 map/iota)
+         cj-phasing)
 
 
 (export vectors-map
@@ -32,7 +33,11 @@
 	vector-of
 	vector-of/length
 	;; note: not oo, just curried:
-	vector.value.pos)
+	vector.value.pos
+        apply-vector
+        apply-vector/arity
+        ;; also @apply-vector-0 etc. as well as apply-vector-0 etc.?
+        )
 
 
 (include "cj-standarddeclares.scm")
@@ -269,3 +274,66 @@
 	    (error "unknown key:" k)
 	    v)))))
 
+
+
+(define (@apply-vector-0 f v) (f))
+(define (@apply-vector-1 f v) (f (##vector-ref v 0)))
+(define (@apply-vector-2 f v) (f (##vector-ref v 0) (##vector-ref v 1)))
+(define (@apply-vector-3 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2)))
+(define (@apply-vector-4 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2) (##vector-ref v 3)))
+(define (@apply-vector-5 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2) (##vector-ref v 3) (##vector-ref v 4)))
+(define (@apply-vector-6 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2) (##vector-ref v 3) (##vector-ref v 4) (##vector-ref v 5)))
+(define (@apply-vector-7 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2) (##vector-ref v 3) (##vector-ref v 4) (##vector-ref v 5) (##vector-ref v 6)))
+(define (@apply-vector-8 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2) (##vector-ref v 3) (##vector-ref v 4) (##vector-ref v 5) (##vector-ref v 6) (##vector-ref v 7)))
+(define (@apply-vector-9 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2) (##vector-ref v 3) (##vector-ref v 4) (##vector-ref v 5) (##vector-ref v 6) (##vector-ref v 7) (##vector-ref v 8)))
+(define (@apply-vector-10 f v) (f (##vector-ref v 0) (##vector-ref v 1) (##vector-ref v 2) (##vector-ref v 3) (##vector-ref v 4) (##vector-ref v 5) (##vector-ref v 6) (##vector-ref v 7) (##vector-ref v 8) (##vector-ref v 9)))
+
+(define (apply-vector-arity-error arity val)
+  (error (string-append "apply-vector-"
+                        (number->string arity)
+                        ": wrong length of vector: ")
+         val))
+
+(insert-result-of
+ `(begin
+    ,@(map (lambda (i)
+             `(define (,(symbol-append 'apply-vector- (number->string i)) f v)
+                (if (= (vector-length v) ,i)
+                    (,(symbol-append '@apply-vector- (number->string i)) f v)
+                    (apply-vector-arity-error ,i v))))
+           (iota 11))))
+
+
+(define (apply-vector f v)
+  (let ((len (vector-length v)))
+    (case len
+      ((0) (@apply-vector-0 f v))
+      ((1) (@apply-vector-1 f v))
+      ((2) (@apply-vector-2 f v))
+      ((3) (@apply-vector-3 f v))
+      ((4) (@apply-vector-4 f v))
+      ((5) (@apply-vector-5 f v))
+      ((6) (@apply-vector-6 f v))
+      ((7) (@apply-vector-7 f v))
+      ((8) (@apply-vector-8 f v))
+      ((9) (@apply-vector-9 f v))
+      ((10) (@apply-vector-10 f v))
+      (else
+       (apply f (vector->list v))))))
+
+
+(define (apply-vector/arity arity)
+  (case arity
+    ((0) apply-vector-0)
+    ((1) apply-vector-1)
+    ((2) apply-vector-2)
+    ((3) apply-vector-3)
+    ((4) apply-vector-4)
+    ((5) apply-vector-5)
+    ((6) apply-vector-6)
+    ((7) apply-vector-7)
+    ((8) apply-vector-8)
+    ((9) apply-vector-9)
+    ((10) apply-vector-10)
+    (else
+     (error "apply-vector/arity: not defined for arity:" arity))))
