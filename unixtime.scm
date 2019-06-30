@@ -73,7 +73,8 @@
 
 	     (if (and integer-timezone b-integer-timezone)
 		 ;; otherwise blindly trust that zone is fine
-		 (assert (= integer-timezone b-integer-timezone)))
+		 (assert (= integer-timezone b-integer-timezone))
+                 (void))
 
 	     ;; Have to insert a check for isdst in the middle of the
 	     ;; calculation, hence only use
