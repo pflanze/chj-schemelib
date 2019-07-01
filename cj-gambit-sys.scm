@@ -31,7 +31,7 @@
 	subtype
 	word-size
 	word-width
-	head-tag
+	;;head-tag
 
 	still-object?
 	mem-bytes-like?
@@ -298,7 +298,8 @@ memcpy(p, body, lenbytes);
 ;; special case where the subtype is usually not correct.(?). I'm not
 ;; correcting this to ___sPAIR here, since my purpose is really
 ;; looking inside the data structures (and not a basis for type
-;; dispatch).
+;; dispatch). --- 1 Jul 2019: getting 1 for cons now. Added tests
+;; now. Needs work.
 
 (define (subtype obj) ;; is in the header
   (check-mem-allocated
@@ -306,18 +307,33 @@ memcpy(p, body, lenbytes);
    (thunk
     (##subtype obj))))
 
+(TEST
+ > (map (lambda (con)
+          (subtype (con 1 2)))
+        (list cons values vector u8vector s8vector u32vector s64vector))
+ (1 5 0 21 20 25 27)
+ > (subtype (box #f))
+ 5 ;; same as values ??
+ > (subtype (sqrt 2))
+ 30
+ )
 
 
-; (define (head-tag obj)
-;   (if (mem-allocated? obj)
-;       ))
 
+;; (define (head-tag obj) ;; 3-bit tag, is in the header.
+;;   (check-mem-allocated
+;;    obj
+;;    (thunk
+;;     (##c-code "___RESULT= ___FIX(___HD_TYP(___HEADER(___ARG1)));" obj))))
 
-(define (head-tag obj) ;; 3-bit tag, is in the header.
-  (check-mem-allocated
-   obj
-   (thunk
-    (##c-code "___RESULT= ___FIX(___HD_TYP(___HEADER(___ARG1)));" obj))))
+;; (TEST
+;;  ;; not working anymore, why all 0?
+;;  > (map (lambda (con)
+;;           (head-tag (con 1 2)))
+;;         (list cons values vector u8vector s8vector u32vector s64vector))
+;;  (0 0 0 0 0 0 0)
+;;  > (head-tag (sqrt 2))
+;;  0)
 
 
 ; (define (deep-still-copy obj)
