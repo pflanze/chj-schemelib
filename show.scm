@@ -177,6 +177,8 @@
 
 (define. (u8vector.show v)
   `(u8vector ,@(u8vector->list v)))
+(define. (s8vector.show v)
+  `(s8vector ,@(s8vector->list v)))
 
 (define. (on/registry.show v)
   (let* ((p (on/registry-ref v))
