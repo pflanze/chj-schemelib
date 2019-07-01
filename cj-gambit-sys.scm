@@ -425,7 +425,7 @@ memcpy(p, body, lenbytes);
   (##c-code "
 ___RESULT=___FAL;
 if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to check against pair */
-    switch (___HD_TYP(___HEADER(___ARG1))) {
+    switch (___HD_SUBTYPE(___HEADER(___ARG1))) {
 	case ___sVECTOR:
 	//case ___sSTRUCTURE:
 	//case ___sBOXVALUES:
@@ -447,6 +447,18 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
 }
 " obj))
 
+(TEST
+ > (map (lambda (con)
+          (cj-gambit-sys:vector-like? (con 1 2)))
+        (list cons values vector u8vector s8vector u32vector s64vector))
+ (#f #f #t #t #t #t #t)
+ > (cj-gambit-sys:vector-like? (box #f))
+ #f
+ > (cj-gambit-sys:vector-like? (sqrt 2))
+ #f
+ )
+
+
 
 ;; pairs are returning #f for this, as do bignums,ratnums,
 ;; ... basically it's for the mem-bytes check.
@@ -454,7 +466,7 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
   (##c-code "
 ___RESULT=___FAL;
 if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to check against pair */
-    switch (___HD_TYP(___HEADER(___ARG1))) {
+    switch (___HD_SUBTYPE(___HEADER(___ARG1))) {
 	case ___sVECTOR:
 	case ___sSTRUCTURE:
 	case ___sBOXVALUES:
@@ -476,6 +488,18 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
 }
 " obj))
 
+(TEST
+ > (map (lambda (con)
+          (mem-bytes-like? (con 1 2)))
+        (list cons values vector u8vector s8vector u32vector s64vector))
+ (#f #t #t #t #t #t #t)
+ > (mem-bytes-like? (box #f))
+ #t
+ > (mem-bytes-like? (sqrt 2))
+ #t
+ )
+
+
 (define (check-mem-bytes-like obj thunk)
   (if (mem-bytes-like? obj)
       (thunk)
@@ -491,7 +515,7 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
      obj))))
 ; > (mem-bytes 1/3213213123223412412341234212312321412423123123123)
 ; 8
-; hm interesting, why doesn't check-mem-bytes-like complain? But, the 8 bytes actually seem correct:
+; hm interesting, why doesn't check-mem-bytes-like complain? But, the 8 bytes actually seem correct:   -- 1 Jul 2019: it now (since fixed) complains; should it not?
 ; > (##vector-ref 1/3213213123223412412341234212312321412423123123123 0)
 ; 1
 ; > (##vector-ref 1/3213213123223412412341234212312321412423123123123 1)
