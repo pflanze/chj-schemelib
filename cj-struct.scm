@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -31,6 +31,8 @@
 	struct-of
 
 	struct-values
+
+        vector-like?
 
 	#!optional
 	define-struct-expand)
@@ -544,4 +546,25 @@
   (if (struct? s)
       (cdr (vector->list s))
       (error "not a struct:" s)))
+
+
+(define (vector-like? v)
+  (and (cj-gambit-sys:vector-like? v)
+       (or (not (##vector? v))
+           (cj-struct#vector? v))))
+
+(TEST
+ > (vector-like? (vector 1))
+ #t
+ > (vector-like? (cons 1 2))
+ #f
+ > (vector-like? (u8vector))
+ #t
+ > (vector-like? (vector))
+ #t
+ > (defclass (foo x y))
+ > (vector-like? (foo 1 2))
+ #f
+ > (vector-like? (values 1 2))
+ #f)
 
