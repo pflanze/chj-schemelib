@@ -114,6 +114,7 @@
 
 ;; -- utilities --
 
+;; also see VECTOR.random-permutate!
 (define (random:permutate l)
   (map cdr
        (sort (map (lambda (v)

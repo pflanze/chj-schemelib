@@ -453,6 +453,15 @@
   (def. (VECTOR.fold vec fn tail)
     (VECTOR-fold fn tail vec))
 
+
+  ;; also see random:permutate for lists/streams
+  (def. (VECTOR.random-permutate! v)
+    (let ((len (VECTOR-length v)))
+      (for..< (i 0 len)
+              (VECTOR.swap! v i (+ i (random-integer (- len i)))))
+      v))
+
+  
   ;; Ok this one isn't an OO function; but still fits nicely.
   (def (VECTORs-append strs)
        (let* ((out (##make-VECTOR (sum (map VECTOR-length strs)))))
