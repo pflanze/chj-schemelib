@@ -51,8 +51,8 @@
 
      (let-pair
       ((decl forms) args)
-      (if *jclass-debug*
-	  (pp-through-source "jclass:expand expanding..." decl))
+      (when *jclass-debug*
+            (pp-through-source "jclass:expand expanding..." decl))
       (let* ((c
 	      (lambda (_constructor-stx name _maybe-constructor-name _field-decls)
 		`(,(if is-class? `joo-class `joo-interface)
@@ -77,9 +77,9 @@
 			      cont-samename: c
 			      cont-nofields: c)))
 
-	(if *jclass-debug*
-	    (pp-through-source "jclass:expand"
-			       (vector stx res)))
+	(when *jclass-debug*
+              (pp-through-source "jclass:expand"
+                                 (vector stx res)))
 
 	res)))
 

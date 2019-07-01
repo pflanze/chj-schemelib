@@ -217,31 +217,31 @@
 (def (@attrlist>> attrlist port xml?)
      (cond ((pair? attrlist)
 	    (let ((d (@car attrlist)))
-	      (if (pair? d)
-		  (let ((key (@car d))
-			(val (@cdr d)))
-		    (if (symbol? key)
-			(cond ((pair? val)
-			       (cj-sxml-serializer:atom>> (@car val) key xml? port))
-			      ((null? val)
-			       ;; empty attribute value. ok for html.
-			       (if xml?
-				   (error "missing value for attribute:" key)
-				   (begin
-				     (@char>> #\space port)
-				     (@symbol>> key port))))
-			      (else
-			       (cj-sxml-serializer:atom>> val key xml? port)))
-			;; error; or treat the whole thing like elements,
-			;; e.g. accept listwraps? :
-			(error "attribute key is not a symbol:" key)))
+	      (when (pair? d)
+                    (let ((key (@car d))
+                          (val (@cdr d)))
+                      (if (symbol? key)
+                          (cond ((pair? val)
+                                 (cj-sxml-serializer:atom>> (@car val) key xml? port))
+                                ((null? val)
+                                 ;; empty attribute value. ok for html.
+                                 (if xml?
+                                     (error "missing value for attribute:" key)
+                                     (begin
+                                       (@char>> #\space port)
+                                       (@symbol>> key port))))
+                                (else
+                                 (cj-sxml-serializer:atom>> val key xml? port)))
+                          ;; error; or treat the whole thing like elements,
+                          ;; e.g. accept listwraps? :
+                          (error "attribute key is not a symbol:" key)))
 	       
-		  ;; else something is strange.
-		  ;;(error "attrlist-display: invalid attrlist:" attrlist)))
-		  ;; no, accept it, like in '(img (@ (src
-		  ;; "http://www.ethlife.ethz.ch/pix/favicon.png") (align
-		  ;; "absbottom") (alt "") #f (border 0)))
-		  ))
+                    ;; else something is strange.
+                    ;;(error "attrlist-display: invalid attrlist:" attrlist)))
+                    ;; no, accept it, like in '(img (@ (src
+                    ;; "http://www.ethlife.ethz.ch/pix/favicon.png") (align
+                    ;; "absbottom") (alt "") #f (border 0)))
+                    ))
 	    (@attrlist>> (@cdr attrlist) port xml?))
 	   ((null? attrlist))
 	   (else
@@ -256,11 +256,11 @@
 (def (@string>>htmlquoted str port count-chars? in-attributes?)
      (let ((len (##string-length str)))
        (let loop ((pos 0))
-	 (if (##fixnum.< pos len)
-	     (begin
-	       (@char>>htmlquoted (##string-ref str pos)
-				  port count-chars? in-attributes?)
-	       (loop (##fixnum.+ pos 1)))))))
+	 (when (##fixnum.< pos len)
+               (begin
+                 (@char>>htmlquoted (##string-ref str pos)
+                                    port count-chars? in-attributes?)
+                 (loop (##fixnum.+ pos 1)))))))
   
 
 (def (html-whitespace? char)
@@ -389,14 +389,14 @@
 		   (else
 		    (error "@sxml-element>>: improper list: " l)))
 	     (let* ((maybe-indent>> (lambda (maybe-level)
-				      (if maybe-level
-					  (begin
-					    (@char>> #\newline port)
-					    (let lp ((i maybe-level))
-					      (if (> i 0)
-						  (begin
-						    (@char>> #\space port)
-						    (lp (- i 1)))))))))
+				      (when maybe-level
+                                            (begin
+                                              (@char>> #\newline port)
+                                              (let lp ((i maybe-level))
+                                                (when (> i 0)
+                                                      (begin
+                                                        (@char>> #\space port)
+                                                        (lp (- i 1)))))))))
 		    (out>>/body>> (lambda (body>>)
 				    (maybe-indent>> next-level)
 				    (@char>> #\> port)
@@ -407,9 +407,9 @@
 				    (maybe-indent>> maybe-level)
 				    (@char>> #\> port)))
 		    (end>> (&
-			    (if xml? (begin
-				       (@char>> #\space port)
-				       (@char>> #\/ port)))
+			    (when xml? (begin
+                                         (@char>> #\space port)
+                                         (@char>> #\/ port)))
 			    (@char>> #\> port))))
 	       ;; XX use improper-for-each instead
 	       (cond ((pair? content)
@@ -458,8 +458,8 @@
 	       (self item))))
 	((null? item))
 	((procedure? item)
-	 (if *warn-thunk-evaluation*
-	     (warn "evaluating procedure" item))
+	 (when *warn-thunk-evaluation*
+               (warn "evaluating procedure" item))
 	 (@sxml>>fast (item) port xml? maybe-level))
 	(else
 	 (atom-or-list>>htmlquoted item port #t xml? #f maybe-level)))))
@@ -729,16 +729,16 @@
 
 (define next-separator
   (let* ((vec (vector
-	       ;"&shy;"  ;todo entities hum?. also nbsp 'sadly'.
+               ;;"&shy;"  ;todo entities hum?. also nbsp 'sadly'.
 	       "&#173;"
-	       ;"&#45;"
+	       ;;"&#45;"
 	       ))
 	 (pos 0)
 	 (len (vector-length vec)))
-      (lambda()
-	(set! pos (+ pos 1))
-	(if (>= pos len)
+    (lambda ()
+      (set! pos (+ pos 1))
+      (when (>= pos len)
 	    (set! pos 0))
-	(vector-ref vec pos))))
+      (vector-ref vec pos))))
 
 

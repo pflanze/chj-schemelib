@@ -73,8 +73,8 @@
 	'()
 	(let ((key (car lis))
 	      (val (cadr lis)))
-	  (if key-type? (assert (key-type? key)))
-	  (if value-type? (assert (value-type? val)))
+	  (when key-type? (assert (key-type? key)))
+	  (when value-type? (assert (value-type? val)))
 	  (cons (cons key val)
 		(rec (cddr lis)))))))
 

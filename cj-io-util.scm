@@ -627,9 +627,9 @@
 
 (define (process-status-assert-zero process)
   (lambda (status)
-    (if (not (zero? status))
-	(error "process exited with non-zero status:"
-	       process))))
+    (when (not (zero? status))
+          (error "process exited with non-zero status:"
+                 process))))
 
 (define (make-close-and-assert status-handler)
   (lambda (p)

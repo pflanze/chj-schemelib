@@ -37,8 +37,8 @@
 		  (lp)))))))
 
 (define (make-realrandom-string-stream #!optional maybe-stringlen maybe-fn)
-  (if maybe-stringlen
-      (assert (< maybe-stringlen 76))) ;; that's what base64 delivers. sick yeah but...
+  (when maybe-stringlen
+        (assert (< maybe-stringlen 76))) ;; that's what base64 delivers. sick yeah but...
   (let ((s (port->lines-stream
 	    ;; XX redirect stderr just to silence the warnings upon
 	    ;; termination; evil.

@@ -44,10 +44,10 @@
 			"not placed within a |more-oo#class| form"))))
 
 (defmacro (more-oo#start-class! name subclass?)
-  (if (source-code subclass?)
-      (class=> stx
-	       (lambda (superclass)
-		 (box-push! (.subclasses superclass) name))))
+  (when (source-code subclass?)
+        (class=> stx
+                 (lambda (superclass)
+                   (box-push! (.subclasses superclass) name))))
   (push! compile-time:class-ctx
 	 (more-oo-class-ctx name (box '())))
   `(begin))

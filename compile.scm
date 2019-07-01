@@ -91,8 +91,8 @@
 (define-if-not-defined compile:basedir
   (##delay
    (let ((path (path-expand "~/.cj-gambit-compile-cache")))
-     (if (not (file-exists? path))
-	 (xbacktick "mkdir" "-m" "0700" path))
+     (when (not (file-exists? path))
+           (xbacktick "mkdir" "-m" "0700" path))
      path)))
 
 

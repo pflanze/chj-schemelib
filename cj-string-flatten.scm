@@ -37,7 +37,7 @@
 		      ((null? v)
 		       tot)
 		      ((string? v)
-		       (if do! (do! v tot))
+		       (when do! (do! v tot))
 		       (+ tot (string-length v)))
 		      (else
 		       (error "flat-string-length: not a string or list:" v))))

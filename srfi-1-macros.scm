@@ -45,10 +45,10 @@
 		      (quasiquote-source
 		       (let ,LP ((,L ,l))
 			    (,FV (,L)
-				 (if (not (null? ,L))
-				     (let-pair ((,A ,R) ,L)
-					       (,P ,A)
-					       (,LP ,R))))))))))
+				 (when (not (null? ,L))
+                                       (let-pair ((,A ,R) ,L)
+                                                 (,P ,A)
+                                                 (,LP ,R))))))))))
        (if (symbol? (source-code proc))
 	   (code/P proc)
 	   (with-gensym

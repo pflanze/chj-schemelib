@@ -239,8 +239,8 @@
 		  (warn (string-append "write-u8vector warning: not written"
 				       " whole buffer at once, retrying.."))
 		  (loop warned: #t))
-		(if warned
-		    (warn "write-u8vector note: now buffer fully written."))))))))
+		(when warned
+                      (warn "write-u8vector note: now buffer fully written."))))))))
 
 
 (def readbuf-size 4096)
@@ -260,7 +260,7 @@
 
      (define buf (##make-u8vector readbuf-size))
 
-     (if maxlen (error "maxlen not yet supported"))
+     (when maxlen (error "maxlen not yet supported"))
   
      (with-output-to-u8vector
       (u8vector)

@@ -14,9 +14,9 @@
 
 (define-macro* (CONST e)
   (let* ((sym (string->symbol (object->string (cj-desourcify e)))))
-    (if (not (table-ref *CONSTs* sym #f))
-	;; heh location info from another place, then
-	(table-set! *CONSTs* sym e))
+    (when (not (table-ref *CONSTs* sym #f))
+          ;; heh location info from another place, then
+          (table-set! *CONSTs* sym e))
     sym))
 
 (define-macro* (CONSTANTS)

@@ -36,8 +36,8 @@
 	  (let-pair ((a r) l)
 		    (vector-set! v i a)
 		    (let ((i* (inc i)))
-		      (if (< i* len*)
-			  (lp i* (cdr r))))))
+		      (when (< i* len*)
+                            (lp i* (cdr r))))))
 	v)))
 
 (TEST

@@ -68,10 +68,10 @@
 			get-short-random-appendix
 			(lambda (path)
 			  (create-directory path)
-			  (if perms
-			      (xxsystem "chmod" perms "--" path))
-			  (if group
-			      (xxsystem "chgrp" group "--" path))
+			  (when perms
+                                (xxsystem "chmod" perms "--" path))
+			  (when group
+                                (xxsystem "chgrp" group "--" path))
 			  path)))
 
 
