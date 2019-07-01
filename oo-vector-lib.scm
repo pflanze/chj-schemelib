@@ -1,4 +1,4 @@
-;;; Copyright 2014-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -68,6 +68,21 @@
 
   (def. VECTOR.ref VECTOR-ref)
   (def. VECTOR.set! VECTOR-set!)
+
+  (def. (VECTOR.swap! v i j)
+    (let ((len (VECTOR-length v)))
+      (if (and (fixnum? i)
+               (fixnum? j)
+               (fx< -1 i len)
+               (fx< -1 j len))
+          (begin
+            (unless (##fx= i j)
+                    (let ((vi (##VECTOR-ref v i)))
+                      (##VECTOR-set! v i (##VECTOR-ref v j))
+                      (##VECTOR-set! v j vi)))
+            v)
+          (error "VECTOR.swap!: i or j not a proper index:" i j))))
+  
   (def. VECTOR.length VECTOR-length)
   (IF (not (eq? 'VECTOR 'vector))
       ;; Don't generate vector.append method as long as structs are

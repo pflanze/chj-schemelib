@@ -1,4 +1,4 @@
-;;; Copyright 2014-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -14,6 +14,36 @@
 	 oo-lib-s32vector
 	 ;; alternatively could require oo-lib-all
 	 test)
+
+
+(TEST
+ > (%try (.swap! (vector 10) 0 1))
+ (exception text: "vector.swap!: i or j not a proper index: 0 1\n")
+ > (.swap! (vector 10) 0 0)
+ [10]
+ > (%try (.swap! (vector) 0 0))
+ (exception text: "vector.swap!: i or j not a proper index: 0 0\n")
+ > (.swap! (vector 10 11) 0 0)
+ [10 11]
+ > (.swap! (vector 10 11) 0 1)
+ [11 10]
+ > (.swap! (vector 10 11) 1 0)
+ [11 10]
+ > (.swap! (vector 10 11 12) 1 0)
+ [11 10 12]
+ > (.swap! (vector 10 11 12) 1 2)
+ [10 12 11]
+ > (%try (.swap! (vector 10 11 12) -1 2))
+ (exception text: "vector.swap!: i or j not a proper index: -1 2\n")
+ > (%try (.swap! (vector 10 11 12) 1 3))
+ (exception text: "vector.swap!: i or j not a proper index: 1 3\n")
+ > (%try (.swap! (vector 10 11 12) 3 1))
+ (exception text: "vector.swap!: i or j not a proper index: 3 1\n")
+ > (%try (.swap! (vector 10 11 12) 1 2.))
+ (exception text: "vector.swap!: i or j not a proper index: 1 2.\n")
+ > (%try (.swap! (vector 10 11 12) 1 3/1))
+ (exception text: "vector.swap!: i or j not a proper index: 1 3\n"))
+
 
 (TEST
  > (.chop-both-ends (u32vector 0 7 0))
