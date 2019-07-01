@@ -46,6 +46,10 @@
 
 	continuation-location
 
+        cj-gambit-sys:vector-like?
+        ;; XX careful: 'vectorlike' below may refer to previous
+        ;; vector-like type which is now named mem-bytes-like
+        
 	;; utilities:
 	vectorlike-bytecopy!
 	vectorlike-byteequal?
@@ -396,6 +400,36 @@ memcpy(p, body, lenbytes);
 ;;what if it doesn't fit fixnums?real problem.
 
 ;;(define (mem-words obj) ;; hm but u8vectors for example really have a byte size.
+
+
+;; things that can sensibly be permutated (i.e. where each position
+;; has the same type--which is not true for values, structures, .. at
+;; least not dynamically)
+(define (cj-gambit-sys:vector-like? obj)
+  (##c-code "
+___RESULT=___FAL;
+if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to check against pair */
+    switch (___HD_TYP(___HEADER(___ARG1))) {
+	case ___sVECTOR:
+	//case ___sSTRUCTURE:
+	//case ___sBOXVALUES:
+	//case ___sMEROON:
+	case ___sSTRING:
+	case ___sS8VECTOR:
+	case ___sU8VECTOR:
+	case ___sS16VECTOR:
+	case ___sU16VECTOR:
+	case ___sS32VECTOR:
+	case ___sU32VECTOR:
+	case ___sF32VECTOR:
+	case ___sS64VECTOR:
+	case ___sU64VECTOR:
+	case ___sF64VECTOR:
+	//case ___sFLONUM:
+		___RESULT= ___TRU;
+    }
+}
+" obj))
 
 
 ;; pairs are returning #f for this, as do bignums,ratnums,
