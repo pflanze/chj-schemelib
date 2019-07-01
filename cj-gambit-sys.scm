@@ -34,7 +34,7 @@
 	head-tag
 
 	still-object?
-	vector-like?
+	mem-bytes-like?
 	mem-bytes
 
 	maybe-decompile
@@ -63,7 +63,7 @@
 	
 	#!optional
 	check-mem-allocated
-	check-vector-like
+	check-mem-bytes-like
 	@vectorlike-bytecopy!
 	@vectorlike-byteequal?
 	@vectorlike-byteref
@@ -398,7 +398,9 @@ memcpy(p, body, lenbytes);
 ;;(define (mem-words obj) ;; hm but u8vectors for example really have a byte size.
 
 
-(define (vector-like? obj);; pairs are returning #f for this, as do bignums,ratnums, ... basically it's for the mem-bytes check. 
+;; pairs are returning #f for this, as do bignums,ratnums,
+;; ... basically it's for the mem-bytes check.
+(define (mem-bytes-like? obj)
   (##c-code "
 ___RESULT=___FAL;
 if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to check against pair */
@@ -424,13 +426,13 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
 }
 " obj))
 
-(define (check-vector-like obj thunk)
-  (if (vector-like? obj)
+(define (check-mem-bytes-like obj thunk)
+  (if (mem-bytes-like? obj)
       (thunk)
-      (error "not a vector-like object:" obj)))
+      (error "not a mem-bytes-like object:" obj)))
 
 (define (mem-bytes obj) ;; how many bytes is the object's body long?
-  (check-vector-like
+  (check-mem-bytes-like
    obj
    (thunk
     ((c-lambda (scheme-object)
@@ -439,7 +441,7 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
      obj))))
 ; > (mem-bytes 1/3213213123223412412341234212312321412423123123123)
 ; 8
-; hm interesting, why doesn't check-vector-like complain? But, the 8 bytes actually seem correct:
+; hm interesting, why doesn't check-mem-bytes-like complain? But, the 8 bytes actually seem correct:
 ; > (##vector-ref 1/3213213123223412412341234212312321412423123123123 0)
 ; 1
 ; > (##vector-ref 1/3213213123223412412341234212312321412423123123123 1)
@@ -500,8 +502,8 @@ memset(obj+offset,value,numbytes);
 
 (define (_mk-vectorlike-region-op unsafe-op)
   (lambda (to to-offset from from-offset numbytes)
-    (if (and (vector-like? to)
-	     (vector-like? from)
+    (if (and (mem-bytes-like? to)
+	     (mem-bytes-like? from)
 	     (unsigned-fixnum? to-offset)
 	     (unsigned-fixnum? from-offset))
 	(if (and (<= (+ to-offset numbytes) (mem-bytes to))
@@ -513,7 +515,7 @@ memset(obj+offset,value,numbytes);
 ;; dann doch wieder neue. doch wieder auf  check- basis gehen."?". oderdochnochnid?.
 (define (_mk-vectorlike-ref-op unsafe-op)
   (lambda (obj offset)
-    (if (and (vector-like? obj)
+    (if (and (mem-bytes-like? obj)
 	     (unsigned-fixnum? offset))
 	(if (<= offset (mem-bytes obj))
 	    (unsafe-op obj offset)
@@ -521,7 +523,7 @@ memset(obj+offset,value,numbytes);
 	(error "invalid types:" obj offset))))
 (define (_mk-vectorlike-set-op unsafe-op)
   (lambda (obj offset value)
-    (if (and (vector-like? obj)
+    (if (and (mem-bytes-like? obj)
 	     (unsigned-fixnum? offset)
 	     ;; hmm how to check the value? how to know the width? [todo].
 	     )
@@ -532,7 +534,7 @@ memset(obj+offset,value,numbytes);
 
 (define (_mk-vectorlike-fill-op unsafe-op)
   (lambda (obj offset value numbytes)
-    (if (and (vector-like? obj)
+    (if (and (mem-bytes-like? obj)
 	     (unsigned-fixnum? offset)
 	     ;; hmm how to check the value? how to know the width? [todo].
 	     (unsigned-fixnum? offset))
