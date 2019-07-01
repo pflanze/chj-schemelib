@@ -53,26 +53,26 @@
    (lambda (cont)
      (##thread-heartbeat!)
      (let ((id (statprof:identify-continuation cont)))
-       (if (not (eq? id 'unknown))
-           (let ((bucket (assoc (car id) statprof:*buckets*)))
-             (set! statprof:*total* (+ statprof:*total* 1))
-             (if (not bucket)
-                 (begin
-                   (set! statprof:*buckets*
-			 (cons
-			  (cons (car id)
-				;; fixme: arbitrary hard limit
-				;; on the length of source
-				;; files
-				(make-vector 5000 0))
-			  statprof:*buckets*))
-                   (set! bucket (car statprof:*buckets*))))
+       (unless (eq? id 'unknown)
+               (let ((bucket (assoc (car id) statprof:*buckets*)))
+                 (set! statprof:*total* (+ statprof:*total* 1))
+                 (unless bucket
+                         (begin
+                           (set! statprof:*buckets*
+                                 (cons
+                                  (cons (car id)
+                                        ;; fixme: arbitrary hard limit
+                                        ;; on the length of source
+                                        ;; files
+                                        (make-vector 5000 0))
+                                  statprof:*buckets*))
+                           (set! bucket (car statprof:*buckets*))))
 
-             (vector-set! (cdr bucket)
-                          (cadr id)
-                          (+ (vector-ref (cdr bucket)
-                                         (cadr id))
-                             1))))))))
+                 (vector-set! (cdr bucket)
+                              (cadr id)
+                              (+ (vector-ref (cdr bucket)
+                                             (cadr id))
+                                 1))))))))
 
 
 ;; ----------------------------------------------------------------------------
@@ -174,103 +174,103 @@ td.line {
 
   (clean-directory directory-name)
 
-  (if (pair? statprof:*buckets*)
-      (let ((max-intensity
-	     (apply max
-		    (map
-		     (lambda (data)
-		       (apply max
-			      (vector->list data)))
-		     (map cdr statprof:*buckets*)))))
+  (when (pair? statprof:*buckets*)
+        (let ((max-intensity
+               (apply max
+                      (map
+                       (lambda (data)
+                         (apply max
+                                (vector->list data)))
+                       (map cdr statprof:*buckets*)))))
 
-	(for-each
-	 (lambda (bucket)
-	   (let ((file (car bucket))
-		 (data (cdr bucket)))
+          (for-each
+           (lambda (bucket)
+             (let ((file (car bucket))
+                   (data (cdr bucket)))
 
-	     (define (safer-vector-ref v i)
-	       (let ((len (vector-length v)))
-		 (if (< i len)
-		     (vector-ref v i)
-		     (let ((p (current-error-port)))
-		       (for-each (lambda (v)
-				   (display v p))
-				 (list "statprof: warning: safer-vector-ref failure in file: "
-				       file
-				       ", index: "
-				       i
-				       ", len: "
-				       len))
-		       (newline p)
-		       (vector-ref v (- len 1))))))
+               (define (safer-vector-ref v i)
+                 (let ((len (vector-length v)))
+                   (if (< i len)
+                       (vector-ref v i)
+                       (let ((p (current-error-port)))
+                         (for-each (lambda (v)
+                                     (display v p))
+                                   (list "statprof: warning: safer-vector-ref failure in file: "
+                                         file
+                                         ", index: "
+                                         i
+                                         ", len: "
+                                         len))
+                         (newline p)
+                         (vector-ref v (- len 1))))))
 
-	     (define (get-color n)
-	       (let ((i (vector-ref data n)))
-		 (if (= i 0)
-		     (statprof:as-rgb (vector-ref statprof:palette 0))
-		     (let ((x (* (/ (log (+ 1. i))
-				    (ceiling (log max-intensity)))
-				 (- (vector-length statprof:palette) 1))))
-		       (statprof:as-rgb (safer-vector-ref
-					 statprof:palette
-					 (inexact->exact (ceiling x))))))))
+               (define (get-color n)
+                 (let ((i (vector-ref data n)))
+                   (if (= i 0)
+                       (statprof:as-rgb (vector-ref statprof:palette 0))
+                       (let ((x (* (/ (log (+ 1. i))
+                                      (ceiling (log max-intensity)))
+                                   (- (vector-length statprof:palette) 1))))
+                         (statprof:as-rgb (safer-vector-ref
+                                           statprof:palette
+                                           (inexact->exact (ceiling x))))))))
 
-	     (with-output-to-file (string-append
-				   directory-name
-				   (path-strip-directory file)
-				   ".html")
-	       (let ((lines (call-with-input-file file
-			      (lambda (p) (read-all p read-line)))))
-		 (lambda ()
-		   (print
-		    (statprof:sexp->html
-		     `(html
-		       ,statprof:head
-		       (body
-			(table
-			 cellspacing: 0
-			 cellpadding: 0
-			 border: 0
-			 style: "font-size: 12px;"
-			 ,@(map
-			    (lambda (line line#)
-			      `(tr
-				(td align: "right"
-				    ,(string-append
-				      (number->string line#)
-				      ": "))
-				;; (td
-				;;  align: center
-				;;  ,(let ((n (vector-ref data line#)))
-				;;     (if (= n 0)
-				;;         ""
-				;;         (string-append "["
-				;;                        (number->string n)
-				;;                        "/"
-				;;                        (number->string statprof:*total*)
-				;;                        "]"))))
+               (with-output-to-file (string-append
+                                     directory-name
+                                     (path-strip-directory file)
+                                     ".html")
+                 (let ((lines (call-with-input-file file
+                                (lambda (p) (read-all p read-line)))))
+                   (lambda ()
+                     (print
+                      (statprof:sexp->html
+                       `(html
+                         ,statprof:head
+                         (body
+                          (table
+                           cellspacing: 0
+                           cellpadding: 0
+                           border: 0
+                           style: "font-size: 12px;"
+                           ,@(map
+                              (lambda (line line#)
+                                `(tr
+                                  (td align: "right"
+                                      ,(string-append
+                                        (number->string line#)
+                                        ": "))
+                                  ;; (td
+                                  ;;  align: center
+                                  ;;  ,(let ((n (vector-ref data line#)))
+                                  ;;     (if (= n 0)
+                                  ;;         ""
+                                  ;;         (string-append "["
+                                  ;;                        (number->string n)
+                                  ;;                        "/"
+                                  ;;                        (number->string statprof:*total*)
+                                  ;;                        "]"))))
 
-				(td
-				 align: center
-				 ,(let ((n (vector-ref data line#)))
-				    (if (= n 0)
-					""
-					`(span class: "percentage_column"
-					       ,(string-append
-						 (number->string
-						  (statprof:round% (/ n statprof:*total*)))
-						 "% ")))))
+                                  (td
+                                   align: center
+                                   ,(let ((n (vector-ref data line#)))
+                                      (if (= n 0)
+                                          ""
+                                          `(span class: "percentage_column"
+                                                 ,(string-append
+                                                   (number->string
+                                                    (statprof:round% (/ n statprof:*total*)))
+                                                   "% ")))))
 
-				(td class: "line"
-				    (pre class: "line"
-					 style: ,(string-append
-						  "background-color:#"
-						  (get-color line#))
-					 ,line))))
-			    lines
-			    (iota1 (length lines)))))))))))))
+                                  (td class: "line"
+                                      (pre class: "line"
+                                           style: ,(string-append
+                                                    "background-color:#"
+                                                    (get-color line#))
+                                           ,line))))
+                              lines
+                              (iota1 (length lines)))))))))))))
 
-	 statprof:*buckets*)))
+           statprof:*buckets*)))
 
   (with-output-to-file (string-append directory-name "index.html")
     (lambda ()
