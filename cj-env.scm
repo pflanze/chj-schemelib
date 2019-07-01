@@ -119,6 +119,7 @@
   (error "If: expecting boolean, got:" v))
 
 
+;; also see |unless|
 (define-macro* (when t . body)
   `(##if ,t
          (##begin ,@body)))
