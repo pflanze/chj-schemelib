@@ -181,3 +181,15 @@
  > (%try (.split-at '[a b c] -1))
  (exception text: "n does not match exact-natural0?: -1\n"))
 
+(TEST
+ > ((s8vector-of-length 1) (s8vector))
+ #f
+ > ((s8vector-of-length 1) (s8vector 1))
+ #t
+ > ((s8vector-of-length 1) (u8vector 1))
+ #f
+ > (%try (s8vector-of-length -1))
+ (exception text: "len does not match fixnum-natural0?: -1\n")
+ > ((s8vector-of-length 0) (s8vector))
+ #t)
+

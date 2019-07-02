@@ -10,7 +10,8 @@
 	 easy-1
 	 test
 	 (test-lib-1 %try)
-	 char-util)
+	 char-util
+         (fixnum-more fixnum-natural0?))
 
 (export sum
 	oo-vector-lib:implement-thunks
@@ -461,8 +462,9 @@
               (VECTOR.swap! v i (+ i (random-integer (- len i)))))
       v))
 
-  
-  ;; Ok this one isn't an OO function; but still fits nicely.
+  ;; =======================================================
+  ;; Non-OO functions 
+
   (def (VECTORs-append strs)
        (let* ((out (##make-VECTOR (sum (map VECTOR-length strs)))))
 	 (let lp ((strs strs)
@@ -474,7 +476,15 @@
 			   (for..< (i 0 len)
 				   (VECTOR-set! out (+ pos i) (VECTOR-ref str i)))
 			   (lp strs* (+ pos len))))))))
-  ;; OO-version would be difficult, do what with the empty list? Well can do this:
+  ;; OO-version would be difficult, do what with the empty list? Well
+  ;; can do this:
   (def pair-with-car-VECTOR? (pair-with-car VECTOR?))
-  (def. pair-with-car-VECTOR.append VECTORs-append))
+  (def. pair-with-car-VECTOR.append VECTORs-append)
+
+
+  (def ((VECTOR-of-length [fixnum-natural0? len]) v)
+       (and (VECTOR? v)
+            (##fx= (##VECTOR-length v) len)))
+
+  )
 
