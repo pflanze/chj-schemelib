@@ -12,7 +12,7 @@
 	 cj-typed
 	 ;;(predicates-1 exact-natural0?) actually not necessary,
 	 ;;   c-lambda will check
-	 )
+	 (cj-gambit-sys-0 cj-gambit-sys:vector-like?))
 
 ;; (compile #t)
 
@@ -46,7 +46,7 @@
 
 	continuation-location
 
-        cj-gambit-sys:vector-like?
+        ;; cj-gambit-sys:vector-like? -- see cj-gambit-sys-0.scm
         ;; XX careful: 'vectorlike' below may refer to previous
         ;; vector-like type which is now named mem-bytes-like
         
@@ -418,35 +418,7 @@ memcpy(p, body, lenbytes);
 ;;(define (mem-words obj) ;; hm but u8vectors for example really have a byte size.
 
 
-;; things that can sensibly be permutated (i.e. where each position
-;; has the same type--which is not true for values, structures, .. at
-;; least not dynamically)
-(define (cj-gambit-sys:vector-like? obj)
-  (##c-code "
-___RESULT=___FAL;
-if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to check against pair */
-    switch (___HD_SUBTYPE(___HEADER(___ARG1))) {
-	case ___sVECTOR:
-	//case ___sSTRUCTURE:
-	//case ___sBOXVALUES:
-	//case ___sMEROON:
-	case ___sSTRING:
-	case ___sS8VECTOR:
-	case ___sU8VECTOR:
-	case ___sS16VECTOR:
-	case ___sU16VECTOR:
-	case ___sS32VECTOR:
-	case ___sU32VECTOR:
-	case ___sF32VECTOR:
-	case ___sS64VECTOR:
-	case ___sU64VECTOR:
-	case ___sF64VECTOR:
-	//case ___sFLONUM:
-		___RESULT= ___TRU;
-    }
-}
-" obj))
-
+;; Implementation see cj-gambit-sys-0.scm
 (TEST
  > (map (lambda (con)
           (cj-gambit-sys:vector-like? (con 1 2)))
@@ -459,9 +431,11 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
  )
 
 
-
-;; pairs are returning #f for this, as do bignums,ratnums,
+;; Pairs are returning #f for this, as do bignums,ratnums,
 ;; ... basically it's for the mem-bytes check.
+
+;; Also see |cj-gambit-sys:vector-like?|
+
 (define (mem-bytes-like? obj)
   (##c-code "
 ___RESULT=___FAL;
