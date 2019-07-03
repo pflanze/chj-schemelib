@@ -84,7 +84,8 @@
 	symbol=?
 	keyword=?
 	dup
-	one?)
+	one?
+        current-continuation)
 
 
 (declare (block)(standard-bindings)(extended-bindings))
@@ -738,4 +739,7 @@
 (define (dup . fs) (lambda (v) (map (lambda (f) (f v)) fs)))
 
 (define (one? x) (= x 1))
+
+(define (current-continuation)
+  (continuation-capture values))
 
