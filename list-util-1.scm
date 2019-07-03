@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -15,6 +15,7 @@
 	filter/iota
 	for-each/iota
 	improper-map
+        improper->proper-map
 	mapS
 	r-list-split
 	list-split
@@ -83,6 +84,16 @@
 		 (rec (cdr l))))
 	  (else
 	   (fn l)))))
+
+(define (improper->proper-map fn l #!optional (tail '()))
+  (let rec ((l l))
+    (cond ((null? l)
+	   tail)
+	  ((pair? l)
+	   (cons (fn (car l))
+		 (rec (cdr l))))
+	  (else
+	   (cons (fn l) tail)))))
 
 ;; TEST see list-util.scm
 
