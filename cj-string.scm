@@ -108,22 +108,22 @@ ___RESULT=___VOID;/*avoid warning*/
       (error "not a string:" target)))
 
 (TEST
- > (define ! (lambda (a b c d e)
+ > (define t (lambda (a b c d e)
 	       (string-copy! a b c d e)
 	       a))
- > (! "aha" 0 "b" 0 1)
+ > (t "aha" 0 "b" 0 1)
  "bha"
- > (%try (! "" 0 "b" 0 1))
+ > (%try (t "" 0 "b" 0 1))
  (exception text: "trying to write past end of target: 0 0 1\n")
- > (! "aha" 0 "be" 1 2)
+ > (t "aha" 0 "be" 1 2)
  "eha"
- > (%try (! "aha" 0 "be" 1 3))
+ > (%try (t "aha" 0 "be" 1 3))
  (exception text: "trying to read past end of s: 3\n")
- > (! "aha" 2 "be" 1 2)
+ > (t "aha" 2 "be" 1 2)
  "ahe"
- > (! "aha" 2 "be" 0 1)
+ > (t "aha" 2 "be" 0 1)
  "ahb"
- > (%try (! "aha" 2 "be" 0 2))
+ > (%try (t "aha" 2 "be" 0 2))
  (exception text: "trying to write past end of target: 2 0 2\n"))
 
 ;; NOTE: there are no tests for fixnum over/underflow, which is
