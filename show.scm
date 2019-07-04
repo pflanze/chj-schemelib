@@ -21,6 +21,7 @@
 	 cj-source
 	 (string-util-2 string-starts-with? string-ends-with?)
 	 (cj-path path-absolute?)
+         (list-util-1 improper->proper-map)
 	 test)
 
 
@@ -29,6 +30,8 @@
 	try-show
         promise#
 	procedure#
+        improper-list?
+        improper-list
 	#!optional
 	toplevel-procedure?
 	struct-values)
@@ -56,6 +59,24 @@
 (define. (list.show v)
   (cons 'list (map .show v)))
 
+;; Move to predicates?
+(define (improper-list? v)
+  (and (pair? v)
+       (pair? (cdr v))
+       (not (list? (cddr v)))))
+
+;; but then this ('the constructor') as well??
+(define (improper-list arg0 arg1 . args)
+  (let ((rargs (reverse (cons arg1 args))))
+    (let lp ((tail (car rargs))
+             (l (cdr rargs)))
+      (if (null? l)
+          (cons arg0 tail)
+          (lp (cons (car l) tail)
+              (cdr l))))))
+
+(define. (improper-list.show v)
+  (cons 'improper-list (improper->proper-map .show v)))
 
 (define. (values.show v)
   (cons 'values (map .show (values->list v))))
@@ -159,10 +180,20 @@
 (TEST
  > (.show '(1 2 3))
  (list 1 2 3)
- > (.show '(1 2 . 3))
- (cons 1 (cons 2 3))
- > (.show (values (+ 1 2) 2))
- (values 3 2))
+ > (.show '(1 (2) . [3]))
+ (improper-list 1 (list 2) (vector 3))
+ > (.show '(1 . [2]))
+ (cons 1 (vector 2))
+ > (.show (values (+ 1 2) (vector 2)))
+ (values 3 (vector 2))
+ > (improper-list? 'a)
+ #f
+ > (improper-list? '(a))
+ #f
+ > (improper-list? '(a . b))
+ #f ;; since I want pair.show to happen here.
+ > (improper-list? '(a c . b))
+ #t)
 
 
 
@@ -217,4 +248,24 @@
 
 (define. (any.show-string v)
   (object->string (.show v)))
+
+
+(TEST
+ > (def (t n)
+        (delay (cons n (t (inc n)))))
+ > (def ns (t 10))
+ > (car (force ns))
+ 10
+ > (length (.show ns))
+ 3 ;; (cons 10 (promise# 46))  or similar
+ > (equal? (eval (.show ns))
+           ;; need to force here since .show strips the promise:
+           (force ns))
+ #t
+ > (improper-list 1 2)
+ (1 . 2)
+ > (improper-list 1 2 3)
+ (1 2 . 3)
+ > (improper-list 1 2 3 4)
+ (1 2 3 . 4))
 
