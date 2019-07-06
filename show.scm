@@ -206,8 +206,10 @@
 
 
 
-(define. (u8vector.show v)
-  `(u8vector ,@(u8vector->list v)))
+;; (define. (u8vector.show v)
+;;   `(u8vector ,@(u8vector->list v)))
+;; now defined in u8vector0.scm
+
 (define. (s8vector.show v)
   `(s8vector ,@(s8vector->list v)))
 
