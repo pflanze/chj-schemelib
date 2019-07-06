@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -19,7 +19,9 @@
 	 utf8 ;; or include? sigh.
 	 unclean
 	 (string-util-3 char-list.string-reverse)
-	 cj-warn)
+	 cj-warn
+         show
+         (cj-functional false/0))
 
 
 (export u8vector0?
@@ -29,9 +31,13 @@
 		string.utf8-u8vector
 		string.utf8-u8vector0
 		u8vector.utf8-parse
+                u8vector.maybe-utf8-parse
 		u8vector.utf8-codepoints
+		u8vector.show
 		u8vector0.utf8-parse
-		u8vector0.utf8-codepoints))
+		u8vector0.maybe-utf8-parse
+		u8vector0.utf8-codepoints
+                u8vector0.show))
 
 
 (c-declare "
@@ -135,16 +141,35 @@ ___RESULT= ___FIX(res);
 (TEST
  > (string.utf8-u8vector "")
  #u8()
+ > (.show #)
+ (.utf8-u8vector "")
  > (string.utf8-u8vector0 "")
  #u8(0)
+ > (.show #)
+ (.utf8-u8vector0 "")
  > (string.utf8-u8vector "Hello")
  #u8(72 101 108 108 111)
+ > (.show #)
+ (.utf8-u8vector "Hello")
  > (string.utf8-u8vector0 "Hello")
  #u8(72 101 108 108 111 0)
+ > (.show #)
+ (.utf8-u8vector0 "Hello")
  > (string.utf8-u8vector "Hellö")
  #u8(72 101 108 108 195 182)
+ > (.show #)
+ (.utf8-u8vector "Hellö")
  > (string.utf8-u8vector0 "Hellö")
  #u8(72 101 108 108 195 182 0)
+ > (.show #)
+ (.utf8-u8vector0 "Hellö")
+ ;; not u8vector0 but embedded \0:
+ > (.show '#u8(72 101 108 108 195 182 0 65))
+ (.utf8-u8vector "Hell\366\0A")
+ ;; invalid utf8:
+ > (.show '#u8(72 101 108 108 195 182 0 65 128))
+ (u8vector 72 101 108 108 195 182 0 65 128)
+
  > (string.utf8-u8vector0 "Hellöl")
  #u8(72 101 108 108 195 182 108 0)
  > (string.utf8-u8vector0 "äöü")
@@ -167,7 +192,7 @@ ___RESULT= ___FIX(res);
  #(error "utf-8 decoding error"))
 
 
-(def (<>.utf8-parse T? T.strlen get return)
+(def (<>.utf8-parse T? T.strlen get return error/0)
      (typed-lambda
       (#(T? v))
       (let ((len (T.strlen v)))
@@ -182,36 +207,89 @@ ___RESULT= ___FIX(res);
 			(lp i*
 			    (cons maybe-c l)
 			    (inc n))
-			(if (= i* i)
-			    (error "utf-8 decoding error")
-			    ;; otherwise just skip it, OK?
-			    (begin
-			      (warn "utf-8 decoding error, skipping over bad sequence")
-			      ;; XX or should we die anyway?
-			      (lp i* l n)))))
+                        ;; could check (= i* i) and if it did advance,
+                        ;; be fine with skipping over it, but when
+                        ;; would that be useful?
+                        (error/0)))
 	      (return l))))))
 
-(def. u8vector.utf8-parse (<>.utf8-parse u8vector?
-					 u8vector-length
-					 u8vector.utf8-get
-					 char-list.string-reverse))
-(def. u8vector.utf8-codepoints (<>.utf8-parse u8vector?
-					      u8vector-length
-					      u8vector.utf8-get-codepoint
-					      reverse))
+(def (u8vector0:<>.show maybe-utf8-parse constr super-show)
+     (lambda (v)
+       ;; how to fall back in method dispatch, by way of return
+       ;; value?? XX idea
+       (cond ((maybe-utf8-parse v)
+              ;; XX also check that the number of escapes will be
+              ;; reasonably small? !
+              => (lambda (str)
+                   `(,constr ,str)))
+             (else
+              ;; fall back to boring definition
+              (super-show v)))))
+
+(def (utf8-decoding-error/0)
+     (error "utf-8 decoding error"))
+
+(def. u8vector.utf8-parse
+  (<>.utf8-parse u8vector?
+                 u8vector-length
+                 u8vector.utf8-get
+                 char-list.string-reverse
+                 utf8-decoding-error/0))
+
+(def. u8vector.maybe-utf8-parse
+  (<>.utf8-parse u8vector?
+                 u8vector-length
+                 u8vector.utf8-get
+                 char-list.string-reverse
+                 false/0))
+
+(def. u8vector.utf8-codepoints
+  (<>.utf8-parse u8vector?
+                 u8vector-length
+                 u8vector.utf8-get-codepoint
+                 reverse
+                 utf8-decoding-error/0))
+
+(def. u8vector.show
+  (u8vector0:<>.show u8vector.maybe-utf8-parse
+                     `.utf8-u8vector
+                     ;; ugly, can't access that definition, have to
+                     ;; define it again:
+                     (lambda (v)
+                       `(u8vector ,@(u8vector->list v)))))
+
 
 ;; don't call this u8vector0.string -- u8vector.string does *not* do
 ;; utf8 decoding, also, why hard code this implicitely so hard. It's
 ;; wrong.
-(def. u8vector0.utf8-parse (<>.utf8-parse u8vector0?
-					  u8vector0.strlen
-					  u8vector.utf8-get
-					  char-list.string-reverse))
-(def. u8vector0.utf8-codepoints (<>.utf8-parse u8vector0?
-					       u8vector0.strlen
-					       u8vector.utf8-get-codepoint
-					       reverse))
 
+(def. u8vector0.utf8-parse
+  (<>.utf8-parse u8vector0?
+                 u8vector0.strlen
+                 u8vector.utf8-get
+                 char-list.string-reverse
+                 utf8-decoding-error/0))
+
+(def. u8vector0.maybe-utf8-parse
+  (<>.utf8-parse u8vector0?
+                 u8vector0.strlen
+                 u8vector.utf8-get
+                 char-list.string-reverse
+                 false/0))
+
+(def. u8vector0.utf8-codepoints
+  (<>.utf8-parse u8vector0?
+                 u8vector0.strlen
+                 u8vector.utf8-get-codepoint
+                 reverse
+                 utf8-decoding-error/0))
+
+(def. u8vector0.show
+  (u8vector0:<>.show u8vector0.maybe-utf8-parse
+                     `.utf8-u8vector0
+                     (lambda (v)
+                       ;; XX provide a |u8vector0| and omit the \0 ?
+                       `(u8vector ,@(u8vector->list v)))))
 
 (TEST
  > (.utf8-parse '#u8(195 164 195 182 195 188 0))
