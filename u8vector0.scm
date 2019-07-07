@@ -176,7 +176,14 @@ ___RESULT= ___FIX(res);
  ;; #u8(#xC3 #xA4  #xC3 #xB6  #xC3 #xBC  0) =
  #u8(195 164 195 182 195 188 0)
  > (%try-error (string.utf8-u8vector0 "Hel\0lo"))
- [error "null character not allowed"])
+ [error "null character not allowed"]
+
+ ;; Careful, 
+ > (.show '#u8(72 101 108 108 195 182 0 65 128 0))
+ ;; NOT (.utf8-u8vector0 "Hell\366") since
+ ;; > (eval #)
+ ;; #u8(72 101 108 108 195 182 0)
+ (u8vector 72 101 108 108 195 182 0 65 128 0))
 
 
 (TEST
@@ -214,14 +221,18 @@ ___RESULT= ___FIX(res);
 	      (return l))))))
 
 (def (u8vector0:<>.show maybe-utf8-parse constr super-show)
+     "Since there's (currently, XX idea?) no way to fall back method
+dispatch, need the |super-show| argument."
      (lambda (v)
-       ;; how to fall back in method dispatch, by way of return
-       ;; value?? XX idea
        (cond ((maybe-utf8-parse v)
               ;; XX also check that the number of escapes will be
               ;; reasonably small? !
               => (lambda (str)
-                   `(,constr ,str)))
+                   (let ((res `(,constr ,str)))
+                     ;; check that the conversion back is really the same; 
+                     (if (equal? (eval res) v)
+                         res
+                         (super-show v)))))
              (else
               ;; fall back to boring definition
               (super-show v)))))
@@ -287,9 +298,7 @@ ___RESULT= ___FIX(res);
 (def. u8vector0.show
   (u8vector0:<>.show u8vector0.maybe-utf8-parse
                      `.utf8-u8vector0
-                     (lambda (v)
-                       ;; XX provide a |u8vector0| and omit the \0 ?
-                       `(u8vector ,@(u8vector->list v)))))
+                     u8vector.show))
 
 (TEST
  > (.utf8-parse '#u8(195 164 195 182 195 188 0))
