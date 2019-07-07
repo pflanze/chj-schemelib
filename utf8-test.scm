@@ -86,14 +86,15 @@
 		 (xu8 "d020 d120 d220 d320 d420 d520 d620 d720 d820 d920 da20 db20 dc20 dd20 de20 df20")))
 
 (TEST
- > (map (=>* u8vector.utf8-codepoints %try) 3.1.9) ;; heh fun macro
+ > (def t (lambda (v) (%try (u8vector.utf8-codepoints v))))
+ > (map t 3.1.9)
  ;; XX should it really throw exceptions? Return a Result instead?
  ((exception text: "utf-8 decoding error\n")
   (exception text: "utf-8 decoding error\n")
   (exception text: "utf-8 decoding error\n")
   (exception text: "utf-8 decoding error\n"))
  ;; XX also, offer an option to let it re-synchronize!
- > (map (=>* u8vector.utf8-codepoints %try) 3.1.1-8)
+ > (map t 3.1.1-8)
  ((exception text: "utf-8 decoding error\n")
   (exception text: "utf-8 decoding error\n")
   (exception text: "utf-8 decoding error\n")
