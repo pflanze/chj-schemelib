@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,7 +11,9 @@
 	 u8vector0
 	 (string-util-1 string-split)
 	 test
-	 )
+         test-logic
+         test-random)
+
 
 ;; http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt
 
@@ -121,3 +123,48 @@
 ;; (def  (xu8 ""))
 ;; (def  (xu8 ""))
 ;; (def  (xu8 ""))
+
+
+
+
+(def (utf8-test:fixnum-natural0.maybe-char n)
+     "slow; that one NEVER throws exceptions though, always returns
+errors via #f"
+     (with-exception-catcher false/1
+                             (& (integer->char n))))
+
+(TEST
+ > (integer->char ##max-char)
+ #\U0010ffff
+ > (%try (integer->char (inc ##max-char)))
+ (exception text: "(Argument 1) Out of range\n(integer->char 1114112)\n")
+ > (integer->char 0)
+ #\nul
+ > (%try (integer->char -1))
+ (exception text: "(Argument 1) Out of range\n(integer->char -1)\n")
+ > (%try (integer->char 57290))
+ (exception text: "(Argument 1) Out of range\n(integer->char 57290)\n")
+ > (char->integer (##fixnum.->char 57290))
+ ;; #\udfca Character out of range, hence convert back right away
+ 57290
+ > (fixnum-natural0.maybe-char 57290)
+ #f
+ > (fixnum-natural0.maybe-char ##max-char)
+ #\U0010ffff
+ > (fixnum-natural0.maybe-char (inc ##max-char))
+ #f
+ > (%try (fixnum-natural0.maybe-char -1))
+ (exception text: "c does not match fixnum-natural0?: -1\n")
+
+ > (def (t n max)
+        (for-all* (make-list! n (C random-integer.. -1 max))
+                  (lambda (n)
+                    (with-exception-catcher false/1
+                                            (& (fixnum-natural0.maybe-char n))))
+                  utf8-test:fixnum-natural0.maybe-char))
+ > (t 10 3)
+ ()
+ > (t 1000 (inc ##max-char))
+ ())
+
+

@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,6 +7,7 @@
 
 
 (require easy
+         (fixnum-more fixnum-natural0?)
 	 test
 	 (cj-functional values-of)
 	 (cj-source-util-2 assert)
@@ -17,8 +18,10 @@
 	;; why not call these ref and set! ?:
 	(method u8vector.utf8-put!
 		u8vector.utf8-get-codepoint
-		u8vector.utf8-get)
-	
+		u8vector.utf8-get
+                fixnum-natural0.maybe-char)
+	@fixnum-natural0.maybe-char
+        
 	#!optional
 	sizeof-ucs4
 	(macro @utf8-bytes)
@@ -243,6 +246,18 @@ i_res[1]= c;
 	    ;; u8vector0.utf8-parse .
 	    (values c i*))))))
 
+
+(def (@fixnum-natural0.maybe-char n)
+     ;; adapted from integer->char from lib/_std.scm
+     (if (and (##fixnum.<= n ##max-char)
+              (or (##fixnum.< n #xd800)
+                  (##fixnum.< #xdfff n)))
+         (##fixnum.->char n)
+         #f))
+
+(def. (fixnum-natural0.maybe-char [fixnum-natural0? n])
+  (@fixnum-natural0.maybe-char n))
+
 (def. (u8vector.utf8-get #(u8vector? v)
 			 #(natural0? i))
   -> (values-of (maybe char?)
@@ -250,7 +265,7 @@ i_res[1]= c;
 		natural0?)
 
   (letv ((c i*) (u8vector.utf8-get-codepoint v i))
-	(values (and c (integer->char c))
+	(values (and c (fixnum-natural0.maybe-char c))
 		i*)))
 
 (TEST
