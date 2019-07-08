@@ -159,7 +159,7 @@
 
 ;; does that really warrant a persistent name?
 ;; [could almost just use for..<,too?]
-(define-macro* (repeat n . body)
+(define-macro* (repeat n body0 . body)
   (with-gensyms
    (LP C)
    `(let ,LP ((,C ,n)
@@ -167,6 +167,7 @@
 	 (if (positive? ,C)
 	     (,LP (dec ,C)
 		  (begin
+                    ,body0
 		    ,@body))
 	     res))))
 
