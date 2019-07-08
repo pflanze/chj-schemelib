@@ -238,13 +238,14 @@ i_res[1]= c;
 	  (c (u32vector-ref i+res 1)))
       (if (= i* i)
 	  (values #f i)
-	  (begin
-	    (assert (<= i* (u8vector-length v)))
-	    ;; ^ XX should this take into consideration zero end byte
-	    ;; in the case of u8vector0? But need real typing
-	    ;; then. Alternatively check in functions like
-	    ;; u8vector0.utf8-parse .
-	    (values c i*))))))
+          ;; Check that we didn't read past the end of the vector:
+	  (if (<= i* (u8vector-length v))
+              ;; ^ XX should this take into consideration zero end
+              ;; byte in the case of u8vector0? But need real typing
+              ;; then. Alternatively check in functions like
+              ;; u8vector0.utf8-parse .
+              (values c i*)
+              (values #f i))))))
 
 
 (def (@fixnum-natural0.maybe-char n)

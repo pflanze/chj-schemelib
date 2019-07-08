@@ -13,15 +13,17 @@
 ;; Also see u8-parse.scm, cj-u8vector-util.scm (Todo: clean up?)
 
 
-(require test
-	 easy
+(require easy
 	 (cj-source-util-2 assert)
 	 utf8 ;; or include? sigh.
 	 unclean
 	 (string-util-3 char-list.string-reverse)
 	 cj-warn
          show
-         (predicates-1 false/2))
+         (predicates-1 false/2)
+         test
+	 test-logic
+         test-random)
 
 
 (export u8vector0?
@@ -336,4 +338,19 @@ dispatch, need the |super-show| argument."
  "äö\0ü\0"
  > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
  [error "utf-8 decoding error" 2 #u8(195 164 195 0 182 195 188 0)])
+
+
+;; Stronger inversibility test
+(TEST
+ > (def n 500)
+ > (def ts (make-list! n (& (let ((v (random-u8vector 5)))
+                              (cons v (.show v))))))
+ > (for-all ts (lambda-pair ((a b)) (equal? a (eval b))))
+ ;; should be guaranteed by code already but hey..
+ ()
+ > (<= (* 0.92 n)
+       (length (filter (comp (lambda (v) (eq? (cadr v) 'u8vector))) ts))
+       (* 0.98 n))
+ #t)
+
 
