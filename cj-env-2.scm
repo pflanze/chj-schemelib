@@ -171,11 +171,13 @@
 	     res))))
 
 
-;; also see |when|; considering that unless could be understood *just*
-;; as an inverted |if|, only accepting 2-argument variant here, OK?
-(define-macro* (unless test form)
+;; Also see |when|. (Should this, considering that unless could be
+;; understood *just* as an inverted |if|, only accept 2-argument
+;; variant?)
+(define-macro* (unless test . body)
   `(##if (##not ,test)
-         ,form))
+         (##begin
+          ,@body)))
 
 (define -e file-exists?)
 
