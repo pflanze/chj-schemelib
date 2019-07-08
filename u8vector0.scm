@@ -21,7 +21,7 @@
 	 (string-util-3 char-list.string-reverse)
 	 cj-warn
          show
-         (cj-functional false/0))
+         (predicates-1 false/2))
 
 
 (export u8vector0?
@@ -192,14 +192,14 @@ ___RESULT= ___FIX(res);
  > (.utf8-parse '#u8(195 164 195 182 195 188 0 0))
  "äöü"
  > (%try-error (.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
- #(error "utf-8 decoding error")
+ [error "utf-8 decoding error" 4 #u8(195 164 195 182 195 0 188 0)]
  > (.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö"
  > (%try-error (.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
- #(error "utf-8 decoding error"))
+ [error "utf-8 decoding error" 2 #u8(195 164 195 0 182 195 188 0)])
 
 
-(def (<>.utf8-parse T? T.strlen get return error/0)
+(def (<>.utf8-parse T? T.strlen get return error/2)
      (typed-lambda
       (#(T? v))
       (let ((len (T.strlen v)))
@@ -217,7 +217,7 @@ ___RESULT= ___FIX(res);
                         ;; could check (= i* i) and if it did advance,
                         ;; be fine with skipping over it, but when
                         ;; would that be useful?
-                        (error/0)))
+                        (error/2 i v)))
 	      (return l))))))
 
 (def (u8vector0:<>.show maybe-utf8-parse constr super-show)
@@ -237,29 +237,29 @@ dispatch, need the |super-show| argument."
               ;; fall back to boring definition
               (super-show v)))))
 
-(def (utf8-decoding-error/0)
-     (error "utf-8 decoding error"))
+(def (utf8-decoding-error/2 i v)
+     (error "utf-8 decoding error" i v))
 
 (def. u8vector.utf8-parse
   (<>.utf8-parse u8vector?
                  u8vector-length
                  u8vector.utf8-get
                  char-list.string-reverse
-                 utf8-decoding-error/0))
+                 utf8-decoding-error/2))
 
 (def. u8vector.maybe-utf8-parse
   (<>.utf8-parse u8vector?
                  u8vector-length
                  u8vector.utf8-get
                  char-list.string-reverse
-                 false/0))
+                 false/2))
 
 (def. u8vector.utf8-codepoints
   (<>.utf8-parse u8vector?
                  u8vector-length
                  u8vector.utf8-get-codepoint
                  reverse
-                 utf8-decoding-error/0))
+                 utf8-decoding-error/2))
 
 (def. u8vector.show
   (u8vector0:<>.show u8vector.maybe-utf8-parse
@@ -279,21 +279,21 @@ dispatch, need the |super-show| argument."
                  u8vector0.strlen
                  u8vector.utf8-get
                  char-list.string-reverse
-                 utf8-decoding-error/0))
+                 utf8-decoding-error/2))
 
 (def. u8vector0.maybe-utf8-parse
   (<>.utf8-parse u8vector0?
                  u8vector0.strlen
                  u8vector.utf8-get
                  char-list.string-reverse
-                 false/0))
+                 false/2))
 
 (def. u8vector0.utf8-codepoints
   (<>.utf8-parse u8vector0?
                  u8vector0.strlen
                  u8vector.utf8-get-codepoint
                  reverse
-                 utf8-decoding-error/0))
+                 utf8-decoding-error/2))
 
 (def. u8vector0.show
   (u8vector0:<>.show u8vector0.maybe-utf8-parse
@@ -324,17 +324,16 @@ dispatch, need the |super-show| argument."
  "äöü"
  > (u8vector.utf8-parse '#u8(195 164 195 182 195 188 0 0))
  "äöü\0\0"
+ > (%try-error (u8vector0.utf8-parse '#u8(10 128 0)))
+ [error "utf-8 decoding error" 1 #u8(10 128 0)]
  > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
- #(error "utf-8 decoding error")
+ [error "utf-8 decoding error" 4 #u8(195 164 195 182 195 0 188 0)]
  > (%try-error (u8vector.utf8-parse '#u8(195 164 195 182 195 0 188 0)))
- #(error "utf-8 decoding error")
+ [error "utf-8 decoding error" 4 #u8(195 164 195 182 195 0 188 0)]
  > (u8vector0.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö"
  > (u8vector.utf8-parse '#u8(195 164 195 182 0 195 188 0))
  "äö\0ü\0"
  > (%try-error (u8vector0.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
- #(error "utf-8 decoding error")
- > (%try-error (u8vector.utf8-parse '#u8(195 164 195 0 182 195 188 0)))
- #(error "utf-8 decoding error")
- )
+ [error "utf-8 decoding error" 2 #u8(195 164 195 0 182 195 188 0)])
 
