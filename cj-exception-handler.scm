@@ -1,4 +1,4 @@
-;;; Copyright 2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -13,7 +13,12 @@
 (require (cj-source source-error? show-source-error
 		    location-string)
 	 (predicates-1 any?)
-	 dot-oo)
+	 dot-oo
+         (list-util let-pair)
+         (cj-env when)
+         (cj-env-2 unless) ;; what mess
+         (string-util-4 string-empty?)
+         (oo-lib-string string.last))
 
 (export current-exception
 	write-exception-message
@@ -42,18 +47,26 @@
 ;; without a newline afterwards, i.e. do not wrap arond lines, OK?
 (define (write-exception-message v #!optional (p (current-output-port)))
   (cond ((and (pair? v) (list? v))
-	 (display (car v) p)
-	 (display ": " p)
-	 (let lp ((l (cdr v)))
-	   (if (pair? l)
-	       (let ((r (cdr l)))
-		 (write (car l) p)
-		 (if (pair? r)
-		     (begin
-		       (display " " p)
-		       (lp r))
-                     (void)))
-               (void))))
+         (let-pair ((a v*) v)
+                   (display a p)
+                   (when (pair? v*)
+                         (if (string? a)
+                             (unless (string-empty? a)
+                                     ;; XX is this evil? For backwards
+                                     ;; compat with Gambit's behaviour
+                                     ;; of showing messages from
+                                     ;; |error|
+                                     (unless (eq? (string.last a) #\:)
+                                             (display #\: p))
+                                     (display #\space p))
+                             (display #\space p))
+                         (let lp ((l v*))
+                           (when (pair? l)
+                                 (let-pair ((a r) l)
+                                           (write a p)
+                                           (when (pair? r)
+                                                 (display #\space p)
+                                                 (lp r))))))))
 	((string? v)
 	 (display v p))
 	(else
