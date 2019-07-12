@@ -22,6 +22,7 @@
 	 (string-util-2 string-starts-with? string-ends-with?)
 	 (cj-path path-absolute?)
          (list-util-1 improper->proper-map)
+         (srfi-1 cons*)
 	 test)
 
 
@@ -66,17 +67,10 @@
        (not (list? (cddr v)))))
 
 ;; but then this ('the constructor') as well??
-(define (improper-list arg0 arg1 . args)
-  (let ((rargs (reverse (cons arg1 args))))
-    (let lp ((tail (car rargs))
-             (l (cdr rargs)))
-      (if (null? l)
-          (cons arg0 tail)
-          (lp (cons (car l) tail)
-              (cdr l))))))
+(define improper-list cons*)
 
 (define. (improper-list.show v)
-  (cons 'improper-list (improper->proper-map .show v)))
+  (cons 'cons* (improper->proper-map .show v)))
 
 (define. (values.show v)
   (cons 'values (map .show (values->list v))))
@@ -181,7 +175,7 @@
  > (.show '(1 2 3))
  (list 1 2 3)
  > (.show '(1 (2) . [3]))
- (improper-list 1 (list 2) (vector 3))
+ (cons* 1 (list 2) (vector 3))
  > (.show '(1 . [2]))
  (cons 1 (vector 2))
  > (.show (values (+ 1 2) (vector 2)))
