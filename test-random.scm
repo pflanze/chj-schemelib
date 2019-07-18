@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,6 +8,7 @@
 
 (require define-macro-star
 	 fixnum
+         cj-typed
 	 test
 	 cj-struct
 	 list-util
@@ -16,12 +17,15 @@
 	 weak-srfi-1
 	 (lazy FV)
 	 (lazy-debug F)
-	 (cj-math integer natural0.bitsize))
+	 (cj-math integer natural0.bitsize)
+         (cj-functional-2 =>)
+         (cj-env inc!))
 
 ;; A library of helper functions for writing tests
 ;; also see test-lib-1
 
-(export make-list! ;; ok name? should name all generators with ! too?
+(export make-list! ;; ok name? should name all generators (taking iterators) with ! too?
+        make-infinite-stream! make-finite-stream! make-stream!
 	(struct pseudorandomsource)
 	(struct range)
 	make-simplerange/base ;; ?
@@ -71,6 +75,35 @@
 	(lp (inc i)
 	    (cons (generate/0) l))
 	l)))
+
+(define (make-infinite-stream! proc)
+  (let lp ()
+    (delay (cons (proc) (lp)))))
+
+(define-typed (make-finite-stream! [fixnum-natural0? n] [procedure? proc])
+  (let lp ((i n))
+    (delay
+      (if (> i 0)
+          (cons (proc) (lp (dec i)))
+          '()))))
+
+(define (make-stream! a #!optional b)
+  (if b
+      (make-finite-stream! a b)
+      (if (procedure? a)
+          (make-infinite-stream! a)
+          (error "invalid call"))))
+
+(TEST
+ > (define (make-serial-iterator n)
+     (lambda ()
+       (inc! n)))
+ > (=> (make-stream! (make-serial-iterator 0)) (stream-take 3) F)
+ (1 2 3)
+ > (=> (make-stream! 3 (make-serial-iterator 0)) F)
+ (1 2 3))
+
+
 
 ;; pseudorandom sources
 
@@ -227,7 +260,8 @@
       (thread-sleep! (/ (- n) 1000))
       (let lp ((i n))
 	(if (positive? i)
-	    (lp (dec i))))))
+	    (lp (dec i))
+            (void)))))
 
 (define (^5/1000 x) (* x x x x x 1/1000))
 
@@ -326,7 +360,8 @@
   (let lp ((i 0))
     (if (< i n)
 	(begin (proc i)
-	       (lp (inc i))))))
+	       (lp (inc i)))
+        (void))))
 
 ;; (defmacro (%test-iter v+n e)
 ;;   (mcase v+n
