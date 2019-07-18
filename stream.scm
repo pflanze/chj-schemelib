@@ -89,7 +89,7 @@
 	zip2 stream-zip2
         sectionize stream-sectionize
         map-adjacent stream-map-adjacent
-        map/prev stream-map/prev
+        map/prev-result stream-map/prev-result
 	stream-find-tail
 	stream-take-while
 	stream-drop-while
@@ -1442,7 +1442,7 @@
 ;; Variant of map-adjacent which gives fn/2 the previous *result*, not
 ;; the previous input value:
 
-(define-strict-and-lazy map/prev stream-map/prev
+(define-strict-and-lazy map/prev-result stream-map/prev-result
   (lambda (fn/1 fn/2 l)
     (let-pair
      ((fst rst) (FORCE l))
@@ -1460,7 +1460,7 @@
                                           (rec cur* vs*)))))))))))))
 
 (TEST
- > (map/prev inc-function vector (iota 3))
+ > (map/prev-result inc-function vector (iota 3))
  (1 [1 1] [2 [1 1]]))
 
 
