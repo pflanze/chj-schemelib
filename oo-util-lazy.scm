@@ -490,6 +490,12 @@
 
    (define. istream.take stream-take)
 
+   ;; XX currently iseq is ilist|istream, but will it never contain
+   ;; vector etc.? Would that be seq? But still just checking first 2 of
+   ;; a vector would still be "i". :/
+   (define. (iseq.sectionize s len)
+     (stream-sectionize len s))
+
    (define. istream.last stream-last)
 
    (define. istream.butlast stream-butlast)

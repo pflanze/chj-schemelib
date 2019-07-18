@@ -20,8 +20,11 @@
 	  ;; tests:
 	 (lazy-debug F)
 	 show
+         (fixnum-more fixnum-natural?)
 	 test
-	 (cj-env on))
+	 (cj-env on)
+         (cj-functional-2 => flip)
+         )
 
 (export stream-null?
 	stream-pair?
@@ -84,6 +87,9 @@
 	stream-unfold2
 	stream-zip
 	zip2 stream-zip2
+        sectionize stream-sectionize
+        map-adjacent stream-map-adjacent
+        map/prev stream-map/prev
 	stream-find-tail
 	stream-take-while
 	stream-drop-while
@@ -421,8 +427,8 @@
 	  (if (fx< i len)
 	      (let-pair ((a r) s)
 			(string-set! str i a)
-			(lp r (fx+ i 1))))))
-    str))
+			(lp r (fx+ i 1)))
+              str)))))
 
 ;; copy-paste of stream->string with the addition of source-code
 ;; handling
@@ -435,7 +441,8 @@
 	  (if (fx< i len)
 	      (let-pair ((a r) s)
 			(string-set! str i (source-code a))
-			(lp r (fx+ i 1))))))
+			(lp r (fx+ i 1)))
+              (void))))
     (if (and track-source?
 	     (fx> len 0))
 	(possibly-sourcify str (car (force s)))
@@ -1376,6 +1383,88 @@
  ([0 "a"] [1 "b"])
  > (.show (zip2 '(1 2) '(a b)))
  (list (values 1 'a) (values 2 'b)))
+
+
+;; Unlike chunksOf from Haskell's Data.List.Split, this produces a
+;; list of vectors (not a list of lists), and is giving an error if l
+;; cannot be evenly split (only relevant when evaluating the whole
+;; stream).
+
+(define-strict-and-lazy sectionize stream-sectionize
+  (typed-lambda ([fixnum-natural? section-len] l)
+    (let rec ((l l))
+      (DELAY
+        (let ((v (make-vector section-len)))
+          (let lp ((l l)
+                   (i 0))
+            (if (< i section-len)
+                (FV (l)
+                    (if (null? l)
+                        (if (zero? i)
+                            '()
+                            (error "premature end of input"))
+                        (let-pair ((a l*) l)
+                                  (vector-set! v i a)
+                                  (lp l* (inc i)))))
+                (cons v (rec l)))))))))
+
+(TEST
+ > (=> (sectionize 4 (iota 100 10)) (take 3))
+ ([10 11 12 13] [14 15 16 17] [18 19 20 21])
+ > (=> (stream-sectionize 4 (iota 8 10)) F)
+ ([10 11 12 13] [14 15 16 17])
+ > (%try (=> (stream-sectionize 4 (iota 9 10)) F))
+ (exception text: "premature end of input\n")
+ > (=> (stream-sectionize 4 (iota 9 10)) (stream-take 2) F)
+ ([10 11 12 13] [14 15 16 17]))
+
+
+(define-strict-and-lazy map-adjacent stream-map-adjacent
+  (lambda (fn/1 fn/2 l)
+    (let-pair
+     ((fst rst) (FORCE l))
+     (cons (fn/1 fst)
+           (let rec ((prev fst)
+                     (vs rst))
+             (DELAY
+               (FV (vs)
+                   (if (null? vs)
+                       '()
+                       (let-pair ((cur vs*) vs)
+                                 (cons (fn/2 prev cur)
+                                       (rec cur vs*)))))))))))
+
+(TEST
+ > (map-adjacent inc-function vector (iota 3))
+ (1 [0 1] [1 2]))
+
+
+;; Variant of map-adjacent which gives fn/2 the previous *result*, not
+;; the previous input value:
+
+(define-strict-and-lazy map/prev stream-map/prev
+  (lambda (fn/1 fn/2 l)
+    (let-pair
+     ((fst rst) (FORCE l))
+     (let ((fst* (fn/1 fst)))
+       (cons fst*
+             (let rec ((prev fst*)
+                       (vs rst))
+               (DELAY
+                (FV (vs)
+                    (if (null? vs)
+                        '()
+                        (let-pair ((cur vs*) vs)
+                                  (let ((cur* (fn/2 cur prev)))
+                                    (cons cur*
+                                          (rec cur* vs*)))))))))))))
+
+(TEST
+ > (map/prev inc-function vector (iota 3))
+ (1 [1 1] [2 [1 1]]))
+
+
+
 
 
 ;; adapted copies from SRFI-1
