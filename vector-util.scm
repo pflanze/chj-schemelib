@@ -9,11 +9,16 @@
 (require cj-env
 	 (fixnum inc)
 	 ;; (cj-env-2 for..<), no, to avoid cycle
+         (cj-match mcase)
+         (simple-match assert*)
+         (cj-symbol-with with-gensyms)
+         (list-util-1 map/iota)
 	 test
 	 ;; vector-util-1 ;; well, cj-source or mod/mod.scm since those include it?
 	 srfi-1
 	 (list-util-1 map/iota)
-         cj-phasing)
+         cj-phasing
+         (cj-symbol syntax-equal?))
 
 
 (export vectors-map
@@ -37,7 +42,7 @@
         apply-vector
         apply-vector/arity
         ;; also @apply-vector-0 etc. as well as apply-vector-0 etc.?
-        )
+        (macro let-vector))
 
 
 (include "cj-standarddeclares.scm")
@@ -135,7 +140,8 @@
       (if (< i size)
 	  (begin
 	    (vector-set! res i (fn/i i))
-	    (lp (inc i)))))
+	    (lp (inc i)))
+          (void)))
     res))
 
 (TEST
@@ -205,7 +211,8 @@
     (let lp ((j 0))
       (if (< j i)
 	  (begin (vector-set! v* j (vector-ref v j))
-		 (lp (+ j 1)))))
+		 (lp (+ j 1)))
+          (void)))
     
     (vector-set! v* i val)
     ;; (for..< (j (inc i) len*)
@@ -214,7 +221,8 @@
       (if (< j len*)
 	  (begin
 	    (vector-set! v* j (vector-ref v (- j 1)))
-	    (lp (+ j 1)))))
+	    (lp (+ j 1)))
+          (void)))
     v*))
 
 (TEST
@@ -337,3 +345,44 @@
     ((10) apply-vector-10)
     (else
      (error "apply-vector/arity: not defined for arity:" arity))))
+
+
+(define (let-vector:error-need-got need got)
+     (error "let-vector: need vector of length, but got:" need got))
+
+(define-macro* (let-vector bindform . body)
+  (mcase bindform
+         (`(`vars `expr)
+          (assert* list? vars
+                   (lambda (vars)
+                     (with-gensyms
+                      (vec len)
+                      `(let* ((,vec ,expr)
+                              (,len (vector-length ,vec)))
+                         (if (= ,len ,(length vars))
+                             (let ,(map/iota (lambda (var i)
+                                               `(,var (vector-ref ,vec ,i)))
+                                             vars)
+                               ,@body)
+                             (let-vector:error-need-got ,(length vars)
+                                                        ,len)))))))))
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#let-vector ((a b) (vector 5 6)) (/ a b))
+ (let* ((GEN:vec-6925 (vector 5 6))
+        (GEN:len-6926 (vector-length GEN:vec-6925)))
+   (if (= GEN:len-6926 2)
+       (let ((a (vector-ref GEN:vec-6925 0))
+             (b (vector-ref GEN:vec-6925 1)))
+         (/ a b))
+       (let-vector:error-need-got 2 GEN:len-6926)))
+ > (let-vector ((a b) (vector 5 6)) (/ a b))
+ 5/6
+ > (%try (let-vector ((a b) (vector 5 6 7)) (/ a b)))
+ (exception text: "let-vector: need vector of length, but got: 2 3\n")
+ > (%try (let-vector ((a b) (vector 5)) (/ a b)))
+ (exception text: "let-vector: need vector of length, but got: 2 1\n")
+ > (let-vector (() (vector)) 'ok)
+ ok)
+
