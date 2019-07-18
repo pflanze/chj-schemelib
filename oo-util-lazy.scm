@@ -1,4 +1,4 @@
-;;; Copyright 2017-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -439,6 +439,9 @@
 (define list-for-each/iota for-each/iota)
 
 (define list-sectionize sectionize)
+(define list-map-adjacent map-adjacent)
+(define list-map/prev-result map/prev-result)
+
 
 (template-map
  ((istream. '(istream. ilist.))
@@ -493,6 +496,10 @@
 
    (define. (istream.sectionize s len)
      (stream-sectionize len s))
+   (define. (istream.map-adjacent l fn/1 fn/2)
+     (stream-map-adjacent fn/1 fn/2 l))
+   (define. (istream.map/prev-result l fn/1 fn/2)
+     (stream-map/prev-result fn/1 fn/2 l))
 
    (define. istream.last stream-last)
 
