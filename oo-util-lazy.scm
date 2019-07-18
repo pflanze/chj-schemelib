@@ -438,6 +438,7 @@
 
 (define list-for-each/iota for-each/iota)
 
+(define list-sectionize sectionize)
 
 (template-map
  ((istream. '(istream. ilist.))
@@ -490,10 +491,7 @@
 
    (define. istream.take stream-take)
 
-   ;; XX currently iseq is ilist|istream, but will it never contain
-   ;; vector etc.? Would that be seq? But still just checking first 2 of
-   ;; a vector would still be "i". :/
-   (define. (iseq.sectionize s len)
+   (define. (istream.sectionize s len)
      (stream-sectionize len s))
 
    (define. istream.last stream-last)
