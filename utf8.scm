@@ -120,10 +120,7 @@ ___UCS_4 c;);
 (def (ucs4-codepoint? v)
      (declare (fixnum) (not safe))
      (and
-      ;; (exact-natural0? v)
-      (fixnum? v)
-      (>= v 0)
-
+      (fixnum-natural0? v)
       ;; be careful about the null value!  valid in UCS-4 but not
       ;; necessarily in strings.
       (<= v #xFFFFFFFF)))
@@ -152,7 +149,7 @@ ___RESULT=___FIX(___UTF_8_bytes(___INT(___ARG1)));"
 		 ,c)
       `(utf8-bytes ,c)))
 
-(def (utf8-bytes #(ucs4-codepoint? c))
+(def (utf8-bytes [ucs4-codepoint? c])
      (@utf8-bytes c))
 
 (TEST
@@ -182,10 +179,10 @@ ___UTF_8_put(&p, ___INT(___ARG3));
 ___RESULT= ___FIX(p-base);"
 	       u8vec i c))
 
-(def. (u8vector.utf8-put! #(u8vector? v) ;; XX stupid oo
-			  #(natural0? i)
-			  #(ucs4-codepoint? c))
-  -> natural0? ;; new i
+(def. (u8vector.utf8-put! [u8vector? v] ;; XX stupid oo
+			  [fixnum-natural0? i]
+			  [ucs4-codepoint? c])
+  -> fixnum-natural0? ;; new i
 
   (@u8vector-utf8-put!
    v
@@ -226,11 +223,11 @@ i_res[1]= c;
      (-> (C = _ 4) ;; i.e. same as U32
 	 (##c-code "___RESULT= ___FIX(sizeof(___UCS_4));")))
 
-(def. (u8vector.utf8-get-codepoint #(u8vector? v)
-				   #(natural0? i))
+(def. (u8vector.utf8-get-codepoint [u8vector? v]
+				   [fixnum-natural0? i])
   -> (values-of (maybe ucs4-codepoint?)
 		;; XX size_t? index?
-		natural0?)
+		fixnum-natural0?)
   
   (let ((i+res (u32vector i 0)))
     (@u8vector-utf8-get! v i+res)
@@ -259,11 +256,11 @@ i_res[1]= c;
 (def. (fixnum-natural0.maybe-char [fixnum-natural0? n])
   (@fixnum-natural0.maybe-char n))
 
-(def. (u8vector.utf8-get #(u8vector? v)
-			 #(natural0? i))
+(def. (u8vector.utf8-get [u8vector? v]
+			 [fixnum-natural0? i])
   -> (values-of (maybe char?)
 		;; XX size_t? index?
-		natural0?)
+		fixnum-natural0?)
 
   (letv ((c i*) (u8vector.utf8-get-codepoint v i))
 	(values (and c (fixnum-natural0.maybe-char c))
@@ -272,22 +269,22 @@ i_res[1]= c;
 (TEST
  > (def v '#u8(195 164 195 182 195 188 0))
  > (values.vector (u8vector.utf8-get v 0))
- #(#\ä 2)
+ [#\ä 2]
  > (values.vector (u8vector.utf8-get v 2))
- #(#\ö 4)
+ [#\ö 4]
  > (values.vector (u8vector.utf8-get v 4))
- #(#\ü 6)
+ [#\ü 6]
 
  > (def v '#u8(72 101 108 108 195 182 108 0)) ;; "Hellöl"
  > (values.vector (u8vector.utf8-get v 4))
- #(#\ö 6)
+ [#\ö 6]
+ > (values.vector (u8vector.utf8-get v 5))
+ [#f 5]
  > (values.vector (u8vector.utf8-get v 6))
- #(#\l 7)
+ [#\l 7]
  > (values.vector (u8vector.utf8-get v 7))
- #(#\nul 8)
- > (%try-error (u8vector.utf8-get v 8))
- #(error
-   "assertment failure: (<= i* (u8vector-length v))"
-   (<= 9 (u8vector-length '#u8(72 101 108 108 195 182 108 0))))
- )
+ [#\nul 8]
+ > (values.vector (u8vector.utf8-get v 8))
+ [#f 8])
+
 
