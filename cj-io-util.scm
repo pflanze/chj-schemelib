@@ -28,7 +28,6 @@
 	eexist-exception?
 	eperm-exception?
 	read-lines
-	read-chars/location
 	maybe-read-line
 	xread-line
 	writeln
