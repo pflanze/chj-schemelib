@@ -13,7 +13,7 @@
 (include "cj-standarddeclares.scm")
 
 
-(def (try:run proc handler-for)
+(def (try:run proc/cont handler-for)
      (continuation-capture
       (lambda (return)
         (let ((orig-handler (current-exception-handler)))
@@ -24,7 +24,22 @@
                          (continuation-graft return handler)))
                    (else
                     (orig-handler e))))
-           proc)))))
+           (lambda ()
+             (proc/cont return)))))))
+
+(def ((try:return-expander C) stx)
+     ;; C is symbol holding the continuation
+     (cj-sourcify-deep
+      (match* stx
+              ((_ expr)
+               `(continuation-return ,C ,expr)))
+      stx))
+
+(TEST
+ > (cj-desourcify ((try:return-expander 'FOO)
+                   (quote-source (try:return helloworld))))
+ (continuation-return FOO helloworld))
+
 
 (defmacro (try form1 . forms)
   (if (pair? forms)
@@ -34,9 +49,10 @@
          catchform
          (`(catch . `catch-clauses)
           (with-gensyms
-           (E)
+           (E C)
            `(try:run
-             (lambda ()
+             (lambda (,C)
+               (##define-syntax try:return (try:return-expander ',C))
                ,form1
                ,@body)
              (lambda (,E)
@@ -63,6 +79,28 @@
                  #f))))))))
       (source-error stx "need at least 1 body form and the catch form")))
 
+
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion (try (raise val)
+                   77
+                   (catch ([list? e] 111))))
+ (try:run (lambda (GEN:C-5873) (raise val) 77)
+          (lambda (GEN:E-5872)
+            (cond ((list? GEN:E-5872) (let ((e GEN:E-5872)) (lambda () 111)))
+                  (else #f))))
+ > (expansion (try (raise val)
+                   (try:return 88)
+                   77
+                   (catch ([list? e] 111))))
+ (try:run (lambda (GEN:C-6810)
+            (raise val)
+            (continuation-return GEN:C-6810 88)
+            77)
+          (lambda (GEN:E-6809)
+            (cond ((list? GEN:E-6809) (let ((e GEN:E-6809)) (lambda () 111)))
+                  (else #f)))))
 
 (TEST
  > (def (t val)
@@ -102,5 +140,20 @@
  > (t 10)
  77
  > (t '(10))
- 77)
+ 77
+
+ ;; The return feature:
+ > (def (t val)
+        (with-exception-handler
+         (lambda (e)
+           (list 'orig-handler e))
+         (lambda ()
+           (try (raise val)
+                (try:return 88)
+                77
+                (catch ([list? e] 111))))))
+ > (t 10)
+ 88
+ > (t '(10))
+ 111)
 
