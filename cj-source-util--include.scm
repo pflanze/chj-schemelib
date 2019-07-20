@@ -50,11 +50,18 @@
        (error "bug")))))
 
 
+(define (schemedefinition-arity-template-qualifier? v)
+  (case v
+    ;; XX should probably rename 'exact to 'fixed
+    ((at-least up-to exact) #t)
+    (else #f)))
+
 (define (schemedefinition-arity:pattern->template lis)
-  ;; copy from cj-env because of phasing issue
-  (define (inc x)
+  ;; -> (vector-of schemedefinition-arity-template-qualifier?
+  ;;               fixnum-natural0?)
+
+  (define (inc x);; copy from cj-env because of phasing issue
     (+ x 1))
-  ;; /copy
   (let lp ((l lis)
 	   (min-count 0))
     (define (at-least)

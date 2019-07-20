@@ -1,4 +1,4 @@
-;;; Copyright 2015-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2015-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,6 +8,9 @@
 
 (require)
 
+;; See cached.scm ! (Although what this currently offers on top is the
+;; ability to pass the cache into new closures; not sure when this
+;; would be useful, though)
 
 (define memoize:nothing (box 'nothing))
 
