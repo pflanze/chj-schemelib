@@ -291,6 +291,7 @@
 	      (list (vector-ref v i)
 		    (vector-ref v (+ i n))
 		    (vector-ref v (+ i (* 2 n)))
-		    (vector-ref v (+ i (* 3 n)))))
+		    ;; (vector-ref v (+ i (* 3 n))) currently unused
+                    ))
 	    inc-function
 	    0)))
