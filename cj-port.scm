@@ -8,6 +8,7 @@
 
 (require define-macro-star
          srfi-11
+         cj-typed
 	 test)
 
 (export with-output-to-string
@@ -16,7 +17,8 @@
 	(macro %with-error-to-string)
 	with-output-to-string*
 	with-error-to-string*
-	pretty-print-to-string)
+	pretty-print-to-string
+        port-name)
 
 
 (define (make-with-_-to-string current-_-port)
@@ -67,10 +69,14 @@
 
 (TEST
  > (values->vector (with-output-to-string* (& (print "hello") 1)))
- #(1 "hello"))
+ [1 "hello"])
 
 
 (define (pretty-print-to-string v)
   (with-output-to-string (lambda ()
 			   (pretty-print v))))
 
+
+;; should that be in gambit.scm or something?
+(define-typed (port-name [port? v])
+  (##port-name v))
