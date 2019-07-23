@@ -33,8 +33,8 @@
 ;;   C functions via c-lambda and calling them (and perhaps still have
 ;;   problem of how to report errors (no union support))
 
-;; - do try to be fully safe in the sense that any unsafe usage of the
-;;   API is reported.
+;; - attempt to be fully safe in the sense that any unsafe usage of
+;;   the API is reported (via exception at runtime).
 
 ;; - but do not currently clone statement objects for concurrent
 ;;   streams (how large would overhead be (need for
