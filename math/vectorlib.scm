@@ -1030,6 +1030,17 @@
 	    (when (Vb.ref is i)
                   (.set! res i (.ref xs i))))))
 
+(define. (Vb.->list v)
+  (vector->list (Vb.data v)))
+
+(define. (Vb.show v)
+  (cons 'Vb (Vb.->list v)))
+
+(TEST
+ > (.show (Vb #t #f #t))
+ (Vb #t #f #t))
+
+
 ;;(define. VrVbVr.set-at! .set-at!) well
 ;;(define. VcVbVc.set-at! .set-at!) well
 
