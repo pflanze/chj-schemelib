@@ -12,7 +12,7 @@
 	 (list-util-1 map/iota)
 	 cj-functional ;; contained in easy, though?
 	 Maybe
-	 (cj-env current-unixtime)
+	 (cj-env current-unixtime when)
 	 test
 	 test-logic
 	 dateparse)
@@ -71,10 +71,9 @@
 	       b-integer-isdst
 	       b-integer-timezone) b)
 
-	     (if (and integer-timezone b-integer-timezone)
-		 ;; otherwise blindly trust that zone is fine
-		 (assert (= integer-timezone b-integer-timezone))
-                 (void))
+	     (when (and integer-timezone b-integer-timezone)
+                   ;; otherwise blindly trust that zone is fine
+                   (assert (= integer-timezone b-integer-timezone)))
 
 	     ;; Have to insert a check for isdst in the middle of the
 	     ;; calculation, hence only use

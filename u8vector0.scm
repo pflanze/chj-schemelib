@@ -131,9 +131,8 @@ ___RESULT= ___FIX(res);
                           (error "null character not allowed")))
                     ))
 	       (begin
-		 (if 0?
-		     (u8vector-set! out bytes 0)
-                     (void))
+		 (when 0?
+                       (u8vector-set! out bytes 0))
 		 out))))))
 
 (def. string.utf8-u8vector (make-string->utf8-u8vector* #f #t))

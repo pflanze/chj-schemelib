@@ -22,7 +22,7 @@
 	 show
          (fixnum-more fixnum-natural?)
 	 test
-	 (cj-env on)
+	 (cj-env on when)
          (cj-functional-2 => flip)
          )
 
@@ -438,11 +438,10 @@
     (let lp ((s s)
 	     (i 0))
       (FV (s)
-	  (if (fx< i len)
-	      (let-pair ((a r) s)
-			(string-set! str i (source-code a))
-			(lp r (fx+ i 1)))
-              (void))))
+	  (when (fx< i len)
+                (let-pair ((a r) s)
+                          (string-set! str i (source-code a))
+                          (lp r (fx+ i 1))))))
     (if (and track-source?
 	     (fx> len 0))
 	(possibly-sourcify str (car (force s)))

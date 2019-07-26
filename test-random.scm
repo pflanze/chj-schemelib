@@ -19,7 +19,7 @@
 	 (lazy-debug F)
 	 (cj-math integer natural0.bitsize)
          (cj-functional-2 =>)
-         (cj-env inc!))
+         (cj-env inc! when))
 
 ;; A library of helper functions for writing tests
 ;; also see test-lib-1
@@ -259,9 +259,8 @@
   (if (negative? n)
       (thread-sleep! (/ (- n) 1000))
       (let lp ((i n))
-	(if (positive? i)
-	    (lp (dec i))
-            (void)))))
+	(when (positive? i)
+              (lp (dec i))))))
 
 (define (^5/1000 x) (* x x x x x 1/1000))
 
@@ -358,10 +357,9 @@
 
 (define (do-iter n proc)
   (let lp ((i 0))
-    (if (< i n)
-	(begin (proc i)
-	       (lp (inc i)))
-        (void))))
+    (when (< i n)
+          (proc i)
+          (lp (inc i)))))
 
 ;; (defmacro (%test-iter v+n e)
 ;;   (mcase v+n

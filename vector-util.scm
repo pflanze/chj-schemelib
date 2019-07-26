@@ -137,11 +137,9 @@
 (define (vector-generate size fn/i)
   (let ((res (make-vector size)))
     (let lp ((i 0))
-      (if (< i size)
-	  (begin
+      (when (< i size)
 	    (vector-set! res i (fn/i i))
-	    (lp (inc i)))
-          (void)))
+	    (lp (inc i))))
     res))
 
 (TEST
@@ -209,20 +207,17 @@
     ;; (for..< (j 0 i)
     ;; 	    (vector-set! v* j (vector-ref v j)))
     (let lp ((j 0))
-      (if (< j i)
-	  (begin (vector-set! v* j (vector-ref v j))
-		 (lp (+ j 1)))
-          (void)))
+      (when (< j i)
+            (vector-set! v* j (vector-ref v j))
+            (lp (+ j 1))))
     
     (vector-set! v* i val)
     ;; (for..< (j (inc i) len*)
     ;; 	    (vector-set! v* j (vector-ref v (dec j))))
     (let lp ((j (+ i 1)))
-      (if (< j len*)
-	  (begin
-	    (vector-set! v* j (vector-ref v (- j 1)))
-	    (lp (+ j 1)))
-          (void)))
+      (when (< j len*)
+            (vector-set! v* j (vector-ref v (- j 1)))
+	    (lp (+ j 1))))
     v*))
 
 (TEST
