@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -251,10 +251,9 @@
     (let* ((len (V_.size v))
 	   (res (make-V_@ len)))
       (let lp ((i 0))
-	(if (< i len)
-	    (begin
-	      (V_.set! res i (fn (V_.ref v i)))
-	      (lp (inc i)))))
+	(when (< i len)
+              (V_.set! res i (fn (V_.ref v i)))
+	      (lp (inc i))))
       res)))
 
 (define. Vr.map (V_.map Vr.size @make-Vr Vr.ref Vr.set!))
@@ -494,10 +493,9 @@
 	 ;; almost COPY of V:generate
 	 (let ((v (make-vector siz)))
 	   (let lp ((i 0))
-	     (if (< i siz)
-		 (begin
-		   (vector-set! v i (V_:fn i))
-		   (lp (inc i)))))
+	     (when (< i siz)
+                   (vector-set! v i (V_:fn i))
+		   (lp (inc i))))
 	   (,_M_
 	    siz
 	    (,(T 'V_.size) (vector-ref v 0)) ;; assume all are the same.
@@ -597,10 +595,10 @@
 	  (for..< (i0 0 s0)
 		  (for..< (i1 0 s1)
 			  (let ((v (Mr.ref@ m i0 i1)))
-			    (if (fl< v lo)
-				(set! lo v))
-			    (if (fl> v hi)
-				(set! hi v)))))
+			    (when (fl< v lo)
+                                  (set! lo v))
+			    (when (fl> v hi)
+                                  (set! hi v)))))
 	  (values lo hi))))
 
 
@@ -719,10 +717,9 @@
   (let* ((s (Vr.size v))
 	 (res (make-vector s)))
     (let lp ((i 0))
-      (if (< i s)
-	  (begin
-	    (vector-set! res i (fn (Vr.ref v i)))
-	    (lp (inc i)))))
+      (when (< i s)
+            (vector-set! res i (fn (Vr.ref v i)))
+	    (lp (inc i))))
     res))
 
 (define. (Vr.replicate-column v n)
@@ -753,11 +750,10 @@
 	 (res (@make-Vr len)))
     (assert (= len (Vr.size v2)))
     (let lp ((i 0))
-      (if (< i len)
-	  (begin
-	    (Vr.set! res i (fn (Vr.ref v1 i)
+      (when (< i len)
+            (Vr.set! res i (fn (Vr.ref v1 i)
 			       (Vr.ref v2 i)))
-	    (lp (inc i)))))
+	    (lp (inc i))))
     res))
 
 ;; === map of two matrices
@@ -1017,10 +1013,9 @@
   (let* ((len (.size v))
 	 (res (make-Vb@ len)))
     (let lp ((i 0))
-      (if (< i len)
-	  (begin
-	    (Vb.set! res i (fn (.ref v i)))
-	    (lp (inc i)))))
+      (when (< i len)
+            (Vb.set! res i (fn (.ref v i)))
+	    (lp (inc i))))
     res))
 
 (define. Vb:Vr.map Vb:.map)
@@ -1032,8 +1027,8 @@
     (assert (= ni (.size xs)))
     (assert (<= ni (.size res)))
     (for..< (i 0 ni)
-	    (if (Vb.ref is i)
-		(.set! res i (.ref xs i))))))
+	    (when (Vb.ref is i)
+                  (.set! res i (.ref xs i))))))
 
 ;;(define. VrVbVr.set-at! .set-at!) well
 ;;(define. VcVbVc.set-at! .set-at!) well
