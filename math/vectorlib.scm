@@ -57,10 +57,10 @@
 (define. Vs.update!* V_.update!*)
 (define. (Vs.data x) x)
 (define. Vs.size u64vector-length)
-(define. Vs.->list u64vector->list)
+(define. Vs.list u64vector->list)
 (define list->Vs list->u64vector)
 (define. (Vs.show v)
-  (cons 'Vs (Vs.->list v)))
+  (cons 'Vs (Vs.list v)))
 
 (TEST
  > (.show (Vs 0 1 18446744073709551615))
@@ -79,10 +79,10 @@
 (define. Vi.update!* V_.update!*)
 (define. (Vi.data x) x)
 (define. Vi.size s64vector-length)
-(define. Vi.->list s64vector->list)
+(define. Vi.list s64vector->list)
 (define list->Vi list->s64vector)
 (define. (Vi.show v)
-  (cons 'Vi (Vi.->list v)))
+  (cons 'Vi (Vi.list v)))
 
 (TEST
  > (.show (Vi 0 -9223372036854775808 9223372036854775807))
@@ -1030,11 +1030,11 @@
 	    (when (Vb.ref is i)
                   (.set! res i (.ref xs i))))))
 
-(define. (Vb.->list v)
+(define. (Vb.list v)
   (vector->list (Vb.data v)))
 
 (define. (Vb.show v)
-  (cons 'Vb (Vb.->list v)))
+  (cons 'Vb (Vb.list v)))
 
 (TEST
  > (.show (Vb #t #f #t))
