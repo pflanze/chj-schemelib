@@ -45,7 +45,9 @@
 	 (stream stream-map)
 	 ;; for tests only:
 	 test
-	 (string-util-2 inexact.round-at))
+	 (string-util-2 inexact.round-at)
+         test-logic
+         test-random)
 
 (export (class range)
 	(class ranges)
@@ -83,7 +85,7 @@
   (method (contains-element? r1 [T? x]) -> boolean?)
 
   ;; whether r2 is fully contained in r1, i.e. whether
-  ;; (.union r1 r2) == r1 XX add generative tests
+  ;; (.union r1 r2) == r1
   (method (contains-range? r1 [range-or-ranges? r2]) -> boolean?)
 
   ;; i.e. whether (cond ((.union r1 r2) => (lambda (u) (= (+ (.size
@@ -576,8 +578,8 @@
  > (.contains-range? (range 20 10) (range 10 12))
  #f
  > (.contains-range? (range 20 10) (range 9 12))
- #f
- )
+ #f)
+
 
 (TEST
  > (.contiguous? (range 3 4) (range 4 5))
@@ -593,8 +595,8 @@
  > (.contiguous? (range 3 5) (range 1 3))
  ;; AH, vs. perhaps contiguous only in one order?? well, my spec
  ;; wouldn't match that.
- #t
- )
+ #t)
+
 
 (TEST
  ;; XX should perhaps use these for the tests above, too
@@ -649,6 +651,23 @@
 
  > (map (C map (applying .separated?) _) (first t-ranges))
  ((#f #t #f #f #f #f #f) (#f #f #f #f #f #f)))
+
+
+;; Generative tests:
+(TEST
+ > (def (random-integer-range)
+        (range (random-signed-length) (random-signed-length)))
+ > (def (random-integer-range-pair)
+        (cons (random-integer-range) (random-integer-range)))
+ 
+ > (for-all (make-list! 100 random-integer-range-pair)
+            (lambda-pair ((r1 r2))
+                    (step)
+                    (equal? (.contains-range? r1 r2)
+                            (equal? (.maybe-union r1 r2) r1))))
+ ()
+ )
+
 
 
 ;; Library on top, well, could be part of the interface. Dunno.
