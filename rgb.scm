@@ -15,6 +15,8 @@
          test
 	 test-logic)
 
+(include "cj-standarddeclares.scm")
+
 
 (def (01-bound x)
      (cond ((< x 0) 0)
@@ -89,186 +91,180 @@
 		r)))))
 
 
-(jclass
- rgb
+(defclass rgb
 
- ;; 'full' inversion, in linear space; XX does this make sense? See
- ;; tests, search for "sense"
- (method (invert v) -> rgb?)
- ;; ditto; saturating at the top
- (method (scale v factor) -> rgb?)
+  ;; 'full' inversion, in linear space; XX does this make sense? See
+  ;; tests, search for "sense"
+  (method (invert v) -> rgb?)
+  ;; ditto; saturating at the top
+  (method (scale v factor) -> rgb?)
 
- (jclass rgb01
+  (defclass rgb01
 
-	 ;; RGB in 0..1 floating point range, sRGB 'transfer' format
-	 (jclass (rgb01t [rgb:0..1? r01t]
-			 [rgb:0..1? g01t]
-			 [rgb:0..1? b01t])
+    ;; RGB in 0..1 floating point range, sRGB 'transfer' format
+    (defclass (rgb01t [rgb:0..1? r01t]
+                      [rgb:0..1? g01t]
+                      [rgb:0..1? b01t])
 
-		 (def-method- rgb01t identity)
+      (defmethod rgb01t identity)
 
-		 (def-method- r01l (compose-function srgb:transfer.lum rgb01t.r01t))
-		 (def-method- g01l (compose-function srgb:transfer.lum rgb01t.g01t))
-		 (def-method- b01l (compose-function srgb:transfer.lum rgb01t.b01t))
+      (defmethod r01l (comp srgb:transfer.lum rgb01t.r01t))
+      (defmethod g01l (comp srgb:transfer.lum rgb01t.g01t))
+      (defmethod b01l (comp srgb:transfer.lum rgb01t.b01t))
 
-		 (def-method- r8 (compose-function 01.uint8 rgb01t.r01t))
-		 (def-method- g8 (compose-function 01.uint8 rgb01t.g01t))
-		 (def-method- b8 (compose-function 01.uint8 rgb01t.b01t))
+      (defmethod r8 (comp 01.uint8 rgb01t.r01t))
+      (defmethod g8 (comp 01.uint8 rgb01t.g01t))
+      (defmethod b8 (comp 01.uint8 rgb01t.b01t))
 
-		 (def-method- (rgb01l x)
-		   ;; XX evil, too much duplication. this is
-		   ;; optimization here
-		   ;; ah and at least  have   map functions  right? evil.
-		   (let-rgb01t ((r g b) x)
-			       (let ((conv srgb:transfer.lum))
-				 (rgb01l (conv r)
-					 (conv g)
-					 (conv b)))))
+      (defmethod (rgb01l x)
+        ;; XX evil, too much duplication. this is
+        ;; optimization here
+        ;; ah and at least  have   map functions  right? evil.
+        (let ((conv srgb:transfer.lum))
+          (rgb01l (conv r01t)
+                  (conv g01t)
+                  (conv b01t))))
 
-		 (def-method- (rgb8 x)
-		   (let-rgb01t ((r g b) x)
-			       (rgb8 (01.uint8 r)
-				     (01.uint8 g)
-				     (01.uint8 b))))
+      (defmethod (rgb8 x)
+        (rgb8 (01.uint8 r01t)
+              (01.uint8 g01t)
+              (01.uint8 b01t)))
 
-		 (def-method- invert
-		   (comp rgb01l.rgb01t rgb01l.invert rgb01t.rgb01l))
+      (defmethod invert
+        (comp rgb01l.rgb01t rgb01l.invert rgb01t.rgb01l))
 
-		 (def-method- (scale s factor)
-		   (rgb01l.rgb01t (rgb01l.scale (rgb01t.rgb01l s)
-						factor))))
+      (defmethod (scale s factor)
+        (rgb01l.rgb01t (rgb01l.scale (rgb01t.rgb01l s)
+                                     factor))))
        
 
 
-	 ;; RGB in 0..1 floating point range, linear
-	 ;; (proportional to physical light energy, right?)
-	 ;; format
-	 (jclass (rgb01l [rgb:0..1? r01l]
-			 [rgb:0..1? g01l]
-			 [rgb:0..1? b01l])
+    ;; RGB in 0..1 floating point range, linear
+    ;; (proportional to physical light energy, right?)
+    ;; format
+    (defclass (rgb01l [rgb:0..1? r01l]
+                      [rgb:0..1? g01l]
+                      [rgb:0..1? b01l])
 
-		 (def (rgb01l/clipping r g b)
-		      (rgb01l (01-bound r)
-			      (01-bound g)
-			      (01-bound b)))
+      (def (rgb01l/clipping r g b)
+           (rgb01l (01-bound r)
+                   (01-bound g)
+                   (01-bound b)))
 
-		 (def-method- rgb01l identity)
+      (defmethod rgb01l identity)
 
-		 (def-method- r01t (compose-function srgb:lum.transfer rgb01l.r01l))
-		 (def-method- g01t (compose-function srgb:lum.transfer rgb01l.g01l))
-		 (def-method- b01t (compose-function srgb:lum.transfer rgb01l.b01l))
+      (defmethod r01t (comp srgb:lum.transfer rgb01l.r01l))
+      (defmethod g01t (comp srgb:lum.transfer rgb01l.g01l))
+      (defmethod b01t (comp srgb:lum.transfer rgb01l.b01l))
 
-		 (def-method- r8 (compose-function 01.uint8 rgb01l.r01t))
-		 (def-method- g8 (compose-function 01.uint8 rgb01l.g01t))
-		 (def-method- b8 (compose-function 01.uint8 rgb01l.b01t))
+      (defmethod r8 (comp 01.uint8 rgb01l.r01t))
+      (defmethod g8 (comp 01.uint8 rgb01l.g01t))
+      (defmethod b8 (comp 01.uint8 rgb01l.b01t))
 
-		 (def-method- (rgb01t x)
-		   ;; XX ditto duplication ~
-		   (let-rgb01l ((r g b) x)
-			       (let ((conv srgb:lum.transfer))
-				 (rgb01t (conv r)
-					 (conv g)
-					 (conv b)))))
+      (defmethod (rgb01t x)
+        ;; XX ditto duplication ~
+        (let ((conv srgb:lum.transfer))
+          (rgb01t (conv r01l)
+                  (conv g01l)
+                  (conv b01l))))
 
-		 (def-method- (rgb8 v)
-		   (.rgb8 (rgb01l.rgb01t v)))
+      (defmethod (rgb8 v)
+        (.rgb8 (rgb01l.rgb01t v)))
 
-		 (def-method (invert v)
-		   (rgb01l (- 1 r01l)
-			   (- 1 g01l)
-			   (- 1 b01l)))
+      (defmethod (invert v)
+        (rgb01l (- 1 r01l)
+                (- 1 g01l)
+                (- 1 b01l)))
 
-		 (def-method (scale s factor)
-		   (rgb01l (min 1.0 (* r01l factor))
-			   (min 1.0 (* g01l factor))
-			   (min 1.0 (* b01l factor))))))
+      (defmethod (scale s factor)
+        (rgb01l (min 1.0 (* r01l factor))
+                (min 1.0 (* g01l factor))
+                (min 1.0 (* b01l factor))))))
 
 	
 
- ;; rgb8 is always in sRGB 'transfer' format
- ;; (non-linear), ok?
- (jclass (rgb8 [uint8? r8]
-	       [uint8? g8]
-	       [uint8? b8])
+  ;; rgb8 is always in sRGB 'transfer' format
+  ;; (non-linear), ok?
+  (defclass (rgb8 [uint8? r8]
+                  [uint8? g8]
+                  [uint8? b8])
 
-	 (def-method- rgb8 identity)
+    (defmethod rgb8 identity)
 
-	 (def-method- r01t (compose-function uint8.01 rgb8.r8))
-	 (def-method- g01t (compose-function uint8.01 rgb8.g8))
-	 (def-method- b01t (compose-function uint8.01 rgb8.b8))
+    (defmethod r01t (comp uint8.01 rgb8.r8))
+    (defmethod g01t (comp uint8.01 rgb8.g8))
+    (defmethod b01t (comp uint8.01 rgb8.b8))
 
-	 (def-method- r01l (comp* srgb:transfer.lum uint8.01 rgb8.r8))
-	 (def-method- g01l (comp* srgb:transfer.lum uint8.01 rgb8.g8))
-	 (def-method- b01l (comp* srgb:transfer.lum uint8.01 rgb8.b8))
+    (defmethod r01l (comp srgb:transfer.lum uint8.01 rgb8.r8))
+    (defmethod g01l (comp srgb:transfer.lum uint8.01 rgb8.g8))
+    (defmethod b01l (comp srgb:transfer.lum uint8.01 rgb8.b8))
 
-	 (def-method- (rgb01t x)
-	   (let-rgb8 ((r g b) x)
-		     (rgb01t (uint8.01 r)
-			     (uint8.01 g)
-			     (uint8.01 b))))
+    (defmethod (rgb01t x)
+      (rgb01t (uint8.01 r8)
+              (uint8.01 g8)
+              (uint8.01 b8)))
 		 
-	 (def-method- rgb01l (compose-function rgb01t.rgb01l rgb8.rgb01t))
+    (defmethod rgb01l (comp rgb01t.rgb01l rgb8.rgb01t))
 
-	 (def-method- invert
-	   (comp rgb01l.rgb8 rgb01l.invert rgb8.rgb01l))
+    (defmethod invert
+      (comp rgb01l.rgb8 rgb01l.invert rgb8.rgb01l))
 
-	 (def-method- (scale s factor)
-	   (rgb01l.rgb8 (rgb01l.scale (rgb8.rgb01l s)
-				      factor))))
+    (defmethod (scale s factor)
+      (rgb01l.rgb8 (rgb01l.scale (rgb8.rgb01l s)
+                                 factor))))
 
  
- ;; generic operations: ---------------------------------------------------
+  ;; generic operations: ---------------------------------------------------
 
- (def-method- (html-colorstring x)
-   (def (conv [uint8? x])
-	(number->uc-hex-string/padding x 2))
-   (insert-result-of
-    `(string-append "#"
-		    ,@(map (lambda_
-			    `(conv (,_ x)))
-			   '(.r8 .g8 .b8)))))
+  (defmethod- (html-colorstring x)
+    (def (conv [uint8? x])
+         (number->uc-hex-string/padding x 2))
+    (insert-result-of
+     `(string-append "#"
+                     ,@(map (lambda_
+                             `(conv (,_ x)))
+                            '(.r8 .g8 .b8)))))
 
 
- (def (rgb01:op/2 op)
-      (lambda (a b #!optional [boolean? clip?])
-	(let-rgb01l
-	 ((r0 g0 b0) (.rgb01l a))
-	 (let-rgb01l
-	  ((r1 g1 b1) (.rgb01l b))
-	  ((if clip? rgb01l/clipping rgb01l)
-	   (op r0 r1)
-	   (op g0 g1)
-	   (op b0 b1))))))
+  (def (rgb01:op/2 op)
+       (lambda (a b #!optional [boolean? clip?])
+         (let-rgb01l
+          ((r0 g0 b0) (.rgb01l a))
+          (let-rgb01l
+           ((r1 g1 b1) (.rgb01l b))
+           ((if clip? rgb01l/clipping rgb01l)
+            (op r0 r1)
+            (op g0 g1)
+            (op b0 b1))))))
 
- (def-method- + (rgb01:op/2 +))
- (def-method- - (rgb01:op/2 -))
- (def-method- average (rgb01:op/2 average))
+  (defmethod + (rgb01:op/2 +))
+  (defmethod - (rgb01:op/2 -))
+  (defmethod average (rgb01:op/2 average))
 
- (def (rgb01:op/2+1 op)
-      (lambda (a b c #!optional [boolean? clip?])
-	(let-rgb01l
-	 ((r0 g0 b0) (.rgb01l a))
-	 (let-rgb01l
-	  ((r1 g1 b1) (.rgb01l b))
-	  ((if clip? rgb01l/clipping rgb01l)
-	   (op r0 r1 c)
-	   (op g0 g1 c)
-	   (op b0 b1 c))))))
+  (def (rgb01:op/2+1 op)
+       (lambda (a b c #!optional [boolean? clip?])
+         (let-rgb01l
+          ((r0 g0 b0) (.rgb01l a))
+          (let-rgb01l
+           ((r1 g1 b1) (.rgb01l b))
+           ((if clip? rgb01l/clipping rgb01l)
+            (op r0 r1 c)
+            (op g0 g1 c)
+            (op b0 b1 c))))))
 
- (def-method- average-towards (rgb01:op/2+1 average-towards))
+  (defmethod average-towards (rgb01:op/2+1 average-towards))
 
- (def (rgb01:.op op)
-      (lambda (a [number? b] #!optional [boolean? clip?])
-	(insert-result-of
-	 `((if clip? rgb01l/clipping rgb01l)
-	   ,@(map (lambda_
-		   `(op (,_ a) b))
-		  '(.r01l .g01l .b01l))))))
+  (def (rgb01:.op op)
+       (lambda (a [number? b] #!optional [boolean? clip?])
+         (insert-result-of
+          `((if clip? rgb01l/clipping rgb01l)
+            ,@(map (lambda_
+                    `(op (,_ a) b))
+                   '(.r01l .g01l .b01l))))))
 
- (def-method- .* (rgb01:.op *))
- (def-method- ./ (rgb01:.op /))
+  (defmethod .* (rgb01:.op *))
+  (defmethod ./ (rgb01:.op /)))
 
- )
 
 
 (TEST
