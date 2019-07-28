@@ -76,19 +76,20 @@
 
 ;; /lib
 
+
 (def uint8.01
-     (C * _ (insert-result-of (/ 1. 255.))))
+     (=>* (* (insert-result-of (/ 1. 255.)))))
 
 (def 01.uint8
-     (lambda (x)
-       (let ((r (inexact->exact
-		 (floor (fl+ (fl* (exact->inexact x) 255.) 0.5)))))
-	 (cond ((>= r 256)
-		255)
-	       ((negative? r)
-		0)
-	       (else
-		r)))))
+     (=>* exact->inexact
+          (fl* 255.)
+          (fl+ 0.5)
+          floor
+          inexact->exact
+          ((lambda (r)
+             (cond ((> r 255)     255)
+                   ((negative? r) 0)
+                   (else          r))))))
 
 
 (defclass rgb
@@ -134,8 +135,10 @@
         (comp rgb01l.rgb01t rgb01l.invert rgb01t.rgb01l))
 
       (defmethod (scale s factor)
-        (rgb01l.rgb01t (rgb01l.scale (rgb01t.rgb01l s)
-                                     factor))))
+        (=> s
+            rgb01t.rgb01l
+            (rgb01l.scale factor)
+            rgb01l.rgb01t)))
        
 
 
@@ -168,8 +171,7 @@
                   (conv g01l)
                   (conv b01l))))
 
-      (defmethod (rgb8 v)
-        (.rgb8 (rgb01l.rgb01t v)))
+      (defmethod rgb8 (comp .rgb8 rgb01l.rgb01t))
 
       (defmethod (invert v)
         (rgb01l (- 1 r01l)
@@ -210,8 +212,10 @@
       (comp rgb01l.rgb8 rgb01l.invert rgb8.rgb01l))
 
     (defmethod (scale s factor)
-      (rgb01l.rgb8 (rgb01l.scale (rgb8.rgb01l s)
-                                 factor))))
+      (=> s
+          rgb8.rgb01l
+          (rgb01l.scale factor)
+          rgb01l.rgb8)))
 
  
   ;; generic operations: ---------------------------------------------------
@@ -284,8 +288,23 @@
  (rgb8 0 92 188)
  > (.show (.scale (rgb8 2 10 20) 0.5))
  (rgb8 1 5 11)
- > (.show (.scale (rgb8 10 128 200) 2))
- (rgb8 18 176 255))
+
+ > (def c (rgb8 10 128 200))
+ > (.show (.scale c 2))
+ (rgb8 18 176 255)
+ > (=> c .rgb01t (.scale 2) .rgb8 .show)
+ (rgb8 18 176 255)
+ > (=> c .invert .invert .show)
+ (rgb8 0 128 200)
+ > (=> c .rgb01t .invert .rgb8 .invert .show)
+ (rgb8 0 128 200)
+ > (=> c .rgb01l .invert .rgb8 .invert .show)
+ (rgb8 0 128 200)
+ > (=> c .rgb01t .invert .invert .rgb8 .show)
+ (rgb8 10 128 200)
+ > (=> c .rgb01l .invert .invert .rgb8 .show)
+ (rgb8 10 128 200) )
+
 
 
 ;; parse =================================================================
