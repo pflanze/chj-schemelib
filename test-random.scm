@@ -51,6 +51,7 @@
 	random-natural0*
         random-length
 	random-sign
+        random-signed-length
 	random-integer*
 	random-real-1-1
 	random-float
@@ -246,6 +247,10 @@
   (xcase (random-integer 2)
 	 ((0) -1)
 	 ((1) 1)))
+
+(define (random-signed-length)
+  (* (random-sign) (random-length)))
+
 
 ;; same as random-natural0* except extending into the negative range,
 ;; too. Might have zeroes twice as frequent, though. (All a hack.)
