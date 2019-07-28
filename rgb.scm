@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,12 +7,13 @@
 
 
 (require easy
-	 test
 	 jclass
-	 test-logic
 	 colorspaces
 	 (cj-source-wraps source:symbol-append)
-	 (rgb-types rgb:0..1?))
+	 (rgb-types rgb:0..1?)
+         (cj-math average)
+         test
+	 test-logic)
 
 
 (def (01-bound x)
@@ -26,34 +27,21 @@
 ;; 	 x))
 
 
-(def +/2 (lambda (a b) (+ a b)))
-
-;; call it mean or average ?
-(def mean (compose-function (C / _ 2) +/2))
-
-(TEST
- > (mean 1 2)
- 3/2
- > (mean 1 3)
- 2
- > (mean 1 2.)
- 1.5)
-
-;; XX better name? slope, shade-towards, ?
+;; Better name? slide, shade-towards, ?
 ;; (Have 'shade_exponentially_towards' in Perl. Odd one though?)
-(def (mean-towards x0 x1 factor)
+(def (average-towards x0 x1 factor)
      (+ x0 (* factor (- x1 x0))))
 
 (TEST
- > (mean-towards 10 14 0)
+ > (average-towards 10 14 0)
  10
- > (mean-towards 10 14 1)
+ > (average-towards 10 14 1)
  14
- > (mean-towards 10 14 1/2)
+ > (average-towards 10 14 1/2)
  12
- > (mean-towards 10 14 1/3)
+ > (average-towards 10 14 1/3)
  34/3
- > (mean-towards 10 14 2)
+ > (average-towards 10 14 2)
  18)
 
 ;; lib, too:
@@ -254,7 +242,7 @@
 
  (def-method- + (rgb01:op/2 +))
  (def-method- - (rgb01:op/2 -))
- (def-method- mean (rgb01:op/2 mean))
+ (def-method- average (rgb01:op/2 average))
 
  (def (rgb01:op/2+1 op)
       (lambda (a b c #!optional #(boolean? clip?))
@@ -267,7 +255,7 @@
 	   (op g0 g1 c)
 	   (op b0 b1 c))))))
 
- (def-method- mean-towards (rgb01:op/2+1 mean-towards))
+ (def-method- average-towards (rgb01:op/2+1 average-towards))
 
  (def (rgb01:.op op)
       (lambda (a #(number? b) #!optional #(boolean? clip?))
@@ -416,7 +404,7 @@
  > (%try-error (..* (rgb8 100 200 0) 2))
  ;; #(error "does not match rgb:0..1?:" 80/51)
  #(error "g01l does not match rgb:0..1?:" 1.1551609354972836)
- > (.mean (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8))
+ > (.average (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8))
  #((rgb01l) 1/2 .75 .7))
 
 
