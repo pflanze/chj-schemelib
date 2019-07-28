@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;; This file is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License (LGPL)
@@ -39,7 +39,6 @@
 
 
 (require easy
-	 jclass
 	 ;; for Library at the bottom only:
 	 (cj-env for..<)
 	 (list-util map/maybe-sides)
@@ -48,8 +47,8 @@
 	 test
 	 (string-util-2 inexact.round-at))
 
-(export (jclass range)
-	(jclass ranges)
+(export (class range)
+	(class ranges)
 	range-of
 	;; "Library":
 	(method range.map
@@ -64,236 +63,236 @@
 ;; not support |ranges| in all places and |ranges| does not support
 ;; all the methods from |range| (yet).
 
-(jinterface range-or-ranges
+(definterface range-or-ranges
 
-	    ;; inclusive
-	    (method (from r) -> T?)
-	    ;; exclusive
-	    (method (to r) -> T?)
+  ;; inclusive
+  (method (from r) -> T?)
+  ;; exclusive
+  (method (to r) -> T?)
 
-	    ;; orderable distance betweeen start and end
-	    (method (length r) -> real?)
+  ;; orderable distance betweeen start and end
+  (method (length r) -> real?)
 
-	    ;; number of items between from and to, excluding to,
-	    ;; i.e. (length (.list r))
-	    (method (size r) -> exact-natural0?)
+  ;; number of items between from and to, excluding to,
+  ;; i.e. (length (.list r))
+  (method (size r) -> exact-natural0?)
 
-	    ;; whether size is 0
-	    (method (empty? r) -> boolean?)
+  ;; whether size is 0
+  (method (empty? r) -> boolean?)
 
-	    (method (contains-element? r1 [T? x]) -> boolean?)
+  (method (contains-element? r1 [T? x]) -> boolean?)
 
-	    ;; whether r2 is fully contained in r1, i.e. whether
-	    ;; (.union r1 r2) == r1 XX add generative tests
-	    (method (contains-range? r1 [range-or-ranges? r2]) -> boolean?)
+  ;; whether r2 is fully contained in r1, i.e. whether
+  ;; (.union r1 r2) == r1 XX add generative tests
+  (method (contains-range? r1 [range-or-ranges? r2]) -> boolean?)
 
-	    ;; i.e. whether (cond ((.union r1 r2) => (lambda (u) (= (+ (.size
-	    ;; r1) (.size r2)) (.size u)))) (else #f)) XX add generative
-	    ;; tests
-	    (method (contiguous? r1 [range-or-ranges? r2]) -> boolean?)
+  ;; i.e. whether (cond ((.union r1 r2) => (lambda (u) (= (+ (.size
+  ;; r1) (.size r2)) (.size u)))) (else #f)) XX add generative
+  ;; tests
+  (method (contiguous? r1 [range-or-ranges? r2]) -> boolean?)
 
-	    ;; excl. contiguous ones (i.e. the same as (comp* pair? .list
-	    ;; .union)) XX add generative tests; XX naming consistency
-	    ;; with contiguous: should this be called |overlapping?|
-	    ;; instead (describing the resulting theoretical range
-	    ;; 'collection')?
-	    (method (overlaps? r1 [range-or-ranges? r2]) -> boolean?)
+  ;; excl. contiguous ones (i.e. the same as (comp* pair? .list
+  ;; .union)) XX add generative tests; XX naming consistency
+  ;; with contiguous: should this be called |overlapping?|
+  ;; instead (describing the resulting theoretical range
+  ;; 'collection')?
+  (method (overlaps? r1 [range-or-ranges? r2]) -> boolean?)
 
-	    ;; same as (complement (either .contiguous? .overlaps?)), or,
-	    ;; (is that the same thing?) would it require multiple ranges
-	    ;; to satisfy the result? XX add generative tests
-	    (method (separated? r1 [range-or-ranges? r2]) -> boolean?)
+  ;; same as (complement (either .contiguous? .overlaps?)), or,
+  ;; (is that the same thing?) would it require multiple ranges
+  ;; to satisfy the result? XX add generative tests
+  (method (separated? r1 [range-or-ranges? r2]) -> boolean?)
 
-	    ;; index in r1 for x, following the naming from wbtree;
-	    ;; "rank" for non-discrete types sounds bad, though, but
-	    ;; so be it
-	    (method (unchecked-rank r [T? x]) -> real?)
+  ;; index in r1 for x, following the naming from wbtree;
+  ;; "rank" for non-discrete types sounds bad, though, but
+  ;; so be it
+  (method (unchecked-rank r [T? x]) -> real?)
 
-	    ;; with overflow and integer checking:
-	    (method (checked-rank r [T? x]
-				  [T2? underflow-value]
-				  [T3? overflow-value])
-		    -> (either real? T2? T3?))
+  ;; with overflow and integer checking:
+  (method (checked-rank r [T? x]
+                        [T2? underflow-value]
+                        [T3? overflow-value])
+          -> (either real? T2? T3?))
 
-	    (method (maybe-rank r x) -> (maybe exact-natural0?))
+  (method (maybe-rank r x) -> (maybe exact-natural0?))
 
-	    (method (ref r1 [real? x]) -> T?)
+  (method (ref r1 [real? x]) -> T?)
 
-	    (method (intersection r1 [range-or-ranges? r2]) -> range?)
+  (method (intersection r1 [range-or-ranges? r2]) -> range?)
 
-	    ;; a union that only succeeds if there is no gap between
-	    ;; r1 and r2
-	    (method (maybe-union r1 [range-or-ranges? r2]) -> (maybe range?))
+  ;; a union that only succeeds if there is no gap between
+  ;; r1 and r2
+  (method (maybe-union r1 [range-or-ranges? r2]) -> (maybe range?))
 
-	    ;; a union that bridges over gaps
-	    (method (filling-union r1 [range-or-ranges? r2]) -> range?)
+  ;; a union that bridges over gaps
+  (method (filling-union r1 [range-or-ranges? r2]) -> range?)
 
-	    ;; A union that works even if there are holes between the
-	    ;; ranges. Name it with a star to stop users from just calling
-	    ;; .union without realizing that it could return ranges.
-	    (method (union* r1 [range-or-ranges? r2]) -> range-or-ranges?)
+  ;; A union that works even if there are holes between the
+  ;; ranges. Name it with a star to stop users from just calling
+  ;; .union without realizing that it could return ranges.
+  (method (union* r1 [range-or-ranges? r2]) -> range-or-ranges?)
 
-	    ;; Iteration
-	    (method (list r #!optional (tail '())) -> (list-of T?))
-	    (method (rlist r #!optional (tail '())) -> (list-of T?))
-	    (method (stream r #!optional (tail '())) -> (iseq-of T?))
-	    (method (rstream r #!optional (tail '())) -> (iseq-of T?))
-	    )
+  ;; Iteration
+  (method (list r #!optional (tail '())) -> (list-of T?))
+  (method (rlist r #!optional (tail '())) -> (list-of T?))
+  (method (stream r #!optional (tail '())) -> (iseq-of T?))
+  (method (rstream r #!optional (tail '())) -> (iseq-of T?)))
 
 
-(jclass (range from to) ;; excluding to
-	implements: range-or-ranges
 
-	(def-method (length r) -> real?
-	  (.- to from))
+(defclass (range from to) ;; excluding to
+  implements: range-or-ranges
 
-	;; same as (comp-function length .list), XX add generative tests
-	(def-method (size r) -> exact-natural0?
-	  (let ((len (.- to from)))
-	    (if (negative? len)
-		0
-		(integer len))))
+  (defmethod (length r) -> real?
+    (.- to from))
 
-	(def-method (empty? r)
-	  (zero? (range.size r)))
+  ;; same as (comp-function length .list), XX add generative tests
+  (defmethod (size r) -> exact-natural0?
+    (let ((len (.- to from)))
+      (if (negative? len)
+          0
+          (integer len))))
+
+  (defmethod (empty? r)
+    (zero? (range.size r)))
 	
-	(def-method (contains-element? r1 x) -> boolean?
-	  (and (.<= from x)
-	       (.< x to)))
+  (defmethod (contains-element? r1 x) -> boolean?
+    (and (.<= from x)
+         (.< x to)))
 
-	(def-method (contains-range? r1 r2) -> boolean?
-	  (let-range ((from2 to2) r2)
-		     (and (.<= from from2)
-			  (.<= to2 to))))
+  (defmethod (contains-range? r1 r2) -> boolean?
+    (let-range ((from2 to2) r2)
+               (and (.<= from from2)
+                    (.<= to2 to))))
 
-	(def-method (contiguous? r1 r2) -> boolean?
-	  (let-range ((from2 to2) r2)
-		     (or (and
-			  ;; avoid requiring .= ?
-			  (.<= to from2)
-			  (.<= from2 to))
-			 ;; or, on the other end??
-			 (and
-			  (.<= to2 from)
-			  (.<= from to2)))))
+  (defmethod (contiguous? r1 r2) -> boolean?
+    (let-range ((from2 to2) r2)
+               (or (and
+                    ;; avoid requiring .= ?
+                    (.<= to from2)
+                    (.<= from2 to))
+                   ;; or, on the other end??
+                   (and
+                    (.<= to2 from)
+                    (.<= from to2)))))
 
-	(def-method (overlaps? r1 r2) -> boolean?
-	  (let-range ((from2 to2) r2)
-		     (and
-		      ;; make sure no range is empty:
-		      (.< from to)
-		      (.< from2 to2)
-		      ;; make sure they overlap:
-		      (if (.<= from from2)
-			  (.< from2 to)
-			  (.< from to2)))))
+  (defmethod (overlaps? r1 r2) -> boolean?
+    (let-range ((from2 to2) r2)
+               (and
+                ;; make sure no range is empty:
+                (.< from to)
+                (.< from2 to2)
+                ;; make sure they overlap:
+                (if (.<= from from2)
+                    (.< from2 to)
+                    (.< from to2)))))
 
-	(def-method (separated? r1 r2) -> boolean?
-	  (let-range ((from2 to2) r2)
-		     ;; if one is empty, then there's no gap anyway
-		     (if (or (not (.< from to))
-			     (not (.< from2 to2)))
-			 #f
-			 (if (.<= from from2)
-			     (.< to from2)
-			     (.< to2 from)))))
+  (defmethod (separated? r1 r2) -> boolean?
+    (let-range ((from2 to2) r2)
+               ;; if one is empty, then there's no gap anyway
+               (if (or (not (.< from to))
+                       (not (.< from2 to2)))
+                   #f
+                   (if (.<= from from2)
+                       (.< to from2)
+                       (.< to2 from)))))
 
 
-	(def-method (unchecked-rank r x) -> real?
-	  (.- x from))
+  (defmethod (unchecked-rank r x) -> real?
+    (.- x from))
 
-	(def-method (checked-rank r x underflow overflow)
-	  (let ((rank (.- x from)))
-	    (if (negative? rank)
-		underflow
-		(if (< rank (.- to from))
-		    rank
-		    overflow))))
+  (defmethod (checked-rank r x underflow overflow)
+    (let ((rank (.- x from)))
+      (if (negative? rank)
+          underflow
+          (if (< rank (.- to from))
+              rank
+              overflow))))
 
-	(def-method (maybe-rank r x) -> (maybe exact-natural0?)
-	  (.checked-rank r x #f #f))
+  (defmethod (maybe-rank r x) -> (maybe exact-natural0?)
+    (.checked-rank r x #f #f))
 	
 
-	(def-method (ref r1 [real? x])
-	  (.+ from x))
+  (defmethod (ref r1 [real? x])
+    (.+ from x))
 
-	(def-method (intersection r1 r2) -> range?
-	  (let-range ((from2 to2) r2)
-		     (range (if (<= from from2)
-				from2 from)
-			    (if (< to to2)
-				to to2))))
+  (defmethod (intersection r1 r2) -> range?
+    (let-range ((from2 to2) r2)
+               (range (if (<= from from2)
+                          from2 from)
+                      (if (< to to2)
+                          to to2))))
 
-	(def-method (maybe-union r1 r2) -> (maybe range?)
-	  (let-range ((from2 to2) r2)
-		     (cond ((not (.< from to))
-			    r2)
-			   ((not (.< from2 to2))
-			    r1)
-			   (else
-			    ;; would there be a hole?
-			    (and (not (.separated? r1 r2))
-				 (range (if (<= from from2)
-					    from from2)
-					(if (< to to2)
-					    to2 to)))))))
+  (defmethod (maybe-union r1 r2) -> (maybe range?)
+    (let-range ((from2 to2) r2)
+               (cond ((not (.< from to))
+                      r2)
+                     ((not (.< from2 to2))
+                      r1)
+                     (else
+                      ;; would there be a hole?
+                      (and (not (.separated? r1 r2))
+                           (range (if (<= from from2)
+                                      from from2)
+                                  (if (< to to2)
+                                      to2 to)))))))
 
-	(def-method (filling-union r1 r2) -> range?
-	  (let-range ((from2 to2) r2)
-		     (cond ((not (.< from to))
-			    r2)
-			   ((not (.< from2 to2))
-			    r1)
-			   (else
-			    (range (if (.<= from from2) from from2)
-				   (if (.< to2 to) to to2))))))
+  (defmethod (filling-union r1 r2) -> range?
+    (let-range ((from2 to2) r2)
+               (cond ((not (.< from to))
+                      r2)
+                     ((not (.< from2 to2))
+                      r1)
+                     (else
+                      (range (if (.<= from from2) from from2)
+                             (if (.< to2 to) to to2))))))
 
-	(def-method (union* r1 [range-or-ranges? r2]) -> range-or-ranges?
-	  (if (not (.< from to))
-	      r2
-	      (if (range? r2)
-		  (or (.maybe-union r1 r2)
-		      (ranges r1 r2))
+  (defmethod (union* r1 [range-or-ranges? r2]) -> range-or-ranges?
+    (if (not (.< from to))
+        r2
+        (if (range? r2)
+            (or (.maybe-union r1 r2)
+                (ranges r1 r2))
 		  
-		  ;; r2 is a |ranges|; use the functionality in ranges
-		  ;; class
-		  (.add-range r2 r1))))
+            ;; r2 is a |ranges|; use the functionality in ranges
+            ;; class
+            (.add-range r2 r1))))
 
 
-	(def-method (list r #!optional (tail '()))
-	  (let lp ((i (.dec to))
-		   (l tail))
-	    (if (.<= from i)
-		(lp (.dec i) (cons i l))
-		l)))
+  (defmethod (list r #!optional (tail '()))
+    (let lp ((i (.dec to))
+             (l tail))
+      (if (.<= from i)
+          (lp (.dec i) (cons i l))
+          l)))
 
-	(def-method (rlist r #!optional (tail '()))
-	  (let lp ((i from)
-		   (l tail))
-	    (if (.< i to)
-		(lp (.inc i) (cons i l))
-		l)))
+  (defmethod (rlist r #!optional (tail '()))
+    (let lp ((i from)
+             (l tail))
+      (if (.< i to)
+          (lp (.inc i) (cons i l))
+          l)))
 
-	(def-method (stream r #!optional (tail '()))
-	  (let rec ((i from))
-	    (delay
-	      (if (.< i to)
-		  (cons i (rec (.inc i)))
-		  tail))))
+  (defmethod (stream r #!optional (tail '()))
+    (let rec ((i from))
+      (delay
+        (if (.< i to)
+            (cons i (rec (.inc i)))
+            tail))))
 	
-	(def-method (rstream r #!optional (tail '()))
-	  (let rec ((i (.dec to)))
-	    (delay
-	      (if (.<= from i)
-		  (cons i (rec (.dec i)))
-		  tail))))
+  (defmethod (rstream r #!optional (tail '()))
+    (let rec ((i (.dec to)))
+      (delay
+        (if (.<= from i)
+            (cons i (rec (.dec i)))
+            tail))))
 
 
-	;; for reverse iteration (streams, lists): (jclass (down-to))
-	;;perhaps call it reverse-range ? but no, really have to swap
-	;;arguments to make comparisons work! How to get new ranges
-	;;out of it? bless on original object's class?....
-	)
+  ;; for reverse iteration (streams, lists): (defclass (down-to))
+  ;;perhaps call it reverse-range ? but no, really have to swap
+  ;;arguments to make comparisons work! How to get new ranges
+  ;;out of it? bless on original object's class?....
+  )
 
 
 (def ((range-of T?) v)
@@ -307,69 +306,65 @@
 ;; Trees of ranges (i.e. ranges with gaps). (Todo: check Haskell's
 ;; implementation for comparison.)
 
-(jclass (ranges [range-or-ranges? a]
-		[(lambda (b)
-		   (and (range-or-ranges? b)
-			(.< (.from a) (.from b))
-			;; and, otherwise it should be a merged range:
-			(.<= (.to a) (.from b))))
-		 b])
-	implements: range-or-ranges
+(defclass (ranges [range-or-ranges? a]
+                  [(lambda (b)
+                     (and (range-or-ranges? b)
+                          (.< (.from a) (.from b))
+                          ;; and, otherwise it should be a merged range:
+                          (.<= (.to a) (.from b))))
+                   b])
+  implements: range-or-ranges
 
 
-	(def-method (from s)
-	  (.from a))
+  (defmethod (from s)
+    (.from a))
 
-	(def-method (to s)
-	  (.to b))
+  (defmethod (to s)
+    (.to b))
 
-	(def-method (list s #!optional (tail '()))
-	  (.list a (.list b tail)))
+  (defmethod (list s #!optional (tail '()))
+    (.list a (.list b tail)))
 
-	(def-method (rlist s #!optional (tail '()))
-	  (.rlist b (.rlist a tail)))
+  (defmethod (rlist s #!optional (tail '()))
+    (.rlist b (.rlist a tail)))
 
-	(def-method (stream s #!optional (tail '()))
-	  (.stream a (.stream b tail)))
+  (defmethod (stream s #!optional (tail '()))
+    (.stream a (.stream b tail)))
 
-	(def-method (rstream s #!optional (tail '()))
-	  (.rstream b (.rstream a tail)))
+  (defmethod (rstream s #!optional (tail '()))
+    (.rstream b (.rstream a tail)))
 
-	;; XX implement the other methods like contains? -- via binary
-	;; search? Could also implement balancing...
+  ;; XX implement the other methods like contains? -- via binary
+  ;; search? Could also implement balancing...
 
-	(def-method (add-range rs [range? r])
-	  ;; no need to check s for emptyness, rangess are always
-	  ;; guaranteed to be non-empty
+  (defmethod (add-range rs [range? r])
+    ;; no need to check s for emptyness, rangess are always
+    ;; guaranteed to be non-empty
 
-	  (let-range
-	   ((r-from r-to) r)
-	   (let ((rs-from (.from rs)))
-	     (if (.< r-to rs-from)
-		 ;; disjoint
-		 (ranges r rs)
+    (let-range
+     ((r-from r-to) r)
+     (let ((rs-from (.from rs)))
+       (if (.< r-to rs-from)
+           ;; disjoint
+           (ranges r rs)
 		 
-		 (let ((rs-to (.to rs)))
-		   (if (.< rs-to r-from)
-		       (ranges rs r)
+           (let ((rs-to (.to rs)))
+             (if (.< rs-to r-from)
+                 (ranges rs r)
 
-		       ;; adjacent, or overlapping, or inclusive
-		       (if (.<= r-from rs-from)
-			   (if (.<= rs-to r-to)
-			       ;; r includes rs
-			       r
-			       ;; need to merge with the low end
-			       (error "XX UNFINISHED 1"))
-			   ;; need to merge with the high end
-			   (error "XX UNFINISHED 2"))))))))
+                 ;; adjacent, or overlapping, or inclusive
+                 (if (.<= r-from rs-from)
+                     (if (.<= rs-to r-to)
+                         ;; r includes rs
+                         r
+                         ;; need to merge with the low end
+                         (error "XX UNFINISHED 1"))
+                     ;; need to merge with the high end
+                     (error "XX UNFINISHED 2"))))))))
 
-	;; helper for doing merges
-	'(def-method (_merge s [range? r])
-	   )
-	
-
-	)
-
+  ;; helper for doing merges
+  '(defmethod (_merge s [range? r])
+     ))
 
 
 
@@ -653,8 +648,7 @@
  ((#f #f #f #f #f #f #f) (#f #f #f #f #f #f))
 
  > (map (C map (applying .separated?) _) (first t-ranges))
- ((#f #t #f #f #f #f #f) (#f #f #f #f #f #f))
- )
+ ((#f #t #f #f #f #f #f) (#f #f #f #f #f #f)))
 
 
 ;; Library on top, well, could be part of the interface. Dunno.
