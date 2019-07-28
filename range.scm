@@ -669,9 +669,8 @@
 (def.* (range.for r proc)
   (let lp ((i from))
     (when (.< i to)
-          (begin
-            (proc i)
-            (lp (.inc i))))))
+          (proc i)
+          (lp (.inc i)))))
 
 (def range-of-exact-integer? (range-of exact-integer?))
 
