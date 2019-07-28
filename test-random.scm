@@ -278,13 +278,19 @@
 	 ((1) #t)))
 
 
-
 (define (random-hexstring len)
-  (let* ((s (number->string (random-integer (expt 16 len)) 16))
-	 (l (string-length s)))
-    (if (= l len)
-	s
-	(string-append (make-string (- len l) #\0) s))))
+  (if (zero? len)
+      "" ;; OK?
+      (let* ((s (number->string (random-integer (expt 16 len)) 16))
+             (l (string-length s))
+             (missinglen (- len l)))
+        (cond ((zero? missinglen)
+               s)
+              ((negative? missinglen)
+               (error "BUG"))
+              (else
+               (string-append (make-string missinglen #\0) s))))))
+
 
 (define (random-filename)
   ;; 128 bits
