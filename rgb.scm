@@ -48,7 +48,7 @@
 
 (def hexdigits "0123456789ABCDEF")
 
-(def (number->uc-hex-string/padding #(natural0? x) #(natural0? paddigits))
+(def (number->uc-hex-string/padding [natural0? x] [natural0? paddigits])
      (let lp ((digits '())
 	      (x x))
        (if (zero? x)
@@ -101,9 +101,9 @@
  (jclass rgb01
 
 	 ;; RGB in 0..1 floating point range, sRGB 'transfer' format
-	 (jclass (rgb01t #(rgb:0..1? r01t)
-			 #(rgb:0..1? g01t)
-			 #(rgb:0..1? b01t))
+	 (jclass (rgb01t [rgb:0..1? r01t]
+			 [rgb:0..1? g01t]
+			 [rgb:0..1? b01t])
 
 		 (def-method- rgb01t identity)
 
@@ -143,9 +143,9 @@
 	 ;; RGB in 0..1 floating point range, linear
 	 ;; (proportional to physical light energy, right?)
 	 ;; format
-	 (jclass (rgb01l #(rgb:0..1? r01l)
-			 #(rgb:0..1? g01l)
-			 #(rgb:0..1? b01l))
+	 (jclass (rgb01l [rgb:0..1? r01l]
+			 [rgb:0..1? g01l]
+			 [rgb:0..1? b01l])
 
 		 (def (rgb01l/clipping r g b)
 		      (rgb01l (01-bound r)
@@ -187,9 +187,9 @@
 
  ;; rgb8 is always in sRGB 'transfer' format
  ;; (non-linear), ok?
- (jclass (rgb8 #(uint8? r8)
-	       #(uint8? g8)
-	       #(uint8? b8))
+ (jclass (rgb8 [uint8? r8]
+	       [uint8? g8]
+	       [uint8? b8])
 
 	 (def-method- rgb8 identity)
 
@@ -220,7 +220,7 @@
  ;; generic operations: ---------------------------------------------------
 
  (def-method- (html-colorstring x)
-   (def (conv #(uint8? x))
+   (def (conv [uint8? x])
 	(number->uc-hex-string/padding x 2))
    (insert-result-of
     `(string-append "#"
@@ -230,7 +230,7 @@
 
 
  (def (rgb01:op/2 op)
-      (lambda (a b #!optional #(boolean? clip?))
+      (lambda (a b #!optional [boolean? clip?])
 	(let-rgb01l
 	 ((r0 g0 b0) (.rgb01l a))
 	 (let-rgb01l
@@ -245,7 +245,7 @@
  (def-method- average (rgb01:op/2 average))
 
  (def (rgb01:op/2+1 op)
-      (lambda (a b c #!optional #(boolean? clip?))
+      (lambda (a b c #!optional [boolean? clip?])
 	(let-rgb01l
 	 ((r0 g0 b0) (.rgb01l a))
 	 (let-rgb01l
@@ -258,7 +258,7 @@
  (def-method- average-towards (rgb01:op/2+1 average-towards))
 
  (def (rgb01:.op op)
-      (lambda (a #(number? b) #!optional #(boolean? clip?))
+      (lambda (a [number? b] #!optional [boolean? clip?])
 	(insert-result-of
 	 `((if clip? rgb01l/clipping rgb01l)
 	   ,@(map (lambda_
@@ -279,10 +279,10 @@
  > (.html-colorstring (rgb01t 1 0.5 0))
  "#FF8000"
 
- > (.invert (rgb8 0 128 255))
- #((rgb8) 255 229 0) ;; hah yes, 128 is not the center.
- > (.invert (rgb8 10 40 245))
- #((rgb8) 255 253 83)
+ > (.show (.invert (rgb8 0 128 255)))
+ (rgb8 255 229 0) ;; hah yes, 128 is not the center.
+ > (.show (.invert (rgb8 10 40 245)))
+ (rgb8 255 253 83)
  ;; oh my. Now question is does this kind of inversion actually make sense?
  > (.show (.scale (rgb8 0 128 255) 0.5))
  (rgb8 0 92 188)
@@ -328,8 +328,8 @@
 
 
 (TEST
- > (.rgb8 "#FF00FF")
- #((rgb8) 255 0 255)
+ > (.show (.rgb8 "#FF00FF"))
+ (rgb8 255 0 255)
  > (%try (.rgb8 "# F00FF"))
  (exception
   text:
@@ -342,11 +342,11 @@
  (exception
   text:
   "string.rgb8: expecting positive hex number: \"#-800FF\" \"-8\"\n")
- > (.rgb8 "#F00080")
- #((rgb8) 240 0 128)
- > (.rgb8 "#88f")
- #((rgb8) 136 136 255)
- > (.html-colorstring #)
+ > (.show (.rgb8 "#F00080"))
+ (rgb8 240 0 128)
+ > (.show (.rgb8 "#88f"))
+ (rgb8 136 136 255)
+ > (.html-colorstring (eval #))
  "#8888FF")
 
 
@@ -379,16 +379,16 @@
 
 
 (TEST
- > (..* (rgb8 100 50 0) 2)
- ;; #(rgb01 40/51 20/51 0)
- #((rgb01l) .2548754380226136 .06379206392765045 -7.790527343750001e-5)
+ > (.show (..* (rgb8 100 50 0) 2))
+ ;; (rgb01 40/51 20/51 0)
+ (rgb01l .2548754380226136 .06379206392765045 -7.790527343750001e-5)
 
  > (%try (.+ (rgb8 255 128 0) (rgb8 10 10 10)))
  (exception text: "r01l does not match rgb:0..1?: 1.003035109168291\n")
  ;; Now the same with clipping:
- > (.+ (rgb8 255 128 0) (rgb8 10 10 10) #t)
- #((rgb01l) 1 .21889579733014106 .0029963123619556426)
- > (.html-colorstring #)
+ > (.show (.+ (rgb8 255 128 0) (rgb8 10 10 10) #t))
+ (rgb01l 1 .21889579733014106 .0029963123619556426)
+ > (.html-colorstring (eval #))
  "#FF810A"
 
  ;; Seeing the effect of the luminosity curve:
@@ -402,10 +402,10 @@
  "#FFF114"
 
  > (%try-error (..* (rgb8 100 200 0) 2))
- ;; #(error "does not match rgb:0..1?:" 80/51)
- #(error "g01l does not match rgb:0..1?:" 1.1551609354972836)
- > (.average (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8))
- #((rgb01l) 1/2 .75 .7))
+ ;; [error "does not match rgb:0..1?:" 80/51]
+ [error "g01l does not match rgb:0..1?:" 1.1551609354972836]
+ > (.show (.average (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8)))
+ (rgb01l 1/2 .75 .7))
 
 
 (def (iter-stream f start)
@@ -414,7 +414,7 @@
 		    (rec (f x))))))
 
 (TEST
- > (F (stream-take (iter-stream (C ..* _ 0.9) (rgb01l 1 1 0.5)) 3))
- (#((rgb01l) 1 1 .5) #((rgb01l) .9 .9 .45) #((rgb01l) .81 .81 .405)))
+ > (=> (iter-stream (C ..* _ 0.9) (rgb01l 1 1 0.5)) (.take 3) .list .show)
+ (list (rgb01l 1 1 .5) (rgb01l .9 .9 .45) (rgb01l .81 .81 .405)))
 
 
