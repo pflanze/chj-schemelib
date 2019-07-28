@@ -39,7 +39,7 @@
          (cj-typed perhaps-typed.var
                    perhaps-typed.maybe-predicate)
          test
-         (random random-hexstring))
+         test-random)
 
 (export (class corescheme-var)
         (interface corescheme-interface

@@ -9,7 +9,7 @@
 (require easy
 	 string-case
 	 memcmp
-	 random)
+	 test-random)
 
 (include "cj-standarddeclares.scm")
 

@@ -8,8 +8,8 @@
 
 (require easy
 	 cj-url-encode
-	 random
-	 test)
+	 test
+	 test-random)
 
 (def (cj-url-encode-test n len)
      (repeat n (let* ((s (random-string len))
