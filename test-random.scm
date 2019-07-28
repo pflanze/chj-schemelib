@@ -6,6 +6,15 @@
 ;;;    (at your option) any later version.
 
 
+;; This is a mess; tried first to make purely functional stream
+;; constructors (pseudorandom->...), but it's too painful to use. Now
+;; it's mixed up with side-effecting ops.  TODO: Just offer a way to
+;; re-init the pseudo-random generator (and print the random seed) for
+;; an all-side-effecting operation (or really only re-start this when
+;; proper monad infrastructure is there, but then that's just the same
+;; as side-effecting anyway).
+
+
 (require define-macro-star
 	 fixnum
          cj-typed
@@ -59,8 +68,9 @@
 	random-real-1-1
 	random-float
 	random-number
-
 	random-boolean
+        ;; random-u8vector see compat.scm
+        ;; random-string, random-char etc.  see random.scm
 	
 	#!optional
 	do-iter		    ;; ?

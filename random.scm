@@ -20,8 +20,9 @@
 
 (include "cj-standarddeclares.scm")
 
-
-;; XX not fork safe
+;; These are meant for testing purposes. Do not use in security
+;; contexts (see realrandom.scm instead)!!  E.g. these are not "fork
+;; safe"!
 
 (define (random-hexstring len)
   (let* ((s (number->string (random-integer (expt 16 len)) 16))
