@@ -9,6 +9,7 @@
 	 define-macro-star
 	 (cj-env IF)
 	 test
+         pseudorandom
 	 (test-lib-1 %try))
 
 (define wbtreeparameter-string

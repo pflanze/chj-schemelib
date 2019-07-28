@@ -10,6 +10,7 @@
 
 (require easy
 	 test
+         pseudorandom
 	 symboltable)
 
 ;;;
