@@ -388,30 +388,30 @@
  > (map (C .contains-element? (range 10 12) _) (iota 4 9))
  (#f #t #t #f)
  > (map (C .contains-element? (range 12 10) _) (iota 4 9))
- (#f #f #f #f)
- )
+ (#f #f #f #f))
+
 
 (TEST
- > (.intersection (range 10 12) (range 13 14))
- #((range) 13 12) ;; careful..?
- > (.intersection (range 10 12) (range 12 14))
- #((range) 12 12)
- > (.intersection (range 10 12) (range 11 14))
- #((range) 11 12)
- > (.intersection (range 10 14) (range 11 14))
- #((range) 11 14)
- > (.intersection (range 10 14) (range 11 12))
- #((range) 11 12)
- > (.intersection (range 10 14) (range 9 12))
- #((range) 10 12)
- > (.intersection (range 11 12) (range 10 14))
- #((range) 11 12)
+ > (def i (comp* .show .intersection))
+ > (i (range 10 12) (range 13 14))
+ (range 13 12) ;; careful..?
+ > (i (range 10 12) (range 12 14))
+ (range 12 12)
+ > (i (range 10 12) (range 11 14))
+ (range 11 12)
+ > (i (range 10 14) (range 11 14))
+ (range 11 14)
+ > (i (range 10 14) (range 11 12))
+ (range 11 12)
+ > (i (range 10 14) (range 9 12))
+ (range 10 12)
+ > (i (range 11 12) (range 10 14))
+ (range 11 12)
  ;; re careful:
- > (.intersection (range 10 12) (range 14 11))
- #((range) 14 11)
- > (list (.length #) (.size #))
- (-3 0)
- )
+ > (i (range 10 12) (range 14 11))
+ (range 14 11)
+ > (let (r (eval #)) (list (.length r) (.size r)))
+ (-3 0))
 
 
 (TEST
@@ -518,7 +518,7 @@
  > (.unchecked-rank (range 3.5 9) 4)
  0.5
  > (%try-error (.maybe-rank (range 3.5 9) 4))
- #(error "value fails to meet predicate:" ((maybe exact-natural0?) .5))
+ [error "value fails to meet predicate:" ((maybe exact-natural0?) .5)]
  > (.maybe-rank (range 3 9) 5)
  2
  > (.maybe-rank (range #\b #\z) #\a)
