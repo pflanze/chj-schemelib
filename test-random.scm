@@ -33,7 +33,7 @@
          (fixnum inc))
 ;;^ XX which are still used?
 
-(export make-list! ;; ok name? should name all generators (taking iterators) with ! too?
+(export make-list!
         make-infinite-stream! make-finite-stream! make-stream!
 
 	random-integer..<
@@ -49,6 +49,7 @@
 	random-natural0*-big
 	random-natural0*-exponential
 	random-natural0*
+        random-length
 	random-sign
 	random-integer*
 	random-real-1-1
@@ -61,6 +62,9 @@
 	random-char-integer
 	random-char
 	random-string
+
+        randomly-sized ;; (randomly-sized gen/length)
+        randomly-sized/ ;; (randomly-sized/ gen/length)
 	
 	#!optional
 	do-iter		    ;; ?
@@ -218,6 +222,26 @@
 	 ((1 2)
 	  (random-natural0*-exponential))))
 
+
+;; random-length: a natural0 that is small enough to be used as length
+;; for strings etc., i.e. real allocations (i.e. not for 32 bit
+;; boundary calculations etc.; write a random-size or random-s32
+;; etc. if want to do such)
+
+(define (random-length)
+  (let ((i (random-integer 10)))
+    (if (< i 8)
+        i
+        (let ((i (random-integer 100)))
+          (if (< i 95)
+              i
+              (let ((i (random-integer 1000)))
+                (if (< i 995)
+                    i
+                    (let ((i (random-integer 10000)))
+                      i))))))))
+
+
 (define (random-sign)
   (xcase (random-integer 2)
 	 ((0) -1)
@@ -356,4 +380,15 @@
 		(lp (inc i)))
 	      str)))
       (error "not a natural0: " len)))
+
+
+(define (randomly-sized gen/length)
+  (gen/length (random-length)))
+
+(define (randomly-sized/ gen/length)
+  (lambda ()
+    (randomly-sized gen/length)))
+
+;; well. One is the action, the other returns one. ?
+
 
