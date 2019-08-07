@@ -8,7 +8,8 @@
 
 (require easy)
 
-(export (macro try))
+(export (macro try)
+        (macro retry-when))
 
 (include "cj-standarddeclares.scm")
 
@@ -156,4 +157,36 @@
  88
  > (t '(10))
  111)
+
+
+
+(def (try:retry-when exception-pred thunk)
+     (continuation-capture
+      (lambda (return)
+        (let ((orig-handler (current-exception-handler)))
+          (with-exception-handler
+           (lambda (e)
+             (cond ((exception-pred e)
+                    (continuation-graft return
+                                        try:retry-when exception-pred thunk))
+                   (else
+                    (orig-handler e))))
+           thunk)))))
+
+(defmacro (retry-when exception-pred . body)
+  `(try:retry-when
+    ,exception-pred
+    (lambda ()
+      ,@body)))
+
+
+(TEST
+ > (retry-when boolean? 4)
+ 4
+ > (retry-when error-exception?
+               (if (zero? (random-integer 2))
+                   (error "fun")
+                   'ok)
+               'well)
+ well)
 
