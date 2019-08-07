@@ -181,9 +181,10 @@
          (.< x to)))
 
   (defmethod (contains-range? r1 r2) -> boolean?
-    (let-range ((from2 to2) r2)
-               (and (.<= from from2)
-                    (.<= to2 to))))
+    (or (.empty? r2)
+        (let-range ((from2 to2) r2)
+                   (and (.<= from from2)
+                        (.<= to2 to)))))
 
   (defmethod (contiguous? r1 r2) -> boolean?
     (let-range ((from2 to2) r2)
@@ -587,7 +588,7 @@
  > (.contains-range? (range 10 20) (range 12 11))
  #t ;; ? 
  > (.contains-range? (range 10 20) (range 30 30))
- #f ;; *??* what should it be, "division by zero?"
+ #t ;; *??* what should it be, "division by zero?"
  > (.contains-range? (range 10 20) (range 30 0))
  #t ;; ditto ??
 
