@@ -47,7 +47,9 @@
 	 test
 	 (string-util-2 inexact.round-at)
          test-logic
-         test-random)
+         test-random
+         (maybe maybe.>>=)
+         (boolean boolean.=))
 
 (export (class range)
 	(class ranges)
@@ -687,11 +689,11 @@
  > (for-all (make-list! 100 random-integer-range-pair)
             (lambda-pair ((r1 r2))
                          ;; This fails for ranges with negative elements:
-                         ;; (equal? (.contains-range? r1 r2)
-                         ;;         (equal? (.maybe-union r1 r2) r1))
-                         (assert
-                          (equal? (.contains-range? r1 r2)
-                                  (.equal? (.maybe-union r1 r2) r1)))))
+                         ;; (boolean.= (.contains-range? r1 r2)
+                         ;;            (equal? (.maybe-union r1 r2) r1))
+                         (boolean.= (.contains-range? r1 r2)
+                                    (.>>= (.maybe-union r1 r2)
+                                          (C .equal? _ r1)))))
  ()
  )
 
