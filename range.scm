@@ -8,7 +8,7 @@
 
 ;; Ranges (closed in the mathematical sense [1]) on types offering
 ;; .inc, .dec, .-, .< and .<= methods (iterable types but also more
-;; generally orderable ones)
+;; generally orderable ones), as well as .equal?
 
 ;; [1] https://en.wikipedia.org/wiki/Closed_set
 
@@ -72,6 +72,11 @@
   ;; exclusive
   (method (to r) -> T?)
 
+  ;; whether the two ranges cover the same values (note: if a and b
+  ;; are both empty, they are equal, even if they have different start
+  ;; and end points)
+  (method (equal? a b) -> boolean?)
+  
   ;; orderable distance betweeen start and end
   (method (length r) -> real?)
 
@@ -144,6 +149,19 @@
 
 (defclass (range from to) ;; excluding to
   implements: range-or-ranges
+
+  (defmethod (equal? a b)
+    (or (and (.empty? a)
+             (.empty? b))
+        (let-range ((from2 to2) b)
+                   (and (.equal? from from2)
+                        ;; XX for real values, end points may not fall
+                        ;; on a boundary and be un-equal, in this case
+                        ;; this check is wrong and should give true?
+                        ;; QUESTION: Or should iterable not be
+                        ;; strictly required (and this test be the
+                        ;; right one)?
+                        (.equal? to to2)))))
 
   (defmethod (length r) -> real?
     (.- to from))
@@ -372,17 +390,22 @@
 
 ;; XX MOVE
 
+;; XX should extend |equal?| really. Sigh. Or/and use .= instead,
+;; ditch equal?
+
 (def. real.inc inc*)
 (def. real.dec dec*)
 (def. real.< <)
 (def. real.<= <=)
 (def. real.- -)
+(def. real.equal? =)
 
 (def. char.inc (comp integer->char (C fx+ _ 1) char->integer))
 (def. char.dec (comp integer->char (C fx- _ 1) char->integer))
 (def. char.< (on char->integer fx<))
 (def. char.<= (on char->integer fx<=))
 (def. char.- (on char->integer fx-))
+(def. char.equal? char=?)
 
 
 
@@ -662,9 +685,12 @@
  
  > (for-all (make-list! 100 random-integer-range-pair)
             (lambda-pair ((r1 r2))
-                    (step)
-                    (equal? (.contains-range? r1 r2)
-                            (equal? (.maybe-union r1 r2) r1))))
+                         ;; This fails for ranges with negative elements:
+                         ;; (equal? (.contains-range? r1 r2)
+                         ;;         (equal? (.maybe-union r1 r2) r1))
+                         (assert
+                          (equal? (.contains-range? r1 r2)
+                                  (.equal? (.maybe-union r1 r2) r1)))))
  ()
  )
 
