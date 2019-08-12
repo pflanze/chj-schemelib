@@ -148,10 +148,10 @@
 (IF use-wbtrees-as-leafs?
     (TEST
      > t
-     #(wbtree
+     #((wbtree)
        "abe"
        10
-       #(wbtree
+       #((wbtree)
 	 "abba"
 	 4
 	 #((wbtree) "a" 2 #((wbtree) "Zwerg" 1 empty-wbtree empty-wbtree) empty-wbtree)
