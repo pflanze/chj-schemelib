@@ -13,20 +13,15 @@
 
 (require (debuggable-promise possibly-use-debuggable-promise)
 	 fixnum
-         cj-typed
-	 test
-	 cj-struct
+         cj-struct
 	 list-util
-	 (cj-env-2 xcase)
-	 stream
+         stream
 	 weak-srfi-1
 	 (lazy FV)
-	 (lazy-debug F)
-	 (cj-math integer natural0.bitsize)
-         (cj-functional-2 =>)
-         (cj-env IF inc! when)
-         (fixnum inc))
-;;^ XX which are still used?
+         (cj-env when)
+         (fixnum inc)
+         test
+	 (lazy-debug F))
 
 (export (struct pseudorandomsource)
 	(struct range)
