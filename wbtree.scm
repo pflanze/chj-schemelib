@@ -41,6 +41,8 @@
 	wbtreesort
 	wbtree:lt
 	wbtree:gt
+        wbtree:le
+        wbtree:ge
 	wbtree:next
 	wbtree:union
 	wbtree:difference
@@ -48,6 +50,7 @@
 	wbtrees:intersection-stream
 	wbtree->stream
 	wbtree:between
+        wbtree:between-incl
 	wbtree:rank
 	wbtree:index
 	
@@ -564,24 +567,46 @@
 (define* (wbtree:lt t x)
   (let _lt ((t t))
     (cond ((empty-wbtree? t)
-	   empty-wbtree)
-	  (else
-	   (let-wbtree ((v _ l r) t)
-		     (match-cmp (cmp x v)
-		       ((lt) (_lt l))
-		       ((gt) (concat3 v l (_lt r)))
-		       ((eq) l)))))))
+           empty-wbtree)
+          (else
+           (let-wbtree ((v _ l r) t)
+                       (match-cmp (cmp x v)
+                                  ((lt) (_lt l))
+                                  ((gt) (concat3 v l (_lt r)))
+                                  ((eq) l)))))))
 
 (define* (wbtree:gt t x)
   (let _gt ((t t))
     (cond ((empty-wbtree? t)
-	   empty-wbtree)
-	  (else
-	   (let-wbtree ((v _ l r) t)
-		     (match-cmp (cmp v x)
-		       ((lt) (_gt r))
-		       ((gt) (concat3 v (_gt l) r))
-		       ((eq) r)))))))
+           empty-wbtree)
+          (else
+           (let-wbtree ((v _ l r) t)
+                       (match-cmp (cmp v x)
+                                  ((lt) (_gt r))
+                                  ((gt) (concat3 v (_gt l) r))
+                                  ((eq) r)))))))
+
+(define* (wbtree:le t x)
+  (let _lt ((t t))
+    (cond ((empty-wbtree? t)
+           empty-wbtree)
+          (else
+           (let-wbtree ((v _ l r) t)
+                       (match-cmp (cmp x v)
+                                  ((lt) (_lt l))
+                                  ((gt) (concat3 v l (_lt r)))
+                                  ((eq) t)))))))
+
+(define* (wbtree:ge t x)
+  (let _gt ((t t))
+    (cond ((empty-wbtree? t)
+           empty-wbtree)
+          (else
+           (let-wbtree ((v _ l r) t)
+                       (match-cmp (cmp v x)
+                                  ((lt) (_gt r))
+                                  ((gt) (concat3 v (_gt l) r))
+                                  ((eq) t)))))))
 
 
 (define wbtree:next-none (gensym 'no-next))
@@ -715,11 +740,15 @@
 (define* (wbtree->stream.old t tail)
   (wbtrees:intersection-stream (list t) tail))
 
-;; get the section of the wbtree between x1 (including?) and x2 (excluding?) -- excluding both, ok?
-;;(define* (wbtree:section t x1 x2)
+;; The section of the wbtree between x1 and x2, exclusive
 (define* (wbtree:between t x1 x2)
   (wbtree:intersection (wbtree:gt t x1)
-		     (wbtree:lt t x2)))
+                       (wbtree:lt t x2)))
+
+;; The section of the wbtree between x1 and x2, inclusive
+(define* (wbtree:between-incl t x1 x2)
+  (wbtree:intersection (wbtree:ge t x1)
+                       (wbtree:le t x2)))
 
 
 (define* (wbtree:rank t x)
