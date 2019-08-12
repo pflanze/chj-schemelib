@@ -506,11 +506,22 @@
   wbtree:inorder-fold-reverse
   wbtree:stream-inorder-fold-reverse)
 
+;; XX deprecate these two, use below instead, OK?
+
 (define* (wbtree:members t)
   (wbtree:inorder-fold t cons '()))
 
 (define* (wbtree:stream-members t)
   (wbtree:stream-inorder-fold t cons '()))
+
+;; same just with more standard names:
+
+(define* (wbtree->list t #!optional (tail '()))
+  (wbtree:inorder-fold t cons '()))
+
+(define* (wbtree->stream t #!optional (tail '()))
+  (wbtree:stream-inorder-fold t cons '()))
+
 
 (define* (list->wbtree l #!optional ignore-duplicates?)
   (fold (if ignore-duplicates?
@@ -700,7 +711,8 @@
 	  (rec (wbtree:min (car ts))
 	       ts)))))
 
-(define* (wbtree->stream t tail)
+;; XXX test that this is the same as wbtree->stream then eliminate
+(define* (wbtree->stream.old t tail)
   (wbtrees:intersection-stream (list t) tail))
 
 ;; get the section of the wbtree between x1 (including?) and x2 (excluding?) -- excluding both, ok?
