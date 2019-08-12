@@ -11,7 +11,7 @@
 ;; using monadic infrastructure; until that's ready, forget about
 ;; this.)
 
-(require define-macro-star
+(require (debuggable-promise possibly-use-debuggable-promise)
 	 fixnum
          cj-typed
 	 test
@@ -50,7 +50,7 @@
 
 
 (include "cj-standarddeclares.scm")
-
+(possibly-use-debuggable-promise)
 
 ;; pseudorandom sources
 
