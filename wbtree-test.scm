@@ -10,6 +10,7 @@
 	 (cj-env IF)
 	 test
          pseudorandom
+         test-random
 	 (test-lib-1 %try)
          (stream list-uniq)
          (cj-functional =>>))
@@ -402,3 +403,41 @@
                 (wbtree3:intersection-list t3 t2 t1)))
  #t)
 
+
+;; Use normal side-effecting randomness (but also re-use t1.. from above):
+
+(TEST
+ > (define (random-wbtree len)
+     (define $wbtreeparameter wbtreeparameter-string)
+     (list->wbtree (make-list! len (C random-string 10))))
+ > (for-all (cons* t1 t4
+                   (make-list! 10 (C random-wbtree (random-integer 1000))))
+            (lambda (t)
+              (define $wbtreeparameter wbtreeparameter-string)
+              (let ((len (wbtree:size t))
+                    (l (wbtree->list t)))
+                ;; using assert isn't just easier to develop, but even
+                ;; easier to write, too ! Stupid monads (ah which ones?)
+                (assert (= len (length l)))
+                (let ((i0 (random-integer len))
+                      (i1 (random-integer len)))
+                  (let ((v0 (wbtree:index t i0))
+                        (v1 (wbtree:index t i1)))
+                    (assert (equal? (list-ref l i0) v0))
+                    (assert (equal? (list-ref l i1) v1))
+                    (let ((t-b (wbtree:between t v0 v1))
+                          (t-bi (wbtree:between-incl t v0 v1)))
+                      (assert (equal? (=> (wbtree:difference t-bi t-b)
+                                          wbtree->list )
+                                      (if (string<? v0 v1)
+                                          (list v0 v1)
+                                          (list))))
+                      (if (string<? v0 v1)
+                          (begin
+                           (assert (equal? (wbtree:min t-bi) v0))
+                           (assert (equal? (wbtree:max t-bi) v1)))
+                          (begin
+                            (assert (empty-wbtree? t-bi))
+                            (assert (empty-wbtree? t-b))))
+                      #t))))))
+ ())
