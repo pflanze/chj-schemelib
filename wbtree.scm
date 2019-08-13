@@ -591,22 +591,24 @@
     (cond ((empty-wbtree? t)
            empty-wbtree)
           (else
-           (let-wbtree ((v _ l r) t)
-                       (match-cmp (cmp x v)
-                                  ((lt) (_lt l))
-                                  ((gt) (concat3 v l (_lt r)))
-                                  ((eq) t)))))))
+           (let-wbtree
+            ((v s l r) t)
+            (match-cmp (cmp x v)
+                       ((lt) (_lt l))
+                       ((gt) (concat3 v l (_lt r)))
+                       ((eq) (make-wbtree v (inc s) l empty-wbtree))))))))
 
 (define* (wbtree:ge t x)
   (let _gt ((t t))
     (cond ((empty-wbtree? t)
            empty-wbtree)
           (else
-           (let-wbtree ((v _ l r) t)
-                       (match-cmp (cmp v x)
-                                  ((lt) (_gt r))
-                                  ((gt) (concat3 v (_gt l) r))
-                                  ((eq) t)))))))
+           (let-wbtree
+            ((v s l r) t)
+            (match-cmp (cmp v x)
+                       ((lt) (_gt r))
+                       ((gt) (concat3 v (_gt l) r))
+                       ((eq) (make-wbtree v (inc s) empty-wbtree r))))))))
 
 
 (define wbtree:next-none (gensym 'no-next))

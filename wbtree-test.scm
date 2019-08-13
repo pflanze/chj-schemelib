@@ -50,7 +50,39 @@
  > (t wbtree:lt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "l")
  ("a" "b" "c" "e" "f" "g" "h")
  > (t wbtree:gt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "l")
- ("n" "o" "r" "z"))
+ ("n" "o" "r" "z")
+ > (t wbtree:ge* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "l")
+ ("n" "o" "r" "z")
+
+ ;; giving cut off on the boundary:
+ > (t wbtree:gt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "a")
+ ("b" "c" "e" "f" "g" "h" "n" "o" "r" "z")
+ > (t wbtree:gt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "b")
+ ("c" "e" "f" "g" "h" "n" "o" "r" "z")
+ > (t wbtree:gt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "g")
+ ("h" "n" "o" "r" "z")
+
+ > (t wbtree:ge* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "a")
+ ("a" "b" "c" "e" "f" "g" "h" "n" "o" "r" "z")
+ > (t wbtree:ge* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "b")
+ ("b" "c" "e" "f" "g" "h" "n" "o" "r" "z")
+ > (t wbtree:ge* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "g")
+ ("g" "h" "n" "o" "r" "z")
+
+ > (t wbtree:lt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "a")
+ ()
+ > (t wbtree:lt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "b")
+ ("a")
+ > (t wbtree:lt* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "g")
+ ("a" "b" "c" "e" "f")
+
+ > (t wbtree:le* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "a")
+ ("a")
+ > (t wbtree:le* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "b")
+ ("a" "b")
+ > (t wbtree:le* '("a" "b" "h" "f" "z" "e" "g" "r" "c" "n" "o") "g")
+ ("a" "b" "c" "e" "f" "g"))
+
 
 (TEST
  > ($sdefine t (wbtree:set empty-wbtree "a"))
@@ -308,6 +340,9 @@
  > ($ps (wbtree:between tp '("a") '("g")))
  #((wbtree) ("f" . 4) 2 ("e" . 3) empty-wbtree)
 
+ > ($ps (wbtree->list tp))
+ (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5) ("z" . 2))
+ 
  > ($ps (wbtree->list (wbtree:between tp '("a") '("g"))))
  (("e" . 3) ("f" . 4))
  > ($ps (wbtree->list (wbtree:between tp '("") '("g"))))
@@ -315,7 +350,19 @@
  > ($ps (wbtree->list (wbtree:between tp '("") '("zz"))))
  (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5) ("z" . 2))
  > ($ps (wbtree->list (wbtree:between tp '("") '("z"))))
+ (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5))
+
+ > ($ps (wbtree->list (wbtree:between-incl tp '("a") '("g"))))
+ (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5))
+ > ($ps (wbtree->list (wbtree:between-incl tp '("e") '("f"))))
+ (("e" . 3) ("f" . 4))
+ > ($ps (wbtree->list (wbtree:between-incl tp '("") '("z"))))
+ (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5) ("z" . 2))
+ > ($ps (wbtree->list (wbtree:between-incl tp '("") '("zz"))))
+ (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5) ("z" . 2))
+ > ($ps (wbtree->list (wbtree:between-incl tp '("") '("y"))))
  (("a" . 1) ("e" . 3) ("f" . 4) ("g" . 5)))
+
 
 
 ;; ==================================================================
