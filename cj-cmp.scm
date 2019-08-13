@@ -1,4 +1,4 @@
-;;; Copyright 2010-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -10,14 +10,14 @@
 	 (fixnum inc)
          (cj-env when)
          cj-typed
-	 test
 	 simple-match
 	 cj-inline
 	 cj-symbol
 	 ;; enum  can't, circular dependency
 	 (predicates function-of arguments-of)
 	 (list-util let-pair)
-	 named)
+	 named
+         test)
 
 (export (macro match-cmp)
 	element? ;; XX move elsewhere, change? (scheme.scm ?) Not even used here
@@ -66,6 +66,8 @@
 	cmp-sort
 
 	cmp-function?)
+
+(include "cj-standarddeclares.scm")
 
 
 ;; (define-enum cmp
@@ -118,6 +120,7 @@
 	 'lt)
 	(else
 	 'gt)))
+
 (define-inline (@real-cmp v1 v2)
   (cond ((< v1 v2)
 	 'lt)
@@ -125,6 +128,7 @@
 	 'gt)
 	(else
 	 'eq)))
+
 (define-inline (@symbol-cmp v1 v2)
   (cond ((eq? v1 v2)
 	 'eq)
@@ -132,13 +136,22 @@
 	 ;; sort by their string representation
 	 (string-cmp (symbol->string v1)
 		     (symbol->string v2)))))
+
 (define-inline (@string-cmp v1 v2)
-  (cond ((string<? v1 v2)
-	 'lt)
-	((string<? v2 v1)
-	 'gt)
-	(else
-	 'eq)))
+  (let ((l1 (string-length v1))
+        (l2 (string-length v2)))
+    (declare (fixnum) (not safe))
+    (let ((l (min l1 l2)))
+      (let lp ((i 0))
+        (if (< i l)
+            (let ((c1 (string-ref v1 i))
+                  (c2 (string-ref v2 i)))
+              (cond ((char<? c1 c2) 'lt)
+                    ((char<? c2 c1) 'gt)
+                    (else (lp (inc i)))))
+            (real-cmp 10 11))))))
+
+
 ;; make safe wrappers:
 (insert-result-of
  (cons 'begin
@@ -538,11 +551,9 @@
 	  (char-downcase c)))))
 
 (define (char-cmp a b)
-  (if (char=? a b)
-      'eq
-      (if (char>? a b)
-	  'gt
-	  'lt)))
+  (cond ((char<? a b) 'lt)
+        ((char<? b a) 'gt)
+        (else 'eq)))
 
 ;; these only work for lower case (use german-char-downcase)
 (define (lc_perhaps-compound-1st c)
