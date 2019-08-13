@@ -766,6 +766,7 @@
 				1))
 		       ((eq) (wbtree:size l))))))))
 
+;; wbtree:ref-index ?
 (define* (wbtree:index t i)
   (cond ((empty-wbtree? t)
 	 (raise 'not-found))
