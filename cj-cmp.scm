@@ -8,6 +8,8 @@
 
 (require define-macro-star
 	 (fixnum inc)
+         (cj-env when)
+         cj-typed
 	 test
 	 simple-match
 	 cj-inline
@@ -305,10 +307,12 @@
 		      symbol-list
 		      ;; for proper list checking and location removal
 		      (symbols
-		       (for-each (lambda (s)
-				   (if (not (memq (source-code s) '(lt gt eq)))
-				       (source-error s "expecting one of |lt|, |gt|, |eq|")))
-				 symbols)
+		       (for-each
+                        (lambda (s)
+                          (when (not (memq (source-code s) '(lt gt eq)))
+                                (source-error
+                                 s "expecting one of |lt|, |gt|, |eq|")))
+                        symbols)
 		       `(,symbols ,body0 ,@body))))))
 		 cases)
 	    `((else (match-cmp-error ,V))))))))
@@ -565,26 +569,24 @@
 ;; massaged strings); or, compare them on the fly? [is there any
 ;; difference?]
 (define (german-string-cmp a b)
-  (if (and (string? a)
-	   (string? b))
-      (let ((lena (string-length a))
-	    (lenb (string-length b)))
-	(let lp ((ia 0)
-		 (ib 0))
-	  (if (< ia lena)
-	      (if (< ib lenb)
-		  ;; XX ignore ö vs oe for now; treat ö same as o
-		  (let ((ca (lc_perhaps-compound-1st;; for now
-			     (german-char-downcase (string-ref a ia))))
-			(cb (lc_perhaps-compound-1st;; for now
-			     (german-char-downcase (string-ref b ib)))))
-		    (cmp-or (char-cmp ca cb)
-			    (lp (inc ia)
-				(inc ib))))
-		  'gt)
-	      (if (< ib lenb)
-		  'lt
-		  'eq))))))
+  (let ((lena (string-length a))
+        (lenb (string-length b)))
+    (let lp ((ia 0)
+             (ib 0))
+      (if (< ia lena)
+          (if (< ib lenb)
+              ;; XX ignore ö vs oe for now; treat ö same as o
+              (let ((ca (lc_perhaps-compound-1st ;; for now
+                         (german-char-downcase (string-ref a ia))))
+                    (cb (lc_perhaps-compound-1st ;; for now
+                         (german-char-downcase (string-ref b ib)))))
+                (cmp-or (char-cmp ca cb)
+                        (lp (inc ia)
+                            (inc ib))))
+              'gt)
+          (if (< ib lenb)
+              'lt
+              'eq)))))
 
 (TEST
  > (german-string-cmp "Hallo" "hallo")
