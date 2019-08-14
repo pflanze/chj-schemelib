@@ -29,10 +29,13 @@
 	  'gt
 	  'lt)))
 
+(define (short-random-string)
+  (random-string (random-integer 3)))
+
 (TEST
  > (repeat 10000
-           (let ((s0 (random-string 3))
-                 (s1 (random-string 3)))
+           (let ((s0 (short-random-string))
+                 (s1 (short-random-string)))
              (assert (eq? (@string-cmp s0 s1)
                           (old-@string-cmp s0 s1)))))
  #!void
