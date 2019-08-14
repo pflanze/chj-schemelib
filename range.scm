@@ -628,7 +628,7 @@
  ;; XX should perhaps use these for the tests above, too
  > (def t-ranges
 	(list
-	 ;; non reverse ranges
+	 ;; without reversed ranges
 	 (list (list (list (range 3 4) (range 4 5))
 		     (list (range 3 4) (range 5 6))
 		     (list (range 3 4) (range 4 4))
@@ -679,7 +679,7 @@
  ((#f #t #f #f #f #f #f) (#f #f #f #f #f #f)))
 
 
-;; Generative tests:
+;; Generative/randomized/property-based tests:
 (TEST
  > (def (random-integer-range)
         (range (random-signed-length) (random-signed-length)))
