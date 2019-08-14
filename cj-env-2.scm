@@ -159,17 +159,29 @@
 
 ;; does that really warrant a persistent name?
 ;; [could almost just use for..<,too?]
-(define-macro* (repeat n body0 . body)
-  (with-gensyms
-   (LP C)
-   `(let ,LP ((,C ,n)
-	      (res (void)))
-	 (if (positive? ,C)
-	     (,LP (dec ,C)
-		  (begin
-                    ,body0
-		    ,@body))
-	     res))))
+(define-macro* (repeat n
+                       #!key
+                       (init `(void))
+                       (res `res)
+                       #!rest
+                       body)
+  (if (null? body)
+      (source-error stx "missing body form(s)")
+      (with-gensyms
+       (LP C)
+       `(let ,LP ((,C ,n)
+                  (,res ,init))
+             (if (positive? ,C)
+                 (,LP (dec ,C)
+                      (begin
+                        ,@body))
+                 ,res)))))
+
+(TEST
+ > (repeat 10 res: x init: 'foo x)
+ foo
+ > (repeat 2 res: x init: 2 (* x x))
+ 16)
 
 
 ;; Also see |when|. (Should this, considering that unless could be
