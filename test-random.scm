@@ -64,6 +64,9 @@
 	random-char-integer
 	random-char
 	random-string
+        ;; (naming with random sizes ?):
+        short-random-string/maxlen
+        short-random-string
 
         randomly-sized ;; (randomly-sized gen/length)
         randomly-sized/ ;; (randomly-sized/ gen/length)
@@ -395,6 +398,13 @@
             (string-set! str i (random-char))
             (lp (inc i)))
           str))))
+
+
+(define (short-random-string/maxlen n)
+  (random-string (random-integer (inc n))))
+
+(define (short-random-string)
+  (short-random-string/maxlen 3))
 
 
 (define (randomly-sized gen/length)
