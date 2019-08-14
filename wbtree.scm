@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 ;;; based on a text (c) University of Southampton (see below)
 
 ;;;    This file is free software; you can redistribute it and/or modify
@@ -368,7 +368,7 @@
                            (new-wbtree c y2 z))))
 
 
-(define* (T* v l r)
+(define* (wbtree#T* v l r)
   (let ((ln (wbtree:size l))
         (rn (wbtree:size r)))
     (if (< (+ ln rn) 2)
@@ -392,6 +392,8 @@
                       (single-r v l r)
                       (double-r v l r)))
                 (new-wbtree v l r))))))
+
+(##namespace ("wbtree#" T*))
 
 
 ;; wbtree:set: setting an element that already exists with regards to
