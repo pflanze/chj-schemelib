@@ -138,9 +138,9 @@
 		     (symbol->string v2)))))
 
 (define-inline (@string-cmp v1 v2)
+  (declare (fixnum) (not safe))
   (let ((l1 (string-length v1))
         (l2 (string-length v2)))
-    (declare (fixnum) (not safe))
     (let ((l (min l1 l2)))
       (let lp ((i 0))
         (if (< i l)
