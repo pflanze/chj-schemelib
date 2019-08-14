@@ -31,14 +31,14 @@
 
 (TEST
  > (repeat 10000
-           (let ((s0 (short-random-string))
+           init: (short-random-string)
+           (let ((s0 res)
                  (s1 (short-random-string)))
              (assert (eq? (string-cmp s0 s1)
-                          (old-@string-cmp s0 s1)))))
- #!void
+                          (old-@string-cmp s0 s1)))
+             s1))
  > (repeat 1000
            (let ((v0 (random-char))
                  (v1 (random-char)))
              (assert (eq? (char-cmp v0 v1)
-                          (old-char-cmp v0 v1)))))
- #!void)
+                          (old-char-cmp v0 v1))))))
