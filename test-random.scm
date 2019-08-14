@@ -371,11 +371,17 @@
 (define (random-char-integer)
   (declare (fixnum))
   (let ((i (random-integer 300)))
-    (if (zero? i)
-	0
-	(if (< i 40)
-	    (+ 57344 (random-integer 1056768))
-	    (random-integer 55296)))))
+    (cond ((< i 3)
+           0)
+          ((< i 10)
+           (+ 57344 (random-integer 1056768)))
+          ((< i 30)
+           (random-integer 55296))
+          ((< i 38)
+           (char->integer (string-ref "äöüçÄÖÜé"(- i 30))))
+          ;; ASCII
+          (else
+           (+ 32 (random-integer 95))))))
 
 (define (random-char)
   (integer->char (random-char-integer)))
