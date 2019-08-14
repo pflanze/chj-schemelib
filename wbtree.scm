@@ -368,7 +368,7 @@
                            (new-wbtree c y2 z))))
 
 
-(define* (wbtree#T* v l r)
+(define* (wbtree#T v l r)
   (let ((ln (wbtree:size l))
         (rn (wbtree:size r)))
     (if (< (+ ln rn) 2)
@@ -393,7 +393,7 @@
                       (double-r v l r)))
                 (new-wbtree v l r))))))
 
-(##namespace ("wbtree#" T*))
+(##namespace ("wbtree#" T))
 
 
 ;; wbtree:set: setting an element that already exists with regards to
@@ -406,8 +406,8 @@
      (else
       (let-wbtree ((v _ l r) t)
                   (match-cmp (cmp x v)
-                             ((lt) (T* v (add l) r))
-                             ((gt) (T* v l (add r)))
+                             ((lt) (T v (add l) r))
+                             ((gt) (T v l (add r)))
                              ((eq)
                               ;; key already there, but replace with new
                               ;; element, ok? (i.e. don't just return t)
@@ -429,8 +429,8 @@
      (else
       (let-wbtree ((v _ l r) t)
                   (match-cmp (cmp x v)
-                             ((lt) (T* v (add l) r))
-                             ((gt) (T* v l (add r)))
+                             ((lt) (T v (add l) r))
+                             ((gt) (T v l (add r)))
                              ((eq)
                               (raise (wbtree-duplicate-exception v x)))))))))
 
@@ -442,7 +442,7 @@
 ;        l)
 ;       (else
 ;        (let ((min-elt (wbtree:min r)))
-;          (T* min-elt l (wbtree:delete r min-elt))))))
+;          (T min-elt l (wbtree:delete r min-elt))))))
 
 ;;^ *not efficient*
 
@@ -451,7 +451,7 @@
          (wbtree-right t))
         (else
          (let-wbtree ((v _ l r) t)
-                     (T* v (wbtree:_delmin l) r)))))
+                     (T v (wbtree:_delmin l) r)))))
 
 (define* (wbtree:delete t x)
   
@@ -461,7 +461,7 @@
           ((empty-wbtree? r)
            l)
           (else
-           (T* (wbtree:min r) l (wbtree:_delmin r)))))
+           (T (wbtree:min r) l (wbtree:_delmin r)))))
 
   (let delete ((t t))
     (cond ((empty-wbtree? t)
@@ -470,8 +470,8 @@
           (else
            (let-wbtree ((v _ l r) t)
                        (match-cmp (cmp x v)
-                                  ((lt) (T* v (delete l) r))
-                                  ((gt) (T* v l (delete r)))
+                                  ((lt) (T v (delete l) r))
+                                  ((gt) (T v l (delete r)))
                                   ((eq) (wbtree:_delete* l r))))))))
 
 
@@ -563,9 +563,9 @@
          (let*-wbtree (((v1 n1 l1 r1) l)
                        ((v2 n2 l2 r2)  r))
                       (if (< (* weight n1) n2)
-                          (T* v2 (concat3 v l l2) r2)
+                          (T v2 (concat3 v l l2) r2)
                           (if (< (* weight n2) n1)
-                              (T* v1 l1 (concat3 v r1 r))
+                              (T v1 l1 (concat3 v r1 r))
                               (new-wbtree v l r)))))))
 
 (define* (wbtree:lt t x)
@@ -670,10 +670,10 @@
              (let*-wbtree (((v1 n1 l1 r1) t1)
                            ((v2 n2 l2 r2) t2))
                           (if (< (* weight n1) n2)
-                              (T* v2 (concat t1 l2) r2)
+                              (T v2 (concat t1 l2) r2)
                               (if (< (* weight n2) n1)
-                                  (T* v1 l1 (concat r1 t2))
-                                  (T* (wbtree:min t2) t1 (wbtree:_delmin t2)))))))))
+                                  (T v1 l1 (concat r1 t2))
+                                  (T (wbtree:min t2) t1 (wbtree:_delmin t2)))))))))
 
 (define* (wbtree:difference t1 t2)
   (cond ((empty-wbtree? t1)
