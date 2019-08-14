@@ -241,9 +241,9 @@
 
   (defmethod (intersection r1 r2) -> range?
     (let-range ((from2 to2) r2)
-               (range (if (<= from from2)
+               (range (if (.<= from from2)
                           from2 from)
-                      (if (< to to2)
+                      (if (.< to to2)
                           to to2))))
 
   (defmethod (maybe-union r1 r2) -> (maybe range?)
@@ -255,9 +255,9 @@
                      (else
                       ;; would there be a hole?
                       (and (not (.separated? r1 r2))
-                           (range (if (<= from from2)
+                           (range (if (.<= from from2)
                                       from from2)
-                                  (if (< to to2)
+                                  (if (.< to to2)
                                       to2 to)))))))
 
   (defmethod (filling-union r1 r2) -> range?
