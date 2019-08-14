@@ -18,6 +18,7 @@
 
 (require define-macro-star
 	 fixnum
+         fixnum-more
          cj-typed
 	 test
 	 cj-struct
@@ -379,18 +380,15 @@
 (define (random-char)
   (integer->char (random-char-integer)))
 
-(define (random-string len)
+(define-typed (random-string [fixnum-natural0? len])
   (declare (fixnum))
-  (if (and (fixnum? len)
-	   (>= len 0))
-      (let ((str (##make-string len)))
-	(let lp ((i 0))
-	  (if (< i len)
-	      (begin
-		(string-set! str i (random-char))
-		(lp (inc i)))
-	      str)))
-      (error "not a natural0: " len)))
+  (let ((str (##make-string len)))
+    (let lp ((i 0))
+      (if (< i len)
+          (begin
+            (string-set! str i (random-char))
+            (lp (inc i)))
+          str))))
 
 
 (define (randomly-sized gen/length)
