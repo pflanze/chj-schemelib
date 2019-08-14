@@ -30,9 +30,9 @@
 	  'lt)))
 
 (TEST
- > (repeat 100
-           (let ((s0 (random-string 10))
-                 (s1 (random-string 8)))
+ > (repeat 10000
+           (let ((s0 (random-string 3))
+                 (s1 (random-string 3)))
              (assert (eq? (@string-cmp s0 s1)
                           (old-@string-cmp s0 s1)))))
  #!void

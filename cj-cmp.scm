@@ -149,7 +149,7 @@
               (cond ((char<? c1 c2) 'lt)
                     ((char<? c2 c1) 'gt)
                     (else (lp (inc i)))))
-            (real-cmp 10 11))))))
+            (real-cmp l1 l2))))))
 
 
 ;; make safe wrappers:
