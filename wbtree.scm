@@ -24,6 +24,7 @@
 
         ;; XX both as macros as well as functions:
         wbtree:size
+        wbtree:the-element
         wbtree:member?
         wbtree:maybe-ref
         wbtree:maybe-ref&rank
@@ -178,6 +179,11 @@
         (and (_wbtree? v)
              (>= (_wbtree:size v) 2)))
 
+      ;; return the only element in the tree (it is an (unchecked)
+      ;; error when there isn't just one)
+      (define (wbtree:the-element v)
+        (_wbtree:element v))
+
       ;; XXX todo: wbtree-left / wbtree-left* and probably more are
       ;; missing here now, fix that some time.
       )
@@ -201,7 +207,10 @@
 
       (define wbtree-of-size-2+?
         _wbtree?)
-      
+
+      (define (wbtree:the-element v)
+        v)
+
       ;; dynamic dispatch, to save wrapping the leaf elements in wbtrees:
       (define (make-wbtree e s l r)
         (if (and (eq? l empty-wbtree)
