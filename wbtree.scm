@@ -14,6 +14,7 @@
 (export empty-wbtree
         empty-wbtree?
         wbtree? ;; CAREFUL, dangerous in optimized variant!
+        wbtree-of-size-2+?
         wbtreeparameter*
         wbtreeparameter-equal? ;; why export it, should it be hidden?
                                ;; But why is wbtreeparameter*
@@ -173,6 +174,10 @@
         (or (_wbtree? v)
             (empty-wbtree? v)))
 
+      (define (wbtree-of-size-2+? v)
+        (and (_wbtree? v)
+             (>= (_wbtree:size v) 2)))
+
       ;; XXX todo: wbtree-left / wbtree-left* and probably more are
       ;; missing here now, fix that some time.
       )
@@ -194,6 +199,9 @@
       (define (wbtree? v)
         #t)
 
+      (define wbtree-of-size-2+?
+        _wbtree?)
+      
       ;; dynamic dispatch, to save wrapping the leaf elements in wbtrees:
       (define (make-wbtree e s l r)
         (if (and (eq? l empty-wbtree)
