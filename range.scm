@@ -8,7 +8,7 @@
 
 ;; Ranges (closed in the mathematical sense [1]) on types offering
 ;; .inc, .dec, .-, .< and .<= methods (iterable types but also more
-;; generally orderable ones), as well as .equal?
+;; generally orderable ones) (XX move to .cmp ?), as well as .equal?
 
 ;; [1] https://en.wikipedia.org/wiki/Closed_set
 
@@ -43,16 +43,22 @@
 	 (cj-env for..<)
 	 (list-util map/maybe-sides)
 	 (stream stream-map)
+         ;; for (class ranges):
+         wbtree
+         (cj-cmp lt->cmp)
 	 ;; for tests only:
 	 test
 	 (string-util-2 inexact.round-at)
          test-logic
          test-random
          (maybe maybe.>>=)
-         (boolean boolean.=))
+         (boolean boolean.=)
+         (try retry-when))
 
-(export (class range)
-	(class ranges)
+(export (interface range-interface
+                   (class range-or-ranges
+                          (class range)
+                          (class ranges)))
 	range-of
 	;; "Library":
 	(method range.map
@@ -67,7 +73,7 @@
 ;; not support |ranges| in all places and |ranges| does not support
 ;; all the methods from |range| (yet).
 
-(definterface range-or-ranges
+(definterface range-interface
 
   ;; inclusive
   (method (from r) -> T?)
@@ -149,21 +155,28 @@
 
 
 
-(defclass (range from to) ;; excluding to
-  implements: range-or-ranges
+(defclass range-or-ranges
+  implements: range-interface
 
-  (defmethod (equal? a b)
+  ;; delete?, not very useful, was erroneous definition of equal? at
+  ;; first:
+  (defmethod (equal-end-boundaries? a b)
     (or (and (.empty? a)
              (.empty? b))
-        (let-range ((from2 to2) b)
-                   (and (.equal? from from2)
-                        ;; XX for real values, end points may not fall
-                        ;; on a boundary and be un-equal, in this case
-                        ;; this check is wrong and should give true?
-                        ;; QUESTION: Or should iterable not be
-                        ;; strictly required (and this test be the
-                        ;; right one)?
-                        (.equal? to to2)))))
+        (and (.equal? (.from a) (.from b))
+             ;; XX for real values, end points may not fall
+             ;; on a boundary and be un-equal, in this case
+             ;; this check is wrong and should give true?
+             ;; QUESTION: Or should iterable not be
+             ;; strictly required (and this test be the
+             ;; right one)?
+             (.equal? (.to a) (.to b)))))
+
+  (method (range-list r) -> (list-of range?)))
+
+
+(defclass (range from to) ;; excluding to
+  extends: range-or-ranges
 
   (defmethod (length r) -> real?
     (.- to from))
@@ -177,16 +190,28 @@
 
   (defmethod (empty? r)
     (zero? (range.size r)))
-	
+
+  (defmethod (equal? a b)
+    (or (and (.empty? a)
+             (.empty? b))
+        (and (range? b) ;; otherwise b has gaps, while a doesn't.
+             (.equal? from (.from b))
+             ;; XX for real values, end points may not fall
+             ;; on a boundary and be un-equal, in this case
+             ;; this check is wrong and should give true?
+             ;; QUESTION: Or should iterable not be
+             ;; strictly required (and this test be the
+             ;; right one)?
+             (.equal? to (.to b)))))
+  
   (defmethod (contains-element? r1 x) -> boolean?
     (and (.<= from x)
          (.< x to)))
 
   (defmethod (contains-range? r1 r2) -> boolean?
     (or (.empty? r2)
-        (let-range ((from2 to2) r2)
-                   (and (.<= from from2)
-                        (.<= to2 to)))))
+        (and (.<= from (.from r2))
+             (.<= (.to r2) to))))
 
   (defmethod (contiguous? r1 r2) -> boolean?
     (let-range ((from2 to2) r2)
@@ -247,18 +272,25 @@
                           to to2))))
 
   (defmethod (maybe-union r1 r2) -> (maybe range?)
-    (let-range ((from2 to2) r2)
-               (cond ((not (.< from to))
-                      r2)
-                     ((not (.< from2 to2))
-                      r1)
-                     (else
-                      ;; would there be a hole?
-                      (and (not (.separated? r1 r2))
-                           (range (if (.<= from from2)
-                                      from from2)
-                                  (if (.< to to2)
-                                      to2 to)))))))
+    (if (ranges? r2)
+        (let ((r (.maybe-union r2 r1)))
+          ;; XX stupid?: artificially uphold the principle that we
+          ;; never return a |ranges?|
+          (if (range? r)
+              r
+              #f))
+        (let-range ((from2 to2) r2)
+                   (cond ((not (.< from to))
+                          r2)
+                         ((not (.< from2 to2))
+                          r1)
+                         (else
+                          ;; would there be a hole?
+                          (and (not (.separated? r1 r2))
+                               (range (if (.<= from from2)
+                                          from from2)
+                                      (if (.< to to2)
+                                          to2 to))))))))
 
   (defmethod (filling-union r1 r2) -> range?
     (let-range ((from2 to2) r2)
@@ -275,11 +307,8 @@
         r2
         (if (range? r2)
             (or (.maybe-union r1 r2)
-                (ranges r1 r2))
-		  
-            ;; r2 is a |ranges|; use the functionality in ranges
-            ;; class
-            (.add-range r2 r1))))
+                (ranges* r1 r2))
+            (ranges.union* r2 r1))))
 
 
   (defmethod (list r #!optional (tail '()))
@@ -315,7 +344,11 @@
   ;;perhaps call it reverse-range ? but no, really have to swap
   ;;arguments to make comparisons work! How to get new ranges
   ;;out of it? bless on original object's class?....
-  )
+
+
+  (defmethod (range-list r)
+    (list r)))
+
 
 
 (def ((range-of T?) v)
@@ -326,68 +359,169 @@
 
 
 
-;; Trees of ranges (i.e. ranges with gaps). (Todo: check Haskell's
+;; Lists of ranges (i.e. ranges with gaps). (Todo: check Haskell's
 ;; implementation for comparison.)
 
-(defclass (ranges [range-or-ranges? a]
-                  [(lambda (b)
-                     (and (range-or-ranges? b)
-                          (.< (.from a) (.from b))
-                          ;; and, otherwise it should be a merged range:
-                          (.<= (.to a) (.from b))))
-                   b])
-  implements: range-or-ranges
+(def ranges:cmp (on range.from (lt->cmp .<)))
 
+(TEST
+ > (ranges:cmp (range 10 20) (range 11 21))
+ lt
+ > (ranges:cmp (range 11 21)(range 10 20))
+ gt
+ > (ranges:cmp (range 10 21)(range 10 20))
+ eq)
+
+(def ranges:wbtreeparameter
+     (wbtreeparameter ranges:cmp
+                      range?))
+
+
+(def list-of-range? (ilist-of range?))
+
+(def wbtree-of-range-with-gaps?
+     (both wbtree-of-size-2+?
+           (lambda (t)
+             (def $wbtreeparameter ranges:wbtreeparameter)
+             ;;XX
+             #t)))
+
+(defclass (ranges [wbtree-of-range-with-gaps? tree])
+  extends: range-or-ranges
+
+  ;; (enforce range T, or just rely on untyped (virtual dispatch)?)
+  (def. (list-of-range.range-or-ranges l)
+    (ranges:tree-add-range-finish (fold (flip ranges:tree-add-range)
+                                        empty-wbtree
+                                        l)))
+
+  (def (ranges* . ranges)
+       (list-of-range.range-or-ranges ranges))
+  
 
   (defmethod (from s)
-    (.from a))
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (.from (wbtree:min tree)))
 
   (defmethod (to s)
-    (.to b))
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (.to (wbtree:max tree)))
+
+  (defmethod (empty? s)
+    ;; Should we ensure non-emptyness via constructor, instead?
+    ;; Already enforcing that the sub-ranges are non-empty, XX
+    ;; correct?
+    (empty-wbtree? tree))
 
   (defmethod (list s #!optional (tail '()))
-    (.list a (.list b tail)))
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (wbtree:inorder-fold tree
+                         range.list
+                         tail))
 
   (defmethod (rlist s #!optional (tail '()))
-    (.rlist b (.rlist a tail)))
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (wbtree:inorder-fold-reverse tree
+                                 range.rlist
+                                 tail))
 
   (defmethod (stream s #!optional (tail '()))
-    (.stream a (.stream b tail)))
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (wbtree:stream-inorder-fold tree
+                                range.stream
+                                tail))
 
   (defmethod (rstream s #!optional (tail '()))
-    (.rstream b (.rstream a tail)))
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (wbtree:stream-inorder-fold-reverse tree
+                                        range.rstream
+                                        tail))
 
-  ;; XX implement the other methods like contains? -- via binary
-  ;; search? Could also implement balancing...
+  (defmethod (range-list _)
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (wbtree->list tree))
 
-  (defmethod (add-range rs [range? r])
-    ;; no need to check s for emptyness, rangess are always
-    ;; guaranteed to be non-empty
 
-    (let-range
-     ((r-from r-to) r)
-     (let ((rs-from (.from rs)))
-       (if (.< r-to rs-from)
-           ;; disjoint
-           (ranges r rs)
-		 
-           (let ((rs-to (.to rs)))
-             (if (.< rs-to r-from)
-                 (ranges rs r)
+  ;; XXX add test that shows that no range in tree overlaps
+  
+  (defmethod (contains-range? _ r)
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (if (range.empty? r)
+        #t ;;XX ?
+        (let-range
+         ((from to) r)
+         (let ((t (wbtree:between-incl tree
+                                       ;; ugly wrappers, always:
+                                       (range from from)
+                                       (range to to))))
+           (case (wbtree:size t)
+             ((0)
+              ;; r is not overlapping any of our ranges
+              #f)
+             ((1) (range.contains-range? (wbtree:the-element t) r))
+             (else
+              ;; r is overlapping more than one of our ranges, hence we've
+              ;; got a gap within r, hence we don't contain r
+              #f))))))
 
-                 ;; adjacent, or overlapping, or inclusive
-                 (if (.<= r-from rs-from)
-                     (if (.<= rs-to r-to)
-                         ;; r includes rs
-                         r
-                         ;; need to merge with the low end
-                         (error "XX UNFINISHED 1"))
-                     ;; need to merge with the high end
-                     (error "XX UNFINISHED 2"))))))))
+  (defmethod (equal? r1 r2)
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (if (range? r2)
+        #f ;; since r1 has gaps, r2 doesn't
+        (let-ranges ((tree2) r2)
+                    (and (= (wbtree:size tree) (wbtree:size tree2))
+                         (stream-every (applying-values range.equal?)
+                                       (stream-zip2 (wbtree->stream tree)
+                                                    (wbtree->stream tree2)))))))
 
-  ;; helper for doing merges
-  '(defmethod (_merge s [range? r])
-     ))
+  (defmethod (union* r1 [range-or-ranges? r2]) -> range-or-ranges?
+    (def $wbtreeparameter ranges:wbtreeparameter)
+    (if (ranges? r2)
+        ;; XX really can't use wbtree:union at all? But should be possible
+        ;; to optimize, 'somewhat'?
+        (wbtree:inorder-fold (ranges.tree r2)
+                             (flip ranges:tree-add-range)
+                             tree)
+        (ranges:tree-add-range-finish (ranges:tree-add-range tree r2))))
+
+  (defmethod (maybe-union r1 r2) -> (maybe range?)
+    (let ((u (ranges.union* r1 r2)))
+      ;; ditto artificially restrict to range
+      (if (range? u)
+          u
+          #f)))
+
+
+  (def (ranges:tree-add-range t r)
+       (def $wbtreeparameter ranges:wbtreeparameter)
+       (let ((left (wbtree:lt t r))
+             (process-right-with
+              (lambda (r)
+                ;;(step)
+                (let ((right (wbtree:gt t (range (range.from r) #f))))
+                  (if-let ((rright (wbtree:maybe-min right)))
+                          (if-let ((r* (range.maybe-union r rright)))
+                                  (wbtree:add (wbtree:delete right rright) r*)
+                                  (wbtree:add right r))
+                          ;; (right is empty-wbtree)
+                          (wbtree:add right r))))))
+         (if-let ((rleft (wbtree:maybe-max left)))
+                 (if-let ((r* (range.maybe-union rleft r)))
+                         ;; ^XXX does that unify touching ones? need gap!
+                         (wbtree:union (wbtree:delete left rleft)
+                                       (process-right-with r*))
+                         (wbtree:union left
+                                       (process-right-with r)))
+                 (process-right-with r))))
+
+  (def (ranges:tree-add-range-finish t)
+       (def $wbtreeparameter ranges:wbtreeparameter)
+       (case (wbtree:size t)
+         ((0) (error "XX need empty-range"))
+         ((1) (wbtree:the-element t))
+         (else
+          (ranges t)))))
+
 
 
 
@@ -521,21 +655,23 @@
  > (.show (.filling-union (range 4 4) (range 20 100)))
  (range 20 100)
 
- > (.show (.union* (range 3 9) (range 10 100)))
- (ranges (range 3 9) (range 10 100))
+ > (=> (.union* (range 10 100) (range 3 9)) .range-list .show)
+ (list (range 3 9) (range 10 100))
  > (def rs (.union* (range -2 1) (range 3 5)))
  > (.list rs)
  (-2 -1 0 3 4)
  > (.rlist rs)
  (4 3 0 -1 -2)
- > (.show (.union* (.union* (range -2 1) (range 1 2)) (range 3 5)))
- (ranges (range -2 2) (range 3 5))
+ > (=> (.union* (.union* (range -2 1) (range 1 2)) (range 3 5))
+       .range-list .show)
+ (list (range -2 2) (range 3 5))
  ;; > (.show (.union* (.union* (range -2 0) (range 1 2)) (range 3 5)))
  ;; XX todo
- > (.show (.union* (range 3 5) (.union* (range -2 0) (range 1 2))))
- (ranges (ranges (range -2 0) (range 1 2))
-	 (range 3 5))
- > (def rs (eval #))
+ > (def rs (.union* (range 3 5)
+                    (.union* (range -2 0)
+                             (range 1 2))))
+ > (=> rs .range-list .show)
+ (list (range -2 0) (range 1 2) (range 3 5))
  > (.list rs)
  (-2 -1 1 3 4)
  > (.rlist rs)
@@ -685,15 +821,43 @@
         (range (random-signed-length) (random-signed-length)))
  > (def (random-integer-range-pair)
         (cons (random-integer-range) (random-integer-range)))
- 
- > (for-all (make-list! 100 random-integer-range-pair)
+ > (def (random-integer-rangeS)
+        (if (zero? (random-integer 2))
+            (repeat (random-integer 5)
+                    init: (random-integer-range)
+                    (.union* res (random-integer-range)))
+            (random-integer-range)))
+ > (def (random-integer-rangeS-pair)
+        (cons (random-integer-rangeS) (random-integer-rangeS)))
+
+ > (def ts (make-list! 100 random-integer-rangeS-pair))
+ > (for-all ts
+            (lambda-pair ((r1 r2))
+                         (assert
+                          (boolean.= (.equal? r1 r2)
+                                     ;; XX this test is only valid with
+                                     ;; distinct values (integer, not
+                                     ;; real), right?
+                                     ((on .list equal?) r1 r2)))))
+ ()
+ > (for-all ts
             (lambda-pair ((r1 r2))
                          ;; This fails for ranges with negative elements:
                          ;; (boolean.= (.contains-range? r1 r2)
                          ;;            (equal? (.maybe-union r1 r2) r1))
-                         (boolean.= (.contains-range? r1 r2)
-                                    (.>>= (.maybe-union r1 r2)
-                                          (C .equal? _ r1)))))
+                         
+                         (or
+                          (and
+
+                           ;; (boolean.= (.contains-range? r1 r2)
+                           ;;            (.>>= (.maybe-union r1 r2)
+                           ;;                  (C .equal? _ r1)))
+                           ;; ^ doesn't work for [ranges? r1]
+                           
+                           (boolean.= (.contains-range? r1 r2)
+                                      (.equal? (.union* r1 r2) r1)))
+                          
+                          (raise 'XX))))
  ()
  )
 
