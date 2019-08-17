@@ -50,7 +50,7 @@
  4)
 
 
-(def (if-let*-expand COND #((source-of list?) assignments) yes no)
+(def (if-let*-expand COND [(source-of list?) assignments] yes no)
   (with-gensym
    NO
    `(let ((,NO (lambda () ,no)))
@@ -108,22 +108,24 @@
 ;; Probably?)  but don't make the variables visible to "subsequent"
 ;; terms, only to `yes`
 
-(def (if-let-expand COND #((source-of list?) assignments) yes no)
-     (let* ((assignments* (source-code assignments))
-	    (assignments** (map (lambda (assignment)
-				  (mcase assignment
-					 (`(`var `test-expr)
-					  (assert* symbol? var
-						   (lambda (var*)
-						     (values var test-expr (gensym var*)))))))
-				assignments*)))
+(def (if-let-expand COND [(source-of list?) assignments] yes no)
+     (let* ((assignments*
+             (source-code assignments))
+	    (assignments**
+             (map (lambda (assignment)
+                    (mcase assignment
+                           (`(`var `test-expr)
+                            (assert* symbol? var
+                                     (lambda (var*)
+                                       (values var test-expr (gensym var*)))))))
+                  assignments*)))
        (with-gensym
 	NO
 	`(let ((,NO (lambda () ,no)))
 	   ,(fold-right (lambda-values
 			 ((var test-expr tmpvar) yes)
 			 `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
-				(else (,NO))))
+                                 (else (,NO))))
 			`(let ,(map (lambda-values
 				     ((var test-expr tmpvar))
 				     `(,var ,tmpvar))
