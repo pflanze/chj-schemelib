@@ -267,6 +267,9 @@
  > (t-length= length-=)
  (#t #f #t #f #t #f))
 
+
+;; or call this =-length similar to if-let or if-not (reminiscent of
+;; (= (length )).)
 (define (lengths-= l1 l2)
   (if (null? l1)
       (null? l2)
