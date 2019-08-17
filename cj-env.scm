@@ -17,6 +17,7 @@
 
 (export (macro IF)
 	(macro If)
+        (macro if-not)
         (macro when)
 	natural?
 	natural0?
@@ -118,6 +119,19 @@
 
 (define (If-error v)
   (error "If: expecting boolean, got:" v))
+
+
+;; also see |unless|
+(define-macro* (if-not test yes no)
+  `(##if ,test
+         ,no
+         ,yes))
+
+(TEST
+ > (if-not #f 'y 'n)
+ y
+ > (if-not #t 'y 'n)
+ n)
 
 
 ;; also see |unless|
