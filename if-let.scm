@@ -9,8 +9,7 @@
 (require easy
          test)
 
-(export (macro iflet)
-        (macro if-let*)
+(export (macro if-let*)
         (macro if-let)
         (macro and-let)
         #!optional
@@ -25,29 +24,14 @@
 
 ;; XX study this in Swift: [Optional Chaining](https://developer.apple.com/library/content/documentation/Swift/Conceptual/Swift_Programming_Language/OptionalChaining.html)
 
-;; Some Schemer(s) here use(s) the name let-if for what is called
-;; iflet here, and let-and for what we call if-let:
+;; Some Schemer(s) here use(s) the name let-if for the single-binding
+;; if-let variant here like (if-let (a 2) 3), and let-and for the
+;; multi-binding if-let variant:
 ;; https://news.ycombinator.com/item?id=13213304
 
 ;; Also see https://news.ycombinator.com/item?id=17491228 (Fun with
 ;; Macros: If-Let and When-Let)
 
-(defmacro (iflet bind+test yes #!optional no)
-  (mcase bind+test
-         (`(`var `test)
-          (assert* symbol? var)
-          `(cond (,test => (lambda (,var) ,yes))
-                 (else ,no)))))
-
-(TEST
- > (iflet (a 2) 3)
- 3
- > (iflet (a 2) a)
- 2
- > (iflet (a 2) a 4)
- 2
- > (iflet (a #f) a 4)
- 4)
 
 
 (def (if-let*-expand COND [(source-of list?) assignments] yes no)
@@ -109,29 +93,42 @@
 ;; terms, only to `yes`
 
 (def (if-let-expand COND [(source-of list?) assignments] yes no)
-     (let* ((assignments*
-             (source-code assignments))
-            (assignments**
-             (map (lambda (assignment)
-                    (mcase assignment
-                           (`(`var `test-expr)
-                            (assert* symbol? var
-                                     (lambda (var*)
-                                       (values var test-expr (gensym var*)))))))
-                  assignments*)))
-       (with-gensym
-        NO
-        `(let ((,NO (lambda () ,no)))
-           ,(fold-right (lambda-values
-                         ((var test-expr tmpvar) yes)
-                         `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
-                                 (else (,NO))))
-                        `(let ,(map (lambda-values
-                                     ((var test-expr tmpvar))
-                                     `(,var ,tmpvar))
-                                    assignments**)
-                           ,yes)
-                        assignments**)))))
+     (let ((assignments*
+            (source-code assignments)))
+       (if (and (length-= assignments* 2)
+                (not (pair? (source-code (car assignments*)))))
+
+           ;; single-binding variant
+           (mcase assignments
+                  (`(`var `test)
+                   (assert* symbol? var) ;; XX cj-typed ?
+                   `(cond (,test => (lambda (,var) ,yes))
+                          (else ,no))))
+       
+           ;; multi-binding variant
+           (let* ((assignments**
+                   (map (lambda (assignment)
+                          (mcase assignment
+                                 (`(`var `test-expr)
+                                  (assert* symbol? var
+                                           (lambda (var*)
+                                             (values var
+                                                     test-expr
+                                                     (gensym var*)))))))
+                        assignments*)))
+             (with-gensym
+              NO
+              `(let ((,NO (lambda () ,no)))
+                 ,(fold-right (lambda-values
+                               ((var test-expr tmpvar) yes)
+                               `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
+                                       (else (,NO))))
+                              `(let ,(map (lambda-values
+                                           ((var test-expr tmpvar))
+                                           `(,var ,tmpvar))
+                                          assignments**)
+                                 ,yes)
+                              assignments**)))))))
 
 (defmacro (if-let assignments yes #!optional no)
   ;; if no is #f, just pass it on as code, and it will result in #f, too ":)"
@@ -194,6 +191,23 @@
  (exception text: "Unbound variable: GEN:-11015\n"))
 
 
+;; single-binding variants:
+
+(TEST
+ > (if-let (a 2) 3)
+ 3
+ > (if-let (a 2) a)
+ 2
+ > (if-let (a 2) a 4)
+ 2
+ > (if-let (a #f) a 4)
+ 4)
+
+;; Todo?: make single-binding if-let* variant as well? Not sure. I've
+;; only made |let| (let (x 1) x) single-variant, too, so far.
+
+
+;; rename to when-let ?
 (defmacro (and-let assignments yes)
   (if-let-expand `cond assignments yes #f))
 
