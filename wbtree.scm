@@ -55,6 +55,7 @@
         wbtree:between-incl
         wbtree:rank
         wbtree:index
+        wbtree:concat
         
         #!optional
         make-wbtree
@@ -666,7 +667,7 @@
 
 
 (IF #f
-    (define* (concat t1 t2)
+    (define* (wbtree:concat t1 t2)
       (cond ((empty-wbtree? t2)
              t1)
             (else
@@ -678,7 +679,7 @@
     ;;  until the last possible moment. Then these functions operate on
     ;;  smaller wbtrees. The rewritten concat then looks like concat3:"
 
-    (define* (concat t1 t2)
+    (define* (wbtree:concat t1 t2)
       (cond ((empty-wbtree? t1)
              t2)
             ((empty-wbtree? t2)
@@ -687,10 +688,12 @@
              (let*-wbtree (((v1 n1 l1 r1) t1)
                            ((v2 n2 l2 r2) t2))
                           (if (< (* weight n1) n2)
-                              (T v2 (concat t1 l2) r2)
+                              (T v2 (wbtree:concat t1 l2) r2)
                               (if (< (* weight n2) n1)
-                                  (T v1 l1 (concat r1 t2))
-                                  (T (wbtree:min t2) t1 (wbtree:_delmin t2)))))))))
+                                  (T v1 l1 (wbtree:concat r1 t2))
+                                  (T (wbtree:min t2)
+                                     t1
+                                     (wbtree:_delmin t2)))))))))
 
 (define* (wbtree:difference t1 t2)
   (cond ((empty-wbtree? t1)
@@ -701,8 +704,8 @@
          (let-wbtree ((v _ l r) t2)
                      (let ((l* (wbtree:lt t1 v))
                            (r* (wbtree:gt t1 v)))
-                       (concat (wbtree:difference l* l)
-                               (wbtree:difference r* r)))))))
+                       (wbtree:concat (wbtree:difference l* l)
+                                      (wbtree:difference r* r)))))))
 
 
 (define* (wbtree:intersection t1 t2)
@@ -718,7 +721,7 @@
                              (i2 (wbtree:intersection r* r)))
                          (If (wbtree:member? t1 v)
                              (concat3 v i1 i2)
-                             (concat i1 i2))))))))
+                             (wbtree:concat i1 i2))))))))
 
 (define* (wbtrees:intersection-stream ts
                                       #!optional (tail '()))
