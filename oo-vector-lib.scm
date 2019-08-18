@@ -8,6 +8,7 @@
 
 (require template
 	 easy-1
+         (fixnum inc)
 	 test
 	 (test-lib-1 %try)
 	 char-util
@@ -96,6 +97,19 @@
       ;; list.string is not OK, use char-list.string from
       ;; oo-util.scm instead.
       (def. list.VECTOR list->VECTOR))
+  (IF (case 'VECTOR
+        ((string) ;; string->stream from oo-util.scm
+         #f)
+        (else
+         #t))
+      (def. (VECTOR.stream v #!optional (tail '()))
+        (let ((len (VECTOR-length v)))
+          (let rec ((i 0))
+            (delay
+              (if (< i len)
+                  (cons (VECTOR-ref v i)
+                        (rec (inc i)))
+                  tail))))))
 
   ;; XX already have |string-empty?|
   (def (VECTOR-null? v)
