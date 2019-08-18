@@ -480,7 +480,7 @@
  (module:import/prefix foo foo: bar baz))
 
 
-(defmacro (let binds . body)
+(defmacro (easy#let binds . body)
   (let ((binds* (source-code binds)))
     (if (and (pair? binds*)
 	     (symbol? (source-code (car binds*))))
@@ -488,6 +488,9 @@
 	;; values though. (But that's what letv is for?)
 	`(##let (,binds) ,@body)
 	`(##let ,binds ,@body))))
+
+(defmacro (let . rest)
+  `(easy#let ,@rest))
 
 (TEST
  > (let (a 1) a)

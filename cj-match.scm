@@ -156,25 +156,25 @@
 					`(,var (drop ,V ,pos))
 					(just-list-ref (cons pos var)))))
 		     just-list-ref))))
-	 `(let ,(map pos+var->code
-		     pos+vars)
-	    ;; (of course, potential for optimizing accesses
-	    ;; (constructions) here too, especially the pos'ed
-	    ;; fields)
-	    (if (cj-match:equal? ,(cj-possibly-sourcify-deep
-				   `(,@(if apply? '(apply) '())
-				     ,constructor
-				     ,@clause-code-rest)
-				   (clause:test clause)) ,V)
-		(let ()
-		  ,@(clause:body clause))
-		,remainder)))))))
+	 `(##let ,(map pos+var->code
+                       pos+vars)
+                 ;; (of course, potential for optimizing accesses
+                 ;; (constructions) here too, especially the pos'ed
+                 ;; fields)
+                 (##if (cj-match:equal? ,(cj-possibly-sourcify-deep
+                                          `(,@(if apply? '(apply) '())
+                                            ,constructor
+                                            ,@clause-code-rest)
+                                          (clause:test clause)) ,V)
+                       (##let ()
+                              ,@(clause:body clause))
+                       ,remainder)))))))
 
 (TEST
  > (clause->check '((list a ,b c) (run b)) 'MYV 'REM)
- (let ((b (list-ref MYV 1)))
-   (if (cj-match:equal? (list a b c) MYV) (let () (run b)) REM))
- )
+ (##let ((b (list-ref MYV 1)))
+        (##if (cj-match:equal? (list a b c) MYV)
+              (##let () (run b)) REM)))
 
 (both-times
 
@@ -662,65 +662,65 @@
 	 (message-string (mcaseclauses-message sepclauses)))
     (with-gensyms
      (V V* ELSE _)
-     `(let* ((,V ,expr)
-	     ,@(if (not (null? (mcaseclauses-other sepclauses)))
-		   `((,V* (source-code ,V)))
-		   ;; XX: warning: predicates will get the data with
-		   ;; source annotation removed from only the top
-		   ;; level! Deep removal would be costly and
-		   ;; *usually* not necessary, better solution would be
-		   ;; to encode this knowledge in source-aware
-		   ;; predicates
-		   `())
-	     (,ELSE
-	      (lambda ()
-		,(matchl (mcaseclauses-else sepclauses)
-			 ((`elseclause)
-			  (matchl elseclause
-				  ((else `what)
-				   what)))
-			 (()
-			  `(source-error ,V ,message-string))
-			 (`_
-			  (source-error stx "more than one else clause"))))))
-	(cond
-	 ;; XX: ordering of list vs other (vs else) is thrown away here, bad?
+     `(##let* ((,V ,expr)
+               ,@(if (not (null? (mcaseclauses-other sepclauses)))
+                     `((,V* (source-code ,V)))
+                     ;; XX: warning: predicates will get the data with
+                     ;; source annotation removed from only the top
+                     ;; level! Deep removal would be costly and
+                     ;; *usually* not necessary, better solution would be
+                     ;; to encode this knowledge in source-aware
+                     ;; predicates
+                     `())
+               (,ELSE
+                (##lambda ()
+                     ,(matchl (mcaseclauses-else sepclauses)
+                              ((`elseclause)
+                               (matchl elseclause
+                                       ((else `what)
+                                        what)))
+                              (()
+                               `(source-error ,V ,message-string))
+                              (`_
+                               (source-error stx "more than one else clause"))))))
+              (##cond
+               ;; XX: ordering of list vs other (vs else) is thrown away here, bad?
 
-	 ;; other (first, because thought to be more efficient?)
-	 ,@(map (lambda (clause)
-		  (matchl clause
-			  ((`pred . `body)
-			   `((,pred ,V*)
-			     (let ()
-			       ,@body)))))
-		(mcaseclauses-other sepclauses))
+               ;; other (first, because thought to be more efficient?)
+               ,@(map (lambda (clause)
+                        (matchl clause
+                                ((`pred . `body)
+                                 `((,pred ,V*)
+                                   (##let ()
+                                          ,@body)))))
+                      (mcaseclauses-other sepclauses))
 
-	 ;; list
-	 ,@(if (not (null? (mcaseclauses-list sepclauses)))
-	       `(((natural0? (improper-length (source-code ,V)))
-		  ;;^ XX assumes that there are no annotated pairs further behind
-		  ,(matchl-expand
-		    stx
-		    V
-		    (append (map (lambda (clause)
-				   (matchl clause
-					   ((`quotedform . `body)
-					    (matchl quotedform
-						    ((quasiquote `form)
-						     (cons form body))))))
-				 (mcaseclauses-list sepclauses))
-			    (if* (mcaseclauses-else sepclauses)
-				 ;; `(`,,'_ (,ELSE))
-				 (list
-				  (list (list 'quasiquote _)
-					(list ELSE)))
-				 '()))
-		    message-string)))
-	       '())
+               ;; list
+               ,@(if (not (null? (mcaseclauses-list sepclauses)))
+                     `(((natural0? (improper-length (source-code ,V)))
+                        ;;^ XX assumes that there are no annotated pairs further behind
+                        ,(matchl-expand
+                          stx
+                          V
+                          (append (map (lambda (clause)
+                                         (matchl clause
+                                                 ((`quotedform . `body)
+                                                  (matchl quotedform
+                                                          ((quasiquote `form)
+                                                           (cons form body))))))
+                                       (mcaseclauses-list sepclauses))
+                                  (if* (mcaseclauses-else sepclauses)
+                                       ;; `(`,,'_ (,ELSE))
+                                       (list
+                                        (list (list 'quasiquote _)
+                                              (list ELSE)))
+                                       '()))
+                          message-string)))
+                     '())
 
-	 ;; else
-	 (else
-	  (,ELSE)))))))
+               ;; else
+               (else
+                (,ELSE)))))))
 
 (TEST
  > (%try-syntax-error (mcase 1))
