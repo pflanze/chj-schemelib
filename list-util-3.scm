@@ -106,30 +106,30 @@
 	 (`(`vars `expr)
 	  (with-gensyms
 	   (V ERR)
-	   `(let* ((,V ,expr)
-		   (,ERR (lambda ()
-			   (error ,(string-append
-				    "let-list: expected a list containing "
-				    (object->string (cj-desourcify vars))
-				    " but got:")
-				  ,V))))
-	      ,(let rec ((vars (source-code vars)))
-		 (cond ((null? vars)
-			`(if (null? ,V)
-			     (let ()
-			       ,@body)
-			     (,ERR)))
-		       ((pair? vars)
-			(let-pair ((var vars*) vars)
-				  `(if (pair? ,V)
-				       (let ((,var (car ,V))
-					     (,V (cdr ,V)))
-					 ,(rec vars*))
-				       (,ERR))))
-		       (else
-			;; rest argument
-			`(let ((,vars ,V))
-			   ,@body)))))))))
+	   `(##let* ((,V ,expr)
+                     (,ERR (##lambda ()
+                                     (error ,(string-append
+                                              "let-list: expected a list containing "
+                                              (object->string (cj-desourcify vars))
+                                              " but got:")
+                                            ,V))))
+                    ,(let rec ((vars (source-code vars)))
+                       (cond ((null? vars)
+                              `(##if (##null? ,V)
+                                     (##let ()
+                                            ,@body)
+                                     (,ERR)))
+                             ((pair? vars)
+                              (let-pair ((var vars*) vars)
+                                        `(##if (##pair? ,V)
+                                               (##let ((,var (##car ,V))
+                                                       (,V (##cdr ,V)))
+                                                      ,(rec vars*))
+                                               (,ERR))))
+                             (else
+                              ;; rest argument
+                              `(##let ((,vars ,V))
+                                      ,@body)))))))))
 
 (TEST
  > (%try-error (let-list ((a b d e f) (list 10 22 33)) b))
