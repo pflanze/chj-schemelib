@@ -58,6 +58,7 @@
         wbtree:concat
         
         #!optional
+        wbtree:concat3
         make-wbtree
         new-wbtree ;; vs make-wbtree ?
         ;; XX both as macros as well as functions:
@@ -572,7 +573,7 @@
 ; A wbtree is split by discarding all the unwanted elements and subwbtrees, and
 ; joining together all the wanted parts using concat3.
 
-(define* (concat3 v l r)
+(define* (wbtree:concat3 v l r)
   (cond ((empty-wbtree? l)
          (wbtree:set r v))
         ((empty-wbtree? r)
@@ -581,9 +582,9 @@
          (let*-wbtree (((v1 n1 l1 r1) l)
                        ((v2 n2 l2 r2)  r))
                       (if (< (* weight n1) n2)
-                          (T v2 (concat3 v l l2) r2)
+                          (T v2 (wbtree:concat3 v l l2) r2)
                           (if (< (* weight n2) n1)
-                              (T v1 l1 (concat3 v r1 r))
+                              (T v1 l1 (wbtree:concat3 v r1 r))
                               (new-wbtree v l r)))))))
 
 (define* (wbtree:lt t x)
@@ -594,7 +595,7 @@
            (let-wbtree ((v _ l r) t)
                        (match-cmp (cmp x v)
                                   ((lt) (_lt l))
-                                  ((gt) (concat3 v l (_lt r)))
+                                  ((gt) (wbtree:concat3 v l (_lt r)))
                                   ((eq) l)))))))
 
 (define* (wbtree:gt t x)
@@ -605,7 +606,7 @@
            (let-wbtree ((v _ l r) t)
                        (match-cmp (cmp v x)
                                   ((lt) (_gt r))
-                                  ((gt) (concat3 v (_gt l) r))
+                                  ((gt) (wbtree:concat3 v (_gt l) r))
                                   ((eq) r)))))))
 
 (define* (wbtree:le t x)
@@ -617,7 +618,7 @@
             ((v s l r) t)
             (match-cmp (cmp x v)
                        ((lt) (_lt l))
-                       ((gt) (concat3 v l (_lt r)))
+                       ((gt) (wbtree:concat3 v l (_lt r)))
                        ((eq) (make-wbtree v (inc s) l empty-wbtree))))))))
 
 (define* (wbtree:ge t x)
@@ -629,7 +630,7 @@
             ((v s l r) t)
             (match-cmp (cmp v x)
                        ((lt) (_gt r))
-                       ((gt) (concat3 v (_gt l) r))
+                       ((gt) (wbtree:concat3 v (_gt l) r))
                        ((eq) (make-wbtree v (inc s) empty-wbtree r))))))))
 
 
@@ -661,9 +662,9 @@
            (let-wbtree ((v _ l r) t2)
                        (let ((l* (wbtree:lt t1 v))
                              (r* (wbtree:gt t1 v)))
-                         (concat3 v
-                                  (union l* l)
-                                  (union r* r))))))))
+                         (wbtree:concat3 v
+                                         (union l* l)
+                                         (union r* r))))))))
 
 
 (IF #f
@@ -671,9 +672,9 @@
       (cond ((empty-wbtree? t2)
              t1)
             (else
-             (concat3 (wbtree:min t2)
-                      t1
-                      (wbtree:_delmin t2)))))
+	     (wbtree:concat3 (wbtree:min t2)
+                             t1
+                             (wbtree:_delmin t2)))))
 
     ;;  "A slight improvement is to postpone the calls to min and delmin
     ;;  until the last possible moment. Then these functions operate on
@@ -720,7 +721,7 @@
                        (let ((i1 (wbtree:intersection l* l))
                              (i2 (wbtree:intersection r* r)))
                          (If (wbtree:member? t1 v)
-                             (concat3 v i1 i2)
+                             (wbtree:concat3 v i1 i2)
                              (wbtree:concat i1 i2))))))))
 
 (define* (wbtrees:intersection-stream ts
