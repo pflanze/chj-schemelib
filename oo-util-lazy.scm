@@ -489,6 +489,12 @@
    (define. (istream.list s)
      (stream->list s))
 
+   (define. (istream.stream s)
+     ;; Will also return list as is! Which mechanically is fine, but
+     ;; from a typing point might be an issue (endless recursion on
+     ;; type branching?)
+     s)
+
    (define. istream.drop
      stream-drop)
 
