@@ -246,7 +246,8 @@
  #(1 (1 3) (2))
  )
 
-;; an append that reverses l1 when appending to l2
+;; an append that reverses l1 when appending to l2 -- oh see
+;; append-reverse in SRFI-1
 (define (rappend l1 l2)
   (let lp ((l1 l1)
 	   (l l2))
