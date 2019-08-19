@@ -86,17 +86,21 @@
           (error "VECTOR.swap!: i or j not a proper index:" i j))))
   
   (def. VECTOR.length VECTOR-length)
+
   (IF (not (eq? 'VECTOR 'vector))
       ;; Don't generate vector.append method as long as structs are
       ;; vectors and there's no hierarchy for dot-oo methods!  XX
       ;; well, same problem for any of the methods if the same name
       ;; is to be used with a struct.
       (def. VECTOR.append VECTOR-append))
+
   (def. VECTOR.list VECTOR->list)
+
   (IF (not (eq? 'VECTOR 'string))
       ;; list.string is not OK, use char-list.string from
       ;; oo-util.scm instead.
       (def. list.VECTOR list->VECTOR))
+
   (IF (case 'VECTOR
         ((string) ;; string->stream from oo-util.scm
          #f)
@@ -110,6 +114,16 @@
                   (cons (VECTOR-ref v i)
                         (rec (inc i)))
                   tail))))))
+
+  ;; .rlist ?
+  (def. (VECTOR.list-reverse v #!optional (tail '()))
+    (let ((len (VECTOR-length v)))
+      (let lp ((l tail)
+               (i 0))
+        (if (< i len)
+            (lp (cons (VECTOR-ref v i) l)
+                (inc i))
+            l))))
 
   ;; XX already have |string-empty?|
   (def (VECTOR-null? v)
