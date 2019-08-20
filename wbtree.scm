@@ -240,11 +240,11 @@
 ;; fun N(v,l,r) = T(v, 1 + size l + size r, l, r)
 (define* (new-wbtree v l r)
   (make-wbtree v
-             (+ 1
-                (wbtree:size l)
-                (wbtree:size r))
-             l
-             r))
+               (+ 1
+                  (wbtree:size l)
+                  (wbtree:size r))
+               l
+               r))
 
 (IF #f
     (begin ;; C variant, see wbwbtree-C
@@ -257,9 +257,9 @@
                 (else
                  (let ((v (wbtree-element t)))
                    (match-cmp (cmp x v)
-                     ((lt) (member? (wbtree-left t)))
-                     ((gt) (member? (wbtree-right t)))
-                     ((eq) #t)))))))
+                              ((lt) (member? (wbtree-left t)))
+                              ((gt) (member? (wbtree-right t)))
+                              ((eq) #t)))))))
 
       ;; and with 1 *single* change:
       (define* (wbtree:maybe-ref t x)
@@ -269,9 +269,9 @@
                 (else
                  (let ((v (wbtree-element t)))
                    (match-cmp (cmp x v)
-                     ((lt) (member? (wbtree-left t)))
-                     ((gt) (member? (wbtree-right t)))
-                     ((eq) v)))))))
+                              ((lt) (member? (wbtree-left t)))
+                              ((gt) (member? (wbtree-right t)))
+                              ((eq) v)))))))
       ))
 
 ;; variant that also returns the position:
@@ -283,17 +283,17 @@
            #f)
           (else
            (let-wbtree ((v _ l _) t)
-                     (let ((nleft* (lambda ()
-                                     (+ nleft
-                                        (wbtree:size l)))))
-                       (match-cmp
-                        (cmp x v)
-                        ((lt) (member? l
-                                       nleft))
-                        ((gt) (member? (wbtree-right t)
-                                       (+ (nleft*) 1)))
-                        ((eq) (cons v
-                                    (nleft*))))))))))
+                       (let ((nleft* (lambda ()
+                                       (+ nleft
+                                          (wbtree:size l)))))
+                         (match-cmp
+                          (cmp x v)
+                          ((lt) (member? l
+                                         nleft))
+                          ((gt) (member? (wbtree-right t)
+                                         (+ (nleft*) 1)))
+                          ((eq) (cons v
+                                      (nleft*))))))))))
 
 
 (define* (_wbtree-minmax minmax _wbtree-left* t)
@@ -328,23 +328,23 @@
 
 (define* (single-l a x t)
   (let-wbtree ((b _ y z) t)
-            (new-wbtree b
-                      (new-wbtree a
-                                x
-                                y)
-                      z)))
+              (new-wbtree b
+                          (new-wbtree a
+                                      x
+                                      y)
+                          z)))
 
 (define* (single-r a t x) ;; z
   ;; ^ -- transp
   (let-wbtree ((b _ y z) t)
-            ;; (b _ x y)
-            (new-wbtree b
-                      y ;;hrm nid z
-                      ;; -- transp
-                      (new-wbtree a
-                                z ;; hrm nid y  also diese auch noch vertauschn.
-                                ;; --auch noch transp
-                                x))))
+              ;; (b _ x y)
+              (new-wbtree b
+                          y ;;hrm nid z
+                          ;; -- transp
+                          (new-wbtree a
+                                      z ;; hrm nid y  also diese auch noch vertauschn.
+                                      ;; --auch noch transp
+                                      x))))
 
 
 ; fun double_L (a,x,T(c,_,T(b,_,y1,y2),z)) =
@@ -352,20 +352,20 @@
 
 (define* (double-l a x t1)
   (let*-wbtree (((c _ t2 z) t1)
-              ((b _ y1 y2) t2))
-             (new-wbtree b
-                       (new-wbtree a x y1)
-                       (new-wbtree c y2 z))))
+                ((b _ y1 y2) t2))
+               (new-wbtree b
+                           (new-wbtree a x y1)
+                           (new-wbtree c y2 z))))
 
 ; fun double_R (c,T(a,_,x,T(b,_,y1,y2)),z) =
 ;                               N(b,N(a,x,y1),N(c,y2,z))
 
 (define* (double-r c t1 z)
   (let*-wbtree (((a _ x t2) t1)
-              ((b _ y1 y2) t2))
-             (new-wbtree b
-                       (new-wbtree a x y1)
-                       (new-wbtree c y2 z))))
+                ((b _ y1 y2) t2))
+               (new-wbtree b
+                           (new-wbtree a x y1)
+                           (new-wbtree c y2 z))))
 
 
 (define* (T* v l r)
@@ -398,17 +398,18 @@
 ;; cmp replaces the previous one with the new one.
 (define* (wbtree:set t x)
   (let add ((t t))
-    (cond ((empty-wbtree? t)
-           (make-wbtree x 1 empty-wbtree empty-wbtree))
-          (else
-           (let-wbtree ((v _ l r) t)
-                     (match-cmp (cmp x v)
-                       ((lt) (T* v (add l) r))
-                       ((gt) (T* v l (add r)))
-                       ((eq)
-                        ;; key already there, but replace with new
-                        ;; element, ok? (i.e. don't just return t)
-                        (new-wbtree x l r))))))))
+    (cond
+     ((empty-wbtree? t)
+      (make-wbtree x 1 empty-wbtree empty-wbtree))
+     (else
+      (let-wbtree ((v _ l r) t)
+                  (match-cmp (cmp x v)
+                             ((lt) (T* v (add l) r))
+                             ((gt) (T* v l (add r)))
+                             ((eq)
+                              ;; key already there, but replace with new
+                              ;; element, ok? (i.e. don't just return t)
+                              (new-wbtree x l r))))))))
 
 
 (define-struct wbtree-duplicate-exception
@@ -420,15 +421,16 @@
 ;; cmp is an error and raises a wbtree-duplicate-exception
 (define* (wbtree:add t x)
   (let add ((t t))
-    (cond ((empty-wbtree? t)
-           (make-wbtree x 1 empty-wbtree empty-wbtree))
-          (else
-           (let-wbtree ((v _ l r) t)
-                     (match-cmp (cmp x v)
-                       ((lt) (T* v (add l) r))
-                       ((gt) (T* v l (add r)))
-                       ((eq)
-                        (raise (wbtree-duplicate-exception v x)))))))))
+    (cond
+     ((empty-wbtree? t)
+      (make-wbtree x 1 empty-wbtree empty-wbtree))
+     (else
+      (let-wbtree ((v _ l r) t)
+                  (match-cmp (cmp x v)
+                             ((lt) (T* v (add l) r))
+                             ((gt) (T* v l (add r)))
+                             ((eq)
+                              (raise (wbtree-duplicate-exception v x)))))))))
 
 
 ; (define (wbtree:_delete* l r)
@@ -447,7 +449,7 @@
          (wbtree-right t))
         (else
          (let-wbtree ((v _ l r) t)
-                   (T* v (wbtree:_delmin l) r)))))
+                     (T* v (wbtree:_delmin l) r)))))
 
 (define* (wbtree:delete t x)
   
@@ -465,10 +467,10 @@
            empty-wbtree)
           (else
            (let-wbtree ((v _ l r) t)
-                     (match-cmp (cmp x v)
-                       ((lt) (T* v (delete l) r))
-                       ((gt) (T* v l (delete r)))
-                       ((eq) (wbtree:_delete* l r))))))))
+                       (match-cmp (cmp x v)
+                                  ((lt) (T* v (delete l) r))
+                                  ((gt) (T* v l (delete r)))
+                                  ((eq) (wbtree:_delete* l r))))))))
 
 
 ;;(define (wbtree:inorder-fold f base wbtree)
@@ -486,11 +488,11 @@
                                     base)
                                    (else
                                     (let-wbtree ((v _ l r) t)
-                                              ((possiblyflip
-                                                (lambda (l r)
-                                                  (fold* (f v (fold* base r))
-                                                         l)))
-                                               l r)))))))))
+                                                ((possiblyflip
+                                                  (lambda (l r)
+                                                    (fold* (f v (fold* base r))
+                                                           l)))
+                                                 l r)))))))))
         (fold* base t)))))
 
 (define wbtree:inorder-fold*
@@ -557,12 +559,12 @@
          (wbtree:set l v))
         (else
          (let*-wbtree (((v1 n1 l1 r1) l)
-                     ((v2 n2 l2 r2)  r))
-                    (if (< (* weight n1) n2)
-                        (T* v2 (concat3 v l l2) r2)
-                        (if (< (* weight n2) n1)
-                            (T* v1 l1 (concat3 v r1 r))
-                            (new-wbtree v l r)))))))
+                       ((v2 n2 l2 r2)  r))
+                      (if (< (* weight n1) n2)
+                          (T* v2 (concat3 v l l2) r2)
+                          (if (< (* weight n2) n1)
+                              (T* v1 l1 (concat3 v r1 r))
+                              (new-wbtree v l r)))))))
 
 (define* (wbtree:lt t x)
   (let _lt ((t t))
@@ -637,11 +639,11 @@
            t1)
           (else
            (let-wbtree ((v _ l r) t2)
-                     (let ((l* (wbtree:lt t1 v))
-                           (r* (wbtree:gt t1 v)))
-                       (concat3 v
-                                (union l* l)
-                                (union r* r))))))))
+                       (let ((l* (wbtree:lt t1 v))
+                             (r* (wbtree:gt t1 v)))
+                         (concat3 v
+                                  (union l* l)
+                                  (union r* r))))))))
 
 
 (IF #f
@@ -664,12 +666,12 @@
              t1)
             (else
              (let*-wbtree (((v1 n1 l1 r1) t1)
-                         ((v2 n2 l2 r2) t2))
-                        (if (< (* weight n1) n2)
-                            (T* v2 (concat t1 l2) r2)
-                            (if (< (* weight n2) n1)
-                                (T* v1 l1 (concat r1 t2))
-                                (T* (wbtree:min t2) t1 (wbtree:_delmin t2)))))))))
+                           ((v2 n2 l2 r2) t2))
+                          (if (< (* weight n1) n2)
+                              (T* v2 (concat t1 l2) r2)
+                              (if (< (* weight n2) n1)
+                                  (T* v1 l1 (concat r1 t2))
+                                  (T* (wbtree:min t2) t1 (wbtree:_delmin t2)))))))))
 
 (define* (wbtree:difference t1 t2)
   (cond ((empty-wbtree? t1)
@@ -678,10 +680,10 @@
          t1)
         (else
          (let-wbtree ((v _ l r) t2)
-                   (let ((l* (wbtree:lt t1 v))
-                         (r* (wbtree:gt t1 v)))
-                     (concat (wbtree:difference l* l)
-                             (wbtree:difference r* r)))))))
+                     (let ((l* (wbtree:lt t1 v))
+                           (r* (wbtree:gt t1 v)))
+                       (concat (wbtree:difference l* l)
+                               (wbtree:difference r* r)))))))
 
 
 (define* (wbtree:intersection t1 t2)
@@ -691,16 +693,16 @@
          empty-wbtree)
         (else
          (let-wbtree ((v _ l r) t2)
-                   (let ((l* (wbtree:lt t1 v))
-                         (r* (wbtree:gt t1 v)))
-                     (let ((i1 (wbtree:intersection l* l))
-                           (i2 (wbtree:intersection r* r)))
-                       (If (wbtree:member? t1 v)
-                           (concat3 v i1 i2)
-                           (concat i1 i2))))))))
+                     (let ((l* (wbtree:lt t1 v))
+                           (r* (wbtree:gt t1 v)))
+                       (let ((i1 (wbtree:intersection l* l))
+                             (i2 (wbtree:intersection r* r)))
+                         (If (wbtree:member? t1 v)
+                             (concat3 v i1 i2)
+                             (concat i1 i2))))))))
 
 (define* (wbtrees:intersection-stream ts
-                                    #!optional (tail '()))
+                                      #!optional (tail '()))
   (if (any empty-wbtree? ts)
       tail ;; delay?
 
@@ -759,12 +761,12 @@
            (raise 'not-found))
           (else
            (let-wbtree ((v n l r) t)
-                     (match-cmp (cmp x v)
-                       ((lt) (rank l))
-                       ((gt) (+ (rank r)
-                                (wbtree:size l)
-                                1))
-                       ((eq) (wbtree:size l))))))))
+                       (match-cmp (cmp x v)
+                                  ((lt) (rank l))
+                                  ((gt) (+ (rank r)
+                                           (wbtree:size l)
+                                           1))
+                                  ((eq) (wbtree:size l))))))))
 
 ;; wbtree:ref-index ?
 (define* (wbtree:index t i)
@@ -772,11 +774,11 @@
          (raise 'not-found))
         (else
          (let-wbtree ((v _ l r) t)
-                   (let ((nl (wbtree:size l)))
-                     (if (< i nl)
-                         (wbtree:index l i)
-                         (if (> i nl)
-                             (wbtree:index r (- i nl 1))
-                             v)))))))
+                     (let ((nl (wbtree:size l)))
+                       (if (< i nl)
+                           (wbtree:index l i)
+                           (if (> i nl)
+                               (wbtree:index r (- i nl 1))
+                               v)))))))
 
 
