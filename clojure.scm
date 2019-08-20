@@ -36,7 +36,8 @@
                    zipmap
                    vec vector-of
                    keys vals
-                   symbol symbol? keyword keyword?))))
+                   symbol symbol? keyword keyword?
+                   last))))
 
 (use-clojure)
 
@@ -82,7 +83,7 @@
                          (.list v)))))
        (if (null? rest)
            (apply fn (->list fst))
-           (apply fn fst (append (butlast rest) (->list (last rest)))))))
+           (apply fn fst (append (butlast rest) (->list ((scheme last) rest)))))))
 
 (TEST
  > (%try (apply / 10))
@@ -369,6 +370,20 @@
                 #t))))
 
 (TEST
+ ;; Clojure seems crazy with this:
+ ;; > (= 'true true)
+ ;; #t ;; true
+ > (symbol "true")
+ true
+ ;; > (= 'true (symbol "true"))
+ ;; #f ;; false
+ > (true? (symbol "true"))
+ #f
+ > (= 'true2 (symbol "true2"))
+ #t ;; true
+ > (nil? (symbol "nil"))
+ #f
+ 
  > (keyword "3")
  :3
  ;; > (keyword 3)
@@ -389,6 +404,28 @@
  #f
  > (symbol? v)
  #t)
+
+
+
+(defn last
+  ([v]
+   (if (seq v)
+       (if-not (.null? v) ;; Scheme's .empty?
+               (.last v)))))
+
+
+(TEST
+ > (use-clojure)
+ > (last "foob")
+ #\b
+ > (last '[1 2 3])
+ 3
+ > (last '[])
+ clojure#nil
+ > (last '"")
+ clojure#nil)
+
+
 
 
 ;; try: uses classname, not predicates, of course. Also, multiple

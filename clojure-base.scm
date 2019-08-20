@@ -11,7 +11,7 @@
 
 
 (defmacro (use-clojure-base)
-  `(##namespace ("clojure#" defn fn false true nil nil? = not if if-not when let symbol
+  `(##namespace ("clojure#" defn fn false true nil nil? = not if if-not when let
                  false? true?
                  lazy-seq
                  seq chunked-seq? first rest next)))
@@ -258,8 +258,7 @@
  #t
  ;; > (nil? 'nil)
  ;; true
- > (nil? (symbol "nil"))
- #f)
+ )
 
 
 (def (clojure-=/2 a b)
@@ -338,9 +337,6 @@
  )
 
 
-(def clojure#symbol string->symbol)
-
-
 (TEST
  > (use-clojure-base)
  > (= true true)
@@ -356,16 +352,6 @@
  > (= nil '())
  #f ;; false
  > (= nil nil)
- #t ;; true
-
- ;; Clojure seems crazy with this:
- ;; > (= 'true true)
- ;; #t ;; true
- > (symbol "true")
- true
- ;; > (= 'true (symbol "true"))
- ;; #f ;; false
- > (= 'true2 (symbol "true2"))
  #t ;; true
 
  > (= '(a) '[a])
@@ -398,13 +384,15 @@
      (eq? v #t))
 
 
-(defmacro (clojure#if test . branches)
+(defmacro (clojure#if test yes #!optional (no 'clojure#nil))
   `(##if (clojure#not-not ,test)
-         ,@branches))
+         ,yes
+         ,no))
 
-(defmacro (clojure#if-not test . branches)
+(defmacro (clojure#if-not test  yes #!optional (no 'clojure#nil))
   `(##if (clojure#not ,test)
-         ,@branches))
+         ,yes
+         ,no))
 
 (defmacro (clojure#when test . branches)
   `(##if (clojure#not-not ,test)
