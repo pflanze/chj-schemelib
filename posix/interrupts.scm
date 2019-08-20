@@ -1,4 +1,4 @@
-;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -114,7 +114,9 @@
 
 (compile-time
  (define (make-gen-code check-code return-code)
-   (lambda (name/args c-name argtypes returntype error-message #!optional error-message2)
+   (lambda (name/args c-name argtypes returntype error-message
+                 #!optional
+                 error-message2)
      (let ((name (car name/args))
 	   (args (cdr name/args)))
        `(define ,name/args
@@ -125,7 +127,8 @@
 			,(if error-message2
 			     `(if (= res SIGQUEUE_ERROR2)
 				  ,error-message2
-				  ,error-message))))
+				  ,error-message)
+                             error-message)))
 		,return-code)))))))
 
 (##define-macro (define-c/int_or_error . args)
@@ -304,10 +307,9 @@
   ;; (##interrupt-vector-set! 7 interrupt-dispatch) mapping.
   (let ((signum (call-with-locks
 		 (lambda ()
-		   (if (sigqueue-overflow global_queue)
-		       (begin
-			 (warn "Warning: signal queue has been overflown!")
-			 (sigqueue-overflow-reset! global_queue)))
+		   (when (sigqueue-overflow global_queue)
+                         (warn "Warning: signal queue has been overflown!")
+                         (sigqueue-overflow-reset! global_queue))
 		   (sigqueue-take! global_queue)))))
     (or (table-ref interrupts:handlers signum #f)
 	(begin
