@@ -37,7 +37,7 @@
                    vec vector-of
                    keys vals
                    symbol symbol? keyword keyword?
-                   last))))
+                   last butlast))))
 
 (use-clojure)
 
@@ -83,7 +83,8 @@
                          (.list v)))))
        (if (null? rest)
            (apply fn (->list fst))
-           (apply fn fst (append (butlast rest) (->list ((scheme last) rest)))))))
+           (apply fn fst (append ((scheme butlast) rest)
+                                 (->list ((scheme last) rest)))))))
 
 (TEST
  > (%try (apply / 10))
@@ -413,6 +414,13 @@
        (if-not (.null? v) ;; Scheme's .empty?
                (.last v)))))
 
+(defn butlast
+  ([v]
+   (if (seq v)
+       (if-not (.null? v) ;; Scheme's .empty?
+               ;; Is this already best efficiency?
+               (seq (.butlast v))))))
+
 
 (TEST
  > (use-clojure)
@@ -423,7 +431,16 @@
  > (last '[])
  clojure#nil
  > (last '"")
- clojure#nil)
+ clojure#nil
+ > (F (butlast "foob"))
+ (#\f #\o #\o)
+ > (F (butlast '[1 2 3]))
+ (1 2)
+ > (butlast '[])
+ clojure#nil
+ > (butlast '"")
+ clojure#nil
+ )
 
 
 
