@@ -231,6 +231,7 @@
  #(1 2 a))
 
 
+;; Also see definition in oo-vector-lib.scm
 (define (vector-every t? v)
   (let ((len (vector-length v)))
     (let lp ((i 0))

@@ -275,6 +275,13 @@
 	 res))
   (def. VECTOR.drop VECTOR-drop)
 
+  (def. (VECTOR.every s pred)
+    (let ((len (VECTOR-length s)))
+      (let lp ((i 0))
+        (or (>= i len)
+            (and (pred (VECTOR-ref s i))
+                 (lp (inc i)))))))
+
 
   (def _VECTOR-rest-count 0)
 
