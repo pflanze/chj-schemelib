@@ -86,7 +86,8 @@
 	keyword=?
 	dup
 	one?
-        current-continuation)
+        current-continuation
+        zip-cons)
 
 
 (declare (block)(standard-bindings)(extended-bindings))
@@ -756,4 +757,9 @@
 
 (define (current-continuation)
   (continuation-capture values))
+
+
+;; zip-pair ?
+(define (zip-cons l1 l2)
+  (map cons l1 l2))
 
