@@ -16,6 +16,7 @@
 (include "cj-standarddeclares.scm")
 
 
+;; XX obsolete?, see string.null? from oo-vector-lib.scm
 (define (string-empty? str)
   (zero? (string-length str)))
 
