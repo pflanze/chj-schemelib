@@ -16,9 +16,8 @@
          debuggable-promise
          predicates
          (oo-util-lazy iseq-of)
-         test
-         )
-
+         (fixnum-more fixnum-natural0?)
+         test)
 
 (export ssxpath-matches  ;; on single elements; auto-curring
         ssxpath-matches* ;; on lists of elements; auto-curring
@@ -63,7 +62,7 @@
 ;; hacky? keep in sync with dispatching cond
 (def ssxpath-path-item?
      (either symbol? ;; incl. / * @
-             exact-natural0?
+             fixnum-natural0?
              string?
              pair?))
 
@@ -233,7 +232,7 @@
                          '()
                          lbodies)))
 
-                  ((exact-natural0? pathhead)
+                  ((fixnum-natural0? pathhead)
                    (Maybe:if (stream-Maybe-ref ms pathhead)
                              (rec (list (ssxpath-match
                                          (ssxpath-match.value it)
