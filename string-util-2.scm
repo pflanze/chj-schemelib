@@ -65,6 +65,7 @@
 	string-pad-left
 	string-ends-with?
 	string-starts-with? ;;XXX vs string-starts? ?
+        strings=?
 	
 	#!optional
 	string-_-starts?
@@ -771,3 +772,59 @@
  "foo"
  > (string-first-line "foo\nbar\n baz")
  "foo")
+
+
+(define (strings=? strings stringS)
+  (if (string? stringS)
+      (let ((len (string-length stringS)))
+        (let lp ((ss strings)
+                 (i 0))
+          (if (null? ss)
+              (= i len)
+              (let-pair ((s ss*) ss)
+                        (let ((slen (string-length s)))
+                          (let lps ((si 0)
+                                    (i i))
+                            (if (< si slen)
+                                (if (< i len)
+                                    (if (eq? (string-ref s si)
+                                             (string-ref stringS i))
+                                        (lps (inc si)
+                                             (inc i))
+                                        #f)
+                                    #f)
+                                (lp ss* i))))))))
+      (error "strings=?: strings as second argument not implemented (yet)")))
+
+(TEST
+ > (strings=? '() "")
+ #t
+ > (strings=? '() "a")
+ #f
+ > (strings=? '("") "")
+ #t
+ > (strings=? '("a") "")
+ #f
+ > (strings=? '("" "") "")
+ #t
+ > (strings=? '("" "") "a")
+ #f
+ > (strings=? '("a" "") "a")
+ #t
+ > (strings=? '("" "a") "a")
+ #t
+ > (strings=? '("a" "b") "a")
+ #f
+ > (strings=? '("a" "b") "ab")
+ #t
+ > (strings=? '("a" "bc") "ab")
+ #f
+ > (strings=? '("a" "bc") "abc")
+ #t
+ > (strings=? '("a" "bc") "abcd")
+ #f
+ > (strings=? '("a" "bc") "abd")
+ #f
+ > (strings=? '("a" "bc") "bbc")
+ #f)
+
