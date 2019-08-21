@@ -20,7 +20,7 @@
          )
 
 
-(export ssxpath-matches ;; on single elements; auto-curring
+(export ssxpath-matches  ;; on single elements; auto-curring
         ssxpath-matches* ;; on lists of elements; auto-curring
         )
 
