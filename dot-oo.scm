@@ -29,6 +29,7 @@
 	(macro define.)
 	(macro define-struct.)
 	(macro CALL.)
+        (macro CAN.)
 	nothing? ;; really?
 
 	;; XX should move?
@@ -157,6 +158,16 @@
 	       (else
 		(dot-oo:generic-error ',genericname ,OBJ))))))))
 
+
+;; Like Perl's UNIVERSAL::can
+(define-macro* (CAN. genericname obj)
+  (assert*
+   symbol? genericname
+   (lambda (genericname)
+     `(dot-oo:method-table-maybe-ref-method
+       ,(generic-name-string.method-table-name
+         (symbol->string genericname))
+       ,obj))))
 
 
 (both-times
