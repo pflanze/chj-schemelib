@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,8 +7,7 @@
 
 
 (require easy
-	 jclass
-	 (more-oo let.-static)
+         (more-oo let.-static)
 	 list-util
 	 stream
 	 cj-sxml
@@ -68,63 +67,63 @@
 	     string?
 	     pair?))
 
-(jclass (ssxpath-match #(sxml? value) ;; not just |sxml-element?|
-		       #((maybe natural0?) maybe-index)
-		       ;; ^ #f for the "entry match" when matching a
-		       ;; single element (via ssxpath-matches, not
-		       ;; ssxpath-matches*).
-		       #((iseq-of ssxpath-match?) rest)
-		       ;; ^ part of the list of matches following this
-		       ;; one in its match layer (i.e. ssxpath-match
-		       ;; is forming an intrusive list; we wouldn't
-		       ;; need the cons cells around except for using
-		       ;; standard functions)
-		       #((maybe ssxpath-path-item?) pathhead)
-		       ;; ^ #f for the first entry (initial list)
-		       #((maybe ssxpath-match?) maybe-parent)
-		       ;; ^ ditto
-		       )
+(defclass (ssxpath-match [sxml? value] ;; not just |sxml-element?|
+                         [(maybe natural0?) maybe-index]
+                         ;; ^ #f for the "entry match" when matching a
+                         ;; single element (via ssxpath-matches, not
+                         ;; ssxpath-matches*).
+                         [(iseq-of ssxpath-match?) rest]
+                         ;; ^ part of the list of matches following this
+                         ;; one in its match layer (i.e. ssxpath-match
+                         ;; is forming an intrusive list; we wouldn't
+                         ;; need the cons cells around except for using
+                         ;; standard functions)
+                         [(maybe ssxpath-path-item?) pathhead]
+                         ;; ^ #f for the first entry (initial list)
+                         [(maybe ssxpath-match?) maybe-parent]
+                         ;; ^ ditto
+                         )
 
-	;; wait wrong orderanyway?
-	(def-method (path s)
-	  (if pathhead
-	      (cons pathhead (if maybe-parent
-				 (ssxpath-match.path maybe-parent)
-				 '()))
-	      '()))
+  ;; wait wrong orderanyway?
+  (defmethod (path s)
+    (if pathhead
+        (cons pathhead (if maybe-parent
+                           (ssxpath-match.path maybe-parent)
+                           '()))
+        '()))
 
-	;; a path of only using indexing. XX BUT, item indices versus
-	;; element indices? !
-	(def-method- (index-path s)
-	  (let lp ((m s)
-		   (p '()))
-	    (let.-static (ssxpath-match. (maybe-index maybe-parent) m)
-			 (let ((p* (cons maybe-index p)))
-			   (if maybe-parent
-			       (lp maybe-parent
-				   p*)
-			       p*)))))
+  ;; a path of only using indexing. XX BUT, item indices versus
+  ;; element indices? !
+  (defmethod- (index-path s)
+    (let lp ((m s)
+             (p '()))
+      (let.-static (ssxpath-match. (maybe-index maybe-parent) m)
+                   (let ((p* (cons maybe-index p)))
+                     (if maybe-parent
+                         (lp maybe-parent
+                             p*)
+                         p*)))))
 
-	;;XX still figuring things out. should probably be called |path|.
-	(def-method (precise-path s)
-	  (let lp ((m s)
-		   (p '()))
-	    (let.-static (ssxpath-match. (maybe-index pathhead maybe-parent) m)
-			 (let ((p* (cons* pathhead maybe-index p)))
-			   (if maybe-parent
-			       (lp maybe-parent
-				   p*)
-			       p*)))))
+  ;;XX still figuring things out. should probably be called |path|.
+  (defmethod (precise-path s)
+    (let lp ((m s)
+             (p '()))
+      (let.-static (ssxpath-match. (maybe-index pathhead maybe-parent) m)
+                   (let ((p* (cons* pathhead maybe-index p)))
+                     (if maybe-parent
+                         (lp maybe-parent
+                             p*)
+                         p*)))))
 	
 
-	;;X? what was that ...?
-	(def-method (individual-path s)
-	  (if pathhead
-	      (cons* maybe-index pathhead
-		     (if maybe-parent
-			 (ssxpath-match.individual-path maybe-parent)
-			 '()))
-	      '())))
+  ;;X? what was that ...?
+  (defmethod (individual-path s)
+    (if pathhead
+        (cons* maybe-index pathhead
+               (if maybe-parent
+                   (ssxpath-match.individual-path maybe-parent)
+                   '()))
+        '())))
 
 
 
@@ -132,9 +131,9 @@
 
 
 (def (__ssxpath-matches*/context path
-				 #(iseq-of-ssxpath-match? ms)
-				 #(boolean? first-call?)
-				 #(boolean? want-ctx?))
+				 [iseq-of-ssxpath-match? ms]
+				 [boolean? first-call?]
+				 [boolean? want-ctx?])
      -> iseq-of-ssxpath-match?
 
      (if (null? path)
@@ -295,19 +294,19 @@
       '()))
 
 
-(def (_ssxpath-matches*/context path #(iseq-not-element? elements))
+(def (_ssxpath-matches*/context path [iseq-not-element? elements])
      (__ssxpath-matches*/context path
 				 (cj-ssxpath:prep-elements elements)
 				 #t
 				 #t))
 
-(def (_ssxpath-matches/context path #(sxml-element? element))
+(def (_ssxpath-matches/context path [sxml-element? element])
      (__ssxpath-matches*/context path
 				 (list (ssxpath-match element #f '() #f #f))
 				 #t
 				 #t))
 
-(def (_ssxpath-matches* path #(iseq-not-element? elements))
+(def (_ssxpath-matches* path [iseq-not-element? elements])
      (stream-map ssxpath-match.value
 		 (__ssxpath-matches*/context
 		  path
@@ -318,7 +317,7 @@
 		  ;; remove stream-map:
 		  #t)))
 
-(def (_ssxpath-matches path #(sxml-element? element))
+(def (_ssxpath-matches path [sxml-element? element])
      (stream-map ssxpath-match.value
 		 (__ssxpath-matches*/context
 		  path
@@ -409,7 +408,7 @@
  #f
  ;; pass single element instead of list:
  > (%try-error (sm* '() '(a (b))))
- #(error "elements does not match iseq-not-element?:" (a (b)))
+ [error "elements does not match iseq-not-element?:" (a (b))]
  > (sm* '(b) '((a (b))))
  ()
  > (sm* '(a) '((a (b)) (d (e)) (a (c))))
@@ -419,7 +418,7 @@
  ((a (b)) (a (c)))
 
  > (%try-error ((ssxpath-matches '(a)) '((a (b)) (d (e)) (a (c)))))
- #(error "element does not match sxml-element?:" ((a (b)) (d (e)) (a (c))))
+ [error "element does not match sxml-element?:" ((a (b)) (d (e)) (a (c)))]
 
  > (sm* '(*) '((a (b "world")) (a (b (c "here")))))
  ;; (Matches return the full elements that match the last item in the
