@@ -12,7 +12,6 @@
          stream
          cj-sxml
          cj-env ;; natural0?, should be moved
-         (oo-lib-string strings-append)
          debuggable-promise
          predicates
          (oo-util-lazy iseq-of)
@@ -246,8 +245,7 @@
                    (let* ((bodies (map ssxpath-match.value
                                        (stream->list bodies))))
                      (if (and (every string? bodies) ;; XX too narrow?
-                              (string=? (strings-append bodies)
-                                        pathhead))
+                              (strings=? bodies pathhead))
                          (begin
                            ;;(step)
                            ;; XX is it OK to return the element,
