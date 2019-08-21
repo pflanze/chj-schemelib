@@ -8,6 +8,7 @@
 
 (require table-1
 	 dot-oo
+         (cj-functional compose)
 	 show
 	 (predicates alist?)
 	 test
@@ -20,7 +21,8 @@
 	table _table
 	table*
 	;; accessors:
-	(method table.test
+	(method table.null?
+                table.test
 		table.hash
 		;; XX warning, .weak-keys and .weak-values not working
 		table.init
@@ -51,6 +53,8 @@
 
 
 ;; dependent on dot-oo:
+
+(define. table.null? (compose zero? table-length))
 
 (define. table.list table->list)
 (define. table.ref table-ref)
