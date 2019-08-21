@@ -5,7 +5,7 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
-;; Some parts are copied from Clojure "1.10.0" and are:
+;; Some parts are copied from Clojure "1.10.0" and are covered by:
 
 ;; Copyright (c) Rich Hickey. All rights reserved.
 ;; The use and distribution terms for this software are covered by the
@@ -14,6 +14,7 @@
 ;; By using this software in any fashion, you are agreeing to be bound by
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
+
 
 (require easy
          table
@@ -37,7 +38,7 @@
                    vec vector-of
                    keys vals
                    symbol symbol? keyword keyword?
-                   last butlast))))
+                   last butlast reverse))))
 
 (use-clojure)
 
@@ -77,7 +78,65 @@
  > (.show-clojure 'f)
  'f
  > (.show-clojure (hash-map b: 2 a: 1))
- (hash-map ':a 1 ':b 2))
+ (hash-map ':a 1 ':b 2)
+ > (seq (hash-map))
+ clojure#nil)
+
+
+
+(def nonempty-char-list?
+     (both pair? char-list?))
+
+(def. nonempty-char-list.show-clojure
+  (=>* list->string
+       ((lambda (v)
+          ;; could use seq since it's guaranteed not to be empty; but,
+          ;; do you want to explode your brain?
+          `(sequence ,v)))))
+
+(def. istream.show-clojure
+  (=>* .list
+       .show-clojure
+       ((lambda (v)
+          (if (and (pair? v)
+                   (eq? 'sequence (car v)))
+              v
+              `(sequence ,v))))))
+
+;; (also see scheme->clojure-symbols, which is probably pointless by
+;; now)
+(def. (clojure#nil.show-clojure v) 'nil)
+(def. (false.show-clojure v) 'false)
+(def. (true.show-clojure v) 'true)
+
+(TEST
+ > (use-clojure)
+ > (.show-clojure (seq "foo"))
+ (sequence "foo")
+
+ ;; Clojure's = is its own mistery?:
+ > (= (seq "") (list))
+ #f
+ > (= (seq "") '())
+ #f
+ > (= (seq "") (seq (list)))
+ #t
+ > (= (seq "") (sequence (list)))
+ #f
+ > (= (sequence "") (sequence (list)))
+ #t
+
+ ;; Hence:
+ > (.show-clojure (sequence ""))
+ (sequence (list)) ;; (sigh)
+ > (= (eval #)
+      (sequence ""))
+ #t
+
+ ;; While:
+ > (.show-clojure (seq ""))
+ nil)
+
 
 
 (def (conj seq . vals)
@@ -457,6 +516,10 @@
                ;; Is this already best efficiency?
                (seq (.butlast v))))))
 
+(defn reverse
+  [v]
+  (sequence (.reverse v)))
+
 
 (TEST
  > (use-clojure)
@@ -476,7 +539,11 @@
  clojure#nil
  > (butlast '"")
  clojure#nil
- )
+ > (F (reverse '[1 2 3]))
+ (3 2 1)
+ > (F (reverse '[]))
+ ())
+
 
 
 

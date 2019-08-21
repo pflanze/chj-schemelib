@@ -14,7 +14,7 @@
   `(##namespace ("clojure#" defn fn false true nil nil? = not if if-not when let
                  false? true?
                  lazy-seq
-                 seq chunked-seq? first rest next)))
+                 seq sequence chunked-seq? first rest next)))
 
 (##namespace (""))
 ;; ^ needed when re-loading this file via "load" when tests ran. Sigh,
@@ -462,13 +462,16 @@
 (def (clojure#seq v)
      (FV (v)
          (case v
-           ((clojure#nil () []) clojure#nil)
+           ((clojure#nil ()) clojure#nil)
            (else
-            (if (empty-vector? v)
-                clojure#nil
-                (.stream v))))))
+            (if-let* ((null? (CAN. .null? v))
+                      ;; Scheme's empty?
+                      (_ (null? v)))
+                     clojure#nil
+                     (.stream v))))))
 
 (TEST
+ > (use-clojure-base)
  > (define TEST:equal? =)
  > (seq "foo")
  (#\f #\o #\o) ;; (\f \o \o)
@@ -482,6 +485,23 @@
  n
  > (if (seq (seq '())) 'y 'n)
  n)
+
+(def (clojure#sequence v)
+     (case v
+       ((clojure#nil) '())
+       (else (.stream v))))
+
+(TEST
+ > (use-clojure-base)
+ > (F (seq "foo"))
+ (#\f #\o #\o)
+ > (sequence '())
+ ()
+ > (sequence nil)
+ ()
+ > (F (sequence '[]))
+ ())
+
 
 
 (def (clojure-lazy-seq-return v)
@@ -598,6 +618,7 @@
                          (else
                           v)))))
 
+;; also see .show-clojure
 (def scheme->clojure-symbols
      (make-sexpr-map (lambda (v)
                        (case v
