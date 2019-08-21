@@ -8,21 +8,21 @@
 
 (require easy
          (more-oo let.-static)
-	 list-util
-	 stream
-	 cj-sxml
-	 cj-env	;; natural0?, should be moved
-	 (oo-lib-string strings-append)
-	 debuggable-promise
-	 predicates
-	 (oo-util-lazy iseq-of)
-	 test
-	 )
+         list-util
+         stream
+         cj-sxml
+         cj-env ;; natural0?, should be moved
+         (oo-lib-string strings-append)
+         debuggable-promise
+         predicates
+         (oo-util-lazy iseq-of)
+         test
+         )
 
 
 (export ssxpath-matches ;; on single elements; auto-curring
-	ssxpath-matches* ;; on lists of elements; auto-curring
-	)
+        ssxpath-matches* ;; on lists of elements; auto-curring
+        )
 
 
 (possibly-use-debuggable-promise)
@@ -63,9 +63,9 @@
 ;; hacky? keep in sync with dispatching cond
 (def ssxpath-path-item?
      (either symbol? ;; incl. / * @
-	     exact-natural0?
-	     string?
-	     pair?))
+             exact-natural0?
+             string?
+             pair?))
 
 (defclass (ssxpath-match [sxml? value] ;; not just |sxml-element?|
                          [(maybe natural0?) maybe-index]
@@ -114,7 +114,7 @@
                          (lp maybe-parent
                              p*)
                          p*)))))
-	
+        
 
   ;;X? what was that ...?
   (defmethod (individual-path s)
@@ -131,148 +131,148 @@
 
 
 (def (__ssxpath-matches*/context path
-				 [iseq-of-ssxpath-match? ms]
-				 [boolean? first-call?]
-				 [boolean? want-ctx?])
+                                 [iseq-of-ssxpath-match? ms]
+                                 [boolean? first-call?]
+                                 [boolean? want-ctx?])
      -> iseq-of-ssxpath-match?
 
      (if (null? path)
-	 ms
-	 (let-pair
-	  ((pathhead path*) path)
+         ms
+         (let-pair
+          ((pathhead path*) path)
 
-	  (let* ((bodies
-		  ;; all of the values / the {current layer of
-		  ;; element}'s bodies appended
-		  (stream-fold-right
-		   (lambda (m res)
-		     ;; for each body element, add a new match context
-		     ;; frame
-		     (let ((v (ssxpath-match.value m)))
-		       (if (sxml-element? v)
-			   (stream-fold-right/iota
-			    (lambda (v tail i)
-			      (cons (ssxpath-match v i tail '/ m)
-				    tail))
-			    res
-			    (sxml-element-body v))
-			   (cons m res))))
-		   '()
-		   ms))
+          (let* ((bodies
+                  ;; all of the values / the {current layer of
+                  ;; element}'s bodies appended
+                  (stream-fold-right
+                   (lambda (m res)
+                     ;; for each body element, add a new match context
+                     ;; frame
+                     (let ((v (ssxpath-match.value m)))
+                       (if (sxml-element? v)
+                           (stream-fold-right/iota
+                            (lambda (v tail i)
+                              (cons (ssxpath-match v i tail '/ m)
+                                    tail))
+                            res
+                            (sxml-element-body v))
+                           (cons m res))))
+                   '()
+                   ms))
 
-		 (lbodies (if first-call?
-			      ms
-			      bodies))
-		 (rec (lambda (ms*)
-			(__ssxpath-matches*/context path*
-						    ms*
-						    #f
-						    want-ctx?))))
-	    (cond ((eq? pathhead '/)
-		   ;; use the current layer of element's bodies;
-		   ;; XX wrap with "/" *now* instead of already having
-		   ;;    been done above?
-		   (rec bodies))
+                 (lbodies (if first-call?
+                              ms
+                              bodies))
+                 (rec (lambda (ms*)
+                        (__ssxpath-matches*/context path*
+                                                    ms*
+                                                    #f
+                                                    want-ctx?))))
+            (cond ((eq? pathhead '/)
+                   ;; use the current layer of element's bodies;
+                   ;; XX wrap with "/" *now* instead of already having
+                   ;;    been done above?
+                   (rec bodies))
 
-		  ((eq? pathhead '//)
-		   (error "// is not implemented (yet)"))
+                  ((eq? pathhead '//)
+                   (error "// is not implemented (yet)"))
 
-		  ((eq? pathhead '*)
-		   ;; pick all elements (filter out non-elements)
-		   (rec (stream-fold-right/iota+rest
-			 (lambda (m res i rest)
-			   (let ((v (ssxpath-match.value m)))
-			     (if (sxml-element? v)
-				 (cons (ssxpath-match v
-						      i
-						      res
-						      pathhead
-						      m)
-				       res)
-				 res)))
-			 '()
-			 lbodies)))
+                  ((eq? pathhead '*)
+                   ;; pick all elements (filter out non-elements)
+                   (rec (stream-fold-right/iota+rest
+                         (lambda (m res i rest)
+                           (let ((v (ssxpath-match.value m)))
+                             (if (sxml-element? v)
+                                 (cons (ssxpath-match v
+                                                      i
+                                                      res
+                                                      pathhead
+                                                      m)
+                                       res)
+                                 res)))
+                         '()
+                         lbodies)))
 
-		  ((eq? pathhead '@)
-		   ;; pick attributes
-		   (rec (stream-fold-right/iota+rest
-			 (lambda (m res i rest)
-			   (let ((v (ssxpath-match.value m)))
-			     (if (sxml-element? v)
-				 (cond ((sxml-element-maybe-attributes v)
-					=> (lambda (atts)
-					     (cons (ssxpath-match atts
-								  i
-								  res
-								  pathhead
-								  m)
-						   res)))
-				       (else
-					res))
-				 res)))
-			 '()
-			 ms)))
+                  ((eq? pathhead '@)
+                   ;; pick attributes
+                   (rec (stream-fold-right/iota+rest
+                         (lambda (m res i rest)
+                           (let ((v (ssxpath-match.value m)))
+                             (if (sxml-element? v)
+                                 (cond ((sxml-element-maybe-attributes v)
+                                        => (lambda (atts)
+                                             (cons (ssxpath-match atts
+                                                                  i
+                                                                  res
+                                                                  pathhead
+                                                                  m)
+                                                   res)))
+                                       (else
+                                        res))
+                                 res)))
+                         '()
+                         ms)))
 
-		  ((symbol? pathhead)
-		   ;; pick elements with that name
-		   (rec (stream-fold-right/iota+rest
-			 (lambda (m res i rest)
-			   (with-sxml-element/else
-			    (ssxpath-match.value m)
-			    (lambda (name attrs body)
-			      (if (eq? name pathhead)
-				  (cons (ssxpath-match
-					 (ssxpath-match.value m)
-					 i
-					 res
-					 pathhead
-					 m)
-					res)
-				  res))
-			    (& res)))
-			 '()
-			 lbodies)))
+                  ((symbol? pathhead)
+                   ;; pick elements with that name
+                   (rec (stream-fold-right/iota+rest
+                         (lambda (m res i rest)
+                           (with-sxml-element/else
+                            (ssxpath-match.value m)
+                            (lambda (name attrs body)
+                              (if (eq? name pathhead)
+                                  (cons (ssxpath-match
+                                         (ssxpath-match.value m)
+                                         i
+                                         res
+                                         pathhead
+                                         m)
+                                        res)
+                                  res))
+                            (& res)))
+                         '()
+                         lbodies)))
 
-		  ((exact-natural0? pathhead)
-		   (Maybe:if (stream-Maybe-ref ms pathhead)
-			     (rec (list (ssxpath-match
-					 (ssxpath-match.value it)
-					 pathhead
-					 (ssxpath-match.rest it) ;; XXX?
-					 pathhead
-					 it)))
-			     '()))
+                  ((exact-natural0? pathhead)
+                   (Maybe:if (stream-Maybe-ref ms pathhead)
+                             (rec (list (ssxpath-match
+                                         (ssxpath-match.value it)
+                                         pathhead
+                                         (ssxpath-match.rest it) ;; XXX?
+                                         pathhead
+                                         it)))
+                             '()))
 
-		  ((string? pathhead)
-		   (let* ((bodies (map ssxpath-match.value
-				       (stream->list bodies))))
-		     (if (and (every string? bodies) ;; XX too narrow?
-			      (string=? (strings-append bodies)
-					pathhead))
-			 (begin
-			   ;;(step)
-			   ;; XX is it OK to return the element,
-			   ;; versus its body here?
-			   ms)
-			 (begin
-			   ;;(step)
-			   '()))))
+                  ((string? pathhead)
+                   (let* ((bodies (map ssxpath-match.value
+                                       (stream->list bodies))))
+                     (if (and (every string? bodies) ;; XX too narrow?
+                              (string=? (strings-append bodies)
+                                        pathhead))
+                         (begin
+                           ;;(step)
+                           ;; XX is it OK to return the element,
+                           ;; versus its body here?
+                           ms)
+                         (begin
+                           ;;(step)
+                           '()))))
 
-		  ((pair? pathhead)
-		   ;; filtering
-		   (rec (stream-filter
-			 (lambda (v)
-			   (pair?
-			    (force
-			     (__ssxpath-matches*/context
-			      pathhead
-			      (list v)
-			      #f
-			      #f))))
-			 ms)))
+                  ((pair? pathhead)
+                   ;; filtering
+                   (rec (stream-filter
+                         (lambda (v)
+                           (pair?
+                            (force
+                             (__ssxpath-matches*/context
+                              pathhead
+                              (list v)
+                              #f
+                              #f))))
+                         ms)))
 
-		  (else
-		   (error "invalid element in path:" pathhead)))))))
+                  (else
+                   (error "invalid element in path:" pathhead)))))))
 
 (def cj-ssxpath:nothing (box 'nothing))
 ;; avoiding gensym makes ccache work better!... (and box really
@@ -281,76 +281,76 @@
 
 (def (iseq-not-element? v)
      (FV (v)
-	 (if (pair? v)
-	     (not (symbol? (force (car v))))
-	     (null? v))))
+         (if (pair? v)
+             (not (symbol? (force (car v))))
+             (null? v))))
 
 
 (def (cj-ssxpath:prep-elements elements)
      (.fold-right/iota
       elements
       (lambda (e res i)
-	(cons (ssxpath-match e i res #f #f) res))
+        (cons (ssxpath-match e i res #f #f) res))
       '()))
 
 
 (def (_ssxpath-matches*/context path [iseq-not-element? elements])
      (__ssxpath-matches*/context path
-				 (cj-ssxpath:prep-elements elements)
-				 #t
-				 #t))
+                                 (cj-ssxpath:prep-elements elements)
+                                 #t
+                                 #t))
 
 (def (_ssxpath-matches/context path [sxml-element? element])
      (__ssxpath-matches*/context path
-				 (list (ssxpath-match element #f '() #f #f))
-				 #t
-				 #t))
+                                 (list (ssxpath-match element #f '() #f #f))
+                                 #t
+                                 #t))
 
 (def (_ssxpath-matches* path [iseq-not-element? elements])
      (stream-map ssxpath-match.value
-		 (__ssxpath-matches*/context
-		  path
-		  (cj-ssxpath:prep-elements elements)
-		  #t
-		  ;; XX change to #f and
-		  ;; implement it then
-		  ;; remove stream-map:
-		  #t)))
+                 (__ssxpath-matches*/context
+                  path
+                  (cj-ssxpath:prep-elements elements)
+                  #t
+                  ;; XX change to #f and
+                  ;; implement it then
+                  ;; remove stream-map:
+                  #t)))
 
 (def (_ssxpath-matches path [sxml-element? element])
      (stream-map ssxpath-match.value
-		 (__ssxpath-matches*/context
-		  path
-		  (list (ssxpath-match element #f '() #f #f))
-		  #t
-		  ;; XX ditto
-		  #t)))
+                 (__ssxpath-matches*/context
+                  path
+                  (list (ssxpath-match element #f '() #f #f))
+                  #t
+                  ;; XX ditto
+                  #t)))
 
 ;; auto-currying:
 
 (def (ssxpath-matches path
-		      #!optional
-		      (element cj-ssxpath:nothing))
+                      #!optional
+                      (element cj-ssxpath:nothing))
      (def cont (C _ssxpath-matches path _))
      (if (eq? element cj-ssxpath:nothing) cont (cont element)))
 
 (def (ssxpath-matches* path
-		       #!optional
-		       (elements cj-ssxpath:nothing))
+                       #!optional
+                       (elements cj-ssxpath:nothing))
      (def cont (C _ssxpath-matches* path _))
      (if (eq? elements cj-ssxpath:nothing) cont (cont elements)))
 
 ;; with context:
 
 (def (ssxpath-matches/context path
-			      #!optional
-			      (element cj-ssxpath:nothing))
+                              #!optional
+                              (element cj-ssxpath:nothing))
      (def cont (C _ssxpath-matches/context path _))
      (if (eq? element cj-ssxpath:nothing) cont (cont element)))
 
 (def (ssxpath-matches*/context path
-			       #!optional
-			       (elements cj-ssxpath:nothing))
+                               #!optional
+                               (elements cj-ssxpath:nothing))
      (def cont (C _ssxpath-matches*/context path _))
      (if (eq? elements cj-ssxpath:nothing) cont (cont elements)))
 
@@ -361,25 +361,25 @@
 
 (def (ssxpath:->boolean v)
      (FV (v)
-	 (not (or (null? v)
-		  (not v)))))
+         (not (or (null? v)
+                  (not v)))))
 
 ;; (can't use comp here because of the currying)
 
 (def (ssxpath-matches? path
-		       #!optional
-		       (element cj-ssxpath:nothing))
+                       #!optional
+                       (element cj-ssxpath:nothing))
      (def cont
-	  (lambda (element)
-	    (ssxpath:->boolean (_ssxpath-matches/context path element))))
+          (lambda (element)
+            (ssxpath:->boolean (_ssxpath-matches/context path element))))
      (if (eq? element cj-ssxpath:nothing) cont (cont element)))
 
 (def (ssxpath-matches*? path
-			#!optional
-			(elements cj-ssxpath:nothing))
+                        #!optional
+                        (elements cj-ssxpath:nothing))
      (def cont
-	  (lambda (elements)
-	    (ssxpath:->boolean (_ssxpath-matches*/context path elements))))
+          (lambda (elements)
+            (ssxpath:->boolean (_ssxpath-matches*/context path elements))))
      (if (eq? elements cj-ssxpath:nothing) cont (cont elements)))
 
 
@@ -439,15 +439,15 @@
  > (sm* '(a * * /) '((a (b "world")) (a (b (c "here")))))
  ("here")
  > (sm* '(body * a @ href /)
-	'((body (p "hm " (a (@ (href "hah"))) "."))))
+        '((body (p "hm " (a (@ (href "hah"))) "."))))
  ("hah")
  > (sm* '(body p 0 a @ href /)
-	'((body (p "hm " (a (@ (href "hah"))) ".")
-		(p "hm " (a (@ (href "hah2"))) "."))))
+        '((body (p "hm " (a (@ (href "hah"))) ".")
+                (p "hm " (a (@ (href "hah2"))) "."))))
  ("hah")
  > (sm* '(body * 1 a @ href /)
-	'((body (p "hm " (a (@ (href "hah"))) ".")
-		(p "hm " (a (@ (href "hah2"))) "."))))
+        '((body (p "hm " (a (@ (href "hah"))) ".")
+                (p "hm " (a (@ (href "hah2"))) "."))))
  ("hah2")
  ;; (interesting, even attribute bodies are lists. Of course, when
  ;; treating them that way..: )
@@ -463,14 +463,14 @@
  > (.list (ssxpath-matches* '(p 2) '((p "hello" " world") (p "etc."))))
  ()
  > (.list (ssxpath-matches* '(p 0 "hello world")
-			    '((p "hello" " world") (p "etc."))))
+                            '((p "hello" " world") (p "etc."))))
  ((p "hello" " world"))
  ;; ^ XX is it OK to return the element, versus its body here? ?
  > (.list (ssxpath-matches* '(p 1 "hello world")
-			    '((p "hello" " world") (p "etc."))))
+                            '((p "hello" " world") (p "etc."))))
  ()
  > (.list (ssxpath-matches* '(p 1 "etc.")
-			    '((p "hello" " world") (p "etc."))))
+                            '((p "hello" " world") (p "etc."))))
  ((p "etc.")) ;; ditto
 
  ;; and, asking for booleans:
@@ -481,18 +481,18 @@
  
  ;; sub-match feature
  > (sm* '(body * (a @ href "hah"))
-	'((body (p "hm " (a (@ (href "hah"))) ".")
-		(p "hm " (a (@ (href "hah2"))) "."))))
+        '((body (p "hm " (a (@ (href "hah"))) ".")
+                (p "hm " (a (@ (href "hah2"))) "."))))
  ((p "hm " (a (@ (href "hah"))) "."))
  > (sm* '(body * * (@ href "hah"))
-	'((body (p "hm " (a (@ (href "hah"))) ".")
-		(p "hm " (a (@ (href "hah2"))) "."))))
+        '((body (p "hm " (a (@ (href "hah"))) ".")
+                (p "hm " (a (@ (href "hah2"))) "."))))
  ((a (@ (href "hah"))))
  > (sm* '(body * a (@ href "hah") /)
-	'((body (p "hm "
-		   (a (@ (href "hah")) "one")
-		   (a (@ (href "hah2")) "two")
-		   "."))))
+        '((body (p "hm "
+                   (a (@ (href "hah")) "one")
+                   (a (@ (href "hah2")) "two")
+                   "."))))
  ("one")
 
 
@@ -509,9 +509,9 @@
 
 
  > (def l '((p (@ (class "a")) "hello" " world")
-	    (p "hello" " world")
-	    (table (tr (td "foo")))
-	    (p (@ (class "b")) "etc.")))
+            (p "hello" " world")
+            (table (tr (td "foo")))
+            (p (@ (class "b")) "etc.")))
 
  > (def doc `(body ,@l))
 
