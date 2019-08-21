@@ -365,7 +365,7 @@
 	 (not (or (null? v)
 		  (not v)))))
 
-;; (can't use compose-function here because of the currying)
+;; (can't use comp here because of the currying)
 
 (def (ssxpath-matches? path
 		       #!optional
@@ -386,10 +386,10 @@
 
 
 (TEST
- > (def sm* (comp-function stream->list ssxpath-matches*))
- > (def sm (comp-function stream->list ssxpath-matches))
- > (def sm*/c (comp-function stream->list ssxpath-matches*/context))
- > (def sm/c (comp-function stream->list ssxpath-matches/context))
+ > (def sm* (comp* stream->list ssxpath-matches*))
+ > (def sm (comp* stream->list ssxpath-matches))
+ > (def sm*/c (comp* stream->list ssxpath-matches*/context))
+ > (def sm/c (comp* stream->list ssxpath-matches/context))
 
  > (sm* '() '((a (b))))
  ((a (b)))
