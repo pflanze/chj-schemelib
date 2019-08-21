@@ -12,8 +12,8 @@
                  keys)))
 
 (TEST
- > (.show (constr 1 '(:a :b :c :d :d :a)))
- (table (list ':a 1) (list ':b 1) (list ':c 1) (list ':d 1)))
+ > (.show-clojure (constr 1 '(:a :b :c :d :d :a)))
+ (hash-map ':a 1 ':b 1 ':c 1 ':d 1))
 
 
 (defn fib-seq

@@ -42,7 +42,43 @@
 (use-clojure)
 
 (def (hash-map . keys+vals)
-     (list->table (sequential-pairs keys+vals list)))
+     (list->table (sequential-pairs keys+vals cons)))
+
+
+;; Fall back to Scheme .show
+(def. any.show-clojure .show)
+
+(def. (table.show-clojure t)
+  `(hash-map ,@(fold-right (lambda (k l)
+                             (cons* (.show-clojure k)
+                                    (.show-clojure (table-ref t k))
+                                    l))
+                           '()
+                           (table-sorted-keys t))))
+
+;; (def. clojure#keyword.show-clojure id)
+;; To omit the quote for :foo, but the quote doesn't hurt Clojure, and
+;; keeps the value re-evaluateable in here as well.
+
+(def. ##keyword.show-clojure
+  (=>>* keyword.string
+        (string-append ":")
+        string.symbol
+        ;; add quote so that .show-clojure is reversable
+        ((lambda (v)
+           `',v))))
+
+(TEST
+ > (use-clojure)
+ > (.show-clojure f:)
+ ':f ;; see comment in ##keyword.show-clojure
+ > (.show-clojure ':f)
+ ':f ;; see comment on clojure#keyword.show-clojure
+ > (.show-clojure 'f)
+ 'f
+ > (.show-clojure (hash-map b: 2 a: 1))
+ (hash-map ':a 1 ':b 2))
+
 
 (def (conj seq . vals)
      (cond (((either null? pair?) seq)
