@@ -43,7 +43,7 @@
                                (`(`var `test-expr)
                                 (assert* symbol? var)
                                 `(,COND (,test-expr => (lambda (,var) ,yes))
-                                        (else (,NO))))))
+                                        (#t (,NO))))))
                       yes
                       (source-code assignments)))))
 
@@ -104,7 +104,7 @@
                    (`(`var `test)
                     (assert* symbol? var) ;; XX cj-typed ?
                     `(cond (,test => (lambda (,var) ,yes))
-                           (else ,no))))
+                           (#t ,no))))
        
             ;; multi-binding variant
             (let* ((assignments**
@@ -123,7 +123,7 @@
                   ,(fold-right (lambda-values
                                 ((var test-expr tmpvar) yes)
                                 `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
-                                        (else (,NO))))
+                                        (#t (,NO))))
                                `(let ,(map (lambda-values
                                             ((var test-expr tmpvar))
                                             `(,var ,tmpvar))
