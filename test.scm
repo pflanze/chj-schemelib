@@ -199,6 +199,7 @@
      (println (list "load override from test.scm: "
 		    msg))
      (orig-load path-or-settings))
+   (eval `(##namespace ("")))
    (if (string? path-or-settings)
        ;; now is it a source file? we hope so.. well check.
        ;; (if it's an object file, we won't know the source safely anyway)
