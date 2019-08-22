@@ -282,6 +282,13 @@
             (and (pred (VECTOR-ref s i))
                  (lp (inc i)))))))
 
+  (def. (VECTOR.any s pred)
+    (let ((len (VECTOR-length s)))
+      (let lp ((i 0))
+        (and (< i len)
+             (or (pred (VECTOR-ref s i))
+                 (lp (inc i)))))))
+
 
   (def _VECTOR-rest-count 0)
 
