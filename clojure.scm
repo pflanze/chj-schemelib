@@ -364,7 +364,19 @@
 
 
 (def (clojure#every? fn s) (.every s fn))
-(def (clojure#some fn s . rest) (apply .any s fn rest))
+(def (clojure#some fn s)
+     (def res #f)
+     ;; ^ Hack to retain the value the predicate returned, while still
+     ;; using .any from Scheme world.
+     (if (seq s)
+         (if (.any s (lambda (v)
+                       (let [v (fn v)]
+                         (if v
+                             (begin
+                               (set! res v)
+                               #t)
+                             #f))))
+             res)))
 (def clojure#any? true/1)
 
 (TEST
@@ -373,18 +385,30 @@
  #f
  > (every? even? '[0 2 4])
  #t
+ > (even? 2)
+ #t
+ > (even? 1)
+ #f
  > (some even? '[1])
- #f
+ clojure#nil
  > (some even? '[])
- #f
+ clojure#nil
  > (some even? '[1 2])
  #t
  > (some even? '(1 2))
  #t
- > (some (fn [a b] (a b)) (list even? odd?) '(0 2))
- #t
- > (some (fn [a b] (a b)) (list even? odd?) '(1 2))
- #f)
+ > (some seq (list '[] '() nil ""))
+ clojure#nil
+ > (F (some seq (list '[] '() nil "" "a")))
+ (#\a)
+ 
+ ;; Oh, Clojure (1.10.0) doesn't support multiple inputs for
+ ;; some.
+ ;; > (some (fn [a b] (a b)) (list even? odd?) '(0 2))
+ ;; #t
+ ;; > (some (fn [a b] (a b)) (list even? odd?) '(1 2))
+ ;; #f
+ )
 
 
 (def (clojure#zipmap keys vals)
