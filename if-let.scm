@@ -92,43 +92,44 @@
 ;; Probably?)  but don't make the variables visible to "subsequent"
 ;; terms, only to `yes`
 
-(def (if-let-expand COND [(source-of list?) assignments] yes no)
-     (let ((assignments*
-            (source-code assignments)))
-       (if (and (length-= assignments* 2)
-                (not (pair? (source-code (car assignments*)))))
+(def (if-let-expand COND assignments yes no)
+     (assert*
+      list? assignments
+      (lambda (assignments*)
+        (if (and (length-= assignments* 2)
+                 (not (pair? (source-code (car assignments*)))))
 
-           ;; single-binding variant
-           (mcase assignments
-                  (`(`var `test)
-                   (assert* symbol? var) ;; XX cj-typed ?
-                   `(cond (,test => (lambda (,var) ,yes))
-                          (else ,no))))
+            ;; single-binding variant
+            (mcase assignments
+                   (`(`var `test)
+                    (assert* symbol? var) ;; XX cj-typed ?
+                    `(cond (,test => (lambda (,var) ,yes))
+                           (else ,no))))
        
-           ;; multi-binding variant
-           (let* ((assignments**
-                   (map (lambda (assignment)
-                          (mcase assignment
-                                 (`(`var `test-expr)
-                                  (assert* symbol? var
-                                           (lambda (var*)
-                                             (values var
-                                                     test-expr
-                                                     (gensym var*)))))))
-                        assignments*)))
-             (with-gensym
-              NO
-              `(let ((,NO (lambda () ,no)))
-                 ,(fold-right (lambda-values
-                               ((var test-expr tmpvar) yes)
-                               `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
-                                       (else (,NO))))
-                              `(let ,(map (lambda-values
-                                           ((var test-expr tmpvar))
-                                           `(,var ,tmpvar))
-                                          assignments**)
-                                 ,yes)
-                              assignments**)))))))
+            ;; multi-binding variant
+            (let* ((assignments**
+                    (map (lambda (assignment)
+                           (mcase assignment
+                                  (`(`var `test-expr)
+                                   (assert* symbol? var
+                                            (lambda (var*)
+                                              (values var
+                                                      test-expr
+                                                      (gensym var*)))))))
+                         assignments*)))
+              (with-gensym
+               NO
+               `(let ((,NO (lambda () ,no)))
+                  ,(fold-right (lambda-values
+                                ((var test-expr tmpvar) yes)
+                                `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
+                                        (else (,NO))))
+                               `(let ,(map (lambda-values
+                                            ((var test-expr tmpvar))
+                                            `(,var ,tmpvar))
+                                           assignments**)
+                                  ,yes)
+                               assignments**))))))))
 
 (defmacro (if-let assignments yes #!optional no)
   ;; if no is #f, just pass it on as code, and it will result in #f, too ":)"
