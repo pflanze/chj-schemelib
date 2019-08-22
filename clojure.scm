@@ -32,7 +32,7 @@
   `(begin
      (use-clojure-base)
      (##namespace ("clojure#" hash-map conj apply reduce concat
-                   take drop filter map every?
+                   take drop filter map every? some
                    any?
                    zipmap
                    vec vector-of
@@ -364,6 +364,7 @@
 
 
 (def (clojure#every? fn s) (.every s fn))
+(def (clojure#some fn s . rest) (apply .any s fn rest))
 (def clojure#any? true/1)
 
 (TEST
@@ -372,7 +373,19 @@
  #f
  > (every? even? '[0 2 4])
  #t
- )
+ > (some even? '[1])
+ #f
+ > (some even? '[])
+ #f
+ > (some even? '[1 2])
+ #t
+ > (some even? '(1 2))
+ #t
+ > (some (fn [a b] (a b)) (list even? odd?) '(0 2))
+ #t
+ > (some (fn [a b] (a b)) (list even? odd?) '(1 2))
+ #f)
+
 
 (def (clojure#zipmap keys vals)
      (list->table (zip-cons keys vals)))
