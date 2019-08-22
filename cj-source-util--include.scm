@@ -138,6 +138,7 @@
 (include "improper-length--include.scm")
 
 (define (safer-apply template fn args err cont)
+  (declare (not optimize-dead-local-variables))
   (let ((len (improper-length args)))
     (if (negative? len)
 	(error "got improper list:" args)
