@@ -442,6 +442,8 @@
 (define list-map-adjacent map-adjacent)
 (define list-map/prev-result map/prev-result)
 
+(define list-any any)
+
 
 (template-map
  ((istream. '(istream. ilist.))
@@ -470,6 +472,9 @@
 
    (define. (istream.map s f . ss)
      (apply stream-map f s ss))
+
+   (define. (istream.any s f . ss)
+     (apply stream-any f s ss))
 
    (define. (istream.map-list s f)
      (stream-map-list f s))

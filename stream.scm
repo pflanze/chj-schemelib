@@ -85,7 +85,7 @@
 	chop stream-chop
 	stream-unfold
 	stream-unfold2
-	stream-zip
+        stream-zip
 	zip2 stream-zip2
         sectionize stream-sectionize
         map-adjacent stream-map-adjacent
@@ -97,6 +97,7 @@
 	stream-ref
 	;; stream-%cars+cdrs
 	stream-every
+	stream-any
 	gen-infinite-stream
 	gen-stream
 	stream-min&max
@@ -1333,9 +1334,6 @@
  )
 
 
-;; (define (stream-any fn ss)
-;;   ( ))
-
 ;; srfi-1: (define (zip list1 . more-lists) (apply map list list1 more-lists))
 ;; hm gives error unless all are of the same length.
 ;; usually not what we want right? e.g. when zipping in an infinite iota.
@@ -1565,6 +1563,55 @@
  > (stream-every (lambda (a b) (a b)) (list even? even?) (stream-iota))
  #f)
 
+
+(define (stream-any pred lis1 . lists)
+  ;;(check-arg procedure? pred any)
+  (if (pair? lists)
+
+      ;; N-ary case
+      (receive (heads tails) (stream-%cars+cdrs (cons lis1 lists))
+               (and (pair? heads)
+                    (let lp ((heads heads) (tails tails))
+                      (receive (next-heads next-tails) (stream-%cars+cdrs tails)
+                               (if (pair? next-heads)
+                                   (or (apply pred heads)
+                                       (lp next-heads next-tails))
+                                   (apply pred heads))))))
+                                        ; Last PRED app is tail call.
+
+      ;; Fast path
+      (FV (lis1)
+          (and (not (null-list? lis1))
+               (let lp ((head (car lis1)) (tail (cdr lis1)))
+                 (FV (tail)
+                     (if (null-list? tail)
+                         (pred head)    ; Last PRED app is tail call.
+                         (or (pred head) (lp (car tail) (cdr tail))))))))))
+
+
+(TEST
+ > (stream-any (lambda (a b) (a b)) (list even?) '(0 2))
+ #t
+ > (stream-any (lambda (a b) (a b)) (list even?) '(1 2))
+ #f
+ > (stream-any even? '(1 2))
+ #t
+ > (stream-any even? '(1 3))
+ #f
+ > (stream-any even? '())
+ #f
+ > (stream-any (lambda (a b) (a b)) (list even? odd?) '(0 2))
+ #t
+ > (stream-any (lambda (a b) (a b)) (list even? odd?) '(1 2))
+ #f
+ > (stream-any (lambda (a b) (a b)) (list even? odd?) '(0 3))
+ #t
+ > (stream-any (lambda (a b) (a b)) (list even? odd?) (stream-iota))
+ #t
+ > (stream-any (lambda (a b) (a b)) (list odd? even?) (stream-iota))
+ #f
+ > (stream-any (lambda (a b) (a b)) (list odd? even? even?) (stream-iota))
+ #t)
 
 
 (define (gen-infinite-stream get)
