@@ -134,7 +134,10 @@
   (let ((else* (if else
 		   (mcase else
 			  (`(else . `rest)
-			   (rest->begin rest)))
+			   (rest->begin rest))
+                          (`(`t . `rest)
+                           (assert* true? t)
+                           (rest->begin rest)))
 		   `(void))))
     (mcase t+then
 	   (`(`t => `then)
