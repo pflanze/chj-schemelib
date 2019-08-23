@@ -5,12 +5,13 @@
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
-(require easy)
+(require easy
+         (cj-source-util-2 form-unquote-splicing?))
 
 (export (macro use-clojure-base))
 
 (defmacro (use-clojure-base)
-  `(##namespace ("clojure#" defn fn defmacro
+  `(##namespace ("clojure#" defn fn defmacro quasiquote
                  false true nil nil? = not if if-not when let if-let cond
                  false? true? keyword?
                  lazy-seq
@@ -265,11 +266,141 @@
  > (defmacro t-fixx [x] x)
  > (t-fixx 10)
  10
- > (defmacro t-fixx ([x] x) ([x y] `(* ,x ,y)))
+ > (defmacro t-fixx
+     ([x] x)
+     ([x y] (list '* x y)))
  > (t-fixx 10)
  10
  > (t-fixx 10 20)
  200)
+
+
+;; Hack to get ~foo and foo~ syntax since we don't have custom reader
+;; yet.
+(def (clojure:quasiquote-~symbol~-kind sym)
+     (let* ((str (symbol.string (source-code sym)))
+            (len (string.length str)))
+       (if (< len 2)
+           'none
+           (if (eq? (string.ref str 0) #\~)
+               'unquote
+               'none ;; XX check for foo~  ah actually not a thing. sigh how is gensym?
+               ))))
+
+(def (clojure:quasiquote-~symbol->value sym)
+     (let* ((str (symbol.string (source-code sym)))
+            (len (string.length str)))
+       (if (< len 2)
+           (error "not a  ~symbol")
+           (if (eq? (string.ref str 0) #\~)
+               (let ((str* (substring str 1 len)))
+                 (or (string->number str*)
+                     (string->symbol str*)))
+               (error "not a  ~symbol")))))
+
+(defmacro (clojure#quasiquote e)
+  "Supporting ~foo (etc.?) via HACK; also still supporting Scheme's
+unquote and unquote-splicing at the same time"
+  (let expand ((e e))
+    (mcase e
+           (pair?
+            (let-pair
+             ((a e*) (source-code e))
+             (case (source-code a)
+               ((~)
+                (let (e* (source-code e*))
+                  ;; ( ^ shouldn't have any source anyway)
+                  (if (pair? e*)
+                      (let-pair
+                       ((b e**) e*)
+                       ;; no need for "generate |unquote|"
+                       ;; business. just 'do' it ":)"
+                       `(cons ,b
+                              ,(expand e**)))
+                      ;; Clojure fails this at read time already,
+                      ;; but we're "hacked"...:
+                      (source-error a "missing item after ~"))))
+
+               ((unquote)
+                (let (e* (source-code e*))
+                  (if (pair? e*)
+                      (let-pair
+                       ((b e**) e*)
+                       (if (null? e**)
+                           b
+                           `(cons ',a
+                                  ,(expand e*))))
+                      `(cons ',a
+                             ,(expand e*)))))
+                             
+               (else
+                (mcase a
+
+                       (form-unquote-splicing?
+                        (let (b (cadr (source-code a)))
+                          (if (null? e*) ;; optim
+                              b
+                              `(append ,b
+                                       ,(expand e*)))))
+                      
+                       (else
+                        `(cons ,(expand a)
+                               ,(expand e*))))))))
+           (null?
+            `'())
+           (vector?
+            (source-error e "unfinished"))
+           (symbol?
+            (xcase (clojure:quasiquote-~symbol~-kind e)
+                   ((unquote)
+                    (clojure:quasiquote-~symbol->value e))
+                   ((none)
+                    `',e)))
+           ((either string? number?) ;; self-quoting
+            e)
+           (else
+            (source-error e "unfinished2")))))
+
+(TEST
+ > (use-clojure-base)
+ > (expansion#clojure#quasiquote (a 1))
+ (cons 'a (cons 1 '()))
+ > (expansion#clojure#quasiquote (a ~1))
+ (cons 'a (cons 1 '()))
+ > (clojure#quasiquote (a ~1))
+ (a 1)
+ > (clojure#quasiquote (a ~(+ 1 2)))
+ (a 3)
+ > (expansion#clojure#quasiquote (a ~ 1))
+ (cons 'a (cons 1 '()))
+ > (expansion#clojure#quasiquote (a b (c) 1))
+ (cons 'a (cons 'b (cons (cons 'c '()) (cons 1 '()))))
+ > (eval #)
+ (a b (c) 1)
+ > (expansion#clojure#quasiquote (a b (~ c) 1))
+ (cons 'a (cons 'b (cons (cons c '()) (cons 1 '()))))
+ > (def c 13)
+ > (clojure#quasiquote (a b (~ c) 1))
+ (a b (13) 1)
+ > `(a b (~c d) 1)
+ (a b (13 d) 1)
+ ;; ^ all of these: XX: pending: namespacing
+
+ ;; Still support Scheme, too:
+ > `(a b unquote c)
+ (a b . 13)
+ > `(a b unquote c d)
+ (a b unquote c d)
+ > `(a ,@(list 1 2))
+ (a 1 2)
+ > `(,@(list 1 2))
+ (1 2)
+ > `,@(list 1 2)
+ ,@(list 1 2)
+ > `(a b (,c ,@(list 1 2) d) 1)
+ (a b (13 1 2 d) 1))
+
+
 
 
 (defmacro (clojure#fn arg0 . args)
