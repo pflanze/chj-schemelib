@@ -11,7 +11,7 @@
 (export (macro use-clojure-base))
 
 (defmacro (use-clojure-base)
-  `(##namespace ("clojure#" defn fn defmacro quasiquote
+  `(##namespace ("clojure#" defn fn defmacro quasiquote macroexpand macroexpand-1
                  false true nil nil? = not if if-not when let if-let cond
                  false? true? keyword?
                  lazy-seq
@@ -206,6 +206,13 @@
   (=> (clojure:definition-parse stx args)
       (.scheme-code `define-macro*)))
 
+;; Clojure's macroexpand is a function, not a macro!
+(def (clojure#macroexpand e)
+     (cj-desourcify (macro-star-expand e)))
+
+(def (clojure#macroexpand-1 e)
+     (cj-desourcify (macro-star-expand-1 e)))
+
 
 (TEST
  > (use-clojure-base)
@@ -398,8 +405,23 @@ unquote and unquote-splicing at the same time"
  > `,@(list 1 2)
  ,@(list 1 2)
  > `(a b (,c ,@(list 1 2) d) 1)
- (a b (13 1 2 d) 1))
+ (a b (13 1 2 d) 1)
 
+ > (defmacro t-fixx ([x] x) ([x y] `(/ ~x ~ y)))
+ > (t-fixx 10 20)
+ 1/2
+ > (macroexpand (quote-source (t-fixx 10 20)))
+ (/ 10 20)
+ > (defmacro t-fixx
+     ([x] x)
+     ([x y]
+      (first x)
+      `(list (first ~y) ~ x)))
+ > (macroexpand (quote-source (t-fixx (t-fixx "10" "30") "20")))
+ (list (first "20") (t-fixx "10" "30"))
+ ;; (clojure.core/list (clojure.core/first "20") (t-fixx "10" "30"))
+ > (eval #)
+ (#\2 (#\3 "10")))
 
 
 
