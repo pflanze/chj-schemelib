@@ -284,17 +284,18 @@
 
 ;; Hack to get ~foo and foo~ syntax since we don't have custom reader
 ;; yet.
-(def (clojure:quasiquote-~symbol~-kind sym)
+(def (clojure:quasiquote-symbol-kind sym)
      (let* ((str (symbol.string (source-code sym)))
             (len (string.length str)))
        (if (< len 2)
            'none
            (if (eq? (string.ref str 0) #\~)
                'unquote
-               'none ;; XX check for foo~  ah actually not a thing. sigh how is gensym?
-               ))))
+               (if (eq? (string.ref str (dec len)) #\#)
+                   'gensym
+                   'none)))))
 
-(def (clojure:quasiquote-~symbol->value sym)
+(def (clojure:quasiquote-unquote->value sym)
      (let* ((str (symbol.string (source-code sym)))
             (len (string.length str)))
        (if (< len 2)
@@ -305,68 +306,85 @@
                      (string->symbol str*)))
                (error "not a  ~symbol")))))
 
+(def (clojure:quasiquote-gensym->symbol sym)
+     (let* ((str (symbol.string (source-code sym)))
+            (len (string.length str)))
+       (if (< len 2)
+           (error "not a symbol#")
+           (if (eq? (string.ref str (dec len)) #\#)
+               (let ((str* (substring str 0 (dec len))))
+                 (string->symbol str*))
+               (error "not a symbol#")))))
+
 (defmacro (clojure#quasiquote e)
   "Supporting ~foo (etc.?) via HACK; also still supporting Scheme's
 unquote and unquote-splicing at the same time"
-  (let expand ((e e))
-    (mcase e
-           (pair?
-            (let-pair
-             ((a e*) (source-code e))
-             (case (source-code a)
-               ((~)
-                (let (e* (source-code e*))
-                  ;; ( ^ shouldn't have any source anyway)
-                  (if (pair? e*)
-                      (let-pair
-                       ((b e**) e*)
-                       ;; no need for "generate |unquote|"
-                       ;; business. just 'do' it ":)"
-                       `(cons ,b
-                              ,(expand e**)))
-                      ;; Clojure fails this at read time already,
-                      ;; but we're "hacked"...:
-                      (source-error a "missing item after ~"))))
+  (let (gensyms (table))
+    (let expand ((e e))
+      (mcase e
+             (pair?
+              (let-pair
+               ((a e*) (source-code e))
+               (case (source-code a)
+                 ((~)
+                  (let (e* (source-code e*))
+                    ;; ( ^ shouldn't have any source anyway)
+                    (if (pair? e*)
+                        (let-pair
+                         ((b e**) e*)
+                         ;; no need for "generate |unquote|"
+                         ;; business. just 'do' it ":)"
+                         `(cons ,b
+                                ,(expand e**)))
+                        ;; Clojure fails this at read time already,
+                        ;; but we're "hacked"...:
+                        (source-error a "missing item after ~"))))
 
-               ((unquote)
-                (let (e* (source-code e*))
-                  (if (pair? e*)
-                      (let-pair
-                       ((b e**) e*)
-                       (if (null? e**)
-                           b
-                           `(cons ',a
-                                  ,(expand e*))))
-                      `(cons ',a
-                             ,(expand e*)))))
+                 ((unquote)
+                  (let (e* (source-code e*))
+                    (if (pair? e*)
+                        (let-pair
+                         ((b e**) e*)
+                         (if (null? e**)
+                             b
+                             `(cons ',a
+                                    ,(expand e*))))
+                        `(cons ',a
+                               ,(expand e*)))))
                              
-               (else
-                (mcase a
+                 (else
+                  (mcase a
 
-                       (form-unquote-splicing?
-                        (let (b (cadr (source-code a)))
-                          (if (null? e*) ;; optim
-                              b
-                              `(append ,b
-                                       ,(expand e*)))))
+                         (form-unquote-splicing?
+                          (let (b (cadr (source-code a)))
+                            (if (null? e*) ;; optim
+                                b
+                                `(append ,b
+                                         ,(expand e*)))))
                       
-                       (else
-                        `(cons ,(expand a)
-                               ,(expand e*))))))))
-           (null?
-            `'())
-           (vector?
-            (source-error e "unfinished"))
-           (symbol?
-            (xcase (clojure:quasiquote-~symbol~-kind e)
-                   ((unquote)
-                    (clojure:quasiquote-~symbol->value e))
-                   ((none)
-                    `',e)))
-           ((either string? number?) ;; self-quoting
-            e)
-           (else
-            (source-error e "unfinished2")))))
+                         (else
+                          `(cons ,(expand a)
+                                 ,(expand e*))))))))
+             (null?
+              `'())
+             (vector?
+              (source-error e "unfinished"))
+             (symbol?
+              (xcase (clojure:quasiquote-symbol-kind e)
+                     ((unquote)
+                      (clojure:quasiquote-unquote->value e))
+                     ((gensym)
+                      `',(let (sym (clojure:quasiquote-gensym->symbol e))
+                           (or (table-ref gensyms sym #f)
+                               (let (sym* (gensym sym))
+                                 (table-set! gensyms sym sym*)
+                                 sym*))))
+                     ((none)
+                      `',e)))
+             ((either string? number?) ;; self-quoting
+              e)
+             (else
+              (source-error e "unfinished2"))))))
 
 (TEST
  > (use-clojure-base)
@@ -421,7 +439,18 @@ unquote and unquote-splicing at the same time"
  (list (first "20") (t-fixx "10" "30"))
  ;; (clojure.core/list (clojure.core/first "20") (t-fixx "10" "30"))
  > (eval #)
- (#\2 (#\3 "10")))
+ (#\2 (#\3 "10"))
+
+ ;; Gensym
+ > (define TEST:equal? syntax-equal?)
+ > `(foo# foo# bar#)
+ ;; (foo__1949__auto__ foo__1949__auto__ bar__1950__auto__)
+ (GEN:foo-1 GEN:foo-1 GEN:bar-2)
+ > (%try `(~foo#))
+ ;; Syntax error compiling at (form-init6177359002304238130.clj:1:1621).
+ ;; Unable to resolve symbol: foo# in this context
+ (exception text: "Unbound variable: foo#\n"))
+
 
 
 
