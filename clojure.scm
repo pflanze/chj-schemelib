@@ -22,11 +22,6 @@
 
 (export (macro use-clojure))
 
-(defmacro (scheme . body)
-  `(##let ()
-          (##namespace (""))
-          ,@body))
-
 
 (defmacro (use-clojure)
   `(begin
@@ -37,7 +32,7 @@
                    zipmap
                    vec vector-of
                    keys vals
-                   symbol symbol? keyword keyword?
+                   symbol symbol? keyword
                    last butlast reverse))))
 
 (use-clojure)
@@ -140,24 +135,24 @@
 
 
 (def (conj seq . vals)
-     (cond (((either null? pair?) seq)
-            (fold cons seq vals))
-           ((vector? seq)
-            (let ((seqlen (vector-length seq))
-                  (valslen (length vals)))
-              (let* ((totlen (+ seqlen valslen))
-                     (v (make-vector totlen)))
-                (for..< (i 0 seqlen)
-                        (vector-set! v i (vector-ref seq i)))
-                (let lp ((i seqlen)
-                         (vals vals))
-                  (when (pair? vals)
-                        (let-pair ((a r) vals)
-                                  (vector-set! v i a)
-                                  (lp (inc i) r))))
-                v)))
-           (else
-            (error "conj: can't handle:" seq))))
+     (##cond (((either null? pair?) seq)
+              (fold cons seq vals))
+             ((vector? seq)
+              (let ((seqlen (vector-length seq))
+                    (valslen (length vals)))
+                (let* ((totlen (+ seqlen valslen))
+                       (v (make-vector totlen)))
+                  (for..< (i 0 seqlen)
+                          (vector-set! v i (vector-ref seq i)))
+                  (let lp ((i seqlen)
+                           (vals vals))
+                    (when (pair? vals)
+                          (let-pair ((a r) vals)
+                                    (vector-set! v i a)
+                                    (lp (inc i) r))))
+                  v)))
+             (else
+              (error "conj: can't handle:" seq))))
 
 (TEST
  > (use-clojure)
@@ -469,14 +464,6 @@
    (string->symbol ($ ":$nam")))
   ([namesp nam]
    (string->symbol ($ ":$namesp/$nam"))))
-
-(def (keyword? v)
-     (or ((scheme keyword?) v) ;; ?
-         (and ((scheme symbol?) v)
-              (let* ((s (symbol.string v))
-                     (len (string-length s)))
-                (and (>= len 1)
-                     (eq? (string-ref s 0) #\:))))))
 
 (def (clojure:assert-non-keyword-looking-string str)
      (let (len (string-length str))

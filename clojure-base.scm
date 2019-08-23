@@ -9,16 +9,19 @@
 
 (export (macro use-clojure-base))
 
-
 (defmacro (use-clojure-base)
-  `(##namespace ("clojure#" defn fn false true nil nil? = not if if-not when let
-                 false? true?
+  `(##namespace ("clojure#" defn fn defmacro
+                 false true nil nil? = not if if-not when let if-let cond
+                 false? true? keyword?
                  lazy-seq
                  seq sequence chunked-seq? first rest next)))
 
-(##namespace (""))
-;; ^ needed when re-loading this file via "load" when tests ran. Sigh,
-;; namespaces
+(defmacro (scheme . body)
+  `(##let ()
+          (##namespace (""))
+          ,@body))
+
+
 
 ;; This uses unsafe ops, as length is supposed to be used and this
 ;; code only used with correct number of argumetns in VS
@@ -71,94 +74,136 @@
 (def (clojure:arity-error len)
      (error "missing definition for arity:" len))
 
+
+(defclass (clojure-definition-case [fixnum? arity]
+                                   binds-scheme
+                                   binds-clojure
+                                   body-clojure)
+  (defmethod (body-scheme _ VS)
+    (scheme:@bind-dispatch binds-scheme
+                           (clojure:fixbody body-clojure)
+                           VS)))
+
+(defclass (clojure-definition [(source-of symbol?) name]
+                              [(list-of (source-of string?)) docstrings]
+                              [false? attributes] ;; currently unused
+                              )
+
+  (defclass (clojure-definition-singlecase binds
+                                           [list? body])
+    (defmethod (scheme-code s DEF)
+      `(,DEF (,name  ,@(clojure->scheme-args binds))
+             ,@docstrings
+             ,@(clojure:fixbody body))))
+
+  (defclass (clojure-definition-multicase [(list-of clojure-definition-case?) real-cases]
+                                          [(list-of clojure-definition-case?) else-cases])
+    (defmethod (scheme-code s DEF)
+      (with-gensyms
+       (VS LEN)
+       `(,DEF (,name . ,VS)
+              ,@docstrings
+              (##let
+               ((,LEN (length ,VS)))
+               (##case
+                ,LEN
+                ,@(map (lambda (c)
+                         `((,(.arity c)) ,(.body-scheme c VS)))
+                       real-cases)
+                (else
+                 ,(cond ((null? else-cases)
+                         `(clojure:arity-error ,LEN))
+                        (((list-of-length 1) else-cases)
+                         (let (s (car else-cases))
+                           `(##if (> ,LEN ,(.arity s))
+                                  ,(.body-scheme s VS)
+                                  (clojure:arity-error ,LEN))))
+                        (else
+                         (source-error
+                          (second else-cases)
+                          "Can't have more than 1 variadic overload")))))))))))
+
+
+(def (clojure:definition-parse stx args)
+     (let*-values
+         (((name args) (if (pair? args)
+                           (values (car args) (cdr args))
+                           (source-error stx "missing definition name")))
+          ((docstrings args) (if (and (pair? args)
+                                      (string? (source-code (car args))))
+                                 (values (list (car args)) (cdr args))
+                                 (values (list) args)))
+          ;; ((maybe-attributes args)
+          ;;  ...)
+          )
+       (assert* symbol? name)
+      
+       (if (pair? args)
+           (let-pair
+            ((a args*) args)
+            (mcase a
+                   (vector?
+                    (clojure-definition-singlecase name
+                                                   docstrings
+                                                   #f
+                                                   a
+                                                   args*))
+                   (pair?
+                    ;; multiple-match form
+                    ;; (M (list 3 4) ((a b) b))  gah not supported yet.
+                    ;;  and not optimized anyway.
+                    (let (cases ;; (list-of clojure-definition-case)
+                          (map (lambda (c)
+                                 (assert*
+                                  pair? c
+                                  (lambda (c*)
+                                    (let-pair
+                                     ((binds body) c*)
+                                     (let (sbinds (clojure->scheme-args binds))
+                                       (clojure-definition-case (improper-length sbinds)
+                                                                sbinds
+                                                                binds
+                                                                body))))))
+                               args))
+                      (let ((real-cases (filter (comp (complement negative?) .arity)
+                                                cases))
+                            (else-cases (filter (comp negative? .arity)
+                                                cases)))
+
+                        (let ((duplicate-cases (=> (sort real-cases (on .arity <))
+                                                   (group-by (on .arity =))
+                                                   (.filter (=>* length ((C > _ 1)))))))
+                          (if
+                           (pair? duplicate-cases)
+                           (source-error (.binds-clojure (second (first duplicate-cases)))
+                                         "Can't have 2 overloads with same arity")
+
+                           (if-let (bad (and (pair? else-cases)
+                                             (let* ((toolargelen (- (.arity (first else-cases))))
+                                                    (bad (filter (lambda (c)
+                                                                   (>= (.arity c) toolargelen))
+                                                                 real-cases)))
+                                               (and (pair? bad)
+                                                    (first bad)))))
+                                   (source-error
+                                    (.binds-clojure bad)
+                                    "Can't have fixed arity function with more params than variadic function")
+                                   (clojure-definition-multicase name
+                                                                 docstrings
+                                                                 #f
+                                                                 real-cases
+                                                                 else-cases)))))))))
+           (source-error stx "missing function arguments/body"))
+       
+       ))
+
 (defmacro (clojure#defn . args)
-  (let*-values
-      (((name args) (if (pair? args)
-                        (values (car args) (cdr args))
-                        (source-error stx "missing function name")))
-       ((docstrings args) (if (and (pair? args)
-                                   (string? (source-code (car args))))
-                              (values (list (car args)) (cdr args))
-                              (values (list) args)))
-       ;; ((maybe-attributes args)
-       ;;  ...)
-       )
-    (assert* symbol? name)
-    (if (pair? args)
-        (let-pair
-         ((a args*) args)
-         (mcase a
-                (vector?
-                 `(def ,name (##lambda ,(clojure->scheme-args a)
-                                  ,@docstrings
-                                  ,@(clojure:fixbody args*))))
-                (pair?
-                 ;; multiple-match form
-                 ;; (M (list 3 4) ((a b) b))  gah not supported yet.
-                 ;;  and not optimized anyway.
-                 (with-gensyms
-                  (VS LEN)
-                  (let (cases ;; (values len body orig-binds)
-                        (map (lambda (c)
-                               (assert*
-                                pair? c
-                                (lambda (c*)
-                                  (let-pair
-                                   ((binds body) c*)
-                                   (let (sbinds (clojure->scheme-args binds))
-                                     (values
-                                      (improper-length sbinds)
-                                      (scheme:@bind-dispatch sbinds
-                                                             (clojure:fixbody body)
-                                                             VS)
-                                      binds))))))
-                             args))
-                    (let ((real-cases (filter (comp (complement negative?) fst)
-                                              cases))
-                          (else-cases (filter (comp negative? fst)
-                                              cases)))
+  (=> (clojure:definition-parse stx args)
+      (.scheme-code `def)))
 
-                      (let ((duplicate-cases (=> (sort real-cases (on fst <))
-                                                 (group-by (on fst =))
-                                                 (.filter (=>* length ((C > _ 1)))))))
-                        (if
-                         (pair? duplicate-cases)
-                         (source-error (3rd (caar duplicate-cases))
-                                       "Can't have 2 overloads with same arity")
-
-                         (if-let (bad (and (pair? else-cases)
-                                           (let* ((toolargelen (- (fst (first else-cases))))
-                                                  (bad (filter (lambda (c)
-                                                                 (>= (fst c) toolargelen))
-                                                               real-cases)))
-                                             (and (pair? bad)
-                                                  (first bad)))))
-                                 (source-error
-                                  (3rd bad)
-                                  "Can't have fixed arity function with more params than variadic function")
-                                 `(def (,name . ,VS)
-                                       ,@docstrings
-                                       (##let
-                                        ((,LEN (length ,VS)))
-                                        (##case
-                                         ,LEN
-                                         ,@(map (lambda-values ((len code orig-binds))
-                                                          `((,len) ,code))
-                                                real-cases)
-                                         (else
-                                          ,(cond ((null? else-cases)
-                                                  `(clojure:arity-error ,LEN))
-                                                 (((list-of-length 1) else-cases)
-                                                  (letv ((len code orig-binds) (car else-cases))
-                                                        `(##if (> ,LEN ,len)
-                                                               ,code
-                                                               (clojure:arity-error ,LEN))))
-                                                 (else
-                                                  (source-error
-                                                   stx
-                                                   "Can't have more than 1 variadic overload"
-                                                   ))))))))))))))))
-        (source-error stx "missing function arguments/body"))))
+(defmacro (clojure#defmacro . args)
+  (=> (clojure:definition-parse stx args)
+      (.scheme-code `define-macro*)))
 
 
 (TEST
@@ -190,17 +235,17 @@
 
  > (with-exception-catcher
     source-error-message
-    (& (eval '(defn t
-                ([a b & r] (list 'first a b r))
-                ([a b] (list 'second a b))
-                ([a b c & r] (list 'third a b c))))))
+    (& (eval (quote-source (defn t
+                             ([a b & r] (list 'first a b r))
+                             ([a b] (list 'second a b))
+                             ([a b c & r] (list 'third a b c)))))))
  "Can't have more than 1 variadic overload"
  > (with-exception-catcher
     source-error-message
-    (& (eval '(defn t
-                ([a b & r] (list 'first a b r))
-                ([a b] (list 'second a b))
-                ([c d] (list 'third c d))))))
+    (& (eval (quote-source (defn t
+                             ([a b & r] (list 'first a b r))
+                             ([a b] (list 'second a b))
+                             ([c d] (list 'third c d)))))))
  "Can't have 2 overloads with same arity"
  > (with-exception-catcher
     source-error-message
@@ -215,7 +260,16 @@
  > (t 3 4)
  (second 3 4)
  > (t 3 4 5)
- (first 3 4 (5)))
+ (first 3 4 (5))
+
+ > (defmacro t-fixx [x] x)
+ > (t-fixx 10)
+ 10
+ > (defmacro t-fixx ([x] x) ([x y] `(* ,x ,y)))
+ > (t-fixx 10)
+ 10
+ > (t-fixx 10 20)
+ 200)
 
 
 (defmacro (clojure#fn arg0 . args)
@@ -410,6 +464,64 @@
  n)
 
 
+(def (clojure#keyword? v)
+     (or ((scheme keyword?) v) ;; ?
+         (and ((scheme symbol?) v)
+              (let* ((s (symbol.string v))
+                     (len (string-length s)))
+                (and (>= len 1)
+                     (eq? (string-ref s 0) #\:))))))
+
+
+(defmacro (clojure#cond . cases)
+  (if (even? (length cases))
+      `(##cond ,@(map (lambda-pair ((t e))
+                              `(,(if (clojure#keyword? (source-code t))
+                                     `',t
+                                     `(clojure#not-not ,t))
+                                ,e))
+                      (sequential-pairs cases cons))
+               ;; simply always provide an else case is easiert.. (let
+               ;; compiler optim it away, ok?). Also don't use |else|
+               ;; here? Ah Gambit would guarantee it though. But that's
+               ;; not R5RS, right?
+               (#t clojure#nil))
+      (source-error stx "cond requires an even number of forms")))
+
+(TEST
+ > (use-clojure-base)
+ > (cond true 'a)
+ a
+ > (cond false 'a)
+ clojure#nil
+ > (cond false 'a true 'b)
+ b
+ > (cond false 'a true 'b else 'c)
+ ;; Syntax error compiling at (form-init5831580352679050351.clj:1:1).
+ ;; Unable to resolve symbol: else in this context
+ b
+ ;; ^ because Gambit doesn't stop statically.
+ > (%try (cond false 'a else 'c))
+ (exception text: "Unbound variable: else\n")
+ > (with-exception-catcher
+    source-error-message
+    (& (eval (quote-source (cond false)))))
+ ;; Syntax error macroexpanding cond at (form-init5831580352679050351.clj:1:1).
+ ;; cond requires an even number of forms
+ "cond requires an even number of forms"
+ > (cond false 'a true 'b :else 'c)
+ b
+ > (cond false 'a nil 'b :else 'c)
+ c
+ > (cond false 'a '() 'b :else 'c)
+ b
+ > (cond false 'a :else 'c '() 'b)
+ c
+ ;; :else is just taken as keyword, true value
+ > (cond false 'a nil 'b :eff 'c)
+ c)
+
+
 (defmacro (clojure#let binds . body)
   (mcase binds
          (vector?
@@ -421,6 +533,150 @@
          ;; fall back to Scheme
          ((either pair? symbol?)
           `(easy#let ,binds ,@body))))
+
+
+(def (myscheme#cond-expand cases IF use-else-keyword? no-match)
+     (fold-right
+      (lambda (c res)
+        (assert*
+         pair? c
+         (lambda (c*)
+           (let-pair
+            ((t c*) c*)
+            (if (and use-else-keyword?
+                     (eq? (source-code t) 'else))
+                (if (eq? res no-match)
+                    `(##begin ,@c*)
+                    (source-error c "else clause must be last"))
+                (let ((normal (lambda ()
+                                `(,IF ,t
+                                      (##begin ,@c*)
+                                      ,res))))
+                  (if (pair? c*)
+                      (let-pair
+                       ((a c**) c*)
+                       (if (eq? (source-code a) '=>)
+                           (with-gensym
+                            V
+                            `(##let ((,V ,t))
+                                    (,IF ,V
+                                         (,@c** ,V)
+                                         ,res)))
+                           (normal)))
+                      (normal))))))))
+      no-match
+      cases))
+
+(defmacro (myscheme#cond . cases)
+  (myscheme#cond-expand cases
+                        `##if ;; hygienic
+                        #t
+                        `(##void)))
+
+(defmacro (myscheme-unhygienic#cond . cases)
+  (myscheme#cond-expand cases
+                        `if
+                        #f ;; OK? used for generated code anyway, so,
+                           ;; fine ?
+                        `(void)))
+
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#myscheme#cond ((x v) (newline) #t) (ELSE 'fun))
+ (##if (x v)
+       (##begin (newline) #t)
+       (##if ELSE
+             (##begin 'fun)
+             (##void)))
+ > (expansion#myscheme#cond ((x v) (newline) #t) (else 'fun))
+ (##if (x v)
+       (##begin (newline) #t)
+       (##begin 'fun))
+ > (expansion#myscheme-unhygienic#cond ((x v) (newline) #t) (else 'fun))
+ (if (x v)
+     (##begin (newline) #t)
+     (if else
+         (##begin 'fun)
+         (void)))
+
+ > (expansion#myscheme-unhygienic#cond ((x v) (newline) #t) ((dd) => meh) (else 'fun))
+ (if (x v)
+     (##begin (newline) #t)
+     (##let ((GEN:V-10932 (dd)))
+            (if GEN:V-10932
+                (meh GEN:V-10932)
+                (if else
+                    (##begin 'fun)
+                    (void))))))
+
+(defmacro (clojure#if-let binds yes #!optional (no `clojure#nil))
+  (mcase binds
+         (vector?
+          ;; Thanks for offering me if-let-expand (working around ""
+          ;; namespace macro referral issue--OK actually have got
+          ;; access to expander# anyway, thanks myself again) and
+          ;; taking cond form as a parameter (was already there)!
+          ;; Doesn't allow to directly parameterize the boolean
+          ;; testing, but we can use an indirection via a custom cond
+          ;; macro.
+          (if-let-expand `myscheme-unhygienic#cond
+                         (=> binds
+                             source-code
+                             vector->list
+                             list
+                             (sourcify binds))
+                         yes no))
+         ;; fall back to Scheme
+         ((either pair? symbol?)
+          (if-let-expand `##cond binds yes no))))
+
+(TEST
+ > (use-clojure-base)
+ ;; > (if-let [a '()])
+ ;; Syntax error macroexpanding clojure.core/if-let at (form-init5831580352679050351.clj:1:1).
+ ;; () - failed: Insufficient input at: [:then]
+ > (if-let [a nil] (list a) 'n)
+ n
+ > (if-let [a ""] (list a) 'n)
+ ("")
+ > (if-let [a '()] (list a) 'n)
+ (())
+ > (if-let [a '()] (list a))
+ (())
+ > (if-let [a false] (list a))
+ clojure#nil
+ > (with-exception-catcher
+    source-error-message
+    (& (eval '(if-let [a false] (list a) 'n 'z))))
+ ;; Syntax error macroexpanding clojure.core/if-let at (form-init5831580352679050351.clj:1:1).
+ ;; ((quote z)) - failed: Extra input
+ "too many arguments"
+ > (with-exception-catcher
+    source-error-message
+    (& (eval (quote-source (let [nil 1] (if-let [a false] (list a)))))))
+ ;; Syntax error macroexpanding clojure.core/let at (form-init5831580352679050351.clj:1:1).
+ ;; nil - failed: simple-symbol? at: [:bindings :form :local-symbol] spec: :clojure.core.specs.alpha/local-name
+ ;; nil - failed: vector? at: [:bindings :form :seq-destructure] spec: :clojure.core.specs.alpha/seq-binding-form
+ ;; nil - failed: map? at: [:bindings :form :map-destructure] spec: :clojure.core.specs.alpha/map-bindings
+ ;; nil - failed: map? at: [:bindings :form :map-destructure] spec: :clojure.core.specs.alpha/map-special-binding
+ clojure#nil
+ ;; binds nil but it's a different variable than the nil that is
+ ;; mapped to clojure#nil.
+
+ ;; BTW: this is interesting: Gambit's namespacing does more than
+ ;; first thought? Or, let really binds the given symbol doesn't
+ ;; namespace-prefix it?
+ > (let [nil 1] nil)
+ 1
+ > (let [nil 1] clojure#nil)
+ clojure#nil
+ > (let [clojure#nil 1] clojure#nil)
+ 1
+ > (let [clojure#nil 1] nil)
+ clojure#nil)
+
+
 
 (def (clojure#first v)
      (FV (v)
