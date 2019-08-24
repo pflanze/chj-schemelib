@@ -34,7 +34,7 @@
                    keys vals
                    symbol symbol? keyword count string
                    last butlast reverse
-                   loop comment
+                   loop comment while
                    predefine-keyword predefine-keywords))))
 
 (use-clojure)
@@ -714,6 +714,28 @@
  #!void)
 
 
+
+(defmacro while
+  "Repeatedly executes body while test expression is true. Presumes
+  some side-effect will cause test to become false/nil. Returns nil"
+  ;; {:added "1.0"}
+  [test & body]
+  `(loop []
+     (when ~test
+       ~@body
+       (recur))))
+
+
+(TEST
+ > (use-clojure)
+ > (defn t [n]
+     (let [res 0]
+       (while (> n 0)
+              (set! res (+ res n))
+              (set! n (dec n)))
+       res))
+ > (t 2)
+ 3)
 
 ;; try: uses classname, not predicates, of course. Also, multiple
 ;;  |catch| clauses with 3+ arguments each instead of one with
