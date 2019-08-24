@@ -319,36 +319,33 @@
 ;; Hack to get ~foo and foo~ syntax since we don't have custom reader
 ;; yet.
 (def (clojure:quasiquote-symbol-kind sym)
+     -> (values-of symbol? any?) ;; any = parsed thing, could be a constant
      (let* ((str (symbol.string (source-code sym)))
             (len (string.length str)))
        (if (< len 2)
-           'none
+           (values 'none sym)
            (if (eq? (string.ref str 0) #\~)
-               'unquote
+               (let (fixup (lambda (str*)
+                             (or (string->number str*)
+                                 (string->symbol str*))))
+                 (if (and (>= len 3)
+                          (eq? (string.ref str 1) #\@))
+                     (values 'unquote-splicing
+                             (fixup (substring str 2 len)))
+                     (values 'unquote
+                             (fixup (substring str 1 len)))))
                (if (eq? (string.ref str (dec len)) #\#)
-                   'gensym
-                   'none)))))
+                   (values 'gensym
+                           (string->symbol (substring str 0 (dec len))))
+                   (values 'none sym))))))
 
-(def (clojure:quasiquote-unquote->value sym)
-     (let* ((str (symbol.string (source-code sym)))
-            (len (string.length str)))
-       (if (< len 2)
-           (error "not a  ~symbol")
-           (if (eq? (string.ref str 0) #\~)
-               (let ((str* (substring str 1 len)))
-                 (or (string->number str*)
-                     (string->symbol str*)))
-               (error "not a  ~symbol")))))
-
-(def (clojure:quasiquote-gensym->symbol sym)
-     (let* ((str (symbol.string (source-code sym)))
-            (len (string.length str)))
-       (if (< len 2)
-           (error "not a symbol#")
-           (if (eq? (string.ref str (dec len)) #\#)
-               (let ((str* (substring str 0 (dec len))))
-                 (string->symbol str*))
-               (error "not a symbol#")))))
+(def (clojure:quasiquote:append a b)
+     "For syntax, need eager list, but a is any kind of Clojure
+sequence-compatible datum, thus pass through |sequence| and force."
+     (append (.list (clojure#sequence a))
+             ;; b should already be an eager list since built via cons
+             ;; from the code emitted by quasiquote.
+             b))
 
 (defmacro (clojure#quasiquote e)
   "Supporting ~foo (etc.?) via HACK; also still supporting Scheme's
@@ -359,62 +356,77 @@ unquote and unquote-splicing at the same time"
              (pair?
               (let-pair
                ((a e*) (source-code e))
-               (case (source-code a)
-                 ((~)
-                  (let (e* (source-code e*))
-                    ;; ( ^ shouldn't have any source anyway)
-                    (if (pair? e*)
-                        (let-pair
-                         ((b e**) e*)
-                         ;; no need for "generate |unquote|"
-                         ;; business. just 'do' it ":)"
-                         `(cons ,b
-                                ,(expand e**)))
-                        ;; Clojure fails this at read time already,
-                        ;; but we're "hacked"...:
-                        (source-error a "missing item after ~"))))
+               (let (a* (source-code a))
+                 (case a*
+                   ((~ ~@)
+                    (let (e* (source-code e*))
+                      ;; ( ^ shouldn't have any source anyway)
+                      (if (pair? e*)
+                          (let-pair
+                           ((b e**) e*)
+                           `(,(if (eq? a* '~)
+                                  `cons
+                                  `clojure:quasiquote:append)
+                             ,b
+                             ,(expand e**)))
+                          ;; Clojure fails this at read time already,
+                          ;; but we're "hacked"...:
+                          (source-error a
+                                        ($ "missing item after $a*")))))
 
-                 ((unquote)
-                  (let (e* (source-code e*))
-                    (if (pair? e*)
-                        (let-pair
-                         ((b e**) e*)
-                         (if (null? e**)
-                             b
-                             `(cons ',a
-                                    ,(expand e*))))
-                        `(cons ',a
-                               ,(expand e*)))))
+                   ((unquote)
+                    (let (e* (source-code e*))
+                      (if (pair? e*)
+                          (let-pair
+                           ((b e**) e*)
+                           (if (null? e**)
+                               b
+                               `(cons ',a
+                                      ,(expand e*))))
+                          `(cons ',a
+                                 ,(expand e*)))))
                              
-                 (else
-                  (mcase a
-
-                         (form-unquote-splicing?
-                          (let (b (cadr (source-code a)))
-                            (if (null? e*) ;; optim
-                                b
-                                `(append ,b
-                                         ,(expand e*)))))
+                   (else
+                    (let (other
+                          (& (mcase a
+                                    (form-unquote-splicing?
+                                     (let (b (cadr (source-code a)))
+                                       (if (null? e*) ;; optim
+                                           b
+                                           `(append ,b
+                                                    ,(expand e*)))))
                       
-                         (else
-                          `(cons ,(expand a)
-                                 ,(expand e*))))))))
+                                    (else
+                                     `(cons ,(expand a)
+                                            ,(expand e*))))))
+                      (if (symbol? a*)
+                          (letv ((kind thing) (clojure:quasiquote-symbol-kind a))
+                                (case kind
+                                  ((unquote-splicing)
+                                   `(clojure:quasiquote:append ,thing
+                                                               ,(expand e*)))
+                                  (else
+                                   (other))))
+                          (other))))))))
              (null?
               `'())
              (vector?
               (source-error e "unfinished"))
              (symbol?
-              (xcase (clojure:quasiquote-symbol-kind e)
-                     ((unquote)
-                      (clojure:quasiquote-unquote->value e))
-                     ((gensym)
-                      `',(let (sym (clojure:quasiquote-gensym->symbol e))
-                           (or (table-ref gensyms sym #f)
-                               (let (sym* (gensym sym))
-                                 (table-set! gensyms sym sym*)
-                                 sym*))))
-                     ((none)
-                      `',e)))
+              (letv ((kind thing) (clojure:quasiquote-symbol-kind e))
+                    (xcase kind
+                           ((unquote)
+                            thing)
+                           ((unquote-splicing)
+                            (source-error
+                             e "invalid place for ~@ (or BUG?)"))
+                           ((gensym)
+                            `',(or (table-ref gensyms thing #f)
+                                   (let (sym* (gensym thing))
+                                     (table-set! gensyms thing sym*)
+                                     sym*)))
+                           ((none)
+                            `',e))))
              ((either string? number?) ;; self-quoting
               e)
              (else
@@ -443,7 +455,21 @@ unquote and unquote-splicing at the same time"
  (a b (13) 1)
  > `(a b (~c d) 1)
  (a b (13 d) 1)
- ;; ^ all of these: XX: pending: namespacing
+ ;; ^ all of these: XX: pending: namespacing, i.e.
+ ;; (do4clojure.core/a do4clojure.core/b (13 do4clojure.core/d) 1)
+ > (def cs '(13 14))
+ > `(a b (~@ cs d) 1)
+ (a b (13 14 d) 1)
+ > `(a b (~@cs d) 1)
+ (a b (13 14 d) 1)
+ > (def cs '[13 14])
+ > `(a b (~@ cs d) 1)
+ (a b (13 14 d) 1)
+ > `(a b (~@cs d) 1)
+ (a b (13 14 d) 1)
+ > `(a b (~@'[13 14] d) 1)
+ (a b (13 14 d) 1)
+ ;;(do4clojure.core/a do4clojure.core/b (13 14 do4clojure.core/d) 1)
 
  ;; Still support Scheme, too:
  > `(a b unquote c)
