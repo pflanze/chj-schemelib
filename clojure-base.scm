@@ -1145,3 +1145,16 @@ unquote and unquote-splicing at the same time"
  (#t #t #f #f #f #f))
 
 
+(defmacro (clojure-internal#loop* bindings . body)
+  (assert* vector? bindings
+           (lambda (bindings)
+             `(##let recur ,(sequential-pairs (vector.list bindings)
+                                              list)
+                     ,@body))))
+
+(TEST
+ > (expansion#clojure-internal#loop* [] (recur))
+ (##let recur () (recur))
+ > (expansion#clojure-internal#loop* [a 1 b 0] (recur (dec a) (+ b 1)))
+ (##let recur ((a 1) (b 0)) (recur (dec a) (+ b 1))))
+

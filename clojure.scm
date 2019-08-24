@@ -34,7 +34,7 @@
                    keys vals
                    symbol symbol? keyword
                    last butlast reverse
-                   comment))))
+                   loop comment))))
 
 (use-clojure)
 
@@ -570,6 +570,21 @@
  ())
 
 
+
+
+(defmacro loop
+  "Evaluates the exprs in a lexical context in which the symbols in
+  the binding-forms are bound to their respective init-exprs or parts
+  therein. Acts as a recur target."
+  ;; {:added "1.0", :special-form true, :forms '[(loop [bindings*] exprs*)]}
+  [bindings & body]
+  ;; But just do the simple case:
+  `(clojure-internal#loop* ~bindings ~@body))
+
+(TEST
+ > (use-clojure)
+ > (loop [x 10 tot 0] (if (> x 0) (recur (dec x) (+ tot x)) tot))
+ 55)
 
 
 (defmacro comment
