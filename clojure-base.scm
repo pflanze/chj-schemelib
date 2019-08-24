@@ -92,17 +92,19 @@
 
   (defclass (clojure-definition-singlecase binds
                                            [list? body])
-    (defmethod (scheme-code s DEF name-prefixer)
+    (defmethod (scheme-code s DEF name-prefixer lead-in-forms)
       `(,DEF (,(name-prefixer name) ,@(clojure->scheme-args binds))
+             ,@lead-in-forms ;; possible namespacing sh; could this be after docstrings?
              ,@docstrings
              ,@(clojure:fixbody body))))
 
   (defclass (clojure-definition-multicase [(list-of clojure-definition-case?) real-cases]
                                           [(list-of clojure-definition-case?) else-cases])
-    (defmethod (scheme-code s DEF name-prefixer)
+    (defmethod (scheme-code s DEF name-prefixer lead-in-forms)
       (with-gensyms
        (VS LEN)
        `(,DEF (,(name-prefixer name) . ,VS)
+              ,@lead-in-forms ;; ditto
               ,@docstrings
               (##let
                ((,LEN (length ,VS)))
@@ -200,7 +202,7 @@
 
 (defmacro (clojure#defn . args)
   (=> (clojure:definition-parse stx args)
-      (.scheme-code `def identity)))
+      (.scheme-code `def identity '())))
 
 (def (in-namespace namespace sym)
      (assert*
@@ -237,7 +239,8 @@
                     ;; current module! (Or change define-macro*
                     ;; implementation); for now HACK in just clojure#
                     ;; as a constant.
-                    (C in-namespace "clojure#" _))))
+                    (C in-namespace "clojure#" _)
+                    '((use-clojure)))))
 
 ;; Clojure's macroexpand is a function, not a macro!
 (def (clojure#macroexpand e)
