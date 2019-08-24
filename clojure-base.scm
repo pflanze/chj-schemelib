@@ -92,17 +92,17 @@
 
   (defclass (clojure-definition-singlecase binds
                                            [list? body])
-    (defmethod (scheme-code s DEF)
-      `(,DEF (,name  ,@(clojure->scheme-args binds))
+    (defmethod (scheme-code s DEF name-prefixer)
+      `(,DEF (,(name-prefixer name) ,@(clojure->scheme-args binds))
              ,@docstrings
              ,@(clojure:fixbody body))))
 
   (defclass (clojure-definition-multicase [(list-of clojure-definition-case?) real-cases]
                                           [(list-of clojure-definition-case?) else-cases])
-    (defmethod (scheme-code s DEF)
+    (defmethod (scheme-code s DEF name-prefixer)
       (with-gensyms
        (VS LEN)
-       `(,DEF (,name . ,VS)
+       `(,DEF (,(name-prefixer name) . ,VS)
               ,@docstrings
               (##let
                ((,LEN (length ,VS)))
@@ -200,11 +200,44 @@
 
 (defmacro (clojure#defn . args)
   (=> (clojure:definition-parse stx args)
-      (.scheme-code `def)))
+      (.scheme-code `def identity)))
+
+(def (in-namespace namespace sym)
+     (assert*
+      symbol? sym
+      (lambda (sym*)
+        (let* ((str (symbol.string sym*))
+               (prefix-it
+                (lambda ()
+                  (assert*
+                   string? namespace
+                   (lambda (ns)
+                     (=> (string-append ns str)
+                         string.symbol
+                         (possibly-sourcify sym)))))))
+          (if-let (i (string-find-char str #\#))
+                  (let (len (string.length str))
+                    (if (= i (dec len))
+                        (prefix-it)
+                        sym))
+                  (prefix-it))))))
+
+(TEST
+ > (in-namespace "foo#" 'bar)
+ foo#bar
+ > (in-namespace "foo#" 'bar#)
+ foo#bar#
+ > (in-namespace "foo#" 'bar#baz)
+ bar#baz)
 
 (defmacro (clojure#defmacro . args)
   (=> (clojure:definition-parse stx args)
-      (.scheme-code `define-macro*)))
+      (.scheme-code `define-macro*
+                    ;; XX will need a way to get the namespace of the
+                    ;; current module! (Or change define-macro*
+                    ;; implementation); for now HACK in just clojure#
+                    ;; as a constant.
+                    (C in-namespace "clojure#" _))))
 
 ;; Clojure's macroexpand is a function, not a macro!
 (def (clojure#macroexpand e)
@@ -271,6 +304,7 @@
  (first 3 4 (5))
 
  > (defmacro t-fixx [x] x)
+ > (##namespace ("clojure#" t-fixx)) ;; *Sigh* is this a hack now.
  > (t-fixx 10)
  10
  > (defmacro t-fixx
@@ -428,15 +462,17 @@ unquote and unquote-splicing at the same time"
  > (defmacro t-fixx ([x] x) ([x y] `(/ ~x ~ y)))
  > (t-fixx 10 20)
  1/2
- > (macroexpand (quote-source (t-fixx 10 20)))
+ ;;> (##namespace ("clojure#" t-fixx)) ;; *Sigh* is this a hack now.[again]
+ ;; oh that doesn't even work. TOO BAD XX.
+ > (macroexpand (quote-source (clojure#t-fixx 10 20)))
  (/ 10 20)
  > (defmacro t-fixx
      ([x] x)
      ([x y]
       (first x)
       `(list (first ~y) ~ x)))
- > (macroexpand (quote-source (t-fixx (t-fixx "10" "30") "20")))
- (list (first "20") (t-fixx "10" "30"))
+ > (macroexpand (quote-source (clojure#t-fixx (clojure#t-fixx "10" "30") "20")))
+ (list (first "20") (clojure#t-fixx "10" "30"))
  ;; (clojure.core/list (clojure.core/first "20") (t-fixx "10" "30"))
  > (eval #)
  (#\2 (#\3 "10"))
