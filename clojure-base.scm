@@ -411,8 +411,22 @@ unquote and unquote-splicing at the same time"
              (null?
               `'())
              (vector?
-              (source-error e "unfinished"))
+              (possibly-sourcify
+               (=> (source-code e)
+                   vector->list
+                   expand
+                   ;; Now we've got code that generates a list; leave
+                   ;; it at that, and turn that to a vector at
+                   ;; runtime. Only reasonable way to handle ~@ within
+                   ;; [ ]. (And yes, Gambit native does actually
+                   ;; support that, too!)
+                   ((lambda (listgencode)
+                      `(list->vector ,listgencode))))
+               e))
              (symbol?
+              ;; XXX forgot about quote. Don't recurse into
+              ;; quote. (And yes nested quasiquote is still pending,
+              ;; too.)
               (letv ((kind thing) (clojure:quasiquote-symbol-kind e))
                     (xcase kind
                            ((unquote)
@@ -427,10 +441,12 @@ unquote and unquote-splicing at the same time"
                                      sym*)))
                            ((none)
                             `',e))))
-             ((either string? number?) ;; self-quoting
+             ((either string? number? boolean?) ;; self-quoting
               e)
              (else
-              (source-error e "unfinished2"))))))
+              ;; homogenous vectors? What else?
+              (WARN "unfinished?")
+              e)))))
 
 (TEST
  > (use-clojure-base)
@@ -470,6 +486,18 @@ unquote and unquote-splicing at the same time"
  > `(a b (~@'[13 14] d) 1)
  (a b (13 14 d) 1)
  ;;(do4clojure.core/a do4clojure.core/b (13 14 do4clojure.core/d) 1)
+
+ > `(foo 'bar)
+ (foo (quote bar))
+ ;; (do4clojure.core/foo (quote do4clojure.core/bar))
+ > `(foo '~cs)
+ (foo (quote [13 14]))
+ > `(foo '(bla [~cs] ~@cs))
+ (foo (quote (bla [[13 14]] 13 14)))
+ ;; (do4clojure.core/foo (quote (do4clojure.core/bla [[13 14]] 13 14)))
+ > `(foo '(bla [~@cs] ~@cs))
+ (foo (quote (bla [13 14] 13 14)))
+ ;; (do4clojure.core/foo (quote (do4clojure.core/bla [13 14] 13 14)))
 
  ;; Still support Scheme, too:
  > `(a b unquote c)
