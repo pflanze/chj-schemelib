@@ -677,8 +677,8 @@
                      ,(matchl (mcaseclauses-else sepclauses)
                               ((`elseclause)
                                (matchl elseclause
-                                       ((else `what)
-                                        what)))
+                                       ((else . `what)
+                                        `(##begin ,@what))))
                               (()
                                `(source-error ,V ,message-string))
                               (`_
