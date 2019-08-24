@@ -33,7 +33,8 @@
                    vec vector-of
                    keys vals
                    symbol symbol? keyword
-                   last butlast reverse))))
+                   last butlast reverse
+                   comment))))
 
 (use-clojure)
 
@@ -570,6 +571,18 @@
 
 
 
+
+(defmacro comment
+  "Ignores body, yields nil"
+  ;; {:added "1.0"}
+  [& body])
+
+(TEST
+ > (use-clojure)
+ > (comment 30)
+ #!void
+ ;; Clojure returns nil; d'oh. XX ?
+ )
 
 
 ;; try: uses classname, not predicates, of course. Also, multiple
