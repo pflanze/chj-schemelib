@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -15,7 +15,9 @@
 	 oo-lib-vector
 	 (string-util-3 string.replace-substrings)
 	 error
-	 (spreadsheet-reference (class spreadsheet-reference-absolute)))
+	 (spreadsheet-reference (class spreadsheet-reference-absolute))
+         (cj-path FILE)
+         (cj-io-util dirname))
 
 (export (class read-csv-error)
 	(class csv-cell)
@@ -267,7 +269,8 @@
 		      (tail '())
 		      maybe-source)
      (let ((p (open-process
-	       (list path: "./csv2sexpr"
+	       (list path: (path-append (dirname (FILE))
+                                        "csv2sexpr")
 		     arguments: (list "-"
 				      "-"
 				      (string sep-char)
