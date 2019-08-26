@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger, ch at christianjaeger ch
+;;; Copyright 2013-2019 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,17 +6,35 @@
 ;;;    (at your option) any later version.
 
 
-(require test
-	 cut
+(require define-macro-star
+         C
 	 string-util-2
-	 (string-util-1 string-contains-char?))
+	 (string-util-1 string-contains-char?)
+         test)
+
+(export path-string?
+        filename-or-.-..-string?
+        filename-string?
+        path-separator
+        string-ends-with-path-separator?
+        path-absolute?
+        path-append
+        if-file-info ;; move?
+        maybe-file-info
+        file-directory?
+        -d?
+        -f?
+        (macro FILE))
+
+
+"Unix path handling; not parametrized at all for Windows currently."
 
 
 (define (path-string? v)
   (and (string? v)
        (not (string-empty? v))
        ;; and the only(?) restriction:
-       (not (string-contains-char? v (cut char=? <> #\nul)))))
+       (not (string-contains-char? v (C char=? _ #\nul)))))
 
 (TEST
  > (path-string? "foo")
@@ -77,10 +95,10 @@
 (define path-separator "/")
 
 (define string-ends-with-path-separator?
-  (cut string-ends-with? <> path-separator))
+  (C string-ends-with? _ path-separator))
 
 (define path-absolute?
-  (cut string-starts-with? <> path-separator))
+  (C string-starts-with? _ path-separator))
 
 (define (path-append basepath subpath)
   (if (path-absolute? subpath)
@@ -127,3 +145,12 @@
 		(lambda (info)
 		  (eq? (file-info-type info) 'regular))
 		false/0))
+
+
+(define-macro* (FILE)
+  "The path to the file the macro is used in; #f if not a
+file (e.g. console)."
+  (let ((c (location-container (source-location stx))))
+    (and (string? c)
+         c)))
+
