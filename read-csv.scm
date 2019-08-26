@@ -27,7 +27,9 @@
 	x-csv-cell-of
 	X-csv-cell-of ;; allows unwrapped inputs, too (if match predicate)
 	(method csv-cell.xvalue-of)
+        ;; The main use:
 	csv-file-stream
+        ;; Heavy OO:
 	(class csv-reader)
 	(interface input-provider
 		   (class file-input-provider)))
