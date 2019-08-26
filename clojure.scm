@@ -32,7 +32,7 @@
                    zipmap
                    vec vector-of
                    keys vals
-                   symbol symbol? keyword
+                   symbol symbol? keyword count string
                    last butlast reverse
                    loop comment
                    predefine-keyword predefine-keywords))))
@@ -514,12 +514,19 @@
 ;; printer as when printed via Clojure's printer)
 
 (defn keyword
-  ;; XX Clojure silently returns nil if the argument is not a string;
-  ;; sigh.
+  ;; Clojure silently returns nil for *some* kinds of arguments, sigh.
   ([nam]
-   (string->symbol ($ ":$nam")))
+   (cond (number? nam)
+         nil
+         (keyword? nam)
+         nam
+         #t
+         (string->symbol ($ ":$nam"))))
   ([namesp nam]
-   (string->symbol ($ ":$namesp/$nam"))))
+   (cond (number? nam)
+         nil
+         #t
+         (string->symbol ($ ":$namesp/$nam")))))
 
 (def (clojure:assert-non-keyword-looking-string str)
      (let (len (string-length str))
@@ -527,25 +534,41 @@
                    (not (eq? (string-ref str 0) #\:))))
        str))
 
+
+(defn count
+  ([v]
+   (.length v)))
+
+(defn string
+  ([v]
+   (cond (keyword? v)
+         (cond ((scheme keyword?) v) ((scheme keyword->string) v)
+               ((scheme symbol?) v) (let [str ((scheme symbol->string) v)]
+                                      (let [len (count str)]
+                                        (substring str 1 len)))
+               t (error "bug"))
+         #t
+         (.string v))))
+
 (defn symbol
-  ;; ditto
+  ;; ditto; except not accepting nil here, though, why?..
   ([nam]
-   (clojure:assert-non-keyword-looking-string nam)
-   (string->symbol nam))
+   ;; accept symbol here,
+   (cond (symbol? nam)
+         nam
+         ;; (keyword? nam) handle via |string|
+         #t
+         (let [namstr (string nam)]
+           (clojure:assert-non-keyword-looking-string namstr)
+           (string->symbol namstr))))
   ([namesp nam]
-   (clojure:assert-non-keyword-looking-string namesp)
-   (string->symbol ($ "${namesp}/$nam"))))
-
-
-(def (symbol? v)
-     (and ((scheme symbol?) v)
-          (let* ((s (symbol.string v))
-                 (len (string-length s)))
-            (if (>= len 1)
-                (not (eq? (string-ref s 0) #\:))
-                #t))))
+   ;; but not here. How crazy is this?
+   (begin
+     (clojure:assert-non-keyword-looking-string namesp)
+     (string->symbol ($ "${namesp}/$nam")))))
 
 (TEST
+ > (use-clojure)
  ;; Clojure seems crazy with this:
  ;; > (= 'true true)
  ;; #t ;; true
@@ -559,6 +582,42 @@
  #t ;; true
  > (nil? (symbol "nil"))
  #f
+
+ > (keyword 'foo)
+ :foo
+ > (symbol 'foo)
+ foo
+ > (%try (symbol 'foo 'bar))
+ ;; Execution error (ClassCastException) at do4clojure.core/eval2022 (form-init6177359002304238130.clj:1).
+ ;; clojure.lang.Symbol cannot be cast to java.lang.String
+ (exception text: "(Argument 1) STRING expected\n(string-length 'foo)\n")
+ > (%try (symbol false))
+ ;; Execution error (IllegalArgumentException) at do4clojure.core/eval2024 (form-init6177359002304238130.clj:1).
+ ;; no conversion to symbol
+ (exception text: "no method found for generic .string for value: #f\n")
+ > (%try (symbol nil))
+ ;; Execution error (IllegalArgumentException) at do4clojure.core/eval2026 (form-init6177359002304238130.clj:1).
+ ;; no conversion to symbol
+ (exception text: "no method found for generic .string for value: #!void\n")
+ > (predefine-keywords :foo)
+ > (maybe-procedure-name (keyword :foo))
+ :foo ;; OMG, well, where it is currently.
+ > (keyword ':foo)
+ :foo
+ > (symbol ':foo)
+ foo)
+
+
+(def (symbol? v)
+     (and ((scheme symbol?) v)
+          (let* ((s (symbol.string v))
+                 (len (string-length s)))
+            (if (>= len 1)
+                (not (eq? (string-ref s 0) #\:))
+                #t))))
+
+(TEST
+ > (use-clojure)
  
  > (keyword "3")
  :3
