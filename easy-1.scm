@@ -59,6 +59,7 @@
 	(macro modimport/prefix)
 	(macro lambda)
 	(macro let)
+        (macro letrec)
 	(macro $)
 	
 	#!optional
@@ -480,17 +481,27 @@
  (module:import/prefix foo foo: bar baz))
 
 
+(def (easy#let..-expand binds body LET)
+     (let ((binds* (source-code binds)))
+       (if (and (pair? binds*)
+                (symbol? (source-code (car binds*))))
+           ;; single-binding let: this means that we can't bind multiple
+           ;; values though. (But that's what letv is for?)
+           `(,LET (,binds) ,@body)
+           `(,LET ,binds ,@body))))
+
 (defmacro (easy#let binds . body)
-  (let ((binds* (source-code binds)))
-    (if (and (pair? binds*)
-	     (symbol? (source-code (car binds*))))
-	;; single-binding let: this means that we can't bind multiple
-	;; values though. (But that's what letv is for?)
-	`(##let (,binds) ,@body)
-	`(##let ,binds ,@body))))
+  (easy#let..-expand binds body '##let))
+
+(defmacro (easy#letrec binds . body)
+  (easy#let..-expand binds body '##letrec))
 
 (defmacro (let . rest)
   `(easy#let ,@rest))
+
+(defmacro (letrec . rest)
+  `(easy#letrec ,@rest))
+
 
 (TEST
  > (let (a 1) a)
