@@ -89,7 +89,7 @@
  > (.show-clojure (hash-map b: 2 a: 1))
  (hash-map ':a 1 ':b 2)
  > (seq (hash-map))
- clojure#nil)
+ #!void)
 
 
 
@@ -399,15 +399,15 @@
  > (even? 1)
  #f
  > (some even? '[1])
- clojure#nil
+ #!void
  > (some even? '[])
- clojure#nil
+ #!void
  > (some even? '[1 2])
  #t
  > (some even? '(1 2))
  #t
  > (some seq (list '[] '() nil ""))
- clojure#nil
+ #!void
  > (F (some seq (list '[] '() nil "" "a")))
  (#\a)
  
@@ -478,7 +478,7 @@
   (with-gensym
    T
    `(def (,k ,T)
-         (.ref ,T ',k 'clojure#nil))))
+         (.ref ,T ',k clojure#nil))))
 
 (defmacro (clojure#predefine-keywords . ks)
   `(##begin ,@(map (lambda (k)
@@ -498,12 +498,12 @@
  > (:b m)
  2
  > (:c m)
- clojure#nil
+ #!void
  > (def m (hash-map :a 1 :c 2))
  > (:a m)
  1
  > (:b m)
- clojure#nil
+ #!void
  > (:c m)
  2)
 
@@ -562,8 +562,10 @@
  
  > (keyword "3")
  :3
- ;; > (keyword 3)
- ;; nil
+ > (keyword 3)
+ #!void
+ > (keyword 'foo)
+ :foo
  ;; > (symbol ":3")
  ;; :3
  > (def v (keyword "foo" "bar"))
@@ -608,17 +610,17 @@
  > (last '[1 2 3])
  3
  > (last '[])
- clojure#nil
+ #!void
  > (last '"")
- clojure#nil
+ #!void
  > (F (butlast "foob"))
  (#\f #\o #\o)
  > (F (butlast '[1 2 3]))
  (1 2)
  > (butlast '[])
- clojure#nil
+ #!void
  > (butlast '"")
- clojure#nil
+ #!void
  > (F (reverse '[1 2 3]))
  (3 2 1)
  > (F (reverse '[]))
@@ -650,9 +652,8 @@
 (TEST
  > (use-clojure)
  > (comment 30)
- #!void
- ;; Clojure returns nil; d'oh. XX ?
- )
+ #!void)
+
 
 
 ;; try: uses classname, not predicates, of course. Also, multiple

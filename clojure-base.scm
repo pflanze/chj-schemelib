@@ -573,12 +573,9 @@ unquote and unquote-splicing at the same time"
 
 (def clojure#false #f)
 (def clojure#true #t)
-(def clojure#nil 'clojure#nil)
-;; ^ performance improvement: just use #!void, test then can become a
-;; single bit masking, right? As soon as I know I don't really profit
-;; from "know that this came from Clojure code using nil".
+(def clojure#nil #!void)
 (def (clojure#nil? v)
-     (eq? v 'clojure#nil))
+     (eq? v #!void))
 
 (TEST
  > (use-clojure-base)
@@ -644,7 +641,7 @@ unquote and unquote-splicing at the same time"
                  ;;  (if (boolean? b)
                  ;;      (eq? a b)
                  ;;      (retry b a)))
-                 ;; ((eq? a 'clojure#nil)
+                 ;; ((eq? a #!void)
                  ;;  )
                  (else
                   (equal? a b))))))
@@ -701,7 +698,6 @@ unquote and unquote-splicing at the same time"
  (let ((test '(or (eq? val #f)
                   ;; (eq? val '()) NO! This is true in Clojure!
                   ;; Heh. Well, convenient.
-                  (eq? val 'clojure#nil)
                   (eq? val #!void))))
    `(begin
       (def (clojure#not val) ,test)
@@ -714,20 +710,19 @@ unquote and unquote-splicing at the same time"
      (eq? v #t))
 
 
-(defmacro (clojure#if test yes #!optional (no 'clojure#nil))
+(defmacro (clojure#if test yes #!optional (no #!void))
   `(##if (clojure#not-not ,test)
          ,yes
          ,no))
 
-(defmacro (clojure#if-not test  yes #!optional (no 'clojure#nil))
+(defmacro (clojure#if-not test  yes #!optional (no #!void))
   `(##if (clojure#not ,test)
          ,yes
          ,no))
 
 (defmacro (clojure#when test . branches)
   `(##if (clojure#not-not ,test)
-         (begin ,@branches)
-         clojure#nil))
+         (begin ,@branches)))
 
 
 (TEST
@@ -765,12 +760,7 @@ unquote and unquote-splicing at the same time"
                                      `',t
                                      `(clojure#not-not ,t))
                                 ,e))
-                      (sequential-pairs cases cons))
-               ;; simply always provide an else case is easiert.. (let
-               ;; compiler optim it away, ok?). Also don't use |else|
-               ;; here? Ah Gambit would guarantee it though. But that's
-               ;; not R5RS, right?
-               (#t clojure#nil))
+                      (sequential-pairs cases cons)))
       (source-error stx "cond requires an even number of forms")))
 
 (TEST
@@ -778,7 +768,7 @@ unquote and unquote-splicing at the same time"
  > (cond true 'a)
  a
  > (cond false 'a)
- clojure#nil
+ #!void
  > (cond false 'a true 'b)
  b
  > (cond false 'a true 'b else 'c)
@@ -895,7 +885,7 @@ unquote and unquote-splicing at the same time"
                     (##begin 'fun)
                     (void))))))
 
-(defmacro (clojure#if-let binds yes #!optional (no `clojure#nil))
+(defmacro (clojure#if-let binds yes #!optional (no #!void))
   (mcase binds
          (vector?
           ;; Thanks for offering me if-let-expand (working around ""
@@ -930,7 +920,7 @@ unquote and unquote-splicing at the same time"
  > (if-let [a '()] (list a))
  (())
  > (if-let [a false] (list a))
- clojure#nil
+ #!void
  > (with-exception-catcher
     source-error-message
     (& (eval '(if-let [a false] (list a) 'n 'z))))
@@ -945,7 +935,7 @@ unquote and unquote-splicing at the same time"
  ;; nil - failed: vector? at: [:bindings :form :seq-destructure] spec: :clojure.core.specs.alpha/seq-binding-form
  ;; nil - failed: map? at: [:bindings :form :map-destructure] spec: :clojure.core.specs.alpha/map-bindings
  ;; nil - failed: map? at: [:bindings :form :map-destructure] spec: :clojure.core.specs.alpha/map-special-binding
- clojure#nil
+ #!void
  ;; binds nil but it's a different variable than the nil that is
  ;; mapped to clojure#nil.
 
@@ -955,11 +945,11 @@ unquote and unquote-splicing at the same time"
  > (let [nil 1] nil)
  1
  > (let [nil 1] clojure#nil)
- clojure#nil
+ #!void
  > (let [clojure#nil 1] clojure#nil)
  1
  > (let [clojure#nil 1] nil)
- clojure#nil)
+ #!void)
 
 
 
@@ -988,11 +978,11 @@ unquote and unquote-splicing at the same time"
  > (use-clojure-base)
  > (def os '(() [] (a) [a] (a b) [a b]))
  > (F (map next os))
- (clojure#nil clojure#nil clojure#nil clojure#nil (b) (b))
+ (#!void #!void #!void #!void (b) (b))
  > (F (map rest os))
  (() () () () (b) (b))
  > (F (map first os))
- (clojure#nil clojure#nil a a a a))
+ (#!void #!void a a a a))
 
 
 
@@ -1003,7 +993,7 @@ unquote and unquote-splicing at the same time"
 (def (clojure#seq v)
      (FV (v)
          (case v
-           ((clojure#nil ()) clojure#nil)
+           ((#!void ()) clojure#nil)
            (else
             (if-let* ((null? (CAN. .null? v))
                       ;; Scheme's empty?
@@ -1017,11 +1007,11 @@ unquote and unquote-splicing at the same time"
  > (seq "foo")
  (#\f #\o #\o) ;; (\f \o \o)
  > (seq '())
- clojure#nil
+ #!void
  > (seq nil)
- clojure#nil
+ #!void
  > (seq '[])
- clojure#nil
+ #!void
  > (if (seq '()) 'y 'n)
  n
  > (if (seq (seq '())) 'y 'n)
@@ -1029,7 +1019,7 @@ unquote and unquote-splicing at the same time"
 
 (def (clojure#sequence v)
      (case v
-       ((clojure#nil) '())
+       ((#!void) '())
        (else (.stream v))))
 
 (TEST
@@ -1106,7 +1096,7 @@ unquote and unquote-splicing at the same time"
  #f ;; false
 
  > (seq nil)
- clojure#nil ;; nil
+ #!void ;; nil
  > (F (lazy-seq nil))
  ()
  > (def s (lazy-seq '[a b]))
@@ -1151,11 +1141,11 @@ unquote and unquote-splicing at the same time"
  > (%try (seq (delay nil)))
  ;; Execution error (IllegalArgumentException) at do4clojure.core/eval1636 (form-init6112985740636491022.clj:1).
  ;; Don't know how to create ISeq from: clojure.lang.Delay
- (value clojure#nil) ;; XX only can fix via separate promise type, right?
+ (value #!void) ;; XX only can fix via separate promise type, right?
  > (F (lazy-seq (delay nil)))
  ;; Error printing return value (IllegalArgumentException) at clojure.lang.RT/seqFrom (RT.java:553).
  ;; Don't know how to create ISeq from: clojure.lang.Delay
- clojure#nil ;; XX ditto
+ #!void ;; XX ditto
  )
 
 
@@ -1178,7 +1168,7 @@ unquote and unquote-splicing at the same time"
                        (case v
                          ((true) #t)
                          ((false) #f)
-                         ((nil) 'clojure#nil)
+                         ((nil) #!void)
                          (else
                           v)))))
 
@@ -1188,7 +1178,7 @@ unquote and unquote-splicing at the same time"
                        (case v
                          ((#t) 'true)
                          ((#f) 'false)
-                         ((clojure#nil) 'nil)
+                         ((#!void) 'nil)
                          (else
                           v)))))
 ;; /XX
