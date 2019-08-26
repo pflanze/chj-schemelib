@@ -16,9 +16,19 @@
 (include "cj-standarddeclares.scm")
 
 
-;; XX rename to string-contains-charpred? or so?
-(define (string-contains-char? str pred)
-  (let ((len (string-length str)))
+(define (char-or-pred.pred char-or-pred)
+  (cond ((char? char-or-pred)
+         (lambda (c)
+           (eq? c char-or-pred)))
+        ((procedure? char-or-pred)
+         char-or-pred)
+        (else
+         (error "expecting char or pred:" char-or-pred))))
+
+
+(define (string-contains-char? str char-or-pred)
+  (let ((len (string-length str))
+        (pred (char-or-pred.pred char-or-pred)))
     (let lp ((i 0))
       (and (< i len)
 	   (or (pred (string-ref str i))
@@ -37,13 +47,7 @@
 
 (define (string-split str char-or-pred #!optional retain-matches?)
   (let ((len (string-length str))
-	(pred (cond ((char? char-or-pred)
-		     (lambda (c)
-		       (eq? c char-or-pred)))
-		    ((procedure? char-or-pred)
-		     char-or-pred)
-		    (else
-		     (error "expecting char or pred:" char-or-pred)))))
+	(pred (char-or-pred.pred char-or-pred)))
     (let lp ((i (dec len))
 	     (prev-position len)
 	     (strs '()))
