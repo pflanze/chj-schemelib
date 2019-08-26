@@ -15,7 +15,7 @@
                  false true nil nil? = not if if-not when let if-let cond
                  false? true? keyword?
                  lazy-seq
-                 seq sequence chunked-seq? first rest next)))
+                 seq sequence seq? chunked-seq? first rest next)))
 
 (defmacro (scheme . body)
   `(##let ()
@@ -1058,9 +1058,32 @@ unquote and unquote-splicing at the same time"
      ;;(istream? v)
      #f)
 
+(def (clojure#seq? v)
+     (iseq? v))
+
 
 (TEST
  > (use-clojure-base)
+
+ > (seq? '[1])
+ #f
+ > (seq? (seq '[1]))
+ #t
+ > (seq? (sequence '[1]))
+ #t
+ > (seq? '(1))
+ #t
+ > (seq? '())
+ #t
+ > (seq? (seq '()))
+ #f
+ > (seq? (sequence '()))
+ #t
+ > (seq? "foo")
+ #f
+ > (seq? (sequence "foo"))
+ #t
+
  > (chunked-seq? '())
  #f ;; false
  > (chunked-seq? '(a))
