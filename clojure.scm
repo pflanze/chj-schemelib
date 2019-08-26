@@ -34,12 +34,25 @@
                    keys vals
                    symbol symbol? keyword
                    last butlast reverse
-                   loop comment))))
+                   loop comment
+                   predefine-keyword predefine-keywords))))
 
 (use-clojure)
 
 (def (hash-map . keys+vals)
-     (list->table (sequential-pairs keys+vals cons)))
+     (=>> (sequential-pairs keys+vals cons)
+          (map (lambda (k+val)
+                 ;; hack for predefine-keywords: get out the symbol if
+                 ;; it's a Clojure keyword
+                 (let (k (car k+val))
+                   (if (procedure? k)
+                       (if (keyword? k)
+                           (cons (or (maybe-procedure-name k)
+                                     (error "bug"))
+                                 (cdr k+val))
+                           k+val)
+                       k+val))))
+          list->table))
 
 
 ;; Fall back to Scheme .show
@@ -452,6 +465,48 @@
  (a b c d e)
  > (vals (zipmap '(a b c d e) '(1 2 3 4 5 )))
  (1 2 3 4 5))
+
+
+
+;; Super hack: pre-define keywords as procedures bound to symbols, so
+;; that using them in call position will work to reference table
+;; entries.
+(##namespace (""))
+
+(defmacro (clojure#predefine-keyword k)
+  (assert* (both symbol? clojure#keyword?) k)
+  (with-gensym
+   T
+   `(def (,k ,T)
+         (.ref ,T ',k 'clojure#nil))))
+
+(defmacro (clojure#predefine-keywords . ks)
+  `(##begin ,@(map (lambda (k)
+                     `(predefine-keyword ,k))
+                   ks)))
+
+(use-clojure)
+
+(TEST
+ > (use-clojure)
+ > (predefine-keywords :a :b :c)
+ > (keyword? :a)
+ #t
+ > (def m (hash-map ':a 1 ':b 2))
+ > (:a m)
+ 1
+ > (:b m)
+ 2
+ > (:c m)
+ clojure#nil
+ > (def m (hash-map :a 1 :c 2))
+ > (:a m)
+ 1
+ > (:b m)
+ clojure#nil
+ > (:c m)
+ 2)
+
 
 
 ;; Hacky keyword and symbol handling (since we're not using a custom

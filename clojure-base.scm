@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 (require easy
-         (cj-source-util-2 form-unquote-splicing?))
+         (cj-source-util-2 form-unquote-splicing?)
+         (cj-gambit-sys maybe-procedure-name))
 
 (export (macro use-clojure-base))
 
@@ -740,12 +741,21 @@ unquote and unquote-splicing at the same time"
 
 
 (def (clojure#keyword? v)
-     (or ((scheme keyword?) v) ;; ?
-         (and ((scheme symbol?) v)
+     (or (keyword? v) ;; ?
+         (and (symbol? v)
               (let* ((s (symbol.string v))
                      (len (string-length s)))
                 (and (>= len 1)
-                     (eq? (string-ref s 0) #\:))))))
+                     (eq? (string-ref s 0) #\:))))
+         ;; For predefine-keywords hack in clojure.scm:
+         (and (procedure? v)
+              (if-let (n (maybe-procedure-name v))
+                      (clojure#keyword? n)
+                      ;; Okay? Just assume that all clojure keywords
+                      ;; are defined with debugging
+                      ;; information?..... evil. Use symboltable
+                      ;; instead?
+                      #f))))
 
 
 (defmacro (clojure#cond . cases)
