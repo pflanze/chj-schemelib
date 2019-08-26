@@ -241,7 +241,8 @@
                     ;; implementation); for now HACK in just clojure#
                     ;; as a constant.
                     (C in-namespace "clojure#" _)
-                    '((use-clojure)))))
+                    ;; Do not (use-clojure), breaks argument bindings:
+                    '())))
 
 ;; Clojure's macroexpand is a function, not a macro!
 (def (clojure#macroexpand e)
