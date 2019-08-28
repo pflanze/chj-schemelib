@@ -74,7 +74,10 @@
 (export (macro TEST)
 	run-tests
 	run-all-tests
+        
 	load ;; ? global override needed? XX
+        load/no-namespace-reset
+        orig-load
 
 	#!optional
 	TEST:parse/)
@@ -191,15 +194,15 @@
 	   #t
 	   #t
 	   #f))
- ;; wrapped for us:
- (define (load path-or-settings)
+
+ ;; wrapped for us: (see |load| below)
+ (define (load/no-namespace-reset path-or-settings)
    ;; XXX only works for string for now
    (define (fall-through msg)
      ;;sgh is warn loaded already?
      (println (list "load override from test.scm: "
 		    msg))
      (orig-load path-or-settings))
-   (eval `(##namespace ("")))
    (if (string? path-or-settings)
        ;; now is it a source file? we hope so.. well check.
        ;; (if it's an object file, we won't know the source safely anyway)
@@ -238,6 +241,10 @@
 		     ;; same directory as source files. warn?
 		     (load* (string-append dir basename ".scm"))))))))
        (fall-through "only properly works for string arguments")))
+
+ (define (load path-or-settings)
+      (eval `(##namespace ("")))
+      (load/no-namespace-reset path-or-settings))
 
  (define (name->basename+maybe-suffix name cont)
    (let lp ((n (reverse (string->list name)))
