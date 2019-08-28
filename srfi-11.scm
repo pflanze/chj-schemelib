@@ -480,7 +480,17 @@
 
 (define (values-map fn v)
   ;; there's no ##make-values, so:
-  (apply values (map fn (values->list v))))
+  (if (values? v)
+      (case (@values-length v)
+        ((0) (values))
+        ((2) (values (fn (@fst v))
+                     (fn (@snd v))))
+        ((3) (values (fn (@fst v))
+                     (fn (@snd v))
+                     (fn (@3rd v))))
+        (else
+         (apply values (map fn (values->list v)))))
+      (fn v)))
 
 (TEST
  > (define (t . args)
@@ -491,5 +501,7 @@
  > (t 2)
  [4]
  > (t 2 3 4)
- [4 9 16])
+ [4 9 16]
+ > (t 2 3 4 5)
+ [4 9 16 25])
 
