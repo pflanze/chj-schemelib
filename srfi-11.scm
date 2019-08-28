@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -97,7 +97,8 @@
 (define (values->vector v)
   (if (values? v)
       (##vector-copy v)
-      (error "values->vector: not a values tuple:" v)))
+      ;; Okay?:
+      (vector v)))
 
 (define (values->list v)
   (vector->list (values->vector v)))
