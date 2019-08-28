@@ -481,3 +481,15 @@
 (define (values-map fn v)
   ;; there's no ##make-values, so:
   (apply values (map fn (values->list v))))
+
+(TEST
+ > (define (t . args)
+     (values->vector (values-map (lambda (x) (* x x))
+                                 (apply values args))))
+ > (t)
+ []
+ > (t 2)
+ [4]
+ > (t 2 3 4)
+ [4 9 16])
+
