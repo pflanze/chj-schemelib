@@ -9,27 +9,32 @@
 ;; A define-macro like macro definition mechanism that offers the
 ;; following functionality over define-macro:
 
-;; - the inputs of the macro transformers are source objects, meaning
+;; - The inputs of the macro transformers are source objects, meaning
 ;; objects containing both source code and location information; the
 ;; macro transformers may return a mix of source objects and normal
-;; objects without location information. Like with define-macro,
-;; errors in latter objects are shown as occurring in the macro call
-;; form.
+;; objects without location information. Code parts without location
+;; information will assume the location of the macro call, which means
+;; that errors in those code parts will show up as "in the macro" (the
+;; same as with define-macro).
 
-;; - a variable |stx| is being introduced unhygienically, which holds
+;; - A variable |stx| is being introduced unhygienically, which holds
 ;; the source code of the whole macro call; this can be used to get
-;; the location of the call form, for example.
+;; the location of the macro call form, for example.
 
-;; - the macro transformer is made available at runtime (it can be
-;; used from newly entered/loaded code, from a compiled binary,
-;; without re-including macro definitions first)
+;; - The macro is made available both within the same compilation unit
+;; as well as at runtime, i.e. can be used from other compilation
+;; units, eval or the repl without re-including macro definitions
+;; first.
 
-;; - a modified macro is being put at expansion#the-macro-name, that
-;; outputs the expanded code (with location information stripped), for
-;; interactive debugging purposes.
+;; - A modified macro is being defined at expansion#the-macro-name,
+;; which calls the same expander but outputs the *quoted* expanded
+;; code (with location information stripped), for interactive
+;; debugging purposes (but also see macro-star-expand{,-1} and
+;; cj-expansion.scm).
 
-;; In a second step, define-macro* itself is also being defined as a
-;; define-macro* so that it is available at runtime.
+;; - The expander as a procedure is bound to expander#the-macro-name,
+;; which takes 1 argument, the code of the whole macro form (the value
+;; which is then bound to |stx|, see above).
 
 
 ;; quoted forms (since not normally defined yet) for require.scm
