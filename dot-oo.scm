@@ -29,6 +29,7 @@
 	(macro define.)
 	(macro define-struct.)
 	(macro CALL.)
+        can.
         (macro CAN.)
 	nothing? ;; really?
 
@@ -160,13 +161,21 @@
 
 
 ;; Like Perl's UNIVERSAL::can
+
+(define (can. genericname obj)
+  (assert*
+   symbol? genericname
+   (lambda (genericname)
+     (dot-oo:method-table-maybe-ref-method
+      (generic-name-string.method-table-name (symbol->string genericname))
+      obj))))
+
 (define-macro* (CAN. genericname obj)
   (assert*
    symbol? genericname
    (lambda (genericname)
      `(dot-oo:method-table-maybe-ref-method
-       ,(generic-name-string.method-table-name
-         (symbol->string genericname))
+       ,(generic-name-string.method-table-name (symbol->string genericname))
        ,obj))))
 
 
