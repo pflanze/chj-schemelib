@@ -67,13 +67,13 @@
 	    (vector-ref vec i)
 	    obj)
 	   (let ((m (vector-ref vec (+ i n))))
-	     (if *dot-oo:method-trace*
-		 (warn "method call for:" (vector-ref vec (- i n)) m))
-	     (if *dot-oo:method-stats*
-		 (let ((j (+ i (* 2 n))))
-		   ;; ^ not 3 as i is already in second row
-		   (vector-set! vec j
-				(+ (vector-ref vec j) 1))))
+	     (when *dot-oo:method-trace*
+                   (warn "method call for:" (vector-ref vec (- i n)) m))
+	     (when *dot-oo:method-stats*
+                   (let ((j (+ i (* 2 n))))
+                     ;; ^ not 3 as i is already in second row
+                     (vector-set! vec j
+                                  (+ (vector-ref vec j) 1))))
 	     m)
 	   (lp (inc i)))
 	  #f))))
