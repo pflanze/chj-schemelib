@@ -10,7 +10,8 @@
 	 (simple-match-1 assert*)
 	 dot-oo)
 
-(export (macro dot-oo-optim-for)
+(export (macro %)
+        (macro dot-oo-optim-for)
 	(macro dot-oo-optim-later)
 
 	;; move to dot-oo and change it to not support foo:.bar any
