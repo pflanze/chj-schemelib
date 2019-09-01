@@ -70,9 +70,15 @@
 
   (defmethod (string s)
     ($ (string.replace-substrings message "QUO character" "quote character")
-       " in " (object->string path-or-port) " line " lineno (if pos
-                                                                ($ " pos $pos")
-                                                                "")))
+       " in "
+       (object->string (if (port? path-or-port)
+                           (.name path-or-port)
+                           path-or-port))
+       " line "
+       lineno
+       (if pos
+           ($ " pos $pos")
+           "")))
 
   (defmethod (csv-type-error s maybe-nested-error)
     (csv-type-error maybe-nested-error)))
