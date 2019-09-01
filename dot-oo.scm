@@ -24,7 +24,8 @@
          slib-sort ;; for show-method-statistics
 	 cj-functional-2
          cj-functional
-         fixnum-more)
+         fixnum-more
+         list-util-3)
 
 (export (macro method-table-for)
         (macro show-methods)
@@ -237,13 +238,27 @@
         (on symbol->string string<?)))
 
 
+
+
+(define dot-oo:show-method-statistics-method-table-entry?
+  (inhomogenous-list-of exact-natural0?
+                        symbol?))
+
+;; longest function name ever?
+(define-typed (dot-oo:show-method-table-entry->show-method-statistics-method-table-entry
+               [dot-oo:show-method-table-entry? l])
+  -> dot-oo:show-method-statistics-method-table-entry?
+  (let-list ((typename pred implementor stat) l)
+            (list stat typename)))
+
 (define dot-oo:statistics-entry?
   (inhomogenous-list-of exact-natural0?
                         symbol? ;; the generics name
-                        (list-of dot-oo:show-method-table-entry?)))
+                        (list-of dot-oo:show-method-statistics-method-table-entry?)))
 
 (define-typed (show-method-statistics) -> (list-of dot-oo:statistics-entry?)
   (define (stat-count l) (list-ref l 3))
+  (define stat-count* car) ;; after mapping
   (=>> (table->list dot-oo:genericname->method-table)
        (map (lambda (genericname.method-table)
               (let-pair
@@ -251,8 +266,9 @@
                (let* ((tableshown
                        (=>> (dot-oo:show-method-table method-table)
                             (filter (compose not zero? stat-count))
-                            ((flip sort) (on stat-count <))))
-                      (tot (apply + (map stat-count tableshown))))
+                            (map dot-oo:show-method-table-entry->show-method-statistics-method-table-entry)
+                            ((flip sort) (on car <))))
+                      (tot (apply + (map stat-count* tableshown))))
                  (list tot
                        genericname
                        tableshown)))))
