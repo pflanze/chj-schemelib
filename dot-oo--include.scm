@@ -8,8 +8,8 @@
 
 ;; included in dot-oo, hence no require form. pseudo export form:
 (export dot-oo:method-key-maybe-ref-i
-	dot-oo:method-table-set!
-	dot-oo:new-method-table)
+        dot-oo:method-table-set!
+        dot-oo:new-method-table)
 
 
 ;; Method tables consist of a vector in a box (so that replaceable) in
@@ -25,8 +25,8 @@
 (define (vector-copy! fromvec from to tovec tofrom)
   (let* ((offset (fx- tofrom from)))
     (for..< (i from to)
-	    (vector-set! tovec (fx+ i offset)
-			 (vector-ref fromvec i)))))
+            (vector-set! tovec (fx+ i offset)
+                         (vector-ref fromvec i)))))
 
 (TEST
  > (define v0 (vector 'a 'b 'c 'd))
@@ -42,10 +42,10 @@
   (let ((end n))
     (let lp ((i 0))
       (if (< i end)
-	  (if (eq? (vector-ref vec i) key)
-	      i
-	      (lp (inc i)))
-	  #f))))
+          (if (eq? (vector-ref vec i) key)
+              i
+              (lp (inc i)))
+          #f))))
 
 
 (define *dot-oo:method-trace* #f)
@@ -56,57 +56,57 @@
 
 (define (@dot-oo:method-type-maybe-ref-method vec n obj)
   (declare (block)
-	   (standard-bindings)
-	   (extended-bindings)
-	   (fixnum) (not safe))
+           (standard-bindings)
+           (extended-bindings)
+           (fixnum) (not safe))
   (let ((end (+ n n)))
     (let lp ((i n))
       (if (< i end)
-	  (if
-	   ( ;; XX should function call be safe here?
-	    (vector-ref vec i)
-	    obj)
-	   (let ((m (vector-ref vec (+ i n))))
-	     (when *dot-oo:method-trace*
+          (if
+           ( ;; XX should function call be safe here?
+            (vector-ref vec i)
+            obj)
+           (let ((m (vector-ref vec (+ i n))))
+             (when *dot-oo:method-trace*
                    (warn "method call for:" (vector-ref vec (- i n)) m))
-	     (when *dot-oo:method-stats*
+             (when *dot-oo:method-stats*
                    (let ((j (+ i (* 2 n))))
                      ;; ^ not 3 as i is already in second row
                      (vector-set! vec j
                                   (+ (vector-ref vec j) 1))))
-	     m)
-	   (lp (inc i)))
-	  #f))))
+             m)
+           (lp (inc i)))
+          #f))))
 
 (define (dot-oo:method-table-maybe-ref-method tbl obj)
   (let* ((vec (unbox tbl))
-	 (n (arithmetic-shift (vector-length vec) -2)))
+         (n (arithmetic-shift (vector-length vec) -2)))
     (@dot-oo:method-type-maybe-ref-method vec n obj)))
 
 
 ;; Disable all assertments for production mode? Can we have full testing instead?
 (define-typed (dot-oo:copy-rail! raili
-				 old #(natural0? oldn)
-				 new #(natural0? newn)
-				 ;; and these are indexes within an individual rail:
-				 #(natural0? oldfrom)
-				 #(natural0? oldto)
-				 #(natural0? newfrom))
+                                 old #(natural0? oldn)
+                                 new #(natural0? newn)
+                                 ;; and these are indexes within an individual rail:
+                                 #(natural0? oldfrom)
+                                 #(natural0? oldto)
+                                 #(natural0? newfrom))
   (assert (<= oldto oldn))
   (assert (<= (fx+ newfrom (fx- oldto oldfrom)) newn))
   (assert (<= oldfrom oldto)) ;; XX could relax?
   (let ((oldbase (fx* raili oldn)))
     (vector-copy! old
-		  (fx+ oldbase oldfrom)
-		  (fx+ oldbase oldto)
-		  new
-		  (fx+ (fx* raili newn) newfrom))))
+                  (fx+ oldbase oldfrom)
+                  (fx+ oldbase oldto)
+                  new
+                  (fx+ (fx* raili newn) newfrom))))
 
 (define (dot-oo:copy-rail raili old oldn new newn
-			  oldfrom oldto newfrom)
+                          oldfrom oldto newfrom)
   (let ((new (vector-copy new)))
     (dot-oo:copy-rail! raili old oldn new newn
-		       oldfrom oldto newfrom)
+                       oldfrom oldto newfrom)
     new))
 
 
@@ -134,14 +134,14 @@
     1)
  #(baz a foo 0 0 0 0 0 0 0 0 0)
  > (%try (dot-oo:copy-rail
-	  0
-	  '#(a foo baz a? foo? baz? a.bar foo.bar baz.bar 0 0 0)
-	  3
-	  orig
-	  3
-	  0
-	  2
-	  2))
+          0
+          '#(a foo baz a? foo? baz? a.bar foo.bar baz.bar 0 0 0)
+          3
+          orig
+          3
+          0
+          2
+          2))
  (exception text: "assertment failure: (<= (fx+ newfrom (fx- oldto oldfrom)) newn) (<= (fx+ 2 (fx- 2 0)) 3)\n")
  > (dot-oo:copy-rail
     1
@@ -174,14 +174,14 @@
     1)
  #(baz 0 0 0 0 0 0 0 0 0 0 0)
  > (%try (dot-oo:copy-rail
-	  4
-	  '#(a foo baz a? foo? baz? a.bar foo.bar baz.bar 0 0 0)
-	  3
-	  orig
-	  3
-	  0
-	  2
-	  1))
+          4
+          '#(a foo baz a? foo? baz? a.bar foo.bar baz.bar 0 0 0)
+          3
+          orig
+          3
+          0
+          2
+          1))
  (exception
   text:
   "(Argument 2) Out of range\n(vector-ref '[a foo baz a? foo? baz? a.bar foo.bar baz.bar 0 0 0] 12)\n"))
@@ -191,7 +191,7 @@
 (both-times
  (define (nonempty-symbol? v)
    (and (symbol? v)
-	(not (zero? (string-length (symbol->string v)))))))
+        (not (zero? (string-length (symbol->string v)))))))
 
 (define-typed (dot-oo:method-table-set old #(nonempty-symbol? prefix) pred meth)
 
@@ -202,35 +202,35 @@
     new)
 
   (let* ((oldlen (vector-length old))
-	 (oldn (arithmetic-shift oldlen -2)))
+         (oldn (arithmetic-shift oldlen -2)))
     (cond ((dot-oo:method-key-maybe-ref-i old oldn prefix)
-	   => (lambda (oldi)
-		(let* ((n oldn)
-		       (new (make-vector oldlen)))
+           => (lambda (oldi)
+                (let* ((n oldn)
+                       (new (make-vector oldlen)))
 
-		  (define (do-rail raili)
-		    (let ((oldi* (inc oldi)))
-		      ;; copy part after found position (unshifted):
-		      (dot-oo:copy-rail! raili old oldn new n
-					 oldi* oldn oldi*)
-		      ;; copy part before found position towards the end
-		      ;; to make space for new row at the beginning:
-		      (dot-oo:copy-rail! raili old oldn new n 0 oldi 1)))
+                  (define (do-rail raili)
+                    (let ((oldi* (inc oldi)))
+                      ;; copy part after found position (unshifted):
+                      (dot-oo:copy-rail! raili old oldn new n
+                                         oldi* oldn oldi*)
+                      ;; copy part before found position towards the end
+                      ;; to make space for new row at the beginning:
+                      (dot-oo:copy-rail! raili old oldn new n 0 oldi 1)))
 
-		  (do-rail 0)
-		  (do-rail 1)
-		  (do-rail 2)
-		  (do-rail 3)
-		  (finish new n))))
-	  (else
-	   ;; prepend to the top
-	   (let* ((n (inc oldn))
-		  (new (make-vector (arithmetic-shift n 2))))
-	     (dot-oo:copy-rail! 0 old oldn new n 0 oldn 1)
-	     (dot-oo:copy-rail! 1 old oldn new n 0 oldn 1)
-	     (dot-oo:copy-rail! 2 old oldn new n 0 oldn 1)
-	     (dot-oo:copy-rail! 3 old oldn new n 0 oldn 1)
-	     (finish new n))))))
+                  (do-rail 0)
+                  (do-rail 1)
+                  (do-rail 2)
+                  (do-rail 3)
+                  (finish new n))))
+          (else
+           ;; prepend to the top
+           (let* ((n (inc oldn))
+                  (new (make-vector (arithmetic-shift n 2))))
+             (dot-oo:copy-rail! 0 old oldn new n 0 oldn 1)
+             (dot-oo:copy-rail! 1 old oldn new n 0 oldn 1)
+             (dot-oo:copy-rail! 2 old oldn new n 0 oldn 1)
+             (dot-oo:copy-rail! 3 old oldn new n 0 oldn 1)
+             (finish new n))))))
 
 (TEST
  > (dot-oo:method-table-set (vector) 'foo 'foo? 'foo.bar)
@@ -285,12 +285,12 @@
 
 (define (dot-oo:show-method-table t)
   (let* ((v (unbox t))
-	 (n (arithmetic-shift (vector-length v) -2)))
+         (n (arithmetic-shift (vector-length v) -2)))
     (unfold (C >= _ n)
-	    (lambda (i)
-	      (list (vector-ref v i)
-		    (vector-ref v (+ i n))
-		    (vector-ref v (+ i (* 2 n)))
-		    (vector-ref v (+ i (* 3 n)))))
-	    inc-function
-	    0)))
+            (lambda (i)
+              (list (vector-ref v i)
+                    (vector-ref v (+ i n))
+                    (vector-ref v (+ i (* 2 n)))
+                    (vector-ref v (+ i (* 3 n)))))
+            inc-function
+            0)))
