@@ -7,65 +7,65 @@
 
 
 (require easy
-	 eol
-	 csv-defaults
-	 (predicates length-=)
-	 jclass
-	 stream
-	 oo-lib-vector
-	 (string-util-3 string.replace-substrings)
-	 error
-	 (spreadsheet-reference (class spreadsheet-reference-absolute))
+         eol
+         csv-defaults
+         (predicates length-=)
+         jclass
+         stream
+         oo-lib-vector
+         (string-util-3 string.replace-substrings)
+         error
+         (spreadsheet-reference (class spreadsheet-reference-absolute))
          (cj-path FILE)
          (cj-io-util dirname))
 
 (export (class read-csv-error)
-	(class csv-cell)
-	csv-cell-of
-	possibly-csv-cell-of
-	possibly-csv-cell.value ;; *not* a method
-	x-csv-cell-of
-	X-csv-cell-of ;; allows unwrapped inputs, too (if match predicate)
-	(method csv-cell.xvalue-of)
+        (class csv-cell)
+        csv-cell-of
+        possibly-csv-cell-of
+        possibly-csv-cell.value ;; *not* a method
+        x-csv-cell-of
+        X-csv-cell-of ;; allows unwrapped inputs, too (if match predicate)
+        (method csv-cell.xvalue-of)
         ;; The main use:
-	csv-file-stream
+        csv-file-stream
         ;; Heavy OO:
-	(class csv-reader)
-	(interface input-provider
-		   (class file-input-provider)))
+        (class csv-reader)
+        (interface input-provider
+                   (class file-input-provider)))
 
 
 ;; type error reporting
 (defclass (csv-type-error maybe-nested-error ;; force |error?| here instead of BUG msg below?
-			  [csv-cell? cell])
+                          [csv-cell? cell])
   implements: error
 
   (defmethod (string s)
     (string-append
      (if maybe-nested-error
-	 (if (error? maybe-nested-error)
-	     (string-append (.string maybe-nested-error)
-			    " ")
-	     "(BUG while reporting: invalid type of nested error) ")
-	 "")
+         (if (error? maybe-nested-error)
+             (string-append (.string maybe-nested-error)
+                            " ")
+             "(BUG while reporting: invalid type of nested error) ")
+         "")
      "at "
      (.error-string cell))))
 
 
 ;; read/parse error reporting
 (defclass (read-csv-error [(either string? port?) path-or-port]
-			  [fixnum-natural0? lineno]
-			  ;; error_diag values from the perl library
-			  [fixnum-natural0? cde]
-			  [string? message]
-			  [(maybe fixnum-natural0?) pos])
+                          [fixnum-natural0? lineno]
+                          ;; error_diag values from the perl library
+                          [fixnum-natural0? cde]
+                          [string? message]
+                          [(maybe fixnum-natural0?) pos])
   implements: error
 
   (defmethod (string s)
     ($ (string.replace-substrings message "QUO character" "quote character")
        " in " (object->string path-or-port) " line " lineno (if pos
-								($ " pos $pos")
-								"")))
+                                                                ($ " pos $pos")
+                                                                "")))
 
   (defmethod (csv-type-error s maybe-nested-error)
     (csv-type-error maybe-nested-error)))
@@ -74,9 +74,9 @@
 ;; location tracking
 
 (defclass (csv-cell [(maybe string?) value]
-		    [(either string? port?) path-or-port]
-		    [fixnum-natural? rowno]
-		    [fixnum-natural? colno])
+                    [(either string? port?) path-or-port]
+                    [fixnum-natural? rowno]
+                    [fixnum-natural? colno])
 
   (defmethod (error-string s)
     ($ "row "
@@ -94,47 +94,47 @@
 ;; usage case.
 (def (possibly-csv-cell.value v)
      (if (csv-cell? v)
-	 (@csv-cell.value v)
-	 v))
+         (@csv-cell.value v)
+         v))
 
 (def ((csv-cell-of pred) v)
      (if (csv-cell? v)
-	 (let ((w (pred (@csv-cell.value v))))
-	   (if (eq? w #t)
-	       #t
-	       (csv-type-error w v)))
-	 #f))
+         (let ((w (pred (@csv-cell.value v))))
+           (if (eq? w #t)
+               #t
+               (csv-type-error w v)))
+         #f))
 
 (def ((possibly-csv-cell-of pred) v)
      (if (csv-cell? v)
-	 (let ((w (pred (@csv-cell.value v))))
-	   (if (eq? w #t)
-	       #t
-	       (csv-type-error w v)))
-	 (pred v)))
+         (let ((w (pred (@csv-cell.value v))))
+           (if (eq? w #t)
+               #t
+               (csv-type-error w v)))
+         (pred v)))
 
 
 (def (@x-csv-cell-of v pred msg)
      (let* ((val (@csv-cell.value v))
-	    (w (pred val)))
+            (w (pred val)))
        (if (eq? w #t)
-	   val
-	   (error ($ (if msg ($ msg ": ") "")
-		     "expecting a "
-		     ;; XX oh, ()almost?) need macro for this,
-		     ;; too?
-		     (object->string (try-show pred))
-		     " "
-		     ;; XX show actual value? consistency?
-		     (csv-type-error w v))))))
+           val
+           (error ($ (if msg ($ msg ": ") "")
+                     "expecting a "
+                     ;; XX oh, ()almost?) need macro for this,
+                     ;; too?
+                     (object->string (try-show pred))
+                     " "
+                     ;; XX show actual value? consistency?
+                     (csv-type-error w v))))))
 
 ;; could be a method but then order of arguments would be wrong and
 ;; dunno?; (Should this be a macro to tell the expression like
 ;; cj-typed does? No, right?)
 (def (x-csv-cell-of v pred #!optional msg)
      (if (csv-cell? v)
-	 (@x-csv-cell-of v pred msg)
-	 (error "not a csv-cell:" v)))
+         (@x-csv-cell-of v pred msg)
+         (error "not a csv-cell:" v)))
 
 ;; and then, still, too?
 (def. csv-cell.xvalue-of x-csv-cell-of)
@@ -142,23 +142,23 @@
 ;; Variant that allows unwrapped values, too:
 (def (X-csv-cell-of v pred #!optional msg)
      (if (csv-cell? v)
-	 (@x-csv-cell-of v pred msg)
-	 ;; (-> pred v) no, since it's not a macro now we have to do
-	 ;; runtime:
-	 (let* ((val v)
-		(w (pred val)))
-	   (if (eq? w #t)
-	       val
-	       (error ($ (if msg ($ msg ": ") "")
-			 "expecting a "
-			 ;; XX oh, ()almost?) need macro for this,
-			 ;; too?
-			 (object->string (try-show pred))
-			 " "
-			 ;; XX show actual value? consistency?
-			 (if w
-			     (.string w)
-			     "")))))))
+         (@x-csv-cell-of v pred msg)
+         ;; (-> pred v) no, since it's not a macro now we have to do
+         ;; runtime:
+         (let* ((val v)
+                (w (pred val)))
+           (if (eq? w #t)
+               val
+               (error ($ (if msg ($ msg ": ") "")
+                         "expecting a "
+                         ;; XX oh, ()almost?) need macro for this,
+                         ;; too?
+                         (object->string (try-show pred))
+                         " "
+                         ;; XX show actual value? consistency?
+                         (if w
+                             (.string w)
+                             "")))))))
 
 
 
@@ -199,60 +199,60 @@
 (def (_csv-port-stream port maybe-file-or-port #!optional (tail '()))
      (let lp ((rowno 1))
        (delay
-	 (let ((line (read-line port)))
-	   (if (eof-object? line)
-	       (begin
-		 (close-port port)
-		 (assert (zero? (process-status port)))
-		 tail)
-	       (let ((vals-or-signal
-		      (xone (call-with-input-string line read-all)))
-		     (rest (lp (inc rowno))))
-		 (xcond ((and (vector? vals-or-signal)
-			      (> (vector-length vals-or-signal) 0))
-			 (let ((signal vals-or-signal))
-			   (xcase (vector-ref signal 0)
-				  ((OK)
-				   (if (null? (force rest))
-				       tail
-				       (error "read-csv bug: did get OK signal before end of output")))
-				  ((ERROR)
-				   (assert (= (vector-length signal) 6))
-				   (read-csv-error (vector-ref signal 1)
-						   ;; ^ OK re SECURITY? alternative:
-						   ;;(or maybe-file-or-port port)
-						   (vector-ref signal 2) ;; lineno
-						   (vector-ref signal 3) ;; cde
-						   (vector-ref signal 4) ;; message
-						   (vector-ref signal 5) ;; maybe pos
-						   )))))
-			((ilist? vals-or-signal)
-			 (let ((vals vals-or-signal))
-			   (cons (if maybe-file-or-port
-				     (map/iota (lambda (val colno)
-						 (csv-cell val
-							   maybe-file-or-port
-							   rowno
-							   (inc colno)))
-					       vals)
-				     vals)
-				 rest))))))))))
+         (let ((line (read-line port)))
+           (if (eof-object? line)
+               (begin
+                 (close-port port)
+                 (assert (zero? (process-status port)))
+                 tail)
+               (let ((vals-or-signal
+                      (xone (call-with-input-string line read-all)))
+                     (rest (lp (inc rowno))))
+                 (xcond ((and (vector? vals-or-signal)
+                              (> (vector-length vals-or-signal) 0))
+                         (let ((signal vals-or-signal))
+                           (xcase (vector-ref signal 0)
+                                  ((OK)
+                                   (if (null? (force rest))
+                                       tail
+                                       (error "read-csv bug: did get OK signal before end of output")))
+                                  ((ERROR)
+                                   (assert (= (vector-length signal) 6))
+                                   (read-csv-error (vector-ref signal 1)
+                                                   ;; ^ OK re SECURITY? alternative:
+                                                   ;;(or maybe-file-or-port port)
+                                                   (vector-ref signal 2) ;; lineno
+                                                   (vector-ref signal 3) ;; cde
+                                                   (vector-ref signal 4) ;; message
+                                                   (vector-ref signal 5) ;; maybe pos
+                                                   )))))
+                        ((ilist? vals-or-signal)
+                         (let ((vals vals-or-signal))
+                           (cons (if maybe-file-or-port
+                                     (map/iota (lambda (val colno)
+                                                 (csv-cell val
+                                                           maybe-file-or-port
+                                                           rowno
+                                                           (inc colno)))
+                                               vals)
+                                     vals)
+                                 rest))))))))))
 
 
 (def (csv-file-stream path
-		      #!key
-		      ([char? sep-char] (current-csv-input-sep-char))
-		      ([eol-name? eol] (current-csv-input-eol))
-		      (tail '())
-		      source?)
+                      #!key
+                      ([char? sep-char] (current-csv-input-sep-char))
+                      ([eol-name? eol] (current-csv-input-eol))
+                      (tail '())
+                      source?)
      (_csv-port-stream
       (open-input-process
        (list path: "lib/csv2sexpr"
-	     arguments: (list path
-			      "-"
-			      (string sep-char)
-			      (symbol.string eol))
-	     char-encoding: 'UTF-8))
+             arguments: (list path
+                              "-"
+                              (string sep-char)
+                              (symbol.string eol))
+             char-encoding: 'UTF-8))
       (and source? path)
       tail))
 
@@ -265,35 +265,35 @@
 
 
 (def (csv-port-stream port
-		      #!key
-		      ([char? sep-char] (current-csv-input-sep-char))
-		      ([eol-name? eol] (current-csv-input-eol))
-		      (tail '())
-		      maybe-source)
+                      #!key
+                      ([char? sep-char] (current-csv-input-sep-char))
+                      ([eol-name? eol] (current-csv-input-eol))
+                      (tail '())
+                      maybe-source)
      (let ((p (open-process
-	       (list path: (path-append (dirname (FILE))
+               (list path: (path-append (dirname (FILE))
                                         "csv2sexpr")
-		     arguments: (list "-"
-				      "-"
-				      (string sep-char)
-				      (symbol.string eol))
-		     ;; WOW, would really need different encoding for
-		     ;; input vs. output. If I wanted to process bytes
-		     ;; inbetween; breaking down so much. But yeah,
-		     ;; char-encoding when opening orig file is done,
-		     ;; then we have strings, we write them here as
-		     ;; UTF-8 and read them back as the same, so,
-		     ;; actually fine here. "send-file-strings kinda"
-		     ;; does the transcoding.
-		     char-encoding: 'UTF-8
-		     stdout-redirection: #t
-		     stdin-redirection: #t))))
+                     arguments: (list "-"
+                                      "-"
+                                      (string sep-char)
+                                      (symbol.string eol))
+                     ;; WOW, would really need different encoding for
+                     ;; input vs. output. If I wanted to process bytes
+                     ;; inbetween; breaking down so much. But yeah,
+                     ;; char-encoding when opening orig file is done,
+                     ;; then we have strings, we write them here as
+                     ;; UTF-8 and read them back as the same, so,
+                     ;; actually fine here. "send-file-strings kinda"
+                     ;; does the transcoding.
+                     char-encoding: 'UTF-8
+                     stdout-redirection: #t
+                     stdin-redirection: #t))))
        (future
-	(let lp ()
-	  (send-file-strings port p)
-	  (close-output-port p)
-	  ;; XX btw TODO: check status, don't even do that in csv-file-stream!
-	  (close-port port)))
+        (let lp ()
+          (send-file-strings port p)
+          (close-output-port p)
+          ;; XX btw TODO: check status, don't even do that in csv-file-stream!
+          (close-port port)))
        (_csv-port-stream p maybe-source tail)))
 
 
@@ -307,30 +307,30 @@
 
 (jinterface input-provider
 
-	    (method (open) -> input-port?)
+            (method (open) -> input-port?)
 
-	    (jclass (file-input-provider [path-string? path-string]
-					 [char-encoding? char-encoding])
+            (jclass (file-input-provider [path-string? path-string]
+                                         [char-encoding? char-encoding])
 
-		    (def-method (open s)
-		      (open-input-file (list path: path-string
-					     char-encoding: char-encoding)))
+                    (def-method (open s)
+                      (open-input-file (list path: path-string
+                                             char-encoding: char-encoding)))
 
-		    ;; (def-method (close s port)
-		    ;;   (close-port port)) unused
-		    ))
+                    ;; (def-method (close s port)
+                    ;;   (close-port port)) unused
+                    ))
 
 
 ;;XX lib
 (def (filter/snd vals keep?s)
      (if (or (null? vals) (null? keep?s))
-	 '()
-	 (let-pair ((v vals) vals)
-		   (let-pair ((k? keep?s) keep?s)
-			     (let ((r (filter/snd vals keep?s)))
-			       (if k?
-				   (cons v r)
-				   r))))))
+         '()
+         (let-pair ((v vals) vals)
+                   (let-pair ((k? keep?s) keep?s)
+                             (let ((r (filter/snd vals keep?s)))
+                               (if k?
+                                   (cons v r)
+                                   r))))))
 
 (TEST
  > (filter/snd '(a b c) '(#f #t #f))
@@ -351,30 +351,30 @@
 
 
 (jclass (csv-reader [input-provider? input-provider]
-		    #!key
-		    [char? sep-char]
-		    [eol-name? eol]
-		    [(maybe natural0?) maybe-head-skip]
-		    [boolean? skip-last?]
-		    [(maybe (list-of natural0?)) maybe-columns])
+                    #!key
+                    [char? sep-char]
+                    [eol-name? eol]
+                    [(maybe natural0?) maybe-head-skip]
+                    [boolean? skip-last?]
+                    [(maybe (list-of natural0?)) maybe-columns])
 
-	(def-method (stream s)
-	  (let* ((s (csv-port-stream (.open input-provider)
-				     sep-char: sep-char
-				     eol: eol))
-		 (s (if maybe-head-skip
-			(stream-drop s maybe-head-skip)
-			s))
-		 (s (if skip-last?
-			(stream-butlast s)
-			s))
-		 (s (if maybe-columns
-			(stream-map (lambda (row)
-				      (map (let ((row* (list.vector row)))
-					     (lambda (i)
-					       (vector.ref row* i)))
-					   maybe-columns))
-				    s)
-			s)))
-	    s)))
+        (def-method (stream s)
+          (let* ((s (csv-port-stream (.open input-provider)
+                                     sep-char: sep-char
+                                     eol: eol))
+                 (s (if maybe-head-skip
+                        (stream-drop s maybe-head-skip)
+                        s))
+                 (s (if skip-last?
+                        (stream-butlast s)
+                        s))
+                 (s (if maybe-columns
+                        (stream-map (lambda (row)
+                                      (map (let ((row* (list.vector row)))
+                                             (lambda (i)
+                                               (vector.ref row* i)))
+                                           maybe-columns))
+                                    s)
+                        s)))
+            s)))
 
