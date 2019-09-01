@@ -18,7 +18,7 @@
 
 
 ;; Method tables consist of a vector in a box (so that replaceable) in
-;; the format (4 is a faster divisor than 3):
+;; the format:
 
 ;; (vector prefix1 prefix2 prefix3
 ;;         pred1 pred2 pred3
@@ -59,23 +59,31 @@
 (define *dot-oo:method-stats* #f)
 (set! *dot-oo:method-stats* #f)
 
-(define (@dot-oo:method-type-maybe-ref-method vec n obj)
+(define (@dot-oo:method-type-maybe-ref-method vec nentries obj)
   (declare (block)
            (standard-bindings)
            (extended-bindings)
            (fixnum) (not safe))
-  (let ((end (+ n n)))
-    (let lp ((i n))
+  ;; remember, columns in the 'matrix' are laid out "horizontally";
+  ;; start iterating over the vector at the first entry of the pred
+  ;; column.
+  (let ((end (+ nentries nentries)))
+    (let lp ((i nentries))
       (if (< i end)
           (if
            ( ;; XX should function call be safe here?
             (vector-ref vec i)
             obj)
-           (let ((m (vector-ref vec (+ i n))))
+           (let ((m (vector-ref vec (+ i nentries))))
              (when *dot-oo:method-trace*
-                   (warn "method call for:" (vector-ref vec (- i n)) m))
+                   (warn "method call for:"
+                         ;; prefix:
+                         (vector-ref vec (- i nentries))
+                         ;; Don't have access to the genericname, can
+                         ;; only do:
+                         m))
              (when *dot-oo:method-stats*
-                   (let ((j (+ i (* 2 n))))
+                   (let ((j (+ i (* 2 nentries))))
                      ;; ^ not 3 as i is already in second row
                      (vector-set! vec j
                                   (+ (vector-ref vec j) 1))))
@@ -85,8 +93,8 @@
 
 (define (dot-oo:method-table-maybe-ref-method tbl obj)
   (let* ((vec (unbox tbl))
-         (n (arithmetic-shift (vector-length vec) -2)))
-    (@dot-oo:method-type-maybe-ref-method vec n obj)))
+         (nentries (arithmetic-shift (vector-length vec) -2)))
+    (@dot-oo:method-type-maybe-ref-method vec nentries obj)))
 
 
 ;; Disable all assertments for production mode? Can we have full testing instead?
