@@ -194,6 +194,9 @@ sequences.  See `oo-*.scm` modules. Not very consistent/complete.
 
 * `(show-generics-list)`: list of all generic names (symbols).
 
+* `(show-generics-for obj)`: list of generics which are implemented
+  for obj.
+
 * `(show-method-statistics)`: if call statistics have been enabled via
   `(set! *dot-oo:method-stats* #t)`, shows the method call counts (for
   optimization purposes, see Optimization section).

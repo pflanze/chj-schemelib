@@ -37,6 +37,7 @@
         (generic list.ref)
 
         show-generics-list
+        show-generics-for
         show-method-statistics
         
         #!optional
@@ -231,6 +232,10 @@
 (define (show-generics-list)
   (sort (map car (table->list dot-oo:genericname->method-table))
         (on symbol->string string<?)))
+
+(define (show-generics-for obj)
+  (filter (C can. _ obj)
+          (show-generics-list)))
 
 
 (define (show-method-statistics)
