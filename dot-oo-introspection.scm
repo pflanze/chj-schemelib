@@ -113,7 +113,11 @@
        (list-group (on cadr eq?))
        (map (lambda (group)
               (list (cadar group)
-                    ;; since outer sort and list-group were stable,
-                    ;; don't need to re-sort here, just:
-                    (reverse-map car group))))))
+                    ;; prepend |:| so that pp prints all the values in
+                    ;; the same block (signify, "here, these"? Define
+                    ;; as a function, or macro?)
+                    (cons ':
+                          ;; since outer sort and list-group were stable,
+                          ;; don't need to re-sort here, just:
+                          (reverse-map car group)))))))
 
