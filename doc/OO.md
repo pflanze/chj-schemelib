@@ -181,7 +181,7 @@ sequences.  See `oo-*.scm` modules. Not very consistent/complete.
 
 ## OO system introspection
 
-### `dot-oo.scm`:
+### `dot-oo-introspection.scm`:
 
 * `(can. genericname obj)` and `(CAN. genericname obj)` (the latter is
   a macro that doesn't need genericname (a symbol) to be quoted, and
@@ -196,7 +196,8 @@ sequences.  See `oo-*.scm` modules. Not very consistent/complete.
   types for which they have definitions).
 
 * `(show-generics-for obj)`: list of generics which are implemented
-  for obj (and on which type).
+  for obj (and on which type).  `(show-generics-for* obj)` shows the
+  same but grouped by type.
 
 * `(show-method-statistics)`: if call statistics have been enabled via
   `(set! *dot-oo:method-stats* #t)`, shows the method call counts (for

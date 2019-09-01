@@ -7,31 +7,29 @@
 
 
 (require cj-env
-         (fixnum inc)
          define-macro-star
-         cj-typed ;; heh indirectly through define-struct. expansion
+         cj-typed ;; indirectly through define-struct. expansion
          cj-match
          cj-warn
-         test
          (cj-source-wraps source:symbol-append)
          (string-util strings-join)
          (string-util-2 string-split-once)
-         (cj-env-2 for..<)
-         (test-lib-1 %try)
          (cj-struct define-struct-expand)
-         C
          (list-util-lazy xone)
-         slib-sort ;; for show-method-statistics
-	 cj-functional-2
+         ;; not sure if used anymore:
+         cj-functional-2
          cj-functional
          fixnum-more
          list-util-3
          ;; for dot-oo--include.scm
-         (list-util-1 improper-map))
+         (fixnum inc dec)
+         (cj-env-2 for..<)
+         (list-util-1 improper-map)
+         test
+         (test-lib-1 %try))
 
-(export (macro method-table-for)
-        (macro show-methods)
-        (macro define.)
+
+(export (macro define.)
         (macro define-struct.)
         (macro CALL.)
         can.
@@ -39,19 +37,14 @@
         nothing? ;; really?
 
         ;; XX should move?
-        (generic list.ref)
-
-	dot-oo:all-generics-sorted
-        show-method-statistics
-	show-generics
-        show-generics-for
+        (method list.ref)
         
         #!optional
         define-struct.-expand
         (generic .typecheck!) ;; ?
         (variable *dot-oo:method-trace*)
-        (variable *dot-oo:method-stats*)
-        )
+        (variable *dot-oo:method-stats*))
+
 
 (include "cj-standarddeclares.scm")
 
@@ -244,81 +237,6 @@
                   ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
                   (define-if-not-defined ,genericname
                     (dot-oo:make-generic ',genericname ,method-table-name)))))))))
-
-
-(define-macro* (method-table-for generic-name-sym)
-  (generic-name-string.method-table-name
-   (symbol->string (source-code generic-name-sym))))
-
-(define-macro* (show-methods generic-name-sym)
-  `(dot-oo:show-method-table (method-table-for ,generic-name-sym)))
-
-
-(define-typed (dot-oo:all-generics-sorted) -> (list-of symbol?)
-  (sort (map car (table->list dot-oo:genericname->method-table))
-        (on symbol->string string<?)))
-
-
-
-
-(define dot-oo:show-method-statistics-method-table-entry?
-  (inhomogenous-list-of exact-natural0?
-                        symbol?))
-
-;; longest function name ever?
-(define-typed (dot-oo:show-method-table-entry->show-method-statistics-method-table-entry
-               [dot-oo:show-method-table-entry? l])
-  -> dot-oo:show-method-statistics-method-table-entry?
-  (let-list ((typename pred implementor stat) l)
-            (list stat typename)))
-
-(define dot-oo:statistics-entry?
-  (inhomogenous-list-of exact-natural0?
-                        symbol? ;; the generics name
-                        (list-of dot-oo:show-method-statistics-method-table-entry?)))
-
-(define-typed (show-method-statistics) -> (list-of dot-oo:statistics-entry?)
-  (define (stat-count l) (list-ref l 3))
-  (define stat-count* car) ;; after mapping
-  (=>> (table->list dot-oo:genericname->method-table)
-       (map (lambda (genericname.method-table)
-              (let-pair
-               ((genericname method-table) genericname.method-table)
-               (let* ((tableshown
-                       (=>> (dot-oo:show-method-table method-table)
-                            (filter (compose not zero? stat-count))
-                            (map dot-oo:show-method-table-entry->show-method-statistics-method-table-entry)
-                            ((flip sort) (on car <))))
-                      (tot (apply + (map stat-count* tableshown))))
-                 (list tot
-                       genericname
-                       tableshown)))))
-       (filter (compose not zero? car))
-       ((flip sort) (on car <))))
-
-
-(define dot-oo:show-generics-entry?
-  ;; genericname and the types of the methods it defines
-  (inhomogenous-list-of symbol?
-                        (list-of symbol?)))
-
-(define-typed (show-generics) -> (list-of dot-oo:show-generics-entry?)
-  (=>> (dot-oo:all-generics-sorted)
-       (map (lambda (genname)
-              (list genname
-                    (=>> (table-ref dot-oo:genericname->method-table genname)
-                         ;; XX optimize the following ?
-                         dot-oo:show-method-table
-                         (map (lambda (entry)
-                                (let-list ((typename _pred _implementor _stat)
-                                           entry)
-                                          typename)))))))))
-
-
-(define-typed (show-generics-for obj) -> (list-of dot-oo:can.-show-generic-entry?)
-  (=>> (dot-oo:all-generics-sorted)
-       (filter-map (C dot-oo:can.-show-generic _ obj))))
-
 
 
 (define-macro* (define. first . rest)
