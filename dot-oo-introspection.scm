@@ -17,6 +17,7 @@
          cj-functional
          fixnum-more
          list-util-3
+         (list-util-1 reverse-map) 
          (cj-symbol symbol<?))
 
 (export (macro method-table-for)
@@ -112,6 +113,7 @@
        (list-group (on cadr eq?))
        (map (lambda (group)
               (list (cadar group)
-                    (=> (map car group)
-                        (sort symbol<?)))))))
+                    ;; since outer sort and list-group were stable,
+                    ;; don't need to re-sort here, just:
+                    (reverse-map car group))))))
 
