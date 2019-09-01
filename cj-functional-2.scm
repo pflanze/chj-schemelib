@@ -37,6 +37,7 @@
 	(macro =>>*)
 	list-of/2
 	list-of-function (macro list-of)
+        inhomogenous-list-of
 	nonempty-list-of-function (macro nonempty-list-of)
 	list-of/length ;; see also length-is
 	improper-list/length>=
@@ -44,7 +45,9 @@
 	strictly-monotonic-list-of
 	values-of-function (macro values-of)
 	applying
-        applying-pair)
+        applying-pair
+        #!optional
+        inhomogenous-list-of*)
 
 (include "cj-standarddeclares.scm")
 
@@ -527,6 +530,32 @@
    (with-gensym x
 		`(##lambda (,x)
 			   (list-of/2 ,pred ,x)))))
+
+(define (inhomogenous-list-of* preds val)
+  (or (and (null? preds)
+           (null? val))
+      (and (pair? preds)
+           (pair? val)
+           (let-pair
+            ((p preds*) preds)
+            (let-pair
+             ((v val*) val)
+             (and (p v)
+                  (inhomogenous-list-of* preds* val*)))))))
+
+(define (inhomogenous-list-of . preds)
+  (lambda (val)
+    (inhomogenous-list-of* preds val)))
+
+(TEST
+ > ((inhomogenous-list-of number? string?) '())
+ #f
+ > ((inhomogenous-list-of number? string?) '(0 "foo"))
+ #t
+ > ((inhomogenous-list-of number? string?) '("foo" 0))
+ #f
+ > ((inhomogenous-list-of number? string?) "foo")
+ #f)
 
 
 (define (nonempty-list-of-function pred)
