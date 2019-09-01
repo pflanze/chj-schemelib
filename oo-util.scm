@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -29,7 +29,11 @@
   (cons v s))
 
 (define inexact exact->inexact)
-(define. exact.inexact exact->inexact) ;; ah, use the above?
+;; exact? is not a proper predicate (OK?), it throws exceptions for
+;; non-numbers, so don't define. the following:
+(define exact.inexact exact->inexact)
+;; This is fine:
+(define. number.inexact exact->inexact)
 
 (define. values.vector values->vector)
 
