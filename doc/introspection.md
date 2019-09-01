@@ -18,22 +18,5 @@
             > (expansion => (=> (.list "Agent 007 in 2 lives") (filter char-digit?)) (.string))
             (.string (filter (.list "Agent 007 in 2 lives") char-digit?))
 
-- dot-oo.scm defines the basis of the `|def.|` forms, as well as
-  `|def-method|` in `|jclass|`. It creates generic functions, which
-  dispatch according to the (type of the) value in the first argument
-  position (or said differently, the generic function finds a match
-  for the first argument, amongst the methods that are "part" of the
-  generic.
-  
-     (def. (list.frob l a b) (cons (string-append "frob" a) l))
-     (def. (string.frob s a) (string-append "frob" a s))
-
-  > (list.frob '(1 2 3) "foo")
-  ("frobfoo" 1 2 3)
-  > (string.frob "1 2 3" "foo")
-  "frobfoo1 2 3"
-  > (.frob "1 2 3" "foo")
-  "frobfoo1 2 3"
-  > (.frob '(1 2 3) "foo")
-  ("frobfoo" 1 2 3)
+- OO: see [OO](OO.md).
 

@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,7 @@
 ;; Java style object orientation: extensible hierarchy,
 ;; single-inheritance of both methods and fields.
 
-;; Still based on (i.e. purely functional) cj-struct.
+;; Still based on cj-struct (i.e. purely functional).
 
 ;; Relies on symbols as unique names for classes (so that symboltable
 ;; can be used, sensible?), so will be incompatible with defmodule !
@@ -24,7 +24,7 @@
 ;; through the hashtable actually man. man.
 
 (require easy-1
-	 more-oo
+	 more-oo ;; just for bootstrapping reasons.
 	 (srfi-1 cons* take drop)
 	 ;; ^ btw so many times, fold etc., should this be with easy?
 	 (cj-struct struct-tag.name)
