@@ -7,44 +7,44 @@
 
 
 (require cj-env
-	 (fixnum inc)
-	 define-macro-star
-	 cj-typed ;; heh indirectly through define-struct. expansion
-	 cj-match
-	 cj-warn
-	 test
-	 (cj-source-wraps source:symbol-append)
-	 (string-util strings-join)
-	 (string-util-2 string-split-once)
-	 (cj-env-2 for..<)
-	 (test-lib-1 %try)
-	 (cj-struct define-struct-expand)
-	 C
-	 (list-util-lazy xone)
-	 slib-sort ;; for show-method-statistics
-	 )
+         (fixnum inc)
+         define-macro-star
+         cj-typed ;; heh indirectly through define-struct. expansion
+         cj-match
+         cj-warn
+         test
+         (cj-source-wraps source:symbol-append)
+         (string-util strings-join)
+         (string-util-2 string-split-once)
+         (cj-env-2 for..<)
+         (test-lib-1 %try)
+         (cj-struct define-struct-expand)
+         C
+         (list-util-lazy xone)
+         slib-sort ;; for show-method-statistics
+         )
 
 (export (macro method-table-for)
-	(macro show-methods)
-	(macro define.)
-	(macro define-struct.)
-	(macro CALL.)
+        (macro show-methods)
+        (macro define.)
+        (macro define-struct.)
+        (macro CALL.)
         can.
         (macro CAN.)
-	nothing? ;; really?
+        nothing? ;; really?
 
-	;; XX should move?
-	(generic list.ref)
+        ;; XX should move?
+        (generic list.ref)
 
-	show-generics-list
-	show-method-statistics
-	
-	#!optional
-	define-struct.-expand
-	(generic .typecheck!) ;; ?
-	(variable *dot-oo:method-trace*)
+        show-generics-list
+        show-method-statistics
+        
+        #!optional
+        define-struct.-expand
+        (generic .typecheck!) ;; ?
+        (variable *dot-oo:method-trace*)
         (variable *dot-oo:method-stats*)
-	)
+        )
 
 (include "cj-standarddeclares.scm")
 
@@ -52,9 +52,9 @@
 (include "dot-oo--include.scm")
 ;; Getting:
 ;; (    dot-oo:method-key-maybe-ref-i
-;; 	dot-oo:method-type-maybe-ref-method
-;; 	dot-oo:method-table-set!
-;; 	dot-oo:new-method-table)
+;;      dot-oo:method-type-maybe-ref-method
+;;      dot-oo:method-table-set!
+;;      dot-oo:new-method-table)
 
 
 
@@ -64,15 +64,15 @@
 (both-times
  (define (dot-oo:split-typename.methodname str #!optional src)
    (let ((typename+maybe-methodname
-	  (string-split-once (source-code str) #\. #f)))
+          (string-split-once (source-code str) #\. #f)))
 
      (cond ((snd typename+maybe-methodname)
-	    => (lambda (methodname)
-		 (if (string=? methodname ".")
-		     (source-error src "missing method name after '.' in name")
-		     typename+maybe-methodname)))
-	   (else
-	    (source-error src "missing '.' in name")))))
+            => (lambda (methodname)
+                 (if (string=? methodname ".")
+                     (source-error src "missing method name after '.' in name")
+                     typename+maybe-methodname)))
+           (else
+            (source-error src "missing '.' in name")))))
  
  ;; The full name
  ;; 
@@ -89,15 +89,15 @@
  (define (dot-oo:split-prefix:typename.methodname str #!optional src)
    (define (cont prefix remainder)
      (letv ((typename methodname)
-	    (dot-oo:split-typename.methodname remainder src))
-	   (values typename
-		   (string-append prefix methodname))))
+            (dot-oo:split-typename.methodname remainder src))
+           (values typename
+                   (string-append prefix methodname))))
    (let* ((parts (string-split (source-code str) #\:)))
      (if (= (length parts) 1)
-	 (cont "" str)
-	 (cont (string-append (car parts) ":")
-	       (possibly-sourcify
-		(strings-join (cdr parts) ":") str))))))
+         (cont "" str)
+         (cont (string-append (car parts) ":")
+               (possibly-sourcify
+                (strings-join (cdr parts) ":") str))))))
 
 (TEST
  > (values->vector (dot-oo:split-typename.methodname "foo.bar"))
@@ -108,17 +108,17 @@
  #("fix:foo" ".bar.baz")
 
  > (values->vector (dot-oo:split-prefix:typename.methodname
-		    "fix:foo.bar.baz:boo"))
+                    "fix:foo.bar.baz:boo"))
  #("foo" "fix:.bar.baz:boo")
  > (values->vector (dot-oo:split-prefix:typename.methodname
-		    "foo.bar.baz"))
+                    "foo.bar.baz"))
  #("foo" ".bar.baz")
  ;; XX I'm not testing "foo.bar.baz:boo".. what should it do then?...
  > (map (lambda (name)
-	  (with-exception-catcher
-	   source-error-message
-	   (& (snd (dot-oo:split-prefix:typename.methodname name)))))
-	'("foo" "foo." "foo.bar"))
+          (with-exception-catcher
+           source-error-message
+           (& (snd (dot-oo:split-prefix:typename.methodname name)))))
+        '("foo" "foo." "foo.bar"))
  ("missing '.' in name" "missing method name after '.' in name" ".bar"))
 
 
@@ -127,19 +127,19 @@
 
 (define (dot-oo:generic-error genericname obj)
   (error (string-append "no method found for generic "
-			(object->string genericname)
-			" for value:")
-	 obj))
+                        (object->string genericname)
+                        " for value:")
+         obj))
 
 (define (dot-oo:make-generic genericname method-table)
   (table-set! dot-oo:genericname->method-table
-	      genericname method-table)
+              genericname method-table)
   (lambda (obj . rest)
     (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
-	   => (lambda (method)
-		(apply method obj rest)))
-	  (else
-	   (dot-oo:generic-error genericname obj)))))
+           => (lambda (method)
+                (apply method obj rest)))
+          (else
+           (dot-oo:generic-error genericname obj)))))
 
 ;; optimization to avoid allocation of rest arguments (alternatively
 ;; also see dot-oo-optim.scm):
@@ -150,14 +150,14 @@
      (with-gensyms
       (OBJ METHOD)
       `(let ((,OBJ ,obj))
-	 (cond ((dot-oo:method-table-maybe-ref-method
-		 ,(generic-name-string.method-table-name
-		   (symbol->string genericname))
-		 ,OBJ)
-		=> (lambda (,METHOD)
-		     (,METHOD ,OBJ ,@args)))
-	       (else
-		(dot-oo:generic-error ',genericname ,OBJ))))))))
+         (cond ((dot-oo:method-table-maybe-ref-method
+                 ,(generic-name-string.method-table-name
+                   (symbol->string genericname))
+                 ,OBJ)
+                => (lambda (,METHOD)
+                     (,METHOD ,OBJ ,@args)))
+               (else
+                (dot-oo:generic-error ',genericname ,OBJ))))))))
 
 
 ;; Like Perl's UNIVERSAL::can
@@ -183,41 +183,41 @@
 (both-times
  (define (generic-name-string.method-table-name str)
    (string->symbol (string-append "dot-oo-method-table#"
-				  str)))
+                                  str)))
  
  (define define.-expand
    (lambda (name expr)
      (let ((namestr (possibly-sourcify (symbol->string (source-code name))
-				       name)))
+                                       name)))
        (letv ((typenamestr genericnamestr)
-	      (dot-oo:split-prefix:typename.methodname namestr name))
-	     (let* ((genericname (string->symbol genericnamestr))
-		    (typename (string->symbol typenamestr))
-		    (predicate (source:symbol-append typename '?))
-		    ;; But predicate can change through redefinitions
-		    ;; on reload, use typename for table updates
-		    ;; instead.
-		    (fulltypename (string->symbol (string-append typenamestr)))
-		    (method-table-name (generic-name-string.method-table-name
-					genericnamestr)))
-	       `(begin
-		  (define ,name ,expr)
-		  ;; Update (and possibly create) method table
-		  (define ,method-table-name
-		    (dot-oo:method-table-set!
-		     (macro-symbol-value-or ,method-table-name
-					    dot-oo:new-method-table)
-		     ',typename
-		     ;; wrapper (1) to pick up definitions later in
-		     ;; scope (gah, perhaps solvable?), (2) to pick up
-		     ;; on redefinitions? Well, not sure whether that
-		     ;; should happen. XX
-		     (lambda (v) (,predicate v))
-		     ,name))
+              (dot-oo:split-prefix:typename.methodname namestr name))
+             (let* ((genericname (string->symbol genericnamestr))
+                    (typename (string->symbol typenamestr))
+                    (predicate (source:symbol-append typename '?))
+                    ;; But predicate can change through redefinitions
+                    ;; on reload, use typename for table updates
+                    ;; instead.
+                    (fulltypename (string->symbol (string-append typenamestr)))
+                    (method-table-name (generic-name-string.method-table-name
+                                        genericnamestr)))
+               `(begin
+                  (define ,name ,expr)
+                  ;; Update (and possibly create) method table
+                  (define ,method-table-name
+                    (dot-oo:method-table-set!
+                     (macro-symbol-value-or ,method-table-name
+                                            dot-oo:new-method-table)
+                     ',typename
+                     ;; wrapper (1) to pick up definitions later in
+                     ;; scope (gah, perhaps solvable?), (2) to pick up
+                     ;; on redefinitions? Well, not sure whether that
+                     ;; should happen. XX
+                     (lambda (v) (,predicate v))
+                     ,name))
 
-		  ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
-		  (define-if-not-defined ,genericname
-		    (dot-oo:make-generic ',genericname ,method-table-name)))))))))
+                  ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
+                  (define-if-not-defined ,genericname
+                    (dot-oo:make-generic ',genericname ,method-table-name)))))))))
 
 
 (define-macro* (method-table-for generic-name-sym)
@@ -230,34 +230,34 @@
 
 (define (show-generics-list)
   (sort (map car (table->list dot-oo:genericname->method-table))
-	(on symbol->string string<?)))
+        (on symbol->string string<?)))
 
 
 (define (show-method-statistics)
   (define (stat-count l) (list-ref l 3))
   (sort (filter
-	 (lambda (entry)
-	   (not (zero? (car entry))))
-	 (map (lambda (genericname.method-table)
-		(let* ((tableshown (dot-oo:show-method-table
-				    (cdr genericname.method-table)))
-		       (tot (apply + (map stat-count tableshown))))
-		  (list tot
-			(car genericname.method-table)
-			(sort tableshown (on stat-count <)))))
-	      (table->list dot-oo:genericname->method-table)))
-	(on car <)))
+         (lambda (entry)
+           (not (zero? (car entry))))
+         (map (lambda (genericname.method-table)
+                (let* ((tableshown (dot-oo:show-method-table
+                                    (cdr genericname.method-table)))
+                       (tot (apply + (map stat-count tableshown))))
+                  (list tot
+                        (car genericname.method-table)
+                        (sort tableshown (on stat-count <)))))
+              (table->list dot-oo:genericname->method-table)))
+        (on car <)))
 
 
 (define-macro* (define. first . rest)
   (mcase first
-	 (symbol?
-	  (define.-expand first (xone rest)))
-	 (pair?
-	  (let ((first* (source-code first)))
-	    (define.-expand (car first*)
-	      `(typed-lambda ,(cdr first*)
-		 ,@rest))))))
+         (symbol?
+          (define.-expand first (xone rest)))
+         (pair?
+          (let ((first* (source-code first)))
+            (define.-expand (car first*)
+              `(typed-lambda ,(cdr first*)
+                 ,@rest))))))
 
 ;; [*] Note: this now resolves the type predicate at run time, so that
 ;; later redefinitions of other modules are respected[, and so that
@@ -300,21 +300,21 @@
 (define define-struct/types:arg->maybe-fieldname
   ;; XX sigh, almost-copy-paste of define-struct:arg->maybe-fieldname
   (named self
-	 (lambda (v*)
-	   (let ((v (source-code v*)))
-	     (cond ((symbol? v)
-		    v*)
-		   ((typed? v)
-		    (@typed.var v))
-		   ((dsssl-meta-object? v)
-		    #f)
-		   (((list-of-length 2) v)
-		    ;; `(`definition `default-value)
-		    (self (car v)))
-		   (else
-		    (source-error
-		     v*
-		     "expecting symbol or typed symbol or dsssl-meta-object")))))))
+         (lambda (v*)
+           (let ((v (source-code v*)))
+             (cond ((symbol? v)
+                    v*)
+                   ((typed? v)
+                    (@typed.var v))
+                   ((dsssl-meta-object? v)
+                    #f)
+                   (((list-of-length 2) v)
+                    ;; `(`definition `default-value)
+                    (self (car v)))
+                   (else
+                    (source-error
+                     v*
+                     "expecting symbol or typed symbol or dsssl-meta-object")))))))
 
 
 (both-times
@@ -326,77 +326,77 @@
    (V V*)
    `(begin
       ,(apply define-struct-expand
-	      'define.
-	      'typed-lambda
-	      'detyped-lambda
-	      define-struct/types:arg->maybe-fieldname
-	      (lambda (var field+)
-		(let ((field+* (source-code field+)))
-		  (if (typed? field+*)
-		      (begin
-			(assert (= (vector-length field+*) 2))
-			(vector (vector-ref field+* 0)
-				var))
-		      var)))
-	      (lambda (FN field+)
-		(let ((field+* (source-code field+)))
-		  (if (typed? field+*)
-		      (begin
-			(assert (= (vector-length field+*) 2))
-			(with-gensyms
-			 (V V*)
-			 `(lambda (,V)
-			    (let ((,V* (,FN ,V)))
-			      ;; (XX btw much code duplication? (of the
-			      ;; type check code, in case it is big))
-			      (type-check ,(vector-ref field+* 0) ,V*
-					  ,V*)))))
-		      FN)))
-	      name
-	      separator: "."
-	      constructor-stx: constructor-stx
+              'define.
+              'typed-lambda
+              'detyped-lambda
+              define-struct/types:arg->maybe-fieldname
+              (lambda (var field+)
+                (let ((field+* (source-code field+)))
+                  (if (typed? field+*)
+                      (begin
+                        (assert (= (vector-length field+*) 2))
+                        (vector (vector-ref field+* 0)
+                                var))
+                      var)))
+              (lambda (FN field+)
+                (let ((field+* (source-code field+)))
+                  (if (typed? field+*)
+                      (begin
+                        (assert (= (vector-length field+*) 2))
+                        (with-gensyms
+                         (V V*)
+                         `(lambda (,V)
+                            (let ((,V* (,FN ,V)))
+                              ;; (XX btw much code duplication? (of the
+                              ;; type check code, in case it is big))
+                              (type-check ,(vector-ref field+* 0) ,V*
+                                          ,V*)))))
+                      FN)))
+              name
+              separator: "."
+              constructor-stx: constructor-stx
 
-	      ;; don't override constructor-name or
-	      ;; unsafe-constructor-name if provided by user
-	      (let ((defs* (map source-code defs)))
-		`(,@(if (memq constructor-name: defs*)
-			`()
-			`(constructor-name: ,name))
-		  ,@(if (memq unsafe-constructor-name: defs*)
-			`()
-			`(unsafe-constructor-name:
-			  ,(source:symbol-append name '@)))
-		  ,@defs)))
+              ;; don't override constructor-name or
+              ;; unsafe-constructor-name if provided by user
+              (let ((defs* (map source-code defs)))
+                `(,@(if (memq constructor-name: defs*)
+                        `()
+                        `(constructor-name: ,name))
+                  ,@(if (memq unsafe-constructor-name: defs*)
+                        `()
+                        `(unsafe-constructor-name:
+                          ,(source:symbol-append name '@)))
+                  ,@defs)))
       
       ;; reserve name for just this purpose?
       (define. (,(source:symbol-append name ".typecheck!") ,V)
-	,@(filter values
-		  (map (lambda (def)
-			 (let ((def* (source-code def)))
-			   (if (typed? def*)
-			       `(let ((,V*
-				       ;; use accessors, or direct vector-ref? :
-				       (,(source:symbol-append name "." (vector-ref def* 1)) ,V)))
-				  (type-check ,(vector-ref def* 0)
-					      ,V*
-					      ;; stupid (begin) in if not allowed:
-					      (void))
-				  ;; recursion
-				  ,@(if (memq (source-code (vector-ref def* 0))
-					      dot.oo:have-no-typecheck)
-					`()
-					`((.typecheck! ,V*))))
-			       ;; NOTE: doen't recurse for fields
-			       ;; without type
-			       ;; declaration. Hm. (Because I would
-			       ;; still need typecheck! methods for
-			       ;; basic types then; and more over,
-			       ;; maybe some vector in those fields
-			       ;; with symbol head is just a vector
-			       ;; with symbol head?)
-			       #f)))
-		       defs))
-	,V))))
+        ,@(filter values
+                  (map (lambda (def)
+                         (let ((def* (source-code def)))
+                           (if (typed? def*)
+                               `(let ((,V*
+                                       ;; use accessors, or direct vector-ref? :
+                                       (,(source:symbol-append name "." (vector-ref def* 1)) ,V)))
+                                  (type-check ,(vector-ref def* 0)
+                                              ,V*
+                                              ;; stupid (begin) in if not allowed:
+                                              (void))
+                                  ;; recursion
+                                  ,@(if (memq (source-code (vector-ref def* 0))
+                                              dot.oo:have-no-typecheck)
+                                        `()
+                                        `((.typecheck! ,V*))))
+                               ;; NOTE: doen't recurse for fields
+                               ;; without type
+                               ;; declaration. Hm. (Because I would
+                               ;; still need typecheck! methods for
+                               ;; basic types then; and more over,
+                               ;; maybe some vector in those fields
+                               ;; with symbol head is just a vector
+                               ;; with symbol head?)
+                               #f)))
+                       defs))
+        ,V))))
 
 (define-macro* (define-struct. name . defs)
   (define-struct.-expand stx name defs))
