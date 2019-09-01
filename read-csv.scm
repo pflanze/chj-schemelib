@@ -29,6 +29,7 @@
         (method csv-cell.xvalue-of)
         ;; The main use:
         csv-file-stream
+        csv-port-stream
         ;; Heavy OO:
         (class csv-reader)
         (interface input-provider
