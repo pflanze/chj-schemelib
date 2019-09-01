@@ -11,6 +11,8 @@
         dot-oo:method-table-maybe-ref-method
         dot-oo:method-table-set!
         dot-oo:new-method-table
+        dot-oo:show-method-table-entry?
+        dot-oo:show-method-table
         #!optional
         dot-oo:method-table-set)
 
@@ -286,7 +288,15 @@
   (box '#()))
 
 
-(define (dot-oo:show-method-table t)
+(define dot-oo:show-method-table-entry?
+  (inhomogenous-list-of symbol? ;; the type name (predicate w/o "?")
+                        procedure? ;; predicate
+                        procedure? ;; method implementor
+                        exact-natural0? ;; call count if collection was on
+                        ))
+
+(define-typed (dot-oo:show-method-table t)
+  -> (list-of dot-oo:show-method-table-entry?)
   (let* ((v (unbox t))
          (n (arithmetic-shift (vector-length v) -2)))
     (unfold (C >= _ n)

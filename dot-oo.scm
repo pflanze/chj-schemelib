@@ -22,7 +22,9 @@
          C
          (list-util-lazy xone)
          slib-sort ;; for show-method-statistics
-         )
+	 cj-functional-2
+         cj-functional
+         fixnum-more)
 
 (export (macro method-table-for)
         (macro show-methods)
@@ -36,9 +38,10 @@
         ;; XX should move?
         (generic list.ref)
 
-        show-generics-list
-        show-generics-for
+	dot-oo:all-generics-sorted
         show-method-statistics
+	show-generics
+        show-generics-for
         
         #!optional
         define-struct.-expand
@@ -229,29 +232,43 @@
   `(dot-oo:show-method-table (method-table-for ,generic-name-sym)))
 
 
-(define (show-generics-list)
+(define-typed (dot-oo:all-generics-sorted) -> (list-of symbol?)
   (sort (map car (table->list dot-oo:genericname->method-table))
         (on symbol->string string<?)))
 
-(define (show-generics-for obj)
-  (filter (C can. _ obj)
-          (show-generics-list)))
 
+(define dot-oo:statistics-entry?
+  (inhomogenous-list-of exact-natural0?
+                        symbol? ;; the generics name
+                        (list-of dot-oo:show-method-table-entry?)))
 
-(define (show-method-statistics)
+(define-typed (show-method-statistics) -> (list-of dot-oo:statistics-entry?)
   (define (stat-count l) (list-ref l 3))
   (sort (filter
-         (lambda (entry)
-           (not (zero? (car entry))))
+         (compose not zero? car)
          (map (lambda (genericname.method-table)
-                (let* ((tableshown (dot-oo:show-method-table
-                                    (cdr genericname.method-table)))
-                       (tot (apply + (map stat-count tableshown))))
-                  (list tot
-                        (car genericname.method-table)
-                        (sort tableshown (on stat-count <)))))
+                (let-pair
+                 ((genericname method-table) genericname.method-table)
+                 (let* ((tableshown (dot-oo:show-method-table method-table))
+                        (tableshown (filter (compose not zero? stat-count)
+                                            tableshown))
+                        (tableshown (sort tableshown (on stat-count <)))
+                        (tot (apply + (map stat-count tableshown))))
+                   (list tot
+                         genericname
+                         tableshown))))
               (table->list dot-oo:genericname->method-table)))
         (on car <)))
+
+
+(define-typed (show-generics) -> (list-of symbol?)
+  (dot-oo:all-generics-sorted))
+
+(define-typed (show-generics-for obj) -> (list-of symbol?)
+  (filter (lambda (gensym)
+            (can. gensym obj))
+          (show-generics)))
+
 
 
 (define-macro* (define. first . rest)
