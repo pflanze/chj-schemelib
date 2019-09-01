@@ -8,7 +8,6 @@
 
 (require cj-typed
 	 (list-util let-pair)
-         slib-sort
 	 (cj-gambit-sys-0 @vector-ref))
 
 (export table-test
@@ -19,8 +18,6 @@
 	table
 	table*
 	table-keys
-        table-sorted-keys
-        ;; table-sorted-values see table.scm (dependency on cj-cmp)
 	table-values
 	list->table-maybe-function
 	table-delete!
@@ -107,9 +104,6 @@
 (define (table-keys t)
   ;; XX more efficient?
   (map car (table->list t)))
-
-(define (table-sorted-keys t)
-  (sort (table-keys t) (on symbol->string string<?)))
 
 (define (table-values t)
   ;; XX more efficient?

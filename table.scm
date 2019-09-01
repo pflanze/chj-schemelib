@@ -15,7 +15,8 @@
 	 cj-cmp
 	 srfi-1)
 
-(export table-sorted-values
+(export table-sorted-keys
+	table-sorted-values
 	;; re-export essentials from table-1
 	table _table
 	table*
@@ -41,9 +42,10 @@
 	alist.table)
 
 
-;; table-sorted-keys see table-1.scm
-
 ;; dependent on cj-cmp:
+
+(define (table-sorted-keys t)
+  (cmp-sort (table-keys t) generic-cmp))
 
 (define (table-sorted-values t #!optional (cmp generic-cmp))
   (cmp-sort (table-values t) cmp))
