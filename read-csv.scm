@@ -213,6 +213,7 @@
                        maybe-file-or-port
                        source?
                        #!optional (tail '()))
+     (def cont (current-continuation)) ;;DEBUG
      (let lp ((rowno 1))
        (delay
          (let ((line (read-line port)))
