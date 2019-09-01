@@ -203,7 +203,10 @@
 
 
 
-(def (_csv-port-stream port maybe-file-or-port #!optional (tail '()))
+(def (_csv-port-stream port
+                       maybe-file-or-port
+                       source?
+                       #!optional (tail '()))
      (let lp ((rowno 1))
        (delay
          (let ((line (read-line port)))
@@ -215,41 +218,44 @@
                (let ((vals-or-signal
                       (xone (call-with-input-string line read-all)))
                      (rest (lp (inc rowno))))
-                 (xcond ((and (vector? vals-or-signal)
-                              (> (vector-length vals-or-signal) 0))
-                         (let ((signal vals-or-signal))
-                           (xcase (vector-ref signal 0)
-                                  ((OK)
-                                   (if (null? (force rest))
-                                       tail
-                                       (error "read-csv bug: did get OK signal before end of output")))
-                                  ((ERROR)
-                                   (assert (= (vector-length signal) 6))
-                                   (continuation-capture
-                                    (lambda (cont)
-                                      (read-csv-error cont
-                                                      (vector-ref signal 1)
-                                                      ;; ^ OK re SECURITY? alternative:
-                                                      ;;(or maybe-file-or-port port)
-                                                      ;; lineno
-                                                      (vector-ref signal 2)
-                                                      ;; cde
-                                                      (vector-ref signal 3)
-                                                      ;; message
-                                                      (vector-ref signal 4)
-                                                      ;; maybe pos
-                                                      (vector-ref signal 5))))))))
-                        ((ilist? vals-or-signal)
-                         (let ((vals vals-or-signal))
-                           (cons (if maybe-file-or-port
-                                     (map/iota (lambda (val colno)
-                                                 (csv-cell val
-                                                           maybe-file-or-port
-                                                           rowno
-                                                           (inc colno)))
-                                               vals)
-                                     vals)
-                                 rest))))))))))
+                 (xcond
+                  ((and (vector? vals-or-signal)
+                        (> (vector-length vals-or-signal) 0))
+                   (let ((signal vals-or-signal))
+                     (xcase (vector-ref signal 0)
+                            ((OK)
+                             (if (null? (force rest))
+                                 tail
+                                 (error "read-csv bug: did get OK signal before end of output")))
+                            ((ERROR)
+                             (assert (= (vector-length signal) 6))
+                             (continuation-capture
+                              (lambda (cont)
+                                (read-csv-error cont
+                                                ;; path-or-port:
+                                                ;;(vector-ref signal 1)
+                                                ;; ^ OK re SECURITY? alternative:
+                                                ;; The above is just "-", use this:
+                                                (or maybe-file-or-port port)
+                                                ;; lineno:
+                                                (vector-ref signal 2)
+                                                ;; cde:
+                                                (vector-ref signal 3)
+                                                ;; message:
+                                                (vector-ref signal 4)
+                                                ;; maybe pos:
+                                                (vector-ref signal 5))))))))
+                  ((ilist? vals-or-signal)
+                   (let ((vals vals-or-signal))
+                     (cons (if (and source? maybe-file-or-port)
+                               (map/iota (lambda (val colno)
+                                           (csv-cell val
+                                                     maybe-file-or-port
+                                                     rowno
+                                                     (inc colno)))
+                                         vals)
+                               vals)
+                           rest))))))))))
 
 
 (def (csv-file-stream path
@@ -258,16 +264,16 @@
                       ([eol-name? eol] (current-csv-input-eol))
                       (tail '())
                       source?)
-     (_csv-port-stream
-      (open-input-process
-       (list path: "lib/csv2sexpr"
-             arguments: (list path
-                              "-"
-                              (string sep-char)
-                              (symbol.string eol))
-             char-encoding: 'UTF-8))
-      (and source? path)
-      tail))
+     (_csv-port-stream (open-input-process
+                        (list path: "lib/csv2sexpr"
+                              arguments: (list path
+                                               "-"
+                                               (string sep-char)
+                                               (symbol.string eol))
+                              char-encoding: 'UTF-8))
+                       path
+                       source?
+                       tail))
 
 
 ;;XX lib (and lostontie?)
@@ -282,7 +288,8 @@
                       ([char? sep-char] (current-csv-input-sep-char))
                       ([eol-name? eol] (current-csv-input-eol))
                       (tail '())
-                      maybe-source)
+                      maybe-source
+                      (source? #t))
      (let ((p (open-process
                (list path: (path-append (dirname (FILE))
                                         "csv2sexpr")
@@ -307,7 +314,10 @@
           (close-output-port p)
           ;; XX btw TODO: check status, don't even do that in csv-file-stream!
           (close-port port)))
-       (_csv-port-stream p maybe-source tail)))
+       (_csv-port-stream p
+                         (or maybe-source port)
+                         (and maybe-source source?)
+                         tail)))
 
 
 
