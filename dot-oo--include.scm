@@ -1,4 +1,4 @@
-;;; Copyright 2017-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,8 +8,11 @@
 
 ;; included in dot-oo, hence no require form. pseudo export form:
 (export dot-oo:method-key-maybe-ref-i
+        dot-oo:method-table-maybe-ref-method
         dot-oo:method-table-set!
-        dot-oo:new-method-table)
+        dot-oo:new-method-table
+        #!optional
+        dot-oo:method-table-set)
 
 
 ;; Method tables consist of a vector in a box (so that replaceable) in
