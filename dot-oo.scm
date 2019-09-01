@@ -244,21 +244,20 @@
 
 (define-typed (show-method-statistics) -> (list-of dot-oo:statistics-entry?)
   (define (stat-count l) (list-ref l 3))
-  (sort (filter
-         (compose not zero? car)
-         (map (lambda (genericname.method-table)
-                (let-pair
-                 ((genericname method-table) genericname.method-table)
-                 (let* ((tableshown (dot-oo:show-method-table method-table))
-                        (tableshown (filter (compose not zero? stat-count)
-                                            tableshown))
-                        (tableshown (sort tableshown (on stat-count <)))
-                        (tot (apply + (map stat-count tableshown))))
-                   (list tot
-                         genericname
-                         tableshown))))
-              (table->list dot-oo:genericname->method-table)))
-        (on car <)))
+  (=>> (table->list dot-oo:genericname->method-table)
+       (map (lambda (genericname.method-table)
+              (let-pair
+               ((genericname method-table) genericname.method-table)
+               (let* ((tableshown
+                       (=>> (dot-oo:show-method-table method-table)
+                            (filter (compose not zero? stat-count))
+                            ((flip sort) (on stat-count <))))
+                      (tot (apply + (map stat-count tableshown))))
+                 (list tot
+                       genericname
+                       tableshown)))))
+       (filter (compose not zero? car))
+       ((flip sort) (on car <))))
 
 
 (define-typed (show-generics) -> (list-of symbol?)
