@@ -122,7 +122,7 @@
  ("missing '.' in name" "missing method name after '.' in name" ".bar"))
 
 
-(define dot-oo:genericname->method-table (make-table))
+(define-if-not-defined dot-oo:genericname->method-table (make-table))
 
 
 (define (dot-oo:generic-error genericname obj)
