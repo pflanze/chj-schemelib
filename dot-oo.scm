@@ -25,7 +25,9 @@
 	 cj-functional-2
          cj-functional
          fixnum-more
-         list-util-3)
+         list-util-3
+         ;; for dot-oo--include.scm
+         (list-util-1 improper-map))
 
 (export (macro method-table-for)
         (macro show-methods)
@@ -176,6 +178,25 @@
        (generic-name-string.method-table-name (symbol->string genericname)))
       obj))))
 
+
+;; genericname and type
+(define dot-oo:can.-show-generic-entry? (inhomogenous-list-of symbol? symbol?))
+
+(define-typed (dot-oo:can.-show-generic genericname obj)
+  -> (maybe dot-oo:can.-show-generic-entry?)
+  (assert*
+   symbol? genericname
+   (lambda (genericname)
+     (cond
+      ((dot-oo:method-table-maybe-ref-columnS
+        (eval
+         (generic-name-string.method-table-name (symbol->string genericname)))
+        obj
+        '(0))
+       => (lambda (entry)
+            (cons genericname entry)))
+      (else #f)))))
+
 (define-macro* (CAN. genericname obj)
   (assert*
    symbol? genericname
@@ -276,13 +297,27 @@
        ((flip sort) (on car <))))
 
 
-(define-typed (show-generics) -> (list-of symbol?)
-  (dot-oo:all-generics-sorted))
+(define dot-oo:show-generics-entry?
+  ;; genericname and the types of the methods it defines
+  (inhomogenous-list-of symbol?
+                        (list-of symbol?)))
 
-(define-typed (show-generics-for obj) -> (list-of symbol?)
-  (filter (lambda (gensym)
-            (can. gensym obj))
-          (show-generics)))
+(define-typed (show-generics) -> (list-of dot-oo:show-generics-entry?)
+  (=>> (dot-oo:all-generics-sorted)
+       (map (lambda (genname)
+              (list genname
+                    (=>> (table-ref dot-oo:genericname->method-table genname)
+                         ;; XX optimize the following ?
+                         dot-oo:show-method-table
+                         (map (lambda (entry)
+                                (let-list ((typename _pred _implementor _stat)
+                                           entry)
+                                          typename)))))))))
+
+
+(define-typed (show-generics-for obj) -> (list-of dot-oo:can.-show-generic-entry?)
+  (=>> (dot-oo:all-generics-sorted)
+       (filter-map (C dot-oo:can.-show-generic _ obj))))
 
 
 

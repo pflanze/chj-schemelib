@@ -9,6 +9,7 @@
 ;; included in dot-oo, hence no require form. pseudo export form:
 (export dot-oo:method-key-maybe-ref-i
         dot-oo:method-table-maybe-ref-method
+        dot-oo:method-table-maybe-ref-columnS
         dot-oo:method-table-set!
         dot-oo:new-method-table
         dot-oo:show-method-table-entry?
@@ -95,6 +96,27 @@
   (let* ((vec (unbox tbl))
          (nentries (arithmetic-shift (vector-length vec) -2)))
     (@dot-oo:method-type-maybe-ref-method vec nentries obj)))
+
+
+;; This one doesn't need to be fast, just used for introspection:
+;; still find the entry first, then get whatever column valueS is/are
+;; asked for
+(define (dot-oo:method-table-maybe-ref-columnS tbl obj colnumS)
+  (let* ((vec (unbox tbl))
+         (nentries (arithmetic-shift (vector-length vec) -2)))
+    ;; adapted partial copy-paste of
+    ;; @dot-oo:method-type-maybe-ref-method, see docs there
+    (let ((end (+ nentries nentries)))
+      (let lp ((i nentries))
+        (if (< i end)
+            (if ((vector-ref vec i) obj)
+                (improper-map (lambda (colnum)
+                                (vector-ref
+                                 vec (+ i (* nentries (dec colnum)))))
+                              colnumS)
+                (lp (inc i)))
+            #f)))))
+
 
 
 ;; Disable all assertments for production mode? Can we have full testing instead?

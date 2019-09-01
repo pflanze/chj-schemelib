@@ -192,10 +192,11 @@ sequences.  See `oo-*.scm` modules. Not very consistent/complete.
 * `(show-methods genericname)`: a macro (no need to quote
   genericname), shows all method implementors for the given generic.
 
-* `(show-generics)`: list of all generic names (symbols).
+* `(show-generics)`: list of all generic names (and the list of the
+  types for which they have definitions).
 
 * `(show-generics-for obj)`: list of generics which are implemented
-  for obj.
+  for obj (and on which type).
 
 * `(show-method-statistics)`: if call statistics have been enabled via
   `(set! *dot-oo:method-stats* #t)`, shows the method call counts (for
