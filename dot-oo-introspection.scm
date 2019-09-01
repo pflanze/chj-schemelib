@@ -106,8 +106,8 @@
 
 ;; same but grouped by type
 (define-typed (show-generics-for* obj)
-  ;; -> (list-of (inhomogenous-list-of symbol?
-  ;;                                   (list-of symbol?)))
+  -> (list-of (inhomogenous-list-of symbol?
+                                    (list-of symbol?)))
   (=>> (show-generics-for obj)
        ((flip sort) (on cadr symbol<?))
        (list-group (on cadr eq?))
