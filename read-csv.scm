@@ -52,6 +52,11 @@
      (.error-string cell))))
 
 
+;;XX this should be in some interface file, once useful methods were
+;;added; also, confusion with exception/continuation. Also, implements
+;;error ? Also, rename error to error-interface ?
+(defclass (error/continuation [continuation? continuation]))
+
 ;; read/parse error reporting
 (defclass (read-csv-error [(either string? port?) path-or-port]
                           [fixnum-natural0? lineno]
@@ -59,7 +64,8 @@
                           [fixnum-natural0? cde]
                           [string? message]
                           [(maybe fixnum-natural0?) pos])
-  implements: error
+  extends: error/continuation
+  implements: error ;; <- put this into error/continuation class?
 
   (defmethod (string s)
     ($ (string.replace-substrings message "QUO character" "quote character")
@@ -218,14 +224,20 @@
                                        (error "read-csv bug: did get OK signal before end of output")))
                                   ((ERROR)
                                    (assert (= (vector-length signal) 6))
-                                   (read-csv-error (vector-ref signal 1)
-                                                   ;; ^ OK re SECURITY? alternative:
-                                                   ;;(or maybe-file-or-port port)
-                                                   (vector-ref signal 2) ;; lineno
-                                                   (vector-ref signal 3) ;; cde
-                                                   (vector-ref signal 4) ;; message
-                                                   (vector-ref signal 5) ;; maybe pos
-                                                   )))))
+                                   (continuation-capture
+                                    (lambda (cont)
+                                      (read-csv-error cont
+                                                      (vector-ref signal 1)
+                                                      ;; ^ OK re SECURITY? alternative:
+                                                      ;;(or maybe-file-or-port port)
+                                                      ;; lineno
+                                                      (vector-ref signal 2)
+                                                      ;; cde
+                                                      (vector-ref signal 3)
+                                                      ;; message
+                                                      (vector-ref signal 4)
+                                                      ;; maybe pos
+                                                      (vector-ref signal 5))))))))
                         ((ilist? vals-or-signal)
                          (let ((vals vals-or-signal))
                            (cons (if maybe-file-or-port
