@@ -6,7 +6,10 @@
 ;;;    (at your option) any later version.
 
 
-(require test
+(require srfi-1
+         list-util
+         slib-sort
+         test
 	 (test-logic ∀ qcheck*)
          (srfi-11 values->vector letv))
 
@@ -17,7 +20,15 @@
         integer-ceiling
         exact
         square
+
         average
+        list-average
+        list-median
+        list-variance-from
+        list-standard-deviation-from
+        list-variance
+        list-standard-deviation
+        
         integer:half
         integer-average integer:average
         pi
@@ -104,6 +115,96 @@
   ;; For overflowing numbers like machine integers would have to
   ;; calculate (+ (/ x 2) (/ y 2)) instead.
   (/ (+ x y) 2))
+
+(define (list-average l)
+  ;; XX improve
+  (/ (list-sum l)
+     (length l)))
+
+(define (list-median l)
+  ;; XX optim: make vector, sort in-place, pick middle values. Don't
+  ;; even have that sort.
+  (let* ((ls (sort l <))
+         (len (length l))
+         (len/2 (integer:half (dec len)))
+         (ls* (drop ls len/2)))
+    (let-pair ((a ls**) ls*)
+              (if (odd? len)
+                  a
+                  (average a (first ls**))))))
+
+(TEST
+ > (list-average '(1))
+ 1
+ > (list-average '(1 2))
+ 3/2
+ > (list-average '(1 2 1))
+ 4/3
+
+ > (list-median '(1))
+ 1
+ > (list-median '(1 2))
+ 3/2
+ > (list-median '(1 2 1))
+ 1
+ > (list-median '(10 -100 1 2 1 4))
+ 3/2)
+
+
+(define (list-variance-from avg whole? l)
+  (/ (fold (lambda (x tot)
+             (+ (square (- x avg)) tot))
+           0
+           l)
+     (let ((len (length l)))
+       (If whole? len
+           ;; https://en.wikipedia.org/wiki/Bessel%27s_correction
+           (dec len)))))
+
+(define (list-standard-deviation-from avg whole? l)
+  (sqrt (list-variance-from avg whole? l)))
+
+(define (list-variance l #!key whole?)
+  (list-variance-from (list-average l) whole? l))
+
+(define (list-standard-deviation l #!key whole?)
+  (list-standard-deviation-from (list-average l) whole? l))
+
+
+(TEST
+ ;; https://en.wikipedia.org/wiki/Standard_deviation
+ > (define vss
+     '((female 727.7 
+               1086.5
+               1091.0
+               1361.3
+               1490.5
+               1956.1)
+       (male 525.8 	
+             605.7 	
+             843.3 	
+             1195.5 	
+             1945.6 	
+             2135.6 	
+             2308.7 		
+             2950.0)))
+ > (define vs (cdr (assoc 'female vss)))
+ > (* (list-variance vs) 5)
+ 886047.0883333331
+ > (list-standard-deviation vs)
+ 420.96248961952256
+ > (list-standard-deviation (cdr (assoc 'male vss)))
+ 894.372699158466
+ 
+ > (define grades '(2 4 4 4 5 5 7 9))
+ > (list-average grades)
+ 5
+ > (list-variance grades)
+ 32/7
+ > (list-variance grades whole?: #t)
+ 4
+ > (list-standard-deviation grades whole?: #t)
+ 2)
 
 
 ;; Use "namespace" approach to indicate desired operation kind
