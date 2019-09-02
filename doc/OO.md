@@ -175,11 +175,14 @@ s-expression) that generates it. Custom implementations
 `cj-exception-handler.scm`, `(.maybe-exception-message exn)`: custom
 formatting for exception values in the repl.
 
-`(.show-location s)` is used by the `show-def` macro (via
-`current-show-def` in `oo-util.scm`), and is expected to print a line
-that is parsed by Emacs to jump to the corresponding location. TODO:
+`(.show-location s)` is introduced in `oo-util.scm` and used by the
+`show-def` macro (via `current-show-def`, also set in `oo-util.scm`),
+and is expected to print a line that is parsed by Emacs to jump to the
+corresponding location. It falls back to calling `(.location s)` in
+the default implementation (if that isn't defined, it fails).  TODO:
 also use it in cj-exception-handler.scm alongside
-.maybe-exception-message ?
+.maybe-exception-message, also maybe only rely on .location
+everywhere?
 
 `(.first s)`, `(.map s fn)` etc.: API working on all sorts of
 sequences.  See `oo-*.scm` modules. Not very consistent/complete.

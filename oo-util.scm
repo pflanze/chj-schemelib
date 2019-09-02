@@ -135,6 +135,11 @@
 (define. string.symbol-append source:symbol-append)
 
 
+(define. (any.location v)
+  (error "no .location method defined for:" v))
+
+(define. any.show-location
+  (compose show-location-location .location))
 
 (define. location.show-location show-location-location)
 (define. source.show-location show-source-location)
