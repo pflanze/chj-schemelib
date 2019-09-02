@@ -87,30 +87,25 @@
 
 (define dot-oo:show-all-generics-entry?
   ;; genericname and the types of the methods it defines
-  (inhomogenous-list-of symbol?
-                        ;; prepended |:| so that pp prints all the
-                        ;; values in the same block (signify, "here,
-                        ;; these"? Define as a function, or macro?)
-                        (pair-of (C eq? _ ':)
-                                 (list-of symbol?))))
+  (pair-of symbol?
+           (list-of symbol?)))
 
 (define-typed (show-all-generics) -> (list-of dot-oo:show-all-generics-entry?)
   (=>> (dot-oo:all-generics-sorted)
        (map (lambda (genname)
-              (list genname
-                    (cons ':
-                          (=>> (table-ref
-                                dot-oo:genericname->method-table
-                                genname)
-                               ;; XX optimize the following ?
-                               dot-oo:show-method-table
-                               (map (lambda (entry)
-                                      (let-list ((typename
-                                                  _pred
-                                                  _implementor
-                                                  _stat)
-                                                 entry)
-                                                typename))))))))))
+              (cons genname
+                    (=>> (table-ref
+                          dot-oo:genericname->method-table
+                          genname)
+                         ;; XX optimize the following ?
+                         dot-oo:show-method-table
+                         (map (lambda (entry)
+                                (let-list ((typename
+                                            _pred
+                                            _implementor
+                                            _stat)
+                                           entry)
+                                          typename)))))))))
 
 
 (define-typed (show-generics-for obj)
@@ -161,11 +156,10 @@
   (=>>* ((flip sort) (on cadr symbol<?))
         (list-group (on cadr eq?))
         (map (lambda (group)
-               (list (cadar group)
-                     (cons ':
-                           ;; since outer sort and list-group were stable,
-                           ;; don't need to re-sort here, just:
-                           (reverse-map car group)))))))
+               (cons (cadar group)
+                     ;; since outer sort and list-group were stable,
+                     ;; don't need to re-sort here, just:
+                     (reverse-map car group))))))
 
 (TEST
  > (equal? (show-all-generics) (show-generics))
