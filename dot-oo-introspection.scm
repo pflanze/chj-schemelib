@@ -18,15 +18,18 @@
          fixnum-more
          list-util-3
          (list-util-1 reverse-map) 
-         (cj-symbol symbol<?))
+         (cj-symbol symbol<?)
+         srfi-1)
 
 (export (macro method-table-for)
         (macro show-methods)
         dot-oo:all-generics-sorted
         show-method-statistics
         show-generics
-        show-generics-for
-        show-generics-for*)
+        show-generics*
+        #!optional
+        show-all-generics
+        show-generics-for)
 
 "Introspection facilities for method dispatch. Also see `doc/OO.md`."
 
@@ -87,7 +90,7 @@
   (inhomogenous-list-of symbol?
                         (list-of symbol?)))
 
-(define-typed (show-generics) -> (list-of dot-oo:show-generics-entry?)
+(define-typed (show-all-generics) -> (list-of dot-oo:show-generics-entry?)
   (=>> (dot-oo:all-generics-sorted)
        (map (lambda (genname)
               (list genname
@@ -104,20 +107,66 @@
   (=>> (dot-oo:all-generics-sorted)
        (filter-map (C dot-oo:can.-show-generic _ obj))))
 
-;; same but grouped by type
-(define-typed (show-generics-for* obj)
-  -> (list-of (inhomogenous-list-of symbol?
-                                    (list-of symbol?)))
-  (=>> (show-generics-for obj)
-       ((flip sort) (on cadr symbol<?))
-       (list-group (on cadr eq?))
-       (map (lambda (group)
-              (list (cadar group)
-                    ;; prepend |:| so that pp prints all the values in
-                    ;; the same block (signify, "here, these"? Define
-                    ;; as a function, or macro?)
-                    (cons ':
-                          ;; since outer sort and list-group were stable,
-                          ;; don't need to re-sort here, just:
-                          (reverse-map car group)))))))
+
+
+(define-typed (dot-oo:_show-generics-for-multi objs) -> (list-of dot-oo:can.-show-generic-entry?)
+  (let ((numobjs (length objs)))
+    (=>> (map show-generics-for objs)
+         (apply list-union (on car symbol<?))
+         (list-group equal?)
+         (filter-map (lambda (group)
+                       (if (= (length group) numobjs)
+                           (first group)
+                           #f))))))
+
+
+;; same for multiple objects (showing the intersection of those which
+;; work for all objs), except when no argument given, then call
+;; show-all-generics. Note that the result types are different in the
+;; two cases.
+(define-typed (show-generics . objs)
+  -> (either (list-of dot-oo:show-generics-entry?)
+             (list-of dot-oo:can.-show-generic-entry?))
+  (if (null? objs)
+      (show-all-generics)
+      (dot-oo:_show-generics-for-multi objs)))
+
+
+
+;; same as |show-generics| but grouped by type if any arguments are
+;; given (if none given, still calls show-all-generics). NOTE: even
+;; though in both cases the same result predicate matches, the roles
+;; of the symbols in the first vs. second sublist positions is
+;; reversed.
+(define-typed (show-generics* . objs)
+  -> (list-of dot-oo:show-generics-entry?)
+  (if (null? objs)
+      (show-all-generics)
+      (=>> (dot-oo:_show-generics-for-multi objs)
+           dot-oo:_show-generics*-group-by-type)))
+
+(define dot-oo:_show-generics*-group-by-type
+  (=>>* ((flip sort) (on cadr symbol<?))
+        (list-group (on cadr eq?))
+        (map (lambda (group)
+               (list (cadar group)
+                     ;; prepend |:| so that pp prints all the values in
+                     ;; the same block (signify, "here, these"? Define
+                     ;; as a function, or macro?)
+                     (cons ':
+                           ;; since outer sort and list-group were stable,
+                           ;; don't need to re-sort here, just:
+                           (reverse-map car group)))))))
+
+(TEST
+ > (equal? (show-all-generics) (show-generics))
+ #t
+ > (define l '(a b))
+ > (equal? (show-generics* l) (show-generics l))
+ #f
+ > (equal? (show-generics l) (show-generics l l l))
+ #t
+ > (equal? (show-generics l) (show-generics l ""))
+ #f)
+
 
