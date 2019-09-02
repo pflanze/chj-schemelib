@@ -60,14 +60,18 @@
 
 ;; read/parse error reporting
 (defclass (read-csv-error [(either string? port?) path-or-port]
-                          [fixnum-natural0? lineno]
+                          [fixnum-natural0? line]
                           ;; error_diag values from the perl library
                           [fixnum-natural0? cde]
                           [string? message]
-                          [(maybe fixnum-natural0?) pos])
+                          [(maybe fixnum-natural0?) column])
   extends: error/continuation
   implements: error ;; <- put this into error/continuation class?
 
+  ;; XX .string is old code, instead use .location now internally?
+  ;; And/or introduce a global protocol for errors which are not just
+  ;; location but the whole thing? Well, that's what the error
+  ;; protocol already should be (see note above).
   (defmethod (string s)
     ($ (string.replace-substrings message "QUO character" "quote character")
        " in "
@@ -75,10 +79,16 @@
                            (.name path-or-port)
                            path-or-port))
        " line "
-       lineno
-       (if pos
-           ($ " pos $pos")
+       line
+       (if column
+           ($ " pos $column")
            "")))
+  
+  (defmethod (location s)
+    (make-location (if (port? path-or-port)
+                       (.name path-or-port)
+                       path-or-port)
+                   (make-position line column)))
 
   (defmethod (csv-type-error s maybe-nested-error)
     (csv-type-error maybe-nested-error)))
