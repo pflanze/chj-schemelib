@@ -1,4 +1,4 @@
-;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
