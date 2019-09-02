@@ -1,12 +1,21 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
-(require easy test
+(require easy
+         (cj-math average)
+         test
 	 warn-plus)
+
+(export iterative-improve
+        good-enough
+        binfsearch
+        inverse
+        inverse-0-x)
+
 
 ;; searching functionality
 
@@ -23,10 +32,6 @@
 	      (error "improved guess is unchanged:" x)
 	      (iter x*))))))
 
-
-(define (average x y)
-  (/ (+ x y) 2))
-;; vs |mean| hm?
 
 (def (good-enough y f lo hi)
      ;; y: known value, (f x) where x is what we search.

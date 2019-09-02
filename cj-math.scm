@@ -17,6 +17,7 @@
         integer-ceiling
         exact
         square
+        average
         integer:half
         integer-average integer:average
         pi
@@ -95,6 +96,14 @@
 
 (define (square x)
   (* x x))
+
+
+
+;; Or "mean"?
+(define (average x y)
+  ;; For overflowing numbers like machine integers would have to
+  ;; calculate (+ (/ x 2) (/ y 2)) instead.
+  (/ (+ x y) 2))
 
 
 ;; Use "namespace" approach to indicate desired operation kind
