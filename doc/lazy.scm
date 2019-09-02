@@ -15,7 +15,7 @@ Lazy evaluation means, do not evaluate an expression right away, but instead ret
 
 This is particularly useful for calculating sequences of things on demand, e.g. loading CSV records from disk or similar.
 
-    (=> (csv-file-stream "my.csv") (.map first) (.write-csv-file "my2.csv"))
+    (=> (csv-file-stream "my.csv") (.map first) list (.write-csv-file "my2.csv"))
 
-This only holds one row at a time in memory, and releases it when advancing to the next one (although only when the code is compiled!).
+This only holds one row at a time in memory, and releases it when advancing to the next one (although release happens only reliably when the code is compiled!).
 
