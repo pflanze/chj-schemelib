@@ -85,31 +85,43 @@
 
 
 
-(define dot-oo:show-generics-entry?
+(define dot-oo:show-all-generics-entry?
   ;; genericname and the types of the methods it defines
   (inhomogenous-list-of symbol?
-                        (list-of symbol?)))
+                        ;; prepended |:| so that pp prints all the
+                        ;; values in the same block (signify, "here,
+                        ;; these"? Define as a function, or macro?)
+                        (pair-of (C eq? _ ':)
+                                 (list-of symbol?))))
 
-(define-typed (show-all-generics) -> (list-of dot-oo:show-generics-entry?)
+(define-typed (show-all-generics) -> (list-of dot-oo:show-all-generics-entry?)
   (=>> (dot-oo:all-generics-sorted)
        (map (lambda (genname)
               (list genname
-                    (=>> (table-ref dot-oo:genericname->method-table genname)
-                         ;; XX optimize the following ?
-                         dot-oo:show-method-table
-                         (map (lambda (entry)
-                                (let-list ((typename _pred _implementor _stat)
-                                           entry)
-                                          typename)))))))))
+                    (cons ':
+                          (=>> (table-ref
+                                dot-oo:genericname->method-table
+                                genname)
+                               ;; XX optimize the following ?
+                               dot-oo:show-method-table
+                               (map (lambda (entry)
+                                      (let-list ((typename
+                                                  _pred
+                                                  _implementor
+                                                  _stat)
+                                                 entry)
+                                                typename))))))))))
 
 
-(define-typed (show-generics-for obj) -> (list-of dot-oo:can.-show-generic-entry?)
+(define-typed (show-generics-for obj)
+  -> (list-of dot-oo:can.-show-generic-entry?)
   (=>> (dot-oo:all-generics-sorted)
        (filter-map (C dot-oo:can.-show-generic _ obj))))
 
 
 
-(define-typed (dot-oo:_show-generics-for-multi objs) -> (list-of dot-oo:can.-show-generic-entry?)
+(define-typed (dot-oo:_show-generics-for-multi objs)
+  -> (list-of dot-oo:can.-show-generic-entry?)
   (let ((numobjs (length objs)))
     (=>> (map show-generics-for objs)
          (apply list-union (on car symbol<?))
@@ -125,7 +137,7 @@
 ;; show-all-generics. Note that the result types are different in the
 ;; two cases.
 (define-typed (show-generics . objs)
-  -> (either (list-of dot-oo:show-generics-entry?)
+  -> (either (list-of dot-oo:show-all-generics-entry?)
              (list-of dot-oo:can.-show-generic-entry?))
   (if (null? objs)
       (show-all-generics)
@@ -139,7 +151,7 @@
 ;; of the symbols in the first vs. second sublist positions is
 ;; reversed.
 (define-typed (show-generics* . objs)
-  -> (list-of dot-oo:show-generics-entry?)
+  -> (list-of dot-oo:show-all-generics-entry?)
   (if (null? objs)
       (show-all-generics)
       (=>> (dot-oo:_show-generics-for-multi objs)
@@ -150,9 +162,6 @@
         (list-group (on cadr eq?))
         (map (lambda (group)
                (list (cadar group)
-                     ;; prepend |:| so that pp prints all the values in
-                     ;; the same block (signify, "here, these"? Define
-                     ;; as a function, or macro?)
                      (cons ':
                            ;; since outer sort and list-group were stable,
                            ;; don't need to re-sort here, just:
