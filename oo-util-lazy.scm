@@ -16,8 +16,7 @@
 	 (template template-map)
 	 (oo-vector-lib sum)
 	 debuggable-promise
-	 (srfi-1 null-list?)
-	 )
+	 (srfi-1 null-list?))
 
 (export ilist?
 	istream?
@@ -367,6 +366,13 @@
 (define list-sublist sublist)
 (define list-length length)
 (define list-sum sum)
+(define (stream-median s)
+  (list-median (stream->list s)))
+(define (stream-variance l #!key whole?)
+  (list-variance (stream->list l) whole?: whole?))
+(define (stream-standard-deviation l #!key whole?)
+  (list-standard-deviation (stream->list l) whole?: whole?))
+
 (define list-append append)
 (define list-append/2 append)
 ;;(define list-xone xone)
@@ -611,6 +617,10 @@
      (stream-for-each/iota proc s))
 
    (define. istream.sum stream-sum)
+   (define. istream.average stream-average)
+   (define. istream.median stream-median)
+   (define. istream.standard-deviation stream-standard-deviation)
+   (define. istream.variance stream-variance)
 
    (define. istream.rtake&rest stream-rtake&rest)
    (define. istream.reverse stream-reverse)

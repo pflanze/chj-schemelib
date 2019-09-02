@@ -9,6 +9,7 @@
 (require srfi-1
          list-util
          slib-sort
+         define-strict-and-lazy
          test
 	 (test-logic ∀ qcheck*)
          (srfi-11 values->vector letv))
@@ -116,10 +117,19 @@
   ;; calculate (+ (/ x 2) (/ y 2)) instead.
   (/ (+ x y) 2))
 
-(define (list-average l)
-  ;; XX improve
-  (/ (list-sum l)
-     (length l)))
+(define-strict-and-lazy list-average stream-average
+  (lambda (l)
+    ;; xx There are more exact algorithms, improve!
+    (let lp ((sum 0)
+             (len 0)
+             (l l))
+      (FV (l)
+          (if (null? l)
+              (/ sum len)
+              (let-pair ((x l*) l)
+                        (lp (+ sum x)
+                            (inc len)
+                            l*)))))))
 
 (define (list-median l)
   ;; XX optim: make vector, sort in-place, pick middle values. Don't
