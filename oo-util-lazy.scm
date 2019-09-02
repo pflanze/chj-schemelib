@@ -584,6 +584,12 @@
    (define. (istream.drop-while l pred)
      (stream-drop-while pred l))
 
+   (define. (istream.rtake-while&rest l pred #!optional (tail '()))
+     (stream-rtake-while&rest pred l tail))
+
+   (define. (istream.take-while&rest l pred)
+     (stream-take-while&rest pred l))
+   
    (define. istream.ref stream-ref)
 
    (define. istream.Maybe-ref stream-Maybe-ref)

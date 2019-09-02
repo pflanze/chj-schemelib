@@ -1490,10 +1490,44 @@
 		(lp (cdr l))
 		l)))))
 
+(define-strict-and-lazy
+  list-rtake-while&rest
+  stream-rtake-while&rest
+  (lambda (pred l #!optional (tail '()))
+    (let lp ((vs tail)
+             (l l))
+      (FV (l)
+          (if (null? l)
+              (values vs l)
+              (let-pair ((v l*) l)
+                        (if (pred v)
+                            (lp (cons v vs)
+                                l*)
+                            (values vs l))))))))
+
+
+(define (list-take-while&rest pred lis)
+  (letv ((rl rest) (list-rtake-while&rest pred lis))
+        (values (reverse rl) rest)))
+
+(define (stream-take-while&rest pred lis)
+  (letv ((rl rest) (stream-rtake-while&rest pred lis))
+        (values (reverse rl) rest)))
+
+
 (TEST
- > (F (stream-take (stream-drop-while (cut < <> 10) (stream-iota)) 3))
+ > (define s (stream-drop-while (cut < <> 10) (stream-iota)))
+ > (F (stream-take s 3))
  (10 11 12)
- )
+ > (define-values (vs s*) (stream-take-while&rest (cut < <> 15) s))
+ > vs
+ (10 11 12 13 14)
+ > (F (stream-take s* 2))
+ (15 16)
+
+ > (values->vector (list-take-while&rest positive? '(1 2 3)))
+ [(1 2 3) ()])
+
 
 
 (define-typed (stream-ref s [natural0? i])
