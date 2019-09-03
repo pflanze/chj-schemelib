@@ -297,7 +297,7 @@
  9
  > (.max c)
  9
- > (defvalues (m r) (.min&rest c2))
+ > (def-values (m r) (.min&rest c2))
  > m
  -2
  > (.list r)
@@ -307,7 +307,7 @@
  > (stream->list (.stream r #t))
  (12 9 3.3 3 2 1)
  
- > (defvalues (m r) (.max&rest c2))
+ > (def-values (m r) (.max&rest c2))
  > m
  12
  > (.list r)

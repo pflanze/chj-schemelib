@@ -44,7 +44,7 @@
 	(macro def.)
 	(macro def-inline)
 	(macro defenum)
-	(macro defvalues)
+	(macro def-values)
 	(macro defparameter)
 	(macro def-once)
 	comp-function
@@ -233,7 +233,7 @@
 (define-macro* (defenum name . args)
   `(define-enum ,name ,@args))
 
-(define-macro* (defvalues . args)
+(define-macro* (def-values . args)
   `(define-values ,@args))
 
 (define-macro* (defparameter . args)

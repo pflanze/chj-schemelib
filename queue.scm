@@ -73,7 +73,7 @@
  > q0
  #((queue) (0 1 2 3) ())
 
- > (defvalues (q1 Mv) (.Maybe-dequeue q0))
+ > (def-values (q1 Mv) (.Maybe-dequeue q0))
  > Mv
  #((Just) 3)
  > (.list q1)
@@ -81,7 +81,7 @@
  > (.rlist q1)
  (2 1 0)
 
- > (defvalues (q2 Mv2) (.Maybe-dequeue q1))
+ > (def-values (q2 Mv2) (.Maybe-dequeue q1))
  > Mv2
  #((Just) 2)
  > (.list q2)
@@ -94,7 +94,7 @@
  > (.rlist q3)
  (1 0 n)
 
- > (defvalues (q4 Mv4) (.Maybe-dequeue q3))
+ > (def-values (q4 Mv4) (.Maybe-dequeue q3))
  > Mv4
  #((Just) 1)
  > (.list q4)
@@ -102,7 +102,7 @@
  > (.rlist q4)
  (0 n)
 
- > (defvalues (q5 Mv5) (.Maybe-dequeue q4))
+ > (def-values (q5 Mv5) (.Maybe-dequeue q4))
  > Mv5
  #((Just) 0)
  > (.list q5)
@@ -112,7 +112,7 @@
  > (.empty? q5)
  #f
 
- > (defvalues (q6 Mv6) (.Maybe-dequeue q5))
+ > (def-values (q6 Mv6) (.Maybe-dequeue q5))
  > Mv6
  #((Just) n)
  > (.list q6)
@@ -122,7 +122,7 @@
  > (.empty? q6)
  #t
 
- > (defvalues (q7 Mv7) (.Maybe-dequeue q6))
+ > (def-values (q7 Mv7) (.Maybe-dequeue q6))
  > Mv7
  #((Nothing))
  > (.empty? q7)
