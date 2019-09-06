@@ -314,7 +314,7 @@
 
 (define <to<=
   ;; <-><= would be a fun name, wouldn't it?
-  (compose complement-2ary flip))
+  (compose complement-2 flip))
 
 (define (sorted-list-of el? <)
   (strictly-monotonic-list-of el? (<to<= <)))

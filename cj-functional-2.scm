@@ -21,7 +21,7 @@
 	 (cj-gambit-sys-0 @vector-ref @vector-length @vector-set!))
 
 (export flip-function        (macro flip)
-	complement-function  (macro complement complement-2ary)
+	complement-function  (macro complement complement-2)
 	compose-function
 	maybe-compose
 	either-function      (macro either)
@@ -77,7 +77,7 @@
     `(lambda (,V)
        (not (,fn ,V))))))
 
-(define-macro* (complement-2ary fn)
+(define-macro* (complement-2 fn)
   (early-bind-expressions
    (fn)
    (with-gensyms
