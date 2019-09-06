@@ -24,10 +24,10 @@
 	complement-function  (macro complement complement-2)
 	compose-function
 	maybe-compose
-	either-function      (macro either)
-	neither-function     (macro neither)
-	both-function        (macro both)
-	all-of-function      (macro all-of)
+	either-function      (macro either either-2)
+	neither-function     (macro neither neither-2)
+	both-function        (macro both both-2)
+	all-of-function      (macro all-of all-of-2)
 	(macro =>)
 	(macro =>*)
 	exact-natural0? ;; can't be in predicates-1 for dependency reasons
@@ -127,6 +127,16 @@
 		    `(,f ,V))
 		  fs))))))
 
+(define-macro* (either-2 . fs)
+  (early-bind-expressions
+   fs
+   (with-gensyms
+    (V W)
+    `(lambda (,V ,W)
+       (or ,@(map (lambda (f)
+		    `(,f ,V ,W))
+		  fs))))))
+
 (TEST ;; copy of test cases above
  > ((either symbol? string?) "foo")
  #t
@@ -137,16 +147,24 @@
  > ((either symbol? number? string?) 0)
  #t
  ;; test shortcutting?
- )
+
+ ;; 2ary
+ > ((either-2 < >) 1 2)
+ #t
+ > ((either-2 < >) 2 2)
+ #f)
+
 
 
 (define (neither-function . fs)
   (complement (apply either-function fs)))
 
 (define-macro* (neither . fs)
-  (with-gensym
-   V
-   `(complement (either ,@fs))))
+  `(complement (either ,@fs)))
+
+(define-macro* (neither-2 . fs)
+  `(complement-2 (either-2 ,@fs)))
+
 
 (TEST ;; copy of test cases above
  > ((neither-function symbol? string?) "foo")
@@ -228,6 +246,16 @@
 		     `(,pred ,V))
 		   preds))))))
 
+(define-macro* (all-of-2 . fns)
+  (early-bind-expressions
+   fns
+   (with-gensyms
+    (V W)
+    `(lambda (,V ,W)
+       (and ,@(map (lambda (fn)
+		     `(,fn ,V ,W))
+		   fns))))))
+
 (TEST ;; copy of test cases above
  > ((all-of even? odd?) 1)
  #f
@@ -258,6 +286,8 @@
 (define-macro* (both a b)
   `(all-of ,a ,b))
 
+(define-macro* (both-2 a b)
+  `(all-of-2 ,a ,b))
 
 
 ;; The "Clojure-macros". Clojure calls them -> and ->> instead, but ->
