@@ -226,9 +226,9 @@
   (define-macro (ref var)
     `(##f64vector-ref ,var 0))
   (define-macro (+! var v)
-    `(! ,var (+ (ref ,var) ,v)))
+    `(! ,var (fl+ (ref ,var) ,v)))
   (define-macro (square v)
-    `(* ,v ,v))
+    `(fl* ,v ,v))
   
   (let* ((len (u32vector-length vec))
 
@@ -240,15 +240,15 @@
          (tot (f64vector 0.))
          (tot-weight (f64vector 0.)))
       
-    (lambda (x)
+    (lambda ([flonum? x])
       ;; x \in 0..1
       ;; Zoom out a bit so that the edge values can be seen fully:
-      (let* ((x-scaled (+ (* x x-scaler) x-offset)))
+      (declare (not safe))
+      (let* ((x-scaled (fl+ (fl* x x-scaler) x-offset)))
         (! tot 0.)
         (! tot-weight 0.)
         (for..< (i 0 len)
-                (let* ((n (u32vector-ref vec i))
-                       (dist (- x-scaled i))
+                (let* ((dist (fl- x-scaled (exact->inexact i)))
                        ;; Interesting, (abs dist) is spiky, (square
                        ;; dist) is nice but over-reacting, abs ^3 and
                        ;; ^4 are 'rounded-blocky' as is probably best
@@ -258,7 +258,9 @@
                   ;; (when (> weight 1000000.)
                   ;;       (warn "weight=" weight))
                   (+! tot-weight weight)
-                  (+! tot (* weight n))))
+                  (+! tot (fl* weight
+                               (exact->inexact
+                                (u32vector-ref vec i))))))
         (let (w (ref tot-weight))
           (if (or (infinite? w) (nan? w) (> w 1e7)) ;; ?
               ;; too close, just take the value.
