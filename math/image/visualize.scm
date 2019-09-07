@@ -320,4 +320,5 @@
      (let (half-step (/ 0.5 num-buckets))
        (plot (smooth-histogram xs num-buckets)
              (- 0. half-step)
-             (+ 1. half-step))))
+             (+ 1. half-step)
+             y0: 0)))
