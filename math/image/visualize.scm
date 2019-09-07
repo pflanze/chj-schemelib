@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -16,8 +16,9 @@
 	u32vector:histogram
 	u32vector.function
 	histogram
-	#!optional
-	;; ?
+        plot-histogram
+
+        #!optional
 	min+max-values
 	min+max-values-values)
 
@@ -200,3 +201,9 @@
 		(num-buckets 100))
      (.function (u32vector:histogram xs num-buckets)))
 
+
+
+(def (plot-histogram xs
+                     #!optional
+                     (num-buckets 100))
+     (plot (histogram xs num-buckets) 0 1))
