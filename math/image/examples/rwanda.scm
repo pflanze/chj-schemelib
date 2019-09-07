@@ -35,11 +35,11 @@
 
   (defmethod (some-absolute-values _)
     ;; xx add this to constructor instead
-    (assert (< 99
+    (assert (< 99.999
                (+ aged-0-14
                   aged-15-64
                   aged-65+)
-               101))
+               100.11))
     (let ((percent (lambda (v)
                      (inexact.round-at
                       (* total (/ (- 100 v) 100))
@@ -83,14 +83,20 @@
  "1950 2072 2018.13 934.47 \n1955 2386 2316.81 1104.72 \n1960 2771 2693.41 1332.85 \n1965 3221 3134.03 1539.64 \n1970 3749 3655.28 1792.02 \n1975 4390 4284.64 2094.03 \n1980 5179 5065.06 2491.1 \n1985 6081 5959.38 2973.61 \n1990 7110 6953.58 3491.01 \n1995 5570 5441.89 2695.88 \n2000 8098 7887.45 3676.49 \n2005 9202 8953.55 3892.45 \n2010 10624 10337.15 4525.82 \n"
  )
 
-(def population (mapfn (map (lambda (p)
-			      (cons (.year p)
-				    (.total p)))
-			    population-data)))
+
+(def (list-of-population-point.function l accessor)
+     (mapfn (map (lambda (p)
+                   (cons (.year p) (accessor p)))
+                 l)))
 
 (def (show-rwanda)
      ;; (plot (list population zero/1) 1950 2010)
      ;; or
-     (plot population 1950 2010 y0: 0))
+     (plot (map (C list-of-population-point.function population-data _)
+                (list .total
+                      (=>* .aged-0-14 (* 100))
+                      (=>* .aged-15-64 (* 100))
+                      (=>* .aged-65+ (* 100))))
+           1950 2010 y0: 0))
 
 ;; now for labels...
