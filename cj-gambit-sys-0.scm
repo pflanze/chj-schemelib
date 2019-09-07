@@ -78,6 +78,10 @@ if (___MEM_ALLOCATED (___ARG1) && !___PAIRP(___ARG1)) { /* really do have to che
 }
 " obj))
 
+;; Same except only number vectors, not strings:
+;; -- well, see homogenous-vector? from scheme-meta instead, meta-inspectable=good.
+
+
 ;; Tests see cj-gambit-sys.scm
 
 
