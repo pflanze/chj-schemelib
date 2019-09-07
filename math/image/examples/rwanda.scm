@@ -25,14 +25,30 @@
 ;; 2005 	9,202 	42.4 	55.0 	2.7
 ;; 2010 	10,624 	42.6 	54.7 	2.7
 
-(defstruct population-point
-  year
-  ;; thousands:
-  total
-  ;; percentages:
-  aged-0-14
-  aged-15-64
-  aged-65+)
+(defclass (population-point year
+                            ;; thousands:
+                            total
+                            ;; percentages:
+                            aged-0-14
+                            aged-15-64
+                            aged-65+)
+
+  (defmethod (some-absolute-values _)
+    ;; xx add this to constructor instead
+    (assert (< 99
+               (+ aged-0-14
+                  aged-15-64
+                  aged-65+)
+               101))
+    (let ((percent (lambda (v)
+                     (inexact.round-at
+                      (* total (/ (- 100 v) 100))
+                      2))))
+      (list year
+            total
+            (percent aged-65+)
+            (percent (+ aged-15-64
+                        aged-65+))))))
 
 (def population-data
      (map (C apply population-point _)
@@ -51,27 +67,15 @@
 	    (2010 	10624 	42.6 	54.7 	2.7))))
 
 
-(def. (string.string x)
-  x)
+;; (def. (string.string x)
+;;   x)
 
 (def (show-population-data)
-     (strings-join (map (lambda (p)
-			  (let-population-point
-			   ((year total a b c) p)
-			   ;; XX add this to constructor instead
-			   (assert (< 99 (+ a b c) 101))
-			   (let ((percent (lambda (v)
-					    (inexact.round-at
-					     (* total (/ (- 100 v) 100))
-					     2))))
-			     (strings-join (map .string
-						(list year
-						      total
-						      (percent c)
-						      (percent (+ b c))
-						      "\n"))
-					   " "))))
-			population-data)
+     (strings-join (map (=>* .some-absolute-values
+                             (.map .string)
+                             (strings-join " ")
+                             (string-append " \n"))
+                        population-data)
 		   ""))
 
 (TEST
