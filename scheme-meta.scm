@@ -33,6 +33,9 @@
 	vector-of-sexpr?
 	void?)
 
+
+(include "cj-standarddeclares.scm")
+
 ;; COPY to avoid circular dep -----  XX move here instead?
 (##namespace ("scheme-meta#" inc vector-every vector-of))
 
@@ -133,7 +136,7 @@
       (self-quoting? v)
       (null? v)
       (pair? v)
-      (vector? v)
+      (vector? v) ;; excluding cj-struct's, OK?
        ;; XX really?
       (homogenous-vector? v)))
 
