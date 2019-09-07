@@ -38,7 +38,11 @@
 (define (min+max-values-values vv mima)
   (min+max-values (snd vv) (min+max-values (fst vv) mima)))
 
-(define (show-fnS fnS x0 x1 #!optional (s 400))
+(define (show-fnS fnS x0 x1
+                  #!key
+                  y0
+                  y1
+                  (s 400))
   (let* ((m (Mr:zeros s s)) ;; Mi:zeros would make sense since I'm
 	 ;; calculating with integers
 	 (spread 10) ;; how many function points to get per image point
@@ -56,68 +60,73 @@
 			     (.set! vs i (exact->inexact y))))
 		   vs))
 	       fnS))
-	 (mimas (map .min+max vss)))
-    (letv ((ymin ymax) (fold min+max-values-values (car mimas) (cdr mimas)))
-          (when (= ymin ymax)
-                (error "show.fnS: ymin and ymax are both" ymin))
-	  (warn "ymin,ymax=" ymin ymax)
-	  (let* ((yrange (- ymax ymin))
-		 (yrange* (* yrange (/ (+ 3 s) s))) ;; 3?
-		 (ycenter (+ ymin (/ yrange 2)))
-		 (y0 (- ycenter (/ yrange* 2)))
-		 (y1 (+ ycenter (/ yrange* 2))))
-	    (warn "y0,y1=" y0 y1)
-	    (let ((plot-s* ;; x,y in 0..s* range
-		   (lambda (i j)
-		     ;; how much to add to the points left, right, top, bottom?
-		     (letv ((i* irest) (quotient+modulo i spread))
-			   (letv ((j* jrest) (quotient+modulo j spread))
-				 (let ((left (- spread irest))
-				       (right irest)
-				       (top jrest)
-				       (bottom (- spread jrest)))
-				   (let ((upd
-					  (lambda (i* j* val)
-					    (when (and (not (zero? val))
-                                                       ;; (< i* s)
-                                                       (< j* s))
-                                                  (.update! m j* i*
-                                                            (cut + <> val))))))
-				     (upd i* j*
-					  (+ left bottom))
-				     (upd i* (inc j*)
-					  (+ left top))
-				     (upd (inc i*) j*
-					  (+ right bottom))
-				     (upd (inc i*) (inc j*)
-					  (+ right top))))))))
-		  (y.j (lambda (y) ;; "y->j"
-			 (dec ;;?
-			  (integer
-			   (* (- 1 (/ (- y y0)
-                                      (- y1 y0)))
-                              s
-                              spread))))))
-	      (for..< (i 0 (- s* spread))
-		      ;;^ - since updating 'right' will always hit the
-		      ;;right edge, too, even if there's no pixel there?
-		      ;;hm notsuretho,stillbuggy?
-		      (for-each (lambda (vs)
-				  (plot-s* i (y.j (.ref vs i))))
-				vss))
-	      ;; x axis
-	      (let ((j (y.j 0)))
-		(when (and (<= 0 j) (< j s*))
-                      (for..< (i 0 (dec s))
-                              (plot-s* (* i spread) j))))
-	      ;; y axis
-	      (let ((i (x.i 0)))
-		(when (and (<= 0 i) (< i s*))
-                      (for..< (j 0 (dec s))
-                              (plot-s* (integer i)
-                                       ;; XX hm. ^ integer just so that
-                                       ;; quotient+modulo doesn't croak
-                                       (* j spread))))))))
+	 
+         (*ymin+ymax
+          (delay
+            (let (mimas (map .min+max vss))
+              (fold min+max-values-values (car mimas) (cdr mimas))))))
+    (let ((y0 (or y0 (fst (force *ymin+ymax))))
+          (y1 (or y1 (snd (force *ymin+ymax)))))
+      (when (= y0 y1)
+            (error "show.fnS: y0 and y1 are both" y0))
+      (warn "y0,y1=" y0 y1)
+      (let* ((yrange (- y1 y0))
+             (yrange* (* yrange (/ (+ 3 s) s))) ;; 3?
+             (ycenter (+ y0 (/ yrange 2)))
+             (y0 (- ycenter (/ yrange* 2)))
+             (y1 (+ ycenter (/ yrange* 2))))
+        (warn "y0,y1=" y0 y1)
+        (let ((plot-s* ;; x,y in 0..s* range
+               (lambda (i j)
+                 ;; how much to add to the points left, right, top, bottom?
+                 (letv ((i* irest) (quotient+modulo i spread))
+                       (letv ((j* jrest) (quotient+modulo j spread))
+                             (let ((left (- spread irest))
+                                   (right irest)
+                                   (top jrest)
+                                   (bottom (- spread jrest)))
+                               (let ((upd
+                                      (lambda (i* j* val)
+                                        (when (and (not (zero? val))
+                                                   ;; (< i* s)
+                                                   (< j* s))
+                                              (.update! m j* i*
+                                                        (cut + <> val))))))
+                                 (upd i* j*
+                                      (+ left bottom))
+                                 (upd i* (inc j*)
+                                      (+ left top))
+                                 (upd (inc i*) j*
+                                      (+ right bottom))
+                                 (upd (inc i*) (inc j*)
+                                      (+ right top))))))))
+              (y.j (lambda (y) ;; "y->j"
+                     (dec ;;?
+                      (integer
+                       (* (- 1 (/ (- y y0)
+                                  (- y1 y0)))
+                          s
+                          spread))))))
+          (for..< (i 0 (- s* spread))
+                  ;;^ - since updating 'right' will always hit the
+                  ;;right edge, too, even if there's no pixel there?
+                  ;;hm notsuretho,stillbuggy?
+                  (for-each (lambda (vs)
+                              (plot-s* i (y.j (.ref vs i))))
+                            vss))
+          ;; x axis
+          (let ((j (y.j 0)))
+            (when (and (<= 0 j) (< j s*))
+                  (for..< (i 0 (dec s))
+                          (plot-s* (* i spread) j))))
+          ;; y axis
+          (let ((i (x.i 0)))
+            (when (and (<= 0 i) (< i s*))
+                  (for..< (j 0 (dec s))
+                          (plot-s* (integer i)
+                                   ;; XX hm. ^ integer just so that
+                                   ;; quotient+modulo doesn't croak
+                                   (* j spread))))))))
     m))
 
 
