@@ -205,8 +205,9 @@
 (def (histogram/u32vector-to-function to-fn)
      (lambda (xs
          #!optional
-         (num-buckets 100))
-       (to-fn (u32vector:histogram xs num-buckets))))
+         (num-buckets 100)
+         pp?)
+       (to-fn ((if pp? pp-through identity) (u32vector:histogram xs num-buckets)))))
 
 (def blocky-histogram (histogram/u32vector-to-function .blocky-function))
 
@@ -321,7 +322,7 @@
                      #!optional
                      (num-buckets 100))
      (let (half-step (/ 0.5 num-buckets))
-       (plot (smooth-histogram xs num-buckets)
+       (plot (smooth-histogram xs num-buckets #t)
              (- 0. half-step)
              (+ 1. half-step)
              y0: 0)))
