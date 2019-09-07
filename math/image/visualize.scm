@@ -13,9 +13,15 @@
 
 (export show-fn
 	view-fn plot
-	u32vector:histogram
-	u32vector.function
-	histogram
+
+        u32vector:histogram
+
+        u32vector.blocky-function
+        blocky-histogram
+        plot-blocky-histogram
+        
+	u32vector.smooth-function
+	smooth-histogram
         plot-histogram
 
         #!optional
@@ -168,7 +174,8 @@
 ;; returning the value in the vector (XX with linear(?)
 ;; interpolation). I *had* this some where!
 ;; Use OO and a |vector*?| ? Or generate in vector-util ?
-(def. (u32vector.function v)
+
+(def. (u32vector.blocky-function v)
   (let* ((len (u32vector-length v))
 	 ;; heh copy-paste? no not completely, x is 0..1 here
 	 (slot (lambda (x)
@@ -181,11 +188,18 @@
 			   (dec len)
 			   i))))))
     (lambda (x)
-      ;; XX (optionally) interpolate
       (u32vector-ref v (slot x)))))
 
+(def (histogram/u32vector-to-function to-fn)
+     (lambda (xs
+         #!optional
+         (num-buckets 100))
+       (to-fn (u32vector:histogram xs num-buckets))))
+
+(def blocky-histogram (histogram/u32vector-to-function .blocky-function))
+
 (TEST
- > (def f (histogram '(28 10 30 -5 1 2) 3))
+ > (def f (blocky-histogram '(28 10 30 -5 1 2) 3))
  > (f 0)
  3
  > (f 0.1)
@@ -195,15 +209,67 @@
  > (f 0.8)
  2)
 
+(def (plot-blocky-histogram xs
+                            #!optional
+                            (num-buckets 100))
+     (plot (blocky-histogram xs num-buckets) 0 1))
 
-(def (histogram xs
-		#!optional
-		(num-buckets 100))
-     (.function (u32vector:histogram xs num-buckets)))
+
+(def. (u32vector.smooth-function vec)
+  ;; Some sort of weighted average.
+  ;; weight = 1/ distance^2
+  ;; When too close, just take the value.
+
+  ;; ! corresponding to = in C (or to ! in Erlang, somewhat :)
+  (define-macro (! var v)
+    `(##f64vector-set! ,var 0 ,v))
+  (define-macro (ref var)
+    `(##f64vector-ref ,var 0))
+  (define-macro (+! var v)
+    `(! ,var (+ (ref ,var) ,v)))
+  (define-macro (square v)
+    `(* ,v ,v))
+  
+  (let* ((len (u32vector-length vec))
+
+         ;; after scaling:
+         (x-offset -0.5) ;; half a step
+         ;; Both zoom-in and conversion to i's scale
+         (x-scaler (+ (dec len) (* (- x-offset) 2)))
+
+         (tot (f64vector 0.))
+         (tot-weight (f64vector 0.)))
+      
+    (lambda (x)
+      ;; x \in 0..1
+      ;; Zoom out a bit so that the edge values can be seen fully:
+      (let* ((x-scaled (+ (* x x-scaler) x-offset)))
+        (! tot 0.)
+        (! tot-weight 0.)
+        (for..< (i 0 len)
+                (let* ((n (u32vector-ref vec i))
+                       (dist (- x-scaled i))
+                       ;; Interesting, (abs dist) is spiky, (square
+                       ;; dist) is nice but over-reacting, abs ^3 and
+                       ;; ^4 are 'rounded-blocky' as is probably best
+                       ;; for this.
+                       (dist* (square (square dist)))
+                       (weight (/ dist*)))
+                  ;; (when (> weight 1000000.)
+                  ;;       (warn "weight=" weight))
+                  (+! tot-weight weight)
+                  (+! tot (* weight n))))
+        (let (w (ref tot-weight))
+          (if (or (infinite? w) (nan? w) (> w 1e7)) ;; ?
+              ;; too close, just take the value.
+              (inexact
+               (u32vector-ref vec (integer (+ x-scaled 0.5))))
+              (/ (ref tot) w)))))))
 
 
+(def smooth-histogram (histogram/u32vector-to-function .smooth-function))
 
 (def (plot-histogram xs
                      #!optional
                      (num-buckets 100))
-     (plot (histogram xs num-buckets) 0 1))
+     (plot (smooth-histogram xs num-buckets) 0 1))
