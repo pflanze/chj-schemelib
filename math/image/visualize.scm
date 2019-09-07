@@ -51,6 +51,8 @@
 	       fnS))
 	 (mimas (map .min+max vss)))
     (letv ((ymin ymax) (fold min+max-values-values (car mimas) (cdr mimas)))
+          (when (= ymin ymax)
+                (error "show.fnS: ymin and ymax are both" ymin))
 	  (warn "ymin,ymax=" ymin ymax)
 	  (let* ((yrange (- ymax ymin))
 		 (yrange* (* yrange (/ (+ 3 s) s))) ;; 3?
@@ -85,7 +87,10 @@
 		  (y.j (lambda (y) ;; "y->j"
 			 (dec ;;?
 			  (integer
-			   (* (- 1 (/ (- y y0) (- y1 y0))) s spread))))))
+			   (* (- 1 (/ (- y y0)
+                                      (- y1 y0)))
+                              s
+                              spread))))))
 	      (for..< (i 0 (- s* spread))
 		      ;;^ - since updating 'right' will always hit the
 		      ;;right edge, too, even if there's no pixel there?
