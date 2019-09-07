@@ -8,13 +8,23 @@
 
 (require easy
          seq
-         (cj-math list-average stream-average)
+         (cj-math list-average stream-average
+                  list-standard-deviation list-standard-deviation-from
+                  list-variance list-variance-from)
          test)
 
 (export (method seq.mean)
         (method seq.product)
         (method seq.geomean)
         (method seq.harmmean)
+        (method .std)
+        (method .stdm)
+        (method .var)
+        (method .varm)
+        (class mean&std)
+        (class mean&var)
+        (method seq.mean&std) ;; not all seq supported yet
+        (method seq.mean&var) ;; not all seq supported yet
         )
 
 "Basic statistics functions."
@@ -100,3 +110,51 @@
        .mean
        /))
 
+
+
+(def. (ilist.std s #!key corrected?)
+  (list-standard-deviation s whole?: (not corrected?)))
+
+(def. (ilist.stdm s m #!key corrected?)
+  (list-standard-deviation-from m (not corrected?) s))
+
+
+(def. (ilist.var s #!key corrected?)
+  (list-variance s whole?: (not corrected?)))
+
+(def. (ilist.varm s m #!key corrected?)
+  (list-variance-from m (not corrected?) s))
+
+
+(defclass (mean&std mean std))
+
+(def. (seq.mean&std s #!key corrected?)
+  (let (m (.mean s))
+    (mean&std m
+              (.stdm s m corrected?: corrected?))))
+
+
+(defclass (mean&var mean std))
+
+(def. (seq.mean&var s #!key corrected?)
+  (let (m (.mean s))
+    (mean&var m
+              (.varm s m corrected?: corrected?))))
+
+
+
+(TEST
+ > (def vs '(727.7 1086.5 1091. 1361.3 1490.5 1956.1))
+ > (.mean&std vs)
+ [(mean&std) 1285.5166666666667 384.2844190469114]
+ > (.mean&std vs corrected?: #t)
+ [(mean&std) 1285.5166666666667 420.96248961952256]
+
+ > (def grades '(2 4 4 4 5 5 7 9))
+ > (.mean&var grades corrected?: #t)
+ [(mean&var) 5 32/7]
+ > (.mean&var grades)
+ [(mean&var) 5 4]
+ > (.mean&std grades)
+ [(mean&std) 5 2]
+ )
