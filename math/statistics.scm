@@ -11,9 +11,10 @@
          (cj-math list-average stream-average)
          test)
 
-(export (method .mean)
-        (method .product)
-        (method .geomean)
+(export (method seq.mean)
+        (method seq.product)
+        (method seq.geomean)
+        (method seq.harmmean)
         )
 
 "Basic statistics functions."
@@ -88,4 +89,14 @@
 
 ;; the better one for now?
 (def. seq.geomean seq.geomean.2)
+
+
+
+;; harmmean(a) = inv(mean(inv, a))
+
+(def. seq.harmmean
+  ;; "the harmonic mean of a collection"
+  (=>* (.map /)
+       .mean
+       /))
 
