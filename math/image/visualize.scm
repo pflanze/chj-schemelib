@@ -232,10 +232,8 @@
   
   (let* ((len (u32vector-length vec))
 
-         ;; after scaling:
-         (x-offset -0.5) ;; half a step
-         ;; Both zoom-in and conversion to i's scale
-         (x-scaler (+ (dec len) (* (- x-offset) 2)))
+         ;; Conversion to i's scale
+         (x-scaler (exact->inexact (dec len)))
 
          (tot (f64vector 0.))
          (tot-weight (f64vector 0.)))
@@ -244,7 +242,7 @@
       ;; x \in 0..1
       ;; Zoom out a bit so that the edge values can be seen fully:
       (declare (not safe))
-      (let* ((x-scaled (fl+ (fl* x x-scaler) x-offset)))
+      (let* ((x-scaled (fl* x x-scaler)))
         (! tot 0.)
         (! tot-weight 0.)
         (for..< (i 0 len)
@@ -274,4 +272,7 @@
 (def (plot-histogram xs
                      #!optional
                      (num-buckets 100))
-     (plot (smooth-histogram xs num-buckets) 0 1))
+     (let (half-step (/ 0.5 num-buckets))
+       (plot (smooth-histogram xs num-buckets)
+             (- 0. half-step)
+             (+ 1. half-step))))
