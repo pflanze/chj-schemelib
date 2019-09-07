@@ -1,4 +1,4 @@
-;;; Copyright 2014-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -80,6 +80,8 @@
 			    population-data)))
 
 (def (show-rwanda)
-     (plot (list population zero/1) 1950 2010))
+     ;; (plot (list population zero/1) 1950 2010)
+     ;; or
+     (plot population 1950 2010 y0: 0))
 
 ;; now for labels...
