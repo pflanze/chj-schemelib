@@ -252,7 +252,7 @@
                        ;; ^4 are 'rounded-blocky' as is probably best
                        ;; for this.
                        (dist* (square (square dist)))
-                       (weight (/ dist*)))
+                       (weight (fl/ dist*)))
                   ;; (when (> weight 1000000.)
                   ;;       (warn "weight=" weight))
                   (+! tot-weight weight)
@@ -260,11 +260,11 @@
                                (exact->inexact
                                 (u32vector-ref vec i))))))
         (let (w (ref tot-weight))
-          (if (or (infinite? w) (nan? w) (> w 1e7)) ;; ?
+          (if (or (infinite? w) (nan? w) (fl> w 1e7)) ;; ?
               ;; too close, just take the value.
               (inexact
-               (u32vector-ref vec (integer (+ x-scaled 0.5))))
-              (/ (ref tot) w)))))))
+               (u32vector-ref vec (integer (fl+ x-scaled 0.5))))
+              (fl/ (ref tot) w)))))))
 
 
 (def smooth-histogram (histogram/u32vector-to-function .smooth-function))
