@@ -69,11 +69,11 @@
 				       (bottom (- spread jrest)))
 				   (let ((upd
 					  (lambda (i* j* val)
-					    (if (not (zero? val))
-						(if (and ;; (< i* s)
-						     (< j* s))
-						    (.update! m j* i*
-							      (cut + <> val)))))))
+					    (when (and (not (zero? val))
+                                                       ;; (< i* s)
+                                                       (< j* s))
+                                                  (.update! m j* i*
+                                                            (cut + <> val))))))
 				     (upd i* j*
 					  (+ left bottom))
 				     (upd i* (inc j*)
@@ -95,17 +95,17 @@
 				vss))
 	      ;; x axis
 	      (let ((j (y.j 0)))
-		(if (and (<= 0 j) (< j s*))
-		    (for..< (i 0 (dec s))
-			    (plot-s* (* i spread) j))))
+		(when (and (<= 0 j) (< j s*))
+                      (for..< (i 0 (dec s))
+                              (plot-s* (* i spread) j))))
 	      ;; y axis
 	      (let ((i (x.i 0)))
-		(if (and (<= 0 i) (< i s*))
-		    (for..< (j 0 (dec s))
-			    (plot-s* (integer i)
-				     ;; XX hm. ^ integer just so that
-				     ;; quotient+modulo doesn't croak
-				     (* j spread))))))))
+		(when (and (<= 0 i) (< i s*))
+                      (for..< (j 0 (dec s))
+                              (plot-s* (integer i)
+                                       ;; XX hm. ^ integer just so that
+                                       ;; quotient+modulo doesn't croak
+                                       (* j spread))))))))
     m))
 
 
