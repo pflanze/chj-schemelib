@@ -30,6 +30,9 @@
 
 (include "../../cj-standarddeclares.scm")
 
+(possibly-use-debuggable-promise)
+
+
 (define (min+max-values v mima)
   (letv ((mi ma) mima)
 	(values (min v mi)
