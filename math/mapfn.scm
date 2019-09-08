@@ -8,7 +8,8 @@
 
 (require easy
          vector-binsearch
-	 test)
+	 test
+         test-logic)
 
 (export mapfn
 	#!optional
@@ -73,7 +74,7 @@
  -.7071067811865476+2.121320343559643i)
 
 
-(def (mapfn-sorted-alist l)
+(def (mapfn/sorted-alist l)
      (lambda ([real? x])
        (cond-ordered-assoc
         x l <
@@ -87,12 +88,12 @@
 
 
 
-(def (mapfn-sorted-vectorpair keys vals)
+(def (mapfn/sorted-vectorpair keys vals)
      (lambda ([real? x])
        (let (r (vector-binsearch keys x real-cmp #t))
          (cond ((pair? r)
-                (interpolate* (car r) (vector-ref vals (car r))
-                              (cdr r) (vector-ref vals (cdr r))
+                (interpolate* (vector-ref keys (car r)) (vector-ref vals (car r))
+                              (vector-ref keys (cdr r)) (vector-ref vals (cdr r))
                               x))
                ((fixnum-natural0? r)
                 (vector-ref vals r))
@@ -103,14 +104,21 @@
                     (error "out of range, value too large:"
                            x (vector-ref* keys -1))))))))
 
-(def (mapfn [(list-of (pair-of real? number?)) alis])
+(def (mapfn [(list-of (pair-of real? number?)) alis]
+            #!optional (algo 'sorted-vectorpair))
      (let (l (sort alis (on car <)))
-       (mapfn-sorted-vectorpair (=>> l (map car) list->vector)
-                                (=>> l (map cdr) list->vector))))
+       (xcase algo
+              ((sorted-alist)
+               (T mapfn/sorted-alist l))
+              ((sorted-vectorpair)
+               (T mapfn/sorted-vectorpair (=>> l (map car) list->vector)
+                  (=>> l (map cdr) list->vector))))))
 
 
 (TEST
- > (def m (mapfn '((1 . 100) (2 . 200) (0 . 10) (3 . 310))))
+ > (def m (mapfn '((1 . 100) (2 . 200) (0 . 10) (-1 . 5) (3 . 310))
+                 ;;'sorted-alist
+                 ))
  > (m 0)
  10
  > (m 1)
@@ -119,10 +127,22 @@
  310
  > (%try-error (m 3.1))
  [error "out of range, value too large:" 3.1 3]
- > (%try-error (m -1))
- [error "out of range, value too small:" -1 0]
+ > (%try-error (m -2))
+ [error "out of range, value too small:" -2 -1]
  > (m 0.5)
  55.
  > (m 1.5)
  150.)
+
+(TEST
+ > (def l '((1950 . 4510.) (1955 . 4630.) (1960 . 4810.) (1965 . 4780.)
+            (1970 . 4780.) (1975 . 4770.) (1980 . 4810.) (1985 . 4890.)
+            (1990 . 4910.) (1995 . 4840.) (2000 . 4540.)))
+ > (def f0 (mapfn l 'sorted-alist))
+ > (def f1 (mapfn l 'sorted-vectorpair))
+ > (def (catching f) (lambda (x) (%try-error (f x))))
+ > (qcheck* (make-list! 100 (& (+ 1940. (* (random-real) 70.))))
+            (catching f0)
+            (catching f1))
+ ())
 
