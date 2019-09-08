@@ -386,17 +386,17 @@
 (define. Vc.fold (V_.fold Vc.size Vc.ref))
 
 
-(define (_:generate @make)
+(define (_:generate @make _set!)
   (lambda (r:fn siz)
     (let ((v (@make siz)))
       (for..< (i 0 siz)
-              (.set! v i (r:fn i)))
+              (_set! v i (r:fn i)))
       v)))
 
-(define Vr:generate (_:generate @make-Vr))
-(define Vi:generate (_:generate @make-Vi))
-(define Vs:generate (_:generate @make-Vs))
-(define Vc:generate (_:generate @make-Vc))
+(define Vr:generate (_:generate @make-Vr Vr.set!))
+(define Vi:generate (_:generate @make-Vi Vi.set!))
+(define Vs:generate (_:generate @make-Vs Vs.set!))
+(define Vc:generate (_:generate @make-Vc Vc.set!))
 
 (define (zero/1 _)
   0)
