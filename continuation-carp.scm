@@ -9,9 +9,11 @@
 (require)
 
 (export continuation-carp:maybe-continuation-outside-filename
-        continuation-carp:maybe-location-outside-filename)
+        continuation-carp:maybe-location-outside-filename
+        continuation-carp:continuations-outside-filename
+        continuation-carp:locations-outside-filename)
 
-"Search back in continuation stack to find the first frame outside a
+"Search back in continuation stack to find the first frame(s) outside a
 given file.
 
 Name inspiration from Perl's Carp.pm module."
@@ -77,7 +79,6 @@ Name inspiration from Perl's Carp.pm module."
         (else #f)))
 
 
-
 ;; Test:
 
 ;; (define (firstout fn)
@@ -87,4 +88,63 @@ Name inspiration from Perl's Carp.pm module."
 ;; [(console) 52]
 ;; > (firstout "foo")
 ;; ["....lib/continuation-carp.scm" 720974]
+
+
+
+;; ugly partial COPY-PASTE
+
+
+(define (continuation-carp:continuations-outside-filename
+         cont filename n-levels)
+  (if (string? filename)
+      (let rec ((cont cont)
+                (n n-levels))
+        (define (next n)
+          (rec (continuation-next cont) n))
+        (if (and cont (positive? n))
+            (cond
+             ((continuation-maybe-location cont)
+              => (lambda (loc)
+                   (let ((container (location-container loc)))
+                     (if (and (string? container)
+                              (string=? (path-strip-directory container)
+                                        filename))
+                         (next n)
+                         (cons cont
+                               (next (dec n)))))))
+             (else
+              ;; keep n up?? 
+              (next n)))
+            '()))
+      (error "need a string:" filename)))
+
+(define (continuation-carp:locations-outside-filename
+         cont filename n-levels)
+  (map continuation-maybe-location
+       (continuation-carp:continuations-outside-filename
+        cont filename n-levels)))
+
+
+;; Test:
+
+;; (define (firstout2 fn n)
+;;   (let ((c (current-continuation)))
+;;     (continuation-carp:locations-outside-filename c fn n)))
+;; > (firstout2 "foo" 1)
+;; ([".../lib/continuation-carp.scm" 721026])
+;; > (firstout2 "foo" 2)
+;; ([".../lib/continuation-carp.scm" 721026]
+;;  [".../lib/continuation-carp.scm" 131202])
+;; > (firstout2 "foo" 3)
+;; ([".../lib/continuation-carp.scm" 721026]
+;;  [".../lib/continuation-carp.scm" 131202]
+;;  [(console) 36])
+;; > (firstout2 "foo" 4)
+;; ([".../lib/continuation-carp.scm" 721026]
+;;  [".../lib/continuation-carp.scm" 131202]
+;;  [(console) 37])
+;; > (firstout2 "foo" 0)
+;; ()
+;; > (firstout2 "continuation-carp.scm" 2)
+;; ([(console) 40])
 
