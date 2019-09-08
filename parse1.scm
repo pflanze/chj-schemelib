@@ -14,7 +14,7 @@
 	 (oo-util char-list.show char-list+?)
 	 (cj-port with-output-to-string)
 	 (cj-exception-handler write-exception-message)
-	 (cj-gambit-sys continuation-location repl-within)
+	 (cj-gambit-sys continuation-maybe-location repl-within)
 	 predicates
 	 test
 	 char-util
@@ -259,7 +259,7 @@
 	 (xcond ((location? context)
 		 context)
 		((continuation? context)
-		 (continuation-location context))))
+		 (continuation-maybe-location context))))
 	(error "don't have context information")))
 
   ;; *monadic* visit (almost tempted to call it mvisit)

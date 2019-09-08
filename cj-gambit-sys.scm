@@ -44,7 +44,7 @@
 	repl
 	repl-within
 
-	continuation-location
+	continuation-maybe-location
 
         ;; cj-gambit-sys:vector-like? -- see cj-gambit-sys-0.scm
         ;; XX careful: 'vectorlike' below may refer to previous
@@ -654,5 +654,5 @@ memset(obj+offset,value,numbytes);
   ;; don't know what arg1 is for
   (##repl-within c arg1))
 
-(define-typed (continuation-location #(continuation? c))
+(define-typed (continuation-maybe-location #(continuation? c))
   (##continuation-locat c))
