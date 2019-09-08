@@ -72,7 +72,7 @@
     ;; after mapping
     (let ((v (car s)))
       (if (table? v)
-          (sum (table-values v))
+          (sum (map car (table-values v)))
           v)))
   (=>> (table->list dot-oo:genericname->method-table)
        (map (lambda (genericname.method-table)

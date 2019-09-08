@@ -93,36 +93,45 @@
                          ;; Don't have access to the genericname, can
                          ;; only do:
                          m))
-             (case *dot-oo:method-stats*
-               ((#f) m)
-               ((#t)
-                (let ((j (+ i (* 2 nentries))))
-                  ;; ^ not 3 as i is already in second row
-                  (vector-set! vec j
-                               (+ (vector-ref vec j) 1)))
-                m)
-               ((location)
-                (continuation-capture
-                 (lambda (cont)
-                   (let ((j (+ i (* 2 nentries)))) ;; COPY-PASTE
-                     ;; ^ not 3 as i is already in second row
-                     (let ((t (let ((v (vector-ref vec j)))
-                                (if (table? v)
-                                    v
-                                    ;; simply throw away previous count. :/
-                                    (let ((t (make-table)))
-                                      (vector-set! vec j t)
-                                      t))))
-                           (key (continuation-carp:locations-outside-filename
-                                 cont "dot-oo.scm"
-                                 *dot-oo:method-stats-locations-depth*)))
-                       (table-set! t key
-                                   (inc (table-ref t key 0)))))
-                   m)))
-               (else
-                (error "invalid value of *dot-oo:method-stats*"
-                       *dot-oo:method-stats*)
-                m)))
+             (let ((mode *dot-oo:method-stats*))
+               (case mode
+                 ((#f) m)
+                 ((#t)
+                  (let ((j (+ i (* 2 nentries))))
+                    ;; ^ not 3 as i is already in second row
+                    (vector-set! vec j
+                                 (+ (vector-ref vec j) 1)))
+                  m)
+                 ((location continuation)
+                  (continuation-capture
+                   (lambda (cont)
+                     (let ((j (+ i (* 2 nentries)))) ;; COPY-PASTE
+                       ;; ^ not 3 as i is already in second row
+                       (let ((t (let ((v (vector-ref vec j)))
+                                  (if (table? v)
+                                      v
+                                      ;; simply throw away previous count. :/
+                                      (let ((t (make-table)))
+                                        (vector-set! vec j t)
+                                        t))))
+                             (key (continuation-carp:locations-outside-filename
+                                   cont "dot-oo.scm"
+                                   *dot-oo:method-stats-locations-depth*))
+                             (maybe-cont (if (eq? mode 'continuation)
+                                             cont
+                                             #f)))
+                         (cond
+                          ((table-ref t key #f)
+                           => (lambda (n+cont)
+                                (set-car! n+cont (inc (car n+cont)))
+                                (set-cdr! n+cont maybe-cont)))
+                          (else
+                           (table-set! t key (cons 1 maybe-cont))))))
+                     m)))
+                 (else
+                  (error "invalid value of *dot-oo:method-stats*"
+                         *dot-oo:method-stats*)
+                  m))))
            (lp (inc i)))
           #f))))
 
@@ -360,11 +369,13 @@
                          ;; call count if collection was on: It is
                          ;; either the call count (a fixnum) if
                          ;; *dot-oo:method-stats* is #t, or if
-                         ;; *dot-oo:method-stats* is 'location, a
-                         ;; table mapping a caller location list (of
-                         ;; up to depth
+                         ;; *dot-oo:method-stats* is 'location or
+                         ;; 'continuation, a table mapping a caller
+                         ;; location list (of up to depth
                          ;; *dot-oo:method-stats-locations-depth*) to
-                         ;; the call count.
+                         ;; a pair of the call count and maybe (in the
+                         ;; 'location mode) the last continuation
+                         ;; encountered in that case.
                          exact-natural0?
                          table?)))
 
