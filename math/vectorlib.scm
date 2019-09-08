@@ -7,8 +7,8 @@
 
 
 (require easy
-	 (cj-functional size0? size?)
-	 debuggable-promise)
+         (cj-functional size0? size?)
+         debuggable-promise)
 
 (include "../cj-standarddeclares.scm")
 (possibly-use-debuggable-promise)
@@ -149,32 +149,32 @@
 
 (define (list->Vc lis)
   (let* ((siz (length lis))
-	 (v (@make-Vc siz))
-	 (_v (Vc.data v)))
+         (v (@make-Vc siz))
+         (_v (Vc.data v)))
     (let lp ((i 0)
-	     (lis lis))
+             (lis lis))
       (if (null? lis)
-	  v
-	  (begin
-	   (let ((x (car lis)))
-	     (realvector-set! _v i (exact->inexact (real-part x)))
-	     (realvector-set! _v (inc i) (exact->inexact (imag-part x))))
-	   (lp (+ i 2)
-	       (cdr lis)))))))
+          v
+          (begin
+           (let ((x (car lis)))
+             (realvector-set! _v i (exact->inexact (real-part x)))
+             (realvector-set! _v (inc i) (exact->inexact (imag-part x))))
+           (lp (+ i 2)
+               (cdr lis)))))))
 
 (define (Vc . lis)
   (list->Vc lis))
 
 (define (Vc->list v)
   (let-Vc ((size data) v)
-	  (let lp ((i (dec size))
-		   (res '()))
-	    (if (negative? i)
-		res
-		(lp (dec i)
-		    (cons (+ (realvector-ref data (fx.twice i))
-			     (* (realvector-ref data (inc (fx.twice i))) +i))
-			  res))))))
+          (let lp ((i (dec size))
+                   (res '()))
+            (if (negative? i)
+                res
+                (lp (dec i)
+                    (cons (+ (realvector-ref data (fx.twice i))
+                             (* (realvector-ref data (inc (fx.twice i))) +i))
+                          res))))))
 
 (define. (Vc.show v)
   (cons 'Vc (Vc->list v)))
@@ -249,11 +249,11 @@
 (define (V_.map V_.size make-V_@ V_.ref V_.set!)
   (lambda (v fn)
     (let* ((len (V_.size v))
-	   (res (make-V_@ len)))
+           (res (make-V_@ len)))
       (let lp ((i 0))
-	(when (< i len)
+        (when (< i len)
               (V_.set! res i (fn (V_.ref v i)))
-	      (lp (inc i))))
+              (lp (inc i))))
       res)))
 
 (define. Vr.map (V_.map Vr.size @make-Vr Vr.ref Vr.set!))
@@ -316,9 +316,9 @@
     ;; XX should check type of b? anyway.
     (assert (= (.size a) (.size b)))
     (let* ((size (.size a))
-	   (res (@make-V_ size)))
+           (res (@make-V_ size)))
       (for..< (i 0 size)
-	      (.set! res i (op (.ref a i) (.ref b i))))
+              (.set! res i (op (.ref a i) (.ref b i))))
       res)))
 
 (define VrVr.+ (V_V_._ @make-Vr +))
@@ -360,7 +360,7 @@
 (define (V_.for-each v proc)
   (let* ((len (.size v)))
     (for..< (i 0 len)
-	    (proc (Vr.ref v i)))))
+            (proc (Vr.ref v i)))))
 
 (define. Vr.for-each V_.for-each)
 (define. Vc.for-each V_.for-each)
@@ -370,11 +370,11 @@
   (lambda (v fn start)
     (let* ((len (_.size v)))
       (let lp ((i 0)
-	       (res start))
-	(if (< i len)
-	    (lp (inc i)
-		(fn (_.ref v i) res))
-	    res)))))
+               (res start))
+        (if (< i len)
+            (lp (inc i)
+                (fn (_.ref v i) res))
+            res)))))
 
 (define. Vr.fold (V_.fold Vr.size Vr.ref))
 (define. Vc.fold (V_.fold Vc.size Vc.ref))
@@ -384,7 +384,7 @@
   (lambda (r:fn siz)
     (let ((v (@make siz)))
       (for..< (i 0 siz)
-	      (.set! v i (r:fn i)))
+              (.set! v i (r:fn i)))
       v)))
 
 (define Vr:generate (_:generate @make-Vr))
@@ -436,118 +436,118 @@
     (quasiquote-source
      (begin
        (define-struct. ,(T 'M_)
-	 constructor-name: ,(symbol-append '_M (string* t))
-	 size0
-	 size1
-	 data)
+         constructor-name: ,(symbol-append '_M (string* t))
+         size0
+         size1
+         data)
 
        (define-typed (,(T 'M_) . #((both pair? (list-of ,(T 'V_?))) vs))
-	 (let ((s0 (length vs))
-	       (s1 (,(T 'V_.size) (car vs))))
-	   (for-each (lambda (v)
-		       (assert (= (,(T 'V_.size) v) s1)))
-		     vs)
-	   (,_M_ s0 s1 (list->vector vs))))
+         (let ((s0 (length vs))
+               (s1 (,(T 'V_.size) (car vs))))
+           (for-each (lambda (v)
+                       (assert (= (,(T 'V_.size) v) s1)))
+                     vs)
+           (,_M_ s0 s1 (list->vector vs))))
 
        (define-typed (,(T '@make-M_) #(size? s0) #(size? s1))
-	 ;; with separate (uninitialized) rows so as to make them
-	 ;; overwritable
-	 (,_M_ s0 s1 (vector-generate s0
-				      (lambda (_)
-					(,(T '@make-V_) s1)))))
+         ;; with separate (uninitialized) rows so as to make them
+         ;; overwritable
+         (,_M_ s0 s1 (vector-generate s0
+                                      (lambda (_)
+                                        (,(T '@make-V_) s1)))))
 
        (define. (,(T 'M_.ref) m i0 i1)
-	 (,(T 'V_.ref) (vector-ref (,(T 'M_.data) m) i0) i1))
+         (,(T 'V_.ref) (vector-ref (,(T 'M_.data) m) i0) i1))
 
        (define-inline (,(T 'M_.ref@) m i0 i1)
-	 (declare (not safe))
-	 (,(T 'V_.ref@) (##vector-ref (,(T '@M_.data) m) i0) i1))
+         (declare (not safe))
+         (,(T 'V_.ref@) (##vector-ref (,(T '@M_.data) m) i0) i1))
        
        (define. (,(T 'M_.ref*) m i0 i1)
-	 (,(T 'V_.ref) (vector-ref (,(T 'M_.data) m) (dec i0)) (dec i1)))
+         (,(T 'V_.ref) (vector-ref (,(T 'M_.data) m) (dec i0)) (dec i1)))
 
        (define. (,(T 'M_.sizes) m)
-	 (values (,(T 'M_.size0) m)
-		 (,(T 'M_.size1) m)))
+         (values (,(T 'M_.size0) m)
+                 (,(T 'M_.size1) m)))
 
        (define. ,(T 'M_.size)
-	 (typed-lambda
-	  (m #((both natural0? (cut < <> 2)) dim))
-	  ;; assumes all rows are the same length!
-	  (case dim
-	    ((0) (,(T 'M_.size0) m))
-	    ((1) (,(T 'M_.size1) m)))))
+         (typed-lambda
+          (m #((both natural0? (cut < <> 2)) dim))
+          ;; assumes all rows are the same length!
+          (case dim
+            ((0) (,(T 'M_.size0) m))
+            ((1) (,(T 'M_.size1) m)))))
 
        (define (,(T 'list->M_) listoflists)
-	 ;; exact->inexact also accepts inexact numbers. Lucky.
-	 (let ((s0 (length listoflists))
-	       (s1 (length (car listoflists))))
-	   (,_M_
-	    s0 s1
-	    (list->vector
-	     (map (compose-function ,(T 'list->V_) (cut map exact->inexact <>))
-		  listoflists)))))
+         ;; exact->inexact also accepts inexact numbers. Lucky.
+         (let ((s0 (length listoflists))
+               (s1 (length (car listoflists))))
+           (,_M_
+            s0 s1
+            (list->vector
+             (map (compose-function ,(T 'list->V_) (cut map exact->inexact <>))
+                  listoflists)))))
 
        ;; should this be done w a R.unfold?
        (define (,(T 'M_:generate/rows) V_:fn siz)
-	 ;; almost COPY of V:generate
-	 (let ((v (make-vector siz)))
-	   (let lp ((i 0))
-	     (when (< i siz)
+         ;; almost COPY of V:generate
+         (let ((v (make-vector siz)))
+           (let lp ((i 0))
+             (when (< i siz)
                    (vector-set! v i (V_:fn i))
-		   (lp (inc i))))
-	   (,_M_
-	    siz
-	    (,(T 'V_.size) (vector-ref v 0)) ;; assume all are the same.
-	    v)))
+                   (lp (inc i))))
+           (,_M_
+            siz
+            (,(T 'V_.size) (vector-ref v 0)) ;; assume all are the same.
+            v)))
        ;; offer a R:generate/rows* variant that passes indizes starting from 1?
 
        (define (,(T 'M_:zeros) s0 s1)
-	 ;; (make-vector y
-	 ;; 	       (V.zeros x))
-	 ;;XXXwrong, mutation.. --- hm? or how to handle this case?
-	 (,_M_ s0 s1 (list->vector
-		      (map (lambda (_)
-			     (,(T 'V_:zeros) s1))
-			   (iota s0)))))
+         ;; (make-vector y
+         ;;            (V.zeros x))
+         ;;XXXwrong, mutation.. --- hm? or how to handle this case?
+         (,_M_ s0 s1 (list->vector
+                      (map (lambda (_)
+                             (,(T 'V_:zeros) s1))
+                           (iota s0)))))
 
        (define (,(T 'M_:generate) fn/2 s0 s1)
-	 (,_M_ s0 s1 (list->vector
-		      (map (lambda (i0)
-			     (,(T 'V_:generate)
-			      (lambda (i1)
-				(fn/2 i0 i1))
-			      s1))
-			   (iota s0)))))
+         (,_M_ s0 s1 (list->vector
+                      (map (lambda (i0)
+                             (,(T 'V_:generate)
+                              (lambda (i1)
+                                (fn/2 i0 i1))
+                              s1))
+                           (iota s0)))))
 
        (define (,(T 'M_:ones) s0 s1)
-	 ;;~ditto
-	 (,_M_ s0 s1 (list->vector
-		      (map (lambda (_)
-			     (,(T 'V_:ones) s1))
-			   (iota s0)))))
+         ;;~ditto
+         (,_M_ s0 s1 (list->vector
+                      (map (lambda (_)
+                             (,(T 'V_:ones) s1))
+                           (iota s0)))))
        (define. (,(T 'M_.set!) m i0 i1 v)
-	 (,(T 'V_.set!) (vector-ref (,(T 'M_.data) m) i0) i1 v))
+         (,(T 'V_.set!) (vector-ref (,(T 'M_.data) m) i0) i1 v))
        (define-inline (,(T 'M_.set!@) m i0 i1 v)
-	 (declare (not safe))
-	 (,(T 'V_.set!@) (##vector-ref (,(T '@M_.data) m) i0) i1 v))
+         (declare (not safe))
+         (,(T 'V_.set!@) (##vector-ref (,(T '@M_.data) m) i0) i1 v))
        (define. (,(T 'M_.set!*) m i0 i1 v)
-	 (,(T 'V_.set!) (vector-ref (,(T 'M_.data) m) (dec i0)) (dec i1) v))
+         (,(T 'V_.set!) (vector-ref (,(T 'M_.data) m) (dec i0)) (dec i1) v))
        (define. (,(T 'M_.update!) m i0 i1 fn)
-	 (,(T 'V_.update!) (vector-ref (,(T 'M_.data) m) i0) i1 fn))
+         (,(T 'V_.update!) (vector-ref (,(T 'M_.data) m) i0) i1 fn))
        (define. (,(T 'M_.update!*) m i0 i1 fn)
-	 (,(T 'V_.update!*) (vector-ref (,(T 'M_.data) m) (dec i0)) i1 fn))
+         (,(T 'V_.update!*) (vector-ref (,(T 'M_.data) m) (dec i0)) i1 fn))
 
        (define. (,(T 'M_.show) m)
-	 (,(T 'let-M_) ((size0 size1 data) m)
-	  ;; since show is going to be used for testing, fsck'ing
-	  ;; makes sense here, ok? (or just warn?)
-	  (assert (= (vector-length data) size0))
-	  (cons ',(T 'M_)
-		(map (lambda (v)
-		       (assert (= (,(T 'V_.size) v) size1))
-		       (,(T 'V_.show) v))
-		     (vector->list data)))))))))
+         (,(T 'let-M_) ((size0 size1 data) m)
+          ;; since show is going to be used for testing, fsck'ing
+          ;; makes sense here, ok? (or just warn?)
+          (assert (= (vector-length data) size0))
+          (cons ',(T 'M_)
+                (map (lambda (v)
+                       (assert (= (,(T 'V_.size) v) size1))
+                       (,(T 'V_.show) v))
+                     (vector->list data)))))))))
 
 (define-M_ #\r)
 (define-M_ #\c)
@@ -580,36 +580,36 @@
 ;; (define. (Mr.min+max m)
 ;;   (let ((first (Mr.ref m 0 0)))
 ;;     (Mr.fold m
-;; 	     (lambda (v lo.hi)
-;; 	       (with-values lo.hi
-;; 		 (values (min lo v)
-;; 			 (max hi v))))
-;; 	     (values first first))))
+;;           (lambda (v lo.hi)
+;;             (with-values lo.hi
+;;               (values (min lo v)
+;;                       (max hi v))))
+;;           (values first first))))
 ;;XX speed hack:
 (define. (Mr.min+max m)
   (letv ((s0 s1) (Mr.sizes m))
-	(let* ((first (Mr.ref m 0 0))
-	       (lo first)
-	       (hi first))
-	  (declare (fixnum) (not safe))
-	  (for..< (i0 0 s0)
-		  (for..< (i1 0 s1)
-			  (let ((v (Mr.ref@ m i0 i1)))
-			    (when (fl< v lo)
+        (let* ((first (Mr.ref m 0 0))
+               (lo first)
+               (hi first))
+          (declare (fixnum) (not safe))
+          (for..< (i0 0 s0)
+                  (for..< (i1 0 s1)
+                          (let ((v (Mr.ref@ m i0 i1)))
+                            (when (fl< v lo)
                                   (set! lo v))
-			    (when (fl> v hi)
+                            (when (fl> v hi)
                                   (set! hi v)))))
-	  (values lo hi))))
+          (values lo hi))))
 
 
 (define. (Vr.min+max v)
   (let ((first (.ref v 0)))
     (.fold v
-	   (lambda (x lo.hi)
-	     (with-values lo.hi
-	       (values (min lo x)
-		       (max hi x))))
-	   (values first first))))
+           (lambda (x lo.hi)
+             (with-values lo.hi
+               (values (min lo x)
+                       (max hi x))))
+           (values first first))))
 
 (define-typed (Mr.print #(Mr? m))
   (print "[")
@@ -618,10 +618,10 @@
      (print "[")
      (let ((space ""))
        (Vr.for-each v
-		    (lambda (x)
-		      (display space)
-		      (display x)
-		      (set! space " "))))
+                    (lambda (x)
+                      (display space)
+                      (display x)
+                      (set! space " "))))
      (println "]"))
    m)
   (println "]"))
@@ -629,24 +629,24 @@
 ;; ===
 
 
-;; 	sig2 = zeros(Z,samplingX*(X-1)+1); % a zero array is generated having
-;; 					   % the appropriate size
-;; 	sig2(:,[0:X-1]*samplingX+1) = sig(:,:); % signal lines corresponding to
-;; 						% real elements are filled
+;;      sig2 = zeros(Z,samplingX*(X-1)+1); % a zero array is generated having
+;;                                         % the appropriate size
+;;      sig2(:,[0:X-1]*samplingX+1) = sig(:,:); % signal lines corresponding to
+;;                                              % real elements are filled
 (define-typed (Mri.spread-out #(Mr? m) #(natural? spread))
   ;; only adds zero rows *between* original rows, not at the end.
   ;;XX sharing row data, careful..
   (let* ((zerorow (make-Vr (Mr.size m 1)))
-	 (res (vector-fold-right
-	       (lambda (x res)
-		 (let lp ((res (cons x res))
-			  (n spread))
-		   (if (= n 1)
-		       res
-		       (lp (cons zerorow res)
-			   (dec n)))))
-	       '()
-	       (Mr.data m))))
+         (res (vector-fold-right
+               (lambda (x res)
+                 (let lp ((res (cons x res))
+                          (n spread))
+                   (if (= n 1)
+                       res
+                       (lp (cons zerorow res)
+                           (dec n)))))
+               '()
+               (Mr.data m))))
     ;; wastefully drop rows at edge again
     (_Mr
      (dec (* spread (Mr.size0 m)))
@@ -658,10 +658,10 @@
  > (Mri.spread-out (list->Mr '((1 2.4) (3 4) (5 6))) 2)
  #((Mr) 5 2 ;; sizey is really redundant. hm
    #(#f64(1. 2.4)
-	 #f64(0. 0.)
-	 #f64(3. 4.)
-	 #f64(0. 0.)
-	 #f64(5. 6.)))
+         #f64(0. 0.)
+         #f64(3. 4.)
+         #f64(0. 0.)
+         #f64(5. 6.)))
  )
 
 ;; -- Function File: [Y1, Y2, ..., Yn] = ndgrid (X1, X2, ..., Xn)
@@ -704,9 +704,9 @@
 
 (define (VrVr.ndgrid x1 x2)
   (let ((s1 (Vr.size x1))
-	(s2 (Vr.size x2)))
+        (s2 (Vr.size x2)))
     (values (.replicate-column x1 s2)
-	    (.replicate-row x2 s1))))
+            (.replicate-row x2 s1))))
 
 (define. (Vr.replicate-row v n)
   (_Mr n
@@ -715,17 +715,17 @@
 
 (define. (vector:Vr.map v fn)
   (let* ((s (Vr.size v))
-	 (res (make-vector s)))
+         (res (make-vector s)))
     (let lp ((i 0))
       (when (< i s)
             (vector-set! res i (fn (Vr.ref v i)))
-	    (lp (inc i))))
+            (lp (inc i))))
     res))
 
 (define. (Vr.replicate-column v n)
   (_Mr (Vr.size v) n
        (vector:Vr.map v
-		      (cut make-Vr n <>))))
+                      (cut make-Vr n <>))))
 
 (TEST
  > (.show (.replicate-row (Vr 1 2 3) 3))
@@ -747,13 +747,13 @@
 
 (define (VrVr.map v1 v2 fn)
   (let* ((len (Vr.size v1))
-	 (res (@make-Vr len)))
+         (res (@make-Vr len)))
     (assert (= len (Vr.size v2)))
     (let lp ((i 0))
       (when (< i len)
             (Vr.set! res i (fn (Vr.ref v1 i)
-			       (Vr.ref v2 i)))
-	    (lp (inc i))))
+                               (Vr.ref v2 i)))
+            (lp (inc i))))
     res))
 
 ;; === map of two matrices
@@ -761,24 +761,24 @@
 (define (_:M_M_.map+/ @make-M_)
   (lambda (m1 m2 fn)
     (let-values (((x y) (.sizes m1))
-		 ((x2 y2) (.sizes m2)))
+                 ((x2 y2) (.sizes m2)))
       (assert (= x x2))
       (assert (= y y2))
       (let ((res (@make-M_ x y)))
-	(for..< (i0 0 x)
-		(for..< (i1 0 y)
-			(.set! res i0 i1
-			       (fn (.ref m1 i0 i1)
-				   (.ref m2 i0 i1)
-				   i0
-				   i1))))
-	res))))
+        (for..< (i0 0 x)
+                (for..< (i1 0 y)
+                        (.set! res i0 i1
+                               (fn (.ref m1 i0 i1)
+                                   (.ref m2 i0 i1)
+                                   i0
+                                   i1))))
+        res))))
 
 (define (_:M_M_.map/ @make-M_)
   (let ((_map (_:M_M_.map+/ @make-M_)))
     (lambda (m1 m2 fn)
       (_map m1 m2 (lambda (x1 x2 i0 i1)
-		    (fn x1 x2))))))
+                    (fn x1 x2))))))
 
 (define MrMr.map (_:M_M_.map/ @make-Mr))
 (define McMc.map (_:M_M_.map/ @make-Mc))
@@ -798,17 +798,17 @@
 (define (_:.map+/ @make-M_)
   (lambda (m fn)
     (letv ((x y) (.sizes m))
-	  (let ((res (@make-M_ x y)))
-	    (for..< (i0 0 x)
-		    (for..< (i1 0 y)
-			    (.set! res i0 i1
-				   (fn (.ref m i0 i1) i0 i1))))
-	    res))))
+          (let ((res (@make-M_ x y)))
+            (for..< (i0 0 x)
+                    (for..< (i1 0 y)
+                            (.set! res i0 i1
+                                   (fn (.ref m i0 i1) i0 i1))))
+            res))))
 (define (_:.map/ @make-M_)
   (let ((_map (_:.map+/ @make-M_)))
     (lambda (m fn)
       (_map m (lambda (x i0 i1)
-		(fn x))))))
+                (fn x))))))
 
 ;; == map of one matrix, no indices
 
@@ -845,8 +845,8 @@
 ;; previously used definition
 ;; (define. (Mr.map m fn)
 ;;   (letv ((x y) (Mr.sizes m))
-;; 	(_Mr x y (vector-map (cut Vr.map <> fn)
-;; 			     (Mr.data m)))))
+;;      (_Mr x y (vector-map (cut Vr.map <> fn)
+;;                           (Mr.data m)))))
 
 (define Mr..square
   (cut Mr.map <> square))
@@ -924,12 +924,12 @@
   (lambda (m)
     ;; XX not very efficient.
     (letv ((s0 s1) (.sizes m))
-	  (let ((res (@make-M_ s1 s0)))
-	    (for..< (i0 0 s0)
-		    (for..< (i1 0 s1)
-			    (.set! res i1 i0
-				   (.ref m i0 i1))))
-	    res))))
+          (let ((res (@make-M_ s1 s0)))
+            (for..< (i0 0 s0)
+                    (for..< (i1 0 s1)
+                            (.set! res i1 i0
+                                   (.ref m i0 i1))))
+            res))))
 
 (define. Mr.transpose (mk-transpose @make-Mr))
 (define. Mc.transpose (mk-transpose @make-Mc))
@@ -961,9 +961,9 @@
 
 (define (M_Vss.ref-at* m v0 i1)
   (let* ((siz (Vs.size v0))
-	 (res (@make-Vc siz)))
+         (res (@make-Vc siz)))
     (for..< (i 0 siz)
-	    (.set! res i (.ref* m (.ref v0 i) i1)))
+            (.set! res i (.ref* m (.ref v0 i) i1)))
     res))
 
 (define MrVss.ref-at* M_Vss.ref-at*)
@@ -1011,11 +1011,11 @@
 
 (define (Vb:.map v fn) ;; MOSTLY COPY
   (let* ((len (.size v))
-	 (res (make-Vb@ len)))
+         (res (make-Vb@ len)))
     (let lp ((i 0))
       (when (< i len)
             (Vb.set! res i (fn (.ref v i)))
-	    (lp (inc i))))
+            (lp (inc i))))
     res))
 
 (define. Vb:Vr.map Vb:.map)
@@ -1027,7 +1027,7 @@
     (assert (= ni (.size xs)))
     (assert (<= ni (.size res)))
     (for..< (i 0 ni)
-	    (when (Vb.ref is i)
+            (when (Vb.ref is i)
                   (.set! res i (.ref xs i))))))
 
 (define. (Vb.list v)
@@ -1054,9 +1054,9 @@
 
 (define (M_.for-each* m proc/3)
   (letv ((s0 s1) (.sizes m))
-	(for..< (i0 0 s0)
-		(for..< (i1 0 s1)
-			(proc/3 i0 i1 (.ref m i0 i1))))))
+        (for..< (i0 0 s0)
+                (for..< (i1 0 s1)
+                        (proc/3 i0 i1 (.ref m i0 i1))))))
 ;;XX why did I choose name with * ? i0 and i1 are zero based, no?
 
 (define. Mr.for-each* M_.for-each*)
@@ -1069,28 +1069,28 @@
    (m #(size0? from0) to0
       #(size0? from1) to1)
    (letv ((s0 s1) (.sizes m))
-	 (assert (<= to0 s0))
-	 (assert (<= to1 s1))
-	 (let* ((s0* (- to0 from0))
-		(s1* (- to1 from1))
-		(res (@make-M_ s0* s1*)))
-	   (for..< (i0 from0 to0)
-		   (for..< (i1 from1 to1)
-			   (.set! res
-				  (- i0 from0)
-				  (- i1 from1)
-				  (.ref m i0 i1))))
-	   res))))
+         (assert (<= to0 s0))
+         (assert (<= to1 s1))
+         (let* ((s0* (- to0 from0))
+                (s1* (- to1 from1))
+                (res (@make-M_ s0* s1*)))
+           (for..< (i0 from0 to0)
+                   (for..< (i1 from1 to1)
+                           (.set! res
+                                  (- i0 from0)
+                                  (- i1 from1)
+                                  (.ref m i0 i1))))
+           res))))
 
 (define (M_.section* @make-M_)
   (let ((.section (M_.section @make-M_)))
     (typed-lambda (m #(size? from0) to0
-		     #(size? from1) to1)
-		  (.section m
-			    (dec from0)
-			    to0
-			    (dec from1)
-			    to1))))
+                     #(size? from1) to1)
+                  (.section m
+                            (dec from0)
+                            to0
+                            (dec from1)
+                            to1))))
 
 ;; XX again no type enforcement
 (define. Mr.section (M_.section @make-Mr))
@@ -1100,13 +1100,13 @@
 
 (TEST
  > (.show (.section* (Mr (Vr 1 2 3)
-			 (Vr 4 5 6)) 1 2 2 2))
+                         (Vr 4 5 6)) 1 2 2 2))
  ;; m([1:2],[2:2])
  (Mr (Vr 2.)
      (Vr 5.))
  > (.show (.section* (Mr (Vr 1 2 3)
-			 (Vr 4 5 6)
-			 (Vr 7 8 9)) 2 3 2 3))
+                         (Vr 4 5 6)
+                         (Vr 7 8 9)) 2 3 2 3))
  ;;  m([2:3],[2:3])
  (Mr (Vr 5. 6.)
      (Vr 8. 9.)))
@@ -1115,106 +1115,106 @@
 (define (fftshift-shift i s n)
   (let ((i* (+ i n)))
     (if (>= i* s)
-	(- i* s)
-	i*)))
+        (- i* s)
+        i*)))
 
 (define (Mc._fftshift/ shift0 shift1 ishift0 ishift1)
   (lambda (m)
     (letv ((s0 s1) (Mc.sizes m))
-	  (let ((res (@make-Mc s0 s1))
-		(n0 (quotient s0 2))
-		(n1 (quotient s1 2)))
-	    (for..< (i0 0 s0)
-		    (for..< (i1 0 s1)
-			    (.set! res
-				   (shift0 i0 s0 n0)
-				   (shift1 i1 s1 n1)
-				   (.ref m
-					 (ishift0 i0 s0 n0)
-					 (ishift1 i1 s1 n1)))))
-	    res))))
+          (let ((res (@make-Mc s0 s1))
+                (n0 (quotient s0 2))
+                (n1 (quotient s1 2)))
+            (for..< (i0 0 s0)
+                    (for..< (i1 0 s1)
+                            (.set! res
+                                   (shift0 i0 s0 n0)
+                                   (shift1 i1 s1 n1)
+                                   (.ref m
+                                         (ishift0 i0 s0 n0)
+                                         (ishift1 i1 s1 n1)))))
+            res))))
 
 ;; only shift s0, not s1, since s1 is reduced anyway after fft.
 (define fftshift-identity (lambda (i s n) i))
 
 (define. Mc.fftshift-half (Mc._fftshift/
-			   fftshift-shift
-			   fftshift-identity
-			   fftshift-identity
-			   fftshift-identity))
+                           fftshift-shift
+                           fftshift-identity
+                           fftshift-identity
+                           fftshift-identity))
 (define. Mc.ifftshift-half (Mc._fftshift/
-			    fftshift-identity
-			    fftshift-identity
-			    fftshift-shift
-			    fftshift-identity))
+                            fftshift-identity
+                            fftshift-identity
+                            fftshift-shift
+                            fftshift-identity))
 (define. Mc.fftshift-complete (Mc._fftshift/
-			       fftshift-shift
-			       fftshift-shift
-			       fftshift-identity
-			       fftshift-identity))
+                               fftshift-shift
+                               fftshift-shift
+                               fftshift-identity
+                               fftshift-identity))
 (define. Mc.ifftshift-complete (Mc._fftshift/
-				fftshift-identity
-				fftshift-identity
-				fftshift-shift
-				fftshift-shift))
+                                fftshift-identity
+                                fftshift-identity
+                                fftshift-shift
+                                fftshift-shift))
 
 
 (TEST
  > (define tests-complete (list (cons (Mc (Vc 1 -1)
-					  (Vc 2 -2)
-					  (Vc 3 -3)
-					  (Vc 4 -4))
-				      (Mc (Vc -3.+0.i 3.+0.i)
-					  (Vc -4.+0.i 4.+0.i)
-					  (Vc -1.+0.i 1.+0.i)
-					  (Vc -2.+0.i 2.+0.i)))
-				(cons (Mc (Vc 1 -1)
-					  (Vc 2 -2)
-					  (Vc 3 -3))
-				      (Mc (Vc -3.+0.i 3.+0.i)
-					  (Vc -1.+0.i 1.+0.i)
-					  (Vc -2.+0.i 2.+0.i)))
-				(cons (Mc (Vc 1 -1))
-				      (Mc (Vc -1.+0.i 1.+0.i)))
-				(cons (Mc (Vc 1 2 3))
-				      (Mc (Vc 3.+0.i 1.+0.i 2.+0.i)))))
+                                          (Vc 2 -2)
+                                          (Vc 3 -3)
+                                          (Vc 4 -4))
+                                      (Mc (Vc -3.+0.i 3.+0.i)
+                                          (Vc -4.+0.i 4.+0.i)
+                                          (Vc -1.+0.i 1.+0.i)
+                                          (Vc -2.+0.i 2.+0.i)))
+                                (cons (Mc (Vc 1 -1)
+                                          (Vc 2 -2)
+                                          (Vc 3 -3))
+                                      (Mc (Vc -3.+0.i 3.+0.i)
+                                          (Vc -1.+0.i 1.+0.i)
+                                          (Vc -2.+0.i 2.+0.i)))
+                                (cons (Mc (Vc 1 -1))
+                                      (Mc (Vc -1.+0.i 1.+0.i)))
+                                (cons (Mc (Vc 1 2 3))
+                                      (Mc (Vc 3.+0.i 1.+0.i 2.+0.i)))))
  > (map (lambda (t)
-	  (equal? (Mc.fftshift-complete (car t))
-		  (cdr t)))
-	tests-complete)
+          (equal? (Mc.fftshift-complete (car t))
+                  (cdr t)))
+        tests-complete)
  (#t #t #t #t)
  > (map (lambda (t)
-	  (equal? (Mc.ifftshift-complete (cdr t))
-		  (car t)))
-	tests-complete)
+          (equal? (Mc.ifftshift-complete (cdr t))
+                  (car t)))
+        tests-complete)
  (#t #t #t #t)
  > (define tests-half (list (cons (Mc (Vc 1 -1)
-				      (Vc 2 -2)
-				      (Vc 3 -3)
-				      (Vc 4 -4))
-				  (Mc (Vc 3.+0.i -3.+0.i)
-				      (Vc 4.+0.i -4.+0.i)
-				      (Vc 1.+0.i -1.+0.i)
-				      (Vc 2.+0.i -2.+0.i)))
-			    (cons (Mc (Vc 1 -1)
-				      (Vc 2 -2)
-				      (Vc 3 -3))
-				  (Mc (Vc 3.+0.i -3.+0.i)
-				      (Vc 1.+0.i -1.+0.i)
-				      (Vc 2.+0.i -2.+0.i)))
-			    (cons (Mc (Vc 1 -1))
-				  (Mc (Vc 1.+0.i -1.+0.i)))
-			    (cons (Mc (Vc 1 2 3))
-				  (Mc (Vc 1.+0.i 2.+0.i 3.+0.i)))))
+                                      (Vc 2 -2)
+                                      (Vc 3 -3)
+                                      (Vc 4 -4))
+                                  (Mc (Vc 3.+0.i -3.+0.i)
+                                      (Vc 4.+0.i -4.+0.i)
+                                      (Vc 1.+0.i -1.+0.i)
+                                      (Vc 2.+0.i -2.+0.i)))
+                            (cons (Mc (Vc 1 -1)
+                                      (Vc 2 -2)
+                                      (Vc 3 -3))
+                                  (Mc (Vc 3.+0.i -3.+0.i)
+                                      (Vc 1.+0.i -1.+0.i)
+                                      (Vc 2.+0.i -2.+0.i)))
+                            (cons (Mc (Vc 1 -1))
+                                  (Mc (Vc 1.+0.i -1.+0.i)))
+                            (cons (Mc (Vc 1 2 3))
+                                  (Mc (Vc 1.+0.i 2.+0.i 3.+0.i)))))
  > (map (lambda (t)
-	  (equal? (Mc.fftshift-half (car t))
-		  (cdr t)))
-	tests-half)
+          (equal? (Mc.fftshift-half (car t))
+                  (cdr t)))
+        tests-half)
  (#t #t #t #t)
  > (map (lambda (t)
-	  (equal? (Mc.ifftshift-half (cdr t))
-		  (car t)))
-	tests-half)
+          (equal? (Mc.ifftshift-half (cdr t))
+                  (car t)))
+        tests-half)
  (#t #t #t #t))
 
 
@@ -1240,40 +1240,40 @@
   ;; now now how: extensible, well, isn't, right?.
   ;; NOT fast btw.; and not 'R5RS conform'
   (let ((show (lambda (t . fns)
-		(if show-parameters?
-		    (cons (symbol-append 'make- t)
-			  (map (lambda (fn)
-				 (fn v))
-			       fns))
-		    t))))
+                (if show-parameters?
+                    (cons (symbol-append 'make- t)
+                          (map (lambda (fn)
+                                 (fn v))
+                               fns))
+                    t))))
     (mcase v
-	   (number?
-	    (mcase v
-		   ((both integer? exact?)
-		    (show 'integer (mcase-lambda
-				    (fixnum? 'fix)
-				    (bignum? 'big))))
-		   (rational?
-		    (mcase v
-			   (exact? 'fractional)
-			   (else 'real)))
-		   (real? 'real)
-		   (complex?
-		    ;; (be careful, just ~the rest (what would
-		    ;; non-complex numbers be that don't satisfy the
-		    ;; complex? predicate?))
-		    `(complex ,(vectorlib:type-of (real-part v))
-			      ,(vectorlib:type-of (imag-part v))))))
-	   (string? (show 'string string-length))
-	   (u8vector? (show 'u8vector u8vector-length))
-	   (Vr? (show 'Vr .size))
-	   (Vc? (show 'Vc .size))
-	   (Vi? (show 'Vi .size))
-	   (Vs? (show 'Vs .size))
-	   (Vb? (show 'Vb .size))
-	   (Mr? (show 'Mr .size0 .size1))
-	   (Mc? (show 'Mc .size0 .size1))
-	   (vector? (show 'vector vector-length)))))
+           (number?
+            (mcase v
+                   ((both integer? exact?)
+                    (show 'integer (mcase-lambda
+                                    (fixnum? 'fix)
+                                    (bignum? 'big))))
+                   (rational?
+                    (mcase v
+                           (exact? 'fractional)
+                           (else 'real)))
+                   (real? 'real)
+                   (complex?
+                    ;; (be careful, just ~the rest (what would
+                    ;; non-complex numbers be that don't satisfy the
+                    ;; complex? predicate?))
+                    `(complex ,(vectorlib:type-of (real-part v))
+                              ,(vectorlib:type-of (imag-part v))))))
+           (string? (show 'string string-length))
+           (u8vector? (show 'u8vector u8vector-length))
+           (Vr? (show 'Vr .size))
+           (Vc? (show 'Vc .size))
+           (Vi? (show 'Vi .size))
+           (Vs? (show 'Vs .size))
+           (Vb? (show 'Vb .size))
+           (Mr? (show 'Mr .size0 .size1))
+           (Mc? (show 'Mc .size0 .size1))
+           (vector? (show 'vector vector-length)))))
 
 (TEST
  > (vectorlib:type-of 1)
