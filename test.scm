@@ -105,12 +105,13 @@
 	     (lp (cdr objs)))
 	    (else (error "improper list:" objs))))))
 
-;; string-util-2:
+;; oo-vector-lib.scm:
 (define (string-ref* str i)
   (if (negative? i)
       (let ((len (string-length str)))
 	(string-ref str (+ len i)))
       (string-ref str i)))
+;; string-util-2:
 (define (chomp str)
   (if (%string-empty? str)
       str

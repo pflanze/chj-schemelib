@@ -71,6 +71,13 @@
   (def. VECTOR.ref VECTOR-ref)
   (def. VECTOR.set! VECTOR-set!)
 
+  (def (VECTOR-ref* v i)
+       (if (negative? i)
+           (let ((len (VECTOR-length v)))
+             (VECTOR-ref v (+ len i)))
+           (VECTOR-ref v i)))
+  (def. VECTOR.ref* VECTOR-ref*)
+
   (def. (VECTOR.swap! v i j)
     (let ((len (VECTOR-length v)))
       (if (and (fixnum? i)

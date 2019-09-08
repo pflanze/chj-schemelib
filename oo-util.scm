@@ -218,7 +218,6 @@
 	     ;; string-util-2
 	     string-trim-left
 	     string-trim-right
-	     string-ref*
 	     string-trimlines-right
 	     string-multiply
 	     string-starts?

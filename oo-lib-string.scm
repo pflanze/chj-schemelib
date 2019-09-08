@@ -1,4 +1,4 @@
-;;; Copyright 2014-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -43,3 +43,19 @@
 	     (integer->char (u8vector-ref v i))))
     o))
 
+
+
+;; Tests...
+
+(TEST
+ > (string-ref* "abc" 0)
+ #\a
+ > (string-ref* "abc" 1)
+ #\b
+ > (string-ref* "abc" -1)
+ #\c
+ > (string-ref* "abc" -2)
+ #\b
+ > (with-exception-catcher range-exception? (thunk (string-ref* "abc" -4)))
+ #t
+ )

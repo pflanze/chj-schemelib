@@ -29,7 +29,7 @@
 	string-trim-left
 	list-trim-right
 	string-trim-right
-	string-ref*
+	;; string-ref* Now in oo-vector-lib.scm
 	chomp
 	trim
 	trim-maybe
@@ -177,24 +177,6 @@
  "foo"
  )
 
-
-(define (string-ref* str i)
-  (if (negative? i)
-      (let ((len (string-length str)))
-	(string-ref str (+ len i)))
-      (string-ref str i)))
-(TEST
- > (string-ref* "abc" 0)
- #\a
- > (string-ref* "abc" 1)
- #\b
- > (string-ref* "abc" -1)
- #\c
- > (string-ref* "abc" -2)
- #\b
- > (with-exception-catcher range-exception? (thunk (string-ref* "abc" -4)))
- #t
- )
 
 ;; A string chom that works like Perl's
 
