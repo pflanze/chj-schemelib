@@ -8,6 +8,7 @@
 
 (require easy
          C ;; well, we're using easy already?
+         template
          (cj-functional size0? size?)
          debuggable-promise)
 
@@ -41,12 +42,21 @@
 (define realvector->list f64vector->list)
 ;; === /Choice of double or float ===
 
-(define V_.update!
-  (lambda (v i fn)
-    (.set! v i (fn (.ref v i)))))
-(define V_.update!*
-  (lambda (v i fn)
-    (V_.update! v (dec i) fn)))
+(deftemplate (define-V<> <t>)
+
+  (define. (V<t>.update! v i fn)
+    (V<t>.set! v i (fn (V<t>.ref v i))))
+
+  (define. (V<t>.update!* v i fn)
+    (V<t>.update! v (dec i) fn)))
+
+
+(define-V<> s)
+(define-V<> r)
+(define-V<> i)
+(define-V<> b)
+(define-V<> c)
+
 
 ;; === Choice of machine addressing size?: ===
 (define Vs u64vector)
@@ -54,8 +64,6 @@
 (define Vs? u64vector?)
 (define. Vs.ref u64vector-ref)
 (define. Vs.set! u64vector-set!)
-(define. Vs.update! V_.update!)
-(define. Vs.update!* V_.update!*)
 (define. (Vs.data x) x)
 (define. Vs.size u64vector-length)
 (define. Vs.list u64vector->list)
@@ -76,8 +84,6 @@
 (define Vi? s64vector?)
 (define. Vi.ref s64vector-ref)
 (define. Vi.set! s64vector-set!)
-(define. Vi.update! V_.update!)
-(define. Vi.update!* V_.update!*)
 (define. (Vi.data x) x)
 (define. Vi.size s64vector-length)
 (define. Vi.list s64vector->list)
@@ -100,8 +106,6 @@
 (define. Vr.set! realvector-set!)
 (define-inline (Vr.set!@ v i x)
   (realvector-set!@ v i x))
-(define. Vr.update! V_.update!)
-(define. Vr.update!* V_.update!*)
 (define @make-Vr @make-realvector)
 (define make-Vr make-realvector)
 (define list->Vr list->realvector)
@@ -140,8 +144,6 @@
     (realvector-set! (Vc.data v) _i (exact->inexact (real-part x)))
     (realvector-set! (Vc.data v) (inc _i) (exact->inexact (imag-part x)))))
 
-(define. Vc.update! V_.update!)
-(define. Vc.update!* V_.update!*)
 
 (define (@make-Vc siz)
   (_Vc siz (@make-realvector (fx.twice siz))))
@@ -427,129 +429,124 @@
 
 ;; a matrix is a vector of a Vx for now (with wrapper struct)
 
-(define-macro* (define-M_ t)
-  ;; (define-macro-symbol-replace-_-with R t) doesn't work with quasiquote-source
-  (define T (symbol-replace-_-with/ t))
-  ;; sigh underscore in _Mx conflicts with that replacement idea..:
-  (let ((_M_ (symbol-append '_M (string* t))))
-    (quasiquote-source
-     (begin
-       (define-struct. ,(T 'M_)
-         constructor-name: ,(symbol-append '_M (string* t))
-         size0
-         size1
-         data)
+(deftemplate (define-M<> <t>)
 
-       (define-typed (,(T 'M_) . [(both pair? (list-of ,(T 'V_?))) vs])
-         (let ((s0 (length vs))
-               (s1 (,(T 'V_.size) (car vs))))
-           (for-each (lambda (v)
-                       (assert (= (,(T 'V_.size) v) s1)))
-                     vs)
-           (,_M_ s0 s1 (list->vector vs))))
+  (define-struct. M<t>
+    constructor-name: _M<t>
+    size0
+    size1
+    data)
 
-       (define-typed (,(T '@make-M_) [size? s0] [size? s1])
-         ;; with separate (uninitialized) rows so as to make them
-         ;; overwritable
-         (,_M_ s0 s1 (vector-generate s0
-                                      (lambda (_)
-                                        (,(T '@make-V_) s1)))))
+  (define-typed (M<t> . [(both pair? (list-of V<t>?)) vs])
+    (let ((s0 (length vs))
+          (s1 (V<t>.size (car vs))))
+      (for-each (lambda (v)
+                  (assert (= (V<t>.size v) s1)))
+                vs)
+      (_M<t> s0 s1 (list->vector vs))))
 
-       (define. (,(T 'M_.ref) m i0 i1)
-         (,(T 'V_.ref) (vector-ref (,(T 'M_.data) m) i0) i1))
+  (define-typed (@make-M<t> [size? s0] [size? s1])
+    ;; with separate (uninitialized) rows so as to make them
+    ;; overwritable
+    (_M<t> s0 s1 (vector-generate s0
+                                  (lambda (_)
+                                    (@make-V<t> s1)))))
 
-       (define-inline (,(T 'M_.ref@) m i0 i1)
-         (declare (not safe))
-         (,(T 'V_.ref@) (##vector-ref (,(T '@M_.data) m) i0) i1))
+  (define. (M<t>.ref m i0 i1)
+    (V<t>.ref (vector-ref (M<t>.data m) i0) i1))
+
+  (define-inline (M<t>.ref@ m i0 i1)
+    (declare (not safe))
+    (V<t>.ref@ (##vector-ref (@M<t>.data m) i0) i1))
        
-       (define. (,(T 'M_.ref*) m i0 i1)
-         (,(T 'V_.ref) (vector-ref (,(T 'M_.data) m) (dec i0)) (dec i1)))
+  (define. (M<t>.ref* m i0 i1)
+    (V<t>.ref (vector-ref (M<t>.data m) (dec i0)) (dec i1)))
 
-       (define. (,(T 'M_.sizes) m)
-         (values (,(T 'M_.size0) m)
-                 (,(T 'M_.size1) m)))
+  (define. (M<t>.sizes m)
+    (values (M<t>.size0 m)
+            (M<t>.size1 m)))
 
-       (define. ,(T 'M_.size)
-         (typed-lambda
-          (m [(both natural0? (C < _ 2)) dim])
-          ;; assumes all rows are the same length!
-          (case dim
-            ((0) (,(T 'M_.size0) m))
-            ((1) (,(T 'M_.size1) m)))))
+  (define. M<t>.size
+    (typed-lambda
+     (m [(both natural0? (C < _ 2)) dim])
+     ;; assumes all rows are the same length!
+     (case dim
+       ((0) (M<t>.size0 m))
+       ((1) (M<t>.size1 m)))))
 
-       (define (,(T 'list->M_) listoflists)
-         ;; exact->inexact also accepts inexact numbers. Lucky.
-         (let ((s0 (length listoflists))
-               (s1 (length (car listoflists))))
-           (,_M_
-            s0 s1
-            (list->vector
-             (map (compose-function ,(T 'list->V_) (C map exact->inexact _))
-                  listoflists)))))
+  (define (list->M<t> listoflists)
+    ;; exact->inexact also accepts inexact numbers. Lucky.
+    (let ((s0 (length listoflists))
+          (s1 (length (car listoflists))))
+      (_M<t>
+       s0 s1
+       (list->vector
+        (map (compose-function list->V<t> (C map exact->inexact _))
+             listoflists)))))
 
-       ;; should this be done w a R.unfold?
-       (define (,(T 'M_:generate/rows) V_:fn siz)
-         ;; almost COPY of V:generate
-         (let ((v (make-vector siz)))
-           (let lp ((i 0))
-             (when (< i siz)
-                   (vector-set! v i (V_:fn i))
-                   (lp (inc i))))
-           (,_M_
-            siz
-            (,(T 'V_.size) (vector-ref v 0)) ;; assume all are the same.
-            v)))
-       ;; offer a R:generate/rows* variant that passes indizes starting from 1?
+  ;; should this be done w a R.unfold?
+  (define (M<t>:generate/rows V_:fn siz)
+    ;; almost COPY of V:generate
+    (let ((v (make-vector siz)))
+      (let lp ((i 0))
+        (when (< i siz)
+              (vector-set! v i (V_:fn i))
+              (lp (inc i))))
+      (_M<t>
+       siz
+       (V<t>.size (vector-ref v 0)) ;; assume all are the same.
+       v)))
+  ;; offer a R:generate/rows* variant that passes indizes starting from 1?
 
-       (define (,(T 'M_:zeros) s0 s1)
-         ;; (make-vector y
-         ;;            (V.zeros x))
-         ;;XXXwrong, mutation.. --- hm? or how to handle this case?
-         (,_M_ s0 s1 (list->vector
-                      (map (lambda (_)
-                             (,(T 'V_:zeros) s1))
-                           (iota s0)))))
+  (define (M<t>:zeros s0 s1)
+    ;; (make-vector y
+    ;;            (V.zeros x))
+    ;;XXXwrong, mutation.. --- hm? or how to handle this case?
+    (_M<t> s0 s1 (list->vector
+                  (map (lambda (_)
+                         (V<t>:zeros s1))
+                       (iota s0)))))
 
-       (define (,(T 'M_:generate) fn/2 s0 s1)
-         (,_M_ s0 s1 (list->vector
-                      (map (lambda (i0)
-                             (,(T 'V_:generate)
-                              (lambda (i1)
-                                (fn/2 i0 i1))
-                              s1))
-                           (iota s0)))))
+  (define (M<t>:generate fn/2 s0 s1)
+    (_M<t> s0 s1 (list->vector
+                  (map (lambda (i0)
+                         (V<t>:generate
+                          (lambda (i1)
+                            (fn/2 i0 i1))
+                          s1))
+                       (iota s0)))))
 
-       (define (,(T 'M_:ones) s0 s1)
-         ;;~ditto
-         (,_M_ s0 s1 (list->vector
-                      (map (lambda (_)
-                             (,(T 'V_:ones) s1))
-                           (iota s0)))))
-       (define. (,(T 'M_.set!) m i0 i1 v)
-         (,(T 'V_.set!) (vector-ref (,(T 'M_.data) m) i0) i1 v))
-       (define-inline (,(T 'M_.set!@) m i0 i1 v)
-         (declare (not safe))
-         (,(T 'V_.set!@) (##vector-ref (,(T '@M_.data) m) i0) i1 v))
-       (define. (,(T 'M_.set!*) m i0 i1 v)
-         (,(T 'V_.set!) (vector-ref (,(T 'M_.data) m) (dec i0)) (dec i1) v))
-       (define. (,(T 'M_.update!) m i0 i1 fn)
-         (,(T 'V_.update!) (vector-ref (,(T 'M_.data) m) i0) i1 fn))
-       (define. (,(T 'M_.update!*) m i0 i1 fn)
-         (,(T 'V_.update!*) (vector-ref (,(T 'M_.data) m) (dec i0)) i1 fn))
+  (define (M<t>:ones s0 s1)
+    ;;~ditto
+    (_M<t> s0 s1 (list->vector
+                  (map (lambda (_)
+                         (V<t>:ones s1))
+                       (iota s0)))))
+  (define. (M<t>.set! m i0 i1 v)
+    (V<t>.set! (vector-ref (M<t>.data m) i0) i1 v))
+  (define-inline (M<t>.set!@ m i0 i1 v)
+    (declare (not safe))
+    (V<t>.set!@ (##vector-ref (@M<t>.data m) i0) i1 v))
+  (define. (M<t>.set!* m i0 i1 v)
+    (V<t>.set! (vector-ref (M<t>.data m) (dec i0)) (dec i1) v))
+  (define. (M<t>.update! m i0 i1 fn)
+    (V<t>.update! (vector-ref (M<t>.data m) i0) i1 fn))
+  (define. (M<t>.update!* m i0 i1 fn)
+    (V<t>.update!* (vector-ref (M<t>.data m) (dec i0)) i1 fn))
 
-       (define. (,(T 'M_.show) m)
-         (,(T 'let-M_) ((size0 size1 data) m)
-          ;; since show is going to be used for testing, fsck'ing
-          ;; makes sense here, ok? (or just warn?)
-          (assert (= (vector-length data) size0))
-          (cons ',(T 'M_)
-                (map (lambda (v)
-                       (assert (= (,(T 'V_.size) v) size1))
-                       (,(T 'V_.show) v))
-                     (vector->list data)))))))))
+  (define. (M<t>.show m)
+    (let-M<t> ((size0 size1 data) m)
+              ;; since show is going to be used for testing, fsck'ing
+              ;; makes sense here, ok? (or just warn?)
+              (assert (= (vector-length data) size0))
+              (cons 'M<t>
+                    (map (lambda (v)
+                           (assert (= (V<t>.size v) size1))
+                           (V<t>.show v))
+                         (vector->list data))))))
 
-(define-M_ #\r)
-(define-M_ #\c)
+(define-M<> r)
+(define-M<> c)
 
 
 (TEST
