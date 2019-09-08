@@ -64,6 +64,12 @@
 (define *dot-oo:method-stats* #f)
 (set! *dot-oo:method-stats* #f)
 
+;; How many levels of stack frames to retrieve (and map to locations)
+;; if *dot-oo:method-stats* is set to 'location
+(define *dot-oo:method-stats-locations-depth* #f)
+(set! *dot-oo:method-stats-locations-depth* 2)
+
+
 (define (@dot-oo:method-type-maybe-ref-method vec nentries obj)
   (declare (block)
            (standard-bindings)
@@ -107,8 +113,9 @@
                                     (let ((t (make-table)))
                                       (vector-set! vec j t)
                                       t))))
-                           (key (continuation-carp:maybe-location-outside-filename
-                                 cont "dot-oo.scm")))
+                           (key (continuation-carp:locations-outside-filename
+                                 cont "dot-oo.scm"
+                                 *dot-oo:method-stats-locations-depth*)))
                        (table-set! t key
                                    (inc (table-ref t key 0)))))
                    m)))
@@ -354,8 +361,10 @@
                          ;; either the call count (a fixnum) if
                          ;; *dot-oo:method-stats* is #t, or if
                          ;; *dot-oo:method-stats* is 'location, a
-                         ;; table mapping caller location to the call
-                         ;; count.
+                         ;; table mapping a caller location list (of
+                         ;; up to depth
+                         ;; *dot-oo:method-stats-locations-depth*) to
+                         ;; the call count.
                          exact-natural0?
                          table?)))
 
