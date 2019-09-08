@@ -98,8 +98,9 @@
                                         (when (and (not (zero? val))
                                                    ;; (< i* s)
                                                    (< j* s))
-                                              (Mr.update! m j* i*
-                                                          (cut + <> val))))))
+                                              (Mr-update!-inline
+                                               m j* i*
+                                               (C + _ val))))))
                                  (upd i* j*
                                       (+ left bottom))
                                  (upd i* (inc j*)
