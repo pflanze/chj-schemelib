@@ -66,6 +66,7 @@
 ;; === Choice of machine addressing size?: ===
 (define Vs u64vector)
 (define @make-Vs ##make-u64vector)
+(define make-Vs make-u64vector)
 (define Vs? u64vector?)
 (define. Vs.ref u64vector-ref)
 (define. Vs.set! u64vector-set!)
@@ -86,6 +87,7 @@
 ;; COPYPASTE from Vs sigh. also, integers with restricted range. bleh.
 (define Vi s64vector)
 (define @make-Vi ##make-s64vector)
+(define make-Vi make-s64vector)
 (define Vi? s64vector?)
 (define. Vi.ref s64vector-ref)
 (define. Vi.set! s64vector-set!)
@@ -157,8 +159,8 @@
 
 (define (@make-Vc siz)
   (_Vc siz (@make-realvector (fx.twice siz))))
-(define (make-Vc siz)
-  (_Vc siz (make-realvector (fx.twice siz))))
+(define (make-Vc siz #!optional (init 0.))
+  (_Vc siz (make-realvector (fx.twice siz) init)))
 
 (define (list->Vc lis)
   (let* ((siz (length lis))
@@ -413,28 +415,28 @@
   1.)
 
 (define Vr:zeros
-  (C Vr:generate r:zero/1 _))
+  (C make-Vr _ 0.))
 
 (define Vr:ones
-  (C Vr:generate r:one/1 _))
+  (C make-Vr _ 1.))
 
 (define Vc:zeros
   ;; relying on propagation of r to c
-  (C Vc:generate r:zero/1 _))
+  (C make-Vc _ 0.))
 
 (define Vc:ones
   ;; relying on propagation of r to c
-  (C Vc:generate r:one/1 _))
+  (C make-Vc _ 1.))
 
 (define Vi:zeros
-  (C Vi:generate zero/1 _))
+  (C make-Vi _ 0))
 (define Vi:ones
-  (C Vi:generate one/1 _))
+  (C make-Vi _ 1))
 
 (define Vs:zeros
-  (C Vs:generate zero/1 _))
+  (C make-Vs _ 0))
 (define Vs:ones
-  (C Vs:generate one/1 _))
+  (C make-Vs _ 1))
 
 
 ;; a matrix is a vector of a Vx for now (with wrapper struct)
