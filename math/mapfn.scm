@@ -109,10 +109,10 @@
      (let (l (sort alis (on car <)))
        (xcase algo
               ((sorted-alist)
-               (T mapfn/sorted-alist l))
+               (mapfn/sorted-alist l))
               ((sorted-vectorpair)
-               (T mapfn/sorted-vectorpair (=>> l (map car) list->vector)
-                  (=>> l (map cdr) list->vector))))))
+               (mapfn/sorted-vectorpair (=>> l (map car) list->vector)
+                                        (=>> l (map cdr) list->vector))))))
 
 
 (TEST
