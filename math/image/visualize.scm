@@ -45,22 +45,27 @@
                   #!key
                   y0
                   y1
+                  ;; size (dimension of the square image)
                   (s 400))
-  (let* ((m (Mr:zeros s s)) ;; Mi:zeros would make sense since I'm
-	 ;; calculating with integers
-	 (spread 10) ;; how many function points to get per image point
-	 (s* (* 10 s)) ;; function points
+  (let* ( ;; Marix of pixels representing the image: (xx Mi:zeros would
+	 ;; make sense since I'm calculating with integers)
+         (m (Mr:zeros s s))
+         ;; how many function points to get per image point
+         (spread 10)
+         ;; size in function points
+	 (s* (* 10 s))
 	 (i.x (lambda (i)
 		(+ x0 (* (/ i s*) (- x1 x0)))))
 	 (x.i (lambda (x)
 		(* (/ (- x x0) (- x1 x0)) s*)))
+         ;; List of (vector with the y values) per function:
 	 (vss (mapS
 	       (lambda (fn)
 		 (let ((vs (@make-Vr s*)))
 		   (for..< (i 0 s*)
 			   (let* ((x (i.x i))
 				  (y (fn x)))
-			     (.set! vs i (exact->inexact y))))
+			     (Vr.set! vs i (exact->inexact y))))
 		   vs))
 	       fnS))
 	 
@@ -93,8 +98,8 @@
                                         (when (and (not (zero? val))
                                                    ;; (< i* s)
                                                    (< j* s))
-                                              (.update! m j* i*
-                                                        (cut + <> val))))))
+                                              (Mr.update! m j* i*
+                                                          (cut + <> val))))))
                                  (upd i* j*
                                       (+ left bottom))
                                  (upd i* (inc j*)
@@ -115,7 +120,7 @@
                   ;;right edge, too, even if there's no pixel there?
                   ;;hm notsuretho,stillbuggy?
                   (for-each (lambda (vs)
-                              (plot-s* i (y.j (.ref vs i))))
+                              (plot-s* i (y.j (Vr.ref vs i))))
                             vss))
           ;; x axis
           (let ((j (y.j 0)))
