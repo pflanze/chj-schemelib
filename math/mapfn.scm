@@ -1,4 +1,4 @@
-;;; Copyright 2014-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -35,18 +35,18 @@
 
 (TEST
  > (ordered-assoc 0 '((1 a) (2 b) (3 c)))
- #((before) (1 a))
+ [(before) (1 a)]
  > (ordered-assoc 1 '((1 a) (2 b) (3 c)))
- #((between) (1 a) (2 b))
+ [(between) (1 a) (2 b)]
  > (ordered-assoc 1.1 '((1 a) (2 b) (3 c)))
- #((between) (1 a) (2 b))
+ [(between) (1 a) (2 b)]
  > (ordered-assoc 2 '((1 a) (2 b) (3 c)))
- #((between) (2 b) (3 c))
+ [(between) (2 b) (3 c)]
  > (ordered-assoc 2.1 '((1 a) (2 b) (3 c)))
- #((between) (2 b) (3 c))
+ [(between) (2 b) (3 c)]
  > (ordered-assoc 3 '((1 a) (2 b) (3 c)))
- #((on-or-after) (3 c))
- )
+ [(on-or-after) (3 c)])
+
 
 (def (interpolate p1 p2 x)
      (let-pair ((x1 y1) p1)
@@ -55,18 +55,18 @@
 			    (* (- y2 y1)
 			       (/ (- x x1) (- x2 x1)))))))
 
-(def (mapfn #((list-of (pair-of real? number?)) alis))
+(def (mapfn [(list-of (pair-of real? number?)) alis])
      (let ((l (sort alis (on car <))))
-       (typed-lambda (#(real? x))
-		     (cond-ordered-assoc
-		      x l <
-		      (lambda-pair ((x1 y1))
-			      (error "out of range, value too small:" x x1))
-		      (C interpolate _ _ x)
-		      (lambda-pair ((x1 y1))
-			      (if (= x x1)
-				  y1
-				  (error "out of range, value too big:" x x1)))))))
+       (lambda ([real? x])
+         (cond-ordered-assoc
+          x l <
+          (lambda-pair ((x1 y1))
+                       (error "out of range, value too small:" x x1))
+          (C interpolate _ _ x)
+          (lambda-pair ((x1 y1))
+                       (if (= x x1)
+                           y1
+                           (error "out of range, value too large:" x x1)))))))
 
 
 (TEST
@@ -78,11 +78,11 @@
  > (m 3)
  310
  > (%try-error (m 3.1))
- #(error "out of range, value too big:" 3.1 3)
+ [error "out of range, value too large:" 3.1 3]
  > (%try-error (m -1))
- #(error "out of range, value too small:" -1 0)
+ [error "out of range, value too small:" -1 0]
  > (m 0.5)
  55.
  > (m 1.5)
- 150.
- )
+ 150.)
+
