@@ -801,40 +801,41 @@
 
 ;; === map of one matrix
 
-(define (_:.map+/ @make-M_)
+(define (_:.map+/ @make-M_ M_-set! M_-ref)
   (lambda (m fn)
     (letv ((x y) (.sizes m))
           (let ((res (@make-M_ x y)))
             (for..< (i0 0 x)
                     (for..< (i1 0 y)
-                            (.set! res i0 i1
-                                   (fn (.ref m i0 i1) i0 i1))))
+                            (M_-set! res i0 i1
+                                     (fn (M_-ref m i0 i1) i0 i1))))
             res))))
-(define (_:.map/ @make-M_)
-  (let ((_map (_:.map+/ @make-M_)))
-    (lambda (m fn)
-      (_map m (lambda (x i0 i1)
-                (fn x))))))
+(define (_:.map/ _map) ;; _map being the result of _:.map+/
+  (lambda (m fn)
+    (_map m (lambda (x i0 i1)
+              (fn x)))))
+
+
+;; == map of one matrix, with indices
+
+(define Mr:.map+ (_:.map+/ @make-Mr Mr.set! Mr.ref))
+(define Mc:.map+ (_:.map+/ @make-Mc Mc.set! Mc.ref))
+;;XX don't type check restrictively :
+(define. Mr.map+ Mr:.map+)
+(define. Mc.map+ Mc:.map+)
+(define Mc:Mr.map+ Mc:.map+)
+(define Mr:Mc.map+ Mr:.map+)
 
 ;; == map of one matrix, no indices
 
-(define Mr:.map (_:.map/ @make-Mr))
-(define Mc:.map (_:.map/ @make-Mc))
+(define Mr:.map (_:.map/ Mr:.map+))
+(define Mc:.map (_:.map/ Mc:.map+))
 ;;XX don't type check restrictively :
 (define. Mr.map Mr:.map)
 (define. Mc.map Mc:.map)
 (define Mc:Mr.map Mc:.map)
 (define Mr:Mc.map Mr:.map)
 
-;; == map of one matrix, with indices
-
-(define Mr:.map+ (_:.map+/ @make-Mr))
-(define Mc:.map+ (_:.map+/ @make-Mc))
-;;XX don't type check restrictively :
-(define. Mr.map+ Mr:.map+)
-(define. Mc.map+ Mc:.map+)
-(define Mc:Mr.map+ Mc:.map+)
-(define Mr:Mc.map+ Mr:.map+)
 
 
 (TEST
