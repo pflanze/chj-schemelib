@@ -7,11 +7,13 @@
 
 
 (require easy
+         vector-binsearch
 	 test)
 
 (export mapfn
 	#!optional
-	interpolate)
+	interpolate
+        interpolate*)
 
 
 (def (cond-ordered-assoc x l < before between after)
@@ -48,12 +50,15 @@
  [(on-or-after) (3 c)])
 
 
+(def (interpolate* x1 y1 x2 y2 x)
+     (+ y1
+        (* (- y2 y1)
+           (/ (- x x1) (- x2 x1)))))
+
 (def (interpolate p1 p2 x)
      (let-pair ((x1 y1) p1)
 	       (let-pair ((x2 y2) p2)
-			 (+ y1
-			    (* (- y2 y1)
-			       (/ (- x x1) (- x2 x1)))))))
+			 (interpolate* x1 y1 x2 y2 x))))
 
 (TEST
  ;; *does* work on imaginary numbers, too:
@@ -68,18 +73,40 @@
  -.7071067811865476+2.121320343559643i)
 
 
+(def (mapfn-sorted-alist l)
+     (lambda ([real? x])
+       (cond-ordered-assoc
+        x l <
+        (lambda-pair ((x1 y1))
+                     (error "out of range, value too small:" x x1))
+        (C interpolate _ _ x)
+        (lambda-pair ((x1 y1))
+                     (if (= x x1)
+                         y1
+                         (error "out of range, value too large:" x x1))))))
+
+
+
+(def (mapfn-sorted-vectorpair keys vals)
+     (lambda ([real? x])
+       (let (r (vector-binsearch keys x real-cmp #t))
+         (cond ((pair? r)
+                (interpolate* (car r) (vector-ref vals (car r))
+                              (cdr r) (vector-ref vals (cdr r))
+                              x))
+               ((fixnum-natural0? r)
+                (vector-ref vals r))
+               (else
+                (if (< x (vector-ref keys 0))
+                    (error "out of range, value too small:"
+                           x (vector-ref keys 0))
+                    (error "out of range, value too large:"
+                           x (vector-ref* keys -1))))))))
+
 (def (mapfn [(list-of (pair-of real? number?)) alis])
-     (let ((l (sort alis (on car <))))
-       (lambda ([real? x])
-         (cond-ordered-assoc
-          x l <
-          (lambda-pair ((x1 y1))
-                       (error "out of range, value too small:" x x1))
-          (C interpolate _ _ x)
-          (lambda-pair ((x1 y1))
-                       (if (= x x1)
-                           y1
-                           (error "out of range, value too large:" x x1)))))))
+     (let (l (sort alis (on car <)))
+       (mapfn-sorted-vectorpair (=>> l (map car) list->vector)
+                                (=>> l (map cdr) list->vector))))
 
 
 (TEST
