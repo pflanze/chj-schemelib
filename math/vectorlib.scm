@@ -608,13 +608,13 @@
 
 
 (define. (Vr.min+max v)
-  (let ((first (.ref v 0)))
-    (.fold v
-           (lambda (x lo.hi)
-             (with-values lo.hi
-               (values (min lo x)
-                       (max hi x))))
-           (values first first))))
+  (let ((first (Vr.ref v 0)))
+    (Vr.fold v
+             (lambda (x lo.hi)
+               (with-values lo.hi
+                 (values (min lo x)
+                         (max hi x))))
+             (values first first))))
 
 (define-typed (Mr.print [Mr? m])
   (print "[")
