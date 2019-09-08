@@ -149,6 +149,11 @@
     (realvector-set! (Vc.data v) _i (exact->inexact (real-part x)))
     (realvector-set! (Vc.data v) (inc _i) (exact->inexact (imag-part x)))))
 
+;; Don't have unsafe versions; silence load warnings (and don't offer
+;; virtual dispatch, like with Vr.ref@ etc.)
+(define Vc.ref@ Vc.ref)
+(define Vc.set!@ Vc.set!)
+
 
 (define (@make-Vc siz)
   (_Vc siz (@make-realvector (fx.twice siz))))
