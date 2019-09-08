@@ -19,7 +19,9 @@
          list-util-3
          (list-util-1 reverse-map) 
          (cj-symbol symbol<?)
-         srfi-1)
+         srfi-1
+         table-1
+         (oo-vector-lib sum))
 
 (export (macro method-table-for)
         (macro show-methods)
@@ -48,7 +50,7 @@
 
 
 (define dot-oo:show-method-statistics-method-table-entry?
-  (inhomogenous-list-of exact-natural0?
+  (inhomogenous-list-of (either exact-natural0? table?)
                         symbol?))
 
 ;; longest function name ever?
@@ -66,17 +68,22 @@
 
 (define-typed (show-method-statistics) -> (list-of dot-oo:statistics-entry?)
   (define (stat-count l) (list-ref l 3))
-  (define stat-count* car) ;; after mapping
+  (define (stat-count* s)
+    ;; after mapping
+    (let ((v (car s)))
+      (if (table? v)
+          (sum (table-values v))
+          v)))
   (=>> (table->list dot-oo:genericname->method-table)
        (map (lambda (genericname.method-table)
               (let-pair
                ((genericname method-table) genericname.method-table)
                (let* ((tableshown
                        (=>> (dot-oo:show-method-table method-table)
-                            (filter (compose not zero? stat-count))
+                            (filter (compose not (both fixnum-natural0? zero?) stat-count))
                             (map dot-oo:show-method-table-entry->show-method-statistics-method-table-entry)
-                            ((flip sort) (on car <))))
-                      (tot (apply + (map stat-count* tableshown))))
+                            ((flip sort) (on stat-count* <))))
+                      (tot (sum (map stat-count* tableshown))))
                  (list tot
                        genericname
                        tableshown)))))

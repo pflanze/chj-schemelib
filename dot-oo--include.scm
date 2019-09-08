@@ -24,9 +24,11 @@
 ;; (vector prefix1 prefix2 prefix3
 ;;         pred1 pred2 pred3
 ;;         method1 method2 method3
-;;         callcount1 callcount2 callcount3)
+;;         stats1 stats2 stats3)
 
-;; callcount field is only updated if *dot-oo:method-stats* is #t
+;; stats field is only updated if *dot-oo:method-stats* is true. See
+;; dot-oo:show-method-table-entry?.
+
 
 (define (vector-copy! fromvec from to tovec tofrom)
   (let* ((offset (fx- tofrom from)))
@@ -57,6 +59,8 @@
 (define *dot-oo:method-trace* #f)
 (set! *dot-oo:method-trace* #f)
 
+;; #t = collect call count (cheap), location = table with location ->
+;; call count (expensive)
 (define *dot-oo:method-stats* #f)
 (set! *dot-oo:method-stats* #f)
 
@@ -83,12 +87,35 @@
                          ;; Don't have access to the genericname, can
                          ;; only do:
                          m))
-             (when *dot-oo:method-stats*
-                   (let ((j (+ i (* 2 nentries))))
+             (case *dot-oo:method-stats*
+               ((#f) m)
+               ((#t)
+                (let ((j (+ i (* 2 nentries))))
+                  ;; ^ not 3 as i is already in second row
+                  (vector-set! vec j
+                               (+ (vector-ref vec j) 1)))
+                m)
+               ((location)
+                (continuation-capture
+                 (lambda (cont)
+                   (let ((j (+ i (* 2 nentries)))) ;; COPY-PASTE
                      ;; ^ not 3 as i is already in second row
-                     (vector-set! vec j
-                                  (+ (vector-ref vec j) 1))))
-             m)
+                     (let ((t (let ((v (vector-ref vec j)))
+                                (if (table? v)
+                                    v
+                                    ;; simply throw away previous count. :/
+                                    (let ((t (make-table)))
+                                      (vector-set! vec j t)
+                                      t))))
+                           (key (continuation-carp:maybe-location-outside-filename
+                                 cont "dot-oo.scm")))
+                       (table-set! t key
+                                   (inc (table-ref t key 0)))))
+                   m)))
+               (else
+                (error "invalid value of *dot-oo:method-stats*"
+                       *dot-oo:method-stats*)
+                m)))
            (lp (inc i)))
           #f))))
 
@@ -322,8 +349,15 @@
   (inhomogenous-list-of symbol? ;; the type name (predicate w/o "?")
                         procedure? ;; predicate
                         procedure? ;; method implementor
-                        exact-natural0? ;; call count if collection was on
-                        ))
+                        (either
+                         ;; call count if collection was on: It is
+                         ;; either the call count (a fixnum) if
+                         ;; *dot-oo:method-stats* is #t, or if
+                         ;; *dot-oo:method-stats* is 'location, a
+                         ;; table mapping caller location to the call
+                         ;; count.
+                         exact-natural0?
+                         table?)))
 
 (define-typed (dot-oo:show-method-table t)
   -> (list-of dot-oo:show-method-table-entry?)

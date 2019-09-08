@@ -25,6 +25,8 @@
          (fixnum inc dec)
          (cj-env-2 for..<)
          (list-util-1 improper-map)
+         continuation-carp
+         ;; tests
          test
          (test-lib-1 %try))
 
