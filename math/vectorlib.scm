@@ -185,10 +185,9 @@
  > (Vr.show #)
  (Vr 2. 3. -4.5)
  > (Vc 1 2-3i)
- #((Vc) 2 #f64(1. 0. 2. -3.))
+ [(Vc) 2 #f64(1. 0. 2. -3.)]
  > (Vc.show #)
- (Vc 1.+0.i 2.-3.i)
- )
+ (Vc 1.+0.i 2.-3.i))
 
 (TEST
  > (define v (Vc 1 2 3))
@@ -198,8 +197,8 @@
  > (define m (Mr (Vr 1 2 3) (Vr 4 5 6)))
  > (.update!* m 1 2 -)
  > (.show m)
- (Mr (Vr 1. -2. 3.) (Vr 4. 5. 6.))
- )
+ (Mr (Vr 1. -2. 3.) (Vr 4. 5. 6.)))
+
 
 ;; ==== common library
 
@@ -221,7 +220,7 @@
  > (Vr:iota 2)
  #f64(0. 1.)
  > (Vc:iota 2)
- #((Vc) 2 #f64(0. 0. 1. 0.)) ;; hm yeah kinda pointless?
+ [(Vc) 2 #f64(0. 0. 1. 0.)] ;; hm yeah kinda pointless?
  )
 
 (define (.. from to)
@@ -240,8 +239,7 @@
  > (Vr:.. 2 4)
  #f64(2. 3. 4.)
  > (Vc:.. 2 4)
- #((Vc) 3 #f64(2. 0. 3. 0. 4. 0.))
- )
+ [(Vc) 3 #f64(2. 0. 3. 0. 4. 0.)])
 
 
 ;; === map of a vector
@@ -302,12 +300,12 @@
  > (Vrr.* (Vr 2 4) 3)
  #f64(6. 12.)
  > (Vcr.* (Vc 2 4-2i) 3)
- #((Vc) 2 #f64(6. 0. 12. -6.))
+ [(Vc) 2 #f64(6. 0. 12. -6.)]
  > (Vcr.+ (Vc 2 4-2i) 3)
- #((Vc) 2 #f64(5. 0. 7. -2.))
+ [(Vc) 2 #f64(5. 0. 7. -2.)]
  > (Vc:Vrc.- (Vr 3 4) 1.-2.i)
- #((Vc) 2 #f64(2. 2. 3. 2.))
- )
+ [(Vc) 2 #f64(2. 2. 3. 2.)])
+
 
 ;;(XX have vector map now, reimplement in terms of those?)
 (define (V_V_._ @make-V_ op)
@@ -441,7 +439,7 @@
          size1
          data)
 
-       (define-typed (,(T 'M_) . #((both pair? (list-of ,(T 'V_?))) vs))
+       (define-typed (,(T 'M_) . [(both pair? (list-of ,(T 'V_?))) vs])
          (let ((s0 (length vs))
                (s1 (,(T 'V_.size) (car vs))))
            (for-each (lambda (v)
@@ -449,7 +447,7 @@
                      vs)
            (,_M_ s0 s1 (list->vector vs))))
 
-       (define-typed (,(T '@make-M_) #(size? s0) #(size? s1))
+       (define-typed (,(T '@make-M_) [size? s0] [size? s1])
          ;; with separate (uninitialized) rows so as to make them
          ;; overwritable
          (,_M_ s0 s1 (vector-generate s0
@@ -472,7 +470,7 @@
 
        (define. ,(T 'M_.size)
          (typed-lambda
-          (m #((both natural0? (cut < <> 2)) dim))
+          (m [(both natural0? (cut < <> 2)) dim])
           ;; assumes all rows are the same length!
           (case dim
             ((0) (,(T 'M_.size0) m))
@@ -555,16 +553,16 @@
 
 (TEST
  > (Mr:zeros 2 3)
- #((Mr) 2 3 #(#f64(0. 0. 0.) #f64(0. 0. 0.)))
+ [(Mr) 2 3 [#f64(0. 0. 0.) #f64(0. 0. 0.)]]
  > (.show (Mr:zeros 2 3))
  (Mr (Vr 0. 0. 0.) (Vr 0. 0. 0.))
  > (Mr:ones 1 3)
- #((Mr) 1 3 #(#f64(1. 1. 1.)))
+ [(Mr) 1 3 [#f64(1. 1. 1.)]]
  > (.show (Mr (Vr 1 2) (Vr 3 4)))
  (Mr (Vr 1. 2.) (Vr 3. 4.))
  > (.show (Mc (Vc 1 2) (Vc 3-2i 4)))
- (Mc (Vc 1.+0.i 2.+0.i) (Vc 3.-2.i 4.+0.i))
- )
+ (Mc (Vc 1.+0.i 2.+0.i) (Vc 3.-2.i 4.+0.i)))
+
 
 (define (M_.fold V_.fold M_.data)
   (lambda (m fn start)
@@ -611,7 +609,7 @@
                        (max hi x))))
            (values first first))))
 
-(define-typed (Mr.print #(Mr? m))
+(define-typed (Mr.print [Mr? m])
   (print "[")
   (vector-for-each
    (lambda (v)
@@ -633,7 +631,7 @@
 ;;                                         % the appropriate size
 ;;      sig2(:,[0:X-1]*samplingX+1) = sig(:,:); % signal lines corresponding to
 ;;                                              % real elements are filled
-(define-typed (Mri.spread-out #(Mr? m) #(natural? spread))
+(define-typed (Mri.spread-out [Mr? m] [natural? spread])
   ;; only adds zero rows *between* original rows, not at the end.
   ;;XX sharing row data, careful..
   (let* ((zerorow (make-Vr (Mr.size m 1)))
@@ -656,13 +654,14 @@
 
 (TEST
  > (Mri.spread-out (list->Mr '((1 2.4) (3 4) (5 6))) 2)
- #((Mr) 5 2 ;; sizey is really redundant. hm
-   #(#f64(1. 2.4)
-         #f64(0. 0.)
-         #f64(3. 4.)
-         #f64(0. 0.)
-         #f64(5. 6.)))
- )
+ [(Mr) 5 2 ;; sizey is really redundant. hm
+  [
+   #f64(1. 2.4)
+   #f64(0. 0.)
+   #f64(3. 4.)
+   #f64(0. 0.)
+   #f64(5. 6.)]])
+
 
 ;; -- Function File: [Y1, Y2, ..., Yn] = ndgrid (X1, X2, ..., Xn)
 ;; -- Function File: [Y1, Y2, ..., Yn] = ndgrid (X)
@@ -854,10 +853,10 @@
 (TEST
  > (define tesv (Mr (Vr 1 2 3) (Vr 4 5 -6)))
  > tesv
- #((Mr) 2 3 #(#f64(1. 2. 3.) #f64(4. 5. -6.)))
+ [(Mr) 2 3 [#f64(1. 2. 3.) #f64(4. 5. -6.)]]
  > (Mr..square #)
- #((Mr) 2 3 #(#f64(1. 4. 9.) #f64(16. 25. 36.)))
- )
+ [(Mr) 2 3 [#f64(1. 4. 9.) #f64(16. 25. 36.)]])
+
 
 (define Mr..sqrt
   (cut Mr.map <> sqrt))
@@ -891,13 +890,13 @@
 
 (TEST
  > (MrMr..+ tesv tesv)
- #((Mr) 2 3 #(#f64(2. 4. 6.) #f64(8. 10. -12.)))
+ [(Mr) 2 3 [#f64(2. 4. 6.) #f64(8. 10. -12.)]]
  > (MrMr../ tesv tesv)
- #((Mr) 2 3 #(#f64(1. 1. 1.) #f64(1. 1. 1.)))
+ [(Mr) 2 3 [#f64(1. 1. 1.) #f64(1. 1. 1.)]]
  > (Mr.set!* tesv 2 3 -1.)
  > tesv
- #((Mr) 2 3 #(#f64(1. 2. 3.) #f64(4. 5. -1.)))
- )
+ [(Mr) 2 3 [#f64(1. 2. 3.) #f64(4. 5. -1.)]])
+
 
 (define (rr.mod a b)
   (- a (* (floor (/ a b)) b)))
@@ -986,7 +985,7 @@
 
 ;; ====  vectors of booleans ===================================
 
-(define-typed (b.identity #(boolean? v))
+(define-typed (b.identity [boolean? v])
   v)
 
 (define-struct. Vb
@@ -999,7 +998,7 @@
 (define (Vb.ref v i)
   (b.identity (vector-ref (Vb.data v) i)))
 
-(define-typed (Vb.set! v i #(boolean? x))
+(define-typed (Vb.set! v i [boolean? x])
   (vector-set! (Vb.data v) i x))
 
 (define (Vb . vals)
@@ -1066,8 +1065,8 @@
 
 (define (M_.section @make-M_)
   (typed-lambda
-   (m #(size0? from0) to0
-      #(size0? from1) to1)
+   (m [size0? from0] to0
+      [size0? from1] to1)
    (letv ((s0 s1) (.sizes m))
          (assert (<= to0 s0))
          (assert (<= to1 s1))
@@ -1084,8 +1083,8 @@
 
 (define (M_.section* @make-M_)
   (let ((.section (M_.section @make-M_)))
-    (typed-lambda (m #(size? from0) to0
-                     #(size? from1) to1)
+    (typed-lambda (m [size? from0] to0
+                     [size? from1] to1)
                   (.section m
                             (dec from0)
                             to0
@@ -1294,9 +1293,8 @@
  (complex real real)
  > (vectorlib:type-of 5.+1/2i)
  (complex real fractional)
- > (vectorlib:type-of '#(1 2))
- vector
- )
+ > (vectorlib:type-of '[1 2])
+ vector)
 
 
 ;; type 'with runtime info too' [wl  parametrized types  wl  whatever]
@@ -1308,7 +1306,7 @@
  (make-integer fix) ;; yay
  > (vectorlib:info 5+1/2i)
  (complex integer fractional) ;; hm still; well ok?
- > (vectorlib:info '#(1 2))
+ > (vectorlib:info '[1 2])
  (make-vector 2)
  ;; ^ without saying anything about what it contains; which is ok,
  ;; it's not a homogenous vector. Da.
@@ -1317,6 +1315,5 @@
  > (vectorlib:info (Vc 1))
  (make-Vc 1)
  > (vectorlib:info (Mr (Vr 1) (Vr 2)))
- (make-Mr 2 1)
- )
+ (make-Mr 2 1))
 
