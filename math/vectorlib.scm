@@ -7,6 +7,7 @@
 
 
 (require easy
+         C ;; well, we're using easy already?
          (cj-functional size0? size?)
          debuggable-promise)
 
@@ -263,25 +264,25 @@
 (define. Vc:Vr.map (V_.map Vr.size @make-Vc Vr.ref Vc.set!))
 (define. Vc:Vc.map (V_.map Vc.size @make-Vc Vc.ref Vc.set!))
 
-(define (Vrr.* v x) (Vr.map v (cut * <> x)))
-(define (Vrr./ v x) (Vr.map v (cut / <> x)))
-(define (Vrr.+ v x) (Vr.map v (cut + <> x)))
-(define (Vrr.- v x) (Vr.map v (cut - <> x)))
+(define (Vrr.* v x) (Vr.map v (C * _ x)))
+(define (Vrr./ v x) (Vr.map v (C / _ x)))
+(define (Vrr.+ v x) (Vr.map v (C + _ x)))
+(define (Vrr.- v x) (Vr.map v (C - _ x)))
 
-(define (Vcr.* v x) (Vc.map v (cut * <> x)))
-(define (Vcr./ v x) (Vc.map v (cut / <> x)))
-(define (Vcr.+ v x) (Vc.map v (cut + <> x)))
-(define (Vcr.- v x) (Vc.map v (cut - <> x)))
+(define (Vcr.* v x) (Vc.map v (C * _ x)))
+(define (Vcr./ v x) (Vc.map v (C / _ x)))
+(define (Vcr.+ v x) (Vc.map v (C + _ x)))
+(define (Vcr.- v x) (Vc.map v (C - _ x)))
 
-(define (Vii.* v x) (Vi.map v (cut * <> x)))
-(define (Vii.quotient v x) (Vi.map v (cut quotient <> x)))
-(define (Vii.+ v x) (Vi.map v (cut + <> x)))
-(define (Vii.- v x) (Vi.map v (cut - <> x)))
+(define (Vii.* v x) (Vi.map v (C * _ x)))
+(define (Vii.quotient v x) (Vi.map v (C quotient _ x)))
+(define (Vii.+ v x) (Vi.map v (C + _ x)))
+(define (Vii.- v x) (Vi.map v (C - _ x)))
 
-(define (Vss.* v x) (Vs.map v (cut * <> x)))
-;;(define (Vsi./ v x) (Vs.map v (cut / <> x)))
-(define (Vsi.+ v x) (Vs.map v (cut + <> x)))
-(define (Vsi.- v x) (Vs.map v (cut - <> x)))
+(define (Vss.* v x) (Vs.map v (C * _ x)))
+;;(define (Vsi./ v x) (Vs.map v (C / _ x)))
+(define (Vsi.+ v x) (Vs.map v (C + _ x)))
+(define (Vsi.- v x) (Vs.map v (C - _ x)))
 
 ;; XX stupid? and should they error-check?; or even: should r be a
 ;; subset of c. Well, the representation thing is the issue (we're not
@@ -291,10 +292,10 @@
 (define Vcc.+ Vcr.*)
 (define Vcc.- Vcr.*)
 
-(define (Vc:Vrc.* v x) (Vc:Vr.map v (cut * <> x)))
-(define (Vc:Vrc./ v x) (Vc:Vr.map v (cut / <> x)))
-(define (Vc:Vrc.+ v x) (Vc:Vr.map v (cut + <> x)))
-(define (Vc:Vrc.- v x) (Vc:Vr.map v (cut - <> x)))
+(define (Vc:Vrc.* v x) (Vc:Vr.map v (C * _ x)))
+(define (Vc:Vrc./ v x) (Vc:Vr.map v (C / _ x)))
+(define (Vc:Vrc.+ v x) (Vc:Vr.map v (C + _ x)))
+(define (Vc:Vrc.- v x) (Vc:Vr.map v (C - _ x)))
 
 (TEST
  > (Vrr.* (Vr 2 4) 3)
@@ -400,28 +401,28 @@
   1.)
 
 (define Vr:zeros
-  (cut Vr:generate r:zero/1 <>))
+  (C Vr:generate r:zero/1 _))
 
 (define Vr:ones
-  (cut Vr:generate r:one/1 <>))
+  (C Vr:generate r:one/1 _))
 
 (define Vc:zeros
   ;; relying on propagation of r to c
-  (cut Vc:generate r:zero/1 <>))
+  (C Vc:generate r:zero/1 _))
 
 (define Vc:ones
   ;; relying on propagation of r to c
-  (cut Vc:generate r:one/1 <>))
+  (C Vc:generate r:one/1 _))
 
 (define Vi:zeros
-  (cut Vi:generate zero/1 <>))
+  (C Vi:generate zero/1 _))
 (define Vi:ones
-  (cut Vi:generate one/1 <>))
+  (C Vi:generate one/1 _))
 
 (define Vs:zeros
-  (cut Vs:generate zero/1 <>))
+  (C Vs:generate zero/1 _))
 (define Vs:ones
-  (cut Vs:generate one/1 <>))
+  (C Vs:generate one/1 _))
 
 
 ;; a matrix is a vector of a Vx for now (with wrapper struct)
@@ -470,7 +471,7 @@
 
        (define. ,(T 'M_.size)
          (typed-lambda
-          (m [(both natural0? (cut < <> 2)) dim])
+          (m [(both natural0? (C < _ 2)) dim])
           ;; assumes all rows are the same length!
           (case dim
             ((0) (,(T 'M_.size0) m))
@@ -483,7 +484,7 @@
            (,_M_
             s0 s1
             (list->vector
-             (map (compose-function ,(T 'list->V_) (cut map exact->inexact <>))
+             (map (compose-function ,(T 'list->V_) (C map exact->inexact _))
                   listoflists)))))
 
        ;; should this be done w a R.unfold?
@@ -724,7 +725,7 @@
 (define. (Vr.replicate-column v n)
   (_Mr (Vr.size v) n
        (vector:Vr.map v
-                      (cut make-Vr n <>))))
+                      (C make-Vr n _))))
 
 (TEST
  > (.show (.replicate-row (Vr 1 2 3) 3))
@@ -844,11 +845,11 @@
 ;; previously used definition
 ;; (define. (Mr.map m fn)
 ;;   (letv ((x y) (Mr.sizes m))
-;;      (_Mr x y (vector-map (cut Vr.map <> fn)
+;;      (_Mr x y (vector-map (C Vr.map _ fn)
 ;;                           (Mr.data m)))))
 
 (define Mr..square
-  (cut Mr.map <> square))
+  (C Mr.map _ square))
 
 (TEST
  > (define tesv (Mr (Vr 1 2 3) (Vr 4 5 -6)))
@@ -859,33 +860,33 @@
 
 
 (define Mr..sqrt
-  (cut Mr.map <> sqrt))
+  (C Mr.map _ sqrt))
 
 (define Mr.neg
-  (cut Mr.map <> -))
+  (C Mr.map _ -))
 
 
 ;; XX these don't check their arguments restrictively anymore!
-(define MrMr..+ (cut MrMr.map <> <> +))
-(define MrMr..- (cut MrMr.map <> <> -))
-(define MrMr..* (cut MrMr.map <> <> *))
-(define MrMr../ (cut MrMr.map <> <> /))
+(define MrMr..+ (C MrMr.map _ _ +))
+(define MrMr..- (C MrMr.map _ _ -))
+(define MrMr..* (C MrMr.map _ _ *))
+(define MrMr../ (C MrMr.map _ _ /))
 ;; thus:
-(define Mr:..+ (cut MrMr.map <> <> +))
-(define Mr:..- (cut MrMr.map <> <> -))
-(define Mr:..* (cut MrMr.map <> <> *))
-(define Mr:../ (cut MrMr.map <> <> /))
+(define Mr:..+ (C MrMr.map _ _ +))
+(define Mr:..- (C MrMr.map _ _ -))
+(define Mr:..* (C MrMr.map _ _ *))
+(define Mr:../ (C MrMr.map _ _ /))
 
-(define McMc..+ (cut McMc.map <> <> +))
-(define McMc..- (cut McMc.map <> <> -))
-(define McMc..* (cut McMc.map <> <> *))
-(define McMc../ (cut McMc.map <> <> /))
+(define McMc..+ (C McMc.map _ _ +))
+(define McMc..- (C McMc.map _ _ -))
+(define McMc..* (C McMc.map _ _ *))
+(define McMc../ (C McMc.map _ _ /))
 
 ;; or generally:
-(define Mc:..+ (cut Mc:.map-2 <> <> +))
-(define Mc:..- (cut Mc:.map-2 <> <> -))
-(define Mc:..* (cut Mc:.map-2 <> <> *))
-(define Mc:../ (cut Mc:.map-2 <> <> /))
+(define Mc:..+ (C Mc:.map-2 _ _ +))
+(define Mc:..- (C Mc:.map-2 _ _ -))
+(define Mc:..* (C Mc:.map-2 _ _ *))
+(define Mc:../ (C Mc:.map-2 _ _ /))
 
 
 (TEST
@@ -907,16 +908,16 @@
  )
 
 (define. (Mr..mod m x)
-  (Mr.map m (cut rr.mod <> x)))
+  (Mr.map m (C rr.mod _ x)))
 
 (define. (Mr..+ m x)
-  (Mr.map m (cut + <> x)))
+  (Mr.map m (C + _ x)))
 (define. (Mr..- m x)
-  (Mr.map m (cut + <> x)))
+  (Mr.map m (C + _ x)))
 (define. (Mr..* m x)
-  (Mr.map m (cut * <> x)))
+  (Mr.map m (C * _ x)))
 (define. (Mr../ m x)
-  (Mr.map m (cut / <> x)))
+  (Mr.map m (C / _ x)))
 
 
 (define (mk-transpose @make-M_)
