@@ -55,6 +55,19 @@
 			    (* (- y2 y1)
 			       (/ (- x x1) (- x2 x1)))))))
 
+(TEST
+ ;; *does* work on imaginary numbers, too:
+ > (def t (C interpolate (cons 1 (sqrt -2)) (cons 2 (sqrt 2)) _))
+ > (t 1)
+ +1.4142135623730951i
+ > (t 2)
+ 1.4142135623730951+0.i
+ > (t 1.5)
+ .7071067811865476+.7071067811865476i
+ > (t 0.5)
+ -.7071067811865476+2.121320343559643i)
+
+
 (def (mapfn [(list-of (pair-of real? number?)) alis])
      (let ((l (sort alis (on car <))))
        (lambda ([real? x])
