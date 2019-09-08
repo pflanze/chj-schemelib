@@ -210,7 +210,14 @@ sequences.  See `oo-*.scm` modules. Not very consistent/complete.
 
 * `(show-method-statistics)`: if call statistics have been enabled via
   `(set! *dot-oo:method-stats* #t)`, shows the method call counts (for
-  optimization purposes, see Optimization section).
+  optimization purposes, see Optimization section).  `(set!
+  *dot-oo:method-stats* 'location)` stores the call counts by caller
+  location. `(set! *dot-oo:method-stats* 'continuation)` does the same
+  but also stores away the continuation of the last call from each
+  call site, so it can be inspected later. In both cases, you'll
+  currently need to access the table shown in the output of
+  `(show-method-statistics)` manually (e.g. call `.list` on its `#n`,
+  then `,(v #n)` for the continuation shown).
 
 * `(set! *dot-oo:method-trace* #t)`: enables showing of method calls
   as they happen.
