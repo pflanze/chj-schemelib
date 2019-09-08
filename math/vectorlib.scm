@@ -78,8 +78,8 @@
 
 (TEST
  > (.show (Vs 0 1 18446744073709551615))
- (Vs 0 1 18446744073709551615)
- )
+ (Vs 0 1 18446744073709551615))
+
 ;; === /Choice of machine addressing size ===
 
 ;; === Vector of integer:
@@ -98,8 +98,8 @@
 
 (TEST
  > (.show (Vi 0 -9223372036854775808 9223372036854775807))
- (Vi 0 -9223372036854775808 9223372036854775807)
- )
+ (Vi 0 -9223372036854775808 9223372036854775807))
+
 
 
 ;; === Vector of real:
@@ -360,8 +360,8 @@
  > (VrVr.+ (Vr 1 2) (Vr 3 4))
  #f64(4. 6.)
  > (VrVr./ (Vr 1 2) (Vr 3 4))
- #f64(.3333333333333333 .5)
- )
+ #f64(.3333333333333333 .5))
+
 
 (define (V_.for-each v proc)
   (let* ((len (.size v)))
@@ -746,8 +746,8 @@
       (Vr 3. 3. 3.))
   (Mr (Vr -4. -5. -6.)
       (Vr -4. -5. -6.)
-      (Vr -4. -5. -6.)))
- )
+      (Vr -4. -5. -6.))))
+
 
 ;; === map of two vectors
 
@@ -845,8 +845,8 @@
  > (.show (.map (Mr (Vr 1 2) (Vr 3 4)) inc*))
  (Mr (Vr 2. 3.) (Vr 4. 5.))
  > (.show (.map+ (Mr (Vr 1 2) (Vr 3 4)) (lambda (x i0 i1) (+ x i0))))
- (Mr (Vr 1. 2.) (Vr 4. 5.))
- )
+ (Mr (Vr 1. 2.) (Vr 4. 5.)))
+
 
 ;; previously used definition
 ;; (define. (Mr.map m fn)
@@ -944,8 +944,7 @@
  > (.show (.transpose (Mr (Vr 1 2 3) (Vr 4 5 -6))))
  (Mr (Vr 1. 4.) (Vr 2. 5.) (Vr 3. -6.))
  > (.show (.transpose (Mc (Vc 1 2 3) (Vc 4 5 0-6i))))
- (Mc (Vc 1.+0.i 4.+0.i) (Vc 2.+0.i 5.+0.i) (Vc 3.+0.i 0.-6.i))
- )
+ (Mc (Vc 1.+0.i 4.+0.i) (Vc 2.+0.i 5.+0.i) (Vc 3.+0.i 0.-6.i)))
 
 
 (define (_.sum _.fold)
@@ -986,8 +985,7 @@
 (TEST
  > (define m (Mc (Vc 1 2 3) (Vc 4 5 6) (Vc 7 8 9)))
  > (.show (McVss.ref-at* m (Vs 2 3 1) 3))
- (Vc 6.+0.i 9.+0.i 3.+0.i)
- )
+ (Vc 6.+0.i 9.+0.i 3.+0.i))
 
 
 ;; ====  vectors of booleans ===================================
@@ -1055,8 +1053,8 @@
  > (define b (Vb:Vr.map v even?))
  > (.set-at! v b (Vr.map (Vr:iota 5) -))
  > v
- #f64(1. -1. 3. 5. -4.)
- )
+ #f64(1. -1. 3. 5. -4.))
+
 
 (define (M_.for-each* m proc/3)
   (letv ((s0 s1) (.sizes m))
@@ -1235,8 +1233,7 @@
  > (.fold (Mc (Vc 1 2) (Vc 3 4)) + 0)
  10.+0.i
  > (.fold (Mc (Vc 1 2) (Vc 3 4+1i)) + 0)
- 10.+1.i
- )
+ 10.+1.i)
 
 
 ;; ============================================================================
