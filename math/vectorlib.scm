@@ -9,6 +9,7 @@
 (require easy
          C ;; well, we're using easy already?
          template
+         cj-inline
          (cj-functional size0? size?)
          debuggable-promise)
 
@@ -44,11 +45,15 @@
 
 (deftemplate (define-V<> <t>)
 
-  (define. (V<t>.update! v i fn)
+  (define-inline (V<t>-update! v i fn)
     (V<t>.set! v i (fn (V<t>.ref v i))))
 
-  (define. (V<t>.update!* v i fn)
-    (V<t>.update! v (dec i) fn)))
+  (define. V<t>.update! V<t>-update!)
+
+  (define-inline (V<t>-update!* v i fn)
+    (V<t>.update! v (dec i) fn))
+
+  (define. V<t>.update!* V<t>-update!*))
 
 
 (define-V<> s)
@@ -529,10 +534,14 @@
     (V<t>.set!@ (##vector-ref (@M<t>.data m) i0) i1 v))
   (define. (M<t>.set!* m i0 i1 v)
     (V<t>.set! (vector-ref (M<t>.data m) (dec i0)) (dec i1) v))
-  (define. (M<t>.update! m i0 i1 fn)
-    (V<t>.update! (vector-ref (M<t>.data m) i0) i1 fn))
-  (define. (M<t>.update!* m i0 i1 fn)
-    (V<t>.update!* (vector-ref (M<t>.data m) (dec i0)) i1 fn))
+
+  (define-inline (M<t>-update! m i0 i1 fn)
+    (V<t>-update!-inline (vector-ref (M<t>.data m) i0) i1 fn))
+  (define. M<t>.update! M<t>-update!)
+  
+  (define-inline (M<t>-update!* m i0 i1 fn)
+    (V<t>-update!*-inline (vector-ref (M<t>.data m) (dec i0)) i1 fn))
+  (define. M<t>.update!* M<t>-update!*)
 
   (define. (M<t>.show m)
     (let-M<t> ((size0 size1 data) m)
