@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -33,7 +33,9 @@
 	number-alist-add
 	eq-alist-add
 	symbol-alist-set
-	keyword-alist-set)
+	keyword-alist-set
+
+        eq-alist-perhaps-replace)
 
 ;; Library for association lists of various key types
 
@@ -140,6 +142,13 @@
 (define eq-alist-replace
   (_-alist-replace any? eq?
 		   cons _alist-replace-key-not-found))
+
+(define eq-alist-perhaps-replace
+  ;; replaces the k+v if present, does nothing (except copy the whole
+  ;; alis) if not
+  (_-alist-replace any? eq?
+		   cons (lambda (_) '())))
+
 
 (define string-alist-replace
   (_-alist-replace string? string=?
