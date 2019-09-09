@@ -16,6 +16,7 @@
 
 (export sequential-pairs
         sequentialpairs->pairs ;; older, obsolete ?
+        dsssl->alist
         dsssl-maybe-ref ;; should move to Maybe ?
         dsssl-ref
         dsssl-delete
@@ -30,7 +31,9 @@
                        pair-cons
                        #!optional
                        (list-cons cons)
-                       (list-null '()))
+                       (list-null '())
+                       (assert-key! (lambda (v) #!void))
+                       (assert-value! (lambda (v) #!void)))
      (let rec ((l lis))
        (cond ((null? l)
               list-null)
@@ -39,6 +42,8 @@
                ((k l*) l)
                (cond ((pair? l*)
                       (let-pair ((v l*) l*)
+                                (assert-key! k)
+                                (assert-value! v)
                                 (list-cons (pair-cons k v)
                                            (rec l*))))
                      ((null? l*)
@@ -66,7 +71,30 @@
  #(error "improper list:" (a . 1)))
 
 
-;; obsolete?, also see sequential-pairs
+(def (dsssl->alist l)
+     (continuation-capture
+      (lambda (exit)
+        (let ((asserter
+               (lambda (pred typestr)
+                 (lambda (v)
+                   (or (pred v)
+                       (continuation-graft
+                        exit
+                        error (string-append "expecting " typestr ", got:") v))))))
+          (sequential-pairs
+           l cons cons '()
+           (asserter keyword? "keyword"))))))
+
+(TEST
+ > (%try (dsssl->alist '(a 1)))
+ (exception text: "expecting keyword, got: a\n")
+ > (dsssl->alist '(a: 1 b: 2))
+ ((a: . 1) (b: . 2)))
+
+
+
+
+;; obsolete?, also see sequential-pairs, and chop/map in stream.scm
 (define (sequentialpairs->pairs lis
                                 #!optional
                                 key-type?
@@ -89,7 +117,7 @@
 
 ;; 'restargs-keyref' 'keyargs-maybe-ref'
 (def (dsssl-maybe-ref args #(keyword? key))
-     (let ((alis (sequentialpairs->pairs args keyword? true/1)))
+     (let ((alis (dsssl->alist args)))
        (eq-alist-maybe-ref alis key)))
 
 (TEST
