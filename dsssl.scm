@@ -21,6 +21,7 @@
         dsssl-maybe-ref ;; should move to Maybe ?
         dsssl-ref
         dsssl-delete
+        dsssl-defaults
         dsssl-apply
         #!optional
         dsssl-delete-1)
@@ -204,6 +205,34 @@
  (a: 1 c: 4)
  > (dsssl-delete vs '(a: b:))
  (c: 4))
+
+
+(def (dsssl-defaults args args-defaults)
+     (let ((args* (dsssl->alist args))
+           (args-defaults* (dsssl->alist args-defaults)))
+       (alist->dsssl
+        (fold (lambda (k+v res)
+                (let ((k (car k+v)))
+                  (cond ((assq k res) ;; <- or check args* ?
+                         => (lambda-pair ((k* v*))
+                                    (if v*
+                                        res
+                                        (eq-alist-replace res k+v))))
+                        (else
+                         (cons k+v res)))))
+              args*
+              args-defaults*))))
+
+(TEST
+ > (def t (=>* (dsssl-delete '(num-buckets:))
+               (dsssl-defaults '(oversampling: 10))))
+ > (t '(foo: 1 num-buckets: #f oversampling: 30))
+ (foo: 1 oversampling: 30)
+ > (t '(foo: 1 num-buckets: 10 oversampling: #f baz: #f))
+ (foo: 1 oversampling: 10 baz: #f)
+ > (t '(foo: 1 baz: #f))
+ (oversampling: 10 foo: 1 baz: #f))
+
 
 
 (def (dsssl-apply fn key-args . moreargs)
