@@ -341,5 +341,6 @@ keyword arguments on to |plot|."
               (- 0. half-step)
               (+ 1. half-step)
               y0: 0
-              oversampling: 30
-              (dsssl-delete keyword-options '(num-buckets:)))))
+              (=> keyword-options
+                  (dsssl-delete '(num-buckets:))
+                  (dsssl-defaults '(oversampling: 30))))))
