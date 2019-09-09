@@ -217,7 +217,9 @@ sequences.  See `oo-*.scm` modules. Not very consistent/complete.
   call site, so it can be inspected later. In both cases, you'll
   currently need to access the table shown in the output of
   `(show-method-statistics)` manually (e.g. call `.list` on its `#n`,
-  then `,(v #n)` for the continuation shown).
+  then `,(v #n)` for the continuation shown). The statistics for a
+  particular generic resets to 0 if any (new or existing) method of
+  that generic is (re)defined.
 
 * `(set! *dot-oo:method-trace* #t)`: enables showing of method calls
   as they happen.
