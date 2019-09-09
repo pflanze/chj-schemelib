@@ -46,14 +46,15 @@
                   y0
                   y1
                   ;; size (dimension of the square image)
-                  (s 400))
+                  (s 600)
+                  ;; how many points to draw for each pixel-step in x
+                  ;; direction
+                  (oversampling 10))
   (let* ( ;; Marix of pixels representing the image: (xx Mi:zeros would
 	 ;; make sense since I'm calculating with integers)
          (m (Mr:zeros s s))
-         ;; how many function points to get per image point
-         (spread 10)
          ;; size in function points
-	 (s* (* 10 s))
+	 (s* (* oversampling s))
 	 (i.x (lambda (i)
 		(+ x0 (* (/ i s*) (- x1 x0)))))
 	 (x.i (lambda (x)
@@ -87,12 +88,12 @@
         (let ((plot-s* ;; x,y in 0..s* range
                (lambda (i j)
                  ;; how much to add to the points left, right, top, bottom?
-                 (letv ((i* irest) (quotient+modulo i spread))
-                       (letv ((j* jrest) (quotient+modulo j spread))
-                             (let ((left (- spread irest))
+                 (letv ((i* irest) (quotient+modulo i oversampling))
+                       (letv ((j* jrest) (quotient+modulo j oversampling))
+                             (let ((left (- oversampling irest))
                                    (right irest)
                                    (top jrest)
-                                   (bottom (- spread jrest)))
+                                   (bottom (- oversampling jrest)))
                                (let ((upd
                                       (lambda (i* j* val)
                                         (when (and (not (zero? val))
@@ -115,8 +116,8 @@
                        (* (- 1 (/ (- y y0)
                                   (- y1 y0)))
                           s
-                          spread))))))
-          (for..< (i 0 (- s* spread))
+                          oversampling))))))
+          (for..< (i 0 (- s* oversampling))
                   ;;^ - since updating 'right' will always hit the
                   ;;right edge, too, even if there's no pixel there?
                   ;;hm notsuretho,stillbuggy?
@@ -127,7 +128,7 @@
           (let ((j (y.j 0)))
             (when (and (<= 0 j) (< j s*))
                   (for..< (i 0 (dec s))
-                          (plot-s* (* i spread) j))))
+                          (plot-s* (* i oversampling) j))))
           ;; y axis
           (let ((i (x.i 0)))
             (when (and (<= 0 i) (< i s*))
@@ -135,7 +136,7 @@
                           (plot-s* (integer i)
                                    ;; XX hm. ^ integer just so that
                                    ;; quotient+modulo doesn't croak
-                                   (* j spread))))))))
+                                   (* j oversampling))))))))
     m))
 
 
@@ -326,9 +327,12 @@
 
 (def (plot-histogram xs
                      #!optional
-                     (num-buckets 100))
-     (let (half-step (/ 0.5 num-buckets))
+                     num-buckets)
+     (let* ((num-buckets (or num-buckets
+                             (integer (sqrt (length xs)))))
+            (half-step (/ 0.5 num-buckets)))
        (plot (smooth-histogram xs num-buckets #t)
              (- 0. half-step)
              (+ 1. half-step)
-             y0: 0)))
+             y0: 0
+             oversampling: 30)))
