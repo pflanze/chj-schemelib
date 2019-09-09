@@ -147,7 +147,7 @@
        (if (null? vs)
            alternative
            (let-pair ((k vs*) vs)
-                     (if (null? vs)
+                     (if (null? vs*)
                          (error "uneven argument count in:" args)
                          (let-pair ((v vs**) vs*)
                                    (if (eq? key k)
@@ -159,7 +159,10 @@
  > (dsssl-ref vs b: 'no)
  2
  > (dsssl-ref vs x: 'no)
- no)
+ no
+ > (%try (dsssl-ref '(a: 2 b:) x: 'no))
+ (exception text: "uneven argument count in: (a: 2 b:)\n"))
+
 
 ;; and since the above was not enough..
 (TEST
