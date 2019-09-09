@@ -7,6 +7,7 @@
 
 
 (require easy
+         dsssl
 	 test
 	 (math/vectorlib-1 view)
 	 (oo-lib-u32vector u32vector-inc!))
@@ -326,13 +327,19 @@
 (def smooth-histogram (histogram/u32vector-to-function .smooth-function))
 
 (def (plot-histogram xs
-                     #!optional
-                     num-buckets)
-     (let* ((num-buckets (or num-buckets
-                             (integer (sqrt (length xs)))))
+                     #!rest
+                     keyword-options)
+     "plot a histogram of the input data. Takes num-buckets as a
+keyword argument (default: sqrt of the length of xs), and passes other
+keyword arguments on to |plot|."
+     (let* ((num-buckets
+             (force (dsssl-ref keyword-options num-buckets:
+                               (delay (integer (sqrt (length xs)))))))
             (half-step (/ 0.5 num-buckets)))
-       (plot (smooth-histogram xs num-buckets #t)
-             (- 0. half-step)
-             (+ 1. half-step)
-             y0: 0
-             oversampling: 30)))
+       (apply plot
+              (smooth-histogram xs num-buckets #t)
+              (- 0. half-step)
+              (+ 1. half-step)
+              y0: 0
+              oversampling: 30
+              (dsssl-delete keyword-options '(num-buckets:)))))
