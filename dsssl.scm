@@ -11,6 +11,7 @@
 (require easy-1
          cj-alist
          (list-util let-pair)
+         (improper-list improper-fold)
          test)
 
 (export sequential-pairs
@@ -18,7 +19,9 @@
         dsssl-maybe-ref ;; should move to Maybe ?
         dsssl-ref
         dsssl-delete
-        dsssl-apply)
+        dsssl-apply
+        #!optional
+        dsssl-delete-1)
 
 
 ;; also see chop in stream.scm
@@ -127,7 +130,7 @@
  no)
 
 
-(def (dsssl-delete args #(keyword? key))
+(def (dsssl-delete-1 args #(keyword? key))
      (let rec ((vs args))
        (if (null? vs)
            vs
@@ -139,6 +142,14 @@
                                        (rec vs**)
                                        (cons* k v (rec vs**)))))))))
 
+(def (dsssl-delete args keyS)
+     ;; OK this could be optimized (pass a (function (keyword?)
+     ;; boolean?), in a single sweep, although that one would need a
+     ;; more efficient data structure than a list)
+     (improper-fold (flip dsssl-delete-1)
+                    args
+                    keyS))
+
 (TEST
  > (def vs '(a: 1 b: 2 b: 3 c: 4))
  > (dsssl-delete vs x:)
@@ -148,7 +159,9 @@
  > (dsssl-delete vs a:)
  (b: 2 b: 3 c: 4)
  > (dsssl-delete vs b:)
- (a: 1 c: 4))
+ (a: 1 c: 4)
+ > (dsssl-delete vs '(a: b:))
+ (c: 4))
 
 
 (def (dsssl-apply fn key-args . moreargs)
