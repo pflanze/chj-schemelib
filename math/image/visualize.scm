@@ -329,12 +329,27 @@
 (def (plot-histogram xs
                      #!rest
                      keyword-options)
-     "plot a histogram of the input data. Takes num-buckets as a
-keyword argument (default: sqrt of the length of xs), and passes other
-keyword arguments on to |plot|."
-     (let* ((num-buckets
-             (force (dsssl-ref keyword-options num-buckets:
-                               (delay (integer (sqrt (length xs)))))))
+     "
+Plot a histogram of the input data. Takes the following keyword options:
+
+   num-buckets: number of buckets to use. Default: (expt (length xs)
+         num-buckets-exponent))
+
+   num-buckets-exponent: used in the calculation of the default for
+         num-buckets. Default: 0.35
+
+Any other keyword options it receives are passed on to |plot|."
+
+     (let* ((num-buckets-exponent
+             (dsssl-ref keyword-options num-buckets-exponent:
+                        0.35))
+            (num-buckets
+             (force
+              (dsssl-ref keyword-options num-buckets:
+                         (delay (integer
+                                 (+ 0.5
+                                    (expt (length xs)
+                                          num-buckets-exponent)))))))
             (half-step (/ 0.5 num-buckets)))
        (apply plot
               (smooth-histogram xs num-buckets #t)
@@ -342,5 +357,5 @@ keyword arguments on to |plot|."
               (+ 1. half-step)
               y0: 0
               (=> keyword-options
-                  (dsssl-delete '(num-buckets:))
+                  (dsssl-delete '(num-buckets: num-buckets-exponent:))
                   (dsssl-defaults '(oversampling: 30))))))
