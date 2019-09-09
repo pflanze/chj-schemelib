@@ -9,44 +9,44 @@
 ;; XXX shouldn't this be merged with cj-source-lambda.scm ?
 
 (require easy-1
-	 cj-alist
-	 (list-util let-pair)
-	 test)
+         cj-alist
+         (list-util let-pair)
+         test)
 
 (export sequential-pairs
-	sequentialpairs->pairs ;; older, obsolete ?
-	dsssl-maybe-ref ;; should move to Maybe ?
-	dsssl-ref
-	dsssl-delete
-	dsssl-apply)
+        sequentialpairs->pairs ;; older, obsolete ?
+        dsssl-maybe-ref ;; should move to Maybe ?
+        dsssl-ref
+        dsssl-delete
+        dsssl-apply)
 
 
 ;; also see chop in stream.scm
 
 (def (sequential-pairs lis
-		       pair-cons
-		       #!optional
-		       (list-cons cons)
-		       (list-null '()))
+                       pair-cons
+                       #!optional
+                       (list-cons cons)
+                       (list-null '()))
      (let rec ((l lis))
        (cond ((null? l)
-	      list-null)
-	     ((pair? l)
-	      (let-pair
-	       ((k l*) l)
-	       (cond ((pair? l*)
-		      (let-pair ((v l*) l*)
-				(list-cons (pair-cons k v)
-					   (rec l*))))
-		     ((null? l*)
-		      (error (string-append
-			      "uneven number of elements where"
-			      " sequential pairs are expected:")
-			     lis))
-		     (else
-		      (error "improper list:" lis)))))
-	     (else
-	      (error "improper list:" lis)))))
+              list-null)
+             ((pair? l)
+              (let-pair
+               ((k l*) l)
+               (cond ((pair? l*)
+                      (let-pair ((v l*) l*)
+                                (list-cons (pair-cons k v)
+                                           (rec l*))))
+                     ((null? l*)
+                      (error (string-append
+                              "uneven number of elements where"
+                              " sequential pairs are expected:")
+                             lis))
+                     (else
+                      (error "improper list:" lis)))))
+             (else
+              (error "improper list:" lis)))))
 
 (TEST
  > (sequential-pairs '(a 1 b 2) cons)
@@ -65,18 +65,18 @@
 
 ;; obsolete?, also see sequential-pairs
 (define (sequentialpairs->pairs lis
-				#!optional
-				key-type?
-				value-type?)
+                                #!optional
+                                key-type?
+                                value-type?)
   (let rec ((lis lis))
     (if (null? lis)
-	'()
-	(let ((key (car lis))
-	      (val (cadr lis)))
-	  (when key-type? (assert (key-type? key)))
-	  (when value-type? (assert (value-type? val)))
-	  (cons (cons key val)
-		(rec (cddr lis)))))))
+        '()
+        (let ((key (car lis))
+              (val (cadr lis)))
+          (when key-type? (assert (key-type? key)))
+          (when value-type? (assert (value-type? val)))
+          (cons (cons key val)
+                (rec (cddr lis)))))))
 
 (TEST
  > (sequentialpairs->pairs '(a 1) symbol? number?)
@@ -99,14 +99,14 @@
 (def (dsssl-ref args #(keyword? key) alternative)
      (let lp ((vs args))
        (if (null? vs)
-	   alternative
-	   (let-pair ((k vs*) vs)
-		     (if (null? vs)
-			 (error "uneven argument count in:" args)
-			 (let-pair ((v vs**) vs*)
-				   (if (eq? key k)
-				       v
-				       (lp vs**))))))))
+           alternative
+           (let-pair ((k vs*) vs)
+                     (if (null? vs)
+                         (error "uneven argument count in:" args)
+                         (let-pair ((v vs**) vs*)
+                                   (if (eq? key k)
+                                       v
+                                       (lp vs**))))))))
 
 (TEST
  > (def vs '(a: 1 b: 2 b: 3 c: 4))
@@ -130,14 +130,14 @@
 (def (dsssl-delete args #(keyword? key))
      (let rec ((vs args))
        (if (null? vs)
-	   vs
-	   (let-pair ((k vs*) vs)
-		     (if (null? vs)
-			 (error "uneven argument count in:" args)
-			 (let-pair ((v vs**) vs*)
-				   (if (eq? key k)
-				       (rec vs**)
-				       (cons* k v (rec vs**)))))))))
+           vs
+           (let-pair ((k vs*) vs)
+                     (if (null? vs)
+                         (error "uneven argument count in:" args)
+                         (let-pair ((v vs**) vs*)
+                                   (if (eq? key k)
+                                       (rec vs**)
+                                       (cons* k v (rec vs**)))))))))
 
 (TEST
  > (def vs '(a: 1 b: 2 b: 3 c: 4))
