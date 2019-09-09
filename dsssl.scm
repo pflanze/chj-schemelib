@@ -17,6 +17,7 @@
 (export sequential-pairs
         sequentialpairs->pairs ;; older, obsolete ?
         dsssl->alist
+        alist->dsssl
         dsssl-maybe-ref ;; should move to Maybe ?
         dsssl-ref
         dsssl-delete
@@ -91,6 +92,19 @@
  > (dsssl->alist '(a: 1 b: 2))
  ((a: . 1) (b: . 2)))
 
+
+(def (alist->dsssl l)
+     (if (null? l)
+         '()
+         (let-pair ((a l*) l)
+                   (let-pair ((k v) a)
+                             (cons k
+                                   (cons v
+                                         (alist->dsssl l*)))))))
+
+(TEST
+ > (alist->dsssl '((a: . 1) (b: . 2)))
+ (a: 1 b: 2))
 
 
 
