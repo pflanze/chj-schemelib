@@ -10,7 +10,8 @@
 	 test)
 
 (export make-seen?!
-        make-seen?+!)
+        make-seen?&!
+        make-seen?&!&t)
 
 
 (def _cj-seen:nothing (gensym))
@@ -47,7 +48,7 @@
  #f)
 
 
-(def (make-seen?+! . args)
+(def (make-seen?&! . args)
      "Returns a fresh result of (values seen? seen!), where `seen?` returns true iff `seen!` was called on that value before. `args` are `make-table` options."
      (let ((t (apply make-table args)))
        (values
@@ -58,4 +59,18 @@
 	;; seen!
 	(lambda (val)
 	  (table-set! t val #t)))))
+
+
+(def (make-seen?&!&t . args)
+     "Returns a fresh result of (values seen? seen! t), where `seen?` returns true iff `seen!` was called on that value before. t is the backing table. `args` are `make-table` options."
+     (let ((t (apply make-table args)))
+       (values
+	;; seen?
+	(lambda (val)
+	  ;; don't actually need _cj-seen:nothing, huh
+	  (table-ref t val #f))
+	;; seen!
+	(lambda (val)
+	  (table-set! t val #t))
+        t)))
 
