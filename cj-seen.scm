@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,9 +9,14 @@
 (require easy-1
 	 test)
 
+(export make-seen?!
+        make-seen?+!)
+
+
 (def _cj-seen:nothing (gensym))
 
 (def (make-seen?! . args)
+     "Returns a fresh seen?! procedure of one argument which returns true if its argument was seen before, and marks it as seen for future calls."
      (let ((t (apply make-table args)))
        (lambda (val)
 	 (let ((v (table-ref t val _cj-seen:nothing)))
@@ -42,8 +47,8 @@
  #f)
 
 
-;; bah, ~copy-paste
 (def (make-seen?+! . args)
+     "Returns a fresh result of (values seen? seen!), where `seen?` returns true iff `seen!` was called on that value before. `args` are `make-table` options."
      (let ((t (apply make-table args)))
        (values
 	;; seen?

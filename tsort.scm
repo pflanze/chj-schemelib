@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,7 @@
 (require easy
 	 test
 	 alist
-	 cj-seen)
+	 (cj-seen make-seen?+!))
 
 (export (jclass topo-relation)
 	topo?
@@ -29,10 +29,8 @@
 ;; XX must .name be unique in each topo? ?
 
 (def. (topo.sort rs) -> topo?
-  (letv
-   ((processed? processed!) (make-seen?+!))
-   (letv
-    ((seen? seen!) (make-seen?+!))
+  (let-values (((processed? processed!) (make-seen?+!))
+               ((seen? seen!) (make-seen?+!)))
     (let ((name.dep.relation
 	   (lambda (name)
 	     (lambda (dep)
@@ -62,7 +60,7 @@
 		  (push! out r)
 		  (processed! name)))))
 	 rs))
-      (reverse out)))))
+      (reverse out))))
 
 (def. (topo.sort* rs) -> (list-of symbol?)
   (map .name (topo.sort rs)))
