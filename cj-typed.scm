@@ -303,11 +303,27 @@
      (let ((body (if maybe-pred
                      `((-> ,maybe-pred ,@body))
                      body)))
-       (letv ((vars body) (typed-lambda-args-expand args body))
-             `(##lambda ,vars
-                ,body))))))
+       (let ((args* (source-code args)))
+         ;; Expand curried lambdas (nested variable lists), similar to
+         ;; typed-define
+         (if (and (pair? args*)
+                  (pair? (source-code (car args*))))
+             `(typed-lambda ,(car args*)
+                            (typed-lambda ,(possibly-sourcify
+                                            (cdr args*)
+                                            args)
+                                          ,@body))
+             ;; Not curried:
+             (letv ((vars body-expr) (typed-lambda-args-expand args body))
+                   `(##lambda ,vars
+                              ,body-expr))))))))
 
 (TEST
+ ;; Curried definitions:
+ > (((typed-lambda ((x) y)
+              (list x y)) 10) 20)
+ (10 20)
+ ;; Other:
  > (expansion#typed-lambda (a b) 'hello 'world)
  (##lambda (a b) (##begin 'hello 'world))
  > (expansion#typed-lambda foo 'hello 'world)
