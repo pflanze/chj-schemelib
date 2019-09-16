@@ -29,6 +29,7 @@
 
 	#!optional
 	path-string.topo-relation
+        path-string.topo-relation/meta
 	modulepaths-tsort
 	modulepaths-in-dir
 	modulepaths-in-dirs
@@ -91,8 +92,13 @@
 (def (path-string.topo-relation p)
      (path-string.relation p topo-relation))
 
+(def (path-string.topo-relation/meta p)
+     (path-string.relation p (lambda (name deps)
+                               (topo-relation/meta name deps p))))
+
+
 (TEST
- ;; well those are evil of course, will break upon module changes
+ ;; this test is evil of course, will break upon module changes
  > (path-string.topo-relation "lib/require-util.scm")
  [(topo-relation)
  require-util
@@ -110,10 +116,9 @@
  )
 
 (def (modulepaths-tsort paths)
-     (let* ((rs (map path-string.topo-relation paths))
-	    (modulename->path-alis (map cons (map .name rs) paths))
-            (modulename->path (C symbol-alist-ref modulename->path-alis _)))
-       (map modulename->path (topo.sort* rs))))
+     (=>> (map path-string.topo-relation/meta paths)
+          topo.sort
+          (map topo-relation/meta.meta)))
 
 
 ;; path before normalization
