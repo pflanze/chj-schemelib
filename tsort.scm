@@ -11,14 +11,16 @@
 	 alist
 	 (cj-seen make-seen?&!))
 
-(export (class topo-relation)
+(export (class topo-relation
+               (class topo-relation/meta))
 	topo?
 	(method topo.sort
 		topo.sort*))
 
 
 (defclass (topo-relation [symbol? name]
-                         [(list-of symbol?) deps]))
+                         [(list-of symbol?) deps])
+  (defclass (topo-relation/meta meta)))
 
 ;; topo:Maybe-ref, topo:ref
 (modimport/prefix topo: (<alist> symbol?
