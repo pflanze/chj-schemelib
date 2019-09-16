@@ -7,8 +7,8 @@
 
 
 (require easy
-	 test
-	 (tree-util flatten)
+         cj-seen
+	 ;;(tree-util flatten)
 	 (cj-io-util read-lines
 		     xcall-with-input-process
 		     process-line-stream)
@@ -17,7 +17,8 @@
 	 (cj-functional complement)
 	 (require path-string.relation)
 	 (cj-source read-all-source)
-	 (string-quote shell-quote))
+	 (string-quote shell-quote)
+         test)
 
 (export lib
 	mydb
