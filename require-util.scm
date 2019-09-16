@@ -25,6 +25,7 @@
 	check-load.scm
 	loadorder-in-dirs
 	dependency-graph-in
+        dependencies
 	regen-lib-load-form
 
 	#!optional
@@ -101,16 +102,16 @@
  ;; this test is evil of course, will break upon module changes
  > (path-string.topo-relation "lib/require-util.scm")
  [(topo-relation)
- require-util
- (easy test
-       tree-util
-       cj-io-util
-       tsort
-       Result
-       cj-functional
-       require
-       cj-source
-       string-quote)]
+  require-util
+  (easy cj-seen
+        cj-io-util
+        tsort
+        Result
+        cj-functional
+        require
+        cj-source
+        string-quote
+        test)]
  ;; > (path-string.topo-relation "tsort.scm")
  ;; #((topo-relation) tsort (easy test alist))
  )
@@ -181,6 +182,36 @@
 			   "}\n"))))
 		(modulepaths-in-dirs dirpaths))
 	   "}\n"))
+
+
+(def (dependencies . modulenames)
+     (let* ((rs (=>> (load.scm-files)
+                     (map path-string.topo-relation/meta)))
+            (name-r (=>> rs
+                         (map (lambda (r)
+                                (cons (topo-relation.name r) r)))
+                         list->table))
+            (seen-name-r (make-table)))
+       (let see! ((names modulenames))
+         (when (pair? names)
+               (let-pair ((name names*) names)
+                         (if-let (r (table-ref name-r name #f))
+                                 (unless (table-ref seen-name-r name #f)
+                                         (table-set! seen-name-r name r)
+                                         (see! (topo-relation.deps r)))
+                                 (error "unknown module name" name))
+                         (see! names*))))
+       (=>> (table-values seen-name-r)
+            (map topo-relation/meta.meta)
+            ;; topo-sorted instead? Depends on usage. XX
+            ((flip sort) string<?))))
+
+(TEST
+ > (dependencies 'define-macro-star)
+ ("lib/cj-source.scm" "lib/define-macro-star.scm")
+ > (dependencies 'cj-source)
+ ("lib/cj-source.scm"))
+
 
 
 ;; a single-dependency representation (unlike topo-relation, which
