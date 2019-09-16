@@ -142,6 +142,14 @@
                (err "|def|, if given a bare variable, requires only one expression, or two if the first is a docstring"))))))
 
 (TEST
+ ;; curried definitions:
+ > (expansion#def ((f x) y) (list x y))
+ (define-typed ((f x) y) (list x y))
+ > (expansion#define-typed ((f x) y) (list x y))
+ (define-typed (f x) (typed-lambda (y) (list x y)))
+ > (expansion#define-typed (f x) (typed-lambda (y) (list x y)))
+ (define f (typed-lambda (x) (typed-lambda (y) (list x y))))
+ ;; docstrings:
  > (expansion#def (x a) 10)
  (define-typed (x a) 10)
  > (expansion#def (x a) "foo" 10)
@@ -429,6 +437,12 @@
 (defmacro (modimport/prefix prefix expr . vars)
   (modimport-expand prefix expr vars))
 
+
+
+;; Offer nesting for lambda, too? Or offer lambda* and def* for curried
+;; definitions from non-nested variables lists? Explicit nesting has
+;; the benefit of control. Thus offer it too on lambda, but actually also
+;; do it in cj-typed.scm
 
 (defmacro (lambda bs expr . rest)
   ;;(quasiquote-source (typed-lambda ,bs ,expr ,@rest))
