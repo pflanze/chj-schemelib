@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger, ch at christianjaeger ch
+;;; Copyright 2010-2019 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -98,7 +98,7 @@
   ;; -> (values args* body*)
   (let ((arg* (source-code arg)))
     (define (err)
-      (source-error arg "expecting symbol or #(predicate var)"))
+      (source-error arg "expecting symbol or [predicate var]"))
     (cond ((symbol? arg*)
            (values (cons arg args)
                    body))
@@ -134,17 +134,17 @@
            (err)))))
 
 (TEST
- > (define s1 '#(#(source1)
-                  (#(#(source1) pair? (console) 1048595)
-                    #(#(source1) a (console) 1441811))
-                  (console)
-                  983059))
+ > (define s1 '[[source1]
+                ([[source1] pair? (console) 1048595]
+                 [[source1] a (console) 1441811])
+                (console)
+                983059])
  > (values->vector (transform-arg s1 '() 'BODY))
- #((#(#(source2) (#(#(source1) pair? (console) 1048595)
-                   #(#(source1) a (console) 1441811))
-       (console)
-       983059))
-   BODY))
+ [([[source2] ([[source1] pair? (console) 1048595]
+               [[source1] a (console) 1441811])
+    (console)
+    983059])
+  BODY])
 
 
 ;; for use by other code
@@ -182,21 +182,21 @@
 
 
 (TEST
- > (perhaps-typed.var '#(foo? x))
+ > (perhaps-typed.var '[foo? x])
  x
  > (perhaps-typed.var 'y)
  y
- > (perhaps-typed.maybe-predicate '#(foo? x))
+ > (perhaps-typed.maybe-predicate '[foo? x])
  foo?
- > (typed.predicate '#((maybe foo?) x))
+ > (typed.predicate '[(maybe foo?) x])
  (maybe foo?)
  > (with-exception-catcher source-error-message (& (typed.predicate 'x)))
  "expr does not match typed?"
  > (typed? 'y)
  #f
- > (typed? '#(foo? x))
+ > (typed? '[foo? x])
  #t
- > (@typed.var '#(foo? x))
+ > (@typed.var '[foo? x])
  x)
 
 
@@ -215,11 +215,11 @@
  (a b . c)
  > (args-detype '(a b #!optional c))
  (a b #!optional c)
- > (args-detype '(#(pair? a) b #!optional #(number? c)))
+ > (args-detype '([pair? a] b #!optional [number? c]))
  (a b #!optional c)
- > (args-detype '(#(pair? a) b #!optional (c 10)))
+ > (args-detype '([pair? a] b #!optional (c 10)))
  (a b #!optional (c 10))
- > (args-detype '(#(pair? a) b #!optional (#(number? c) 10)))
+ > (args-detype '([pair? a] b #!optional ([number? c] 10)))
  (a b #!optional (c 10))
  )
 
@@ -243,11 +243,11 @@
 
 (TEST
  > (typed-body-parse #f '(a) vector)
- #(#f (a))
+ [#f (a)]
  > (typed-body-parse #f '(a b c) vector)
- #(#f (a b c))
+ [#f (a b c)]
  > (typed-body-parse #f '(-> b c) vector)
- #(b (c)))
+ [b (c)])
 
 (define (typed-lambda-args-expand args body)
   ;; -> (values-of (improper-list-of (possibly-source-of
@@ -277,23 +277,23 @@
 (TEST
  > (define s
      ;; (quote-source ((pair? a)))
-     '#(#(source1)
-         (#(#(source1)
-             (#(#(source1) pair? (console) 1048595)
-               #(#(source1) a (console) 1441811))
-             (console)
-             983059))
+     '[[source1]
+       ([[source1]
+         ([[source1] pair? (console) 1048595]
+          [[source1] a (console) 1441811])
          (console)
-         917523))
- > (values->vector (typed-lambda-args-expand s 'BODY))
- #((#(#(source2) (#(#(source1) pair? (console) 1048595)
-                   #(#(source1) a (console) 1441811))
+         983059])
        (console)
-       983059))
-   (##begin . BODY))
+       917523])
+ > (values->vector (typed-lambda-args-expand s 'BODY))
+ [([[source2] ([[source1] pair? (console) 1048595]
+               [[source1] a (console) 1441811])
+    (console)
+    983059])
+  (##begin . BODY)]
  ;; ehr well this is the test in action:
- > (values->vector (typed-lambda-args-expand '(#(pair? x)) 'BODY))
- #((x) (type-check pair? x (##begin . BODY))))
+ > (values->vector (typed-lambda-args-expand '([pair? x]) 'BODY))
+ [(x) (type-check pair? x (##begin . BODY))])
 
 
 (define-macro* (typed-lambda args . body)
@@ -312,31 +312,31 @@
  (##lambda (a b) (##begin 'hello 'world))
  > (expansion#typed-lambda foo 'hello 'world)
  (##lambda foo (##begin 'hello 'world))
- > (expansion#typed-lambda (a #(pair? b)) 'hello 'world)
+ > (expansion#typed-lambda (a [pair? b]) 'hello 'world)
  (##lambda (a b)
-   (type-check pair? b
-               (##begin 'hello 'world)))
- > (expansion#typed-lambda (a #(pair? b) . c) 'hello 'world)
+           (type-check pair? b
+                       (##begin 'hello 'world)))
+ > (expansion#typed-lambda (a [pair? b] . c) 'hello 'world)
  (##lambda (a b . c)
-   (type-check pair? b
-               (##begin 'hello 'world)))
- > (expansion#typed-lambda (a #(pair? b) #!rest c) 'hello 'world)
+           (type-check pair? b
+                       (##begin 'hello 'world)))
+ > (expansion#typed-lambda (a [pair? b] #!rest c) 'hello 'world)
  (##lambda (a b #!rest c) (type-check pair? b (##begin 'hello 'world)))
- > (expansion#typed-lambda (a #(pair? b) . #(number? c)) 'hello 'world)
+ > (expansion#typed-lambda (a [pair? b] . [number? c]) 'hello 'world)
  (##lambda (a b . c)
-   (type-check pair? b (type-check number? c (##begin 'hello 'world))))
+           (type-check pair? b (type-check number? c (##begin 'hello 'world))))
  ;;^ XX wrong? make it list-of ? (this would be a redo, sigh)
- > (expansion#typed-lambda (a #!key #(pair? b) #!rest #(number? c)) 'hello 'world)
+ > (expansion#typed-lambda (a #!key [pair? b] #!rest [number? c]) 'hello 'world)
  (##lambda (a #!key b #!rest c)
-   (type-check pair? b (type-check number? c (##begin 'hello 'world))))
- > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10)) hello)
+           (type-check pair? b (type-check number? c (##begin 'hello 'world))))
+ > (expansion#typed-lambda ([pair? a] b #!optional ([number?  c] 10)) hello)
  (##lambda (a b #!optional (c 10))
-   (type-check pair? a
-               (type-check number? c (##begin hello)))))
+           (type-check pair? a
+                       (type-check number? c (##begin hello)))))
 
 ;; and -> result checks:
 (TEST
- > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10))
+ > (expansion#typed-lambda ([pair? a] b #!optional ([number?  c] 10))
                            -> foo?
                            hello)
  (##lambda (a b #!optional (c 10))
@@ -353,10 +353,10 @@
                            body))))
 
 (TEST
- > (expansion#detyped-lambda (a #(pair? b) . c) 'hello 'world)
+ > (expansion#detyped-lambda (a [pair? b] . c) 'hello 'world)
  (##lambda (a b . c)
       'hello 'world)
- > (expansion#detyped-lambda (a . #(pair? b)) -> integer? 'hello 'world)
+ > (expansion#detyped-lambda (a . [pair? b]) -> integer? 'hello 'world)
  (##lambda (a . b)
       'hello 'world)
  )
@@ -380,19 +380,19 @@
 (TEST
  > (begin
      (cj-typed-enable)
-     (let ((a (typed-lambda (#(pair? x)) x)))
+     (let ((a (typed-lambda ([pair? x]) x)))
        (%try-error (a 1))))
- #(error "x does not match pair?:" 1)
+ [error "x does not match pair?:" 1]
  > (begin
      (cj-typed-disable)
-     (let ((a (typed-lambda (#(pair? x)) x)))
+     (let ((a (typed-lambda ([pair? x]) x)))
        (%try-error (a 2))))
  2
  > (begin
      (cj-typed-enable)
-     (let ((a (typed-lambda (#(pair? x)) x)))
+     (let ((a (typed-lambda ([pair? x]) x)))
        (%try-error (a 3))))
- #(error "x does not match pair?:" 3)
+ [error "x does not match pair?:" 3]
  )
 
 
@@ -412,14 +412,14 @@
        (typed-lambda ,args ,@body)))))
 
 (TEST
- > (define-typed ((f #(string? s)) #(number? x))
+ > (define-typed ((f [string? s]) [number? x])
      (list s x))
  > ((f "a") 7)
  ("a" 7)
  > (%try-error ((f 'a) 7))
- #(error "s does not match string?:" a)
+ [error "s does not match string?:" a]
  > (%try-error ((f "a") "7"))
- #(error "x does not match number?:" "7"))
+ [error "x does not match number?:" "7"])
 
 
 ;; (TEST
@@ -454,7 +454,7 @@
  > (-> number? "bla" 5)
  5
  > (%try-error (-> number? "5"))
- #(error "value fails to meet predicate:" (number? "5"))
+ [error "value fails to meet predicate:" (number? "5")]
  )
 
 ;; test source location propagation

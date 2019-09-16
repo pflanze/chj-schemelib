@@ -1,4 +1,4 @@
-;;; Copyright 2014-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -206,7 +206,7 @@
  ha
  ;; for now:
  > (%try-syntax-error (def& (lol x y) (x)))
- #(source-error "no match, expecting: `(`name `thunkvar)"))
+ [source-error "no match, expecting: `(`name `thunkvar)"])
 
 
 ;; forward declaration; no body, but might accept ->
@@ -290,11 +290,11 @@
 
 (TEST
  > (%try-error (the '()))
- #(error "expected one item, but:" not-found ())
+ [error "expected one item, but:" not-found ()]
  > (%try-error (the '(1)))
  1
  > (%try-error (the '(1 2)))
- #(error "expected one item, but:" found-too-many (1 2))
+ [error "expected one item, but:" found-too-many (1 2)]
 
  > (the '() 'nope)
  nope
