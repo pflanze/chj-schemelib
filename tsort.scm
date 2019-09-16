@@ -11,14 +11,14 @@
 	 alist
 	 (cj-seen make-seen?&!))
 
-(export (jclass topo-relation)
+(export (class topo-relation)
 	topo?
 	(method topo.sort
 		topo.sort*))
 
 
-(jclass (topo-relation [symbol? name]
-		       [(list-of symbol?) deps]))
+(defclass (topo-relation [symbol? name]
+                         [(list-of symbol?) deps]))
 
 ;; topo:Maybe-ref, topo:ref
 (modimport/prefix topo: (<alist> symbol?
