@@ -11,68 +11,68 @@
 ;;;
 
 (require define-macro-star
-	 (scheme-meta perhaps-quote)
-	 test
-	 srfi-11
-	 (simple-match-1 assert*)
-	 (cj-source-util-2 assert)
-	 (improper-list improper-length)
-	 cj-typed-1)
+         (scheme-meta perhaps-quote)
+         test
+         srfi-11
+         (simple-match-1 assert*)
+         (cj-source-util-2 assert)
+         (improper-list improper-length)
+         cj-typed-1)
 
 (export (macro type-check)
-	(macro source-type-check)
-	perhaps-typed.var
-	perhaps-typed.maybe-predicate
-	typed?
-	@typed.var
-	typed.var
-	typed.predicate
-	args-detype
-	(macro typed-lambda)
-	(macro define-typed)
-	(macro ->)
-	(macro @->)
-	;; indirectly: ->-error
-	(macros cj-typed-disable
-		cj-typed-enable)
-	
-	#!optional
-	typed-body-parse)
+        (macro source-type-check)
+        perhaps-typed.var
+        perhaps-typed.maybe-predicate
+        typed?
+        @typed.var
+        typed.var
+        typed.predicate
+        args-detype
+        (macro typed-lambda)
+        (macro define-typed)
+        (macro ->)
+        (macro @->)
+        ;; indirectly: ->-error
+        (macros cj-typed-disable
+                cj-typed-enable)
+        
+        #!optional
+        typed-body-parse)
 
 
 (both-times
  (define (type-check-expand predicate expr body use-source-error?)
    (let ((expr-str (let ((expr* (cj-desourcify expr)))
-		     ;; avoid putting gensyms into exception messages,
-		     ;; to make code using this testable.
-		     (if (cj-gensym? expr*)
-			 (cond ((cj-gensym-maybe-name expr*)
-				=> (lambda (name)
-				     (string-append "gensym '"
-						    (scm:object->string name))))
-			       (else
-				#f))
-			 (scm:object->string expr*))))
-	 (pred-str (scm:object->string (cj-desourcify predicate)))
-	 (V (gensym))
-	 (W (gensym)))
+                     ;; avoid putting gensyms into exception messages,
+                     ;; to make code using this testable.
+                     (if (cj-gensym? expr*)
+                         (cond ((cj-gensym-maybe-name expr*)
+                                => (lambda (name)
+                                     (string-append "gensym '"
+                                                    (scm:object->string name))))
+                               (else
+                                #f))
+                         (scm:object->string expr*))))
+         (pred-str (scm:object->string (cj-desourcify predicate)))
+         (V (gensym))
+         (W (gensym)))
      
      `(##let* ((,V ,expr)
-	       (,W (,predicate ,V)))
-	      (##if (##or (##eq? ,W #t)
-			  (cj-typed#type-check-warn
-			   ,use-source-error?
-			   ,expr-str
-			   ,pred-str
-			   ,W
-			   ,V))
-		    (##let () ,@body)
-		    (cj-typed#type-check-error
-		     ,use-source-error?
-		     ,expr-str
-		     ,pred-str
-		     ,W
-		     ,V))))))
+               (,W (,predicate ,V)))
+              (##if (##or (##eq? ,W #t)
+                          (cj-typed#type-check-warn
+                           ,use-source-error?
+                           ,expr-str
+                           ,pred-str
+                           ,W
+                           ,V))
+                    (##let () ,@body)
+                    (cj-typed#type-check-error
+                     ,use-source-error?
+                     ,expr-str
+                     ,pred-str
+                     ,W
+                     ,V))))))
 
 (define-macro* (type-check predicate expr . body)
   (type-check-expand predicate expr body #f))
@@ -84,12 +84,12 @@
  ;; test that there's no "Ill-placed 'define'" compile-time error
  > (let ((foo "foo"))
      (type-check string? foo
-		 (##begin (define bar "bar") (string-append foo bar))))
+                 (##begin (define bar "bar") (string-append foo bar))))
  "foobar"
  > (let ((foo "foo"))
      (type-check string? foo
-		 (define bar "bar")
-		 (string-append foo bar)))
+                 (define bar "bar")
+                 (string-append foo bar)))
  "foobar")
 
 
@@ -100,48 +100,48 @@
     (define (err)
       (source-error arg "expecting symbol or #(predicate var)"))
     (cond ((symbol? arg*)
-	   (values (cons arg args)
-		   body))
-	  ((vector? arg*)
-	   (if (= (vector-length arg*) 2)
-	       (let ((pred (vector-ref arg* 0))
-		     (var (vector-ref arg* 1)))
-		 (assert* symbol? var
-			  (lambda (_)
-			    (values (cons var args)
-				    `(type-check ,pred ,var
-						 ,body)))))
-	       (err)))
-	  ((dsssl-meta-object? arg*)
-	   (values (cons arg* args)
-		   body))
-	  ((pair? arg*)
-	   ;; should be after an #!optional; XX verify? or leave that
-	   ;; up to the next language layer?
-	   (if (= (improper-length arg*) 2)
-	       (let ((arg** (car arg*))
-		     (default (cadr arg*)))
-		 (letv ((subargs body*) (transform-arg arg** args body))
-		       (let-pair ((subarg _) subargs)
-				 (values (cons (possibly-sourcify
-						`(,subarg ,default)
-						arg)
-					       args)
-					 body*))))
-	       ;; XX could give better error message, though
-	       (err)))
-	  (else
-	   (err)))))
+           (values (cons arg args)
+                   body))
+          ((vector? arg*)
+           (if (= (vector-length arg*) 2)
+               (let ((pred (vector-ref arg* 0))
+                     (var (vector-ref arg* 1)))
+                 (assert* symbol? var
+                          (lambda (_)
+                            (values (cons var args)
+                                    `(type-check ,pred ,var
+                                                 ,body)))))
+               (err)))
+          ((dsssl-meta-object? arg*)
+           (values (cons arg* args)
+                   body))
+          ((pair? arg*)
+           ;; should be after an #!optional; XX verify? or leave that
+           ;; up to the next language layer?
+           (if (= (improper-length arg*) 2)
+               (let ((arg** (car arg*))
+                     (default (cadr arg*)))
+                 (letv ((subargs body*) (transform-arg arg** args body))
+                       (let-pair ((subarg _) subargs)
+                                 (values (cons (possibly-sourcify
+                                                `(,subarg ,default)
+                                                arg)
+                                               args)
+                                         body*))))
+               ;; XX could give better error message, though
+               (err)))
+          (else
+           (err)))))
 
 (TEST
  > (define s1 '#(#(source1)
-		  (#(#(source1) pair? (console) 1048595)
-		    #(#(source1) a (console) 1441811))
-		  (console)
-		  983059))
+                  (#(#(source1) pair? (console) 1048595)
+                    #(#(source1) a (console) 1441811))
+                  (console)
+                  983059))
  > (values->vector (transform-arg s1 '() 'BODY))
  #((#(#(source2) (#(#(source1) pair? (console) 1048595)
-		   #(#(source1) a (console) 1441811))
+                   #(#(source1) a (console) 1441811))
        (console)
        983059))
    BODY))
@@ -165,8 +165,8 @@
   ;; stupid ~COPY
   (let ((x* (source-code x)))
     (and (vector? x*)
-	 (= (vector-length x*) 2)
-	 (symbol? (source-code (vector-ref x* 1))))))
+         (= (vector-length x*) 2)
+         (symbol? (source-code (vector-ref x* 1))))))
 
 (define (@typed.var x) ;; careful, unsafe!
   ;; again stupid ~COPY
@@ -174,11 +174,11 @@
 
 (define (typed.var expr)
   (source-type-check typed? expr
-		     (@typed.var expr)))
+                     (@typed.var expr)))
 
 (define (typed.predicate expr)
   (source-type-check typed? expr
-		     (perhaps-typed.maybe-predicate expr)))
+                     (perhaps-typed.maybe-predicate expr)))
 
 
 (TEST
@@ -203,12 +203,12 @@
 
 (define (args-detype args)
   (improper-fold-right* (lambda (tail? arg args*)
-			  (let ((a* (fst (transform-arg arg args* #f))))
-			    (if tail?
-				(car a*)
-				a*)))
-			'()
-			(source-code args)))
+                          (let ((a* (fst (transform-arg arg args* #f))))
+                            (if tail?
+                                (car a*)
+                                a*)))
+                        '()
+                        (source-code args)))
 
 (TEST
  > (args-detype '(a b . c))
@@ -227,19 +227,19 @@
 (define (typed-body-parse maybe-stx body cont/maybe-pred+body)
   (assert (not (source? body)))
   (let ((body+ (if maybe-stx
-		   (sourcify body maybe-stx)
-		   body)))
+                   (sourcify body maybe-stx)
+                   body)))
     (if (pair? body)
-	(let ((fst* (source-code (car body))))
-	  (if (eq? fst* '->)
-	      (if ((improper-list/length>= 3) body)
-		  (cont/maybe-pred+body (cadr body) (cddr body))
-		  (source-error
-		   body+
-		   "a body starting with -> needs at least 2 more forms"))
-	      (cont/maybe-pred+body #f body)))
-	(source-error body+
-		      "expecting body forms"))))
+        (let ((fst* (source-code (car body))))
+          (if (eq? fst* '->)
+              (if ((improper-list/length>= 3) body)
+                  (cont/maybe-pred+body (cadr body) (cddr body))
+                  (source-error
+                   body+
+                   "a body starting with -> needs at least 2 more forms"))
+              (cont/maybe-pred+body #f body)))
+        (source-error body+
+                      "expecting body forms"))))
 
 (TEST
  > (typed-body-parse #f '(a) vector)
@@ -251,43 +251,43 @@
 
 (define (typed-lambda-args-expand args body)
   ;; -> (values-of (improper-list-of (possibly-source-of
-  ;; 				   ;; not just symbol? but also #!rest etc.
-  ;; 				   sexpr-object?))
-  ;; 		(possibly-source-of sexpr-object?))
+  ;;                                  ;; not just symbol? but also #!rest etc.
+  ;;                                  sexpr-object?))
+  ;;               (possibly-source-of sexpr-object?))
   
   (let rem ((args args))
     (let ((args_ (source-code args)))
       (cond ((null? args_)
-	     (values '()
-		     ;; can't just return body, as it's also used in
-		     ;; transform-arg via the recursive call below:
-		     `(##begin ,@body)))
-	    ((pair? args_)
-	     (let-pair ((arg args*) args_)
-		       (letv (($1 $2) (rem args*))
-			     (transform-arg arg $1 $2))))
-	    (else
-	     ;; rest arg, artificially pick out the single var
-	     (letv ((vars body) (letv (($1 $2) (rem '()))
-				      (transform-arg args $1 $2)))
-		   (assert (= (length vars) 1))
-		   (values (car vars)
-			   body)))))))
+             (values '()
+                     ;; can't just return body, as it's also used in
+                     ;; transform-arg via the recursive call below:
+                     `(##begin ,@body)))
+            ((pair? args_)
+             (let-pair ((arg args*) args_)
+                       (letv (($1 $2) (rem args*))
+                             (transform-arg arg $1 $2))))
+            (else
+             ;; rest arg, artificially pick out the single var
+             (letv ((vars body) (letv (($1 $2) (rem '()))
+                                      (transform-arg args $1 $2)))
+                   (assert (= (length vars) 1))
+                   (values (car vars)
+                           body)))))))
 
 (TEST
  > (define s
      ;; (quote-source ((pair? a)))
      '#(#(source1)
-	 (#(#(source1)
-	     (#(#(source1) pair? (console) 1048595)
-	       #(#(source1) a (console) 1441811))
-	     (console)
-	     983059))
-	 (console)
-	 917523))
+         (#(#(source1)
+             (#(#(source1) pair? (console) 1048595)
+               #(#(source1) a (console) 1441811))
+             (console)
+             983059))
+         (console)
+         917523))
  > (values->vector (typed-lambda-args-expand s 'BODY))
  #((#(#(source2) (#(#(source1) pair? (console) 1048595)
-		   #(#(source1) a (console) 1441811))
+                   #(#(source1) a (console) 1441811))
        (console)
        983059))
    (##begin . BODY))
@@ -301,11 +301,11 @@
    stx body
    (lambda (maybe-pred body)
      (let ((body (if maybe-pred
-		     `((-> ,maybe-pred ,@body))
-		     body)))
+                     `((-> ,maybe-pred ,@body))
+                     body)))
        (letv ((vars body) (typed-lambda-args-expand args body))
-	     `(##lambda ,vars
-		,body))))))
+             `(##lambda ,vars
+                ,body))))))
 
 (TEST
  > (expansion#typed-lambda (a b) 'hello 'world)
@@ -315,11 +315,11 @@
  > (expansion#typed-lambda (a #(pair? b)) 'hello 'world)
  (##lambda (a b)
    (type-check pair? b
-	       (##begin 'hello 'world)))
+               (##begin 'hello 'world)))
  > (expansion#typed-lambda (a #(pair? b) . c) 'hello 'world)
  (##lambda (a b . c)
    (type-check pair? b
-	       (##begin 'hello 'world)))
+               (##begin 'hello 'world)))
  > (expansion#typed-lambda (a #(pair? b) #!rest c) 'hello 'world)
  (##lambda (a b #!rest c) (type-check pair? b (##begin 'hello 'world)))
  > (expansion#typed-lambda (a #(pair? b) . #(number? c)) 'hello 'world)
@@ -332,13 +332,13 @@
  > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10)) hello)
  (##lambda (a b #!optional (c 10))
    (type-check pair? a
-	       (type-check number? c (##begin hello)))))
+               (type-check number? c (##begin hello)))))
 
 ;; and -> result checks:
 (TEST
  > (expansion#typed-lambda (#(pair? a) b #!optional (#(number?  c) 10))
-			   -> foo?
-			   hello)
+                           -> foo?
+                           hello)
  (##lambda (a b #!optional (c 10))
    (type-check pair? a (type-check number? c (##begin (-> foo? hello))))))
 
@@ -349,8 +349,8 @@
 (define-macro* (detyped-lambda args . body)
   `(##lambda ,(args-detype args)
      ,@(typed-body-parse stx body
-			 (lambda (pred body)
-			   body))))
+                         (lambda (pred body)
+                           body))))
 
 (TEST
  > (expansion#detyped-lambda (a #(pair? b) . c) 'hello 'world)
@@ -365,9 +365,9 @@
 
 (define-macro* (cj-typed-disabled#typed-lambda args . body)
   `(##lambda ,(args-detype args)
-	,@(typed-body-parse stx body
-			    (lambda (pred body)
-			      body))))
+        ,@(typed-body-parse stx body
+                            (lambda (pred body)
+                              body))))
 
 
 (define-macro* (cj-typed-disable)
@@ -406,8 +406,8 @@
      ;; allow frst to be a list, too, for curried definition; and make
      ;; sure that level allows typing, too:
      `(,(if (pair? (source-code frst))
-	    `define-typed
-	    `define)
+            `define-typed
+            `define)
        ,frst
        (typed-lambda ,args ,@body)))))
 
@@ -424,7 +424,7 @@
 
 ;; (TEST
 ;;  > (require (cj-symbol)
-;; 	    (cj-expansion)))
+;;          (cj-expansion)))
 ;; (TEST
 ;;  > (define TEST:equal? syntax-equal?)
 ;;  > (expansion define-typed (f #(integer? x) #(symbol? a)) (vector x a))
@@ -435,13 +435,13 @@
 
 (define (->-error pred-code val)
   (error "value fails to meet predicate:"
-	 (list pred-code (perhaps-quote val))))
+         (list pred-code (perhaps-quote val))))
 
 (define-macro* (-> pred . body)
   (with-gensym V
-	       `(##let ((,V (##let () ,@body)))
-		       (##if (,pred ,V) ,V
-			     (->-error ',pred ,V)))))
+               `(##let ((,V (##let () ,@body)))
+                       (##if (,pred ,V) ,V
+                             (->-error ',pred ,V)))))
 
 ;; and for easy disabling:
 (define-macro* (@-> pred . body)
@@ -460,13 +460,13 @@
 ;; test source location propagation
 (TEST
  > (def e (with-exception-catcher
-	   identity
-	   (&
-	    (eval
-	     (quote-source
-	      ;; missing actual body, triggering the message that we
-	      ;; want to test
-	      (typed-lambda (x) -> echz))))))
+           identity
+           (&
+            (eval
+             (quote-source
+              ;; missing actual body, triggering the message that we
+              ;; want to test
+              (typed-lambda (x) -> echz))))))
  > (source-error-message e)
  "a body starting with -> needs at least 2 more forms"
  > (source? (source-error-source e))

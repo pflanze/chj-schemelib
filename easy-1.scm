@@ -9,61 +9,61 @@
 ;; short identifiers
 
 (require define-macro-star
-	 fixnum
-	 fixnum-more
-	 cj-env ;; identity ?, define-if-not-defined
-	 cj-functional ;; compose etc.
-	 cj-struct
-	 cj-typed
-	 dot-oo ;; incl. define.
-	 srfi-11
-	 define-module
-	 cj-match
-	 simple-match ;; provided by cj-match ?
-	 (cj-source-wraps source:symbol-append)
-	 (enum define-enum)
-	 (cj-source-quasiquote quasiquote-source)
-	 string-interpolate
-	 test
-	 (test-random %try-syntax-error)
-	 (string-util-2 string-any)
+         fixnum
+         fixnum-more
+         cj-env ;; identity ?, define-if-not-defined
+         cj-functional ;; compose etc.
+         cj-struct
+         cj-typed
+         dot-oo ;; incl. define.
+         srfi-11
+         define-module
+         cj-match
+         simple-match ;; provided by cj-match ?
+         (cj-source-wraps source:symbol-append)
+         (enum define-enum)
+         (cj-source-quasiquote quasiquote-source)
+         string-interpolate
+         test
+         (test-random %try-syntax-error)
+         (string-util-2 string-any)
          list-util ;; e.g. let-pair
          list-util-3 ;; e.g. if-let-pair
-	 list-util-lazy)
+         list-util-lazy)
 
 (export (macro if)
         (macro scheme:if)
         (macro defstruct)
-	(macro def)
-	(macro defvar)
-	(macro defvar-once)
-	(macro defmacro)
-	(macro &)
-	(macro def&)
-	(macro forward-def)
-	(macro def.)
-	(macro def-inline)
-	(macro defenum)
-	(macro def-values)
-	(macro defparameter)
-	(macro def-once)
-	comp-function
-	(macro comp*)
-	(macro comp)
-	(macro comp//)
-	maybe-comp
-	id
-	(macro defmodule)
-	(macro the)
-	(macro modimport)
-	(macro modimport/prefix)
-	(macro lambda)
-	(macro let)
+        (macro def)
+        (macro defvar)
+        (macro defvar-once)
+        (macro defmacro)
+        (macro &)
+        (macro def&)
+        (macro forward-def)
+        (macro def.)
+        (macro def-inline)
+        (macro defenum)
+        (macro def-values)
+        (macro defparameter)
+        (macro def-once)
+        comp-function
+        (macro comp*)
+        (macro comp)
+        (macro comp//)
+        maybe-comp
+        id
+        (macro defmodule)
+        (macro the)
+        (macro modimport)
+        (macro modimport/prefix)
+        (macro lambda)
+        (macro let)
         (macro letrec)
-	(macro $)
-	
-	#!optional
-	module-symbol?)
+        (macro $)
+        
+        #!optional
+        module-symbol?)
 
 
 ;; Paul Graham's idea for nested paren-less |if| (Arc)
@@ -186,17 +186,17 @@
 
 (define-macro* (def& bind . type+body)
   (mcase bind
-	 (`(`name `thunkvar)
-	  ;; ^ XX could allow optional and keyword args though
-	  (let ((macrocode
-		 `(quasiquote (,name (& ))))
-		(name* (source:symbol-append name '&)))
-	    (with-gensym
-	     E
-	     `(begin
-		(def ,bind ,@type+body)
-		(defmacro (,name* . ,E)
-		  `(,',name (##lambda () ,@,E)))))))))
+         (`(`name `thunkvar)
+          ;; ^ XX could allow optional and keyword args though
+          (let ((macrocode
+                 `(quasiquote (,name (& ))))
+                (name* (source:symbol-append name '&)))
+            (with-gensym
+             E
+             `(begin
+                (def ,bind ,@type+body)
+                (defmacro (,name* . ,E)
+                  `(,',name (##lambda () ,@,E)))))))))
 
 (TEST
  > (def& (lol x) (x))
@@ -224,19 +224,19 @@
    name+args
    ((name . args)
     (let* ((lambdacode
-	    `(typed-lambda ,args
-			   ,body0 ,@body))
-	   (templatecode
-	    `(,lambdacode
-	      ,@(map (lambda (arg)
-		       (list 'unquote (perhaps-typed.var arg)))
-		     args))))
+            `(typed-lambda ,args
+                           ,body0 ,@body))
+           (templatecode
+            `(,lambdacode
+              ,@(map (lambda (arg)
+                       (list 'unquote (perhaps-typed.var arg)))
+                     args))))
       (quasiquote-source
        (begin
-	 (define-macro* (,(source:symbol-append name '-lambda))
-	   ,(list 'quasiquote-source lambdacode))
-	 (define-macro* (,name ,@(map perhaps-typed.var args))
-	   ,(list 'quasiquote-source templatecode))))))))
+         (define-macro* (,(source:symbol-append name '-lambda))
+           ,(list 'quasiquote-source lambdacode))
+         (define-macro* (,name ,@(map perhaps-typed.var args))
+           ,(list 'quasiquote-source templatecode))))))))
 
 (define-macro* (defenum name . args)
   `(define-enum ,name ,@args))
@@ -277,15 +277,15 @@
       (with-gensym
        V
        `(let* ((,V ,expr)
-	       (it (force ,V)))
-	  ,(if too-many-error-expr
-	       `(cond ((one-item? it) (car it))
-		      ((null? it) ,error-expr)
-		      (else
-		       ,too-many-error-expr))
-	       `(if (one-item? it)
-		    (car it)
-		    ,error-expr))))
+               (it (force ,V)))
+          ,(if too-many-error-expr
+               `(cond ((one-item? it) (car it))
+                      ((null? it) ,error-expr)
+                      (else
+                       ,too-many-error-expr))
+               `(if (one-item? it)
+                    (car it)
+                    ,error-expr))))
       `(xone ,expr)))
 
 (TEST
@@ -326,15 +326,15 @@
 
 (def (module-symbol? v)
      (and (symbol? v)
-	  (let* ((s (symbol->string v))
-		 (len (string-length s)))
-	    (and (>= len 3)
-		 (char=? (string-ref s 0) #\<)
-		 (char=? (string-ref s (dec len)) #\>)
-		 (string-any (lambda (v)
-			       (not (or (char=? v #\<)
-					(char=? v #\>))))
-			     s)))))
+          (let* ((s (symbol->string v))
+                 (len (string-length s)))
+            (and (>= len 3)
+                 (char=? (string-ref s 0) #\<)
+                 (char=? (string-ref s (dec len)) #\>)
+                 (string-any (lambda (v)
+                               (not (or (char=? v #\<)
+                                        (char=? v #\>))))
+                             s)))))
 
 
 (TEST
@@ -347,19 +347,19 @@
      (*if-symbol-value
       modsymbol
       (lambda (exporter)
-	(if (procedure? exporter)
-	    (export (exporter #f))
-	    (source-error
-	     modsymbol
-	     (string-append
-	      "modimport: expecting an exporter procedure"
-	      " in module-holding symbol"))))
+        (if (procedure? exporter)
+            (export (exporter #f))
+            (source-error
+             modsymbol
+             (string-append
+              "modimport: expecting an exporter procedure"
+              " in module-holding symbol"))))
       (lambda ()
-	(source-error
-	 modsymbol
-	 (string-append
-	  "modimport: module-holding symbol does not"
-	  " contain a value (yet?)")))))
+        (source-error
+         modsymbol
+         (string-append
+          "modimport: module-holding symbol does not"
+          " contain a value (yet?)")))))
 
 ;; check for -exports symbol (compiletime value)
 (def (modimport-expand:mod maybe-prefix mod expr *else)
@@ -368,70 +368,70 @@
       (source:symbol-append mod '-exports)
 
       (lambda (exports)
-	(if maybe-prefix
-	    `(module:import/prefix ,expr ,maybe-prefix ,@exports)
-	    `(module:import ,expr ,@exports)))
+        (if maybe-prefix
+            `(module:import/prefix ,expr ,maybe-prefix ,@exports)
+            `(module:import ,expr ,@exports)))
 
       *else))
 
 
 (def (modimport-expand maybe-prefix expr vars)
      (if (pair? vars)
-	 (if maybe-prefix
-	     `(module:import/prefix ,expr ,maybe-prefix ,@vars)
-	     `(module:import ,expr ,@vars))
+         (if maybe-prefix
+             `(module:import/prefix ,expr ,maybe-prefix ,@vars)
+             `(module:import ,expr ,@vars))
 
-	 ;; No vars given, need to find the exports list from the
-	 ;; module name with -exports appended, or in case of expr
-	 ;; being a bare symbol, checking if it holds a value at
-	 ;; expansion time already.
-	 (mcase
-	  expr
+         ;; No vars given, need to find the exports list from the
+         ;; module name with -exports appended, or in case of expr
+         ;; being a bare symbol, checking if it holds a value at
+         ;; expansion time already.
+         (mcase
+          expr
 
-	  (symbol?
-	   ;; Always assume that it is the result of a module
-	   ;; parametrization (exporter); checking for mod-exports is
-	   ;; pointless in this case, and dangerous (conflicts with
-	   ;; other actual modules (previously defined ones, although
-	   ;; admittedly that's a problem of the current (non-)module
-	   ;; system)).
-	   (modimport-expand:exporterholder
-	    expr
-	    (lambda (exports)
-	      (if maybe-prefix
-		  `(module:import/prefix ,expr ,maybe-prefix ,@exports)
-		  `(module:import ,expr ,@exports)))))
+          (symbol?
+           ;; Always assume that it is the result of a module
+           ;; parametrization (exporter); checking for mod-exports is
+           ;; pointless in this case, and dangerous (conflicts with
+           ;; other actual modules (previously defined ones, although
+           ;; admittedly that's a problem of the current (non-)module
+           ;; system)).
+           (modimport-expand:exporterholder
+            expr
+            (lambda (exports)
+              (if maybe-prefix
+                  `(module:import/prefix ,expr ,maybe-prefix ,@exports)
+                  `(module:import ,expr ,@exports)))))
 
-	  (`(`mod . `args)
-	   (if (module-symbol? (source-code mod))
+          (`(`mod . `args)
+           (if (module-symbol? (source-code mod))
 
-	       (modimport-expand:mod
-		maybe-prefix
-		mod
-		expr
-		(&
-		 (source-error
-		  mod
-		  (string-append
-		   "modimport: can't find -exports entry"
-		   " for this module symbol"))))
+               (modimport-expand:mod
+                maybe-prefix
+                mod
+                expr
+                (&
+                 (source-error
+                  mod
+                  (string-append
+                   "modimport: can't find -exports entry"
+                   " for this module symbol"))))
 
-	       (source-error
-		mod
-		;; XX this was "if no prefix is given", hmm, which is
-		;; true really?
-		(string-append
-		 "modimport requires syntax matching"
-		 " `module-symbol?` here if no import list is given")))))))
+               (source-error
+                mod
+                ;; XX this was "if no prefix is given", hmm, which is
+                ;; true really?
+                (string-append
+                 "modimport requires syntax matching"
+                 " `module-symbol?` here if no import list is given")))))))
 
 (defmacro (modimport expr . vars)
   (if (keyword? (source-code expr))
       (source-error (second (source-code stx))
-		    ;; expr has been stripped of source information,
-		    ;; gah, for macro expander keyword functionality
-		    (string-append
-		     "modimport: can't take keyword as first argument "
-		     "(did you mean to use |modimport/prefix|?)"))
+                    ;; expr has been stripped of source information,
+                    ;; gah, for macro expander keyword functionality
+                    (string-append
+                     "modimport: can't take keyword as first argument "
+                     "(did you mean to use |modimport/prefix|?)"))
       (modimport-expand #f expr vars)))
 
 (defmacro (modimport/prefix prefix expr . vars)
@@ -456,16 +456,16 @@
  (module:import tj8znc94e7fkdsqfm a b c)
  ;; > (expansion#modimport tj8znc94e7fkdsqfm)
  > (with-exception-catcher source-error-message
-			   (& (modimport-expand #f 'tj8znc94e7fkdsqfm '())))
+                           (& (modimport-expand #f 'tj8znc94e7fkdsqfm '())))
  "modimport: module-holding symbol does not contain a value (yet?)"
  > (with-exception-catcher source-error-message
-			   (& (modimport-expand #f '<tj8znc94e7fkdsqfm> '())))
+                           (& (modimport-expand #f '<tj8znc94e7fkdsqfm> '())))
  "modimport: module-holding symbol does not contain a value (yet?)"
  > (with-exception-catcher source-error-message
-			   (& (modimport-expand #f '<tj8znc94e7fkdsqfm> '(a))))
+                           (& (modimport-expand #f '<tj8znc94e7fkdsqfm> '(a))))
  (module:import <tj8znc94e7fkdsqfm> a)
  > (with-exception-catcher source-error-message
-			   (& (modimport-expand foo: '<tj8znc94e7fkdsqfm> '(a))))
+                           (& (modimport-expand foo: '<tj8znc94e7fkdsqfm> '(a))))
  (module:import/prefix <tj8znc94e7fkdsqfm> foo: a)
  ;; a shadow definition, defines foo-exports :
  > (defmodule (foo x) (export bad guys) (def bad 1) (def guys 2))
@@ -477,7 +477,7 @@
  ;; want to use defmodule for unparametrized modules?), thus this is
  ;; an error:
  > (with-exception-catcher wrong-number-of-arguments-exception?
-			   (& (modimport-expand #f '<foo> '())))
+                           (& (modimport-expand #f '<foo> '())))
  #t
  ;; correct:
  > (modimport-expand #f '(<foo> Y) '())
@@ -489,7 +489,7 @@
  > (modimport-expand foo: '(<foo> 13 14) '())
  (module:import/prefix (<foo> 13 14) foo: bar baz)
  > (with-exception-catcher source-error-message
-			   (& (modimport-expand foo: '(foo 13 14) '())))
+                           (& (modimport-expand foo: '(foo 13 14) '())))
  "modimport requires syntax matching `module-symbol?` here if no import list is given"
  > (modimport-expand foo: 'foo '())
  (module:import/prefix foo foo: bar baz))
@@ -528,16 +528,16 @@
 
 (defmacro ($ . exprs)
   `(string-interpolate (##lambda (v)
-			    (##if (##let ()
-					 (##declare (block)
-						    (standard-bindings)
-						    (extended-bindings)
-						    (not safe) (fixnum))
-					 (##namespace (""))
-					 (string? v))
-				  v
-				  (.string v)))
-		       ,@exprs))
+                            (##if (##let ()
+                                         (##declare (block)
+                                                    (standard-bindings)
+                                                    (extended-bindings)
+                                                    (not safe) (fixnum))
+                                         (##namespace (""))
+                                         (string? v))
+                                  v
+                                  (.string v)))
+                       ,@exprs))
 
 (TEST
  > (define bar-world 11)
