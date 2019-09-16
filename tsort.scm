@@ -9,7 +9,7 @@
 (require easy
 	 test
 	 alist
-	 (cj-seen make-seen?+!))
+	 (cj-seen make-seen?&!))
 
 (export (jclass topo-relation)
 	topo?
@@ -29,8 +29,8 @@
 ;; XX must .name be unique in each topo? ?
 
 (def. (topo.sort rs) -> topo?
-  (let-values (((processed? processed!) (make-seen?+!))
-               ((seen? seen!) (make-seen?+!)))
+  (let-values (((processed? processed!) (make-seen?&!))
+               ((seen? seen!) (make-seen?&!)))
     (let ((name.dep.relation
 	   (lambda (name)
 	     (lambda (dep)
@@ -77,6 +77,16 @@
 	    (topo-relation 'g '(e))
 	    (topo-relation 'h '())
 	    (topo-relation 'i '(h))))
+ > (topo.sort rs)
+ ([(topo-relation) c ()]
+  [(topo-relation) a (c)]
+  [(topo-relation) b ()]
+  [(topo-relation) d ()]
+  [(topo-relation) e (a c)]
+  [(topo-relation) f (b c d)]
+  [(topo-relation) g (e)]
+  [(topo-relation) h ()]
+  [(topo-relation) i (h)])
  > (def sorted-ns (topo.sort* rs))
  > sorted-ns
  (c a b d e f g h i)
@@ -94,8 +104,9 @@
  > (c 'e 'a)
  gt
  > (c 'e 'h)
- lt ;; eq well. does e need h or something? h needs nothing, e needs a
-    ;; c which don't need it. eq would be correct.
+ lt
+ ;; eq well. does e need h or something? h needs nothing, e needs a
+ ;; c which don't need it. eq would be correct.
  > (c 'e 'e)
  gt ;; huh;  eq ;; ok?  
  > (c 'a 'c)
