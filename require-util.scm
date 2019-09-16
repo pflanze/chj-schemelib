@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -110,8 +110,9 @@
 
 (def (modulepaths-tsort paths)
      (let* ((rs (map path-string.topo-relation paths))
-	    (z (map cons (map .name rs) paths)))
-       (map (C symbol-alist-ref z _) (topo.sort* rs))))
+	    (modulename->path-alis (map cons (map .name rs) paths))
+            (modulename->path (C symbol-alist-ref modulename->path-alis _)))
+       (map modulename->path (topo.sort* rs))))
 
 
 ;; path before normalization
@@ -176,7 +177,8 @@
 	   "}\n"))
 
 
-;; a single-dependency representation
+;; a single-dependency representation (unlike topo-relation, which
+;; represents all dependencies for the given name)
 (jclass (requires name dependency))
 
 (def (modulepaths-satisfying? paths) -> Result?
