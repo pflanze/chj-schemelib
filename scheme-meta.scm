@@ -111,6 +111,7 @@
 ;; XX bit vectors ?
 
 
+;; Shallow check
 (define (sexpr-object? v)
   (or (symbol? v)
       (self-quoting? v)
@@ -121,6 +122,7 @@
       (homogenous-vector? v)))
 
 
+;; Deep check
 (define (sexpr? v)
   (or (symbol? v)
       (self-quoting? v)
