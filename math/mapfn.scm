@@ -12,6 +12,8 @@
          test-logic)
 
 (export mapfn
+        (method vector.mapfn
+                iseq.mapfn)
 	#!optional
 	interpolate
         interpolate*)
@@ -147,4 +149,45 @@
             (catching f0)
             (catching f1))
  ())
+
+
+(def. (vector.mapfn [(vector-of number?) v])
+  (let* ((len-1 (dec (-> positive? (vector-length v))))
+         (real-in-range (both real?
+                              (C <= 0 _ len-1))))
+    (lambda ([real-in-range x])
+      (if (= x len-1)
+          (vector-ref v len-1)
+          (let* ((x1 (integer x))
+                 (y1 (vector-ref v x1))
+                 (x2 (inc x1))
+                 (y2 (vector-ref v x2)))
+            (interpolate* x1 y1 x2 y2 x))))))
+
+(def. iseq.mapfn
+  (=>* .vector vector.mapfn))
+
+
+(TEST
+ > (def f (.mapfn '(10)))
+ > (f 0)
+ 10
+ > (%try (f 1))
+ (exception text: "x does not match real-in-range: 1\n")
+ > (%try (f 0.1))
+ (exception text: "x does not match real-in-range: .1\n")
+
+ > (def f (.mapfn '(10 11)))
+ > (f 0)
+ 10
+ > (f 1)
+ 11
+ > (f 1/2)
+ 21/2
+
+ > (def f (.mapfn '(10 14 -2)))
+ > (f 1)
+ 14
+ > (f 3/2)
+ 6)
 
