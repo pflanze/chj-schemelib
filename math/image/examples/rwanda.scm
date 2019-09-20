@@ -8,7 +8,7 @@
 
 (require easy
 	 (math/mapfn mapfn)
-	 (math/image/visualize plot))
+	 (math/visualize/plot plot))
 
 ;;  	Total population (in thousands)) 	Population aged 0–14 (%) 	Population aged 15–64 (%) 	Population aged 65+ (%)
 ;; 1950 	2,072 	45.1 	52.3 	2.6

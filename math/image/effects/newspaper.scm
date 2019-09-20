@@ -116,7 +116,7 @@
 			     (lowpass-attenuation-at@ (r:ii./ i1 s1)))))))
 
 
-;; move to visualize.scm?
+;; move to visualize/plot.scm?
 
 ;; test random-offset
 
