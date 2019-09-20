@@ -13,9 +13,10 @@
 
 (export mapfn
         (method number-vector.mapfn
-                iseq.mapfn)
+                iseq-of-number.mapfn)
 	#!optional
-        number-vector? ;; xx move ?
+        number-vector?
+        iseq-of-number?
 	interpolate
         interpolate*)
 
@@ -169,7 +170,10 @@
                  (y2 (.ref v x2)))
             (interpolate* x1 y1 x2 y2 x))))))
 
-(def. iseq.mapfn
+(def iseq-of-number?
+     (iseq-of number?))
+
+(def. iseq-of-number.mapfn
   (=>* .vector number-vector.mapfn))
 
 
