@@ -12,9 +12,10 @@
          test-logic)
 
 (export mapfn
-        (method vector.mapfn
+        (method number-vector.mapfn
                 iseq.mapfn)
 	#!optional
+        number-vector? ;; xx move ?
 	interpolate
         interpolate*)
 
@@ -151,21 +152,25 @@
  ())
 
 
-(def. (vector.mapfn [(vector-of number?) v])
-  (let* ((len-1 (dec (-> positive? (vector-length v))))
+(def number-vector?
+     (either homogenous-vector?
+             (vector-of number?)))
+
+(def. (number-vector.mapfn v)
+  (let* ((len-1 (dec (-> positive? (.length v))))
          (real-in-range (both real?
                               (C <= 0 _ len-1))))
     (lambda ([real-in-range x])
       (if (= x len-1)
-          (vector-ref v len-1)
+          (.ref v len-1)
           (let* ((x1 (integer x))
-                 (y1 (vector-ref v x1))
+                 (y1 (.ref v x1))
                  (x2 (inc x1))
-                 (y2 (vector-ref v x2)))
+                 (y2 (.ref v x2)))
             (interpolate* x1 y1 x2 y2 x))))))
 
 (def. iseq.mapfn
-  (=>* .vector vector.mapfn))
+  (=>* .vector number-vector.mapfn))
 
 
 (TEST
