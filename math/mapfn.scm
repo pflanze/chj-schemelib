@@ -133,7 +133,7 @@
   (let* ((len-1 (dec (-> positive? (.length v))))
          (real-in-range (both real?
                               (C <= 0 _ len-1)))
-         (ref (CAN. .ref v)))
+         (ref (resolve. .ref v)))
     (lambda ([real-in-range x])
       (if (= x len-1)
           (ref v len-1)
