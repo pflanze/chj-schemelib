@@ -114,6 +114,10 @@
 
 
 (TEST
+ ;; imaginary vals work
+ > ((mapfn (list (cons 1 -2i) (cons 3 2))) 2)
+ 1-i
+
  > (def m (mapfn '((1 . 100) (2 . 200) (0 . 10) (-1 . 5) (3 . 310))
                  ;;'sorted-alist
                  ))
