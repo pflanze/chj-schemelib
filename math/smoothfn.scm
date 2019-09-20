@@ -6,17 +6,20 @@
 ;;;    (at your option) any later version.
 
 
-(require easy)
+(require easy
+         (dot-oo resolve.))
 
-(export (method u32vector.smoothfn))
+(export (method number-vector.smoothfn))
 
 "Like number-vector.mapfn / iseq-of-number.mapfn but smoothed"
+;; in future also add alist.smoothfn well however exact you want to
+;; name the type. Add type to math/predicates.
 
 
 (include "../cj-standarddeclares.scm")
 
 
-(def. (u32vector.smoothfn vec)
+(def. (number-vector.smoothfn vec)
   ;; Some sort of weighted average.
   ;; weight = 1/ distance^2
   ;; When too close, just take the value.
@@ -31,7 +34,8 @@
   (define-macro (square v)
     `(fl* ,v ,v))
   
-  (let* ((len (u32vector-length vec))
+  (let* ((len (.length vec))
+         (ref-inexact (resolve. .ref-inexact vec))
 
          ;; Conversion to i's scale
          (x-scaler (exact->inexact (dec len)))
@@ -58,13 +62,11 @@
                   ;;       (warn "weight=" weight))
                   (+! tot-weight weight)
                   (+! tot (fl* weight
-                               (exact->inexact
-                                (u32vector-ref vec i))))))
+                               (ref-inexact vec i)))))
         (let (w (ref tot-weight))
           (if (or (infinite? w) (nan? w) (fl> w 1e7)) ;; ?
               ;; too close, just take the value.
-              (inexact
-               (u32vector-ref vec (integer (fl+ x-scaled 0.5))))
+              (ref-inexact vec (integer (fl+ x-scaled 0.5)))
               (fl/ (ref tot) w)))))))
 
 (TEST
