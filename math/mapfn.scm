@@ -160,14 +160,15 @@
 (def. (number-vector.mapfn v)
   (let* ((len-1 (dec (-> positive? (.length v))))
          (real-in-range (both real?
-                              (C <= 0 _ len-1))))
+                              (C <= 0 _ len-1)))
+         (ref (CAN. .ref v)))
     (lambda ([real-in-range x])
       (if (= x len-1)
-          (.ref v len-1)
+          (ref v len-1)
           (let* ((x1 (integer x))
-                 (y1 (.ref v x1))
+                 (y1 (ref v x1))
                  (x2 (inc x1))
-                 (y2 (.ref v x2)))
+                 (y2 (ref v x2)))
             (interpolate* x1 y1 x2 y2 x))))))
 
 (def iseq-of-number?
