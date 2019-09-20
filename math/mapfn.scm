@@ -8,16 +8,14 @@
 
 (require easy
          math/interpolate
+         math/predicates
          vector-binsearch
 	 test
          test-logic)
 
 (export mapfn
         (method number-vector.mapfn
-                iseq-of-number.mapfn)
-	#!optional
-        number-vector?
-        iseq-of-number?)
+                iseq-of-number.mapfn))
 
 (include "../cj-standarddeclares.scm")
 
@@ -131,10 +129,6 @@
  ())
 
 
-(def number-vector?
-     (either homogenous-vector?
-             (vector-of number?)))
-
 (def. (number-vector.mapfn v)
   (let* ((len-1 (dec (-> positive? (.length v))))
          (real-in-range (both real?
@@ -148,9 +142,6 @@
                  (x2 (inc x1))
                  (y2 (ref v x2)))
             (interpolate* x1 y1 x2 y2 x))))))
-
-(def iseq-of-number?
-     (iseq-of number?))
 
 (def. iseq-of-number.mapfn
   (=>* .vector number-vector.mapfn))
