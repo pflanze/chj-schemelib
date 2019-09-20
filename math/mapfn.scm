@@ -74,35 +74,33 @@
  -.7071067811865476+2.121320343559643i)
 
 
-(def (mapfn/sorted-alist l)
-     (lambda ([real? x])
-       (cond-ordered-assoc
-        x l <
-        (lambda-pair ((x1 y1))
-                     (error "out of range, value too small:" x x1))
-        (C interpolate _ _ x)
-        (lambda-pair ((x1 y1))
-                     (if (= x x1)
-                         y1
-                         (error "out of range, value too large:" x x1))))))
+(def ((mapfn/sorted-alist l) [real? x])
+     (cond-ordered-assoc
+      x l <
+      (lambda-pair ((x1 y1))
+                   (error "out of range, value too small:" x x1))
+      (C interpolate _ _ x)
+      (lambda-pair ((x1 y1))
+                   (if (= x x1)
+                       y1
+                       (error "out of range, value too large:" x x1)))))
 
 
 
-(def (mapfn/sorted-vectorpair keys vals)
-     (lambda ([real? x])
-       (let (r (vector-binsearch keys x real-cmp #t))
-         (cond ((pair? r)
-                (interpolate* (vector-ref keys (car r)) (vector-ref vals (car r))
-                              (vector-ref keys (cdr r)) (vector-ref vals (cdr r))
-                              x))
-               ((fixnum-natural0? r)
-                (vector-ref vals r))
-               (else
-                (if (< x (vector-ref keys 0))
-                    (error "out of range, value too small:"
-                           x (vector-ref keys 0))
-                    (error "out of range, value too large:"
-                           x (vector-ref* keys -1))))))))
+(def ((mapfn/sorted-vectorpair keys vals) [real? x])
+     (let (r (vector-binsearch keys x real-cmp #t))
+       (cond ((pair? r)
+              (interpolate* (vector-ref keys (car r)) (vector-ref vals (car r))
+                            (vector-ref keys (cdr r)) (vector-ref vals (cdr r))
+                            x))
+             ((fixnum-natural0? r)
+              (vector-ref vals r))
+             (else
+              (if (< x (vector-ref keys 0))
+                  (error "out of range, value too small:"
+                         x (vector-ref keys 0))
+                  (error "out of range, value too large:"
+                         x (vector-ref* keys -1)))))))
 
 (def (mapfn [(list-of (pair-of real? number?)) alis]
             #!optional (algo 'sorted-vectorpair))
