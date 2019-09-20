@@ -36,6 +36,7 @@
         (macro CALL.)
         can.
         (macro CAN.)
+        (macro resolve.)
         nothing? ;; really?
 
         ;; XX should move?
@@ -45,7 +46,8 @@
         define-struct.-expand
         (generic .typecheck!) ;; ?
         (variable *dot-oo:method-trace*)
-        (variable *dot-oo:method-stats*))
+        (variable *dot-oo:method-stats*)
+        dot-oo:method-table-ref-method)
 
 
 (include "cj-standarddeclares.scm")
@@ -173,6 +175,31 @@
        (generic-name-string.method-table-name (symbol->string genericname)))
       obj))))
 
+(define-macro* (CAN. genericname obj)
+  (assert*
+   symbol? genericname
+   (lambda (genericname)
+     `(dot-oo:method-table-maybe-ref-method
+       ,(generic-name-string.method-table-name (symbol->string genericname))
+       ,obj))))
+
+
+(define (dot-oo:method-table-ref-method mtable obj genericname)
+  (or (dot-oo:method-table-maybe-ref-method mtable obj)
+      (dot-oo:generic-error genericname obj)))
+
+
+;; inconsistent with can. vs CAN. above, but, RESOLVE. just looks too
+;; ugly. Stop shouting.
+(define-macro* (resolve. genericname obj)
+  (assert*
+   symbol? genericname
+   (lambda (genericname)
+     `(dot-oo:method-table-ref-method
+       ,(generic-name-string.method-table-name (symbol->string genericname))
+       ,obj
+       ',genericname))))
+
 
 ;; genericname and type
 (define dot-oo:can.-show-generic-entry? (inhomogenous-list-of symbol? symbol?))
@@ -191,14 +218,6 @@
        => (lambda (entry)
             (cons genericname entry)))
       (else #f)))))
-
-(define-macro* (CAN. genericname obj)
-  (assert*
-   symbol? genericname
-   (lambda (genericname)
-     `(dot-oo:method-table-maybe-ref-method
-       ,(generic-name-string.method-table-name (symbol->string genericname))
-       ,obj))))
 
 
 (both-times
