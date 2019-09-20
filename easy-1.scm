@@ -45,6 +45,7 @@
         (macro def-inline)
         (macro defenum)
         (macro def-values)
+        (macro def*)
         (macro defparameter)
         (macro def-once)
         comp-function
@@ -243,6 +244,48 @@
 
 (define-macro* (def-values . args)
   `(define-values ,@args))
+
+;; Rather than implement def-list and def-pair, go "all the way"?...:
+(defmacro (def* binds expr)
+  "Define given bindings with the list from expr bound to them, the
+same way (once implemented) that lambda variables are bound to the argument
+list."
+  (let ((binds* (source-code binds)))
+    (if (pair? binds*)
+        ;; Argument list thing again actually; could exctract variable
+        ;; names, then lambda and set all of those. But that requires
+        ;; apply, use safer-apply again? For now just handle a few
+        ;; special cases.
+        (let* ((b1 (cdr binds*)) (b1* (source-code b1)))
+          (cond ((null? b1*)
+                 `(def ,(car binds*) (xone (force ,expr))))
+                ((pair? b1*)
+                 (source-error binds "more than 1 list elements not yet implemented XX"))
+                (else
+                 (let-pair
+                  ((a b) binds*)
+                  (with-gensyms
+                   (A B)
+                   `(begin
+                      (define ,a)
+                      (define ,b)
+                      (let-pair ((,A ,B) (force ,expr))
+                                (set! ,a ,A)
+                                (set! ,b ,B))))))))
+        (source-error binds "expecting (optionally improper) list"))))
+
+(TEST
+ > (def* (a) (list 10))
+ > a
+ 10
+ > (def* (a . b) (list 10 20))
+ > (list a b)
+ (10 (20))
+ ;; > (def* (a b) (list 10 20))
+ ;; > (list a b)
+ ;; (10 20)
+ )
+
 
 (define-macro* (defparameter . args)
   `(define-parameter ,@args))
