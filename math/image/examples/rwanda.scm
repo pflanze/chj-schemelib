@@ -10,20 +10,6 @@
 	 (math/mapfn mapfn)
 	 (math/visualize/plot plot))
 
-;;  	Total population (in thousands)) 	Population aged 0–14 (%) 	Population aged 15–64 (%) 	Population aged 65+ (%)
-;; 1950 	2,072 	45.1 	52.3 	2.6
-;; 1955 	2,386 	46.3 	50.8 	2.9
-;; 1960 	2,771 	48.1 	49.1 	2.8
-;; 1965 	3,221 	47.8 	49.5 	2.7
-;; 1970 	3,749 	47.8 	49.7 	2.5
-;; 1975 	4,390 	47.7 	49.9 	2.4
-;; 1980 	5,179 	48.1 	49.7 	2.2
-;; 1985 	6,081 	48.9 	49.1 	2.0
-;; 1990 	7,110 	49.1 	48.7 	2.2
-;; 1995 	5,570 	48.4 	49.3 	2.3
-;; 2000 	8,098 	45.4 	52.0 	2.6
-;; 2005 	9,202 	42.4 	55.0 	2.7
-;; 2010 	10,624 	42.6 	54.7 	2.7
 
 (defclass (population-point year
                             ;; thousands:
@@ -52,6 +38,7 @@
 
 (def population-data
      (map (C apply population-point _)
+          ;; Total population (in thousands)) 	Population aged 0–14 (%) 	Population aged 15–64 (%) 	Population aged 65+ (%)
 	  '((1950 	2072 	45.1 	52.3 	2.6)
 	    (1955 	2386 	46.3 	50.8 	2.9)
 	    (1960 	2771 	48.1 	49.1 	2.8)
