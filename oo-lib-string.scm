@@ -58,4 +58,9 @@
  #\b
  > (with-exception-catcher range-exception? (thunk (string-ref* "abc" -4)))
  #t
- )
+
+ > (.ref-inexact "foo" 0)
+ 102.
+ > (.ref-inexact-real "foo" 1)
+ 111.)
+

@@ -69,6 +69,82 @@
   (def. VECTOR.VECTOR identity)
 
   (def. VECTOR.ref VECTOR-ref)
+
+  (def. VECTOR.ref-real
+    (insert-result-of
+     (case 'VECTOR
+       ((vector) (quasiquote-source
+                  (lambda (v i)
+                    (-> real? (VECTOR-ref v i)))))
+       ((string) (quasiquote-source
+                  (lambda (v i)
+                    (char->integer (VECTOR-ref v i)))))
+       (else
+        `VECTOR-ref))))
+
+  (def. VECTOR.ref-inexact
+    (insert-result-of
+     (xcase 'VECTOR
+
+            ((vector)
+             (quasiquote-source
+              (lambda (v i)
+                (exact->inexact (VECTOR-ref v i)))))
+            
+            ((string)
+             (quasiquote-source
+              (lambda (v i)
+                (exact->inexact (char->integer (VECTOR-ref v i))))))
+            
+            ((f32vector f64vector)
+             `VECTOR-ref)
+
+            ((s16vector
+              s32vector
+              s64vector
+              s8vector
+              u16vector
+              u32vector
+              u64vector
+              u8vector)
+             (quasiquote-source
+              (lambda (v i)
+                (exact->inexact (VECTOR-ref v i))))))))
+
+
+  (def. VECTOR.ref-inexact-real
+    (insert-result-of
+     (xcase 'VECTOR
+
+            ((vector)
+             (quasiquote-source
+              (lambda (v i)
+                (exact->inexact (-> real? (VECTOR-ref v i))))))
+
+            ((string)
+             (quasiquote-source
+              (lambda (v i)
+                (exact->inexact (char->integer (VECTOR-ref v i))))))
+
+            ((f32vector f64vector)
+             `VECTOR-ref)
+
+            ((f32vector f64vector)
+             `VECTOR-ref)
+
+            ((s16vector
+              s32vector
+              s64vector
+              s8vector
+              u16vector
+              u32vector
+              u64vector
+              u8vector)
+             (quasiquote-source
+              (lambda (v i)
+                (exact->inexact (VECTOR-ref v i))))))))
+  
+  
   (def. VECTOR.set! VECTOR-set!)
 
   (def (VECTOR-ref* v i)
