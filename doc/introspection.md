@@ -20,3 +20,6 @@
 
 - OO: see [OO](OO.md).
 
+- show-def: see [OO#Widely used interfaces / methods](OO.md).
+
+
