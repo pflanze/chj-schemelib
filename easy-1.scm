@@ -14,7 +14,7 @@
          cj-env ;; identity ?, define-if-not-defined
          cj-functional ;; compose etc.
          cj-struct
-         cj-typed
+         cj-typed ;; incl. args-vars
          dot-oo ;; incl. define.
          srfi-11
          define-module
@@ -252,27 +252,50 @@ same way (once implemented) that lambda variables are bound to the argument
 list."
   (let ((binds* (source-code binds)))
     (if (pair? binds*)
-        ;; Argument list thing again actually; could exctract variable
-        ;; names, then lambda and set all of those. But that requires
-        ;; apply, use safer-apply again? For now just handle a few
-        ;; special cases.
-        (let* ((b1 (cdr binds*)) (b1* (source-code b1)))
-          (cond ((null? b1*)
-                 `(def ,(car binds*) (xone (force ,expr))))
-                ((pair? b1*)
-                 (source-error binds "more than 1 list elements not yet implemented XX"))
-                (else
-                 (let-pair
-                  ((a b) binds*)
-                  (with-gensyms
-                   (A B)
-                   `(begin
-                      (define ,a)
-                      (define ,b)
-                      (let-pair ((,A ,B) (force ,expr))
-                                (set! ,a ,A)
-                                (set! ,b ,B))))))))
-        (source-error binds "expecting (optionally improper) list"))))
+        ;; Some special cases for efficiency (and better error
+        ;; handling?):
+        (let-pair
+         ((a b) binds*)
+         (let* ((b* (source-code b)))
+           (cond
+            ((and (null? b*)
+                  ;; no typing required?:
+                  (symbol? (source-code a)))
+             `(def ,a (xone (force ,expr))))
+            ((and (symbol? b*)
+                  (symbol? (source-code a)))
+             (with-gensyms
+              (A B)
+              `(begin
+                 (define ,a)
+                 (define ,b)
+                 (let-pair ((,A ,B) (force ,expr))
+                           (set! ,a ,A)
+                           (set! ,b ,B)))))
+            (else
+             ;; including typed cases of the above
+             (let ((vars (args-vars binds)))
+               (with-gensym
+                VS
+                `(begin
+                   ,@(map (lambda (var)
+                            `(define ,var))
+                          vars)
+                   (safer-apply ',(schemedefinition-arity:pattern->template
+                                   binds*)
+                                (lambda ,binds
+                                  (##vector ,@vars))
+                                ,expr
+                                error
+                                ;; such a hack. Should really just
+                                ;; implement the full args parser,
+                                ;; finally.
+                                (lambda (,VS)
+                                  ,@(map/iota
+                                     (lambda (var i)
+                                       `(##set! ,var (vector-ref ,VS ,i)))
+                                     vars))))))))))
+        (source-error binds "expecting binding list (optionally improper / with DSSSL meta objects)"))))
 
 (TEST
  > (def* (a) (list 10))
@@ -281,10 +304,16 @@ list."
  > (def* (a . b) (list 10 20))
  > (list a b)
  (10 (20))
- ;; > (def* (a b) (list 10 20))
- ;; > (list a b)
- ;; (10 20)
- )
+ > (def* (a b) (list 10 20))
+ > (list a b)
+ (10 20)
+ > (def* ([integer? a] b #!optional c) (list 10 20 30))
+ > (list a b c)
+ (10 20 30)
+ > (%try (def* ([integer? a] b #!optional c) (list "10" 20 30)))
+ (exception text: "a does not match integer?: \"10\"\n")
+ > (%try (def* ([integer? a] b #!optional c) (list 10 20 30 40)))
+ (exception text: "too many arguments\n"))
 
 
 (define-macro* (defparameter . args)
