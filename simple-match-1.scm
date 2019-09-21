@@ -14,6 +14,13 @@
 	 ;; included by define-macro-star.scm
 	 )
 
+(export (macro warn*)
+        (macro match*)
+        (macro match-list*)
+        (macro assert-desourcified*)
+        (macro assert*)
+        (macro assert**))
+
 
 ; (define (warn* message . args)
 ;   (continuation-capture

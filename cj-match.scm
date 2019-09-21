@@ -21,6 +21,10 @@
 	 (string-util strings-join)
 	 C)
 
+(export (macro match)
+        (macro matchl)
+        (macro mcase)
+        (macro mcase-lambda))
 
 
 ;; destructuring bind

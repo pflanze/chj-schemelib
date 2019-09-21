@@ -10,6 +10,11 @@
 	 (cj-env named) ;; part of easy-1 ?
 	 test)
 
+(export flatten/
+        flatten
+        flatten*)
+
+
 (def (flatten/ drop-false?)
      (named flatten
 	    (lambda (v tail)
