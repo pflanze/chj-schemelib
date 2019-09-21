@@ -11,12 +11,14 @@
 ;;;
 
 (require define-macro-star
-         (scheme-meta perhaps-quote)
+         (scheme-meta perhaps-quote dsssl-meta-object?)
          test
          srfi-11
          (simple-match-1 assert*)
          (cj-source-util-2 assert)
-         (improper-list improper-length)
+         (improper-list improper-length
+                        improper-fold-right*
+                        improper-fold-right)
          cj-typed-1)
 
 (export (macro type-check)
@@ -28,6 +30,7 @@
         typed.var
         typed.predicate
         args-detype
+        args-vars
         (macro typed-lambda)
         (macro define-typed)
         (macro ->)
@@ -220,8 +223,31 @@
  > (args-detype '([pair? a] b #!optional (c 10)))
  (a b #!optional (c 10))
  > (args-detype '([pair? a] b #!optional ([number? c] 10)))
- (a b #!optional (c 10))
- )
+ (a b #!optional (c 10)))
+
+
+(define (args-vars args)
+  (improper-fold-right
+   (lambda (arg vars)
+     (if (dsssl-meta-object? (source-code arg))
+         vars
+         (cons (perhaps-typed.var arg) vars)))
+   '()
+   (source-code args)))
+
+(TEST
+ > (args-vars 'foo)
+ (foo)
+ > (args-vars '(foo))
+ (foo)
+ > (args-vars '(foo bar))
+ (foo bar)
+ > (args-vars '(foo bar . baz))
+ (foo bar baz)
+ > (args-vars '(foo bar . [foo? baz]))
+ (foo bar baz)
+ > (args-vars '(foo #!optional bar #!key boo . [foo? baz]))
+ (foo bar boo baz))
 
 
 (define (typed-body-parse maybe-stx body cont/maybe-pred+body)
