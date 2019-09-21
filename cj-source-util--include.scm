@@ -62,7 +62,7 @@
 
   (define (inc x);; copy from cj-env because of phasing issue
     (+ x 1))
-  (let lp ((l lis)
+  (let lp ((l (source-code lis))
 	   (min-count 0))
     (define (at-least)
       (vector 'at-least min-count))
