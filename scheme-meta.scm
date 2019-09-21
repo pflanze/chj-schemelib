@@ -17,6 +17,7 @@
 	optional?
 	key?
 	rest?
+        dsssl-meta-object?
 	
 	self-quoting?
 	constant-expr?
@@ -65,6 +66,15 @@
 
 (define (rest? v)
   (eq? v #!rest))
+
+(define (dsssl-meta-object? v)
+  (case v
+    ((#!optional
+      #!key
+      #!rest)
+     #t)
+    (else
+     #f)))
 
 
 (define (self-quoting? v)
