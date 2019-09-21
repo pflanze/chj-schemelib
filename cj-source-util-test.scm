@@ -6,7 +6,9 @@
 ;;;    (at your option) any later version.
 
 
-(require ;;cj-source-util
+(require
+ ;;cj-source-util
+ (cj-source-quasiquote quasiquote-source)
  test
  (test-lib-1 %try))
 
@@ -30,7 +32,8 @@
  ok
  > (c 500)
  ok
- > (define c (schemedefinition-arity-checker '(a b c #!optional d)))
+ > (define c (schemedefinition-arity-checker (quasiquote-source
+                                              (a b c #!optional d))))
  > (c 2)
  not-enough
  > (c 3)
@@ -50,7 +53,8 @@
  ok
  > (c 6)
  too-many
- > (define c (schemedefinition-arity-checker '(a b c #!rest d)))
+ > (define c (schemedefinition-arity-checker (quasiquote-source
+                                              (a b c #!rest d))))
  > (c 2)
  not-enough
  > (c 3)

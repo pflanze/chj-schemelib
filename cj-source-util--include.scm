@@ -60,7 +60,7 @@
   ;; -> (vector-of schemedefinition-arity-template-qualifier?
   ;;               fixnum-natural0?)
 
-  (define (inc x);; copy from cj-env because of phasing issue
+  (define (inc x) ;; copy from cj-env because of phasing issue
     (+ x 1))
   (let lp ((l (source-code lis))
 	   (min-count 0))
@@ -82,48 +82,51 @@
               ((pair? l)
                ;; *almost* copy from above, hm.
                (let ((a (car l)))
-                 (cond ((eq? a #!rest)
-                        (at-least))
-                       ((eq? a #!optional)
-                        (error "#!optional after #!key in argument list:"
-                               lis))
-                       ((eq? a #!key)
-                        (error "more than one #!key in argument list:" lis))
-                       (else
-                        (lp (cdr l)
-                            (+ max-count 2))))))
+                 (case (source-code a)
+                   ((#!rest)
+                    (at-least))
+                   ((#!optional)
+                    (error "#!optional after #!key in argument list:"
+                           lis))
+                   ((#!key)
+                    (error "more than one #!key in argument list:" lis))
+                   (else
+                    (lp (cdr l)
+                        (+ max-count 2))))))
               (else
                (at-least)))))
 
     (cond ((pair? l)
 	   (let ((a (car l)))
              
-	     (cond ((eq? a #!rest)
-		    (at-least))
-		   ((eq? a #!optional)
-		    (let lp ((l (cdr l))
-			     (max-count min-count))
-		      (cond ((null? l)
-			     (up-to max-count))
-			    ((pair? l)
-			     (let ((a (car l)))
-			       (cond ((eq? a #!rest)
-				      (at-least))
-				     ((eq? a #!optional)
-				      (error "more than one #!optional in argument list:"
-                                             lis))
-				     ((eq? a #!key)
-				      (handle-key (cdr l) max-count))
-				     (else
-				      (lp (cdr l)
-					  (inc max-count))))))
-			    (else
-			     (at-least)))))
-		   ((eq? a #!key)
-                    (handle-key (cdr l) min-count))
-		   (else
-		    (lp (cdr l)
-			(inc min-count))))))
+	     (case (source-code a)
+               ((#!rest)
+                (at-least))
+               ((#!optional)
+                (let lp ((l (cdr l))
+                         (max-count min-count))
+                  (cond ((null? l)
+                         (up-to max-count))
+                        ((pair? l)
+                         (let ((a (car l)))
+                           (case (source-code a)
+                             ((#!rest)
+                              (at-least))
+                             ((#!optional)
+                              (error "more than one #!optional in argument list:"
+                                     lis))
+                             ((#!key)
+                              (handle-key (cdr l) max-count))
+                             (else
+                              (lp (cdr l)
+                                  (inc max-count))))))
+                        (else
+                         (at-least)))))
+               ((#!key)
+                (handle-key (cdr l) min-count))
+               (else
+                (lp (cdr l)
+                    (inc min-count))))))
 	  ((null? l)
 	   (vector 'exact min-count))
 	  (else
