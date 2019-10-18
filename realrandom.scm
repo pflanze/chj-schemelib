@@ -22,6 +22,9 @@ TODO at some point: move to calling getrandom(2) instead, on
 Linux (and BSDs?), with the SECURE flag, which is new. See \"Really
 Fixing Getrandom()\" (lwn.net)"
 
+;; Oh, XXX TODO BUG: This isn't currently posix:fork safe, as it will
+;; read the same data from filled input buffers in both child and
+;; parent until exhausted.
 
 
 ;; well HAD something in mod
