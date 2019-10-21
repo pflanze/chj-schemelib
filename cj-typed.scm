@@ -40,7 +40,8 @@
                 cj-typed-enable)
         
         #!optional
-        typed-body-parse)
+        typed-body-parse
+        typed-lambda-expand)
 
 
 (both-times
@@ -275,7 +276,7 @@
  > (typed-body-parse #f '(-> b c) vector)
  [b (c)])
 
-(define (typed-lambda-args-expand args body)
+(define (typed-lambda-args-expand args body begin-form)
   ;; -> (values-of (improper-list-of (possibly-source-of
   ;;                                  ;; not just symbol? but also #!rest etc.
   ;;                                  sexpr-object?))
@@ -287,7 +288,7 @@
              (values '()
                      ;; can't just return body, as it's also used in
                      ;; transform-arg via the recursive call below:
-                     `(##begin ,@body)))
+                     `(,begin-form ,@body)))
             ((pair? args_)
              (let-pair ((arg args*) args_)
                        (letv (($1 $2) (rem args*))
@@ -311,18 +312,18 @@
          983059])
        (console)
        917523])
- > (values->vector (typed-lambda-args-expand s 'BODY))
+ > (values->vector (typed-lambda-args-expand s 'BODY '##begin))
  [([[source2] ([[source1] pair? (console) 1048595]
                [[source1] a (console) 1441811])
     (console)
     983059])
   (##begin . BODY)]
  ;; ehr well this is the test in action:
- > (values->vector (typed-lambda-args-expand '([pair? x]) 'BODY))
+ > (values->vector (typed-lambda-args-expand '([pair? x]) 'BODY '##begin))
  [(x) (type-check pair? x (##begin . BODY))])
 
 
-(define-macro* (typed-lambda args . body)
+(define (typed-lambda-expand stx args body begin-form)
   (typed-body-parse
    stx body
    (lambda (maybe-pred body)
@@ -340,9 +341,14 @@
                                             args)
                                           ,@body))
              ;; Not curried:
-             (letv ((vars body-expr) (typed-lambda-args-expand args body))
+             (letv ((vars body-expr)
+                    (typed-lambda-args-expand args body begin-form))
                    `(##lambda ,vars
                               ,body-expr))))))))
+
+
+(define-macro* (typed-lambda args . body)
+  (typed-lambda-expand stx args body '##begin))
 
 (TEST
  ;; Curried definitions:
