@@ -56,13 +56,13 @@
     ((at-least up-to exact) #t)
     (else #f)))
 
-(define (schemedefinition-arity:pattern->template lis)
+(define (schemedefinition-arity:pattern->template bindS)
   ;; -> (vector-of schemedefinition-arity-template-qualifier?
   ;;               fixnum-natural0?)
 
   (define (inc x) ;; copy from cj-env because of phasing issue
     (+ x 1))
-  (let lp ((l (source-code lis))
+  (let lp ((l (source-code bindS))
 	   (min-count 0))
     (define (at-least)
       (vector 'at-least min-count))
@@ -87,9 +87,9 @@
                     (at-least))
                    ((#!optional)
                     (error "#!optional after #!key in argument list:"
-                           lis))
+                           bindS))
                    ((#!key)
-                    (error "more than one #!key in argument list:" lis))
+                    (error "more than one #!key in argument list:" bindS))
                    (else
                     (lp (cdr l)
                         (+ max-count 2))))))
@@ -114,7 +114,7 @@
                               (at-least))
                              ((#!optional)
                               (error "more than one #!optional in argument list:"
-                                     lis))
+                                     bindS))
                              ((#!key)
                               (handle-key (cdr l) max-count))
                              (else
