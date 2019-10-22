@@ -41,7 +41,8 @@
         
         #!optional
         typed-body-parse
-        typed-lambda-expand)
+        typed-lambda-expand
+        define-typed-expand)
 
 
 (both-times
@@ -446,8 +447,7 @@
 
 ;; ==========================================
 
-
-(define-macro* (define-typed frst+args . body)
+(define (define-typed-expand stx frst+args body begin-form)
   (let ((frst+args_ (source-code frst+args)))
     (let-pair
      ((frst args) frst+args_)
@@ -457,7 +457,10 @@
             `define-typed
             `define)
        ,frst
-       (typed-lambda ,args ,@body)))))
+       ,(typed-lambda-expand stx args body begin-form)))))
+
+(define-macro* (define-typed frst+args . body)
+  (define-typed-expand stx frst+args body '##begin))
 
 (TEST
  > (define-typed ((f [string? s]) [number? x])
