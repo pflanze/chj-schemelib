@@ -149,27 +149,36 @@
   (def-expand stx first body0 bodyrest '##begin))
 
 (TEST
+ 
  ;; curried definitions:
  > (expansion#def ((f x) y) (list x y))
  ;; (define-typed ((f x) y) (list x y))
- (define-typed (f x) (typed-lambda (y) (list x y)))
+ ;; (define-typed (f x) (typed-lambda (y) (list x y)))
+ (define-typed (f x) (##lambda (y) (##begin (list x y))))
  > (expansion#define-typed ((f x) y) (list x y))
- (define-typed (f x) (typed-lambda (y) (list x y)))
+ ;; (define-typed (f x) (typed-lambda (y) (list x y)))
+ (define-typed (f x) (##lambda (y) (##begin (list x y))))
  > (expansion#define-typed (f x) (typed-lambda (y) (list x y)))
- (define f (typed-lambda (x) (typed-lambda (y) (list x y))))
+ ;; (define f (typed-lambda (x) (typed-lambda (y) (list x y))))
+ (define f (##lambda (x) (##begin (typed-lambda (y) (list x y)))))
+ 
  ;; docstrings:
  > (expansion#def (x a) 10)
  ;; (define-typed (x a) 10)
- (define x (typed-lambda (a) 10))
+ ;; (define x (typed-lambda (a) 10))
+ (define x (##lambda (a) (##begin 10)))
  > (expansion#def (x a) "foo" 10)
  ;; (define-typed (x a) "foo" 10)
- (define x (typed-lambda (a) "foo" 10))
+ ;; (define x (typed-lambda (a) "foo" 10))
+ (define x (##lambda (a) (##begin "foo" 10)))
  > (with-exception-catcher source-error-message (& (eval '(def x "foo" 10))))
  "|def| using docstring but body is not a form, thus can't move it there"
  > (expansion#def x "foo")
- (define x "foo")
+ ;; (define x "foo")
+ (##define x "foo")
  > (expansion#def x "foo" (lambda (n) n))
- (define x (##lambda (n) "foo" (##begin n))))
+ ;; (define x (##lambda (n) "foo" (##begin n)))
+ (##define x (##lambda (n) "foo" (##begin n))))
 
 
 ;; make sure there's a set! for the variable in the module scope so
