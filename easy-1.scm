@@ -64,7 +64,8 @@
         (macro $)
         
         #!optional
-        module-symbol?)
+        module-symbol?
+        def-expand)
 
 
 ;; Paul Graham's idea for nested paren-less |if| (Arc)
@@ -113,48 +114,56 @@
   `(define-struct. ,@args))
 
 
+(both-times
+ (define (def-expand stx first body0 bodyrest begin-form)
+   (define (err msg)
+     (source-error stx msg))
+   (if (pair? (source-code first))
+       (define-typed-expand stx first (cons body0 bodyrest) begin-form)
+       (if (null? bodyrest)
+           `(##define ,first ,body0 ,@bodyrest)
+           (let-pair
+            ((body1 bodyrest) bodyrest)
+            (if (and (string? (source-code body0))
+                     (null? bodyrest))
+                ;; docstring
+                (let ((code (macro-star-expand body1)))
+                  (if-let-pair
+                   ((c0 crest) (source-code code))
+                   (case (source-code c0)
+                     ;; |lambda| without the ## should never happen since
+                     ;; it's a macro expanding to the latter.
+                     ((##lambda)
+                      (if-let-pair ((binds body) crest)
+                                   `(##define ,first
+                                      (##lambda ,binds ,body0 ,@body))
+                                   (source-error
+                                    code "got lambda without bind form")))
+                     (else
+                      (err "|def| using docstring but body is not expanding to a lambda, thus can't move it there")))
+                   (err "|def| using docstring but body is not a form, thus can't move it there")))
+                (err "|def|, if given a bare variable, requires only one expression, or two if the first is a docstring")))))))
+
+
 (define-macro* (def first body0 . bodyrest)
-  (define (err msg)
-    (source-error stx msg))
-  (if (pair? (source-code first))
-      `(define-typed ,first ,body0 ,@bodyrest)
-      (if (null? bodyrest)
-          `(define ,first ,body0 ,@bodyrest)
-          (let-pair
-           ((body1 bodyrest) bodyrest)
-           (if (and (string? (source-code body0))
-                    (null? bodyrest))
-               ;; docstring
-               (let ((code (macro-star-expand body1)))
-                 (if-let-pair
-                  ((c0 crest) (source-code code))
-                  (case (source-code c0)
-                    ;; |lambda| without the ## should never happen since
-                    ;; it's a macro expanding to the latter.
-                    ((##lambda)
-                     (if-let-pair ((binds body) crest)
-                                  `(define ,first
-                                     (##lambda ,binds ,body0 ,@body))
-                                  (source-error
-                                   code "got lambda without bind form")))
-                    (else
-                     (err "|def| using docstring but body is not expanding to a lambda, thus can't move it there")))
-                  (err "|def| using docstring but body is not a form, thus can't move it there")))
-               (err "|def|, if given a bare variable, requires only one expression, or two if the first is a docstring"))))))
+  (def-expand stx first body0 bodyrest '##begin))
 
 (TEST
  ;; curried definitions:
  > (expansion#def ((f x) y) (list x y))
- (define-typed ((f x) y) (list x y))
+ ;; (define-typed ((f x) y) (list x y))
+ (define-typed (f x) (typed-lambda (y) (list x y)))
  > (expansion#define-typed ((f x) y) (list x y))
  (define-typed (f x) (typed-lambda (y) (list x y)))
  > (expansion#define-typed (f x) (typed-lambda (y) (list x y)))
  (define f (typed-lambda (x) (typed-lambda (y) (list x y))))
  ;; docstrings:
  > (expansion#def (x a) 10)
- (define-typed (x a) 10)
+ ;; (define-typed (x a) 10)
+ (define x (typed-lambda (a) 10))
  > (expansion#def (x a) "foo" 10)
- (define-typed (x a) "foo" 10)
+ ;; (define-typed (x a) "foo" 10)
+ (define x (typed-lambda (a) "foo" 10))
  > (with-exception-catcher source-error-message (& (eval '(def x "foo" 10))))
  "|def| using docstring but body is not a form, thus can't move it there"
  > (expansion#def x "foo")
