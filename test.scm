@@ -36,12 +36,13 @@
 ;; the program binary (and don't slow down compilation). The test
 ;; cases are run by calling |run-tests| with the source file paths (or
 ;; the paths without the suffix) for which you want to run tests, or
-;; without argument if all tests should be run. The tests are run in
-;; the interpreter. Test failures don't stop execution of |run-tests|,
-;; they just output failure warnings (with source location
-;; information). Passing verbose: #t to |run-tests| (this is actually
-;; the default now) will give some information about which tests are
-;; being run.
+;; without argument if all tests should be run, or with directory
+;; paths to run the tests on all files loaded from that directory. The
+;; tests are run in the interpreter. Test failures don't stop
+;; execution of |run-tests|, they just output failure warnings (with
+;; source location information). Passing verbose: #t to |run-tests|
+;; (this is actually the default now) will give some information about
+;; which tests are being run.
 
 ;; NOTE: to handle reloading of modules with TEST forms into the
 ;; running system, |load| is being redefined. There might still be
@@ -89,6 +90,7 @@
 (define-macro* (when t . body)
   `(##if ,t
          (##begin ,@body)))
+
 
 ;; modified copy (no hooks usage, sadly) from cj-warn to avoid
 ;; circular dependency:
@@ -723,7 +725,7 @@
 (define test:current-orig-handler (make-parameter #f))
 
 (define (run-tests #!key (verbose #t)
-		   #!rest files)
+		   #!rest paths)
   (parameterize
       ((test:current-test-location #f)
        (TEST:count-success 0)
@@ -809,32 +811,116 @@
                                (lp (cons a out)
                                    r))))))))))
 
-        (if (pair? files)
+        (if (pair? paths)
 
-            ;; first check if they are loaded
-            (let* ((files* (map perhaps-add-.scm files))
-                   (loaded* (list->table
-                             (map (lambda (f)
-                                    (cons f #t))
-                                  TEST#loaded)))
-                   ;;^ loaded are normalized
-                   (loaded? (lambda (file)
-                              ;;(re test:path-normalize: heh I'm going to
-                              ;;lenghts to throw the loaded-check error in
-                              ;;tail position, then wrong paths will throw
-                              ;;exceptions from the middle of the code
-                              ;;anyway..)
-                              (table-ref loaded* (test:path-normalize file) #f)))
-                   (loaded (filter loaded? files*))
-                   (not-loaded (filter (lambda (v)
-                                         (not (loaded? v))) files*)))
+            (let* ((loaded-t
+                    ;; TEST#loaded contains normalized paths, but also
+                    ;; contains duplicates
+                    (list->table
+                     (map (lambda (f)
+                            (cons f #t))
+                          TEST#loaded)))
+                   (paths+
+                    (map (lambda (path)
+                           (let ((path-scm (perhaps-add-.scm path)))
+                             (if (table-ref loaded-t
+                                            (path-normalize path-scm)
+                                            #f)
+                                 (cons path-scm 'file)
+                                 ;; otherwise check the file system:
+                                 (let ((check
+                                        (lambda (path*)
+                                          (let* ((i (file-info path*))
+                                                 (t (file-info-type i)))
+                                            (cons path*
+                                                  (case t
+                                                    ((directory) 'dir)
+                                                    ((regular) 'file)
+                                                    (else
+                                                     ;; XX links?
+                                                     (error
+                                                      (string-append
+                                                       "unaccepted file "
+                                                       "type for:")
+                                                      t
+                                                      path*))))))))
+                                   (if (string=? path path-scm)
+                                       (check path)
+                                       (cond ((file-exists? path)
+                                              (check path))
+                                             ((file-exists? path-scm)
+                                              (check path-scm))
+                                             (else
+                                              (error "No such files or directories:"
+                                                     path-scm
+                                                     path))))))))
+                         paths))
+                   (type-is (lambda (typesym)
+                              (lambda (path+t)
+                                (eq? (cdr path+t) typesym))))
+                   (dirs (map car (filter (type-is 'dir) paths+)))
+                   (files (map car (filter (type-is 'file) paths+))))
 
-              (when (pair? not-loaded)
-                (test:warn
-                 "These files are not loaded or don't contain TEST forms:\n"
-                 not-loaded))
+              ;; (warn "files="files)
+              ;; (warn "dirs="dirs)
+              
+              (let ((files-loaded
+                     (let* ((loaded?
+                             (lambda (file)
+                               ;;(re test:path-normalize: heh I'm going to
+                               ;;lenghts to throw the loaded-check error in
+                               ;;tail position, then wrong paths will throw
+                               ;;exceptions from the middle of the code
+                               ;;anyway..)
+                               (table-ref loaded-t
+                                          (test:path-normalize file)
+                                          #f)))
+                            (loaded (filter loaded? files))
+                            (not-loaded (filter (lambda (v)
+                                                  (not (loaded? v)))
+                                                files)))
 
-              (for-each test-file loaded))
+                       (when (pair? not-loaded)
+                         (test:warn
+                          (string-append "These files are not loaded "
+                                         "or don't contain TEST forms:\n")
+                          not-loaded))
+
+                       loaded))
+
+                    ;; use dirs to filter
+                    (files-in-given-dirs_normalized
+                     (let* ((dirs-t (list->table
+                                     (map (lambda (d) (cons (path-normalize d)
+                                                       #t))
+                                          dirs)))
+                            ;; ignore duplicates in TEST#loaded
+                            (seen-file-t (make-table)))
+                       (reverse ;; TEST#loaded is in reverse load order
+                        (filter (lambda (file)
+                                  (and (not (table-ref seen-file-t file #f))
+                                       (table-ref dirs-t
+                                                  (path-normalize
+                                                   (path-directory file))
+                                                  #f)
+                                       (begin
+                                         (table-set! seen-file-t file #t)
+                                         #t)))
+                                TEST#loaded)))))
+                ;; (warn "files-in-given-dirs="files-in-given-dirs_normalized)
+                (let ((all-files
+                       (append files-loaded
+                               ;; Is path-normalize still needed here?
+                               ;; Types, please!!:
+                               (let ((t (list->table
+                                         (map (lambda (f) (cons (path-normalize f)
+                                                           #t))
+                                              files-loaded))))
+                                 (filter (lambda (file)
+                                           ;; not already tested
+                                           (not (table-ref t file #f)))
+                                         files-in-given-dirs_normalized)))))
+                  (for-each test-file all-files))))
 
             ;; otherwise run all loaded:
             (for-each test-file (all-tests))))
