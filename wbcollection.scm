@@ -22,6 +22,10 @@
 		maybe-ref
 		min
 		max
+                min&rest
+                maybe-min&rest
+                max&rest
+                maybe-max&rest
 		add
 		add-multiple
 		delete
@@ -117,6 +121,7 @@
 	     (wbcollection-change c
 				  $wbtreeparameter
 				  (wbtree:delete $data *v)))))
+
  ;; copy-paste
  (def-wbcollection-method (max&rest c)
    (let ((*v (wbtree:max $data)))
@@ -124,6 +129,19 @@
 	     (wbcollection-change c
 				  $wbtreeparameter
 				  (wbtree:delete $data *v)))))
+
+ (def-wbcollection-method (maybe-min&rest c)
+   (if (empty-wbtree? $data)
+       #f
+       (wbcollection.min&rest c)))
+
+ (def-wbcollection-method (maybe-max&rest c)
+   (if (empty-wbtree? $data)
+       #f
+       (wbcollection.max&rest c)))
+
+ 
+ 
 
  (def-wbcollection-method (set c item)
    (wbcollection-change c
