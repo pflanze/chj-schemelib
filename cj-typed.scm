@@ -15,6 +15,7 @@
          test
          srfi-11
          (simple-match-1 assert*)
+         ;; cj-match  could, no need so far
          (cj-source-util-2 assert)
          (improper-list improper-length
                         improper-fold-right*
@@ -38,6 +39,8 @@
         ;; indirectly: ->-error
         (macros cj-typed-disable
                 cj-typed-enable)
+        is-monad-name!
+        is-monad-name?
         
         #!optional
         typed-body-parse
@@ -488,11 +491,35 @@
   (error "value fails to meet predicate:"
          (list pred-code (perhaps-quote val))))
 
+
+;; dry implementation of in-monad; see monad/syntax.scm for the real
+;; implementation, if used. (Smart, elegant, or will you curse me?)
+;; (You can write spaghetti in any language.)
+(define-macro* (in-monad name . body)
+  `(##begin ,@body))
+
+;; Is this hack even bigger?:
+(define cj-typed#is-monad (make-table)) ;; symbol -> boolean (or absent)
+(define (is-monad-name! sym)
+  (assert (symbol? sym))
+  (table-set! cj-typed#is-monad sym #t))
+(define (is-monad-name? v)
+  (and (symbol? v)
+       (table-ref cj-typed#is-monad v #f)))
+
 (define-macro* (-> pred . body)
-  (with-gensym V
-               `(##let ((,V (##let () ,@body)))
-                       (##if (,pred ,V) ,V
-                             (->-error ',pred ,V)))))
+  (let ((maincode
+         (with-gensym V
+                      `(##let ((,V (##let () ,@body)))
+                              (##if (,pred ,V) ,V
+                                    (->-error ',pred ,V))))))
+    (let ((pred* (source-code pred)))
+      (if (pair? pred*)
+          (let ((pred0 (source-code (car pred*))))
+            (if (is-monad-name? pred0)
+                `(in-monad ,pred0 ,maincode)
+                maincode))
+          maincode))))
 
 ;; and for easy disabling:
 (define-macro* (@-> pred . body)

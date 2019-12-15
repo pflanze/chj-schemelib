@@ -8,12 +8,17 @@
 
 (require easy ;; dot-oo would be enough, tough
          (predicates-1 any?)
-         test
-         monad/syntax)
+         monad/syntax
+         (cj-typed is-monad-name!)
+         test)
 
 (export maybe?
         (methods maybe.>>= maybe.return)
         (macro  maybe.>>))
+
+
+;; tell cj-typed that the maybe type constructor is a monad
+(is-monad-name! 'maybe)
 
 
 (def maybe? any?) ;; oh my
