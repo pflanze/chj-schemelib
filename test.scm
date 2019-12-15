@@ -85,11 +85,6 @@
 (include "cj-standarddeclares.scm") ;; -1--include.scm really?
 
 
-;; copy from cj-functional to avoid circular dependency:
-(define (complement fn)
-  (lambda v
-    (not (apply fn v))))
-
 ;; modified copy (no hooks usage, sadly) from cj-warn to avoid
 ;; circular dependency:
 (define (test:warn msg . objs)
@@ -827,7 +822,8 @@
 			     ;;anyway..)
 			     (table-ref loaded* (test:path-normalize file) #f)))
 		  (loaded (filter loaded? files*))
-		  (not-loaded (filter (complement loaded?) files*)))
+		  (not-loaded (filter (lambda (v)
+                                        (not (loaded? v))) files*)))
 
 	     (if (pair? not-loaded)
 		 (test:warn
