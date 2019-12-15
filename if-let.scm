@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -12,6 +12,7 @@
 (export (macro if-let*)
         (macro if-let)
         (macro and-let)
+        (macro if-letv)
         #!optional
         if-let*-expand
         if-let-expand)
@@ -211,4 +212,26 @@
 ;; rename to when-let ?
 (defmacro (and-let assignments yes)
   (if-let-expand `cond assignments yes #f))
+
+
+
+(defmacro (if-letv bind yes no)
+  (mcase bind
+         (`(`vars `expr)
+          (with-gensym
+           VS
+           `(if-let ((,VS ,expr))
+                    (letv (,vars ,VS)
+                          ,yes)
+                    ,no)))))
+
+(TEST
+ > (if-letv ((a b) (values 1 2))
+            b
+            'no)
+ 2
+ > (if-letv ((a b) #f)
+            b
+            'no)
+ no)
 
