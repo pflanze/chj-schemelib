@@ -106,8 +106,8 @@
        args #f
        (lambda (args level maybe-marker)
 	 (assert (not maybe-marker))
-	 `(if (and *debug* (<= *debug* ,level))
-	      (warn ,@args))))
+	 `(when (and *debug* (<= *debug* ,level))
+            (warn ,@args))))
       `(##void)))
 
 ;; Variant of DEBUG that returns the values args evaluate to after
@@ -275,15 +275,15 @@
 ;; inline just to avoid ending up here? wait, happens anyway right?
 (def-inline (debug:stop-at-line n)
   (let ((m (output-port-line (current-error-port))))
-    (if (>= m n)
-	(error "reached error-port line " m n))))
+    (when (>= m n)
+      (error "reached error-port line " m n))))
 ;; UNTESTED
 (defmacro (STOP-at-line n)
   (assert* natural? n
 	   (lambda (n)
 	     (if *debug*
-		 `(if *debug*
-		      (debug:stop-at-line ,n))
+		 `(when *debug*
+                    (debug:stop-at-line ,n))
 		 `(##void)))))
 
 ;; better:
