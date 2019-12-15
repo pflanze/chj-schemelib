@@ -25,7 +25,7 @@
 	  delete)
 
   ;; for compat with typed-alist.scm
-  (def alist list)
+  (define alist list)
 
   (def (Maybe-ref lis #(key? key))
        (let lp ((l lis))
