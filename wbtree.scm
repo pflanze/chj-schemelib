@@ -9,13 +9,15 @@
 (require cj-struct
          (cj-env IF compile-time)
          define-strict-and-lazy
-         debuggable-promise)
+         debuggable-promise
+         dot-oo ;; define-struct.; really needed though?
+         )
 
 (export empty-wbtree
         empty-wbtree?
         wbtree? ;; CAREFUL, dangerous in optimized variant!
         wbtree-of-size-2+?
-        wbtreeparameter*
+        (struct wbtreeparameter)
         wbtreeparameter-equal? ;; why export it, should it be hidden?
                                ;; But why is wbtreeparameter*
                                ;; exported?
@@ -90,7 +92,7 @@
 
 
 
-(define-struct wbtreeparameter
+(define-struct. wbtreeparameter
   constructor-name: wbtreeparameter
   cmp
   element?)

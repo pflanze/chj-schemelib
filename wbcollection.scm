@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,7 +11,7 @@
 	 cj-cmp
 	 (cj-source-quasiquote quasiquote-source)
 	 (wbtree wbtree? _wbtree? empty-wbtree empty-wbtree?
-		 wbtreeparameter*)
+		 wbtreeparameter)
 	 (stream stream->list stream-fold))
 
 (export (jclass wbcollection)
