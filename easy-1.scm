@@ -65,26 +65,32 @@
         
         #!optional
         module-symbol?
-        def-expand)
+        def-expand
+        easy-if-expand)
 
 
 ;; Paul Graham's idea for nested paren-less |if| (Arc)
+
+(both-times
+ (define (easy-if-expand stx t b1 b2 args t-map)
+   (let rec ((t t)
+             (b1 b1)
+             (b2 b2)
+             (args args))
+     `(##if ,(t-map t)
+            ,b1
+            ,(if (null? args)
+                 b2
+                 (let-pair ((b1* args) args)
+                           (if-let-pair ((b2* args) args)
+                                        (rec b2 ;; becomes test
+                                             b1*
+                                             b2*
+                                             args)
+                                        (source-error stx "if requires an uneven number of arguments (and at least 3)"))))))))
+
 (define-macro* (if t b1 b2 . args)
-  (let rec ((t t)
-            (b1 b1)
-            (b2 b2)
-            (args args))
-    `(##if ,t
-           ,b1
-           ,(if (null? args)
-                b2
-                (let-pair ((b1* args) args)
-                          (if-let-pair ((b2* args) args)
-                                       (rec b2 ;; becomes test
-                                            b1*
-                                            b2*
-                                            args)
-                                       (source-error stx "if requires an uneven number of arguments (and at least 3)")))))))
+  (easy-if-expand stx t b1 b2 args identity))
 
 (TEST
  > (if #t 'yes 'no)
