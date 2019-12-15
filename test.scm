@@ -85,6 +85,11 @@
 (include "cj-standarddeclares.scm") ;; -1--include.scm really?
 
 
+;; Copy to avoid circular dependency with cj-env.scm
+(define-macro* (when t . body)
+  `(##if ,t
+         (##begin ,@body)))
+
 ;; modified copy (no hooks usage, sadly) from cj-warn to avoid
 ;; circular dependency:
 (define (test:warn msg . objs)
@@ -649,9 +654,9 @@
   (if (pair? forms)
       (let ((sourcefile (container->path
 			 (location-container (source-location (car forms))))))
-	(if (not (string? sourcefile))
-	    (error "can only use TEST from a file -- not from this:"
-		   sourcefile))
+	(when (not (string? sourcefile))
+          (error "can only use TEST from a file -- not from this:"
+                 sourcefile))
 	(let ((outfile (TEST:sourcepath->testfilepath sourcefile))
 	      (writeit
 	       (lambda (p)
@@ -669,9 +674,9 @@
 				    (location-position loc))))
 		     (cond ((table-ref TEST:seen location #f)
 			    => (lambda (code0)
-				 (if (not (equal? code0 code))
-				     (error "multiple TEST expansion with differing results:"
-					    code0 code))))
+				 (when (not (equal? code0 code))
+                                   (error "multiple TEST expansion with differing results:"
+                                          code0 code))))
 			   (else
 			    (table-set! TEST:seen location code)
 			    (TEST:write-form
@@ -687,10 +692,10 @@
 	;; tests work: using Gambit namespaces here to ensure it works
 	;; even if ##namespace is used somewhere
 	`(set! TEST#loaded
-	       (cons ,(test:path-normalize
-		       (container->path (location-container
-					 (source-location (car forms)))))
-		     TEST#loaded)))
+           (cons ,(test:path-normalize
+                   (container->path (location-container
+                                     (source-location (car forms)))))
+                 TEST#loaded)))
       '(begin)))
 
 (define-macro* (TEST-disabledXX . args)
@@ -720,125 +725,124 @@
 (define (run-tests #!key (verbose #t)
 		   #!rest files)
   (parameterize
-   ((test:current-test-location #f)
-    (TEST:count-success 0)
-    (TEST:count-fail 0)
-    (TEST:count-fail-ignored 0)
-    (TEST:running #t)
-    (current-test-ignores (test:read-ignores))
-    (test:current-orig-handler (current-exception-handler)))
-   (begin
-     (let ((test-file
-	    (lambda (file) ;; file is not normalized in case of manual input
-	      (if verbose
-		  (begin (display "Testing file ") (display file) (newline)))
-	      (let lp ((forms (test-forms-for file))
-		       (i 0))
-		(if (null? forms)
-		    (void)
-		    (begin
-		      (if verbose
-			  (begin
-			    (display "TEST form no. ") (display i) (newline)))
+      ((test:current-test-location #f)
+       (TEST:count-success 0)
+       (TEST:count-fail 0)
+       (TEST:count-fail-ignored 0)
+       (TEST:running #t)
+       (current-test-ignores (test:read-ignores))
+       (test:current-orig-handler (current-exception-handler)))
+    (begin
+      (let ((test-file
+             (lambda (file) ;; file is not normalized in case of manual input
+               (when verbose
+                 (display "Testing file ") (display file) (newline))
+               (let lp ((forms (test-forms-for file))
+                        (i 0))
+                 (if (null? forms)
+                     (void)
+                     (begin
+                       (when verbose
+                         (display "TEST form no. ") (display i) (newline))
 
-		      (cond
-		       ((call/cc
-			 (lambda (error-exit)
-			   (with-exception-handler
-			    (lambda (e)
-			      (let ((l (test:current-test-location)))
-				(if (and l
-					 (test:ignore-error?
-					  l
-					  ;; XX CWD always right? Really
-					  ;; what CWD was when loaded file,
-					  ;; right?
-					  (current-directory)))
-				    ;; ignore it
-				    (continuation-capture
-				     (lambda (ctx)
-				       (error-exit (vector e ctx l))))
-				    ;; repl or whatever
-				    ((test:current-orig-handler) e))))
-			    (lambda ()
-			      (eval (car forms))
-			      #f))))
-			=> (lambda (e.ctx.l)
-			     (parameter-inc! TEST:count-fail-ignored)
-			     ;; XXX + how many tests are being
-			     ;; skipped by this?
-			     (let ((e (vector-ref e.ctx.l 0))
-				   (ctx (vector-ref e.ctx.l 1))
-				   (l (vector-ref e.ctx.l 2)))
-			       (display
-				(string-append
-				 "aborting in "
-				 (location-string l
-						  non-highlighting?: #t)
-				 ":\n"))
-			       (display
-				(string-append
-				 "*** Error in "
-				 (location-string
-				  (##continuation-locat ctx)
-				  non-highlighting?: #t)
-				 " -- "))
-			       (display-exception e)
-			       (newline)))))
+                       (cond
+                        ((call/cc
+                          (lambda (error-exit)
+                            (with-exception-handler
+                                (lambda (e)
+                                  (let ((l (test:current-test-location)))
+                                    (if (and l
+                                             (test:ignore-error?
+                                              l
+                                              ;; XX CWD always right? Really
+                                              ;; what CWD was when loaded file,
+                                              ;; right?
+                                              (current-directory)))
+                                        ;; ignore it
+                                        (continuation-capture
+                                         (lambda (ctx)
+                                           (error-exit (vector e ctx l))))
+                                        ;; repl or whatever
+                                        ((test:current-orig-handler) e))))
+                              (lambda ()
+                                (eval (car forms))
+                                #f))))
+                         => (lambda (e.ctx.l)
+                              (parameter-inc! TEST:count-fail-ignored)
+                              ;; XXX + how many tests are being
+                              ;; skipped by this?
+                              (let ((e (vector-ref e.ctx.l 0))
+                                    (ctx (vector-ref e.ctx.l 1))
+                                    (l (vector-ref e.ctx.l 2)))
+                                (display
+                                 (string-append
+                                  "aborting in "
+                                  (location-string l
+                                                   non-highlighting?: #t)
+                                  ":\n"))
+                                (display
+                                 (string-append
+                                  "*** Error in "
+                                  (location-string
+                                   (##continuation-locat ctx)
+                                   non-highlighting?: #t)
+                                  " -- "))
+                                (display-exception e)
+                                (newline)))))
 
-		      (lp (cdr forms)
-			  (inc i)))))))
-	   (all-tests
-	    (lambda ()
-	      (let ((seen (make-table)))
-		(let lp ((out '())
-			 (lis TEST#loaded))
-		  (if (null? lis)
-		      out
-		      (let ((a (car lis))
-			    (r (cdr lis)))
-			(if (table-ref seen a #f)
-			    (lp out
-				r)
-			    (begin
-			      (table-set! seen a #t)
-			      (lp (cons a out)
-				  r))))))))))
+                       (lp (cdr forms)
+                           (inc i)))))))
+            (all-tests
+             (lambda ()
+               (let ((seen (make-table)))
+                 (let lp ((out '())
+                          (lis TEST#loaded))
+                   (if (null? lis)
+                       out
+                       (let ((a (car lis))
+                             (r (cdr lis)))
+                         (if (table-ref seen a #f)
+                             (lp out
+                                 r)
+                             (begin
+                               (table-set! seen a #t)
+                               (lp (cons a out)
+                                   r))))))))))
 
-       (if (pair? files)
+        (if (pair? files)
 
-	   ;; first check if they are loaded
-	   (let* ((files* (map perhaps-add-.scm files))
-		  (loaded* (list->table
-			    (map (lambda (f)
-				   (cons f #t))
-				 TEST#loaded)))
-		  ;;^ loaded are normalized
-		  (loaded? (lambda (file)
-			     ;;(re test:path-normalize: heh I'm going to
-			     ;;lenghts to throw the loaded-check error in
-			     ;;tail position, then wrong paths will throw
-			     ;;exceptions from the middle of the code
-			     ;;anyway..)
-			     (table-ref loaded* (test:path-normalize file) #f)))
-		  (loaded (filter loaded? files*))
-		  (not-loaded (filter (lambda (v)
-                                        (not (loaded? v))) files*)))
+            ;; first check if they are loaded
+            (let* ((files* (map perhaps-add-.scm files))
+                   (loaded* (list->table
+                             (map (lambda (f)
+                                    (cons f #t))
+                                  TEST#loaded)))
+                   ;;^ loaded are normalized
+                   (loaded? (lambda (file)
+                              ;;(re test:path-normalize: heh I'm going to
+                              ;;lenghts to throw the loaded-check error in
+                              ;;tail position, then wrong paths will throw
+                              ;;exceptions from the middle of the code
+                              ;;anyway..)
+                              (table-ref loaded* (test:path-normalize file) #f)))
+                   (loaded (filter loaded? files*))
+                   (not-loaded (filter (lambda (v)
+                                         (not (loaded? v))) files*)))
 
-	     (if (pair? not-loaded)
-		 (test:warn
-		  "These files are not loaded or don't contain TEST forms:\n"
-		  not-loaded))
+              (when (pair? not-loaded)
+                (test:warn
+                 "These files are not loaded or don't contain TEST forms:\n"
+                 not-loaded))
 
-	     (for-each test-file loaded))
+              (for-each test-file loaded))
 
-	   ;; otherwise run all loaded:
-	   (for-each test-file (all-tests))))
+            ;; otherwise run all loaded:
+            (for-each test-file (all-tests))))
 
-     (print (list (TEST:count-success) " success(es), "
-		  (TEST:count-fail) " failure(s), "
-		  (TEST:count-fail-ignored) " ignored failure(s)"
-		  "\n")))))
+      (print (list (TEST:count-success) " success(es), "
+                   (TEST:count-fail) " failure(s), "
+                   (TEST:count-fail-ignored) " ignored failure(s)"
+                   "\n")))))
 
 
 ;; superfluous since run-tests without arguments (currently) does the
