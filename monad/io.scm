@@ -1,4 +1,4 @@
-;;; Copyright 2010, 2011 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,64 +6,93 @@
 ;;;    (at your option) any later version.
 
 
-(require monad/syntax)
+(require easy
+         monad/syntax)
 
 
 ;; IO monad
 
-(define (io:>> a b)
-  (lambda ()
-    ;; leading back to using internal sequencing offered by the 'host
-    ;; language' (and the thunk feature)
-    (a)
-    (b)))
 
-(define (io:>>= a b)
-  (lambda ()
-    (let ((val (a)))
-      ((b val)))))
-
-(define (io:return val)
-  (lambda ()
-    val))
+;; XX define an interface that we'll implement here
 
 
+(defclass (IO)
 
-;; a small library of some 
+  (defclass (IO>> [IO? a]
+                  [IO? b])
+    (defmethod (run s)
+      (.run a)
+      (.run b)))
+  
 
-(define (io:print str)
-  (lambda ()
-    (print str)))
+  (defclass (IO>>= [IO? a]
+                   [function? r])
+    (defmethod (run s)
+      (.run (-> IO? (r (.run a))))))
 
-(define (io:println str)
-  (lambda ()
-    (println str)))
 
-(define (io:read-line)
-  (lambda ()
-    (read-line)))
+  (defclass (IOReturn val)
+    (defmethod (run s)
+      val))
 
-(define io:read-line
-  (lambda ()
-   (lambda ()
-     (read-line))))
 
-(define io:read-line*
-  (lambda ()
-    (read-line)))
+  (defclass (IOProc proc args)
+    (defmethod (run s)
+      (apply proc args)))
 
-;; same as (define io:read-line* read-line)
 
-(define io:noop
-  (lambda ()
-    (void)))
+  (defclass (IONoop)
+    (defmethod (run s)
+      (void)))
+
+  
+  (defmethod >> IO>>)
+  (defmethod >>= IO>>=)
+  (defmethod return IOReturn))
+
+
+(def io:return IOReturn)
+
+(defmacro (ioproc proc . args)
+  `(IOProc ,proc (list ,@args)))
+
+
+;; a small library
+
+(def (io:print str)
+     (ioproc print str))
+
+(def (io:println str)
+     (ioproc println str))
+
+(def (io:read-line)
+     (ioproc read-line))
+
+(def io:read-line*
+     (io:read-line))
+
+(def io:noop
+     (IONoop))
+
 ;; or, same thing,
-(define io:noop*
-  (io:return (void)))
+(def io:noop*
+     (io:return (void)))
 
 ;; run an IO monad:
 
-(define (runio m)
-  (read-line) ;; (workaround to drop empty first input line)
-  (m))
+(def (runio [IO? m])
+     (.run m))
+
+
+(TEST
+ > (def a (mdo-in IO (io:print "Hello ") (io:println "world!")))
+ > (.show a)
+ (IO>> (IOProc print (list "Hello ")) (IOProc println (list "world!")))
+ > (.show (%with-output-to-string (.run (eval #))))
+ (values "Hello world!\n" (void))
+ > (.show (%with-output-to-string (.run a)))
+ (values "Hello world!\n" (void))
+ > (.show (%with-output-to-string (.run (mdo-in IO (io:print "hi") (return "there")))))
+ (values "hi" "there")
+ )
 
