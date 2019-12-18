@@ -167,8 +167,10 @@
      (def (expand1 bind expr)
           (mcase bind
                  (`(`var1 `expr1)
-                  `(>>= ,expr1
-                        (lambda (,var1) ,expr)))))
+                  (possibly-sourcify
+                   `(>>= ,expr1
+                         (lambda (,var1) ,expr))
+                   expr1))))
      (assert* pair? bindS
               (lambda (bindS*)
                 (if (pair? (source-code (car bindS*)))
