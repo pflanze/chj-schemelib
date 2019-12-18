@@ -151,7 +151,7 @@
 			      ,@body)
 			    (source/clean-keywords stx)
 			    (lambda (msg)
-			      (source-error stx msg))
+			      (source-error stx msg ',name))
 			    (lambda (v)
 			      (cj-sourcify-deep v stx)))))
 		       (normal-expander-name
@@ -215,7 +215,7 @@
 		     ,@body)
 		   (source/clean-keywords stx)
 		   (lambda (msg)
-		     (source-error stx msg))
+		     (source-error stx msg ',name))
 		   (lambda (v)
 		     (cj-sourcify-deep v stx))))
 		(normal-code
