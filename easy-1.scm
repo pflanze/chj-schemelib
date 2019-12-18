@@ -261,7 +261,9 @@
          (define-macro* (,(source:symbol-append name '-lambda))
            ,(list 'quasiquote-source lambdacode))
          (define-macro* (,name ,@(map perhaps-typed.var args))
-           ,(list 'quasiquote-source templatecode))))))))
+           ;; do not use 'quasiquote-source here or it will hide the
+           ;; location of the call of a def-inline function!
+           ,(list 'quasiquote templatecode))))))))
 
 (define-macro* (defenum name . args)
   `(define-enum ,name ,@args))
