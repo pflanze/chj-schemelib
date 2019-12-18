@@ -233,7 +233,8 @@
 	   ;;(warn "define-macro* for: " (source-code name))
 	   (if maybe-local-callback
 	       (maybe-local-callback (source-code name)
-				     (eval normal-code)))
+				     (eval normal-code))
+               (void))
 	   (pp-through
 	    "define-macro* result"
 	    `(begin
