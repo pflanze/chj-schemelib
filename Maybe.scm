@@ -1,4 +1,4 @@
-;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,9 +9,12 @@
 ;; Also see Result.scm
 
 (require easy
-	 test
-	 (if-let if-let*-expand
-		 if-let-expand))
+         (if-let if-let*-expand
+		 if-let-expand) ;; incl. monad-ops
+         monad/generic
+         (cj-typed is-monad-name!)
+         test
+	 monad/syntax)
 
 (export (class Maybe ;; yes a class, not an interface
 	       (class Nothing)
@@ -20,7 +23,10 @@
 	(macro Maybe:cond)
 	(macro Maybe:if-let*)
 	(macro Maybe:if-let)
-	Maybe)
+	Maybe
+        ;; monad ops (XX make an exporter for those! 'implements')
+        (methods Maybe.>>= Maybe.>> Maybe.return)
+        (inline Maybe->>=) (macro Maybe->>) Maybe-return)
 
 
 
@@ -41,7 +47,23 @@
   (defmethod (if-Just v then els)
     (if (Just? v)
 	(then (@Just.value v))
-	(els))))
+	(els)))
+
+  (defmethod (monad-ops _)
+    Maybe:monad-ops))
+
+
+;; Variants of Just? and Nothing? that throw for non-Maybe values:
+
+(def (Maybe:Just? v)
+     (cond ((Just? v) #t)
+           ((Nothing? v) #f)
+           (else (error "not a Maybe:" v))))
+
+(def (Maybe:Nothing? v)
+     (cond ((Just? v) #f)
+           ((Nothing? v) #t)
+           (else (error "not a Maybe:" v))))
 
 
 ;; optimization:
@@ -113,11 +135,12 @@
 ;; once again (where did I have something like this?):
 ;; This never returns `(begin), which might be what you want ('usually
 ;; always'?)
-(def (rest->begin rest)
-     (trif-one rest
-	       identity
-	       (C cons `begin _)
-	       (& `(void))))
+(both-times
+ (def (rest->begin rest)
+      (trif-one rest
+                identity
+                (C cons `begin _)
+                (& `(void)))))
 
 (TEST
  > (rest->begin '())
@@ -264,3 +287,88 @@
  (1 2)
  )
 
+
+;; === Maybe monad =======================================================
+
+;; tell cj-typed that our type constructor is a monad
+(is-monad-name! 'Maybe)
+
+(def-inline (Maybe->>= a f)
+  (Maybe:if-let ((v a))
+                (f v)
+                _Nothing_))
+
+(def. Maybe.>>= (Maybe->>=-lambda))
+
+
+(defmacro (Maybe->> a b)
+  `(if (Maybe:Just? ,a)
+       ,b
+       _Nothing_))
+
+(def. (Maybe.>> a b)
+  ;; XX might still yet move to make b lazy automatically
+  (error "can't do this with eager b"))
+
+
+(def Maybe-return Just)
+(def. Maybe.return Just)
+
+
+(def Maybe:monad-ops
+     (monad-ops Maybe.>>
+                Maybe.>>=
+                Maybe-return))
+
+
+
+;; Adapted tests from maybe.scm:
+
+
+(TEST
+ > (Maybe.>>= (Just 2) inc*)
+ 3
+ ;; ^ not type correct, though--XX catch it?
+ > (.show (Maybe.>>= (Just 2) (comp Maybe.return inc*)))
+ (Just 3)
+ > (.show (Maybe.>>= (Nothing) inc*))
+ (Nothing))
+
+
+
+(TEST
+ > (def actions '())
+ > (def (t msg val)
+        (push! actions msg)
+        val)
+ > (.show (in-monad Maybe (mdo (t 'a (Just 2))
+                               (t 'b (return 3))
+                               (t 'c (return 4)))))
+ (Just 4)
+ > actions
+ (c b a)
+ > (.show (in-monad Maybe (mdo (t 'd (return 2))
+                               (t 'e (Nothing))
+                               (t 'f (return 4)))))
+ (Nothing)
+ > actions
+ (e d c b a)
+ > (in-monad Maybe (mlet (x (t 'g (Just 2))) x))
+ 2
+ > (.show (in-monad Maybe (mlet ((x (t 'h (Nothing)))
+                                 (y (t 'i (return 3))))
+                                x)))
+ (Nothing)
+ > actions
+ (h g e d c b a)
+
+ > (expansion mdo-in Maybe a b c)
+ (if (Maybe:Just? a)
+     (if (Maybe:Just? b)
+         c
+         _Nothing_)
+     _Nothing_))
+
+;; Generic monads
+
+;;(TEST )
