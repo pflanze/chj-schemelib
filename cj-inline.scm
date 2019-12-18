@@ -36,7 +36,8 @@
 	 (define-macro* (,(symbol-append (source-code name) '-lambda))
 	   ,(list 'quasiquote-source lambdacode))
 	 (define-macro* (,(symbol-append (source-code name) '-inline) ,@vars)
-	   ,(list 'quasiquote-source templatecode))))))))
+           (source-code
+            ,(list 'quasiquote-source templatecode)))))))))
 
 ;; XX just how dangerously unsafe is this?
 (define-macro* (inline-through-decompile proc)
