@@ -53,6 +53,13 @@
 
 (def io:return IOReturn)
 
+
+;; for monad/syntax
+(def IO->> IO>>)
+(def IO->>= IO>>=)
+(def IO-return IOReturn)
+
+
 (defmacro (ioproc proc . args)
   `(IOProc ,proc (list ,@args)))
 
