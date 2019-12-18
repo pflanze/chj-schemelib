@@ -12,39 +12,110 @@
 ;;;; Infrastructure to write monads
 ;;;
 
+;; >>, >>=, return are defined by |use-monad| as macros, which proxy
+;; to its own name prefixed with the current monad name, which is
+;; given lexically either explicitly to the monadic syntactical forms
+;; (in-monad, mdo-in, mlet-in.. which all use |use-monad| in some
+;; way), or set by |->| from cj-typed.scm, and a "-".
 
-;; This variable, if bound to a non-#f value, determines the monad
-;; "type", rather the prefix for .>>, .>>=, ... to use. If #f, the
-;; generic .>>, .>>= etc. are used.
+;; The reason those are macros are so that they can dispatch to
+;; implementations which might also be macros (at least Gambit doesn't
+;; support name-aliasing macros via let), which is needed for some
+;; monads for >> to be lazy in the second argument. Also, this allows
+;; for inlining (arguably the compiler should support cross-module
+;; inlining instead, but that's currently not the case), and may allow
+;; elimination of closures/objects in the resulting monad execution
+;; altogether (back to natural execution flow hence natural speed and
+;; debugging experience).
 
-;;(def $M #f)
-;;XXX bah   no?  would  have  to  wll    eval  access  not lexical,  just not ofcrs.f
-;;w bout a macro b  expand it in  macro? no ahve access.  CANT  DO IT !!!!!!!!!!!
-;; SICK macro sys FCK_X
+;; Also defined are >>-function, >>=-function, return-function as
+;; 0-ary macros which expand to the reference of the same-named (sans
+;; -function) op with monad name and "." prefixed, with the idea to
+;; give an actual function value for higher-order use (is this ever
+;; useful?).
+
+;; Generic dispatch can be achieved by resolving the monad operators
+;; to their name with just "." prepended (dot-oo generics), although
+;; for speed it is better to instead retrieve all monad operator
+;; function values once by calling .monad-ops on the given monadic
+;; value, which should return a monad-ops object holding functions for
+;; the monad ops (see monad/monad-ops.scm). monad/generic.scm defines
+;; |use-monad-for| and |in-monad-for| along with |mlet-for| etc. which
+;; alias >>, >>=, return from there, as well as >>-function,
+;; >>=-function, return-function (in this case all directly as
+;; functions).
 
 
-(define-macro* (use-monad monadname)
+(defmacro (use-monad monadname)
   (assert* symbol? monadname
 	   (lambda (monadname*)
 	     `(begin
 
-                ;; OK to keep those as functions?
-		(define >>= ,(symbol-append monadname* ".>>="))
-		(define return ,(symbol-append monadname* ".return"))
-
-		;; (define >> ,(symbol-append monadname* ".>>"))
-                ;; Because monadname.>> may need to be a macro, use a
-                ;; macro here as well, okay? HACK?
+                ;; ops aliases
+                
                 (##define-syntax
 		 >>
 		 (lambda (stx)
 		   (##sourcify-deep
 		    (apply
 		     (lambda (_name . args)
-		       (cons ',(symbol-append monadname* ".>>") args))
+		       (cons ',(symbol-append monadname* "->>") args))
 		     (##source-code stx))
 		    stx)))
 
+                (##define-syntax
+		 >>=
+		 (lambda (stx)
+		   (##sourcify-deep
+		    (apply
+		     (lambda (_name . args)
+		       (cons ',(symbol-append monadname* "->>=") args))
+		     (##source-code stx))
+		    stx)))
+
+                (##define-syntax
+                 return
+		 (lambda (stx)
+		   (##sourcify-deep
+		    (apply
+		     (lambda (_name . args)
+		       (cons ',(symbol-append monadname* "-return") args))
+		     (##source-code stx))
+		    stx)))
+
+                ;; ops-function accessors
+                
+                (##define-syntax
+		 >>-function
+		 (lambda (stx)
+		   (##sourcify-deep
+		    (apply
+		     (lambda (_name)
+		       ',(symbol-append monadname* ".>>"))
+		     (##source-code stx))
+		    stx)))
+
+                (##define-syntax
+		 >>=-function
+		 (lambda (stx)
+		   (##sourcify-deep
+		    (apply
+		     (lambda (_name)
+		       (cons ',(symbol-append monadname* ".>>=") args))
+		     (##source-code stx))
+		    stx)))
+
+                (##define-syntax
+                 return-function
+		 (lambda (stx)
+		   (##sourcify-deep
+		    (apply
+		     (lambda (_name)
+		       (cons ',(symbol-append monadname* ".return") args))
+		     (##source-code stx))
+		    stx)))
+
+                
                 (##define-syntax
 		 minline! ;; with m: prefix?
 		 (lambda (stx)

@@ -21,43 +21,29 @@
 (is-monad-name! 'maybe)
 
 
-(def maybe? any?) ;; oh my
-
-(def. (maybe.>>= a r)
+(def-inline (maybe->>= a r)
   (and a
        (r a)))
 
-;; >> requires a thunk [or promise]. Don't define that just yet?
-;; Well, go ahead:
-
-;; (def. (maybe.>> a b)
-;;   ;; or should it force a and leave b alone?
-;;   (and a
-;;        (force b)))
-
-;; But the one actually chosen by the macrology in monad/syntax:
-
-(defmacro (maybe.>> a b)
+(defmacro (maybe->> a b)
   `(and ,a ,b))
 
-;; This will mean that higher-order(?, generic) monadic functions like
-;; mfor-each will not work for maybe! Any solution or just get on with
-;; it? That's not a typing issue (even), but one of eagerness. Hmm,
-;; for indirect monads it's not a problem so could make an indirect
-;; one for Maybe or even maybe *?* (Or just accept that mdo is more
-;; like a function, not really threading of execution model. It's
-;; threading of data not order of evaluation. Hm?)
-
-
-
-(def. (maybe.return v)
+(def-inline (maybe-return v)
   v)
 
 
+;; (def maybe? any?) ;; oh my
+
+;; with monad/generic -- no, neither is it going to be type safe
+;; enough, nor would we get the required lazyness in >>
+
+(def maybe.>>= (maybe->>=-lambda))
+
+
 (TEST
- > (.>>= 2 inc*)
+ > (maybe.>>= 2 inc*)
  3
- > (.>>= #f inc*)
+ > (maybe.>>= #f inc*)
  #f)
 
 
@@ -88,6 +74,6 @@
  (h g e d c b a)
 
  > (expansion mdo-in maybe a b c)
- (letrec ((>>= maybe.>>=) (return maybe.return)) (and a b c)))
+ (and a b c))
 
 
