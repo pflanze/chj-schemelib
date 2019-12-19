@@ -101,7 +101,7 @@
 		   (##sourcify-deep
 		    (apply
 		     (lambda (_name)
-		       (cons ',(symbol-append monadname* ".>>=") args))
+		       ',(symbol-append monadname* ".>>="))
 		     (##source-code stx))
 		    stx)))
 
@@ -111,7 +111,7 @@
 		   (##sourcify-deep
 		    (apply
 		     (lambda (_name)
-		       (cons ',(symbol-append monadname* ".return") args))
+		       ',(symbol-append monadname* ".return"))
 		     (##source-code stx))
 		    stx)))
 
