@@ -74,6 +74,16 @@
 		    stx)))
 
                 (##define-syntax
+		 =<<
+		 (lambda (stx)
+		   (##sourcify-deep
+		    (apply
+		     (lambda (_name a b)
+		       (list ',(symbol-append monadname* "->>=") b a))
+		     (##source-code stx))
+		    stx)))
+
+                (##define-syntax
                  return
 		 (lambda (stx)
 		   (##sourcify-deep

@@ -369,6 +369,12 @@
          _Nothing_)
      _Nothing_))
 
+
+(TEST
+ > (.show (in-monad Maybe (=<< (comp return inc) (Just 123))))
+ (Just 124))
+
+
 ;; Generic monads
 
 ;;(TEST )
