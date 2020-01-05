@@ -10,20 +10,20 @@
 
 (require easy
          (if-let if-let*-expand
-		 if-let-expand) ;; incl. monad-ops
+                 if-let-expand) ;; incl. monad-ops
          monad/generic
          (cj-typed is-monad-name!)
          test
-	 monad/syntax)
+         monad/syntax)
 
 (export (class Maybe ;; yes a class, not an interface
-	       (class Nothing)
-	       (class Just))
-	(macro Maybe:if)
-	(macro Maybe:cond)
-	(macro Maybe:if-let*)
-	(macro Maybe:if-let)
-	Maybe
+               (class Nothing)
+               (class Just))
+        (macro Maybe:if)
+        (macro Maybe:cond)
+        (macro Maybe:if-let*)
+        (macro Maybe:if-let)
+        Maybe
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Maybe.>>= Maybe.>> Maybe.return)
         (inline Maybe->>=) (macro Maybe->>) Maybe-return)
@@ -46,8 +46,8 @@
   ;; name if-present instead?
   (defmethod (if-Just v then els)
     (if (Just? v)
-	(then (@Just.value v))
-	(els)))
+        (then (@Just.value v))
+        (els)))
 
   (defmethod (monad-ops _)
     Maybe:monad-ops))
@@ -75,20 +75,20 @@
  > (eq? (Nothing) (Nothing))
  #t
  > (map (lambda (v)
-	  (map (C _ v) (list Maybe? Nothing? Just?
-			     (lambda (v)
-			       (with-exception-catcher
-				error-exception-message
-				(& (.if-Just v
-					     identity
-					     (& 'n))))))))
-	(list #f
-	      (values)
-	      (Nothing)
-	      (Just 1)
-	      (Just #f)
-	      (Just (Nothing))
-	      (Just (Just 13))))
+          (map (C _ v) (list Maybe? Nothing? Just?
+                             (lambda (v)
+                               (with-exception-catcher
+                                error-exception-message
+                                (& (.if-Just v
+                                             identity
+                                             (& 'n))))))))
+        (list #f
+              (values)
+              (Nothing)
+              (Just 1)
+              (Just #f)
+              (Just (Nothing))
+              (Just (Just 13))))
  ((#f #f #f "no method found for generic .if-Just for value:")
   (#f #f #f "no method found for generic .if-Just for value:")
   (#t #t #f n)
@@ -110,17 +110,17 @@
 
 ;; XX rename to if-Just (for consistency with Result.scm)? (or if-present ?)
 (defmacro (Maybe:if t
-		    then
-		    #!optional
-		    else)
+                    then
+                    #!optional
+                    else)
   `(let ((it-Maybe ,t))
      (cond ((Just? it-Maybe)
-	    (let ((it (@Just.value it-Maybe)))
-	      ,then))
-	   ((Nothing? it-Maybe)
-	    ,(or else `(void)))
-	   (else
-	    (Maybe:error it-Maybe)))))
+            (let ((it (@Just.value it-Maybe)))
+              ,then))
+           ((Nothing? it-Maybe)
+            ,(or else `(void)))
+           (else
+            (Maybe:error it-Maybe)))))
 
 (TEST
  > (Maybe:if (Just 1) it 'no)
@@ -155,28 +155,28 @@
 ;; Maybe:or, ah wait, Result:or. Anyway, similar to cond.
 (defmacro (Maybe:cond t+then #!optional else)
   (let ((else* (if else
-		   (mcase else
-			  (`(else . `rest)
-			   (rest->begin rest))
+                   (mcase else
+                          (`(else . `rest)
+                           (rest->begin rest))
                           (`(`t . `rest)
                            (assert* true? t)
                            (rest->begin rest)))
-		   `(void))))
+                   `(void))))
     (mcase t+then
-	   (`(`t => `then)
-	    (with-gensym V
-			 `(let ((,V ,t))
-			    (cond ((Just? ,V)
-				   (,then (@Just.value ,V)))
-				  ((Nothing? ,V)
-				   ,else*)
-				  (else
-				   (Maybe:error ,V))))))
-	   (`(`t . `rest)
-	    ;; actually introduces |it| like, well, Maybe:if
-	    `(Maybe:if ,t
-		       ,(rest->begin rest)
-		       ,else*)))))
+           (`(`t => `then)
+            (with-gensym V
+                         `(let ((,V ,t))
+                            (cond ((Just? ,V)
+                                   (,then (@Just.value ,V)))
+                                  ((Nothing? ,V)
+                                   ,else*)
+                                  (else
+                                   (Maybe:error ,V))))))
+           (`(`t . `rest)
+            ;; actually introduces |it| like, well, Maybe:if
+            `(Maybe:if ,t
+                       ,(rest->begin rest)
+                       ,else*)))))
 
 (TEST
  > (Maybe:cond ((Nothing) => 'no))
@@ -191,29 +191,29 @@
 
 (TEST
  > (def (psqrt x)
-	(if (positive? x)
-	    (Just (sqrt x))
-	    (Nothing)))
+        (if (positive? x)
+            (Just (sqrt x))
+            (Nothing)))
  > (def (f x)
-	(Maybe:if (psqrt x)
-		  (inc it)
-		  'n))
+        (Maybe:if (psqrt x)
+                  (inc it)
+                  'n))
  > (def (f* x)
-	(Maybe:if (psqrt x)
-		  (inc it)))
+        (Maybe:if (psqrt x)
+                  (inc it)))
  > (def counter 0)
  > (def (g x)
-	(Maybe:cond ((psqrt x) => inc)
-		    (else (inc! counter)
-			  'n)))
+        (Maybe:cond ((psqrt x) => inc)
+                    (else (inc! counter)
+                          'n)))
  > (def (g* x)
-	(Maybe:cond ((psqrt x) => inc)))
+        (Maybe:cond ((psqrt x) => inc)))
  > (map (lambda (x)
-	  (list (f x)
-		(g x)
-		(f* x)
-		(g* x)))
-	(list 4 9 -4))
+          (list (f x)
+                (g x)
+                (f* x)
+                (g* x)))
+        (list 4 9 -4))
  ((3 3 3 3)
   (4 4 4 4)
   (n n #!void #!void))
@@ -226,8 +226,8 @@
 (def (Maybe pred)
      (lambda (v)
        (or (Nothing? v)
-	   (and (Just? v)
-		(pred (@Just.value v))))))
+           (and (Just? v)
+                (pred (@Just.value v))))))
 
 (TEST
  > (def Maybe-integer? (Maybe integer?))
@@ -256,34 +256,34 @@
  > (Maybe:if-let ((a (Nothing))) a)
  #!void
  > (Maybe:if-let ((a (Just 2))
-		  (b (Just 3)))
-		 (list a b)
-		 4)
+                  (b (Just 3)))
+                 (list a b)
+                 4)
  (2 3)
  > (Maybe:if-let ((a (Just 2))
-		  (b (Nothing)))
-		 (list a b)
-		 5)
+                  (b (Nothing)))
+                 (list a b)
+                 5)
  5
  > (Maybe:if-let ((a (Nothing))
-		  (b (Just 3)))
-		 (list a b)
-		 5)
+                  (b (Just 3)))
+                 (list a b)
+                 5)
  5
  > (%try (Maybe:if-let ((z8wm5y6dp9 (Just 1))
-			(b z8wm5y6dp9))
-		       (list a b)
-		       5))
+                        (b z8wm5y6dp9))
+                       (list a b)
+                       5))
  (exception text: "Unbound variable: z8wm5y6dp9\n")
  > (%try (Maybe:if-let* ((z8wm5y6dp9 (Just 1))
-			 (b z8wm5y6dp9))
-			(list a b)
-			5))
+                         (b z8wm5y6dp9))
+                        (list a b)
+                        5))
  (exception text: "not a Maybe: 1\n")
  >  (Maybe:if-let* ((z8wm5y6dp9 (Just 1))
-		    (b (Just (inc z8wm5y6dp9))))
-		   (list z8wm5y6dp9 b)
-		   5)
+                    (b (Just (inc z8wm5y6dp9))))
+                   (list z8wm5y6dp9 b)
+                   5)
  (1 2)
  )
 
