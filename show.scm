@@ -67,7 +67,7 @@
        (not (list? (cddr v)))))
 
 ;; but then this ('the constructor') as well??
-(define improper-list cons*)
+(define improper-list cons*-function)
 
 (define. (improper-list.show v)
   (cons 'cons* (improper->proper-map .show v)))

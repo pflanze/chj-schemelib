@@ -1,4 +1,5 @@
-(require optim-values)
+(require optim-values
+         define-macro-star)
 
 (include "cj-standarddeclares.scm")
 
@@ -261,11 +262,32 @@
 ;;;
 ;;; (cons first (unfold not-pair? car cdr rest values))
 
-(define (cons* first . rest)
+(define (cons*-function first . rest)
   (let recur ((x first) (rest rest))
     (if (pair? rest)
         (cons x (recur (car rest) (cdr rest)))
         x)))
+
+(define-macro* (cons* . args)
+  ;; copy from cj-functional
+  (define (right-associate fn lis error)
+    (if (null? lis)
+        (error "got no element")
+        (if (null? (cdr lis))
+            (car lis)
+            (let rec ((lis lis))
+              (let* ((lis* (cdr lis))
+                     (lis** (cdr lis*)))
+                (if (null? lis**)
+                    (fn (car lis)
+                        (car lis*))
+                    (fn (car lis)
+                        (rec lis*))))))))
+  (right-associate (lambda (l r)
+                     `(cons ,l ,r))
+                   args
+                   (lambda (msg)
+                     (source-error stx "missing arguments"))))
 
 ;;; (unfold not-pair? car cdr lis values)
 
