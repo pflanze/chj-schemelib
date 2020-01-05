@@ -48,104 +48,104 @@
 
 (defmacro (use-monad monadname)
   (assert* symbol? monadname
-	   (lambda (monadname*)
-	     `(begin
+           (lambda (monadname*)
+             `(begin
 
                 ;; ops aliases
                 
                 (##define-syntax
-		 >>
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name . args)
-		       (cons ',(symbol-append monadname* "->>") args))
-		     (##source-code stx))
-		    stx)))
+                 >>
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name . args)
+                       (cons ',(symbol-append monadname* "->>") args))
+                     (##source-code stx))
+                    stx)))
 
                 (##define-syntax
-		 >>=
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name . args)
-		       (cons ',(symbol-append monadname* "->>=") args))
-		     (##source-code stx))
-		    stx)))
+                 >>=
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name . args)
+                       (cons ',(symbol-append monadname* "->>=") args))
+                     (##source-code stx))
+                    stx)))
 
                 (##define-syntax
-		 =<<
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name a b)
-		       (list ',(symbol-append monadname* "->>=") b a))
-		     (##source-code stx))
-		    stx)))
+                 =<<
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name a b)
+                       (list ',(symbol-append monadname* "->>=") b a))
+                     (##source-code stx))
+                    stx)))
 
                 (##define-syntax
                  return
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name . args)
-		       (cons ',(symbol-append monadname* "-return") args))
-		     (##source-code stx))
-		    stx)))
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name . args)
+                       (cons ',(symbol-append monadname* "-return") args))
+                     (##source-code stx))
+                    stx)))
 
                 ;; ops-function accessors
                 
                 (##define-syntax
-		 >>-function
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name)
-		       ',(symbol-append monadname* ".>>"))
-		     (##source-code stx))
-		    stx)))
+                 >>-function
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name)
+                       ',(symbol-append monadname* ".>>"))
+                     (##source-code stx))
+                    stx)))
 
                 (##define-syntax
-		 >>=-function
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name)
-		       ',(symbol-append monadname* ".>>="))
-		     (##source-code stx))
-		    stx)))
+                 >>=-function
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name)
+                       ',(symbol-append monadname* ".>>="))
+                     (##source-code stx))
+                    stx)))
 
                 (##define-syntax
                  return-function
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name)
-		       ',(symbol-append monadname* ".return"))
-		     (##source-code stx))
-		    stx)))
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name)
+                       ',(symbol-append monadname* ".return"))
+                     (##source-code stx))
+                    stx)))
 
                 
                 (##define-syntax
-		 minline! ;; with m: prefix?
-		 (lambda (stx)
-		   (##sourcify-deep
-		    (apply
-		     (lambda (_name . args)
-		       (cons ',(symbol-append monadname* ".inline!") args))
-		     (##source-code stx))
-		    stx)))))))
+                 minline! ;; with m: prefix?
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name . args)
+                       (cons ',(symbol-append monadname* ".inline!") args))
+                     (##source-code stx))
+                    stx)))))))
 
 (defmacro (in-monad monadname . body)
   (assert* symbol? monadname
-	   (lambda (monadname*)
-	     `(let ()
-		(use-monad ,monadname)
-		(let ()
-		  ;; ^ necessary so that "Scheme" doesn't complain
-		  ;; about further defines after the ##define-syntax
-		  ;; from use-monad?
-		  ,@body)))))
+           (lambda (monadname*)
+             `(let ()
+                (use-monad ,monadname)
+                (let ()
+                  ;; ^ necessary so that "Scheme" doesn't complain
+                  ;; about further defines after the ##define-syntax
+                  ;; from use-monad?
+                  ,@body)))))
 
 
 ;; General (except the -in variants), but depending on the above in
