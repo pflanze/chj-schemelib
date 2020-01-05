@@ -24,6 +24,8 @@
         (macro Maybe:if-let*)
         (macro Maybe:if-let)
         Maybe
+        Maybe:Just?
+        Maybe:Nothing?
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Maybe.>>= Maybe.>> Maybe.return)
         (inline Maybe->>=) (macro Maybe->>) Maybe-return)
@@ -61,8 +63,8 @@
            (else (error "not a Maybe:" v))))
 
 (def (Maybe:Nothing? v)
-     (cond ((Just? v) #f)
-           ((Nothing? v) #t)
+     (cond ((Nothing? v) #t)
+           ((Just? v) #f)
            (else (error "not a Maybe:" v))))
 
 
