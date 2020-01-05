@@ -15,49 +15,49 @@
 ;; Following Rust terminology here.
 
 (require easy
-	 jclass
-	 (dot-oo void/1)
-	 test)
+         jclass
+         (dot-oo void/1)
+         test)
 
 (export (jclass Result
-		(jclass Ok)
-		(jclass Error))
-	(macros if-Ok
-		Result:and
-		Result:or)
-	Result-of
-	Ok-of
-	Error-of)
+                (jclass Ok)
+                (jclass Error))
+        (macros if-Ok
+                Result:and
+                Result:or)
+        Result-of
+        Ok-of
+        Error-of)
 
 (jclass Result
 
-	(def-method- (if-Ok v yes no)
-	  (cond ((Ok? v)
-		 (yes (Ok.value v)))
-		((Error? v)
-		 (no (Error.value v)))
-		(else
-		 (error "not a Result:" v))))
+        (def-method- (if-Ok v yes no)
+          (cond ((Ok? v)
+                 (yes (Ok.value v)))
+                ((Error? v)
+                 (no (Error.value v)))
+                (else
+                 (error "not a Result:" v))))
 
-	(jclass (Ok value))
-	    
-	;; call .value .reason instead?:
-	(jclass (Error value)))
+        (jclass (Ok value))
+            
+        ;; call .value .reason instead?:
+        (jclass (Error value)))
 
 (TEST
  > (map (lambda (v)
-	  (map (C _ v) (list Result? Ok? Error?
-			     (lambda (v)
-			       (if (Result? v)
-				   (.value v)
-				   'n)))))
-	(list #f
-	      (values)
-	      (Ok 21)
-	      (Error 1)
-	      (Error #f)
-	      (Error (Ok 'hihi))
-	      (Error (Error 13))))
+          (map (C _ v) (list Result? Ok? Error?
+                             (lambda (v)
+                               (if (Result? v)
+                                   (.value v)
+                                   'n)))))
+        (list #f
+              (values)
+              (Ok 21)
+              (Error 1)
+              (Error #f)
+              (Error (Ok 'hihi))
+              (Error (Error 13))))
  ((#f #f #f n)
   (#f #f #f n)
   (#t #t #f 21)
@@ -86,9 +86,9 @@
 
 
 (defmacro (if-Ok t
-		 then
-		 #!optional
-		 else)
+                 then
+                 #!optional
+                 else)
   `(let ((it-Result ,t))
      ;; use |scheme:if| since |if| is overridden to not allow not
      ;; having an else branch, and |when| is impractical here.
@@ -117,17 +117,17 @@
   (if (null? clauses)
       (source-error stx "need at least one clause")
       (if (one-item? clauses)
-	  (first clauses)
-	  (let-pair ((a r) (reverse clauses))
-		    (fold (lambda (clause next)
-			    (with-gensym
-			     V
-			     `(let ((,V ,clause))
-				(if (Ok? ,V)
-				    ,next
-				    ,V))))
-			  a
-			  r)))))
+          (first clauses)
+          (let-pair ((a r) (reverse clauses))
+                    (fold (lambda (clause next)
+                            (with-gensym
+                             V
+                             `(let ((,V ,clause))
+                                (if (Ok? ,V)
+                                    ,next
+                                    ,V))))
+                          a
+                          r)))))
 
 (TEST
  ;; > (Result:and)
@@ -148,15 +148,15 @@
   (if (one-item? clauses)
       (first clauses)
       (let-pair ((a r) (reverse clauses))
-		(fold (lambda (clause next)
-			(with-gensym
-			 V
-			 `(let ((,V ,clause))
-			    (if (Ok? ,V)
-				,V
-				,next))))
-		      a
-		      r))))
+                (fold (lambda (clause next)
+                        (with-gensym
+                         V
+                         `(let ((,V ,clause))
+                            (if (Ok? ,V)
+                                ,V
+                                ,next))))
+                      a
+                      r))))
 
 (TEST
  ;; > (Result:or)
@@ -183,28 +183,28 @@
 (def (Result-of pred-result pred-failure)
      (lambda (v)
        (or (and (Ok? v)
-		(pred-result (Ok.value v)))
-	   (and (Error? v)
-		(pred-failure (Error.value v))))))
+                (pred-result (Ok.value v)))
+           (and (Error? v)
+                (pred-failure (Error.value v))))))
 
 (def (Ok-of pred)
      (lambda (v)
        (and (Ok? v)
-	    (pred (Ok.value v)))))
+            (pred (Ok.value v)))))
 
 (def (Error-of pred)
      (lambda (v)
        (and (Error? v)
-	    (pred (Error.value v)))))
+            (pred (Error.value v)))))
 
 
 (TEST
  > (def l
-	(list (Ok 5)
-	      (Ok 'x)
-	      10
-	      (Error 10)
-	      (Error 'y)))
+        (list (Ok 5)
+              (Ok 'x)
+              10
+              (Error 10)
+              (Error 'y)))
  > (map (Result-of symbol? integer?) l)
  (#f #t  #f #t #f)
  > (map (Ok-of integer?) l)
