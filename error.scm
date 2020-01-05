@@ -90,5 +90,7 @@
 ;; Gambit's own (non-user) exceptions, move to separate library?
 
 (define. (datum-parsing-exception.show e)
-  `(datum-parsing-exception ,@(map .show (cdr (##vector->list e)))))
+  ;; XX evil?: should fail if we're not called via try-show, but if we
+  ;; use .show, then try-show shows the top-most datum unpacked. TODO.
+  `(datum-parsing-exception ,@(map try-show (cdr (##vector->list e)))))
 
