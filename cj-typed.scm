@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger, ch at christianjaeger ch
+;;; Copyright 2010-2020 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -508,18 +508,25 @@
        (table-ref cj-typed#is-monad v #f)))
 
 (define-macro* (-> pred . body)
-  (let ((maincode
-         (with-gensym V
-                      `(##let ((,V (##let () ,@body)))
-                              (##if (,pred ,V) ,V
-                                    (->-error ',pred ,V))))))
-    (let ((pred* (source-code pred)))
-      (if (pair? pred*)
-          (let ((pred0 (source-code (car pred*))))
-            (if (is-monad-name? pred0)
-                `(in-monad ,pred0 ,maincode)
-                maincode))
-          maincode))))
+  (if (eq? (source-code pred) '!)
+      ;; Special case: never returning; thus no need to check either;
+      ;; XX better would be to throw an execption if it returns; but
+      ;; solve TCO issue first!
+      `(begin ,@body)
+
+      ;; Normal case:
+      (let ((maincode
+             (with-gensym V
+                          `(##let ((,V (##let () ,@body)))
+                                  (##if (,pred ,V) ,V
+                                        (->-error ',pred ,V))))))
+        (let ((pred* (source-code pred)))
+          (if (pair? pred*)
+              (let ((pred0 (source-code (car pred*))))
+                (if (is-monad-name? pred0)
+                    `(in-monad ,pred0 ,maincode)
+                    maincode))
+              maincode)))))
 
 ;; and for easy disabling:
 (define-macro* (@-> pred . body)
