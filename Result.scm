@@ -31,6 +31,8 @@
         Result-of
         Ok-of
         Error-of
+        Result:Ok?
+        Result:Error?
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Result.>>= Result.>> Result.return)
         (inline Result->>=) (macro Result->>) Result-return)
@@ -54,6 +56,20 @@
             
         ;; call .value .reason instead?:
         (jclass (Error value)))
+
+
+;; Variants of predicates that throw for non-Result values:
+
+(def (Result:Ok? v)
+     (cond ((Ok? v) #t)
+           ((Error? v) #f)
+           (else (error "not a Result:" v))))
+
+(def (Result:Error? v)
+     (cond ((Error? v) #t)
+           ((Ok? v) #f)
+           (else (error "not a Result:" v))))
+
 
 (TEST
  > (map (lambda (v)
@@ -134,7 +150,7 @@
                             (with-gensym
                              V
                              `(let ((,V ,clause))
-                                (if (Ok? ,V)
+                                (if (Result:Ok? ,V)
                                     ,next
                                     ,V))))
                           a
@@ -153,7 +169,10 @@
  > (Result:and (Ok 1) (Ok 2) (Ok "bar"))
  #((Ok) "bar")
  > (Result:and (Ok "foo") (Ok 2))
- #((Ok) 2))
+ #((Ok) 2)
+ > (%try (Result:and (void) (Ok 2)))
+ (exception text: "not a Result: #!void\n"))
+
 
 (defmacro (Result:or . clauses)
   (if (one-item? clauses)
@@ -289,6 +308,9 @@
                                 (t 'e (Error "foo"))
                                 (t 'f (return 4)))))
  (Error "foo")
+ > (%try (in-monad Result (mdo (void)
+                               (t 'f (return 4)))))
+ (exception text: "not a Result: #!void\n")
  > actions
  (e d c b a)
  > (in-monad Result (mlet (x (t 'g (Ok 2))) x))
@@ -303,9 +325,9 @@
  > (define TEST:equal? syntax-equal?)
  > (expansion mdo-in Result a b c)
  (let ((GEN:V-4099 a))
-   (if (Ok? GEN:V-4099)
+   (if (Result:Ok? GEN:V-4099)
        (let ((GEN:V-4100 b))
-         (if (Ok? GEN:V-4100)
+         (if (Result:Ok? GEN:V-4100)
              c
              GEN:V-4100))
        GEN:V-4099)))
