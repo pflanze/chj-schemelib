@@ -19,7 +19,7 @@
 (export (class Maybe ;; yes a class, not an interface
                (class Nothing)
                (class Just))
-        (macro Maybe:if)
+	(macro Maybe:if) (macro if-Just)
         (macro Maybe:cond)
         (macro Maybe:if-let*)
         (macro Maybe:if-let)
@@ -240,6 +240,10 @@
   (if-let*-expand `Maybe:cond assignments yes (or no `(void))))
 
 (defmacro (Maybe:if-let assignments yes #!optional no)
+  (if-let-expand `Maybe:cond assignments yes (or no `(void))))
+
+;; same as Maybe:if-let
+(defmacro (if-Just assignments yes #!optional no)
   (if-let-expand `Maybe:cond assignments yes (or no `(void))))
 
 (TEST
