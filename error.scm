@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -12,6 +12,8 @@
 	 gambit-error)
 
 (export (interface error)
+        (methods error-exception.show
+                 datum-parsing-exception.show)
 	error+?)
 
 
@@ -82,4 +84,11 @@
  #t
  > (no-such-file-or-directory-exception? e)
  #t)
+
+
+
+;; Gambit's own (non-user) exceptions, move to separate library?
+
+(define. (datum-parsing-exception.show e)
+  `(datum-parsing-exception ,@(map .show (cdr (##vector->list e)))))
 
