@@ -7,13 +7,13 @@
 
 
 (require define-macro-star
-	 (simple-match-1 assert*)
-	 srfi-1
-	 char-util
-	 test)
+         (simple-match-1 assert*)
+         srfi-1
+         char-util
+         test)
 
 (export (macro string-interpolate)
-	(macro $$))
+        (macro $$))
 
 (include "cj-standarddeclares.scm")
 
@@ -30,95 +30,95 @@
   (lambda (expr* tail)
     (let ((expr (source-code expr*)))
       (if (string? expr)
-	  (let* ((str expr)
-		 (len (string-length str)))
-	    (define (err rest msg . args)
-	      (apply source-error expr*
-		     (string-append "(at char pos "
-				    (number->string (- len (length rest)))
-				    ") "
-				    msg)
-		     args))
-	    (let lp ((cs (string->list str))
-		     (rcs '())
-		     (fragments '()))
-	      (let* ((fragments*
-		      (lambda ()
-			(if (null? rcs)
-			    fragments
-			    (cons (list->string
-				   (reverse rcs))
-				  fragments))))
-		     (lp-cs (lambda (cs var)
-			      (lp cs
-				  '()
-				  (cons (converter-expr-fn
-					 (string->symbol
-					  (list->string var)))
-					(fragments*))))))
-		(if (null? cs)
-		    (rappend (fragments*) tail)
-		    (let-pair
-		     ((c cs) cs)
-		     (case c
-		       ((#\$)
-			(if (null? cs)
-			    (err cs "need variable name after $")
-			    (let-pair
-			     ((c cs*) cs)
-			     (case c
-			       ((#\{)
-				;; even empty variable name is OK;
-				;; even allow '{'. Handle escaping
-				;; here, too.
-				(let getvar ((rvar '())
-					     (cs cs*))
-				  (if (null? cs)
-				      ;; say "non-escaped"?
-				      (err cs "missing '}' after '${'")
-				      (let-pair
-				       ((c cs) cs)
-				       (case c
-					 ((#\})
-					  (lp-cs cs (reverse rvar)))
-					 ((#\\)
-					  (if (null? cs)
-					      (err cs "need character after \\ within { }")
-					      (let-pair
-					       ((c cs) cs)
-					       (getvar (cons c rvar) cs))))
-					 (else
-					  (getvar (cons c rvar)
-						  cs)))))))
+          (let* ((str expr)
+                 (len (string-length str)))
+            (define (err rest msg . args)
+              (apply source-error expr*
+                     (string-append "(at char pos "
+                                    (number->string (- len (length rest)))
+                                    ") "
+                                    msg)
+                     args))
+            (let lp ((cs (string->list str))
+                     (rcs '())
+                     (fragments '()))
+              (let* ((fragments*
+                      (lambda ()
+                        (if (null? rcs)
+                            fragments
+                            (cons (list->string
+                                   (reverse rcs))
+                                  fragments))))
+                     (lp-cs (lambda (cs var)
+                              (lp cs
+                                  '()
+                                  (cons (converter-expr-fn
+                                         (string->symbol
+                                          (list->string var)))
+                                        (fragments*))))))
+                (if (null? cs)
+                    (rappend (fragments*) tail)
+                    (let-pair
+                     ((c cs) cs)
+                     (case c
+                       ((#\$)
+                        (if (null? cs)
+                            (err cs "need variable name after $")
+                            (let-pair
+                             ((c cs*) cs)
+                             (case c
+                               ((#\{)
+                                ;; even empty variable name is OK;
+                                ;; even allow '{'. Handle escaping
+                                ;; here, too.
+                                (let getvar ((rvar '())
+                                             (cs cs*))
+                                  (if (null? cs)
+                                      ;; say "non-escaped"?
+                                      (err cs "missing '}' after '${'")
+                                      (let-pair
+                                       ((c cs) cs)
+                                       (case c
+                                         ((#\})
+                                          (lp-cs cs (reverse rvar)))
+                                         ((#\\)
+                                          (if (null? cs)
+                                              (err cs "need character after \\ within { }")
+                                              (let-pair
+                                               ((c cs) cs)
+                                               (getvar (cons c rvar) cs))))
+                                         (else
+                                          (getvar (cons c rvar)
+                                                  cs)))))))
 
-			       ;; XX case $( )
+                               ;; XX case $( )
 
-			       (else
-				(let* ((var (take-while
-					     string-interpolate:variable-char? cs))
-				       (cs (drop cs (length var))))
-				  (if (null? var)
-				      (err cs "invalid variable name after $ -- use ${ } for names containing unusual characters")
-				      (lp-cs cs var))))))))
-		       ((#\\)
-			(if (null? cs)
-			    (err cs "need character after \\")
-			    (let-pair
-			     ((c cs) cs)
-			     (lp cs (cons c rcs) fragments))))
-		       (else
-			(lp cs (cons c rcs) fragments))))))))
-	  (cons (converter-expr-fn expr*) tail)))))
+                               (else
+                                (let* ((var (take-while
+                                             string-interpolate:variable-char? cs))
+                                       (cs (drop cs (length var))))
+                                  (if (null? var)
+                                      (err cs "invalid variable name after $ -- use ${ } for names containing unusual characters")
+                                      (lp-cs cs var))))))))
+                       ((#\\)
+                        (if (null? cs)
+                            (err cs "need character after \\")
+                            (let-pair
+                             ((c cs) cs)
+                             (lp cs (cons c rcs) fragments))))
+                       (else
+                        (lp cs (cons c rcs) fragments))))))))
+          (cons (converter-expr-fn expr*) tail)))))
 
 (define (string-interpolate-expand-with converter-fn-expr exprs)
   (let ((converter (if converter-fn-expr
-		       (lambda (e)
-			 `(,converter-fn-expr ,e))
-		       identity)))
+                       (lambda (e)
+                         `(,converter-fn-expr ,e))
+                       identity)))
     `(string-append
       ,@(fold-right (string-interpolate:expand/ converter)
-		    '()
-		    exprs))))
+                    '()
+                    exprs))))
 
 
 (TEST
@@ -151,20 +151,20 @@
 
 (define (string-interpolate:to-string v)
   (cond ((string? v) v)
-	((number? v) (number->string v))
-	(else
-	 (error "string-interpolate:to-string: don't know how to handle:"
-		v))))
+        ((number? v) (number->string v))
+        (else
+         (error "string-interpolate:to-string: don't know how to handle:"
+                v))))
 
 (define-macro* ($$ . exprs)
   (string-interpolate-expand-with 'string-interpolate:to-string
-				  exprs))
+                                  exprs))
 
 (TEST
  > (define bar-world 11)
  > (with-exception-catcher type-exception?
-			   (& (string-interpolate identity
-						  "foo $bar-world, you")))
+                           (& (string-interpolate identity
+                                                  "foo $bar-world, you")))
  #t
  > (string-interpolate number->string "foo $bar-world, you")
  "foo 11, you"
