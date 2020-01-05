@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,6 +11,8 @@
          (cj-functional compose)
          show
          (predicates alist?)
+         ;; already loaded later anyway, so, OK?:
+         Result
          test
          cj-cmp
          srfi-1)
@@ -27,10 +29,13 @@
                 ;; XX warning, .weak-keys and .weak-values not working
                 table.init
                 table.show
-                table.ref 
+		table.ref
+                table.Maybe-ref
                 table.set! 
                 table.delete!
-                table.push!)
+		table.push!
+                table.pop!
+                table.Maybe-pop!)
         
         ;; utilities:
         (method table.list
@@ -162,4 +167,45 @@
  n
  > (.list t)
  (("b" 1)))
+
+
+
+(def. (table.Maybe-ref t key)
+  (let (v (table-ref t key table:nothing))
+    (if (eq? v table:nothing)
+        (Nothing)
+        (Just v))))
+
+
+;; adapted from table-pop! (table-1.scm)
+(def. (table.Maybe-pop! t key
+                        #!optional
+                        (clean? #t))
+  (let ((l (table-ref t key table:nothing)))
+    (if (eq? l table:nothing)
+        (Nothing)
+        (if (null? l)
+            (Nothing)
+            (let-pair ((v r) l)
+                      (if (and clean? (null? r))
+                          (table-set! t key)
+                          (table-set! t key r))
+                      (Just v))))))
+
+(TEST
+ > (def t (table))
+ > (.Maybe-pop! t 'foo)
+ [(Nothing)]
+ > (.push! t 'foo 3)
+ > (.Maybe-ref t 'foo)
+ [(Just) (3)]
+ > (.Maybe-ref t 'bar)
+ [(Nothing)]
+ > (.push! t 'foo 4)
+ > (.Maybe-pop! t 'foo)
+ [(Just) 4]
+ > (.Maybe-pop! t 'foo)
+ [(Just) 3]
+ > (.Maybe-pop! t 'foo)
+ [(Nothing)])
 
