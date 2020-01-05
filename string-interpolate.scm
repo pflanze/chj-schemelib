@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -171,7 +171,7 @@
  > ($$ "foo $bar-world, you")
  "foo 11, you"
  > (define world "World")
- > (string-interpolate .string "Hello $world!")
+ > (string-interpolate identity "Hello $world!")
  "Hello World!"
  > ($$ "Hello $world!")
  "Hello World!"
