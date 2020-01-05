@@ -7,39 +7,39 @@
 
 
 (require table-1
-	 dot-oo
+         dot-oo
          (cj-functional compose)
-	 show
-	 (predicates alist?)
-	 test
-	 cj-cmp
-	 srfi-1)
+         show
+         (predicates alist?)
+         test
+         cj-cmp
+         srfi-1)
 
 (export table-sorted-keys
-	table-sorted-values
-	;; re-export essentials from table-1
-	table _table
-	table*
-	;; accessors:
-	(method table.null?
+        table-sorted-values
+        ;; re-export essentials from table-1
+        table _table
+        table*
+        ;; accessors:
+        (method table.null?
                 table.test
-		table.hash
-		;; XX warning, .weak-keys and .weak-values not working
-		table.init
-		table.show
-		table.ref 
-		table.set! 
-		table.delete!
-		table.push!)
-	
-	;; utilities:
-	(method table.list
-		table.keys
-		table.sorted-keys
-		table.values
-		table.sorted-values)
-	alist.table-maybe-function
-	alist.table)
+                table.hash
+                ;; XX warning, .weak-keys and .weak-values not working
+                table.init
+                table.show
+                table.ref 
+                table.set! 
+                table.delete!
+                table.push!)
+        
+        ;; utilities:
+        (method table.list
+                table.keys
+                table.sorted-keys
+                table.values
+                table.sorted-values)
+        alist.table-maybe-function
+        alist.table)
 
 
 ;; dependent on cj-cmp:
@@ -83,27 +83,27 @@
   (define (get key op dflts)
     (let ((v (op t)))
       (if (any (lambda (dflt _) ;; _ is to prevent the absent value from
-			   ;; interfering with function arg checks .
-		 (eq? dflt v))
-	       dflts (make-list (length dflts) #t))
-	  '()
-	  `(,key ,(.show v)))))
+                           ;; interfering with function arg checks .
+                 (eq? dflt v))
+               dflts (make-list (length dflts) #t))
+          '()
+          `(,key ,(.show v)))))
   `(table
     ,@(get test: table.test (list ##equal? equal?))
     ,@(get hash: table.hash
-	   (let ((t (table.test t)))
-	     (cond ((or (eq? t ##eq?)
-			(eq? t eq?))
-		    (list ##eq?-hash eq?-hash))
-		   ((or (eq? t ##equal?)
-			(eq? t equal?))
-		    (list ##equal?-hash equal?-hash))
-		   ((or (eq? t =)
-			(eq? t ##=))
-		    ;; Hm, does that mean it's slow? No, still hashes?
-		    (list ##generic-hash))
-		   (else
-		    (list ##equal?-hash equal?-hash)))))
+           (let ((t (table.test t)))
+             (cond ((or (eq? t ##eq?)
+                        (eq? t eq?))
+                    (list ##eq?-hash eq?-hash))
+                   ((or (eq? t ##equal?)
+                        (eq? t equal?))
+                    (list ##equal?-hash equal?-hash))
+                   ((or (eq? t =)
+                        (eq? t ##=))
+                    ;; Hm, does that mean it's slow? No, still hashes?
+                    (list ##generic-hash))
+                   (else
+                    (list ##equal?-hash equal?-hash)))))
     ,@(get weak-keys: table.weak-keys (list #f))
     ,@(get weak-values: table.weak-values (list #f))
     ,@(get init: table.init (list table:absent))
