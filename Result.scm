@@ -1,4 +1,4 @@
-;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -17,7 +17,9 @@
 (require easy
          jclass
          (dot-oo void/1)
-         test)
+         monad/generic
+         test
+         monad/syntax)
 
 (export (jclass Result
                 (jclass Ok)
@@ -27,7 +29,11 @@
                 Result:or)
         Result-of
         Ok-of
-        Error-of)
+        Error-of
+        ;; monad ops (XX make an exporter for those! 'implements')
+        (methods Result.>>= Result.>> Result.return)
+        (inline Result->>=) (macro Result->>) Result-return)
+
 
 (jclass Result
 
@@ -38,6 +44,10 @@
                  (no (Error.value v)))
                 (else
                  (error "not a Result:" v))))
+
+        (defmethod (monad-ops _)
+          Result:monad-ops)
+       
 
         (jclass (Ok value))
             
@@ -212,3 +222,88 @@
  > (map (Error-of symbol?) l)
  (#f #f #f #f #t))
 
+
+;; === Result (Either) monad ===========================================
+
+;; Adapted from Maybe.scm
+
+;; tell cj-typed that our type constructor is a monad
+(is-monad-name! 'Result)
+
+(def-inline (Result->>= a f)
+  (if-Ok a
+         (f it)
+         it-Result))
+
+(def. Result.>>= (Result->>=-lambda))
+
+
+(defmacro (Result->> a b)
+  `(Result:and ,a ,b))
+
+(def. (Result.>> a b)
+  ;; XX might still yet move to make b lazy automatically
+  (error "can't do this with eager b"))
+
+
+(def Result-return Ok)
+(def. Result.return Ok)
+
+
+(def Result:monad-ops
+     (monad-ops Result.>>
+                Result.>>=
+                Result-return))
+
+
+
+(TEST
+ > (Result.>>= (Ok 2) inc*)
+ 3
+ ;; ^ not type correct, though--XX catch it?
+ > (.show (Result.>>= (Ok 2) (comp Result.return inc*)))
+ (Ok 3)
+ > (.show (Result.>>= (Error 2) inc*))
+ (Error 2))
+
+
+
+(TEST
+ > (def actions '())
+ > (def (t msg val)
+        (push! actions msg)
+        val)
+ > (.show (in-monad Result (mdo (t 'a (Ok 2))
+                                (t 'b (return 3))
+                                (t 'c (return 4)))))
+ (Ok 4)
+ > actions
+ (c b a)
+ > (.show (in-monad Result (mdo (t 'd (return 2))
+                                (t 'e (Error "foo"))
+                                (t 'f (return 4)))))
+ (Error "foo")
+ > actions
+ (e d c b a)
+ > (in-monad Result (mlet (x (t 'g (Ok 2))) x))
+ 2
+ > (.show (in-monad Result (mlet ((x (t 'h (Error "foo")))
+                                  (y (t 'i (return 3))))
+                                 x)))
+ (Error "foo")
+ > actions
+ (h g e d c b a)
+
+ > (define TEST:equal? syntax-equal?)
+ > (expansion mdo-in Result a b c)
+ (let ((GEN:V-4099 a))
+   (if (Ok? GEN:V-4099)
+       (let ((GEN:V-4100 b))
+         (if (Ok? GEN:V-4100)
+             c
+             GEN:V-4100))
+       GEN:V-4099)))
+
+;; Generic monads
+
+;;(TEST )
