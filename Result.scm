@@ -26,7 +26,8 @@
                 (jclass Error))
         (macros if-Ok
                 Result:and
-                Result:or)
+                Result:or
+                Result:try)
         Result-of
         Ok-of
         Error-of
@@ -221,6 +222,11 @@
  (#t #f #f #f #f)
  > (map (Error-of symbol?) l)
  (#f #f #f #f #t))
+
+
+(defmacro (Result:try . body)
+  `(with-exception-catcher Error
+                           (lambda () (Ok (begin ,@body)))))
 
 
 ;; === Result (Either) monad ===========================================
