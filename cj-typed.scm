@@ -343,31 +343,30 @@
  [(x) (type-check/type-check-error TYPECHECKERROR6 pair? x (##begin . BODY))])
 
 
-(both-times
- (define (typed-lambda-expand stx args body begin-form
-                              type-check-error)
-   (typed-body-parse
-    stx body
-    (lambda (maybe-pred body)
-      (let ((body (if maybe-pred
-                      `((-> ,maybe-pred ,@body))
-                      body)))
-        (let ((args* (source-code args)))
-          ;; Expand curried lambdas (nested variable lists), similar to
-          ;; typed-define
-          (if (and (pair? args*)
-                   (pair? (source-code (car args*))))
-              `(typed-lambda ,(car args*)
-                             (typed-lambda ,(possibly-sourcify
-                                             (cdr args*)
-                                             args)
-                                           ,@body))
-              ;; Not curried:
-              (letv ((vars body-expr)
-                     (typed-lambda-args-expand args body begin-form
-                                               type-check-error))
-                    `(##lambda ,vars
-                               ,body-expr)))))))))
+(define (typed-lambda-expand stx args body begin-form
+                             type-check-error)
+  (typed-body-parse
+   stx body
+   (lambda (maybe-pred body)
+     (let ((body (if maybe-pred
+                     `((-> ,maybe-pred ,@body))
+                     body)))
+       (let ((args* (source-code args)))
+         ;; Expand curried lambdas (nested variable lists), similar to
+         ;; typed-define
+         (if (and (pair? args*)
+                  (pair? (source-code (car args*))))
+             `(typed-lambda ,(car args*)
+                            (typed-lambda ,(possibly-sourcify
+                                            (cdr args*)
+                                            args)
+                                          ,@body))
+             ;; Not curried:
+             (letv ((vars body-expr)
+                    (typed-lambda-args-expand args body begin-form
+                                              type-check-error))
+                   `(##lambda ,vars
+                              ,body-expr))))))))
 
 
 (define-macro* (typed-lambda args . body)
