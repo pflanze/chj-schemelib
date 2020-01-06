@@ -13,7 +13,8 @@
          test)
 
 (export Maybe-split-at-reverse
-        Maybe-split-at)
+        Maybe-split-at
+        Maybe-drop)
 
 "Variants of SRFI-1 functions that return Maybe instead of throwing
 exceptions when given too short lists"
@@ -51,4 +52,22 @@ exceptions when given too short lists"
  (Just (values (list 5 6 7) (list)))
  > (.show (Maybe-split-at '(5 6 7) 4))
  (Nothing))
+
+
+(def (Maybe-drop lis k)
+     (check-arg integer? k drop)
+     (let iter ((lis lis) (k k))
+       (if (zero? k)
+           (Just lis)
+           (if-let-pair ((_ r) lis)
+                        (iter r (- k 1))
+                        (Nothing)))))
+
+(TEST
+ > (Maybe-drop '(a b c) 2)
+ [(Just) (c)]
+ > (Maybe-drop '(a b c) 3)
+ [(Just) ()]
+ > (Maybe-drop '(a b c) 4)
+ [(Nothing)])
 
