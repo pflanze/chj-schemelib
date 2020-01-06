@@ -49,7 +49,8 @@
 
 
 (both-times
- (define (type-check-expand predicate expr body use-source-error?)
+ (define (type-check-expand predicate expr body use-source-error?
+                            type-check-error)
    (let ((expr-str (let ((expr* (cj-desourcify expr)))
                      ;; avoid putting gensyms into exception messages,
                      ;; to make code using this testable.
@@ -75,7 +76,7 @@
                            ,W
                            ,V))
                     (##let () ,@body)
-                    (cj-typed#type-check-error
+                    (,type-check-error
                      ,use-source-error?
                      ,expr-str
                      ,pred-str
@@ -83,10 +84,17 @@
                      ,V))))))
 
 (define-macro* (type-check predicate expr . body)
-  (type-check-expand predicate expr body #f))
+  (type-check-expand predicate expr body #f
+                     `cj-typed#type-check-error))
+
+(define-macro* (type-check/type-check-error type-check-error
+                                            predicate expr . body)
+  (type-check-expand predicate expr body #f
+                     type-check-error))
 
 (define-macro* (source-type-check predicate expr . body)
-  (type-check-expand predicate expr body #t))
+  (type-check-expand predicate expr body #t
+                     `cj-typed#type-check-error))
 
 (TEST
  ;; test that there's no "Ill-placed 'define'" compile-time error
@@ -102,7 +110,7 @@
 
 
 
-(define (transform-arg arg args body)
+(define (transform-arg arg args body type-check-error)
   ;; -> (values args* body*)
   (let ((arg* (source-code arg)))
     (define (err)
@@ -117,8 +125,10 @@
                  (assert* symbol? var
                           (lambda (_)
                             (values (cons var args)
-                                    `(type-check ,pred ,var
-                                                 ,body)))))
+                                    `(type-check/type-check-error
+                                      ,type-check-error
+                                      ,pred ,var
+                                      ,body)))))
                (err)))
           ((dsssl-meta-object? arg*)
            (values (cons arg* args)
@@ -129,7 +139,8 @@
            (if (= (improper-length arg*) 2)
                (let ((arg** (car arg*))
                      (default (cadr arg*)))
-                 (letv ((subargs body*) (transform-arg arg** args body))
+                 (letv ((subargs body*) (transform-arg arg** args body
+                                                       type-check-error))
                        (let-pair ((subarg _) subargs)
                                  (values (cons (possibly-sourcify
                                                 `(,subarg ,default)
@@ -147,7 +158,7 @@
                  [[source1] a (console) 1441811])
                 (console)
                 983059])
- > (values->vector (transform-arg s1 '() 'BODY))
+ > (values->vector (transform-arg s1 '() 'BODY 'TYPECHECKERROR1))
  [([[source2] ([[source1] pair? (console) 1048595]
                [[source1] a (console) 1441811])
     (console)
@@ -162,11 +173,11 @@
 ;; given outside, not here: `(#(number? y) 10) not `#(number? (y 10)))
 
 (define (perhaps-typed.var x)
-  (car (fst (transform-arg x '() '()))))
+  (car (fst (transform-arg x '() '() 'TYPECHECKERROR2))))
 
 (define (perhaps-typed.maybe-predicate x)
   ;; hacky, pick out of something like `(type-check foo? x ())
-  (cadr (snd (transform-arg x '() '()))))
+  (caddr (snd (transform-arg x '() '() 'TYPECHECKERROR3))))
 
 
 (define (typed? x)
@@ -211,7 +222,8 @@
 
 (define (args-detype args)
   (improper-fold-right* (lambda (tail? arg args*)
-                          (let ((a* (fst (transform-arg arg args* #f))))
+                          (let ((a* (fst (transform-arg arg args* #f
+                                                        'TYPECHECKERROR4))))
                             (if tail?
                                 (car a*)
                                 a*)))
@@ -280,7 +292,8 @@
  > (typed-body-parse #f '(-> b c) vector)
  [b (c)])
 
-(define (typed-lambda-args-expand args body begin-form)
+(define (typed-lambda-args-expand args body begin-form
+                                  type-check-error)
   ;; -> (values-of (improper-list-of (possibly-source-of
   ;;                                  ;; not just symbol? but also #!rest etc.
   ;;                                  sexpr-object?))
@@ -296,11 +309,13 @@
             ((pair? args_)
              (let-pair ((arg args*) args_)
                        (letv (($1 $2) (rem args*))
-                             (transform-arg arg $1 $2))))
+                             (transform-arg arg $1 $2
+                                            type-check-error))))
             (else
              ;; rest arg, artificially pick out the single var
              (letv ((vars body) (letv (($1 $2) (rem '()))
-                                      (transform-arg args $1 $2)))
+                                      (transform-arg args $1 $2
+                                                     type-check-error)))
                    (assert (= (length vars) 1))
                    (values (car vars)
                            body)))))))
@@ -316,48 +331,53 @@
          983059])
        (console)
        917523])
- > (values->vector (typed-lambda-args-expand s 'BODY '##begin))
+ > (values->vector (typed-lambda-args-expand s 'BODY '##begin 'TYPECHECKERROR5))
  [([[source2] ([[source1] pair? (console) 1048595]
                [[source1] a (console) 1441811])
     (console)
     983059])
   (##begin . BODY)]
  ;; ehr well this is the test in action:
- > (values->vector (typed-lambda-args-expand '([pair? x]) 'BODY '##begin))
- [(x) (type-check pair? x (##begin . BODY))])
+ > (values->vector (typed-lambda-args-expand '([pair? x]) 'BODY '##begin
+                                             'TYPECHECKERROR6))
+ [(x) (type-check/type-check-error TYPECHECKERROR6 pair? x (##begin . BODY))])
 
 
-(define (typed-lambda-expand stx args body begin-form)
-  (typed-body-parse
-   stx body
-   (lambda (maybe-pred body)
-     (let ((body (if maybe-pred
-                     `((-> ,maybe-pred ,@body))
-                     body)))
-       (let ((args* (source-code args)))
-         ;; Expand curried lambdas (nested variable lists), similar to
-         ;; typed-define
-         (if (and (pair? args*)
-                  (pair? (source-code (car args*))))
-             `(typed-lambda ,(car args*)
-                            (typed-lambda ,(possibly-sourcify
-                                            (cdr args*)
-                                            args)
-                                          ,@body))
-             ;; Not curried:
-             (letv ((vars body-expr)
-                    (typed-lambda-args-expand args body begin-form))
-                   `(##lambda ,vars
-                              ,body-expr))))))))
+(both-times
+ (define (typed-lambda-expand stx args body begin-form
+                              type-check-error)
+   (typed-body-parse
+    stx body
+    (lambda (maybe-pred body)
+      (let ((body (if maybe-pred
+                      `((-> ,maybe-pred ,@body))
+                      body)))
+        (let ((args* (source-code args)))
+          ;; Expand curried lambdas (nested variable lists), similar to
+          ;; typed-define
+          (if (and (pair? args*)
+                   (pair? (source-code (car args*))))
+              `(typed-lambda ,(car args*)
+                             (typed-lambda ,(possibly-sourcify
+                                             (cdr args*)
+                                             args)
+                                           ,@body))
+              ;; Not curried:
+              (letv ((vars body-expr)
+                     (typed-lambda-args-expand args body begin-form
+                                               type-check-error))
+                    `(##lambda ,vars
+                               ,body-expr)))))))))
 
 
 (define-macro* (typed-lambda args . body)
-  (typed-lambda-expand stx args body '##begin))
+  (typed-lambda-expand stx args body '##begin
+                       `cj-typed#type-check-error))
 
 (TEST
  ;; Curried definitions:
  > (((typed-lambda ((x) y)
-              (list x y)) 10) 20)
+                   (list x y)) 10) 20)
  (10 20)
  ;; Other:
  > (expansion#typed-lambda (a b) 'hello 'world)
@@ -366,25 +386,45 @@
  (##lambda foo (##begin 'hello 'world))
  > (expansion#typed-lambda (a [pair? b]) 'hello 'world)
  (##lambda (a b)
-           (type-check pair? b
-                       (##begin 'hello 'world)))
+           (type-check/type-check-error
+            cj-typed#type-check-error
+            pair? b
+            (##begin 'hello 'world)))
  > (expansion#typed-lambda (a [pair? b] . c) 'hello 'world)
  (##lambda (a b . c)
-           (type-check pair? b
-                       (##begin 'hello 'world)))
+           (type-check/type-check-error
+            cj-typed#type-check-error
+            pair? b
+            (##begin 'hello 'world)))
  > (expansion#typed-lambda (a [pair? b] #!rest c) 'hello 'world)
- (##lambda (a b #!rest c) (type-check pair? b (##begin 'hello 'world)))
+ (##lambda (a b #!rest c) (type-check/type-check-error
+                           cj-typed#type-check-error
+                           pair? b (##begin 'hello 'world)))
  > (expansion#typed-lambda (a [pair? b] . [number? c]) 'hello 'world)
  (##lambda (a b . c)
-           (type-check pair? b (type-check number? c (##begin 'hello 'world))))
+           (type-check/type-check-error
+            cj-typed#type-check-error
+            pair? b
+            (type-check/type-check-error
+             cj-typed#type-check-error
+             number? c (##begin 'hello 'world))))
  ;;^ XX wrong? make it list-of ? (this would be a redo, sigh)
  > (expansion#typed-lambda (a #!key [pair? b] #!rest [number? c]) 'hello 'world)
  (##lambda (a #!key b #!rest c)
-           (type-check pair? b (type-check number? c (##begin 'hello 'world))))
+           (type-check/type-check-error
+            cj-typed#type-check-error
+            pair? b
+            (type-check/type-check-error
+             cj-typed#type-check-error
+             number? c (##begin 'hello 'world))))
  > (expansion#typed-lambda ([pair? a] b #!optional ([number?  c] 10)) hello)
  (##lambda (a b #!optional (c 10))
-           (type-check pair? a
-                       (type-check number? c (##begin hello)))))
+           (type-check/type-check-error
+            cj-typed#type-check-error
+            pair? a
+            (type-check/type-check-error
+             cj-typed#type-check-error
+             number? c (##begin hello)))))
 
 ;; and -> result checks:
 (TEST
@@ -392,7 +432,12 @@
                            -> foo?
                            hello)
  (##lambda (a b #!optional (c 10))
-   (type-check pair? a (type-check number? c (##begin (-> foo? hello))))))
+           (type-check/type-check-error
+            cj-typed#type-check-error
+            pair? a
+            (type-check/type-check-error
+             cj-typed#type-check-error
+             number? c (##begin (-> foo? hello))))))
 
 
 
@@ -460,7 +505,8 @@
             `define-typed
             `define)
        ,frst
-       ,(typed-lambda-expand stx args body begin-form)))))
+       ,(typed-lambda-expand stx args body begin-form
+                             `cj-typed#type-check-error)))))
 
 (define-macro* (define-typed frst+args . body)
   (define-typed-expand stx frst+args body '##begin))
