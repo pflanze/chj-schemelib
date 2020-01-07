@@ -40,7 +40,8 @@
         (macros cj-typed-disable
                 cj-typed-enable)
         is-monad-name!
-        is-monad-name?
+        is-constructor-name-for-monad!
+        maybe-monad-name
         
         #!optional
         typed-body-parse
@@ -544,13 +545,23 @@
   `(##begin ,@body))
 
 ;; Is this hack even bigger?:
+
 (define cj-typed#is-monad (make-table)) ;; symbol -> boolean (or absent)
+
 (define (is-monad-name! sym)
   (assert (symbol? sym))
-  (table-set! cj-typed#is-monad sym #t))
-(define (is-monad-name? v)
+  (table-set! cj-typed#is-monad sym sym))
+
+(define (is-constructor-name-for-monad! constr monadname)
+  (assert (symbol? constr))
+  (assert (symbol? monadname))
+  (table-set! cj-typed#is-monad constr monadname))
+
+(define (maybe-monad-name v) ;; -> (maybe symbol?)
+  "returns the monad name given a type constructor name, if any"
   (and (symbol? v)
        (table-ref cj-typed#is-monad v #f)))
+
 
 (define-macro* (-> pred . body)
   (if (eq? (source-code pred) '!)
@@ -568,9 +579,11 @@
         (let ((pred* (source-code pred)))
           (if (pair? pred*)
               (let ((pred0 (source-code (car pred*))))
-                (if (is-monad-name? pred0)
-                    `(in-monad ,pred0 ,maincode)
-                    maincode))
+                (cond ((maybe-monad-name pred0)
+                       => (lambda (monadname)
+                            `(in-monad ,monadname ,maincode)))
+                      (else
+                       maincode)))
               maincode)))))
 
 ;; and for easy disabling:
