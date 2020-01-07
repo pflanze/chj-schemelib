@@ -253,7 +253,7 @@
 ;; Adapted from Maybe.scm
 
 ;; tell cj-typed that our type constructor is a monad
-(is-monad-name! 'Result)
+(is-constructor-name-for-monad! 'Result-of 'Result)
 
 (def-inline (Result->>= a f)
   (if-Ok a
@@ -322,6 +322,11 @@
  > actions
  (h g e d c b a)
 
+ > (.show (-> (Result-of integer? symbol?) (mdo (Ok 2) (Ok 3))))
+ (Ok 3)
+ > (.show (-> (Result-of integer? symbol?) (mdo (Error 'foo) (Ok 3))))
+ (Error 'foo)
+ 
  > (define TEST:equal? syntax-equal?)
  > (expansion mdo-in Result a b c)
  (let ((GEN:V-4099 a))
