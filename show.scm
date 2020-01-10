@@ -7,35 +7,35 @@
 
 
 (require dot-oo
-	 cj-struct
-	 (cj-source-util-2 assert)
-	 (scheme-meta self-quoting?)
-	 (cj-gambit-sys procedure-name)
-	 (srfi-11 values? values->list)
-	 ;; dot-oo depends on cj-env already, and we want to add on/registry.show :
-	 (cj-env on/registry? on/registry-ref natural0?)
-	 debuggable-promise
-	 ;; ^ now we have to always load it. But, have
-	 ;; debuggable-promise-everywhere now which is optional.
-	 (lazy-debug S)
-	 cj-source
-	 (string-util-2 string-starts-with? string-ends-with?)
-	 (cj-path path-absolute?)
+         cj-struct
+         (cj-source-util-2 assert)
+         (scheme-meta self-quoting?)
+         (cj-gambit-sys procedure-name)
+         (srfi-11 values? values->list)
+         ;; dot-oo depends on cj-env already, and we want to add on/registry.show :
+         (cj-env on/registry? on/registry-ref natural0?)
+         debuggable-promise
+         ;; ^ now we have to always load it. But, have
+         ;; debuggable-promise-everywhere now which is optional.
+         (lazy-debug S)
+         cj-source
+         (string-util-2 string-starts-with? string-ends-with?)
+         (cj-path path-absolute?)
          (list-util-1 improper->proper-map)
          (srfi-1 cons*)
-	 test)
+         test)
 
 
 (export (method .show)
-	(method .show-string)
-	try-show
+        (method .show-string)
+        try-show
         promise#
-	procedure#
+        procedure#
         improper-list?
         improper-list
-	#!optional
-	toplevel-procedure?
-	struct-values)
+        #!optional
+        toplevel-procedure?
+        struct-values)
 
 (include "cj-standarddeclares.scm")
 
@@ -55,7 +55,7 @@
 
 (define. (pair.show v)
   `(cons ,(.show (car v))
-	 ,(.show (cdr v))))
+         ,(.show (cdr v))))
 
 (define. (list.show v)
   (cons 'list (map .show v)))
@@ -93,21 +93,21 @@
 ;;(define source:tag '[source1]) sigh, don't have it
 
 (define (source* code
-		 ;; location
-		 location-container
-		 location-line
-		 location-column)
+                 ;; location
+                 location-container
+                 location-line
+                 location-column)
   (let ((c (if (string? location-container)
-	       (if (path-absolute? location-container)
-		   location-container
-		   ;; do not use path-normalize here, makes a test
-		   ;; like (equal? (eval (.show matchcases))
-		   ;; matchcases) fail:
-		   (string-append (current-directory) location-container))
-	       location-container)))
+               (if (path-absolute? location-container)
+                   location-container
+                   ;; do not use path-normalize here, makes a test
+                   ;; like (equal? (eval (.show matchcases))
+                   ;; matchcases) fail:
+                   (string-append (current-directory) location-container))
+               location-container)))
     (make-source code (make-location c (make-position
-					location-line
-					location-column)))))
+                                        location-line
+                                        location-column)))))
 
 (define (@source-location-container s)
   (vector-ref s 2))
@@ -122,18 +122,18 @@
     ;; and absolute, too:
     (assert (string-starts-with? dir "/"))
     (if (string-starts-with? s dir)
-	(substring s (string-length dir) (string-length s))
-	s)))
+        (substring s (string-length dir) (string-length s))
+        s)))
 
 (define. (source.show v)
   (let ((lc (@source-location-line&column v)))
     `(source* ,(.show (source-code v))
-	      ,(let ((c (@source-location-container v)))
-		 (if (string? c)
-		     (show:path-show-relative c)
-		     (.show c)))
-	      ,(position-line lc)
-	      ,(position-column lc))))
+              ,(let ((c (@source-location-container v)))
+                 (if (string? c)
+                     (show:path-show-relative c)
+                     (.show c)))
+              ,(position-line lc)
+              ,(position-column lc))))
 
 ;; XX add tests!!
 ;; > (equal? (eval (.show matchcases)) matchcases)
@@ -143,9 +143,9 @@
 (define (procedure# num)
   (let ((v (serial-number->object num)))
     (if (procedure? v)
-	v
-	(error "procedure#: not actually resolving to a procedure:"
-	       num v))))
+        v
+        (error "procedure#: not actually resolving to a procedure:"
+               num v))))
 
 (define. (procedure.show p)
   `(procedure# ,(object->serial-number p)))
@@ -167,7 +167,7 @@
    ;; The HACK is: assumption that the constructor takes positional
    ;; arguments
   (cons (struct-constructor-name v)
-	(map .show (struct-values v))))
+        (map .show (struct-values v))))
 
 
 
@@ -209,35 +209,35 @@
 
 (define. (on/registry.show v)
   (let* ((p (on/registry-ref v))
-	 (access (car p))
-	 (cmp (cdr p)))
+         (access (car p))
+         (cmp (cdr p)))
     `(on/registry ,(.show access)
-		  ,(.show cmp))))
+                  ,(.show cmp))))
 
 
 
 (define (promise# n)
   (let ((v (serial-number->object n)))
     (if (promise? v)
-	v
-	(error "not a promise:" v))))
+        v
+        (error "not a promise:" v))))
 
 (define. (debuggable-promise.show v)
   (if (debuggable-promise? v)
       (if (@debuggable-promise-evaluated? v)
-	  ;; pre-force all the way before calling .show again (so that
-	  ;; things like list? will match, although this may trigger
-	  ;; n^2 complexity issues more easily? XX)
-	  (.show (S v))
-	  `(promise# ,(object->serial-number v)))
+          ;; pre-force all the way before calling .show again (so that
+          ;; things like list? will match, although this may trigger
+          ;; n^2 complexity issues more easily? XX)
+          (.show (S v))
+          `(promise# ,(object->serial-number v)))
       ;; shouldn't happen 'usually' (ever this question, unsafe direct call)
       (error "not a debuggable-promise:" v)))
 
 (define. (##promise.show v)
   (if (##promise? v)
       (if (@promise-evaluated? v)
-	  (.show (S v))
-	  `(promise# ,(object->serial-number v)))
+          (.show (S v))
+          `(promise# ,(object->serial-number v)))
       ;; shouldn't happen 'usually' (ever this question, unsafe direct call)
       (error "not a ##promise:" v)))
 
