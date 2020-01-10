@@ -178,7 +178,19 @@
 
 (define (perhaps-typed.maybe-predicate x)
   ;; hacky, pick out of something like `(type-check foo? x ())
-  (caddr (snd (transform-arg x '() '() 'TYPECHECKERROR3))))
+  (let ((r (snd (transform-arg x '() '() 'TYPECHECKERROR3))))
+    (if (pair? r)
+        (caddr r)
+        #f)))
+
+(TEST
+ > (perhaps-typed.maybe-predicate (quote-source x))
+ #f
+ > (def s (perhaps-typed.maybe-predicate (quote-source [foo? x])))
+ > (source-code s)
+ foo?
+ > (source? s)
+ #t)
 
 
 (define (typed? x)
