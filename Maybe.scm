@@ -1,4 +1,4 @@
-;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -19,13 +19,17 @@
 (export (class Maybe ;; yes a class, not an interface
                (class Nothing)
                (class Just))
+        Maybe:Just?
+        Maybe:Nothing?
+        Maybe
 	(macro Maybe:if) (macro if-Just)
         (macro Maybe:cond)
         (macro Maybe:if-let*)
         (macro Maybe:if-let)
-        Maybe
-        Maybe:Just?
-        Maybe:Nothing?
+        Maybe-or ;; 2-ary
+        Maybe:or ;; n-ary
+        ;; Maybe-and -- use Maybe->>, ok?
+
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Maybe.>>= Maybe.>> Maybe.return)
         (inline Maybe->>=) (macro Maybe->>) Maybe-return)
@@ -292,6 +296,19 @@
                    5)
  (1 2)
  )
+
+
+(defmacro (Maybe-or a b)
+  (with-gensym
+   V
+   `(let ((,V ,a))
+      (if (Maybe:Just? ,V)
+          ,V
+          ,b))))
+
+(defmacro (Maybe:or . exprs)
+  ;; RA is more efficient than LA
+  `(RA Maybe-or ,@exprs))
 
 
 ;; === Maybe monad =======================================================
