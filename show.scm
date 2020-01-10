@@ -1,4 +1,4 @@
-;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -98,7 +98,7 @@
 		 location-line
 		 location-column)
   (let ((c (if (string? location-container)
-	       (if (path-absolute? location-container "/")
+	       (if (path-absolute? location-container)
 		   location-container
 		   ;; do not use path-normalize here, makes a test
 		   ;; like (equal? (eval (.show matchcases))
