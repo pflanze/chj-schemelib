@@ -1,4 +1,4 @@
-;;; Copyright 2016-2019 by Christian Jaeger, ch at christianjaeger ch
+;;; Copyright 2016-2020 by Christian Jaeger, ch at christianjaeger ch
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,8 +8,10 @@
 
 ;; Meta-knowledge about Scheme
 
-(require ;;(cj-functional pair-of)  circular
-	 ;;(vector-util vector-of)  circular
+(require
+ ;;(cj-functional pair-of)  circular
+ ;;(vector-util vector-of)  circular
+ cj-struct ;; for cj-struct#vector?
  test)
 
 
