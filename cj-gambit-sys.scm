@@ -76,7 +76,8 @@
 	copy-to-body@!
 	copy-from-body@!
 	@memcpy-to-object
-	)
+
+        time-thunk)
 
 
 
@@ -656,3 +657,10 @@ memset(obj+offset,value,numbytes);
 
 (define-typed (continuation-maybe-location #(continuation? c))
   (##continuation-locat c))
+
+
+(define (time-thunk thunk expr)
+  "expr should not contain location information"
+  (if (procedure? thunk)
+      (##time thunk expr)
+      (error "time-thunk: expecting procedure, got:" thunk)))
