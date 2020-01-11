@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -13,6 +13,8 @@
 	 (list-util-1 map/iota)
 	 (cj-symbol with-gensym)
 	 (code-util early-bind-expressions)
+         (lazy FV)
+         (srfi-11 values? values->list)
 	 ;; for tests:
 	 test
 	 (fixnum inc dec)
