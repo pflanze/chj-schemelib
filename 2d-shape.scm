@@ -25,10 +25,10 @@
 
 (defclass 2d-shape
 
-  (defmethod- (min+maxs/prev v min+max)
+  (defmethod (min+maxs/prev s min+max)
     (fold 2d-point.min+maxs/prev
           min+max
-          (.points v)))
+          (.points s)))
        
   (defclass (2d-point [real? x]
                       [real? y])
@@ -39,8 +39,8 @@
                          (let-2d-point ((b0 b1) b)
                                        (2d-point (op a0 b0)
                                                  (op a1 b1))))))
-    (defmethod- + (_point-op +))
-    (defmethod- - (_point-op -))
+    (defmethod + (_point-op +))
+    (defmethod - (_point-op -))
 
     (def (_point-op* op)
          (let ((vecop (_point-op op)))
@@ -51,12 +51,11 @@
                  (let-2d-point ((a0 a1) a)
                                (2d-point (op a0 b)
                                          (op a1 b)))))))
-    (defmethod- .* (_point-op* *))
-    (defmethod- ./ (_point-op* /))
+    (defmethod .* (_point-op* *))
+    (defmethod ./ (_point-op* /))
 
-    (defmethod- (x/y p)
-      (let-2d-point ((x y) p)
-                    (/ x y)))
+    (defmethod (x/y s)
+      (/ x y))
 
     ;; left
     (defmethod (rot90l p)
@@ -66,20 +65,20 @@
     (defmethod (rot90r p)
       (2d-point y (- x)))
 
-    (defmethod- (= a b)
+    (defmethod (= a b)
       (let-2d-point ((a0 a1) a)
                     (let-2d-point ((b0 b1) b)
                                   (and (= a0 b0)
                                        (= a1 b1)))))
 
-    (defmethod- (almost= a b max-abs-diff)
+    (defmethod (almost= a b max-abs-diff)
       (def almost= (almost=/max-abs-diff max-abs-diff))
       (let-2d-point ((a0 a1) a)
                     (let-2d-point ((b0 b1) b)
                                   (and (almost= a0 b0)
                                        (almost= a1 b1)))))
 
-    (defmethod- (< a b)
+    (defmethod (< a b)
       (let-2d-point ((a0 a1) a)
                     (let-2d-point ((b0 b1) b)
                                   (or (< a0 b0)
@@ -87,7 +86,7 @@
                                            (< a1 b1))))))
 
 
-    (defmethod- (min+maxs/prev p min+max)
+    (defmethod (min+maxs/prev p min+max)
       (let-2d-point
        ((p0 p1) p)
        (let-pair
@@ -102,7 +101,7 @@
                 (2d-point (max p0 ma0)
                           (max p1 ma1))))))))
 
-    (defmethod- (start p)
+    (defmethod (start p)
       p)
 
     (defmethod (distance^2 p)
@@ -110,7 +109,7 @@
       (+ (square x) (square y)))
 
     ;; should this be called magnitude ?
-    (defmethod- (distance p)
+    (defmethod (distance p)
       (sqrt (2d-point.distance^2 p)))
 
     ;; also see 2d-point.polar (2d-polar.scm)
@@ -142,12 +141,11 @@
   (defclass (2d-line [2d-point? from]
                      [2d-point? to])
 
-    (defmethod- (start v)
+    (defmethod (start v)
       (2d-line.from v))
 
-    (defmethod- (points v)
-      (list (2d-line.from v)
-            (2d-line.to v)))
+    (defmethod (points v)
+      (list from to))
 
     (defmethod (diff v)
       (2d-point.- to from))
@@ -170,15 +168,15 @@
       (2d-path (cons p points)
                closed?))
 
-    (defmethod- (start v)
-      (car (2d-path.points v))))
+    (defmethod (start v)
+      (car points)))
 
   ;; an untilted rectangle
   (defclass (2d-window [2d-point? mi]
                        [2d-point? ma])
 
-    (defmethod- (start v)
-      (2d-window.mi v))
+    (defmethod (start v)
+      mi)
 
     (defmethod (points v)
       (let-2d-point
@@ -206,7 +204,7 @@
                (our-dx/dy (/ dx dy)))
           our-dx/dy))))
 
-    (defmethod- x/y 2d-window.proportions)
+    (defmethod x/y 2d-window.proportions)
 
     (defmethod (fit-to-proportions v [(complement zero?) dx/dy] clip?)
       (let-2d-point
@@ -278,7 +276,7 @@
     ;; 	       (2d-square.< (cdr a) (cdr b))))))
 
 	  
-    (defmethod- (canonical s)
+    (defmethod (canonical s)
       ;; now stupidly have to add, well
       (canonical-2d-square start (2d-point.+ start vector)))))
 
