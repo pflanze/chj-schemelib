@@ -1,4 +1,4 @@
-;;; Copyright 2014-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -16,7 +16,8 @@
 		     eperm-exception?
 		     xxsystem)
 	 jclass
-	 (cj-path path-string?))
+	 (cj-path path-string?)
+         (cj-u8vector-util write-u8vector))
 
 (export tempfile
 	(jclass public-tempdir*)
