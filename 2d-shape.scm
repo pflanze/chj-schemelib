@@ -1,4 +1,4 @@
-;;; Copyright 2013-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,7 @@
 (require easy
 	 srfi-1 ;; fold
 	 (list-util let-pair)
-	 jclass
+         template
 	 ;; for testing:
 	 (exceptions with-exceptions-to))
 
@@ -23,264 +23,264 @@
 (def (almost=/max-abs-diff max-abs-diff)
      (cut almost= <> <> max-abs-diff))
 
-(jclass 2d-shape
+(defclass 2d-shape
 
-	(def-method- (min+maxs/prev v min+max)
-	  (fold 2d-point.min+maxs/prev
-		min+max
-		(.points v)))
+  (defmethod- (min+maxs/prev v min+max)
+    (fold 2d-point.min+maxs/prev
+          min+max
+          (.points v)))
        
-	(jclass (2d-point #(real? x)
-			  #(real? y))
+  (defclass (2d-point [real? x]
+                      [real? y])
 
-		(def (_point-op op)
-		     (lambda (a b)
-		       (let-2d-point ((a0 a1) a)
-				     (let-2d-point ((b0 b1) b)
-						   (2d-point (op a0 b0)
-							     (op a1 b1))))))
-		(def-method- + (_point-op +))
-		(def-method- - (_point-op -))
+    (def (_point-op op)
+         (lambda (a b)
+           (let-2d-point ((a0 a1) a)
+                         (let-2d-point ((b0 b1) b)
+                                       (2d-point (op a0 b0)
+                                                 (op a1 b1))))))
+    (defmethod- + (_point-op +))
+    (defmethod- - (_point-op -))
 
-		(def (_point-op* op)
-		     (let ((vecop (_point-op op)))
-		       (lambda (a b)
-			 ;; b could either be a scalar or a vector
-			 (if (2d-point? b)
-			     (vecop a b)
-			     (let-2d-point ((a0 a1) a)
-					   (2d-point (op a0 b)
-						     (op a1 b)))))))
-		(def-method- .* (_point-op* *))
-		(def-method- ./ (_point-op* /))
+    (def (_point-op* op)
+         (let ((vecop (_point-op op)))
+           (lambda (a b)
+             ;; b could either be a scalar or a vector
+             (if (2d-point? b)
+                 (vecop a b)
+                 (let-2d-point ((a0 a1) a)
+                               (2d-point (op a0 b)
+                                         (op a1 b)))))))
+    (defmethod- .* (_point-op* *))
+    (defmethod- ./ (_point-op* /))
 
-		(def-method- (x/y p)
-		  (let-2d-point ((x y) p)
-				(/ x y)))
+    (defmethod- (x/y p)
+      (let-2d-point ((x y) p)
+                    (/ x y)))
 
-		;; left
-		(def-method (rot90l p)
-		  (2d-point (- y) x))
+    ;; left
+    (defmethod (rot90l p)
+      (2d-point (- y) x))
 
-		;; right
-		(def-method (rot90r p)
-		  (2d-point y (- x)))
+    ;; right
+    (defmethod (rot90r p)
+      (2d-point y (- x)))
 
-		(def-method- (= a b)
-		  (let-2d-point ((a0 a1) a)
-				(let-2d-point ((b0 b1) b)
-					      (and (= a0 b0)
-						   (= a1 b1)))))
+    (defmethod- (= a b)
+      (let-2d-point ((a0 a1) a)
+                    (let-2d-point ((b0 b1) b)
+                                  (and (= a0 b0)
+                                       (= a1 b1)))))
 
-		(def-method- (almost= a b max-abs-diff)
-		  (def almost= (almost=/max-abs-diff max-abs-diff))
-		  (let-2d-point ((a0 a1) a)
-				(let-2d-point ((b0 b1) b)
-					      (and (almost= a0 b0)
-						   (almost= a1 b1)))))
+    (defmethod- (almost= a b max-abs-diff)
+      (def almost= (almost=/max-abs-diff max-abs-diff))
+      (let-2d-point ((a0 a1) a)
+                    (let-2d-point ((b0 b1) b)
+                                  (and (almost= a0 b0)
+                                       (almost= a1 b1)))))
 
-		(def-method- (< a b)
-		  (let-2d-point ((a0 a1) a)
-				(let-2d-point ((b0 b1) b)
-					      (or (< a0 b0)
-						  (and (not (< b0 a0))
-						       (< a1 b1))))))
+    (defmethod- (< a b)
+      (let-2d-point ((a0 a1) a)
+                    (let-2d-point ((b0 b1) b)
+                                  (or (< a0 b0)
+                                      (and (not (< b0 a0))
+                                           (< a1 b1))))))
 
 
-		(def-method- (min+maxs/prev p min+max)
-		  (let-2d-point
-		   ((p0 p1) p)
-		   (let-pair
-		    ((mi ma) min+max)
-		    (let-2d-point
-		     ((mi0 mi1) mi)
-		     (let-2d-point
-		      ((ma0 ma1) ma)
+    (defmethod- (min+maxs/prev p min+max)
+      (let-2d-point
+       ((p0 p1) p)
+       (let-pair
+        ((mi ma) min+max)
+        (let-2d-point
+         ((mi0 mi1) mi)
+         (let-2d-point
+          ((ma0 ma1) ma)
 
-		      (cons (2d-point (min p0 mi0)
-				      (min p1 mi1))
-			    (2d-point (max p0 ma0)
-				      (max p1 ma1))))))))
+          (cons (2d-point (min p0 mi0)
+                          (min p1 mi1))
+                (2d-point (max p0 ma0)
+                          (max p1 ma1))))))))
 
-		(def-method- (start p)
-		  p)
+    (defmethod- (start p)
+      p)
 
-		(def-method (distance^2 p)
-		  ;; distance from root
-		  (+ (square x) (square y)))
+    (defmethod (distance^2 p)
+      ;; distance from root
+      (+ (square x) (square y)))
 
-		;; should this be called magnitude ?
-		(def-method- (distance p)
-		  (sqrt (2d-point.distance^2 p)))
+    ;; should this be called magnitude ?
+    (defmethod- (distance p)
+      (sqrt (2d-point.distance^2 p)))
 
-		;; also see 2d-point.polar (2d-polar.scm)
-		(def-method (angle p)
-		  (atan y x)))
+    ;; also see 2d-point.polar (2d-polar.scm)
+    (defmethod (angle p)
+      (atan y x)))
 
-	;; hmm partial COPY-PASTE from above, how to avoid?
-	(jclass (partial-2d-point #((maybe real?) x)
-				  #((maybe real?) y))
+  ;; hmm partial COPY-PASTE from above, how to avoid?
+  (defclass (partial-2d-point [(maybe real?) x]
+                              [(maybe real?) y])
 
-		;; No requirement that at least one dimension is set?
-		(defenum partial-2d-point-kind
-		  full
-		  x-given
-		  y-given
-		  empty)
+    ;; No requirement that at least one dimension is set?
+    (defenum partial-2d-point-kind
+      full
+      x-given
+      y-given
+      empty)
 
-		(def-method (partial-kind v)
-		  (cond (x (cond (y 'full)
-				 (else 'x-given)))
-			(y 'y-given)
-			(else
-			 'empty)))
+    (defmethod (partial-kind v)
+      (cond (x (cond (y 'full)
+                     (else 'x-given)))
+            (y 'y-given)
+            (else
+             'empty)))
 
-		(def-method (2d-point v)
-		  (2d-point x y)))
+    (defmethod (2d-point v)
+      (2d-point x y)))
 
 	
-	(jclass (2d-line #(2d-point? from)
-			 #(2d-point? to))
+  (defclass (2d-line [2d-point? from]
+                     [2d-point? to])
 
-		(def-method- (start v)
-		  (2d-line.from v))
+    (defmethod- (start v)
+      (2d-line.from v))
 
-		(def-method- (points v)
-		  (list (2d-line.from v)
-			(2d-line.to v)))
+    (defmethod- (points v)
+      (list (2d-line.from v)
+            (2d-line.to v)))
 
-		(def-method (diff v)
-		  (2d-point.- to from))
+    (defmethod (diff v)
+      (2d-point.- to from))
 
-		(def-method- (slope v)
-		  (let-2d-point
-		   ((x y) (2d-line.diff v))
-		   (if (zero? x)
-		       (if (zero? y)
-			   (error "can't calculate slope of line ending in same point as origin"
-				  v)
-			   (/ y (exact.inexact x)))
-		       (/ y x)))))
+    (defmethod- (slope v)
+      (let-2d-point
+       ((x y) (2d-line.diff v))
+       (if (zero? x)
+           (if (zero? y)
+               (error "can't calculate slope of line ending in same point as origin"
+                      v)
+               (/ y (exact.inexact x)))
+           (/ y x)))))
 
-	(jclass (2d-path #((list-of 2d-point?) points)
-			 #!optional
-			 #(boolean? closed?))
+  (defclass (2d-path [(list-of 2d-point?) points]
+                     #!optional
+                     [boolean? closed?])
 
-		(def-method (points-add v #(2d-point? p)) ;; prepend, cons. hm.
-		  (2d-path (cons p points)
-			   closed?))
+    (defmethod (points-add v [2d-point? p]) ;; prepend, cons. hm.
+      (2d-path (cons p points)
+               closed?))
 
-		(def-method- (start v)
-		  (car (2d-path.points v))))
+    (defmethod- (start v)
+      (car (2d-path.points v))))
 
-	;; an untilted rectangle
-	(jclass (2d-window #(2d-point? mi)
-			   #(2d-point? ma))
+  ;; an untilted rectangle
+  (defclass (2d-window [2d-point? mi]
+                       [2d-point? ma])
 
-		(def-method- (start v)
-		  (2d-window.mi v))
+    (defmethod- (start v)
+      (2d-window.mi v))
 
-		(def-method (points v)
-		  (let-2d-point
-		   ((x0 y0) mi)
-		   (let-2d-point
-		    ((x1 y1) ma)
-		    (list mi
-			  (2d-point x1 y0)
-			  ma
-			  (2d-point x0 y1)))))
+    (defmethod (points v)
+      (let-2d-point
+       ((x0 y0) mi)
+       (let-2d-point
+        ((x1 y1) ma)
+        (list mi
+              (2d-point x1 y0)
+              ma
+              (2d-point x0 y1)))))
 
-		(def-method (range v)
-		  (.- ma mi))
+    (defmethod (range v)
+      (.- ma mi))
 
-		;; hm, rename this to x/y like the method for
-		;; 2d-point, or vice versa?
-		(def-method (proportions v) ;; div by zero for zero dy !
-		  (let-2d-point
-		   ((x0 y0) mi)
-		   (let-2d-point
-		    ((x1 y1) ma)
+    ;; hm, rename this to x/y like the method for
+    ;; 2d-point, or vice versa?
+    (defmethod (proportions v) ;; div by zero for zero dy !
+      (let-2d-point
+       ((x0 y0) mi)
+       (let-2d-point
+        ((x1 y1) ma)
 
-		    (let* ((dx (- x1 x0))
-			   (dy (- y1 y0))
-			   (our-dx/dy (/ dx dy)))
-		      our-dx/dy))))
+        (let* ((dx (- x1 x0))
+               (dy (- y1 y0))
+               (our-dx/dy (/ dx dy)))
+          our-dx/dy))))
 
-		(def-method- x/y 2d-window.proportions)
+    (defmethod- x/y 2d-window.proportions)
 
-		(def-method (fit-to-proportions v #((complement zero?) dx/dy) clip?)
-		  (let-2d-point
-		   ((x0 y0) mi)
-		   (let-2d-point
-		    ((x1 y1) ma)
+    (defmethod (fit-to-proportions v [(complement zero?) dx/dy] clip?)
+      (let-2d-point
+       ((x0 y0) mi)
+       (let-2d-point
+        ((x1 y1) ma)
 
-		    (let* ((dx (- x1 x0))
-			   (dy (- y1 y0))
-			   (our-dx/dy (/ dx dy))
+        (let* ((dx (- x1 x0))
+               (dy (- y1 y0))
+               (our-dx/dy (/ dx dy))
 
-			   (_fit
-			    (lambda (dx dy dx/dy x0 x1 y0 y1 2d-point)
-			      (let* ((new-dx (* dy dx/dy))
-				     (x-offset (/ (- dx new-dx) 2)))
-				(2d-window
-				 (2d-point (+ x0 x-offset) y0)
-				 (2d-point (- x1 x-offset) y1)))))
-			   (fit
-			    (lambda (prop)
-			      (_fit dx dy prop x0 x1 y0 y1
-				    2d-point)))
-			   (flip-fit
-			    (lambda (prop)
-			      (_fit dy dx prop y0 y1 x0 x1
-				    (flip 2d-point)))))
+               (_fit
+                (lambda (dx dy dx/dy x0 x1 y0 y1 2d-point)
+                  (let* ((new-dx (* dy dx/dy))
+                         (x-offset (/ (- dx new-dx) 2)))
+                    (2d-window
+                     (2d-point (+ x0 x-offset) y0)
+                     (2d-point (- x1 x-offset) y1)))))
+               (fit
+                (lambda (prop)
+                  (_fit dx dy prop x0 x1 y0 y1
+                        2d-point)))
+               (flip-fit
+                (lambda (prop)
+                  (_fit dy dx prop y0 y1 x0 x1
+                        (flip 2d-point)))))
 
-		      ;; use abs so that negative proportions
-		      ;; will work
-		      (let ((too-wide? (> (abs our-dx/dy) (abs dx/dy))))
-			(if too-wide?
-			    (if clip?
-				(fit dx/dy)
-				(flip-fit (/ dx/dy)))
-			    (if clip?
-				(flip-fit (/ dx/dy))
-				(fit dx/dy)))))))))
+          ;; use abs so that negative proportions
+          ;; will work
+          (let ((too-wide? (> (abs our-dx/dy) (abs dx/dy))))
+            (if too-wide?
+                (if clip?
+                    (fit dx/dy)
+                    (flip-fit (/ dx/dy)))
+                (if clip?
+                    (flip-fit (/ dx/dy))
+                    (fit dx/dy)))))))))
 
-	(jclass (2d-square #(2d-point? start)
-			   #(2d-point? vector))
+  (defclass (2d-square [2d-point? start]
+                       [2d-point? vector])
 
-		(def-method (points s)
-		  (let ((v90 (.rot90l vector))
-			(p2 (.+ start vector)))
-		    (list start
-			  p2
-			  (.+ p2 v90)
-			  (.+ start v90))))
+    (defmethod (points s)
+      (let ((v90 (.rot90l vector))
+            (p2 (.+ start vector)))
+        (list start
+              p2
+              (.+ p2 v90)
+              (.+ start v90))))
 
-		(def-method- (< a b)
-		  (let-2d-square
-		   ((as av) a)
-		   (let-2d-square
-		    ((bs bv) b)
-		    (if (2d-point.< as bs)
-			#t
-			(if (2d-point.< bs as)
-			    #f
-			    (2d-point.< av bv))))))
+    (defmethod- (< a b)
+      (let-2d-square
+       ((as av) a)
+       (let-2d-square
+        ((bs bv) b)
+        (if (2d-point.< as bs)
+            #t
+            (if (2d-point.< bs as)
+                #f
+                (2d-point.< av bv))))))
 
-		;;XXX? vs the one above ?
-		;; (def-method- (< a b)
-		;;   (if (null? a)
-		;;       (begin
-		;; 	(assert (null? b))
-		;; 	#f)
-		;;       (or (2d-point.< (car a) (car b))
-		;; 	  (and (not (2d-point.< (car b) (car a)))
-		;; 	       (2d-square.< (cdr a) (cdr b))))))
+    ;;XXX? vs the one above ?
+    ;; (defmethod- (< a b)
+    ;;   (if (null? a)
+    ;;       (begin
+    ;; 	(assert (null? b))
+    ;; 	#f)
+    ;;       (or (2d-point.< (car a) (car b))
+    ;; 	  (and (not (2d-point.< (car b) (car a)))
+    ;; 	       (2d-square.< (cdr a) (cdr b))))))
 
 	  
-		(def-method- (canonical s)
-		  ;; now stupidly have to add, well
-		  (canonical-2d-square start (2d-point.+ start vector)))))
+    (defmethod- (canonical s)
+      ;; now stupidly have to add, well
+      (canonical-2d-square start (2d-point.+ start vector)))))
 
 
 
@@ -289,23 +289,23 @@
  > (define a (2d-point 10 1))
  > (define b (.rot90l a))
  > b
- #((2d-point) -1 10)
+ [(2d-point) -1 10]
  > (..* b 2)
- #((2d-point) -2 20)
+ [(2d-point) -2 20]
  > (..* b a)
- #((2d-point) -10 10)
+ [(2d-point) -10 10]
  > (../ b a)
- #((2d-point) -1/10 10)
+ [(2d-point) -1/10 10]
  > (../ b 2)
- #((2d-point) -1/2 5)
+ [(2d-point) -1/2 5]
 
  > (.rot90r a)
- #((2d-point) 1 -10)
+ [(2d-point) 1 -10]
 
  > (define c (.rot90l b))
  > (define d (.rot90l c))
  > (.rot90l d)
- #((2d-point) 10 1)
+ [(2d-point) 10 1]
  ;; almost= :
  > (def a (2d-point 1 2))
  > (map (lambda (p)
@@ -377,26 +377,26 @@
  ;; ---- a quadratic window
  > (def w (window (point 10 11) (point 20 21)))
  > (.range w) ;; .size ? well whatever
- #((2d-point) 10 10)
+ [(2d-point) 10 10]
  ;; for every w, the division of the numbers in .range equals .proportions
  > (.proportions w)
  1
  ;; -- cut
  > (def w2 (.fit-to-proportions w 2 #t))
  > w2
- #((2d-window) #((2d-point) 10 27/2) #((2d-point) 20 37/2))
+ [(2d-window) [(2d-point) 10 27/2] [(2d-point) 20 37/2]]
  ;; for every w and y, (comp-function .proportions (C .fit-to-proportions _ x
  ;; y)) equals x
  > (.range w2)
- #((2d-point) 10 5)
+ [(2d-point) 10 5]
  > (.proportions w2)
  2
  ;; -- add borders
  > (def w2 (.fit-to-proportions w 2 #f))
  > w2
- #((2d-window) #((2d-point) 5 11) #((2d-point) 25 21))
+ [(2d-window) [(2d-point) 5 11] [(2d-point) 25 21]]
  > (.range w2)
- #((2d-point) 20 10)
+ [(2d-point) 20 10]
  > (.proportions w2)
  2
 
@@ -406,27 +406,27 @@
  3
  > (def w2 (.fit-to-proportions w 2 #t))
  > w2
- #((2d-window) #((2d-point) -5 11) #((2d-point) 15 21))
+ [(2d-window) [(2d-point) -5 11] [(2d-point) 15 21]]
  > (.range w2)
- #((2d-point) 20 10)
+ [(2d-point) 20 10]
  > (.proportions w2)
  2
 
  > (def w2 (.fit-to-proportions w 6 #t))
  > w2
- #((2d-window) #((2d-point) -10 27/2) #((2d-point) 20 37/2))
+ [(2d-window) [(2d-point) -10 27/2] [(2d-point) 20 37/2]]
  > (.range w2)
- #((2d-point) 30 5)
+ [(2d-point) 30 5]
  > (.proportions w2)
  6
 
  > (def w2 (.fit-to-proportions w -6 #t))
  > w2
- #((2d-window) #((2d-point) -10 37/2) #((2d-point) 20 27/2))
+ [(2d-window) [(2d-point) -10 37/2] [(2d-point) 20 27/2]]
  ;; yes, it's flipped over now (there are two ways to flip, though,
  ;; why that variant?)
  > (.range w2)
- #((2d-point) 30 -5)
+ [(2d-point) 30 -5]
  > (.proportions w2)
  -6
  )
@@ -571,22 +571,22 @@
 
  ;; detail tests (not necessary if the above are successful):
  > (.points (canonical-2d-square (2d-point 10 1) (2d-point 10 2)))
- (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
+ ([(2d-point) 9 1] [(2d-point) 10 1] [(2d-point) 10 2] [(2d-point) 9 2])
  > (.points (canonical-2d-square (2d-point 10 2) (2d-point 9 2)))
- (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
+ ([(2d-point) 9 1] [(2d-point) 10 1] [(2d-point) 10 2] [(2d-point) 9 2])
  > (.points (canonical-2d-square (2d-point 9 2) (2d-point 9 1)))
- (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
+ ([(2d-point) 9 1] [(2d-point) 10 1] [(2d-point) 10 2] [(2d-point) 9 2])
  > (.points (canonical-2d-square (2d-point 9 1) (2d-point 10 1)))
- (#((2d-point) 9 1) #((2d-point) 10 1) #((2d-point) 10 2) #((2d-point) 9 2))
+ ([(2d-point) 9 1] [(2d-point) 10 1] [(2d-point) 10 2] [(2d-point) 9 2])
  )
 
 (TEST ;; 2d-line.diff and 2d-line.slope
  > (.diff (2d-line (2d-point 1 2) (2d-point 3 4)))
- #((2d-point) 2 2)
+ [(2d-point) 2 2]
  > (.slope (2d-line (2d-point 1 2) (2d-point 3 4)))
  1
  > (.diff (2d-line (2d-point 1 2) (2d-point -3 4)))
- #((2d-point) -4 2)
+ [(2d-point) -4 2]
  > (.slope (2d-line (2d-point 1 2) (2d-point -3 4)))
  -1/2
  > (.slope (2d-line (2d-point 1 2) (2d-point 1 4)))
