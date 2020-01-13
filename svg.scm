@@ -14,7 +14,8 @@
          cj-sxml
          cj-sxml-serializer
          (tempfile tempfile-incremental-at)
-         (cj-functional-2 =>))
+         (cj-functional-2 =>)
+         (cj-path path-string?))
 
 (export (generic 2d-shape.svg-fragment)
         (class svg)
@@ -226,7 +227,10 @@
                 (let-painted ((optionS shape) shape)
                              (.svg-fragment shape fit optionS))
                 (.svg-fragment shape fit)))
-          shapes)))))
+          shapes))))
+
+  (defmethod (sxml-file s [path-string? path])
+    (sxml>>pretty-xml-file (.sxml s) path)))
 
 
 (def svg-path-generate
@@ -282,13 +286,11 @@
                    (let* ((usage-window (2d-window mi ma))
                           (cont
                            (lambda (size window)
-                             (sxml>>pretty-xml-file
-                              (.sxml (apply svg
-                                            size
-                                            window
-                                            shapes
-                                            options))
-                              path)))
+                             (.sxml-file (apply svg
+                                                size
+                                                window
+                                                shapes
+                                                options))))
                           (cont-size
                            (lambda (size)
                              (cont size usage-window)))
@@ -334,13 +336,12 @@
          (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
                                               (cons p0 p0)
                                               shapes))
-                   (sxml>>pretty-xml-file
-                    (.sxml (apply svg
-                                  size
-                                  window
-                                  shapes
-                                  (=> options
-                                      (dsssl-delete path:))))
-                    path)
+                   (.sxml-file (apply svg
+                                      size
+                                      window
+                                      shapes
+                                      (=> options
+                                          (dsssl-delete path:)))
+                               path)
                    (future (apply xsystem `(,@svg-viewer "--" ,path)))
                    path))))
