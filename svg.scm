@@ -267,7 +267,7 @@
                         (dsssl-delete size:)
                         (dsssl-delete path:))))
        ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
-       (let* ((p0 (.start (car (force shapes)))))
+       (let (p0 (.start (car (force shapes))))
          (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
                                               (cons p0 p0)
                                               shapes))
@@ -319,9 +319,10 @@
 ;; with manual scaling/cropping
 ;; XX copy-paste
 (def (showsvg* size window shapes . options)
-     (let ((svg-path (svg-path-generate)))
+     (let (path (or (dsssl-ref options path: #f)
+                    (svg-path-generate)))
        ;; ah want regenerate stream(s) maybe? not cache? well. how to say har.
-       (let* ((p0 (.start (car (force shapes)))))
+       (let (p0 (.start (car (force shapes))))
          (let-pair ((mi ma) (stream-fold-left .min+maxs/prev
                                               (cons p0 p0)
                                               shapes))
@@ -330,7 +331,8 @@
                            size
                            window
                            shapes
-                           options)
-                    svg-path)
-                   (future (apply xsystem `(,@svg-viewer "--" ,svg-path)))
-                   svg-path))))
+                           (=> options
+                               (dsssl-delete path:)))
+                    path)
+                   (future (apply xsystem `(,@svg-viewer "--" ,path)))
+                   path))))
