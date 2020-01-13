@@ -16,6 +16,12 @@
          (tempfile tempfile-incremental-at)
          (cj-functional-2 =>))
 
+(export (generic 2d-shape.svg-fragment)
+        (class svg)
+        showsvg
+        showsvg*
+        #!optional
+        (enum fit))
 
 (def. (real.svg-string x)
   (let* ((integertostring
@@ -183,42 +189,44 @@
          (fill ,(.html-colorstring (getopt .maybe-fill-color)))))))
 
 
-(def (svg [2d-point? size]
-          [2d-window? window] ;; 2d-window into the shapes data
-          shapes ;; flat list of shapes; no grouping supported (yet?)
-          #!key
-          [(maybe color?) background-color]
-          ([real? border] 5))
-     (let* ((borderpoint (2d-point border border))
-            (fit
-             (let. ((mi range) window)
-                   (let* ((stretch (../ size range)))
-                     (lambda (p)
-                       (.+ (..* (.- p mi) stretch) borderpoint))))))
-       `(svg
-         (@ (xmlns "http://www.w3.org/2000/svg")
-            (xmlns:xlink "http://www.w3.org/1999/xlink")
-            (height ,(integer-ceiling (+ (.y size) (* 2 border))))
-            (width ,(integer-ceiling (+ (.x size) (* 2 border))))
-            ,(and background-color
-                  `(style ,(string-append
-                            "background-color: "
-                            (.html-colorstring background-color)
-                            ";"))))
-         ;; display from imagemagick 8:6.7.7.10-5 ignores any style
-         ;; etc. attributes of the svg element that set the bgcolor,
-         ;; thus:
-         ,(and background-color
-               `(rect (@ (width "100%")
-                         (height "100%")
-                         (fill ,(.html-colorstring background-color)))))
-         ,(map ;;stream-map
-           (lambda (shape)
-             (if (painted? shape)
-                 (let-painted ((optionS shape) shape)
-                              (.svg-fragment shape fit optionS))
-                 (.svg-fragment shape fit)))
-           shapes))))
+(defclass (svg [2d-point? size]
+               [2d-window? window] ;; 2d-window into the shapes data
+               shapes ;; flat list of shapes; no grouping supported (yet?)
+               #!key
+               [(maybe color?) background-color]
+               ([real? border] 5))
+
+  (defmethod (sxml s)
+    (let* ((borderpoint (2d-point border border))
+           (fit
+            (let. ((mi range) window)
+                  (let* ((stretch (../ size range)))
+                    (lambda (p)
+                      (.+ (..* (.- p mi) stretch) borderpoint))))))
+      `(svg
+        (@ (xmlns "http://www.w3.org/2000/svg")
+           (xmlns:xlink "http://www.w3.org/1999/xlink")
+           (height ,(integer-ceiling (+ (.y size) (* 2 border))))
+           (width ,(integer-ceiling (+ (.x size) (* 2 border))))
+           ,(and background-color
+                 `(style ,(string-append
+                           "background-color: "
+                           (.html-colorstring background-color)
+                           ";"))))
+        ;; display from imagemagick 8:6.7.7.10-5 ignores any style
+        ;; etc. attributes of the svg element that set the bgcolor,
+        ;; thus:
+        ,(and background-color
+              `(rect (@ (width "100%")
+                        (height "100%")
+                        (fill ,(.html-colorstring background-color)))))
+        ,(map ;;stream-map
+          (lambda (shape)
+            (if (painted? shape)
+                (let-painted ((optionS shape) shape)
+                             (.svg-fragment shape fit optionS))
+                (.svg-fragment shape fit)))
+          shapes)))))
 
 
 (def svg-path-generate
@@ -275,11 +283,11 @@
                           (cont
                            (lambda (size window)
                              (sxml>>pretty-xml-file
-                              (apply svg
-                                     size
-                                     window
-                                     shapes
-                                     options)
+                              (.sxml (apply svg
+                                            size
+                                            window
+                                            shapes
+                                            options))
                               path)))
                           (cont-size
                            (lambda (size)
@@ -327,12 +335,12 @@
                                               (cons p0 p0)
                                               shapes))
                    (sxml>>pretty-xml-file
-                    (apply svg
-                           size
-                           window
-                           shapes
-                           (=> options
-                               (dsssl-delete path:)))
+                    (.sxml (apply svg
+                                  size
+                                  window
+                                  shapes
+                                  (=> options
+                                      (dsssl-delete path:))))
                     path)
                    (future (apply xsystem `(,@svg-viewer "--" ,path)))
                    path))))
