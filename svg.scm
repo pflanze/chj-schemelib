@@ -183,12 +183,12 @@
          (fill ,(.html-colorstring (getopt .maybe-fill-color)))))))
 
 
-(def (svg #(2d-point? size)
-          #(2d-window? window) ;; 2d-window into the shapes data
+(def (svg [2d-point? size]
+          [2d-window? window] ;; 2d-window into the shapes data
           shapes ;; flat list of shapes; no grouping supported (yet?)
           #!key
-          #((maybe color?) background-color)
-          (#(real? border) 5))
+          [(maybe color?) background-color]
+          ([real? border] 5))
      (let* ((borderpoint (2d-point border border))
             (fit
              (let. ((mi range) window)
