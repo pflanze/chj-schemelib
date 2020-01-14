@@ -312,23 +312,28 @@
 	   (let-pair
 	    ((expr exprs*) exprs)
 
-	    (let ((var (gensym 'tmp)))
-	      `(,LET ((,var
-                       ,(let ((expr* (source-code expr))
-                              (src (lambda (e)
-                                     (possibly-sourcify e expr))))
-                          (cond
-                           ((pair? expr*)
-                            (src `(,(car expr*)
-                                   ,@(placement res (cdr expr*)))))
-                           ((symbol? expr*)
-                            (src `(,expr ,res)))
-                           (else
-                            (source-error
-                             expr
-                             "expecting a form or a symbol"))))))
-                     ,(next exprs*
-                            var)))))))))
+            (let ((spliced-expr
+                   (let ((expr* (source-code expr))
+                         (src (lambda (e)
+                                (possibly-sourcify e expr))))
+                     (cond
+                      ((pair? expr*)
+                       (src `(,(car expr*)
+                              ,@(placement res (cdr expr*)))))
+                      ((symbol? expr*)
+                       (src `(,expr ,res)))
+                      (else
+                       (source-error
+                        expr
+                        "expecting a form or a symbol"))))))
+              (if (null? exprs*)
+                  spliced-expr
+
+                  (let ((var (gensym 'tmp)))
+                    `(,LET ((,var
+                             ,spliced-expr))
+                           ,(next exprs*
+                                  var)))))))))))
 
 
 (define =>-expand (=>*-expand/placement
@@ -342,12 +347,24 @@
                     '##let))
 
 
+
 (TEST
  > (define TEST:equal? syntax-equal?)
+ > (expansion#=> foo)
+ foo
+ > (expansion#=> (foo))
+ (##let ((GEN:-2348 (foo))) GEN:-2348)
+ > (=>-expand 'foo '())
+ foo
+ > (=>-expand 'foo '((bar 1)))
+ (bar foo 1)
+ > (=>-expand '(foo) '((bar 1)))
+ (##let ((GEN:-3817 (foo))) (bar GEN:-3817 1))
+
  > (=>-expand 'input '((foo-set 1) (bar-set 2)))
  ;; (bar-set (foo-set input 1) 2)
  (##let ((GEN:tmp-6131 (foo-set input 1)))
-   (##let ((GEN:tmp-6132 (bar-set GEN:tmp-6131 2))) GEN:tmp-6132)))
+        (bar-set GEN:tmp-6131 2)))
 
 
 (define-macro* (=> start . exprs)
@@ -427,34 +444,33 @@
  (##lambda
   (GEN:V-6479)
   (##let ((GEN:tmp-6480 ((lambda (x) #\y) GEN:V-6479)))
-	 (##let ((GEN:tmp-6481 (string GEN:tmp-6480))) GEN:tmp-6481)))
+	 (string GEN:tmp-6480)))
  > (expansion#=>*/1 car string)
  ;; (##lambda (GEN:V-671) (string (car GEN:V-671)))
  (##lambda
   (GEN:V-6482)
   (##let ((GEN:tmp-6483 (car GEN:V-6482)))
-	 (##let ((GEN:tmp-6484 (string GEN:tmp-6483))) GEN:tmp-6484)))
+	 (string GEN:tmp-6483)))
 
  > (expansion#=>*/arity 1 (lambda (x) #\y) string)
  ;; (##lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
  (##lambda
   (GEN:-6695)
   (##let ((GEN:-1 ((lambda (x) #\y) GEN:-6695)))
-	 (##let ((GEN:tmp-6696 (string GEN:-1))) GEN:tmp-6696)))
+	 (string GEN:-1)))
  
  > (expansion#=>*/arity 0 (lambda (x) #\y) string)
  ;; (##lambda () (string ((lambda (x) #\y))))
  (##lambda ()
 	   (##let ((GEN:-1 ((lambda (x) #\y))))
-		  (##let ((GEN:tmp-6907 (string GEN:-1))) GEN:tmp-6907)))
+		  (string GEN:-1)))
  
  > (expansion#=>*/arity 2 (lambda (x y) #\y) string)
  ;; (##lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
  (##lambda
   (GEN:-6908 GEN:-6909)
   (##let ((GEN:-1 ((lambda (x y) #\y) GEN:-6908 GEN:-6909)))
-	 (##let ((GEN:tmp-6910 (string GEN:-1)))
-		GEN:tmp-6910)))
+	 (string GEN:-1)))
 
  > (expansion#=>*/arity 1 e0 e1 e2)
  ;; (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
@@ -463,7 +479,7 @@
   (GEN:-7121)
   (##let ((GEN:-1 (e0 GEN:-7121)))
 	 (##let ((GEN:tmp-7122 (e1 GEN:-1)))
-		(##let ((GEN:tmp-7123 (e2 GEN:tmp-7122))) GEN:tmp-7123))))
+		(e2 GEN:tmp-7122))))
  
  > (expansion#=>*/arity 1 (e0) e1 e2)
  ;; (##lambda (GEN:-724) (e2 (e1 ((e0) GEN:-724))))
@@ -471,7 +487,7 @@
   (GEN:-7337)
   (##let ((GEN:-1 ((e0) GEN:-7337)))
 	 (##let ((GEN:tmp-7338 (e1 GEN:-1)))
-		(##let ((GEN:tmp-7339 (e2 GEN:tmp-7338))) GEN:tmp-7339))))
+		(e2 GEN:tmp-7338))))
  
  > (expansion#=>*/arity 1 e0 (e1) e2)
  ;;(##lambda (GEN:-725) (e2 (e1 (e0 GEN:-725))))
@@ -479,7 +495,7 @@
   (GEN:-7550)
   (##let ((GEN:-1 (e0 GEN:-7550)))
 	 (##let ((GEN:tmp-7551 (e1 GEN:-1)))
-		(##let ((GEN:tmp-7552 (e2 GEN:tmp-7551))) GEN:tmp-7552))))
+		(e2 GEN:tmp-7551))))
  
 
  ;; Compared to =>* :
@@ -489,7 +505,7 @@
  (##lambda
   (GEN:V-7763)
   (##let ((GEN:tmp-7764 ((lambda (x) #\y) GEN:V-7763)))
-	 (##let ((GEN:tmp-7765 (string GEN:tmp-7764))) GEN:tmp-7765)))
+	 (string GEN:tmp-7764)))
  ;;   ^ BTW it does *not* evaluate expressions once-only like on,
  ;;     comp, either do.
  ;; but not this:
@@ -498,7 +514,7 @@
  (##lambda
   GEN:V-7766
   (##let ((GEN:-1 (##apply car GEN:V-7766)))
-	 (##let ((GEN:tmp-7767 (string GEN:-1))) GEN:tmp-7767))))
+	 (string GEN:-1))))
 
 
 
