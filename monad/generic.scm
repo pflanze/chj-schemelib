@@ -1,4 +1,4 @@
-;;; Copyright 2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2019-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -112,4 +112,39 @@
 (defmacro (mlet-for a bindS expr)
   `(in-monad-for ,a
                  (mlet ,bindS ,expr)))
+
+
+
+;; Haskell's `sequence` takes a traversable. This one just for lists,
+;; a flipped .sequence-in for others. Ok?
+
+(def.* (monad-ops.rsequence m l)
+  "(Traversable t, Monad m) => t (m a) -> m (t a)
+
+Returns the resulting list (t a) in reversed order. See sequence-in
+for a non-reversed variant.
+"
+  (let lp ((l l)
+           (res '()))
+    (if-let-pair ((a r) l)
+                 (>>= a
+                      (lambda (a*)
+                        (lp r (cons a* res))))
+                 (return res))))
+
+
+(def.* (monad-ops.sequence m l)
+  "(Traversable t, Monad m) => t (m a) -> m (t a)
+
+See .rsequence-in for a variant that returns the resulting list
+reversed.
+"
+  ;; COPY-PASTE with reverse added
+  (let lp ((l l)
+           (res '()))
+    (if-let-pair ((a r) l)
+                 (>>= a
+                      (lambda (a*)
+                        (lp r (cons a* res))))
+                 (return (reverse res)))))
 
