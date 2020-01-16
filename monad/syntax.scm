@@ -43,7 +43,8 @@
 ;; |use-monad-for| and |in-monad-for| along with |mlet-for| etc. which
 ;; alias >>, >>=, return from there, as well as >>-function,
 ;; >>=-function, return-function (in this case all directly as
-;; functions).
+;; functions). Alternatively, retrieve the monad-ops struct via
+;; `($monad-ops)` which is defined by |in-monad| / |use-monad|.
 
 
 (defmacro (use-monad monadname)
@@ -124,6 +125,40 @@
                        ',(symbol-append monadname* ".return"))
                      (##source-code stx))
                     stx)))
+
+                
+                ;; To call generic monad functions like
+                ;; monad-ops.sequence :
+
+                (##define-syntax
+                 $monad-ops
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name)
+                       ',(symbol-append monadname* ":monad-ops"))
+                     (##source-code stx))
+                    stx)))
+
+                ;; And nicer variant? Unfinished. Not sure how
+                ;; exactly. Or if at all.
+                ;; (##define-syntax
+                ;;  monadic
+                ;;  (lambda (stx)
+                ;;    (##sourcify-deep
+                ;;     (apply
+                ;;      (lambda (_name . fn+args)
+                ;;        (if-let-pair
+                ;;         ((fn args) fn+args)
+                ;;         `(,(symbol-append .. fn) ;; prefix with
+                ;;                                  ;; monad-ops. *if*
+                ;;                                  ;; symbol?
+                ;;           ,(symbol-append monadname* ":monad-ops")
+                ;;           ,@args)
+                ;;         (source-error
+                ;;          stx "need fn and its arguments as arguments")))
+                ;;      (##source-code stx))
+                ;;     stx)))
 
                 
                 (##define-syntax
