@@ -6,7 +6,20 @@
 ;;;    (at your option) any later version.
 
 
-(require easy)
+(require easy
+         (cj-functional-2 =>*-expand/placement))
+
+(export (macros use-monad
+                in-monad
+                mdo
+                mdo-in
+                mlet
+                mlet-in
+                mlift
+                ==>
+                ==>*
+                ==>>
+                ==>>*))
 
 ;;;
 ;;;; Infrastructure to write monads
@@ -252,4 +265,131 @@
            (return ,f ,@vs))))
 
 ;; XXX: mlift or lift? Is this not one of the methods like return ?
+
+
+
+;; Threading macros like =>, =>*, =>>, =>>*, but monadic (via >>=):
+
+;; (Partially copy-paste from cj-functional-2: changed in that the
+;; first expression to ==> ==>> is also passed through >>=, not just
+;; fed directly into the next form. That part is pretty hacky: wrap an
+;; extra * variant of the syntax.)
+
+(def inner-==>-expand (=>*-expand/placement (lambda (prev-result rest)
+                                              `(,prev-result ,@rest))
+                                            'mlet))
+(def inner-==>>-expand (=>*-expand/placement (lambda (prev-result rest)
+                                               `(,@rest ,prev-result))
+                                             'mlet))
+
+(def (==>-expand start exprs)
+     (if (null? exprs)
+         start
+         (with-gensym
+          V
+          `(mlet ((,V ,start))
+                 ,(inner-==>-expand V exprs)))))
+
+(define-macro* (==> start . exprs)
+  (==>-expand start exprs))
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#==> (foo) (bar 1) (baz 2))
+ (mlet ((GEN:V-2343 (foo)))
+       (mlet ((GEN:tmp-2344 (bar GEN:V-2343 1)))
+             (baz GEN:tmp-2344 2)))
+ > (expansion#==> (foo) (bar 1))
+ (mlet ((GEN:V-2343 (foo)))
+       (bar GEN:V-2343 1))
+ > (expansion#==> (foo))
+ (foo)
+ > (expansion#==> foo)
+ foo)
+
+
+(define-macro* (==>* expr0 . exprs)
+  (if (symbol? (source-code expr0))
+      (with-gensyms
+       (VS WS)
+       `(##lambda ,VS
+                  (mlet ((,WS (monad-ops.sequence ($monad-ops) ,VS)))
+                        ,(==>-expand (possibly-sourcify
+                                      `(##apply ,expr0 ,WS)
+                                      expr0)
+                                     exprs))))
+      ;; otherwise can't support multiple values:
+      (with-gensym
+       V
+       `(##lambda (,V)
+                  ,(==>-expand V (cons expr0 exprs))))))
+
+;; But the normal case will really be the 1-ary one:
+(define-macro* (==>*/1 expr0 . exprs)
+  (with-gensym
+   V
+   `(##lambda (,V)
+              ,(==>-expand V (cons expr0 exprs)))))
+
+
+(TEST
+ > (define TEST:equal? syntax-equal?)
+ > (expansion#==>* (foo 0) (bar 1) (baz 2))
+ (##lambda (GEN:V-1)
+           (mlet ((GEN:V-2 GEN:V-1))
+                 (mlet ((GEN:V-2343 (foo GEN:V-2 0)))
+                       (mlet ((GEN:tmp-2344 (bar GEN:V-2343 1)))
+                             (baz GEN:tmp-2344 2)))))
+ > (expansion#==>* (foo) (bar 1))
+ (##lambda (GEN:V-1)
+           (mlet ((GEN:V-2 GEN:V-1))
+                 (mlet ((GEN:V-2343 (foo GEN:V-2)))
+                       (bar GEN:V-2343 1))))
+ > (expansion#==>*-nary foo (bar 1))
+ (##lambda GEN:VS-2539
+           (mlet ((GEN:WS-2540 (monad-ops.sequence ($monad-ops)
+                                                  GEN:VS-2539)))
+                 (mlet ((GEN:V-2541 (##apply foo GEN:WS-2540)))
+                       (bar GEN:V-2541 1))))
+ > (expansion#==>* foo (bar 1))
+ (##lambda (GEN:V-2539)
+           (mlet ((GEN:V-2540 GEN:V-2539))
+                 (mlet ((GEN:tmp-2541 (foo GEN:V-2540)))
+                       (bar GEN:tmp-2541 1))))
+ > (expansion#==> (foo 0))
+ (foo 0)
+ > (expansion#==> foo)
+ foo)
+
+
+
+;; (define-macro* (==>*/arity n expr0 . exprs)
+;;   (let ((n* (eval n)))
+;;     (if (exact-natural0? n*)
+;; 	(let ((VS (map (lambda (i) (gensym))
+;; 		       (iota n*))))
+;; 	  `(##lambda ,VS
+;; 		     ,(==>-expand (possibly-sourcify `(,expr0 ,@VS) expr0)
+;;                                   exprs)))
+;; 	(source-error n "expecting expression evaluating to natural0"))))
+
+
+;; (define ==>>-expand (=>*-expand/placement
+;;                      (lambda (prev-result rest)
+;;                        `(,@rest ,prev-result))
+;;                      'mlet))
+
+;; (define-macro* (==>> start . exprs)
+;;   (==>>-expand start exprs))
+
+;; (define-macro* (==>>* expr0 . exprs)
+;;   (with-gensym
+;;    V
+;;    (if (symbol? (source-code expr0))
+;;        `(##lambda ,V
+;; 		  ,(==>>-expand (possibly-sourcify `(##apply ,expr0 ,V) expr0)
+;;                                 exprs))
+;;        ;; otherwise can't support multiple values:
+;;        `(##lambda (,V)
+;; 		  ,(==>>-expand V (cons expr0 exprs))))))
 

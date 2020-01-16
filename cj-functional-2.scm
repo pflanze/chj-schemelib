@@ -49,7 +49,8 @@
 	applying
         applying-pair
         #!optional
-        inhomogenous-list-of*)
+        inhomogenous-list-of*
+        =>*-expand/placement)
 
 (include "cj-standarddeclares.scm")
 
@@ -299,7 +300,7 @@
 ;; Also see source.=> in code-cj-functional.scm
 
 
-(define (=>*-expand/placement placement)
+(define (=>*-expand/placement placement LET)
   (lambda (start exprs)
     (early-bind-expressions
      (start)
@@ -312,31 +313,33 @@
 	    ((expr exprs*) exprs)
 
 	    (let ((var (gensym 'tmp)))
-	      `(##let ((,var
-			,(let ((expr* (source-code expr))
-			       (src (lambda (e)
-				      (possibly-sourcify e expr))))
-			   (cond
-			    ((pair? expr*)
-			     (src `(,(car expr*)
-				    ,@(placement res (cdr expr*)))))
-			    ((symbol? expr*)
-			     (src `(,expr ,res)))
-			    (else
-			     (source-error
-			      expr
-			      "expecting a form or a symbol"))))))
-		      ,(next exprs*
-			     var)))))))))
+	      `(,LET ((,var
+                       ,(let ((expr* (source-code expr))
+                              (src (lambda (e)
+                                     (possibly-sourcify e expr))))
+                          (cond
+                           ((pair? expr*)
+                            (src `(,(car expr*)
+                                   ,@(placement res (cdr expr*)))))
+                           ((symbol? expr*)
+                            (src `(,expr ,res)))
+                           (else
+                            (source-error
+                             expr
+                             "expecting a form or a symbol"))))))
+                     ,(next exprs*
+                            var)))))))))
 
 
 (define =>-expand (=>*-expand/placement
 		   (lambda (prev-result rest)
-		     `(,prev-result ,@rest))))
+		     `(,prev-result ,@rest))
+                   '##let))
 
 (define =>>-expand (=>*-expand/placement
 		    (lambda (prev-result rest)
-		      `(,@rest ,prev-result))))
+		      `(,@rest ,prev-result))
+                    '##let))
 
 
 (TEST
