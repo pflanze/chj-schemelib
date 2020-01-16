@@ -31,7 +31,7 @@
 	both-function        (macro both both-2)
 	all-of-function      (macro all-of all-of-2)
 	(macro =>)
-	(macro =>*)
+	(macro =>*-nary)
 	exact-natural0? ;; can't be in predicates-1 for dependency reasons
 	(macro =>*/1)
 	(macro =>*/arity)
@@ -370,7 +370,9 @@
 (define-macro* (=> start . exprs)
   (=>-expand start exprs))
 
-(define-macro* (=>* expr0 . exprs)
+;; See =>* for the 1-ary case. (How is Clojure dealing with n-arity
+;; here? Not offering * variant at all?)
+(define-macro* (=>*-nary expr0 . exprs)
   (with-gensym
    V
    (if (symbol? (source-code expr0))
@@ -382,24 +384,22 @@
 		  ,(=>-expand V (cons expr0 exprs))))))
 
 (TEST
- > ((=>* (inc)) 10)
+ > ((=>*-nary (inc)) 10)
  11
  > ((=>*/1 inc inc) 10)
  12
  ;; multiple arguments:
- > ((=>* + inc))
+ > ((=>*-nary + inc))
  1
- > ((=>* + inc) 2 3)
+ > ((=>*-nary + inc) 2 3)
  6
  > (with-exception-catcher wrong-number-of-arguments-exception?
-			   (lambda () ((=>* (+) inc) 2 3)))
+			   (lambda () ((=>*-nary (+) inc) 2 3)))
  #t
- > ((=>* (+) inc) 2)
+ > ((=>*-nary (+) inc) 2)
  3)
 
 
-;; always 1-ary, OK? XX or change =>* to this, how is Clojure dealing
-;; with this?
 (define-macro* (=>*/1 expr0 . exprs)
   (with-gensym
    V
@@ -498,9 +498,9 @@
 		(e2 GEN:tmp-7551))))
  
 
- ;; Compared to =>* :
+ ;; Compared to =>*-nary :
  ;; currently this is the same with non-symbol expressions:
- > (expansion#=>* ((lambda (x) #\y)) string)
+ > (expansion#=>*-nary ((lambda (x) #\y)) string)
  ;;(##lambda (GEN:V-669) (string ((lambda (x) #\y) GEN:V-669)))
  (##lambda
   (GEN:V-7763)
@@ -509,7 +509,7 @@
  ;;   ^ BTW it does *not* evaluate expressions once-only like on,
  ;;     comp, either do.
  ;; but not this:
- > (expansion#=>* car string)
+ > (expansion#=>*-nary car string)
  ;;(##lambda GEN:V-670 (string (##apply car GEN:V-670)))
  (##lambda
   GEN:V-7766
