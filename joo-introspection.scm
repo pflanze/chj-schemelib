@@ -66,7 +66,7 @@
 
 (def. joo-type.all-subclasses*
   ;;"including itself" XX change def. to allow docstrings like def
-  (=>*/1 joo-type.members
+  (=>* joo-type.members
          .list
          (.filter (comp just? cdr)) ;; XXX or does that for existance of constructor?
          (.map car)))

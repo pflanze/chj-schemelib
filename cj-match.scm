@@ -10,7 +10,7 @@
 	 (fixnum inc dec)
 	 test
 	 cj-phasing
-	 (cj-functional-2 =>*/1)
+	 (cj-functional-2 =>*)
 	 (srfi-11 fst snd)
 	 cj-source
 	 cj-source-2
@@ -48,8 +48,8 @@
 	     ((test . body)
 	      (values test body)))))
 
- (define clause:test (=>*/1 clause:parse fst))
- (define clause:body (=>*/1 clause:parse snd))
+ (define clause:test (=>* clause:parse fst))
+ (define clause:body (=>* clause:parse snd))
 
  (define clause:test-parse
    ;; (values constructor apply? rest)
@@ -72,9 +72,9 @@
 					#f
 					(cdr test))))))))))
 
- (define clause:constructor-xsym (=>*/1 clause:test-parse fst))
- (define clause:apply? (=>*/1 clause:test-parse snd))
- (define clause:args (=>*/1 clause:test-parse 3rd))
+ (define clause:constructor-xsym (=>* clause:test-parse fst))
+ (define clause:apply? (=>* clause:test-parse snd))
+ (define clause:args (=>* clause:test-parse 3rd))
 
  (define clause:test-nargs
    ;; negative like improper-length if it's an n-ary application
@@ -231,7 +231,7 @@
 		 (segregate opgroup (on clause:test-nargs <))))
 	   ;; split into n-ary and fixed arity cases:
 	   (letv ((groups-nary groups-fixed)
-		  (partition (=>*/1 car
+		  (partition (=>* car
 					clause:test-nargs
 					negative?)
 			     grouped-by-nargs))

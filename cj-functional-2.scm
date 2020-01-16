@@ -33,7 +33,7 @@
 	(macro =>)
 	(macro =>*-nary)
 	exact-natural0? ;; can't be in predicates-1 for dependency reasons
-	(macro =>*/1)
+	(macro =>*)
 	(macro =>*/arity)
 	(macro =>>)
 	(macro =>>*)
@@ -386,7 +386,7 @@
 (TEST
  > ((=>*-nary (inc)) 10)
  11
- > ((=>*/1 inc inc) 10)
+ > ((=>* inc inc) 10)
  12
  ;; multiple arguments:
  > ((=>*-nary + inc))
@@ -400,7 +400,7 @@
  3)
 
 
-(define-macro* (=>*/1 expr0 . exprs)
+(define-macro* (=>* expr0 . exprs)
   (with-gensym
    V
    `(##lambda (,V)
@@ -420,15 +420,15 @@
 	(source-error n "expecting expression evaluating to natural0"))))
 
 (TEST
- > ((=>*/1 car string) '(#\a #\b))
+ > ((=>* car string) '(#\a #\b))
  "a"
  > (with-exception-catcher wrong-number-of-arguments-exception?
-			   (lambda () ((=>*/1 car string) '(#\a #\b) 3)))
+			   (lambda () ((=>* car string) '(#\a #\b) 3)))
  #t
  > ((=>*/arity 1 car string) '(#\a #\b))
  "a"
 
- > ((=>*/1 ((lambda (x) #\y)) string) '(#\a #\b))
+ > ((=>* ((lambda (x) #\y)) string) '(#\a #\b))
  "y"
  > ((=>*/arity 1 (lambda (x) #\y) string) '(#\a #\b))
  "y"
@@ -439,13 +439,13 @@
 (TEST
  > (define TEST:equal? syntax-equal?)
  
- > (expansion#=>*/1 ((lambda (x) #\y)) string)
+ > (expansion#=>* ((lambda (x) #\y)) string)
  ;; (##lambda (GEN:V-668) (string ((lambda (x) #\y) GEN:V-668)))
  (##lambda
   (GEN:V-6479)
   (##let ((GEN:tmp-6480 ((lambda (x) #\y) GEN:V-6479)))
 	 (string GEN:tmp-6480)))
- > (expansion#=>*/1 car string)
+ > (expansion#=>* car string)
  ;; (##lambda (GEN:V-671) (string (car GEN:V-671)))
  (##lambda
   (GEN:V-6482)

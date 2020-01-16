@@ -171,9 +171,9 @@
  ;;               (either inexact?
  ;;                       ...?))
  ;;         (both string?
- ;;               (=>*/1 string-length (< 500)))
+ ;;               (=>* string-length (< 500)))
  ;;         (all-of vector?
- ;;                 (=>*/1 vector-length (< 500))
+ ;;                 (=>* vector-length (< 500))
  ;;                 ...?))
  > (repeatedly
     3 optimize

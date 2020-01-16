@@ -281,7 +281,7 @@ reconstruction work)"))
                        (error "need predicate")))))))
 
  (def corescheme:classname.var+pred-s
-      (=>*/1 class-name.joo-type
+      (=>* class-name.joo-type
              corescheme:joo-type.var+pred-s))
  
  (def (corescheme:def-constructor-expand classname)
