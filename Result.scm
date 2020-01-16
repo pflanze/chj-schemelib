@@ -337,6 +337,34 @@
              GEN:V-4100))
        GEN:V-4099)))
 
+;; ==>
+
+(TEST
+ > (in-monad Result (==> (Ok 12) Ok Error Ok))
+ [(Error) 12]
+ > (in-monad Result (==> (Ok 12) list))
+ (12)
+ > (in-monad Result (==> (Error 12) list))
+ [(Error) 12])
+
+;; ==>*
+
+(TEST
+ > ((in-monad Result (==>* Error list)) (Ok 10))
+ [(Error) 10]
+ > ((in-monad Result (==>* (Error) (list))) (Ok 10))
+ [(Error) 10]
+ > ((in-monad Result (==>* Ok list)) (Ok 10))
+ (10)
+ > ((in-monad Result (==>* Ok list)) (Error 10))
+ [(Error) 10]
+ > ((in-monad Result (==>* (Ok) list)) (Ok 10))
+ (10)
+ > ((in-monad Result (==>* Error list)) (Error 10))
+ [(Error) 10])
+
+
+
 ;; Generic monads
 
 ;;(TEST )
