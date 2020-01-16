@@ -308,7 +308,7 @@
  foo)
 
 
-(define-macro* (==>* expr0 . exprs)
+(define-macro* (==>*-nary expr0 . exprs)
   (if (symbol? (source-code expr0))
       (with-gensyms
        (VS WS)
@@ -318,14 +318,12 @@
                                       `(##apply ,expr0 ,WS)
                                       expr0)
                                      exprs))))
-      ;; otherwise can't support multiple values:
-      (with-gensym
-       V
-       `(##lambda (,V)
-                  ,(==>-expand V (cons expr0 exprs))))))
+      (source-error expr0
+                    "need a symbol here to support n-arity")))
 
 ;; But the normal case will really be the 1-ary one:
-(define-macro* (==>*/1 expr0 . exprs)
+;; XX rename =>*/1 and =>* to =>* and =>*-nary as well?
+(define-macro* (==>* expr0 . exprs)
   (with-gensym
    V
    `(##lambda (,V)

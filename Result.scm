@@ -350,6 +350,20 @@
 ;; ==>*
 
 (TEST
+ > ((in-monad Result (==>*-nary Error list)) (Ok 10))
+ [(Error) 10]
+ ;; > ((in-monad Result (==>*-nary (Error) (list))) (Ok 10))
+ ;; ERROR IN syntax, .. -- need a symbol here to support n-arity
+ > ((in-monad Result (==>*-nary Ok list)) (Ok 10))
+ (10)
+ > ((in-monad Result (==>*-nary Ok list)) (Error 10))
+ [(Error) 10]
+ ;; > ((in-monad Result (==>*-nary (Ok) list)) (Ok 10))
+ ;; ERROR IN syntax, .. -- need a symbol here to support n-arity
+ > ((in-monad Result (==>*-nary Error list)) (Error 10))
+ [(Error) 10])
+
+(TEST
  > ((in-monad Result (==>* Error list)) (Ok 10))
  [(Error) 10]
  > ((in-monad Result (==>* (Error) (list))) (Ok 10))
