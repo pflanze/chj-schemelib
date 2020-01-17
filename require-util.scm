@@ -263,7 +263,8 @@
        (quote)
        (define)
        (no-load)
-       (current-type-failure-handling)))
+       (current-type-failure-handling)
+       (generate-proper-tail-calls)))
 
 (def (load.scm-extract sexpr tail)
      (mcase
