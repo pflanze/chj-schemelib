@@ -256,9 +256,9 @@
 (is-constructor-name-for-monad! 'Result-of 'Result)
 
 (def-inline (Result->>= a f)
-  (if-Ok a
-         (f it)
-         it-Result))
+  (if (Ok? a)
+      (f (@Ok.value a))
+      (-> Error? a)))
 
 (def. Result.>>= (Result->>=-lambda))
 
