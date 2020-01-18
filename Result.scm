@@ -255,13 +255,13 @@
 ;; tell cj-typed that our type constructor is a monad
 (is-constructor-name-for-monad! 'Result-of 'Result)
 
-(def (Result:->Error v)
-     (-> Error? v))
+(def (Result:->Result v)
+     (-> Result? v))
 
 (def-inline (Result->>= a f)
   (if (Ok? a)
       (f (@Ok.value a))
-      (Result:->Error a)))
+      (Result:->Result a)))
 
 (def. Result.>>= (Result->>=-lambda))
 
