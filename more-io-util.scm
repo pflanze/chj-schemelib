@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -10,7 +10,9 @@
 
 (require easy
          (cj-env-2 future)
-         (cj-io-util open-process*)
+         (cj-io-util open-process*
+                     dirname+basename
+                     directory-item-stream)
          (cj-path path-string?)
          (Result Ok Error)
          test)
@@ -20,6 +22,8 @@
         string-writer
         string-reader
         file-contents
+        glob-match
+        glob
         
         #!optional
         process-spec?)
@@ -111,3 +115,51 @@
 (def (file-contents #(path-string? path))
      (call-with-input-file path string-reader))
 
+
+(def (glob-match [string? pattern]) -> function?
+     "shell style pattern language except only supports '*' for now"
+     (let (parts (string-split pattern #\*))
+       (case (length parts)
+         ((1) (C string=? _ pattern))
+         (else
+          (let-pair ((p0 parts*) parts)
+                    (let ((plast (last parts*))
+                          (pbetween (butlast parts*)))
+                      (if (pair? pbetween)
+                          (error "only supporting 1 * for now" pattern)
+                          (lambda (str)
+                            (and (string-starts-with? str p0)
+                                 (string-ends-with? str plast)
+                                 ;; difficult complexity
+                                 ;; (let lp ((parts parts*))
+                                 ;;   )
+                                 )))))))))
+
+(TEST
+ > ((glob-match "foo") "foo")
+ #t
+ > ((glob-match "foo") "foo ")
+ #f
+ > ((glob-match "foo*bar") "foo ")
+ #f
+ > ((glob-match "foo*bar") "foo bar")
+ #t
+ > ((glob-match "foo*bar") "foobar")
+ #t
+ > ((glob-match "foo*bar") "fobar")
+ #f
+ > ((glob-match "foo*bar") " foobar")
+ #f
+ > ((glob-match "foo*bar") "foobar ")
+ #f)
+
+
+(def (glob [string? pattern])
+     "shell style pattern language except only supports '*' for now"
+     (letv ((dirpath filepattern) (dirname+basename pattern))
+           (if (string-contains? dirpath "*")
+               (error "patterns in directories not supported yet" pattern)
+               (=>> (stream-filter (glob-match filepattern)
+                                   (directory-item-stream dirpath))
+                    (stream-map (lambda (item)
+                                  (path-append dirpath item)))))))
