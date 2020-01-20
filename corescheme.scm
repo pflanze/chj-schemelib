@@ -38,6 +38,7 @@
          joo-introspection
          (cj-typed perhaps-typed.var
                    perhaps-typed.maybe-predicate)
+         monad/syntax
          test
          test-random)
 
@@ -87,15 +88,6 @@
 
 * Status whether optimized for correctness checking.
 "
-
-
-;; COPY from unmerged monad library:
-
-(defmacro (mdo . args)
-  `(RA >> ,@args))
-
-(defmacro (>> a b)
-  `(.>> ,a (lambda () ,b)))
 
 
 ;; move to some more general scheme lib?
