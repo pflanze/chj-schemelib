@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -56,6 +56,7 @@
         basepath
         basename
         dirname
+        dirname+basename
         port->stream
         directory-item-stream
         file-line-stream
@@ -540,6 +541,12 @@
 ;;   )
 
 (define dirname dirname-slow)
+
+
+(define (dirname+basename path)
+  ;; XX optimize
+  (values (dirname path)
+          (basename path)))
 
 
 (TEST
