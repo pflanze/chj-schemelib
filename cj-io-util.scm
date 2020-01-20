@@ -7,150 +7,150 @@
 
 
 (require easy
-	 test
-	 (cj-path path-string?)
-	 (keyword-alist keyword-alist:Maybe-ref
-			keyword-alist:delete
-			keyword-alist:set)
-	 (alist <alist>)
-	 srfi-11
-	 srfi-1
-	 posix/cj-posix ;; posix:environ open close read write seek etc.
-	 (cj-functional list-of values-of)
-	 string-bag
-	 (cj-source make-source make-location make-position))
+         test
+         (cj-path path-string?)
+         (keyword-alist keyword-alist:Maybe-ref
+                        keyword-alist:delete
+                        keyword-alist:set)
+         (alist <alist>)
+         srfi-11
+         srfi-1
+         posix/cj-posix ;; posix:environ open close read write seek etc.
+         (cj-functional list-of values-of)
+         string-bag
+         (cj-source make-source make-location make-position))
 
 (export open-process*
-	open-input-process*
-	open-output-process*
-	port.name
-	port.content
-	eexist-exception?
-	eperm-exception?
-	read-lines
-	maybe-read-line
-	xread-line
-	writeln
-	pathspec.xcontent
-	string.print-file
-	xcall-with-input-process
-	Xcall-with-input-process
-	xxsystem
-	xsystem
-	01status?
-	01system
-	xbacktick
-	Xbacktick
-	01backtick
-	backtick
-	xbacktick-bash bash
-	bash-command
-	hostname
-	xforwardtick
-	Xforwardtick
-	01forwardtick
-	file-info->mtime
-	file-basename
-	file-mtime
-	file-exists-and-newer?
-	basepath
-	basename
-	dirname
-	port->stream
-	directory-item-stream
-	file-line-stream
-	file-char/location-stream
-	process-line-stream
-	process-read-stream
-	user-name-or-id->id
-	group-name-or-id->id
-	chown
-	possibly-create-directory
-	putfile
-	getfile
-	partial-copy-file)
+        open-input-process*
+        open-output-process*
+        port.name
+        port.content
+        eexist-exception?
+        eperm-exception?
+        read-lines
+        maybe-read-line
+        xread-line
+        writeln
+        pathspec.xcontent
+        string.print-file
+        xcall-with-input-process
+        Xcall-with-input-process
+        xxsystem
+        xsystem
+        01status?
+        01system
+        xbacktick
+        Xbacktick
+        01backtick
+        backtick
+        xbacktick-bash bash
+        bash-command
+        hostname
+        xforwardtick
+        Xforwardtick
+        01forwardtick
+        file-info->mtime
+        file-basename
+        file-mtime
+        file-exists-and-newer?
+        basepath
+        basename
+        dirname
+        port->stream
+        directory-item-stream
+        file-line-stream
+        file-char/location-stream
+        process-line-stream
+        process-read-stream
+        user-name-or-id->id
+        group-name-or-id->id
+        chown
+        possibly-create-directory
+        putfile
+        getfile
+        partial-copy-file)
 
 
 ;; handle setenv:-enriched process specs:
 
 (def (env-alist:key+val.key #(string? s))
      (letv ((k maybe-v)
-	    (string-split-once s #\= #t))
-	   k))
+            (string-split-once s #\= #t))
+           k))
 
 (def (environ-key? v)
      (and (string? v)
-	  (not (string-empty? v))
-	  (not (string-contains? v "="))))
+          (not (string-empty? v))
+          (not (string-contains? v "="))))
 
 (modimport/prefix env-alist:
-		  (<alist> string?
-			   env-alist:key+val.key
-			   string=?))
+                  (<alist> string?
+                           env-alist:key+val.key
+                           string=?))
 
 (def (process*-alist-expand spec *environ)
      (Maybe:cond
       ((keyword-alist:Maybe-ref spec setenv:)
        => (lambda (entry)
-	    (let ((k+v-s (-> (list-of (values-of environ-key? string?))
-			     (cdr entry))))
-	      (keyword-alist:set
-	       (keyword-alist:delete spec setenv:)
-	       (cons environment:
-		     (fold-right
-		      (lambda (k+v env)
-			(letv ((k v) k+v)
-			      (env-alist:set env
-					     (string-append k "=" v))))
-		      (*environ)
-		      k+v-s))))))
+            (let ((k+v-s (-> (list-of (values-of environ-key? string?))
+                             (cdr entry))))
+              (keyword-alist:set
+               (keyword-alist:delete spec setenv:)
+               (cons environment:
+                     (fold-right
+                      (lambda (k+v env)
+                        (letv ((k v) k+v)
+                              (env-alist:set env
+                                             (string-append k "=" v))))
+                      (*environ)
+                      k+v-s))))))
       (else
        spec)))
 
 (TEST
  > (process*-alist-expand '((foo: . "bar") (baz: . "bum"))
-			  (C error "bug"))
+                          (C error "bug"))
  ((foo: . "bar") (baz: . "bum")))
 
 
 (def (process-list.alist l)
      (if (null? l)
-	 l
-	 (let-pair ((k l) l)
-		   (let-pair ((v l) l)
-			     (cons (cons k v)
-				   (process-list.alist l))))))
+         l
+         (let-pair ((k l) l)
+                   (let-pair ((v l) l)
+                             (cons (cons k v)
+                                   (process-list.alist l))))))
 
 (def (process-alist.list l)
      (if (null? l)
-	 l
-	 (let-pair ((k+v l) l)
-		   (let-pair ((k v) k+v)
-			     (cons* k v
-				    (process-alist.list l))))))
+         l
+         (let-pair ((k+v l) l)
+                   (let-pair ((k v) k+v)
+                             (cons* k v
+                                    (process-alist.list l))))))
 
 
 (def (process*-spec-expand spec *environ)
      (if (string? spec)
-	 spec
-	 (process-alist.list
-	  (process*-alist-expand (process-list.alist spec)
-				 *environ))))
+         spec
+         (process-alist.list
+          (process*-alist-expand (process-list.alist spec)
+                                 *environ))))
 
 (TEST
  > (process*-spec-expand "foo" (C error "bug"))
  "foo"
  > (def (env)
-	'("PATH=a:b:c" "BAR=2" "CWD=/x/y"))
+        '("PATH=a:b:c" "BAR=2" "CWD=/x/y"))
  > (process*-spec-expand '(foo: "bar" baz: "bum") env)
  (foo: "bar" baz: "bum")
  > (process*-spec-expand
     (list setenv: (list (values "FOO" "bar")
-			(values "BAR" "baz"))
-	  baz: "bum")
+                        (values "BAR" "baz"))
+          baz: "bum")
     env)
  (environment: ("FOO=bar" "PATH=a:b:c" "BAR=baz" "CWD=/x/y")
-	       baz: "bum"))
+               baz: "bum"))
 
 
 (def (open-process* spec)
@@ -173,32 +173,32 @@
 ;; XX still that hack of hard-coding constants
 (def (eexist-exception? v)
      (and (os-exception? v)
-	  (= (os-exception-code v) -515899375)))
+          (= (os-exception-code v) -515899375)))
 (def (eperm-exception? v)
      (and (os-exception? v)
-	  (= (os-exception-code v) -515899379)))
+          (= (os-exception-code v) -515899379)))
 
 
 (define (read-lines #!optional (p (current-input-port)) (tail '()))
   (let rec ()
     (let ((line (read-line p)))
       (if (eof-object? line)
-	  tail
-	  (cons line (rec))))))
+          tail
+          (cons line (rec))))))
 
 (define (maybe-read-line p . args)
   (let ((v (apply read-line p args)))
     (if (eof-object? v)
-	#f
-	v)))
+        #f
+        v)))
 
 ;; would preferably use read-line as the name, but, better don't
 ;; confuse Scheme users.
 (define (xread-line p . args)
   (let ((v (apply read-line p args)))
     (if (eof-object? v)
-	(error "xread-line: got EOF reading from " p)
-	v)))
+        (error "xread-line: got EOF reading from " p)
+        v)))
 
 
 (define (writeln obj #!optional maybe-port)
@@ -208,7 +208,7 @@
 
 (define (pathspec.xcontent pathspec)
   (let* ((p (open-input-file pathspec))
-	 (output (port.content p)))
+         (output (port.content p)))
     (close-port p)
     output))
 
@@ -219,22 +219,22 @@
 
 (define (_call-with-process open-process close-port parms proc)
   (let* ((p (open-process parms))
-	 (res (proc p)))
+         (res (proc p)))
     (close-port p)
     (let ((s (process-status p)))
       (values res s))))
 
 (define (__xcall-with-process open-input-process
-			      close-input-port)
+                              close-input-port)
   (lambda (ok? values err)
     (lambda (parms proc)
       (letv ((res s) (_call-with-process open-input-process
-					 close-input-port
-					 parms
-					 proc))
-	    (if (ok? s)
-		(values res s)
-		(err s parms))))))
+                                         close-input-port
+                                         parms
+                                         proc))
+            (if (ok? s)
+                (values res s)
+                (err s parms))))))
 
 (define _xcall-with-input-process
   (__xcall-with-process open-input-process* close-input-port))
@@ -252,8 +252,8 @@
    (lambda (res s) res)
    (lambda (s parms)
      (error "process exited with non-zero status:"
-	    s
-	    parms))))
+            s
+            parms))))
 
 ;; #f on subprocess errors
 (define Xcall-with-input-process
@@ -267,8 +267,8 @@
 (define _error-exited-with-error-status
   (lambda (s parms)
     (error "process exited with error status:"
-	   s
-	   parms)))
+           s
+           parms)))
 
 
 
@@ -277,15 +277,15 @@
 
 (define (_system status-ok?)
   (let ((xcall (_xcall-with-process
-		status-ok?
-		(lambda (res s) s)
-		_error-exited-with-error-status)))
+                status-ok?
+                (lambda (res s) s)
+                _error-exited-with-error-status)))
     (lambda (cmd . args)
       (xcall (list path: cmd
-		   arguments: args
-		   stdin-redirection: #f
-		   stdout-redirection: #f)
-	     void/1))))
+                   arguments: args
+                   stdin-redirection: #f
+                   stdout-redirection: #f)
+             void/1))))
 
 (define xxsystem (_system zero?))
 
@@ -313,26 +313,26 @@
  > (xsystem "bash" "-c" "exit 250")
  64000
  > (with-exception-catcher no-such-file-or-directory-exception?
-			   (& (xsystem "nonexistingbinary81874")))
+                           (& (xsystem "nonexistingbinary81874")))
  #t)
 
 
 (define (_backtick status-ok? cont)
   (let ((xcall (_xcall-with-input-process
-		status-ok?
-		(lambda (output s)
-		  (cont (if (eof-object? output) ;; stupid lib
-			    ""
-			    (chomp output))
-			s))
-		_error-exited-with-error-status)))
+                status-ok?
+                (lambda (output s)
+                  (cont (if (eof-object? output) ;; stupid lib
+                            ""
+                            (chomp output))
+                        s))
+                _error-exited-with-error-status)))
     (lambda (cmd . args)
       (xcall (list path: cmd
-		   arguments: args
-		   stdout-redirection: #t
-		   char-encoding: 'UTF-8)
-	     (lambda_
-	      (read-line _ #f))))))
+                   arguments: args
+                   stdout-redirection: #t
+                   char-encoding: 'UTF-8)
+             (lambda_
+              (read-line _ #f))))))
 
 (define xbacktick (_backtick zero? (lambda (out s) out)))
 (define Xbacktick (_backtick true/1 values))
@@ -349,7 +349,7 @@
  ""
  > (%try-error (xbacktick "false"))
  #(error "process exited with error status:"
-	 256 (path: "false" arguments: () stdout-redirection: #t char-encoding: UTF-8))
+         256 (path: "false" arguments: () stdout-redirection: #t char-encoding: UTF-8))
  > (01backtick "false")
  ""
  > (xbacktick "echo" "world")
@@ -369,7 +369,7 @@
 
 (define (bash-command str . args)
   (list path: "bash"
-	arguments: (cons* "-c" str args)))
+        arguments: (cons* "-c" str args)))
 
 (TEST
  > (bash-command "true" "foo" "bar")
@@ -389,20 +389,20 @@
 ;; adapted COPY-PASTE from _backtick
 (define (_forwardtick status-ok? cont)
   (let ((xcall (_xcall-with-output-process
-		status-ok?
-		(lambda (value s)
-		  s)
-		_error-exited-with-error-status)))
+                status-ok?
+                (lambda (value s)
+                  s)
+                _error-exited-with-error-status)))
     (lambda (cmd . args)
       ;; nice usage for explicit "currying"
       (lambda (str)
-	(xcall (list path: cmd
-		     arguments: args
-		     stdin-redirection: #t
-		     stdout-redirection: #f
-		     char-encoding: 'UTF-8)
-	       (lambda_
-		(display str _)))))))
+        (xcall (list path: cmd
+                     arguments: args
+                     stdin-redirection: #t
+                     stdout-redirection: #f
+                     char-encoding: 'UTF-8)
+               (lambda_
+                (display str _)))))))
 
 
 
@@ -435,7 +435,7 @@
 ;; where should that be moved to?
 (define file-info->mtime
   (compose-function time->seconds
-	   file-info-last-modification-time))
+           file-info-last-modification-time))
 ;;^ also now see file-info.mtime in oo-gambit.scm
 
 (define (file-mtime path)
@@ -446,7 +446,7 @@
 (define (file-exists-and-newer? existingfile newfile)
   (and (file-exists? newfile)
        (> (file-mtime newfile)
-	  (file-mtime existingfile))))
+          (file-mtime existingfile))))
 
 
 ;; -- for a different libary?  not full path lib but simple path manipul
@@ -471,17 +471,17 @@
  )
 
 (def (basepath #(path-string? n)
-	       suffixS
-	       #!optional insensitive?)
+               suffixS
+               #!optional insensitive?)
      -> path-string?
      (if suffixS
-	 (cond ((improper-find (C string-ends-with? n _ insensitive?)
-			       suffixS)
-		=> (lambda (suffix)
-		     (substring n 0 (- (string-length n)
-				       (string-length suffix)))))
-	       (else n))
-	 n))
+         (cond ((improper-find (C string-ends-with? n _ insensitive?)
+                               suffixS)
+                => (lambda (suffix)
+                     (substring n 0 (- (string-length n)
+                                       (string-length suffix)))))
+               (else n))
+         n))
 
 (TEST
  > (basepath "/.foo" ".foo")
@@ -494,11 +494,11 @@
 
 (def (basename path #!optional suffixS insensitive?) -> path-string?
      (basepath (file-basename
-		(if (string-ends-with? path "/")
-		    (substring path 0 (dec (string-length path)))
-		    path))
-	       suffixS
-	       insensitive?))
+                (if (string-ends-with? path "/")
+                    (substring path 0 (dec (string-length path)))
+                    path))
+               suffixS
+               insensitive?))
 
 (TEST
  > (basename "/foo/bar.scm")
@@ -579,50 +579,50 @@
   (let rec ()
     (delay
       (let ((item (read p)))
-	(if (eof-object? item)
-	    (begin
-	      (close-port p)
-	      '())
-	    (cons item (rec)))))))
+        (if (eof-object? item)
+            (begin
+              (close-port p)
+              '())
+            (cons item (rec)))))))
 
 (define (directory-item-stream dir)
   (port->stream (open-directory dir)
-		read
-		close-port))
+                read
+                close-port))
 
 (define (directory-path-stream dir)
   (port->stream (open-directory dir)
-		(lambda (port)
-		  (let ((item (read port)))
-		    (if (eof-object? item)
-			item
-			(path-append dir item))))
-		close-port))
+                (lambda (port)
+                  (let ((item (read port)))
+                    (if (eof-object? item)
+                        item
+                        (path-append dir item))))
+                close-port))
 
 (define (file-line-stream file)
   (port->stream (open-input-file file)
-		read-line
-		close-port))
+                read-line
+                close-port))
 
 (define (file-char/location-stream file)
   (let ((p (open-input-file file)))
     (let rec ((line 1)
-	      (col 1))
+              (col 1))
       (delay
-	;; XX is this the one without mutex locking?
-	(let ((c (##read-char p)))
-	  (if (eof-object? c)
-	      (begin
-		(close-port p)
-		'())
-	      (cons (make-source
-		     c (make-location file (make-position line col)))
-		    (if (or (eq? c #\return)
-			    (eq? c #\newline))
-			(rec (fx+ line 1)
-			     1)
-			(rec line
-			     (fx+ col 1)))))))))) 
+        ;; XX is this the one without mutex locking?
+        (let ((c (##read-char p)))
+          (if (eof-object? c)
+              (begin
+                (close-port p)
+                '())
+              (cons (make-source
+                     c (make-location file (make-position line col)))
+                    (if (or (eq? c #\return)
+                            (eq? c #\newline))
+                        (rec (fx+ line 1)
+                             1)
+                        (rec line
+                             (fx+ col 1)))))))))) 
 
 (define (process-status-assert-zero process)
   (lambda (status)
@@ -636,32 +636,32 @@
     (status-handler (process-status p))))
 
 (define (process-line-stream
-	 process
-	 #!key
-	 (status-handler (process-status-assert-zero process)))
+         process
+         #!key
+         (status-handler (process-status-assert-zero process)))
   (port->stream (open-input-process* process)
-		read-line
-		(make-close-and-assert status-handler)))
+                read-line
+                (make-close-and-assert status-handler)))
 
 (define (process-read-stream
-	 process
-	 #!key
-	 (status-handler (process-status-assert-zero process)))
+         process
+         #!key
+         (status-handler (process-status-assert-zero process)))
   (port->stream (open-input-process* process)
-		read
-		(make-close-and-assert status-handler)))
+                read
+                (make-close-and-assert status-handler)))
 
 
 (define (_-name-or-id->id get access msg)
   (lambda (v)
     (cond ((string? v)
-	   (cond ((get v)
-		  => (lambda (p)
-		       (access p)))
-		 (else
-		  (error msg v))))
-	  ((natural0? v) v)
-	  (else (error "invalid type:" v)))))
+           (cond ((get v)
+                  => (lambda (p)
+                       (access p)))
+                 (else
+                  (error msg v))))
+          ((natural0? v) v)
+          (else (error "invalid type:" v)))))
 
 (define (user-name-or-id->id v)
   ((_-name-or-id->id posix:getpwnam .uid "unknown user name:") v))
@@ -673,11 +673,11 @@
   ;; XX is this different from other cases (which?) where in case of
   ;; #f it might keep what owner/group the file has?
   (let ((uid (if maybe-username-or-id
-		 (user-name-or-id->id maybe-username-or-id)
-		 (posix:getuid)))
-	(gid (if maybe-groupname-or-id
-		 (group-name-or-id->id maybe-groupname-or-id)
-		 (posix:getgid))))
+                 (user-name-or-id->id maybe-username-or-id)
+                 (posix:getuid)))
+        (gid (if maybe-groupname-or-id
+                 (group-name-or-id->id maybe-groupname-or-id)
+                 (posix:getgid))))
     (posix:chown path uid gid)))
 
 
@@ -686,8 +686,8 @@
   (with-exception-catcher
    (lambda (e)
      (if (eexist-exception? e)
-	 #f
-	 (raise e)))
+         #f
+         (raise e)))
    (lambda ()
      (create-directory path)
      #t)))
@@ -707,13 +707,13 @@
 (def (putfile bag path)
      (call-with-output-file path
        (lambda (port)
-	 (string-bag-display bag port))))
+         (string-bag-display bag port))))
 
 
 (def (getfile path)
      (call-with-input-file path
        (lambda (port)
-	 (read-line port #f))))
+         (read-line port #f))))
 
 
 ;; unlike Gambit's copy-file this copies a part of the file, also, it
@@ -722,22 +722,22 @@
 ;; assume we can deal with that?
 ;; XX Oh, should it use Result.scm instead of exceptions?
 (def (partial-copy-file #(path-string? from-path)
-			#(path-string? to-path)
-			#(natural0? from-byte)
-			#(natural0? to-byte))
+                        #(path-string? to-path)
+                        #(natural0? from-byte)
+                        #(natural0? to-byte))
      (let* ((len (-> natural0? (- to-byte from-byte)))
-	    (buf (make-u8vector len))
-	    (in (posix:open from-path (bitwise-or O_RDONLY)))
-	    ;; XX option for permissions?
-	    (out (posix:open to-path (bitwise-or O_CREAT O_WRONLY) #o666)))
+            (buf (make-u8vector len))
+            (in (posix:open from-path (bitwise-or O_RDONLY)))
+            ;; XX option for permissions?
+            (out (posix:open to-path (bitwise-or O_CREAT O_WRONLY) #o666)))
        ;; XX error condition file too short? wait would EXTEND it? or
        ;; RDONLY prevents this?
        (posix:lseek in from-byte SEEK_SET)
        (let ((nread (posix:read-u8vector in buf len)))
-	 (posix:close in)
-	 ;; XX another error condition, file too short or (forever!) EINTR
-	 (assert (= nread len))
-	 ;; XX another EINTR case?
-	 (assert (= (posix:write-u8vector out buf len) len))
-	 (posix:close out))))
+         (posix:close in)
+         ;; XX another error condition, file too short or (forever!) EINTR
+         (assert (= nread len))
+         ;; XX another EINTR case?
+         (assert (= (posix:write-u8vector out buf len) len))
+         (posix:close out))))
 
