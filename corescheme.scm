@@ -1,4 +1,4 @@
-;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -77,7 +77,16 @@
 	corescheme-ctx?
 	default-scheme-env)
 
-"Core Scheme AST representation"
+"Scheme AST representation
+
+* Supports extended constructions, for pretty conversion to Scheme.
+
+* Still, is differentiating between |corescheme-core?| and
+  |corescheme-extension?| (via interfaces to still be able to share
+  fields independently).
+
+* Status whether optimized for correctness checking.
+"
 
 
 ;; COPY from unmerged monad library:
@@ -326,6 +335,8 @@ reconstruction work)"))
 
 
 (defmacro (corescheme:def-constructor classname)
+  "generate constructor for given class--to properly check optimized
+status"
   (corescheme:def-constructor-expand classname))
 
 
