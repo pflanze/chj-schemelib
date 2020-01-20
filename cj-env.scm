@@ -112,11 +112,9 @@
     `(##let ((,V ,test))
 	    (##if (##eq? ,V #t)
 		  ,yes
-		  ,@(if no
-			`((##if (##eq? ,V #f)
-				,no
-				(If-error ,V)))
-			'())))))
+		  (##if (##eq? ,V #f)
+                        ,(or no `(##void))
+                        (If-error ,V))))))
 
 (define (If-error v)
   (error "If: expecting boolean, got:" v))
@@ -655,8 +653,8 @@
  > (define a cj-env-test:unbound2)
  > (define-if-not-defined-strict cj-env-test:unbound2 (make-unbound 'define-module))
  > (eq? a cj-env-test:unbound2)
- #t
- )
+ #t)
+
 
 (define-if-not-defined gambit:load load)
 
