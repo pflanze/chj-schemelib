@@ -187,8 +187,8 @@
           tail
           (cons line (rec))))))
 
-(define (maybe-read-line p . args)
-  (let ((v (apply read-line p args)))
+(define (maybe-read-line . args)
+  (let ((v (apply read-line args)))
     (if (eof-object? v)
         #f
         v)))
