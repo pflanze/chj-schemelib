@@ -71,6 +71,54 @@
 (include "cj-standarddeclares.scm")
 
 
+(define-macro* (match-cmp v . cases)
+  (let ((V (gensym 'v)))
+    `(let ((,V ,v))
+       (case ,V
+	 ,@(append
+	    (map (lambda (c)
+		   (match-list*
+		    c
+		    ((symbol-list body0 . body)
+		     (match-list*
+		      symbol-list
+		      ;; for proper list checking and location removal
+		      (symbols
+		       (for-each
+                        (lambda (s)
+                          (when (not (memq (source-code s) '(lt gt eq)))
+                                (source-error
+                                 s "expecting one of |lt|, |gt|, |eq|")))
+                        symbols)
+		       `(,symbols ,body0 ,@body))))))
+		 cases)
+	    `((else (match-cmp-error ,V))))))))
+
+(define (match-cmp-error v)
+  (error "match-cmp: no match for:" v))
+
+(TEST
+ > (match-cmp (generic-cmp 1 2) ((lt) "ha"))
+ "ha"
+ > (match-cmp (generic-cmp 2 1) ((lt gt) "unequal") ((eq) "equal"))
+ "unequal"
+ > (match-cmp (generic-cmp 2 2) ((lt gt) "unequal") ((eq) "equal"))
+ "equal"
+ > (with-exception-catcher
+    error-exception-message
+    (lambda () (match-cmp (generic-cmp 2 1) ((lt) "unequal") ((eq) "equal"))))
+ "match-cmp: no match for:"
+ )
+
+(define-macro* (cmp-or . exprs)
+  (if (null? exprs)
+      `'eq
+      `(match-cmp ,(car exprs)
+		  ((eq) (cmp-or ,@(cdr exprs)))
+		  ((lt) 'lt)
+		  ((gt) 'gt))))
+
+
 ;; (define-enum cmp
 ;;   eq lt gt)
 
@@ -102,6 +150,11 @@
 	 3)
 	((string? v)
 	 4)
+        ((null? v)
+         ;; smaller than a pair, since longer lists are greater
+         100)
+        ((pair? v)
+         101)
 	(else
 	 ;; generic
 	 9999)))
@@ -224,6 +277,9 @@
 	      ((2) (@real-cmp v1 v2))
 	      ((3) (@symbol-cmp v1 v2))
 	      ((4) (@string-cmp v1 v2))
+              ((101) ;; pairs
+               (cmp-or (generic-cmp (car v1) (car v2))
+                       (generic-cmp (cdr v1) (cdr v2))))
 	      (else
 	       ;; fully generic; XXX I expect this to be slow;
 	       ;; (object->string doesn't work correclty for objects
@@ -306,44 +362,6 @@
  eq
  )
 
-(define-macro* (match-cmp v . cases)
-  (let ((V (gensym 'v)))
-    `(let ((,V ,v))
-       (case ,V
-	 ,@(append
-	    (map (lambda (c)
-		   (match-list*
-		    c
-		    ((symbol-list body0 . body)
-		     (match-list*
-		      symbol-list
-		      ;; for proper list checking and location removal
-		      (symbols
-		       (for-each
-                        (lambda (s)
-                          (when (not (memq (source-code s) '(lt gt eq)))
-                                (source-error
-                                 s "expecting one of |lt|, |gt|, |eq|")))
-                        symbols)
-		       `(,symbols ,body0 ,@body))))))
-		 cases)
-	    `((else (match-cmp-error ,V))))))))
-
-(define (match-cmp-error v)
-  (error "match-cmp: no match for:" v))
-
-(TEST
- > (match-cmp (generic-cmp 1 2) ((lt) "ha"))
- "ha"
- > (match-cmp (generic-cmp 2 1) ((lt gt) "unequal") ((eq) "equal"))
- "unequal"
- > (match-cmp (generic-cmp 2 2) ((lt gt) "unequal") ((eq) "equal"))
- "equal"
- > (with-exception-catcher
-    error-exception-message
-    (lambda () (match-cmp (generic-cmp 2 1) ((lt) "unequal") ((eq) "equal"))))
- "match-cmp: no match for:"
- )
 
 ;; XX move these somewhere else?
 
@@ -528,14 +546,6 @@
 
 ;; --- /keep this?
 
-(define-macro* (cmp-or . exprs)
-  (if (null? exprs)
-      `'eq
-      `(match-cmp ,(car exprs)
-		  ((eq) (cmp-or ,@(cdr exprs)))
-		  ((lt) 'lt)
-		  ((gt) 'gt))))
-
 ;; case-insensitive and umlaut sensitive comparison
 
 (define (german-char-downcase c) ;; german-to-lower
@@ -690,8 +700,35 @@
  > (c '(1 3) '(1 3 3))
  lt
  > (c '(1 3 3) '(1 3))
- gt)
+ gt
+ ;; longer lists are greater:
+ > (c '(1 3) '(1))
+ gt
+ > (c '(2 1) '(2))
+ gt
+ > (c '(2) '(2 1))
+ lt)
 
+
+(TEST
+ > (generic-cmp '(a b) '(a))
+ gt
+ > (generic-cmp '(a b) '(b))
+ lt
+ > (generic-cmp '(a b) '(a b))
+ eq
+ > (generic-cmp '(a b) '(a . b))
+ gt
+ > (generic-cmp '(a b) '(a c))
+ lt
+ > (generic-cmp '(a c) '(a b))
+ gt
+ > (generic-cmp '(a b) '(a "b"))
+ lt
+ > (generic-cmp 'b '"b")
+ lt
+ > (generic-cmp 'b '(b))
+ lt)
 
 
 (define cmp-function? (function-of (arguments-of any? any?)
