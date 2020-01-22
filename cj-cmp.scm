@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,6 +9,7 @@
 (require define-macro-star
 	 (fixnum inc)
          (cj-env when)
+         (cj-env-2 xcond)
          cj-typed
 	 simple-match
 	 cj-inline
@@ -229,12 +230,10 @@
 	       ;; with a serial number)
 	       (u8vector-cmp (object->u8vector v1)
 			     (object->u8vector v2))))
-	    (cond ((< t1 t2)
-		   'lt)
-		  ((< t2 t1)
-		   'gt)
-		  (else
-		   (error "BUG")))))))
+	    (xcond ((< t1 t2)
+                    'lt)
+                   ((< t2 t1)
+                    'gt))))))
 
 
 (define (xserial-number v)
