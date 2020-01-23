@@ -738,7 +738,7 @@
       (let ((test-file
              (lambda (file) ;; file is not normalized in case of manual input
                (when verbose
-                 (display "Testing file ") (write file) (newline))
+                 (display "Testing ") (write file) (newline))
                (let lp ((forms (test-forms-for file))
                         (i 0))
                  (if (null? forms)
