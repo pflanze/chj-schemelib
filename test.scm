@@ -744,8 +744,9 @@
                  (if (null? forms)
                      (void)
                      (begin
-                       (when verbose
-                         (display "TEST form no. ") (display i) (newline))
+                       ;; (when verbose
+                       ;;   (display "TEST form no. ") (display i) (newline))
+                       ;; This is too verbose even with verbose flag, OK?
 
                        (cond
                         ((call/cc
