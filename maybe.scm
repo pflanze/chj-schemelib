@@ -1,4 +1,4 @@
-;;; Copyright 2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2019-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;; This file is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License (LGPL)
@@ -14,7 +14,8 @@
 
 (export maybe?
         (methods maybe.>>= maybe.return)
-        (macro  maybe.>>))
+        (macro  maybe.>>)
+        cat-maybes)
 
 
 ;; tell cj-typed that the maybe type constructor is a monad
@@ -75,5 +76,23 @@
 
  > (expansion mdo-in maybe a b c)
  (and a b c))
+
+
+;; catMaybes :: [Maybe a] -> [a]
+
+;; def (cat-Maybes [ilist? l]) -> ilist?
+
+(def (cat-maybes l)
+     (if-let-pair ((a l*) l)
+                  (if a
+                      (cons a (cat-maybes l*))
+                      (cat-maybes l*))
+                  (-> null? l)))
+
+(TEST
+ > (cat-maybes (list 1 3 #f 4))
+ (1 3 4)
+ > (%try (cat-maybes (improper-list (Just 1) (Just 3) #f 4)))
+ (exception text: "value fails to meet predicate: (null? 4)\n"))
 
 
