@@ -32,7 +32,8 @@
 
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Maybe.>>= Maybe.>> Maybe.return)
-        (inline Maybe->>=) (macro Maybe->>) Maybe-return)
+        (inline Maybe->>=) (macro Maybe->>) Maybe-return
+        cat-Maybes)
 
 
 
@@ -401,3 +402,25 @@
 ;; Generic monads
 
 ;;(TEST )
+
+
+
+;; catMaybes :: [Maybe a] -> [a]
+
+;; def (cat-Maybes [(ilist-of Maybe?) l]) -> ilist?
+;; Can't use ilist type, dependency cycle.
+
+(def (cat-Maybes l)
+     (if-let-pair ((a l*) l)
+                  (if-Just ((it a))
+                           (cons it (cat-Maybes l*))
+                           (cat-Maybes l*))
+                  (-> null? l)))
+
+(TEST
+ > (cat-Maybes (list (Just 1) (Just 3) (Nothing)))
+ (1 3)
+ > (%try (cat-Maybes (improper-list (Just 1) (Just 3) (Nothing))))
+ (exception text: "value fails to meet predicate: (null? '[(Nothing)])\n"))
+
+
