@@ -17,7 +17,7 @@
 	with-error-to-string
 	(macro %with-output-to-string)
 	(macro %with-error-to-string)
-	pretty-print-to-string
+	pretty-string
         port-name)
 
 
@@ -62,13 +62,13 @@
  ["Hello World" 10])
 
 
-(define (pretty-print-to-string v)
-  (with-output-to-string (lambda ()
-			   (pretty-print v))))
+(define (pretty-string v)
+  (fst (with-output-to-string (lambda ()
+                                (pretty-print v)))))
 
 
 (TEST
- > (fst (pretty-print-to-string (string->symbol "vorwärts")))
+ > (pretty-string (string->symbol "vorwärts"))
  "vorwärts\n")
 
 
