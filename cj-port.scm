@@ -15,8 +15,6 @@
 	with-error-to-string
 	(macro %with-output-to-string)
 	(macro %with-error-to-string)
-	with-output-to-string*
-	with-error-to-string*
 	pretty-print-to-string
         port-name)
 
@@ -51,25 +49,6 @@
  > (values->vector
     (%with-output-to-string (begin (display "Hello ") (display "World") 10)))
  ["Hello World" 10])
-
-
-(define (make-with-_-to-string* current-_-port)
-  (lambda (thunk)
-    (let* ((result #f) ;; XX does this always work (with call/cc)?
-	   (str (call-with-output-string
-		 ""
-		 (lambda (port)
-		   (set! result (parameterize ((current-output-port port))
-					      (thunk)))))))
-      (values result
-	      str))))
-
-(define with-output-to-string* (make-with-_-to-string* current-output-port))
-(define with-error-to-string* (make-with-_-to-string* current-error-port))
-
-(TEST
- > (values->vector (with-output-to-string* (& (print "hello") 1)))
- [1 "hello"])
 
 
 (define (pretty-print-to-string v)
