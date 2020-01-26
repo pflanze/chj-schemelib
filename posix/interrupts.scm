@@ -204,7 +204,7 @@
  (begin
    ;; Get all signal names. This assumes that the shell command "kill -l
    ;; <number>" will return the signal name without the SIG prefix.
-   (define (signal-number->name num)
+   (define (signal-number->maybe-name num)
      (let* ((port (open-process
                    (list path: "kill"
 			 arguments: (list "-l" (number->string num)))))
@@ -212,14 +212,21 @@
 	    (res (close-port port)))
        ;;(warn "got kill res code-or-so =" res)
        ;; is always #!void.  still ask how todo this.
-       (string-append "SIG" line)))
-   (let ((alis (map (lambda (num)
-		      (cons num (string->symbol (signal-number->name num))))
-		    (iota
-                     ;; the number of valid signal numbers
-		     64
-                     ;; the lowest signal number
-		     1))))
+       (if (eof-object? line)
+           #f
+           (string-append "SIG" line))))
+   (let ((alis (filter (lambda (v)v)
+                       (map (lambda (num)
+                              (cond ((signal-number->maybe-name num)
+                                     => (lambda (name)
+		                          (cons num
+                                                (string->symbol name))))
+                                    (else #f)))
+		            (iota
+                             ;; the number of valid signal numbers
+		             30
+                             ;; the lowest signal number
+		             1)))))
      `(begin
 	(define %signal-number->name% ',alis)
 	,@ (map (lambda (p)
