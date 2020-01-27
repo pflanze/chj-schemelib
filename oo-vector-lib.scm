@@ -153,7 +153,9 @@
     (if (eq? (VECTOR-ref v i) val)
         v
         (let ((v* (VECTOR-copy v)))
-          (##VECTOR-set! v* i val)
+          ;; Don't use unsafe here unless you also check val; also, no
+          ;; protection from redefinition of VECTOR-copy ?
+          (VECTOR-set! v* i val)
           v*)))
   
   (def. (VECTOR.insert v i val)

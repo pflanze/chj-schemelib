@@ -195,6 +195,22 @@
  #t)
 
 (TEST
+ > (def v '(a b c))
+ > (def v '[a b c])
+ > (.set v 1 'B)
+ [a B c]
+ > v
+ [a b c]
+ > (def v "[a b c]")
+ > (%try (.set v 1 'B))
+ (exception
+  text: "(Argument 3) CHARACTER expected\n(string-set! \"[a b c]\" 1 'B)\n")
+ > (.set v 1 #\B)
+ "[B b c]"
+ > v
+ "[a b c]")
+
+(TEST
  > (vector.insert (vector) 0 'a)
  #(a)
  > (vector.insert (vector 1 2) 0 'a)
