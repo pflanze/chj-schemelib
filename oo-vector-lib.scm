@@ -1,4 +1,4 @@
-;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,6 +9,7 @@
 (require template
 	 easy-1
          (fixnum inc)
+         (cj-env-2 for..<)
 	 test
 	 (test-lib-1 %try)
 	 char-util
@@ -147,6 +148,36 @@
   
   (def. VECTOR.set! VECTOR-set!)
 
+  (def. (VECTOR.set v i val)
+    "This implementation is inefficient for large VECTORs"
+    (if (eq? (VECTOR-ref v i) val)
+        v
+        (let ((v* (VECTOR-copy v)))
+          (##VECTOR-set! v* i val)
+          v*)))
+  
+  (def. (VECTOR.insert v i val)
+    (let* ((len (VECTOR-length v))
+           (len* (inc len))
+           (v* (make-VECTOR len*)))
+      ;; (for..< (j 0 i)
+      ;; 	    (VECTOR-set! v* j (VECTOR-ref v j)))
+      (let lp ((j 0))
+        (when (< j i)
+          (VECTOR-set! v* j (VECTOR-ref v j))
+          (lp (+ j 1))))
+    
+      (VECTOR-set! v* i val)
+      ;; (for..< (j (inc i) len*)
+      ;; 	    (VECTOR-set! v* j (VECTOR-ref v (dec j))))
+      (let lp ((j (+ i 1)))
+        (when (< j len*)
+          (VECTOR-set! v* j (VECTOR-ref v (- j 1)))
+          (lp (+ j 1))))
+      v*))
+
+
+
   (def (VECTOR-ref* v i)
        (if (negative? i)
            (let ((len (VECTOR-length v)))
@@ -162,9 +193,9 @@
                (fx< -1 j len))
           (begin
             (unless (##fx= i j)
-                    (let ((vi (##VECTOR-ref v i)))
-                      (##VECTOR-set! v i (##VECTOR-ref v j))
-                      (##VECTOR-set! v j vi)))
+              (let ((vi (##VECTOR-ref v i)))
+                (##VECTOR-set! v i (##VECTOR-ref v j))
+                (##VECTOR-set! v j vi)))
             v)
           (error "VECTOR.swap!: i or j not a proper index:" i j))))
   
@@ -353,8 +384,8 @@
 	 (begin
 	   (when (= (inc! _VECTOR-drop-count)
                     *oo-lib-VECTOR:max-warn-inefficient-count*)
-                 ;; XX use WARN or WARN-ONCE
-                 (warn "VECTOR-drop is called often, consider optimizing your algorithm")))
+             ;; XX use WARN or WARN-ONCE
+             (warn "VECTOR-drop is called often, consider optimizing your algorithm")))
 	 res))
   (def. VECTOR.drop VECTOR-drop)
 
@@ -382,8 +413,8 @@
 	     (begin
 	       (when (= (inc! _VECTOR-rest-count)
                         *oo-lib-VECTOR:max-warn-inefficient-count*)
-                     ;; XX use WARN or WARN-ONCE
-                     (warn "VECTOR-rest is called often, consider optimizing your algorithm"))
+                 ;; XX use WARN or WARN-ONCE
+                 (warn "VECTOR-rest is called often, consider optimizing your algorithm"))
 	       (subVECTOR v 1 len)))))
   (def. VECTOR.rest VECTOR-rest)
    

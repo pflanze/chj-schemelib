@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -31,9 +31,6 @@
 	vector-generate
 	if-avector-ref
 	maybe-avector-ref
-	;; note: not OO:
-	vector.set
-	vector.insert
 	vector-every
 	vector-of
 	vector-of/length
@@ -189,46 +186,6 @@
  > (maybe-avector-ref '#(foo (a 1) (c 2) (b 10)) 1 #f car eq? 'd)
  #f)
 
-
-;; functional vector modification
-
-(define (vector.set v i val)
-  ;; (check whether val changes?)
-  (if (eq? (vector-ref v i) val)
-      v
-      (let ((v* (vector-copy v)))
-	(##vector-set! v* i val)
-	v*)))
-
-(define (vector.insert v i val)
-  (let* ((len (vector-length v))
-	 (len* (inc len))
-	 (v* (make-vector len*)))
-    ;; (for..< (j 0 i)
-    ;; 	    (vector-set! v* j (vector-ref v j)))
-    (let lp ((j 0))
-      (when (< j i)
-            (vector-set! v* j (vector-ref v j))
-            (lp (+ j 1))))
-    
-    (vector-set! v* i val)
-    ;; (for..< (j (inc i) len*)
-    ;; 	    (vector-set! v* j (vector-ref v (dec j))))
-    (let lp ((j (+ i 1)))
-      (when (< j len*)
-            (vector-set! v* j (vector-ref v (- j 1)))
-	    (lp (+ j 1))))
-    v*))
-
-(TEST
- > (vector.insert (vector) 0 'a)
- #(a)
- > (vector.insert (vector 1 2) 0 'a)
- #(a 1 2)
- > (vector.insert (vector 1 2) 1 'a)
- #(1 a 2)
- > (vector.insert (vector 1 2) 2 'a)
- #(1 2 a))
 
 
 ;; Also see definition in oo-vector-lib.scm

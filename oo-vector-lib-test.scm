@@ -1,4 +1,4 @@
-;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -192,4 +192,14 @@
  (exception text: "len does not match fixnum-natural0?: -1\n")
  > ((s8vector-of-length 0) (s8vector))
  #t)
+
+(TEST
+ > (vector.insert (vector) 0 'a)
+ #(a)
+ > (vector.insert (vector 1 2) 0 'a)
+ #(a 1 2)
+ > (vector.insert (vector 1 2) 1 'a)
+ #(1 a 2)
+ > (vector.insert (vector 1 2) 2 'a)
+ #(1 2 a))
 
