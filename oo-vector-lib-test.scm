@@ -9,6 +9,7 @@
 (require easy-1
 	 oo-lib-u32vector
 	 oo-lib-u8vector
+         oo-lib-s8vector
 	 oo-lib-vector
 	 oo-lib-string
 	 oo-lib-s32vector
