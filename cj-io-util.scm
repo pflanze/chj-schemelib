@@ -43,8 +43,10 @@
         Xbacktick
         01backtick
         backtick
-        xbacktick-bash bash
-        bash-command
+        xbacktick-bash
+        backtick-bash
+        run-bash
+        bash-command ;; for (xbacktick (bash-command ....))--ehr no, neither
         hostname
         xforwardtick
         Xforwardtick
@@ -288,8 +290,16 @@
                    stdout-redirection: #f)
              void/1))))
 
+;; XX: mis-nomer too? As C's system does invoke a shell. (This is
+;; Perl's multi-argument "system".) (Hmm to be fair, "system" as "run
+;; from the system" does kind of sound fair, though. Call it
+;; "call-system" or something? Not really "run-system" as that implies
+;; some 'monadic' input format, like a code string (see run-bash); a
+;; single command is not running through a sequence of steps.)
 (define xxsystem (_system zero?))
 
+;; XX: and more stupid naming; this is really for compatibility with
+;; my Chj Perl stuff. Looking for better names.
 (define xsystem (_system true/1))
 
 (define 01status? (either zero? (lambda_ (= _ 256))))
@@ -380,7 +390,14 @@
 (define (xbacktick-bash code)
   (xbacktick "bash" "-c" code))
 
-(define bash xbacktick-bash) ;; ok?
+;; 'x' for only 1 return value, no 'x' for both. That seems sensible
+;; to me. I don't want to say 'X' and it's even still a different
+;; return protocol. (XX: change Xbacktick vs. backtick naming?)
+(define (backtick-bash code)
+  (Xbacktick "bash" "-c" code))
+
+(define (run-bash code)
+  (xsystem "bash" "-c" code))
 
 (define (hostname)
   (xbacktick "hostname"))
