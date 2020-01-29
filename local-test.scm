@@ -1,4 +1,4 @@
-;;; Copyright 2010-2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -143,7 +143,7 @@
 
 (define-macro* (%test e)
   `(begin
-     (begin (display "test form: ") (write ',e) (newline))
+     (begin (display "Testing form ") (write ',e) (newline))
      (,e)))
 
 (TEST
