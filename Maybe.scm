@@ -31,8 +31,8 @@
         ;; Maybe-and -- use Maybe->>, ok?
 
         ;; monad ops (XX make an exporter for those! 'implements')
-        (methods Maybe.>>= Maybe.>> Maybe.return)
-        (inline Maybe->>=) (macro Maybe->>) Maybe-return
+        (methods Maybe.>>= Maybe.>> Maybe.return Maybe.unwrap)
+        (inline Maybe->>=) (macro Maybe->>) Maybe-return Maybe-unwrap
         cat-Maybes)
 
 
@@ -339,6 +339,16 @@
 (def. Maybe.return Just)
 
 
+(defclass (Maybe-nothing-exception))
+
+(def. (Maybe.unwrap r)
+  (if-Just ((it r))
+           it
+           (raise (Maybe-nothing-exception))))
+
+(def Maybe-unwrap Maybe.unwrap)
+
+
 (def Maybe:monad-ops
      (monad-ops Maybe.>>
                 Maybe.>>=
@@ -397,6 +407,12 @@
 (TEST
  > (.show (in-monad Maybe (=<< (comp return inc) (Just 123))))
  (Just 124))
+
+(TEST
+ > (.unwrap (Just 'hi))
+ hi
+ > (%try (.unwrap (Nothing)))
+ (exception text: "This object was raised: [(Maybe-nothing-exception)]\n"))
 
 
 ;; Generic monads

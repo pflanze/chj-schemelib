@@ -34,8 +34,8 @@
         Result:Ok?
         Result:Error?
         ;; monad ops (XX make an exporter for those! 'implements')
-        (methods Result.>>= Result.>> Result.return)
-        (inline Result->>=) (macro Result->>) Result-return)
+        (methods Result.>>= Result.>> Result.return Result.unwrap)
+        (inline Result->>=) (macro Result->>) Result-return Result-unwrap)
 
 
 (jclass Result
@@ -278,6 +278,14 @@
 (def. Result.return Ok)
 
 
+(def. (Result.unwrap r)
+  (if-Ok r
+         it
+         (raise it)))
+
+(def Result-unwrap Result.unwrap)
+
+
 (def Result:monad-ops
      (monad-ops Result.>>
                 Result.>>=
@@ -379,6 +387,12 @@
  (10)
  > ((in-monad Result (==>* Error list)) (Error 10))
  [(Error) 10])
+
+(TEST
+ > (.unwrap (Ok 'hi))
+ hi
+ > (%try (.unwrap (Error 'hi)))
+ (exception text: "This object was raised: hi\n"))
 
 
 

@@ -14,7 +14,7 @@
 
 (export maybe?
         (methods maybe.>>= maybe.return)
-        (macro  maybe.>>)
+        (macro maybe.>>) maybe.unwrap maybe-unwrap
         cat-maybes)
 
 
@@ -39,6 +39,20 @@
 ;; enough, nor would we get the required lazyness in >>
 
 (def maybe.>>= (maybe->>=-lambda))
+
+
+(defclass (maybe-nothing-exception))
+
+;; Can't safely use def. currently
+(def (maybe.unwrap r)
+  (or r
+      (raise (maybe-nothing-exception))))
+
+(def maybe-unwrap maybe.unwrap)
+
+
+(def (just v) v) ;; == id
+(def (nothing) #f) ;; == false/0
 
 
 (TEST
@@ -76,6 +90,14 @@
 
  > (expansion mdo-in maybe a b c)
  (and a b c))
+
+(TEST
+ > (maybe.unwrap (just 'hi))
+ hi
+ > (%try (maybe.unwrap (nothing)))
+ (exception text: "This object was raised: [(maybe-nothing-exception)]\n"))
+
+
 
 
 ;; catMaybes :: [Maybe a] -> [a]
