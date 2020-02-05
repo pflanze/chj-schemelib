@@ -289,7 +289,8 @@
 (def Result:monad-ops
      (monad-ops Result.>>
                 Result.>>=
-                Result-return))
+                Result-return
+                Result.unwrap))
 
 
 

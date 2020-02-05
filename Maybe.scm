@@ -352,7 +352,8 @@
 (def Maybe:monad-ops
      (monad-ops Maybe.>>
                 Maybe.>>=
-                Maybe-return))
+                Maybe-return
+                Maybe.unwrap))
 
 
 

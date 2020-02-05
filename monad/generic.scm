@@ -27,12 +27,14 @@
       (define >> #f)
       (define >>= #f)
       (define return #f)
+      (define unwrap #f)
       (let* ((,A ,a)
              (,OPS (.monad-ops ,A)))
-        (let-monad-ops ((_>> _>>= _return) ,OPS)
+        (let-monad-ops ((_>> _>>= _return _unwrap) ,OPS)
                        (set! >> _>>)
                        (set! >>= _>>=)
-                       (set! return _return)))
+                       (set! return _return)
+                       (set! unwrap _unwrap)))
       (##define-syntax
        >>-function
        (lambda (stx)
@@ -60,6 +62,16 @@
           (apply
            (lambda (_name)
              'return)
+           (##source-code stx))
+          stx)))
+
+      (##define-syntax
+       unwrap-function
+       (lambda (stx)
+         (##sourcify-deep
+          (apply
+           (lambda (_name)
+             'unwrap)
            (##source-code stx))
           stx))))))
 
