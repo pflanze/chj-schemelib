@@ -31,6 +31,8 @@
                 table.show
 		table.ref
                 table.Maybe-ref
+                table.maybe-ref
+                table.contains-key?
                 table.set! 
                 table.delete!
 		table.push!
@@ -175,6 +177,14 @@
     (if (eq? v table:nothing)
         (Nothing)
         (Just v))))
+
+(def. (table.maybe-ref t key)
+  (table-ref t key #f))
+
+(def. (table.contains-key? t key)
+  (let (v (table-ref t key table:nothing))
+    (not (eq? v table:nothing))))
+
 
 
 ;; adapted from table-pop! (table-1.scm)
