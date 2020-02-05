@@ -412,6 +412,12 @@
  > (.unwrap (Just 'hi))
  hi
  > (%try (.unwrap (Nothing)))
+ (exception text: "This object was raised: [(Maybe-nothing-exception)]\n")
+ > (in-monad Maybe
+             (unwrap (Just 'hi)))
+ hi
+ > (%try (in-monad Maybe
+                   (unwrap (Nothing))))
  (exception text: "This object was raised: [(Maybe-nothing-exception)]\n"))
 
 

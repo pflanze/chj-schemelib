@@ -392,7 +392,13 @@
  > (.unwrap (Ok 'hi))
  hi
  > (%try (.unwrap (Error 'hi)))
- (exception text: "This object was raised: hi\n"))
+ (exception text: "This object was raised: hi\n")
+ > (in-monad Result
+             (unwrap (Ok 'hi)))
+ hi
+ > (%try (in-monad Result
+                   (unwrap (Error 'ha))))
+ (exception text: "This object was raised: ha\n"))
 
 
 

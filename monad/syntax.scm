@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -107,6 +107,17 @@
                      (##source-code stx))
                     stx)))
 
+                (##define-syntax
+                 unwrap
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name . args)
+                       (cons ',(symbol-append monadname* "-unwrap") args))
+                     (##source-code stx))
+                    stx)))
+
+
                 ;; ops-function accessors
                 
                 (##define-syntax
@@ -136,6 +147,16 @@
                     (apply
                      (lambda (_name)
                        ',(symbol-append monadname* ".return"))
+                     (##source-code stx))
+                    stx)))
+
+                (##define-syntax
+                 unwrap-function
+                 (lambda (stx)
+                   (##sourcify-deep
+                    (apply
+                     (lambda (_name)
+                       ',(symbol-append monadname* ".unwrap"))
                      (##source-code stx))
                     stx)))
 

@@ -95,6 +95,12 @@
  > (maybe.unwrap (just 'hi))
  hi
  > (%try (maybe.unwrap (nothing)))
+ (exception text: "This object was raised: [(maybe-nothing-exception)]\n")
+ > (in-monad maybe
+             (unwrap (just 'hi)))
+ hi
+ > (%try (in-monad maybe
+                   (unwrap (nothing))))
  (exception text: "This object was raised: [(maybe-nothing-exception)]\n"))
 
 
