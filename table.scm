@@ -22,6 +22,7 @@
         ;; re-export essentials from table-1
         table _table
         table*
+        table-of
         ;; accessors:
         (method table.null?
                 table.test
@@ -137,6 +138,20 @@
  > (.show (list->table '((a . 1) (b . 2)) init: 123))
  (table init: 123 (cons 'a 1) (cons 'b 2))
  )
+
+;; table, table-of
+(TEST
+ > (.ref (table (cons 'fo 1) (cons 'bar 2)) 'bar)
+ 2
+ > ((table-of symbol? integer?) (table (cons 'fo 1) (cons 'bar 2)))
+ #t
+ > ((table-of symbol? integer?) (table (cons 'fo 1) (cons 'bar "2")))
+ #f
+ > ((table-of symbol? integer?) (table (cons fo: 1) (cons 'bar 2)))
+ #f
+ > ((table-of symbol? integer?) (table))
+ #t)
+
 
 
 ;; table*

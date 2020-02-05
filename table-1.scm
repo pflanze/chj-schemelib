@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,6 +8,7 @@
 
 (require cj-typed
 	 (list-util let-pair)
+         (srfi-1 every)
 	 (cj-gambit-sys-0 @vector-ref))
 
 (export table-test
@@ -16,6 +17,7 @@
 	table-weak-values
 	table-init
 	table
+        table-of
 	table*
 	table-keys
 	table-values
@@ -77,6 +79,15 @@
 (define (table . options+pairs)
   (_table options+pairs))
 
+
+
+(define (table-of key? val?)
+  (lambda (v)
+    (and (table? v)
+         (every (lambda (k.v)
+                  (and (key? (car k.v))
+                       (val? (cdr k.v))))
+                (table->list v)))))
 
 
 (define (table* . options+pairs)
