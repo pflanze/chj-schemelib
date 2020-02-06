@@ -13,6 +13,8 @@
          test)
 
 (export maybe?
+        (inline just
+                nothing)
         (methods maybe.>>= maybe.return)
         (macro maybe.>>) maybe.unwrap maybe-unwrap
         cat-maybes)
@@ -51,8 +53,8 @@
 (def maybe-unwrap maybe.unwrap)
 
 
-(def (just v) v) ;; == id
-(def (nothing) #f) ;; == false/0
+(def-inline (just v) v) ;; == id
+(def-inline (nothing) #f) ;; == false/0
 
 
 (TEST
