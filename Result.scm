@@ -15,15 +15,14 @@
 ;; Following Rust terminology here.
 
 (require easy
-         jclass
          (dot-oo void/1)
          monad/generic
          test
          monad/syntax)
 
-(export (jclass Result
-                (jclass Ok)
-                (jclass Error))
+(export (class Result
+                (class Ok)
+                (class Error))
         (macros if-Ok
                 Result:and
                 Result:or
@@ -38,24 +37,24 @@
         (inline Result->>=) (macro Result->>) Result-return Result-unwrap)
 
 
-(jclass Result
+(defclass Result
 
-        (def-method- (if-Ok v yes no)
-          (cond ((Ok? v)
-                 (yes (Ok.value v)))
-                ((Error? v)
-                 (no (Error.value v)))
-                (else
-                 (error "not a Result:" v))))
+  (defmethod- (if-Ok v yes no)
+    (cond ((Ok? v)
+           (yes (Ok.value v)))
+          ((Error? v)
+           (no (Error.value v)))
+          (else
+           (error "not a Result:" v))))
 
-        (defmethod (monad-ops _)
-          Result:monad-ops)
+  (defmethod (monad-ops _)
+    Result:monad-ops)
        
 
-        (jclass (Ok value))
+  (defclass (Ok value))
             
-        ;; call .value .reason instead?:
-        (jclass (Error value)))
+  ;; call .value .reason instead?:
+  (defclass (Error value)))
 
 
 ;; Variants of predicates that throw for non-Result values:
