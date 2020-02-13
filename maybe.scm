@@ -15,6 +15,7 @@
 (export maybe?
         (inline just
                 nothing)
+        (macro if-just)
         (methods maybe.>>= maybe.return)
         (macro maybe.>>) maybe.unwrap maybe-unwrap
         cat-maybes)
@@ -55,6 +56,16 @@
 
 (def-inline (just v) v) ;; == id
 (def-inline (nothing) #f) ;; == false/0
+
+(defmacro (if-just t then else)
+  "If the value returned by `t` is not #f, it is bound to `it` and
+`then` is evaluated, otherwise `else` is evaluated."
+  (with-gensym
+   V
+   `(let ((,V ,t))
+      (if ,V
+          (let ((it ,V)) ,then)
+          ,else))))
 
 
 (TEST
