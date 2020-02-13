@@ -35,6 +35,7 @@
                 table.maybe-ref
                 table.contains-key?
                 table.set! 
+                table.copy
                 table.delete!
 		table.push!
                 table.pop!
@@ -67,6 +68,7 @@
 (define. table.list table->list)
 (define. table.ref table-ref)
 (define. table.set! table-set!)
+(define. table.copy table-copy)
 
 (define. table.test table-test)
 (define. table.hash table-hash)
