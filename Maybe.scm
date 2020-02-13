@@ -19,6 +19,7 @@
 (export (class Maybe ;; yes a class, not an interface
                (class Nothing)
                (class Just))
+        Just-of
         Maybe:Just?
         Maybe:Nothing?
         Maybe
@@ -58,6 +59,11 @@
 
   (defmethod (monad-ops _)
     Maybe:monad-ops))
+
+
+(def ((Just-of pred) v)
+     (and (Just? v)
+          (pred (Just.value v))))
 
 
 ;; Variants of Just? and Nothing? that throw for non-Maybe values:
