@@ -122,7 +122,8 @@
 
 ;; for |def-method|, |def.*| and |with.|: make fields visible in the
 ;; body
-(def (joo:body* [symbol? class-name]
+(def (joo:body* stx
+                [symbol? class-name]
 		[(list-of (source-of symbol?)) fields]
 		bind
                 ;; ^ raw method arguments; maybe should separate first
@@ -135,34 +136,37 @@
      (let* ((used (list->symbolcollection (joo:body-symbols rest)))
 	    (bindvars (joo:args->vars bind))
 	    (bind-used (list->symbolcollection (map source-code bindvars))))
-       
-       (letv ((pre body)
-	      ;; Also have to parse rest for "->"
-	      ;; syntax *UH*, that's bad? Well the ->
-	      ;; is part of the binds thing,
-	      ;; basically, but still, XX should
-	      ;; really provide proper parsers!
-	      ;; (S-expr *is* just a layer in the
-	      ;; syntax parsing. Really.)
-	      (if (and (pair? rest)
-		       (eq? (source-code (car rest)) '->)
-		       (pair? (cdr rest)))
-		  (values (take rest 2)
-			  (drop rest 2))
-		  (values '()
-			  rest)))
-	     `(,@pre
-	       (,(symbol-append 'let- class-name)
-		(,(map (lambda (nam)
-			 (let ((nam* (source-code nam)))
-			   (if (and (symboltable-ref used nam* #f)
-				    (not
-				     (symboltable-ref bind-used nam* #f)))
-			       nam
-			       '_)))
-		       fields)
-		 ,(car bindvars))
-		,@body)))))
+
+       (if (null? bindvars)
+           (source-error
+            stx "missing method arguments (need at least self argument)")
+           (letv ((pre body)
+                  ;; Also have to parse rest for "->"
+                  ;; syntax *UH*, that's bad? Well the ->
+                  ;; is part of the binds thing,
+                  ;; basically, but still, XX should
+                  ;; really provide proper parsers!
+                  ;; (S-expr *is* just a layer in the
+                  ;; syntax parsing. Really.)
+                  (if (and (pair? rest)
+                           (eq? (source-code (car rest)) '->)
+                           (pair? (cdr rest)))
+                      (values (take rest 2)
+                              (drop rest 2))
+                      (values '()
+                              rest)))
+                 `(,@pre
+                   (,(symbol-append 'let- class-name)
+                    (,(map (lambda (nam)
+                             (let ((nam* (source-code nam)))
+                               (if (and (symboltable-ref used nam* #f)
+                                        (not
+                                         (symboltable-ref bind-used nam* #f)))
+                                   nam
+                                   '_)))
+                           fields)
+                     ,(car bindvars))
+                    ,@body))))))
 
 
 (def (joo:class-name.joo-type class-name)
@@ -197,7 +201,8 @@
 
 	     (let ((class-name (string.symbol class-name-str)))
 	       `(def. (,class-name.method ,@binds)
-		  ,@(joo:body* class-name
+		  ,@(joo:body* stx
+                               class-name
 			       (joo:class-name.all-field-names class-name)
 			       binds
 			       body)))))
@@ -227,7 +232,8 @@
               ;; needed for no good reason except to make joo:body*
               ;; happy
               (val)
-              (the (joo:body* class-name
+              (the (joo:body* stx
+                              class-name
                               (joo:class-name.all-field-names class-name)
                               (list val)
                               body))))))
@@ -246,6 +252,7 @@
      ;; visible as same-named variables (they are currently copied,
      ;; though, not aliased).
      (def class-name. (symbol-append class-name "."))
+
      (lambda (stx)
        (cj-sourcify-deep
 	(mcase
@@ -259,7 +266,11 @@
 			     ;; only non-abstract classes have let-
 			     ;; forms
 			     (not abstract?))
-			(joo:body* class-name maybe-fields args body)
+			(joo:body* stx
+                                   class-name
+                                   maybe-fields
+                                   args
+                                   body)
 			body)))
 
 	  (mcase
