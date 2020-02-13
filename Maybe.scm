@@ -250,8 +250,21 @@
   (if-let-expand `Maybe:cond assignments yes (or no `(void))))
 
 ;; same as Maybe:if-let
-(defmacro (if-Just assignments yes #!optional no)
-  (if-let-expand `Maybe:cond assignments yes (or no `(void))))
+;; (defmacro (if-Just assignments yes #!optional no)
+;;   (if-let-expand `Maybe:cond assignments yes (or no `(void))))
+
+(defmacro (if-Just t then else)
+  "If the value returned by `t` is a `Just`, its contents is bound to
+`it` and `then` is evaluated, otherwise it is verified to be a
+`Nothing` and `else` is evaluated (otherwise an exception is thrown)."
+  (with-gensym
+   V
+   `(let ((,V ,t))
+      (if (Maybe:Just? ,V)
+          (let ((it (@Just.value ,V))) ,then)
+          ,else))))
+
+
 
 (TEST
  > (%try (Maybe:if-let ((a 2)) 3))
@@ -342,7 +355,7 @@
 (defclass (Maybe-nothing-exception))
 
 (def. (Maybe.unwrap r)
-  (if-Just ((it r))
+  (if-Just r
            it
            (raise (Maybe-nothing-exception))))
 
@@ -435,7 +448,7 @@
 
 (def (cat-Maybes l)
      (if-let-pair ((a l*) l)
-                  (if-Just ((it a))
+                  (if-Just a
                            (cons it (cat-Maybes l*))
                            (cat-Maybes l*))
                   (-> null? l)))
