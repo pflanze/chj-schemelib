@@ -25,7 +25,7 @@
 	(macro Maybe:if) (macro if-Just)
         (macro Maybe:cond)
         (macro Maybe:if-let*)
-        (macro Maybe:if-let)
+        (macro Maybe:if-let) (macro if-let-Just)
         Maybe-or ;; 2-ary
         Maybe:or ;; n-ary
         ;; Maybe-and -- use Maybe->>, ok?
@@ -250,8 +250,8 @@
   (if-let-expand `Maybe:cond assignments yes (or no `(void))))
 
 ;; same as Maybe:if-let
-;; (defmacro (if-Just assignments yes #!optional no)
-;;   (if-let-expand `Maybe:cond assignments yes (or no `(void))))
+(defmacro (if-let-Just assignments yes #!optional no)
+  (if-let-expand `Maybe:cond assignments yes (or no `(void))))
 
 (defmacro (if-Just t then else)
   "If the value returned by `t` is a `Just`, its contents is bound to
