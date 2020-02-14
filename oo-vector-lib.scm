@@ -301,7 +301,7 @@
 		     (begin
                        (let ()
                          (declare (safe))
-                         (##VECTOR-set! v* j val))
+                         (VECTOR-set! v* j val))
 		       (lp (+ i 1) (+ j 1)))
 		     (lp (+ i 1) j)))
 	       (let ()
