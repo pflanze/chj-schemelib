@@ -36,6 +36,8 @@
         (methods Result.>>= Result.>> Result.return Result.unwrap)
         (inline Result->>=) (macro Result->>) Result-return Result-unwrap)
 
+(include "cj-standarddeclares.scm")
+
 
 (defclass Result
 

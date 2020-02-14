@@ -36,6 +36,8 @@
         (inline Maybe->>=) (macro Maybe->>) Maybe-return Maybe-unwrap
         cat-Maybes)
 
+(include "cj-standarddeclares.scm")
+
 
 
 (defclass Maybe

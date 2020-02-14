@@ -20,6 +20,8 @@
         (macro maybe.>>) maybe.unwrap maybe-unwrap
         cat-maybes)
 
+(include "cj-standarddeclares.scm")
+
 
 ;; tell cj-typed that the maybe type constructor is a monad
 (is-monad-name! 'maybe)
