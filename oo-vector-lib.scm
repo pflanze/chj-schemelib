@@ -287,6 +287,30 @@
   (def. (VECTOR.filter v fn)
     (VECTOR-filter fn v))
    
+  (def (VECTOR-filter-map [procedure? fn] [VECTOR? v])
+       ;; stupid COPY-PASTE from VECTOR-filter/iota
+       (declare (block)(standard-bindings)(extended-bindings)(fixnum)
+        	(not safe))
+       (let* ((len (VECTOR-length v))
+	      (v* (make-VECTOR len)))
+	 (let lp ((i 0)
+		  (j 0))
+	   (if (< i len)
+	       (let ((val (fn (##VECTOR-ref v i))))
+		 (if val
+		     (begin
+                       (let ()
+                         (declare (safe))
+                         (##VECTOR-set! v* j val))
+		       (lp (+ i 1) (+ j 1)))
+		     (lp (+ i 1) j)))
+	       (let ()
+		 (declare (safe))
+		 (VECTOR-shrink! v* j)
+		 v*)))))
+  (def. (VECTOR.filter-map v fn)
+    (VECTOR-filter-map fn v))
+   
   ;; XX move to/merge with vector-util.scm: (vector-for-each proc vec) .. ?
 
   (def. (VECTOR.for-each/iota v proc)
