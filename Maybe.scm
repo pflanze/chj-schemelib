@@ -63,7 +63,7 @@
 
 (def ((Just-of pred) v)
      (and (Just? v)
-          (pred (Just.value v))))
+          (pred (@Just.value v))))
 
 
 ;; Variants of Just? and Nothing? that throw for non-Maybe values:
