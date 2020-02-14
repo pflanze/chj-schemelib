@@ -23,6 +23,7 @@
         table _table
         table*
         table-of
+        itable-of
         ;; accessors:
         (method table.null?
                 table.test
@@ -152,6 +153,38 @@
  > ((table-of symbol? integer?) (table (cons fo: 1) (cons 'bar 2)))
  #f
  > ((table-of symbol? integer?) (table))
+ #t)
+
+
+;; Like table-of but avoiding the need to generate a full intermediary
+;; list. Only tests up to 2 key/value pairs!
+(define (itable-of key? val?)
+  (lambda (v)
+    (and (table? v)
+         (continuation-capture
+          (lambda (ret)
+            (let ((count 0))
+              (table-for-each
+               (lambda (key val)
+                 (if (and (key? key)
+                          (val? val))
+                     (if (< count 2)
+                         (inc! count)
+                         (continuation-return ret #t))
+                     (continuation-return ret #f)))
+               v)
+              #t))))))
+
+(TEST
+ > ((itable-of symbol? integer?) (table (cons 'fo 1) (cons 'bar 2)))
+ #t
+ > ((itable-of symbol? integer?) (table (cons 'fo 1) (cons 'bar "2")))
+ #f
+ > ((itable-of symbol? integer?) (table (cons fo: 1) (cons 'bar 2)))
+ #f
+ > ((itable-of symbol? integer?) (table))
+ #t
+ > ((itable-of symbol? integer?) (table (cons 'fo 1) (cons 'bar 2) (cons 'baz 3)))
  #t)
 
 
