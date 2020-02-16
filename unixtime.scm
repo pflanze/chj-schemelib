@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -182,7 +182,7 @@
 (def. (unixtime.gmtime-string v)
   (.rfc-2822-alike-string (unixtime.gmtime v) "GMT"))
 
-(def. unixtime.rfc-2822 (compose-function localtime.rfc-2822 unixtime.localtime))
+(def. unixtime.rfc-2822 (compose localtime.rfc-2822 unixtime.localtime))
 
 (def. (unixtime.localtime-string v)
   (.rfc-2822-alike-string (unixtime.localtime v) #f #f))
@@ -273,11 +273,11 @@
 	  (zero? (localtime.integer-isdst v))))
 
 
-(def current-localtime
-     (compose-function unixtime.localtime current-unixtime))
+(def (current-localtime)
+     (=> (current-unixtime) unixtime.localtime))
 
-(def current-gmtime
-     (compose-function unixtime.gmtime current-unixtime))
+(def (current-gmtime)
+     (=> (current-unixtime) unixtime.gmtime))
 
 
 (TEST
