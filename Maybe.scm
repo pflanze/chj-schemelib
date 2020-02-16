@@ -24,6 +24,7 @@
         Maybe:Nothing?
         Maybe
 	(macro Maybe:if) (macro if-Just)
+        (macro when-Just)
         (macro Maybe:cond)
         (macro Maybe:if-let*)
         (macro Maybe:if-let) (macro if-let-Just)
@@ -272,6 +273,27 @@
           (let ((it (@Just.value ,V))) ,then)
           ,else))))
 
+(defmacro (when-Just t . body)
+  "If the value returned by `t` is a `Just`, its contents is bound to
+`it` and the body is evaluated; otherwise it is verified to be a
+`Nothing` and the void value is returned (otherwise an exception is
+thrown)."
+  (with-gensym
+   V
+   `(let ((,V ,t))
+      (if (Maybe:Just? ,V)
+          (let ((it (@Just.value ,V))) ,@body)
+          (void)))))
+
+(TEST
+ > (%try (when-Just #f it))
+ (exception text: "not a Maybe: #f\n")
+ > (when-Just (Nothing) it)
+ #!void
+ > (when-Just (Just 10) it)
+ 10
+ > (when-Just (Just 10) 11 it)
+ 10)
 
 
 (TEST
