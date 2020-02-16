@@ -1,4 +1,4 @@
-;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,6 +11,8 @@
 
 (export (macro if-let*)
         (macro if-let)
+        (macro when-let*)
+        (macro when-let)
         (macro and-let)
         (macro if-letv)
         #!optional
@@ -136,6 +138,13 @@
   ;; if no is #f, just pass it on as code, and it will result in #f, too ":)"
   (if-let-expand `cond assignments yes no))
 
+(defmacro (when-let assignments . body)
+  (if-let-expand `cond assignments `(begin ,@body) `#f))
+
+(defmacro (when-let* assignments . body)
+  (if-let*-expand `cond assignments `(begin ,@body) `#f))
+
+
 (TEST
  > (if-let ((a 2)) 3)
  3
@@ -190,7 +199,45 @@
                   (b 3))
                  (list a b)
                  GEN:-11015))
- (exception text: "Unbound variable: GEN:-11015\n"))
+ (exception text: "Unbound variable: GEN:-11015\n")
+
+ ;; when-let:
+ > (def c 0)
+ > (def (f x y)
+        (when-let ((y x)
+                   (y* y))
+                  (inc! c)
+                  (inc! c)
+                  y*))
+ > (f #f 'there)
+ #f
+ > (f 'hi #f)
+ #f
+ > c
+ 0
+ > (f 'hi 'there)
+ there
+ > c
+ 2
+ ;; when-let*
+ > (def c 0)
+ > (def (f x y)
+        (when-let* ((y x)
+                    (y* y))
+                   (inc! c)
+                   (inc! c)
+                   y*))
+ > (f #f 'there)
+ #f
+ > (f 'hi #f)
+ hi
+ > c
+ 2
+ > (f 'hi 'there)
+ hi
+ > c
+ 4)
+
 
 
 ;; single-binding variants:
