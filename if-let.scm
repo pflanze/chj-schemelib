@@ -19,6 +19,8 @@
         if-let*-expand
         if-let-expand)
 
+(include "cj-standarddeclares.scm")
+
 
 ;; There is an if-let in Clojure: https://clojuredocs.org/clojure.core/if-let
 ;;   XX check if it'd doing the same thing.
