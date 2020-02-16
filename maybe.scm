@@ -16,6 +16,7 @@
         (inline just
                 nothing)
         (macro if-just)
+        (macro when-just)
         (methods maybe.>>= maybe.return)
         (macro maybe.>>) maybe.unwrap maybe-unwrap
         cat-maybes)
@@ -68,6 +69,24 @@
       (if ,V
           (let ((it ,V)) ,then)
           ,else))))
+
+(defmacro (when-just t . body)
+  "If the value returned by `t` is not #f, it is bound to `it` and the
+body is evaluated, otherwise the void value is returned."
+  (with-gensym
+   V
+   `(let ((,V ,t))
+      (if ,V
+          (let ((it ,V)) ,@body)
+          (void)))))
+
+(TEST
+ > (when-just #f it)
+ #!void
+ > (when-just 10 it)
+ 10
+ > (when-just 10 11 it)
+ 10)
 
 
 (TEST
