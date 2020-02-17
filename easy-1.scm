@@ -592,20 +592,40 @@ list."
  (module:import/prefix foo foo: bar baz))
 
 
-(def (easy#let..-expand binds body LET)
+(def (easy#let..-expand stx binds body LET maybe-NAMED-LET)
+     (def (lonely-binds? binds*)
+          (and (pair? binds*)
+               (symbol? (source-code (car binds*)))))
      (let ((binds* (source-code binds)))
-       (if (and (pair? binds*)
-                (symbol? (source-code (car binds*))))
-           ;; single-binding let: this means that we can't bind multiple
-           ;; values though. (But that's what letv is for?)
-           `(,LET (,binds) ,@body)
-           `(,LET ,binds ,@body))))
+       (cond ((lonely-binds? binds*)
+              ;; single-binding let: this means that we can't bind multiple
+              ;; values though. (But that's what letv is for?)
+              `(,LET (,binds) ,@body))
+             ((symbol? binds*)
+              ;; named let
+              (cond (maybe-NAMED-LET
+                     =>
+                     (lambda (NAMED-LET)
+                       (if-let-pair ((bindsagain body*) body)
+                                    (if (lonely-binds? (source-code bindsagain))
+                                        `(,NAMED-LET ,binds
+                                                     (,bindsagain)
+                                                     ,@body*)
+                                        `(,NAMED-LET ,binds
+                                                     ,bindsagain
+                                                     ,@body*))
+                                    (source-error
+                                     stx "missing bindings for named let"))))
+                    (else
+                     (source-error stx "letrec does not support naming"))))
+             (else
+              `(,LET ,binds ,@body)))))
 
 (defmacro (easy#let binds . body)
-  (easy#let..-expand binds body '##let))
+  (easy#let..-expand stx binds body '##let '##let))
 
 (defmacro (easy#letrec binds . body)
-  (easy#let..-expand binds body '##letrec))
+  (easy#let..-expand stx binds body '##letrec #f))
 
 (defmacro (let . rest)
   `(easy#let ,@rest))
@@ -620,7 +640,11 @@ list."
  > (let ((a 2)) a)
  2
  > (let ((a 2) (b 3)) b)
- 3)
+ 3
+ > (expansion#easy#let foo ((a 1)) foo)
+ (##let foo ((a 1)) foo)
+ > (expansion#easy#let foo (a 1) foo)
+ (##let foo ((a 1)) foo))
 
 
 (defmacro ($ . exprs)
