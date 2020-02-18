@@ -23,8 +23,8 @@
 (export open-process*
         open-input-process*
         open-output-process*
-        port.name
-        port.content
+        (method port.name
+                port.content)
         eexist-exception?
         eperm-exception?
         read-lines
@@ -167,7 +167,10 @@
 
 
 
-(def. (port.name #(port? p)) -> string?
+(def. (port.name #(port? p)) -> (either path-string? pair?)
+  "Return the name associated with `p`; if `p` was opened
+from a file, this is the path string. In other cases it is a list with
+some informal structure describing what the port was opened from."
   (##port-name p))
 
 (def. (port.content p)
