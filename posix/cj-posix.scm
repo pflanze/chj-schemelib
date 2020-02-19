@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -694,7 +694,7 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 (define gambit-port-direction-out 2)
 (define gambit-port-direction-inout 3)
 
-(define (fd->port fd direction #!optional settings)
+(define (fd->port fd direction #!optional settings name)
   (cond ((and (##fixnum? fd)
 	      (symbol? direction)
 	      (or (not settings)
@@ -705,7 +705,10 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 			      ((WRONLY output) gambit-port-direction-out)
 			      ((RDWR input-output) gambit-port-direction-inout)
 			      (else (error "invalid direction specifyer:" direction)))
-			    (list (string->uninterned-symbol (string-append "fd-" (number->string fd))))
+			    (or name
+                                (list
+                                 (string->uninterned-symbol
+                                  (string-append "fd-" (number->string fd)))))
 			    fd
 			    (or settings '())))
 	(else
