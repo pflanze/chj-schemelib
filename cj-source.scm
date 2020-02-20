@@ -59,9 +59,7 @@
 
 (include "cj-env-1--include.scm")
 
-(##namespace ("cj-source#" vector-map-1))
-
-(##include "vector-util-1--include.scm") ;; for vector-map-1
+(include "vector-util-1--include.scm") ;; for vector-map-1
 
 (define (improper-map fn l #!optional (tail '()))
   (let rec ((l l))
