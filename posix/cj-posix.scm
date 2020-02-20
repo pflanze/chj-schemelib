@@ -23,7 +23,6 @@
 	 ;; for the cj-c-types.scm include: (compile-time only)
 	 cj-env
 	 cj-gambit-sys
-	 (test TEST)
 	 cj-env-2
 	 ;;cj-struct
 	 dot-oo
@@ -31,7 +30,9 @@
 	 (cj-symbol string->uninterned-symbol)
 
 	 ;; it also does (include "cj-c-types.scm")
-	 )
+
+         test
+         test-lib-1)
 
 (export posix-exception?
 	posix-exception-errno
@@ -78,6 +79,7 @@
 
 	_exit
 
+        posix:open-flags->direction
 	fd->port
 	fd-nonblock-set!
 	fd-nonblock?
@@ -690,6 +692,25 @@ ___result= socketpair(AF_UNIX, ___arg1, 0, ___CAST(int*,___BODY(___arg2)));
 
 (define (fd-nonblock? fd)
   (any-bits-set? (posix:fcntl fd F_GETFL) O_NONBLOCK))
+
+(define-typed (posix:open-flags->direction [uint32? flags]) -> symbol?
+  (case (bitwise-and flags 3)
+         ((0) 'input)
+         ((1) 'output)
+         ((2) 'input-output)
+         (else (error "invalid open-flags value" flags))))
+
+(TEST
+ > (map (lambda_ (%try (posix:open-flags->direction _)))
+        (list O_WRONLY
+              O_RDWR
+              O_RDONLY
+              (bitwise-or O_RDWR O_WRONLY)))
+ ((value output)
+  (value input-output)
+  (value input)
+  (exception text: "invalid open-flags value 3\n")))
+
 
 (define gambit-port-direction-in 1)
 (define gambit-port-direction-out 2)
