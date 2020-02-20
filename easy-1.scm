@@ -1,4 +1,4 @@
-;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -647,17 +647,22 @@ list."
  (##let foo ((a 1)) foo))
 
 
+(def $-string
+     (##lambda (v)
+               (##if (##let ()
+                            (##declare (block)
+                                       (standard-bindings)
+                                       (extended-bindings)
+                                       (not safe) (fixnum))
+                            (##namespace (""))
+                            (string? v))
+                     v
+                     (.string v))))
+
 (defmacro ($ . exprs)
-  `(string-interpolate (##lambda (v)
-                            (##if (##let ()
-                                         (##declare (block)
-                                                    (standard-bindings)
-                                                    (extended-bindings)
-                                                    (not safe) (fixnum))
-                                         (##namespace (""))
-                                         (string? v))
-                                  v
-                                  (.string v)))
+  `(string-interpolate (##let () ;; oh well
+                              (##namespace (""))
+                              $-string)
                        ,@exprs))
 
 (TEST
