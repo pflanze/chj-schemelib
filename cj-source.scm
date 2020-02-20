@@ -61,7 +61,7 @@
 
 (##namespace ("cj-source#" vector-map-1 improper-map))
 
-(##include "vector-util-1.scm") ;; for vector-map-1
+(##include "vector-util-1--include.scm") ;; for vector-map-1
 
 ;; need a copy of improper-map (~bootstrapping issue):
 (define (improper-map fn l #!optional (tail '()))
