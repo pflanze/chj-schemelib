@@ -75,15 +75,16 @@
 ;; TEST see list-util.scm
 
 
-(define (improper-map fn l #!optional (tail '()))
-  (let rec ((l l))
-    (cond ((null? l)
-	   tail)
-	  ((pair? l)
-	   (cons (fn (car l))
-		 (rec (cdr l))))
-	  (else
-	   (fn l)))))
+;; (define (improper-map fn l #!optional (tail '()))
+;;   (let rec ((l l))
+;;     (cond ((null? l)
+;; 	   tail)
+;; 	  ((pair? l)
+;; 	   (cons (fn (car l))
+;; 		 (rec (cdr l))))
+;; 	  (else
+;; 	   (fn l)))))
+;; Already available from cj-source.scm
 
 (define (improper->proper-map fn l #!optional (tail '()))
   (let rec ((l l))
