@@ -18,6 +18,7 @@
 '(export source?
 	 source-code
 	 source-location
+         cj-source:port-name?
 	 location?
 	 location-container
 	 container->path
@@ -150,11 +151,18 @@
   (vector-ref l 2))
 
 
+;; can't move cj-io-util.scm's port-name? here due to dependencies;
+;; also, this one is faster since it doesn't walk the string.
+(define (cj-source:port-name? v)
+  (or (string? v)
+      (pair? v)))
 
 (define (location? o)
   ;; well.
   (and (vector? o)
-       (= (vector-length o) 2)))
+       (= (vector-length o) 2)
+       (cj-source:port-name? (##vector-ref o 0))
+       (fixnum? (##vector-ref o 1))))
 
 ;; unlike location*?, this also accepts location? objects, and unlike
 ;; location?, this also accepts location*? objects as long as they
