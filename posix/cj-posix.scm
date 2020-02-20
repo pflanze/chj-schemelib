@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+         cj-typed
 	 (cj-env warn)
 	 cj-warn
 	 ;;(interrupts interrupt-install-handler! SIGCHLD)
@@ -36,10 +37,10 @@
 	posix-exception-errno
 	posix-exception-message
  
-	getpid
-	getppid
+	posix:getpid
+	posix:getppid
 
-	_fork fork fork*
+	posix:_fork posix:fork posix:fork*
  
 	;; status dissection:
 	WIFEXITED
@@ -50,8 +51,8 @@
 	WSTOPSIG
 	WCOREDUMP
 
-	_wait wait wait* wait**
-	_waitpid waitpid waitpid* waitpid**
+	posix:_wait posix:wait posix:wait* posix:wait**
+	posix:_waitpid posix:waitpid posix:waitpid* posix:waitpid**
 
 	filedescriptors?
 	;;error-filedescriptors-wrong-type  well,interesting?
@@ -61,18 +62,18 @@
 	filedescriptors-first
 	filedescriptors-second
 
-	_pipe pipe
-	pipe-values
-	_socketpair socketpair
+	posix:_pipe posix:pipe
+	posix:pipe-values
+	posix:_socketpair posix:socketpair
 	;;many more constants...
  
-	_close close
+	posix:_close posix:close
 
-	_dup dup
-	_dup2 dup2
+	posix:_dup posix:dup
+	posix:_dup2 posix:dup2
 
-	_execv execv
-	_execvp execvp
+	posix:_execv posix:execv
+	posix:_execvp posix:execvp
 	exec ;; wrapper around execvp
 
 	_exit
@@ -134,35 +135,35 @@
 	;;  DN_MULTISHOT
 
 
-	_setuid setuid
-	_setgid setgid
-	_seteuid seteuid
-	_setegid setegid
-	_setreuid setreuid
-	_setregid setregid
-	_getuid getuid
-	_getgid getgid
-	_geteuid geteuid
-	_getegid getegid
+	posix:_setuid posix:setuid
+	posix:_setgid posix:setgid
+	posix:_seteuid posix:seteuid
+	posix:_setegid posix:setegid
+	posix:_setreuid posix:setreuid
+	posix:_setregid posix:setregid
+	posix:_getuid posix:getuid
+	posix:_getgid posix:getgid
+	posix:_geteuid posix:geteuid
+	posix:_getegid posix:getegid
 
-	body->void*
 	posix:_read posix:read
 	posix:_write posix:write
 
-	_open open
-	_chdir chdir
-	_fchdir fchdir
-	_chroot chroot
-	_mkdir mkdir
-	_rmdir rmdir
-	_getcwd getcwd
+	posix:_open posix:open
+	posix:_chdir posix:chdir
+	posix:_fchdir posix:fchdir
+	posix:_chroot posix:chroot
+	posix:_mkdir posix:mkdir
+	posix:_rmdir posix:rmdir
+	posix:_getcwd posix:getcwd
 
 	posix:environ
 
 	#!optional
+	body->void*
 	status? ;; is it a s32vector of length 1?
-	strerror
-	)
+	strerror)
+
 
 ;; (compile #t)
 
