@@ -23,6 +23,7 @@
 (export open-process*
         open-input-process*
         open-output-process*
+        port-name?
         (method port.name
                 port.content)
         eexist-exception?
@@ -166,8 +167,9 @@
      (open-output-process (process*-spec-expand spec posix:environ)))
 
 
+(def port-name? (either path-string? pair?))
 
-(def. (port.name #(port? p)) -> (either path-string? pair?)
+(def. (port.name #(port? p)) -> port-name?
   "Return the name associated with `p`; if `p` was opened
 from a file, this is the path string. In other cases it is a list with
 some informal structure describing what the port was opened from."
