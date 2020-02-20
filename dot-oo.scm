@@ -1,4 +1,4 @@
-;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,6 +8,7 @@
 
 (require cj-env
          define-macro-star
+         cj-inline
          cj-typed ;; indirectly through define-struct. expansion
          cj-match
          cj-warn
@@ -226,7 +227,7 @@
                                   str)))
  
  (define define.-expand
-   (lambda (name expr)
+   (lambda (stx name expr)
      (let ((namestr (possibly-sourcify (symbol->string (source-code name))
                                        name)))
        (letv ((typenamestr genericnamestr)
@@ -253,7 +254,8 @@
                      ;; on redefinitions? Well, not sure whether that
                      ;; should happen. XX
                      (lambda (v) (,predicate v))
-                     ,name))
+                     ,name
+                     ',(source-location stx)))
 
                   ;; don't use |set!| since it leads to "Ill-placed 'define'"s:
                   (define-if-not-defined ,genericname
@@ -263,10 +265,10 @@
 (define-macro* (define. first . rest)
   (mcase first
          (symbol?
-          (define.-expand first (xone rest)))
+          (define.-expand stx first (xone rest)))
          (pair?
           (let ((first* (source-code first)))
-            (define.-expand (car first*)
+            (define.-expand stx (car first*)
               `(typed-lambda ,(cdr first*)
                  ,@rest))))))
 

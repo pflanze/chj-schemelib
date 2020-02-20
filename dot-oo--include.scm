@@ -19,15 +19,38 @@
 
 
 ;; Method tables consist of a vector in a box (so that replaceable) in
-;; the format:
+;; the format (unused fields so that the number of entries is
+;; derivable cheaply from the vector-length via shifting):
 
 ;; (vector prefix1 prefix2 prefix3
 ;;         pred1 pred2 pred3
 ;;         method1 method2 method3
-;;         stats1 stats2 stats3)
+;;         stats1 stats2 stats3
+;;         location1 location2 location3
+;;         unused1 unused2 unused3
+;;         unused1 unused2 unused3
+;;         unused1 unused2 unused3)
 
 ;; stats field is only updated if *dot-oo:method-stats* is true. See
 ;; dot-oo:show-method-table-entry?.
+
+;; locationX represent the location of the def. or similar definition.
+
+(define-inline (@methodtablevector-nentries->length nentries)
+  (declare (fixnum) (not safe))
+  (arithmetic-shift nentries 3))
+
+(define-inline (@methodtablevector-length->nentries len)
+  (declare (fixnum) (not safe))
+  (arithmetic-shift len -3))
+
+(define-inline (@methodtablevector-nentries t)
+  (declare (fixnum) (not safe))
+  (@methodtablevector-length->nentries (vector-length t)))
+
+(define-typed (methodtablevector-nentries [vector? t])
+  (@methodtablevector-nentries t))
+
 
 
 (define (vector-copy! fromvec from to tovec tofrom)
@@ -137,7 +160,7 @@
 
 (define (dot-oo:method-table-maybe-ref-method tbl obj)
   (let* ((vec (unbox tbl))
-         (nentries (arithmetic-shift (vector-length vec) -2)))
+         (nentries (methodtablevector-nentries vec)))
     (@dot-oo:method-type-maybe-ref-method vec nentries obj)))
 
 
@@ -146,7 +169,7 @@
 ;; asked for
 (define (dot-oo:method-table-maybe-ref-columnS tbl obj colnumS)
   (let* ((vec (unbox tbl))
-         (nentries (arithmetic-shift (vector-length vec) -2)))
+         (nentries (methodtablevector-nentries vec)))
     ;; adapted partial copy-paste of
     ;; @dot-oo:method-type-maybe-ref-method, see docs there
     (let ((end (+ nentries nentries)))
@@ -271,16 +294,21 @@
    (and (symbol? v)
         (not (zero? (string-length (symbol->string v)))))))
 
-(define-typed (dot-oo:method-table-set old #(nonempty-symbol? prefix) pred meth)
+(define-typed (dot-oo:method-table-set old
+                                       [nonempty-symbol? prefix]
+                                       pred
+                                       meth
+                                       location)
 
   (define (finish new n)
     (vector-set! new 0 prefix)
     (vector-set! new n pred)
-    (vector-set! new (fx+ n n) meth)
+    (vector-set! new (fx* n 2) meth)
+    (vector-set! new (fx* n 4) location)
     new)
 
   (let* ((oldlen (vector-length old))
-         (oldn (arithmetic-shift oldlen -2)))
+         (oldn (@methodtablevector-length->nentries oldlen)))
     (cond ((dot-oo:method-key-maybe-ref-i old oldn prefix)
            => (lambda (oldi)
                 (let* ((n oldn)
@@ -295,64 +323,84 @@
                       ;; to make space for new row at the beginning:
                       (dot-oo:copy-rail! raili old oldn new n 0 oldi 1)))
 
+                   ;; these are used when setting an entry again that
+                   ;; was already set
                   (do-rail 0)
                   (do-rail 1)
                   (do-rail 2)
                   (do-rail 3)
+                  (do-rail 4)
                   (finish new n))))
           (else
            ;; prepend to the top
            (let* ((n (inc oldn))
-                  (new (make-vector (arithmetic-shift n 2))))
+                  (new (make-vector (@methodtablevector-nentries->length n))))
              (dot-oo:copy-rail! 0 old oldn new n 0 oldn 1)
              (dot-oo:copy-rail! 1 old oldn new n 0 oldn 1)
              (dot-oo:copy-rail! 2 old oldn new n 0 oldn 1)
              (dot-oo:copy-rail! 3 old oldn new n 0 oldn 1)
+             (dot-oo:copy-rail! 4 old oldn new n 0 oldn 1)
              (finish new n))))))
 
 (TEST
- > (dot-oo:method-table-set (vector) 'foo 'foo? 'foo.bar)
- #(
-   foo
-   foo?
-   foo.bar
-   0)
- > (dot-oo:method-table-set # 'baz 'baz? 'baz.bar)
- #(
-   baz foo
-   baz? foo?
-   baz.bar foo.bar
-   0 0)
- > (dot-oo:method-table-set # 'foo 'foo? 'foo.bar)
- #(
-   foo baz
-   foo? baz?
-   foo.bar baz.bar
-   0 0)
+ > (dot-oo:method-table-set (vector) 'foo 'foo? 'foo.bar 'fooloc)
+ [foo foo? foo.bar 0 fooloc 0 0 0]
+ > (dot-oo:method-table-set # 'baz 'baz? 'baz.bar 'bazloc)
+ [
+  baz foo
+  baz? foo?
+  baz.bar foo.bar
+  0 0
+  bazloc fooloc
+  0 0
+  0 0
+  0 0]
+ > (dot-oo:method-table-set # 'foo 'foo? 'foo.bar 'fooloc2)
+ [
+  foo baz
+  foo? baz?
+  foo.bar baz.bar
+  0 0
+  fooloc2 bazloc
+  0 0
+  0 0
+  0 0]
  > (define a
-     (dot-oo:method-table-set # 'a 'a? 'a.bar))
+     (dot-oo:method-table-set # 'a 'a? 'a.bar 'aloc))
  > a
- #(
-   a foo baz
-   a? foo? baz?
-   a.bar foo.bar baz.bar
-   0 0 0)
- > (dot-oo:method-table-set a 'foo 'foo? 'foo.bar)
- #(
-   foo a baz
-   foo? a? baz?
-   foo.bar a.bar baz.bar
-   0 0 0)
- > (dot-oo:method-table-set a 'baz 'baz? 'baz.bar)
- #(
-   baz a foo
-   baz? a? foo?
-   baz.bar a.bar foo.bar
-   0 0 0))
+ [
+  a foo baz
+  a? foo? baz?
+  a.bar foo.bar baz.bar
+  0 0 0
+  aloc fooloc2 bazloc
+  0 0 0
+  0 0 0
+  0 0 0]
+ > (dot-oo:method-table-set a 'foo 'foo? 'foo.bar 'fooloc-a)
+ [
+  foo a baz
+  foo? a? baz?
+  foo.bar a.bar baz.bar
+  0 0 0
+  fooloc-a aloc bazloc
+  0 0 0
+  0 0 0
+  0 0 0]
+ > (dot-oo:method-table-set a 'baz 'baz? 'baz.bar 'bazloc)
+ [
+  baz a foo
+  baz? a? foo?
+  baz.bar a.bar foo.bar
+  0 0 0
+  bazloc aloc fooloc2
+  0 0 0
+  0 0 0
+  0 0 0])
 
 
-(define (dot-oo:method-table-set! tbl prefix pred meth)
-  (set-box! tbl (dot-oo:method-table-set (unbox tbl) prefix pred meth))
+(define (dot-oo:method-table-set! tbl prefix pred meth loc)
+  (set-box! tbl (dot-oo:method-table-set (unbox tbl) prefix pred meth loc))
   ;; still return it to allow for easier 'define-once' approach:
   tbl)
 
@@ -382,7 +430,7 @@
 (define-typed (dot-oo:show-method-table t)
   -> (list-of dot-oo:show-method-table-entry?)
   (let* ((v (unbox t))
-         (n (arithmetic-shift (vector-length v) -2)))
+         (n (methodtablevector-nentries v)))
     (unfold (C >= _ n)
             (lambda (i)
               (list (vector-ref v i)
