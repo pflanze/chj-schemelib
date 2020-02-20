@@ -124,6 +124,10 @@
                 (let ((it (@Ok.value it-Result)))
                   ,then)
                 ,@(if else
+                      ;; Note: do *not* use @Error.value here, Ok?
+                      ;; check above didn't check for that yet! (And
+                      ;; this is the slow path, so, calling another
+                      ;; remote function is fine.)
                       (list `(let ((it (Error.value it-Result)))
                                ,else))
                       '()))))
