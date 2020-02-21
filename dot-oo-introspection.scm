@@ -51,12 +51,14 @@
 
 (define-typed (dot-oo:method-location [methodtable? tbl]
                                       [symbol? typ])
-  -> location?
+  -> (maybe location?)
   (dot-oo:method-table-maybe-ref-prefix-columnS
    tbl typ (dot-oo#col:location)))
 
-(define-typed (dot-oo:show-method-location tbl typ) -> void?
-  (show-location-location (dot-oo:method-location tbl typ)))
+(define-typed (dot-oo:show-method-location tbl typ) -> (either void? symbol?)
+  (cond ((dot-oo:method-location tbl typ) => show-location-location)
+        (else
+         'no-such-method)))
 
 (define-macro* (show-method-location . args)
   (def (cont typ meth)
