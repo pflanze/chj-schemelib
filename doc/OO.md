@@ -201,6 +201,10 @@ sequences.  See `oo-*.scm` modules. Not very consistent/complete.
 * `(show-methods genericname)`: a macro (no need to quote
   genericname), shows all method implementors for the given generic.
 
+* `(show-method-location type.genericname)` or `(show-method-location
+  .genericname type)`: a macro (no need to quote the arguments), shows
+  the location of the definition of the given method.
+
 * `(show-generics objs...)`: gives a list of generics which are
   implemented for all given objs (and on which type). `(show-generics*
   objs...)` gives the same but grouped by type. If those functions
