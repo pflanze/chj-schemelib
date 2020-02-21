@@ -212,7 +212,7 @@
    symbol? genericname
    (lambda (genericname)
      (cond
-      ((dot-oo:method-table-maybe-ref-columnS
+      ((dot-oo:method-table-maybe-ref-obj-columnS
         (eval
          (generic-name-string.method-table-name (symbol->string genericname)))
         obj

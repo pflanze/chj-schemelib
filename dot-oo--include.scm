@@ -9,7 +9,7 @@
 ;; included in dot-oo, hence no require form. pseudo export form:
 (export dot-oo:method-key-maybe-ref-i
         dot-oo:method-table-maybe-ref-method
-        dot-oo:method-table-maybe-ref-columnS
+        dot-oo:method-table-maybe-ref-obj-columnS
         dot-oo:method-table-maybe-ref-prefix-columnS
         dot-oo:method-table-set!
         dot-oo:new-method-table
@@ -221,7 +221,7 @@ return values at `colnumS`. Returns #f if there's no match."
                 (lp (inc i)))
             #f)))))
 
-(define (dot-oo:method-table-maybe-ref-columnS tbl obj colnumS)
+(define (dot-oo:method-table-maybe-ref-obj-columnS tbl obj colnumS)
   (dot-oo:method-table-maybe-ref-col-columnS
    tbl
    (col:pred)
