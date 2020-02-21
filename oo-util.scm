@@ -1,4 +1,4 @@
-;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,12 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-(require easy-1
-	 dot-oo ;; included in easy?
+(require dot-oo
 	 (cj-math integer)
 	 (string-util-2 string-reverse)
 	 (cj-functional list-of)
-	 (srfi-11 values->vector values->list letv) ;; included in easy?
+	 (srfi-11 values->vector values->list letv)
 	 cj-env
 	 show
 	 (cj-source show-source-location show-location-location
