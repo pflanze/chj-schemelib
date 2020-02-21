@@ -1,4 +1,4 @@
-;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require cj-env
+(require dot-oo
+         cj-env
          define-macro-star
          cj-typed
          C
@@ -23,13 +24,16 @@
          table-1
          (oo-vector-lib sum))
 
-(export (macro method-table-for)
-        (macro show-methods)
+(export (macros method-table-for
+                show-methods
+                show-method-location)
         dot-oo:all-generics-sorted
         show-method-statistics
         show-generics
         show-generics*
         #!optional
+        dot-oo:method-location
+        dot-oo:show-method-location
         show-all-generics
         show-generics-for)
 
@@ -42,6 +46,41 @@
 
 (define-macro* (show-methods generic-name-sym)
   `(dot-oo:show-method-table (method-table-for ,generic-name-sym)))
+
+
+
+(define-typed (dot-oo:method-location [methodtable? tbl]
+                                      [symbol? typ])
+  -> location?
+  (dot-oo:method-table-maybe-ref-prefix-columnS
+   tbl typ (dot-oo#col:location)))
+
+(define-typed (dot-oo:show-method-location tbl typ) -> void?
+  (show-location-location (dot-oo:method-location tbl typ)))
+
+(define-macro* (show-method-location . args)
+  (def (cont typ meth)
+       (if (string-starts-with? (symbol.string meth) ".")
+           `(dot-oo:show-method-location (method-table-for ,meth)
+                                         ',typ)
+           (source-error stx "method argument doesn't start with a dot"
+                         meth)))
+  (case (length args)
+    ((1) (assert* symbol? (first args)
+                  (lambda_
+                   (letv ((typ meth) (dot-oo:split-typename.methodname
+                                      (symbol.string _)))
+                         (cont (string.symbol typ)
+                               (string.symbol meth))))))
+    ((2) (assert* symbol? (first args)
+                  (lambda (meth)
+                    (assert* symbol? (second args)
+                             (lambda (typ)
+                               (cont typ meth))))))
+    (else
+     (source-error stx ($ "need either 1 argument, type.method, "
+                          "or 2 arguments, .method type")))))
+
 
 
 (define-typed (dot-oo:all-generics-sorted) -> (list-of symbol?)
