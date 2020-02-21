@@ -17,6 +17,11 @@
         dot-oo:show-method-table
         methodtablevector?
         methodtable?
+        (macros dot-oo#col:prefix
+                dot-oo#col:pred
+                dot-oo#col:method
+                dot-oo#col:stats
+                dot-oo#col:location)
         #!optional
         dot-oo:method-table-set)
 
@@ -35,15 +40,15 @@
 ;;         unused1 unused2 unused3)
 
 
-(define-macro (col:prefix) 0) ;; type name
-(define-macro (col:pred) 1) ;; type predicate
-(define-macro (col:method) 2)
+(define-macro* (dot-oo#col:prefix) 0) ;; type name
+(define-macro* (dot-oo#col:pred) 1) ;; type predicate
+(define-macro* (dot-oo#col:method) 2)
 
-(define-macro (col:stats) 3)
+(define-macro* (dot-oo#col:stats) 3)
 ;; ^ only updated if *dot-oo:method-stats* is true. See
 ;;   dot-oo:show-method-table-entry?.
 
-(define-macro (col:location) 4)
+(define-macro* (dot-oo#col:location) 4)
 ;; ^ the location of the def. or similar definition.
 
 
@@ -224,14 +229,14 @@ return values at `colnumS`. Returns #f if there's no match."
 (define (dot-oo:method-table-maybe-ref-obj-columnS tbl obj colnumS)
   (dot-oo:method-table-maybe-ref-col-columnS
    tbl
-   (col:pred)
+   (dot-oo#col:pred)
    (lambda (pred) (pred obj))
    colnumS))
 
 (define (dot-oo:method-table-maybe-ref-prefix-columnS tbl prefix colnumS)
   (dot-oo:method-table-maybe-ref-col-columnS
    tbl
-   (col:prefix)
+   (dot-oo#col:prefix)
    (lambda (p) (eq? p prefix))
    colnumS))
 
