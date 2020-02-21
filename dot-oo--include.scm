@@ -10,6 +10,7 @@
 (export dot-oo:method-key-maybe-ref-i
         dot-oo:method-table-maybe-ref-method
         dot-oo:method-table-maybe-ref-columnS
+        dot-oo:method-table-maybe-ref-prefix-columnS
         dot-oo:method-table-set!
         dot-oo:new-method-table
         dot-oo:show-method-table-entry?
@@ -33,10 +34,18 @@
 ;;         unused1 unused2 unused3
 ;;         unused1 unused2 unused3)
 
-;; stats field is only updated if *dot-oo:method-stats* is true. See
-;; dot-oo:show-method-table-entry?.
 
-;; locationX represent the location of the def. or similar definition.
+(define-macro (col:prefix) 0) ;; type name
+(define-macro (col:pred) 1) ;; type predicate
+(define-macro (col:method) 2)
+
+(define-macro (col:stats) 3)
+;; ^ only updated if *dot-oo:method-stats* is true. See
+;;   dot-oo:show-method-table-entry?.
+
+(define-macro (col:location) 4)
+;; ^ the location of the def. or similar definition.
+
 
 (define-inline (@methodtablevector-nentries->length nentries)
   (declare (fixnum) (not safe))
@@ -189,32 +198,52 @@
     (@dot-oo:method-type-maybe-ref-method vec nentries obj)))
 
 
-;; This one doesn't need to be fast, just used for introspection:
-;; still find the entry first, then get whatever column valueS is/are
-;; asked for
-(define (dot-oo:method-table-maybe-ref-columnS tbl obj colnumS)
+;; These two don't need to be fast, just used for introspection
+
+(define (dot-oo:method-table-maybe-ref-col-columnS tbl col match? colnumS)
+  "scan `col` in `tbl` until `match?` returns true of its value,
+return values at `colnumS`. Returns #f if there's no match."
   (let* ((vec (unbox tbl))
          (nentries (methodtablevector-nentries vec)))
     ;; adapted partial copy-paste of
-    ;; @dot-oo:method-type-maybe-ref-method, see docs there
-    (let ((end (+ nentries nentries)))
-      (let lp ((i nentries))
+    ;; @dot-oo:method-type-maybe-ref-method, see docs there; now
+    ;; further modified to use `col` and `match?`
+    (let* ((start (fx* nentries col))
+           (end (+ start nentries)))
+      (let lp ((i start))
         (if (< i end)
-            (if ((vector-ref vec i) obj)
+            (if (match? (vector-ref vec i))
                 (improper-map (lambda (colnum)
                                 (vector-ref
-                                 vec (+ i (* nentries (dec colnum)))))
+                                 vec
+                                 (+ (- i start) (* nentries colnum))))
                               colnumS)
                 (lp (inc i)))
             #f)))))
 
+(define (dot-oo:method-table-maybe-ref-columnS tbl obj colnumS)
+  (dot-oo:method-table-maybe-ref-col-columnS
+   tbl
+   (col:pred)
+   (lambda (pred) (pred obj))
+   colnumS))
+
+(define (dot-oo:method-table-maybe-ref-prefix-columnS tbl prefix colnumS)
+  (dot-oo:method-table-maybe-ref-col-columnS
+   tbl
+   (col:prefix)
+   (lambda (p) (eq? p prefix))
+   colnumS))
 
 
-;; Disable all assertments for production mode? Can we have full testing instead?
+
+;; Disable all assertments for production mode? Can we have full
+;; testing instead?
 (define-typed (dot-oo:copy-rail! raili
                                  old #(natural0? oldn)
                                  new #(natural0? newn)
-                                 ;; and these are indexes within an individual rail:
+                                 ;; and these are indexes within an
+                                 ;; individual rail:
                                  #(natural0? oldfrom)
                                  #(natural0? oldto)
                                  #(natural0? newfrom))
