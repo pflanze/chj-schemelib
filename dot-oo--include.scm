@@ -14,6 +14,8 @@
         dot-oo:new-method-table
         dot-oo:show-method-table-entry?
         dot-oo:show-method-table
+        methodtablevector?
+        methodtable?
         #!optional
         dot-oo:method-table-set)
 
@@ -51,6 +53,29 @@
 (define-typed (methodtablevector-nentries [vector? t])
   (@methodtablevector-nentries t))
 
+(define (methodtablevector? v)
+  (and (vector? v)
+       (let ((len (vector-length v)))
+         (=> (@methodtablevector-length->nentries len)
+             @methodtablevector-nentries->length
+             (= len)))))
+
+(define methodtable? (box-of methodtablevector?))
+
+(TEST
+ > (def l '([] [1] [a b c d]
+            [a b c d e f g h]
+            (a b c d e f g h)
+            [a b c d e f g h 1 2 3 4 5 6 7 8]
+            [a b c d e f g h 1 2 3 4 5 6 7 8 9]
+            [a b c d e f g h 1 2 3 4 5 6 7]))
+ > (map methodtablevector? l)
+ (#t #f #f #t #f #t #f #f)
+ > (def l* (map box l))
+ > (map methodtablevector? l*)
+ (#f #f #f #f #f #f #f #f)
+ > (map methodtable? l*)
+ (#t #f #f #t #f #t #f #f))
 
 
 (define (vector-copy! fromvec from to tovec tofrom)

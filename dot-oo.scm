@@ -23,6 +23,7 @@
          fixnum-more
          list-util-3
          ;; for dot-oo--include.scm
+         (predicates-1 box-of)
          (fixnum inc dec)
          (cj-env-2 for..<)
          (list-util-1 improper-map)
