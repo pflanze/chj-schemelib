@@ -25,7 +25,9 @@
          location-position
          position?
          position-line
+         position-line-add
          position-column
+         position-column-add
          position-string
          maybe-position-string
          make-position
@@ -214,6 +216,14 @@
         (else
          (error "not a position object:" v))))
 
+(define (position-line-add v n)
+  (cond ((position? v)
+         (fx+ v n))
+        ((position*? v)
+         (error "unfinished"))
+        (else
+         (error "not a position object:" v))))
+
 (define (position-column v)
   (cond ((position? v)
          ;; XX should use bit shift instead
@@ -231,6 +241,14 @@
          (+ 1 (quotient v 65536)))
         ((position*? v)
          (@position*-maybe-column v))
+        (else
+         (error "not a position object:" v))))
+
+(define (position-column-add v n)
+  (cond ((position? v)
+         (fx+ v (fx* 65536 n)))
+        ((position*? v)
+         (error "unfinished"))
         (else
          (error "not a position object:" v))))
 
