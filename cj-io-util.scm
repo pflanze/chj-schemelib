@@ -7,6 +7,7 @@
 
 
 (require easy
+         (cj-port port-name)
          test
          (cj-path path-string?)
          (keyword-alist keyword-alist:Maybe-ref
@@ -28,6 +29,7 @@
                 port.content)
         eexist-exception?
         eperm-exception?
+        read-line/location
         read-lines
         maybe-read-line
         xread-line
@@ -63,6 +65,7 @@
         port->stream
         directory-item-stream
         file-line-stream
+        file-line/location-stream
         file-char/location-stream
         process-line-stream
         process-read-stream
@@ -199,6 +202,16 @@ some informal structure describing what the port was opened from."
     (if (eof-object? v)
         #f
         v)))
+
+(define (read-line/location port)
+  (let ((line (read-line port)))
+    (if (eof-object? line)
+        line
+        (make-source line
+                     (make-location (port-name port)
+                                    (make-position (input-port-line port)
+                                                   1))))))
+
 
 ;; would preferably use read-line as the name, but, better don't
 ;; confuse Scheme users.
@@ -631,6 +644,11 @@ some informal structure describing what the port was opened from."
 (define (file-line-stream file)
   (port->stream (open-input-file file)
                 read-line
+                close-port))
+
+(define (file-line/location-stream file)
+  (port->stream (open-input-file file)
+                read-line/location
                 close-port))
 
 (define (file-char/location-stream file)
