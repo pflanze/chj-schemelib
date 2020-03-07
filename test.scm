@@ -544,7 +544,7 @@
 ;; and back to string...
 (define (test:read-ignore-string base)
   (lambda (tag loc-file loc-line loc-col maybe-rest)
-    (let ((l (make-location* loc-file (make-position* loc-line loc-col))))
+    (let ((l (location* loc-file (position* loc-line loc-col))))
       (case tag
 	((error) (test:error-location-string l base))
 	((warning) (test:warning-location-string l maybe-rest base))

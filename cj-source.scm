@@ -125,7 +125,7 @@
 
 
 ;; alternative representation that allows column to be omitted:
-(define (make-position* line maybe-column)
+(define (position* line maybe-column)
   (if (<= 0 line)
       (if (or (not maybe-column)
               (<= 0 maybe-column))
@@ -141,7 +141,7 @@
 (define (@position*-maybe-column l)
   (vector-ref l 2))
 
-(define (make-location* container position)
+(define (location* container position)
   (if (position*? position)
       (vector 'location* container position)
       (error "not a position* object:" position)))
