@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,11 +9,10 @@
 (require fixnum
 	 cj-functional
 	 (cj-functional-2 =>)
-	 cut
 	 srfi-13-kmp
+	 C
 	 test
 	 (cj-env named)
-	 (cj-env-2 C)
 	 (list-util let-pair rxtake-while)
 	 cj-typed
 	 (local-test local-TEST* %test)
@@ -157,13 +156,13 @@
 ;; drop-while but from the end.
 (define (list-trim-right lis pred)
   ((compose reverse
-	     (cut drop-while pred <>)
+	     (C drop-while pred _)
 	     reverse) lis))
 
 
 (define string-trim-right
   (compose list->string
-	    (cut list-trim-right <> char-whitespace?)
+	    (C list-trim-right _ char-whitespace?)
 	    string->list))
 
 (TEST
@@ -210,12 +209,12 @@
 
 
 (define char-newline?
-  (cut char=? <> #\newline))
+  (C char=? _ #\newline))
 
 (define trimlines
-  (compose (cut strings-join <> "\n")
-	    (cut map trim <>)
-	    (cut string-split <> char-newline?)))
+  (compose (C strings-join _ "\n")
+           (C map trim _)
+           (C string-split _ char-newline?)))
 
 (define trimlines-maybe (_-maybe trimlines))
 
@@ -549,14 +548,14 @@
   ;;XX woah super efficiency and anything
   (=> str
       (string->list)
-      (list-trim-right (cut char=? <> #\/))
+      (list-trim-right (C char=? _ #\/))
       (reverse)
       (list->string)
       (string-split-1 #\/)
       (snd)
       (string->list)
       (reverse)
-      (list-trim-right (cut char=? <> #\/))
+      (list-trim-right (C char=? _ #\/))
       (list->string)))
 
 (TEST
@@ -625,10 +624,10 @@
 ;; odd why does this not exist?:
 
 (define string-downcase
-  (cut string-map char-downcase <>))
+  (C string-map char-downcase _))
 
 (define string-upcase
-  (cut string-map char-upcase <>))
+  (C string-map char-upcase _))
 
 (define (string-upcase-first str)
   (let ((len (string-length str)))
