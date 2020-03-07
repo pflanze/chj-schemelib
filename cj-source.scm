@@ -30,9 +30,9 @@
          position-column-add
          position-string
          maybe-position-string
-         make-position
-         make-location
-         make-source
+         position
+         location
+         source
          sourcify
          cj-sourcify-deep
          possibly-sourcify
@@ -264,7 +264,7 @@
       "?.?"))
 
 
-(define (make-position line column)
+(define (position line column)
   (let ((l (- line 1))
         (c (- column 1)))
     (if (<= 0 l 65535)
@@ -277,13 +277,13 @@
             (error "column out of range:" column))
         (error "line out of range:" line))))
 
-(define (make-location container position)
+(define (location container position)
   ((position-check
     (lambda (position)
       (##make-locat container position)))
    position))
 
-(define (make-source code locat)
+(define (source code locat)
   (let ((cont
          (lambda (locat)
            (##make-source code locat))))
@@ -305,9 +305,9 @@
     (let rec ((s s))
       ((lambda (process)
          (if (source? s)
-             (make-source (process (source-code s))
+             (source (process (source-code s))
                           (source-location s))
-             (make-source (process s)
+             (source (process s)
                           master-loc)))
        ;; "where process ="
        (lambda (c)

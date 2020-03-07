@@ -83,14 +83,8 @@
   `(void))
 
 
-;; XX should rename original ones instead? anyway, move to cj-source.scm
-;; (define source make-source)
-;; (define location make-location)
-;; (define position make-position)
-;; (define position* make-position*)
-;; or actually use a different constructor than make-source, given its flat representation.
-
-;;(define source:tag '[source1]) sigh, don't have it
+;; Use a different constructor than `source`, given its flat
+;; representation.
 
 (define (source* code
                  ;; location
@@ -105,9 +99,10 @@
                    ;; matchcases) fail:
                    (string-append (current-directory) location-container))
                location-container)))
-    (make-source code (make-location c (make-position
-                                        location-line
-                                        location-column)))))
+    (source code
+            (location c
+                      (position location-line
+                                location-column)))))
 
 (define (@source-location-container s)
   (vector-ref s 2))

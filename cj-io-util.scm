@@ -19,7 +19,7 @@
          posix/cj-posix ;; posix:environ open close read write seek etc.
          (cj-functional list-of values-of)
          string-bag
-         (cj-source make-source make-location make-position))
+         (cj-source source location position))
 
 (export open-process*
         open-input-process*
@@ -207,10 +207,10 @@ some informal structure describing what the port was opened from."
   (let ((line (read-line port)))
     (if (eof-object? line)
         line
-        (make-source line
-                     (make-location (port-name port)
-                                    (make-position (input-port-line port)
-                                                   1))))))
+        (source line
+                (location (port-name port)
+                          (position (input-port-line port)
+                                    1))))))
 
 
 ;; would preferably use read-line as the name, but, better don't
@@ -662,8 +662,7 @@ some informal structure describing what the port was opened from."
               (begin
                 (close-port p)
                 '())
-              (cons (make-source
-                     c (make-location file (make-position line col)))
+              (cons (source c (location file (position line col)))
                     (if (or (eq? c #\return)
                             (eq? c #\newline))
                         (rec (fx+ line 1)

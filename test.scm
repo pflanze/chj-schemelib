@@ -670,7 +670,7 @@
 				  (set! TEST:repl-history '()))
 				,@(TEST:conv forms stx))))
 		   ;; normalize location-container here, too
-		   (let ((location (make-location
+		   (let ((location (location
 				    (test:path-normalize
 				     (container->path (location-container loc)))
 				    (location-position loc))))

@@ -43,7 +43,7 @@
 (TEST
  > (def c "foo")
  > (def (loc line col)
-	(make-location c (make-position line col)))
+	(location c (position line col)))
  > (location-cmp (loc 10 10) (loc 10 10))
  eq
  > (location-cmp (loc 9 10) (loc 10 10))

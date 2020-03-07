@@ -85,10 +85,10 @@
            "")))
   
   (defmethod (location s)
-    (make-location (if (port? path-or-port)
-                       (.name path-or-port)
-                       path-or-port)
-                   (make-position line column)))
+    (location (if (port? path-or-port)
+                  (.name path-or-port)
+                  path-or-port)
+              (position line column)))
 
   (defmethod (csv-type-error s maybe-nested-error)
     (csv-type-error maybe-nested-error)))
