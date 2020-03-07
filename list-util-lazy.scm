@@ -13,7 +13,6 @@
 	 srfi-1
 	 (fixnum inc dec)
 	 ;; (cj-env-1 identity) cj-source, sigh
-	 (string-util-1 string-split)
 	 (improper-list improper-length)
 
 

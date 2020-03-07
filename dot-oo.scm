@@ -14,6 +14,7 @@
          cj-warn
          (cj-source-wraps source:symbol-append)
          (string-util strings-join)
+         (string-util-1 string-split)
          (string-util-2 string-split-once)
          (cj-struct define-struct-expand)
          (list-util-lazy xone)
