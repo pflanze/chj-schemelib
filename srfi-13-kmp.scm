@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require (cj-source-util-2 assert))
+(require)
 
 (export string-contains
 	string-contains-ci
@@ -202,21 +202,23 @@
 				   (s-start 0)
 				   (s-end (string-length s)))
   (let ((patlen (vector-length rv)))
-    (assert ((lambda (i) (and (integer? i) (exact? i) (<= 0 i) (< i patlen)))
-	     i))
+    (if (and (integer? i) (exact? i) (<= 0 i) (< i patlen))
 
-    ;; Enough prelude. Here's the actual code.
-    (let lp ((si s-start)		; An index into S.
-	     (vi i))			; An index into RV.
-      (cond ((= vi patlen) (- si))	; Win.
-	    ((= si s-end) vi)		; Ran off the end.
-	    (else			; Match s[si] & loop.
-	     (let ((c (string-ref s si)))
-	       (lp (+ si 1)	
-		   (let lp2 ((vi vi))	; This is just KMP-STEP.
-		     (if (c= c (string-ref pat (+ vi p-start)))
-			 (+ vi 1)
-			 (let ((vi (vector-ref rv vi)))
-			   (if (= vi -1) 0
-			       (lp2 vi))))))))))))
+        ;; Enough prelude. Here's the actual code.
+        (let lp ((si s-start)		; An index into S.
+                 (vi i))                ; An index into RV.
+          (cond ((= vi patlen) (- si))	; Win.
+                ((= si s-end) vi)       ; Ran off the end.
+                (else			; Match s[si] & loop.
+                 (let ((c (string-ref s si)))
+                   (lp (+ si 1)	
+                       (let lp2 ((vi vi)) ; This is just KMP-STEP.
+                         (if (c= c (string-ref pat (+ vi p-start)))
+                             (+ vi 1)
+                             (let ((vi (vector-ref rv vi)))
+                               (if (= vi -1) 0
+                                   (lp2 vi))))))))))
+
+        (error "string-kmp-partial-search: i must be a natural0 under pat's length:"
+               i))))
 
