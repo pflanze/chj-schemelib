@@ -7,13 +7,14 @@
 
 
 (require (cj-source source position position-line position-column-add)
-         test
-	 ;;(list-util-1 list-split)
-	 )
+         test)
 
 (export string-contains-char?
 	string-split
-        string-split/location)
+        string-split/location
+        #!optional
+        string-split/left+right
+        string-split/location/left+right)
 
 (include "cj-standarddeclares.scm")
 
@@ -47,26 +48,49 @@
 ;; (define (string-split str char-or-pred)
 ;;   (map list->string (list-split (string->list str) char-or-pred)))
 
-(define (string-split str char-or-pred #!optional retain-matches?)
+(define (string-split/left+right str char-or-pred left? right?)
   (let ((len (string-length str))
-	(pred (char-or-pred.pred char-or-pred)))
+        (pred (char-or-pred.pred char-or-pred)))
     (let lp ((i (dec len))
-	     (prev-position len)
-	     (strs '()))
+             (prev-position len)
+             (strs '()))
       (if (>= i 0)
-	  (if (pred (string-ref str i))
-	      (lp (dec i)
-		  i
-		  (cons (substring str
-				   (if retain-matches?
-				       i
-				       (inc i))
-				   prev-position)
-			strs))
-	      (lp (dec i)
-		  prev-position
-		  strs))
-	  (cons (substring str 0 prev-position) strs)))))
+          (if (pred (string-ref str i))
+              (lp (dec i)
+                  (if left?
+                      (inc i)
+                      i)
+                  (cons (substring str
+                                   (if right?
+                                       i
+                                       (inc i))
+                                   prev-position)
+                        strs))
+              (lp (dec i)
+                  prev-position
+                  strs))
+          (cons (substring str 0 prev-position) strs)))))
+
+(define (string-util-1#retain-matches-to _/left+right
+                                         str char-or-pred retain-matches)
+  (let ((cont
+         (lambda (left? right?)
+           (_/left+right str char-or-pred left? right?))))
+    (case retain-matches
+      ((right) (cont #f #t))
+      ((left) (cont #t #f))
+      ((#f) (cont #f #f))
+      (else
+       (error "retain-matches must be #f, 'right or 'left:"
+              retain-matches)))))
+
+(define (string-split str char-or-pred #!optional retain-matches)
+  "If char-or-pred is a function, it is expected to take a char and
+return a boolean. If retain-matches is #f, the matching character is
+dropped, if retain-matches is 'right, the matching character is added
+to the element to its right, for 'left to the element to its left."
+  (string-util-1#retain-matches-to string-split/left+right
+                                   str char-or-pred retain-matches))
 
 (TEST
  > (string-split "Foo|bar|baz|" #\x)
@@ -81,19 +105,20 @@
  ("" "" "baz" "")
  > (string-split "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f))))
  ("" "" "b" "z" "")
- > (string-split "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f))) #t)
+ > (string-split "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f))) 'right)
  ("" "|" "|b" "az" "|")
- > (string-split "Hello\nWorld" #\newline #t)
- ;; Is this really what it should be? XX surely not?
- ("Hello" "\nWorld"))
+ > (string-split "Hello\nWorld" #\newline 'right)
+ ("Hello" "\nWorld")
+ > (string-split "Hello\nWorld" #\newline 'left)
+ ("Hello\n" "World")
+ > (string-split "Hello\nWorld\n" #\newline 'left)
+ ;; Ok?
+ ("Hello\n" "World\n" ""))
 
 
-(define (string-split/location str/location
-                               char-or-pred
-                               #!optional retain-matches?)
-  "If str/location is source (with location), then return a list of
-source, too, with each element's location updated to reflect the
-position of the start of that element."
+(define (string-split/location/left+right str/location
+                                          char-or-pred
+                                          left? right?)
   (if (source? str/location)
       ;; adapted copy-paste; changed to process from the left.
       (let* ((str (source-code str/location))
@@ -127,12 +152,14 @@ position of the start of that element."
                     (lp pos*
                         pos*
                         (inc i)
-                        (if retain-matches?
+                        (if right?
                             i
                             (inc i))
                         (cons (source (substring str
                                                  prev-i
-                                                 i)
+                                                 (if left?
+                                                     (inc i)
+                                                     i))
                                       (location cnt startpos))
                               rstrs))
                     (lp pos*
@@ -142,10 +169,19 @@ position of the start of that element."
                         rstrs)))
               (reverse
                (cons (source (substring str prev-i len)
-                             ;; XX use pos here correct???
                              (location cnt startpos))
                      rstrs)))))
-      (string-split str/location char-or-pred retain-matches?)))
+      (string-split/left+right str/location char-or-pred left? right?)))
+
+(define (string-split/location str/location
+                               char-or-pred
+                               #!optional retain-matches)
+  "Same as string-split, but if str/location is source (with
+location), then return a list of source, too, with each element's
+location updated to reflect the position of the start of that
+element."
+  (string-util-1#retain-matches-to string-split/location/left+right
+                                   str/location char-or-pred retain-matches))
 
 (TEST
  > (define (t . args)
@@ -157,19 +193,31 @@ position of the start of that element."
  (("Hello" "world") ("(foo)@10.13" "(foo)@11.1"))
  > (t s #\o)
  (("Hell" "\nw" "rld") ("(foo)@10.13" "(foo)@10.18" "(foo)@11.3"))
- > (t s #\newline #t)
+ > (t s #\newline 'right)
  (("Hello" "\nworld") ("(foo)@10.13" "(foo)@11.1"))
- > (string-split/location "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f))) #t)
+ > (t s #\newline 'left)
+ (("Hello\n" "world") ("(foo)@10.13" "(foo)@11.1"))
+ > (string-split/location "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f)))
+                          'right)
  ("" "|" "|b" "az" "|")
+
  > (define s2 (source "||baz|" (location '(f) (position 10 13))))
+ ;; "||baz|"
+ ;;  3456789
  > (t s2 (lambda (c) (case c ((#\|) #t) (else #f))) #f)
  (("" "" "baz" "")
   ("(f)@10.13" "(f)@10.14" "(f)@10.15" "(f)@10.19"))
- > (t s2 (lambda (c) (case c ((#\|) #t) (else #f))) #t)
+ > (t s2 (lambda (c) (case c ((#\|) #t) (else #f))) 'left)
+ (("|" "|" "baz|" "")
+  ("(f)@10.13" "(f)@10.14" "(f)@10.15" "(f)@10.19"))
+ > (t s2 (lambda (c) (case c ((#\|) #t) (else #f))) 'right)
  (("" "|" "|baz" "|")
   ("(f)@10.13" "(f)@10.14" "(f)@10.15" "(f)@10.19"))
- ;; > (t s2 (lambda (c) (case c ((#\| #\a) #t) (else #f))) #t)
- ;; (("" "|" "|b" "az" "|")
- ;;  ("(f)@10.13" "(f)@10.13" "(f)@10.15" "(f)@10.16" "(f)@10.18"))
- )
+
+ > (t s2 (lambda (c) (case c ((#\| #\a) #t) (else #f))) 'left)
+ (("|" "|" "ba" "z|" "")
+  ("(f)@10.13" "(f)@10.14" "(f)@10.15" "(f)@10.17" "(f)@10.19"))
+ > (t s2 (lambda (c) (case c ((#\| #\a) #t) (else #f))) 'right)
+ (("" "|" "|b" "az" "|")
+  ("(f)@10.13" "(f)@10.14" "(f)@10.15" "(f)@10.17" "(f)@10.19")))
 
