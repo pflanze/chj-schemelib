@@ -109,12 +109,13 @@ pos))` is returned instead."
       (cond ((contains str pat i)
              => (lambda (i*)
                   (if maybe-pos
-                      (let ((maybe-pos (position-update-in-string
-                                        maybe-pos str i i*)))
-                        (lp maybe-pos
+                      (let ((maybe-pos* (position-update-in-string
+                                         maybe-pos str i i*)))
+                        (lp (position-update-in-string
+                             maybe-pos* pat 0 patlen)
                             (+ i* patlen)
-                            (cons (cons i* maybe-pos) rmatches)))
-                      (lp maybe-pos
+                            (cons (cons i* maybe-pos*) rmatches)))
+                      (lp maybe-pos ;; #f
                           (+ i* patlen)
                           (cons i* rmatches)))))
             (else
@@ -134,10 +135,14 @@ pos))` is returned instead."
  (4 7)
  > (string-matches "abcbcb ebcb." "bcb")
  (1 8)
- > (map (lambda (i+pos) (list (car i+pos)
-                         (position-string (cdr i+pos))))
-        (string-matches "abcbcb\n ebcb." "bcb" #f (position 1 1)))
- ((1 "1.2") (9 "2.3")))
+ > (define (t1 . args)
+     (map (lambda (i+pos) (list (car i+pos)
+                           (position-string (cdr i+pos))))
+          (apply string-matches args)))
+ > (t1 "abcbcb\n ebcb." "bcb" #f (position 1 1))
+ ((1 "1.2") (9 "2.3"))
+ > (t1 "Hello\nWorld" "l" #f (position 1 1))
+ ((2 "1.3") (3 "1.4") (9 "2.4")))
 
 
 (define (string-split-on-string str/location pat left? right? ci?)
@@ -373,6 +378,11 @@ element."
  ;; same as with char based splitting, the found location refers to
  ;; the field, does not include the separator
  (("Hello" "\nworld") ("(foo)@10.13" "(foo)@11.2"))
+ > (t s "\n")
+ (("Hello" "world") ("(foo)@10.13" "(foo)@11.1"))
+ > (t s "l")
+ (("He" "" "o\nwor" "d")
+  ("(foo)@10.13" "(foo)@10.16" "(foo)@10.17" "(foo)@11.5"))
 
  > (string-split/location "||baz|" (lambda (c) (case c ((#\| #\a) #t) (else #f)))
                           'right)
