@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require)
+(require (cj-env when))
 
 (export string-contains
 	string-contains-ci
@@ -136,31 +136,31 @@
   (declare (fixnum))
   (let* ((rvlen (- end start))
 	 (rv (make-vector rvlen -1)))
-    (if (> rvlen 0)
-	(let ((rvlen-1 (- rvlen 1))
-	      (c0 (string-ref pattern start)))
+    (when (> rvlen 0)
+      (let ((rvlen-1 (- rvlen 1))
+            (c0 (string-ref pattern start)))
 
-	  ;; Here's the main loop. We have set rv[0] ... rv[i].
-	  ;; K = I + START -- it is the corresponding index into PATTERN.
-	  (let lp1 ((i 0) (j -1) (k start))	
-	    (if (< i rvlen-1)
-		;; lp2 invariant:
-		;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
-		;;   or j = -1.
-		(let lp2 ((j j))
-		  (cond ((= j -1)
-			 (let ((i1 (+ 1 i)))
-			   (if (not (c= (string-ref pattern (+ k 1)) c0))
-			       (vector-set! rv i1 0))
-			   (lp1 i1 0 (+ k 1))))
-			;; pat[(k-j) .. k] matches pat[start..start+j].
-			((c= (string-ref pattern k) (string-ref pattern (+ j start)))
-			 (let* ((i1 (+ 1 i))
-				(j1 (+ 1 j)))
-			   (vector-set! rv i1 j1)
-			   (lp1 i1 j1 (+ k 1))))
+        ;; Here's the main loop. We have set rv[0] ... rv[i].
+        ;; K = I + START -- it is the corresponding index into PATTERN.
+        (let lp1 ((i 0) (j -1) (k start))	
+          (when (< i rvlen-1)
+            ;; lp2 invariant:
+            ;;   pat[(k-j) .. k-1] matches pat[start .. start+j-1]
+            ;;   or j = -1.
+            (let lp2 ((j j))
+              (cond ((= j -1)
+                     (let ((i1 (+ 1 i)))
+                       (when (not (c= (string-ref pattern (+ k 1)) c0))
+                         (vector-set! rv i1 0))
+                       (lp1 i1 0 (+ k 1))))
+                    ;; pat[(k-j) .. k] matches pat[start..start+j].
+                    ((c= (string-ref pattern k) (string-ref pattern (+ j start)))
+                     (let* ((i1 (+ 1 i))
+                            (j1 (+ 1 j)))
+                       (vector-set! rv i1 j1)
+                       (lp1 i1 j1 (+ k 1))))
 
-			(else (lp2 (vector-ref rv j)))))))))
+                    (else (lp2 (vector-ref rv j)))))))))
     rv))
 
 
