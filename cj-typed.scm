@@ -12,9 +12,10 @@
 
 (require define-macro-star
          (scheme-meta perhaps-quote dsssl-meta-object?)
+         (cj-functional-2 list-of)
+         (simple-match-1 assert*)
          test
          srfi-11
-         (simple-match-1 assert*)
          ;; cj-match  could, no need so far
          (cj-source-util-2 assert)
          (improper-list improper-length
@@ -41,9 +42,11 @@
                 cj-typed-enable)
         is-monad-name!
         is-constructor-name-for-monad!
+        (macro def-monad/constructors)
         maybe-monad-name
         
         #!optional
+        predicate-symbol?
         typed-body-parse
         typed-lambda-expand
         define-typed-expand)
@@ -569,10 +572,47 @@
   (assert (symbol? monadname))
   (table-set! cj-typed#is-monad constr monadname))
 
+(define-macro* (def-monad/constructors monadname . constructor-names)
+  "`monadname` is without question mark; `monadname?` is automatically
+understood as a predicate for `monadname`. `constructor-names` should
+give any type constructor names that return a predicate for the
+`monadname` type."
+  (assert* symbol? monadname)
+  (assert* (list-of (source-of symbol?)) constructor-names)
+  `(begin
+     ;; XX simply assumes `monadname` itself is a predicate or
+     ;; constructur for monadname
+     (is-monad-name! ',monadname)
+     ;; Not "constructor-name", XX bad naming, blah.
+     (is-constructor-name-for-monad! ',(symbol-append (source-code monadname)
+                                                      "?")
+                                     ',monadname)
+     ,@(map (lambda (cname)
+              `(is-constructor-name-for-monad! ',cname ',monadname))
+            constructor-names)))
+
 (define (maybe-monad-name v) ;; -> (maybe symbol?)
   "returns the monad name given a type constructor name, if any"
   (and (symbol? v)
        (table-ref cj-typed#is-monad v #f)))
+
+
+(define (predicate-symbol? v)
+  (and (symbol? v)
+       (let* ((s (symbol->string v))
+              (len (string-length s)))
+         (and (>= len 2)
+              (eq? (string-ref s (dec len)) #\?)))))
+
+(TEST
+ > (predicate-symbol? 'v)
+ #f
+ > (predicate-symbol? '?)
+ #f
+ > (predicate-symbol? 't?)
+ #t
+ > (predicate-symbol? "t?")
+ #f)
 
 
 (define-macro* (-> pred . body)
@@ -588,15 +628,19 @@
                           `(##let ((,V (##let () ,@body)))
                                   (##if (,pred ,V) ,V
                                         (->-error ',pred ,V))))))
-        (let ((pred* (source-code pred)))
-          (if (pair? pred*)
-              (let ((pred0 (source-code (car pred*))))
-                (cond ((maybe-monad-name pred0)
-                       => (lambda (monadname)
-                            `(in-monad ,monadname ,maincode)))
-                      (else
-                       maincode)))
-              maincode)))))
+        (let ((pred* (source-code pred))
+              (lookup (lambda (typeconstructor-name)
+                        (cond ((maybe-monad-name typeconstructor-name)
+                               => (lambda (monadname)
+                                    `(in-monad ,monadname ,maincode)))
+                              (else
+                               maincode)))))
+          (cond ((pair? pred*)
+                 (lookup (source-code (car pred*))))
+                ((predicate-symbol? pred*)
+                 (lookup pred*))
+                (else
+                 maincode))))))
 
 ;; and for easy disabling:
 (define-macro* (@-> pred . body)

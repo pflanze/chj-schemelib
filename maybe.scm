@@ -25,7 +25,7 @@
 
 
 ;; tell cj-typed that the maybe type constructor is a monad
-(is-monad-name! 'maybe)
+(def-monad/constructors maybe)
 
 
 (def-inline (maybe->>= a r)

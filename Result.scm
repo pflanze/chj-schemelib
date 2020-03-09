@@ -258,7 +258,7 @@
 ;; Adapted from Maybe.scm
 
 ;; tell cj-typed that our type constructor is a monad
-(is-constructor-name-for-monad! 'Result-of 'Result)
+(def-monad/constructors Result Result-of)
 
 (def (Result:->Result v)
      (-> Result? v))

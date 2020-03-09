@@ -358,7 +358,7 @@ thrown)."
 ;; === Maybe monad =======================================================
 
 ;; tell cj-typed that our type constructor is a monad
-(is-monad-name! 'Maybe)
+(def-monad/constructors Maybe)
 
 (def-inline (Maybe->>= a f)
   (Maybe:if-let ((v a))
