@@ -48,6 +48,8 @@
 	string-contains-ci
 	string-contains?
 	string-contains-ci?
+	string-findpos
+	string-rfindpos
 	string-find-char
 	string-rfind-char
 	string-split-1 ;; vs. string-split-once ?
@@ -419,6 +421,37 @@
  > (string-starts-ci? "foo" "Fo")
  #t
  )
+
+
+(define (string-findpos str pred) ;; -> (maybe fixnum-natural0?)
+  (let ((len (string-length str)))
+    (let lp ((i 0))
+      (and (< i len)
+	   (if (pred (string-ref str i))
+	       i
+	       (lp (inc i)))))))
+
+(define (string-rfindpos str pred) ;; -> (maybe fixnum-natural0?)
+  (let lp ((i (- (string-length str) 1)))
+    (and (>= i 0)
+	 (if (pred (string-ref str i))
+	     i
+	     (lp (- i 1))))))
+
+
+(TEST
+ > (string-findpos "Hello" (C eq? _ #\newline))
+ #f
+ > (string-findpos "Hello\n" (C eq? _ #\newline))
+ 5
+ > (string-findpos "Hello\nWorld\n" (C eq? _ #\newline))
+ 5
+ > (string-rfindpos "Hello" (C eq? _ #\newline))
+ #f
+ > (string-rfindpos "Hello\n" (C eq? _ #\newline))
+ 5
+ > (string-rfindpos "Hello\nWorld\n" (C eq? _ #\newline))
+ 11)
 
 
 ;; might also be called string-contains-char
