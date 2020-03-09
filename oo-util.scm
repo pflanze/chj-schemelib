@@ -8,7 +8,9 @@
 
 (require dot-oo
 	 (cj-math integer)
-	 (string-util-2 string-reverse)
+	 (string-util-2 string-reverse
+                        string-findpos
+                        string-rfindpos)
 	 (cj-functional list-of)
 	 (srfi-11 values->vector values->list letv)
 	 cj-env
@@ -94,6 +96,10 @@
 (define. integer.length integer-length)
 
 (define. string.reverse string-reverse)
+
+(define. string.findpos string-findpos)
+(define. string.rfindpos string-rfindpos)
+
 
 (TEST
  > (.string 234)
