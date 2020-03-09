@@ -35,6 +35,7 @@
          source
          sourcify
          cj-sourcify-deep
+         possibly-source
          possibly-sourcify
          cj-possibly-sourcify-deep
          cj-desourcify
@@ -328,6 +329,11 @@
                 ;; doesn't contain anything, so:
                 c)))))))
 
+
+(define (possibly-source v maybe-loc)
+  (if maybe-loc
+      (source v maybe-loc)
+      v))
 
 (define (possibly-sourcify s master)
   (if (source? master)
