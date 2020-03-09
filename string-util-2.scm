@@ -11,6 +11,7 @@
          (cj-functional-2 =>)
          srfi-13-kmp
          C
+         (string-util-1 position-update-in-string)
          (cj-env-2 for..<)
          test
          (cj-env named)
@@ -208,7 +209,48 @@
 (define trim-maybe (_-maybe trim))
 ;; XX what does that do differently??
 
-(define trim-both (compose string-trim-right string-trim-left))
+(define (trim-both str/loc)
+  (let* ((maybe-loc (maybe-source-location str/loc))
+         (str (source-code str/loc))
+         (len (string-length str))
+         (cpred (complement char-whitespace?))
+         (wrap (lambda (str* istart)
+                 (if maybe-loc
+                     (let* ((loc maybe-loc)
+                            (pos (location-position loc))
+                            (pos* (position-update-in-string
+                                   pos str 0 istart)))
+                       (source str* (location (location-container loc)
+                                              pos*)))
+                     str*))))
+    (cond ((string-findpos str cpred)
+           => (lambda (istart)
+                (let ((iend (inc (string-rfindpos str cpred))))
+                  (if (zero? istart)
+                      (if (= iend len)
+                          s
+                          (possibly-source (substring str 0 iend) maybe-loc))
+                      (wrap (substring str istart iend) istart)))))
+          (else
+           (wrap "" len)))))
+
+(TEST
+ > (define (t str)
+     (let* ((str* (trim-both str))
+            (sstr* (trim-both (source str (location '(f) (position 100 1))))))
+       (list (string=? str* (source-code sstr*))
+             str*
+             (location-string (source-location sstr*)))))
+ > (t "")
+ (#t "" "(f)@100.1")
+ > (t "  \n    \r ")
+ (#t "" "(f)@101.2")
+ > (t "Foo ")
+ (#t "Foo" "(f)@100.1")
+ > (t " Foo ")
+ (#t "Foo" "(f)@100.2")
+ > (t " \r\n Foo \n ")
+ (#t "Foo" "(f)@101.2"))
 
 
 (define char-newline?
