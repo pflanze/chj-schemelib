@@ -7,70 +7,70 @@
 
 
 (require fixnum
-	 cj-functional
-	 (cj-functional-2 =>)
-	 srfi-13-kmp
-	 C
-	 test
-	 (cj-env named)
-	 (list-util let-pair rxtake-while)
-	 cj-typed
-	 (local-test local-TEST* %test)
-	 (string-util-4 string-empty?
-			string-every)
-	 (predicates-1 exact-integer?))
+         cj-functional
+         (cj-functional-2 =>)
+         srfi-13-kmp
+         C
+         test
+         (cj-env named)
+         (list-util let-pair rxtake-while)
+         cj-typed
+         (local-test local-TEST* %test)
+         (string-util-4 string-empty?
+                        string-every)
+         (predicates-1 exact-integer?))
 
 (export suffix-list
-	suffix
-	list-dropstop
-	strip-suffix
-	list-trim-left
-	string-trim-left
-	list-trim-right
-	string-trim-right
-	;; string-ref* Now in oo-vector-lib.scm
-	chomp
-	trim
-	trim-maybe
-	trim-both
-	char-newline?
-	trimlines
-	trimlines-maybe
-	string-trimlines-right
-	nonempty? ;; nonempty-string? ? no, different.
-	string-multiply
-	number->padded-string
-	inexact.round-at ;; XX move
-	inexact.number-format
-	string-starts?
-	string-starts-ci?
-	string-contains
-	string-contains-ci
-	string-contains?
-	string-contains-ci?
-	string-findpos
-	string-rfindpos
-	string-find-char
-	string-rfind-char
-	string-split-1 ;; vs. string-split-once ?
-	if-string-split-once
-	string-split-once
-	string-reverse
-	dirname* ;; vs. cj-io-util !
-	string-map
-	;; string-every see string-util-4.scm
-	string-any
-	string-downcase string-lc
-	string-upcase string-uc
-	string-upcase-first string-ucfirst
-	string-pad-left
-	string-ends-with?
-	string-starts-with? ;;XXX vs string-starts? ?
+        suffix
+        list-dropstop
+        strip-suffix
+        list-trim-left
+        string-trim-left
+        list-trim-right
+        string-trim-right
+        ;; string-ref* Now in oo-vector-lib.scm
+        chomp
+        trim
+        trim-maybe
+        trim-both
+        char-newline?
+        trimlines
+        trimlines-maybe
+        string-trimlines-right
+        nonempty? ;; nonempty-string? ? no, different.
+        string-multiply
+        number->padded-string
+        inexact.round-at ;; XX move
+        inexact.number-format
+        string-starts?
+        string-starts-ci?
+        string-contains
+        string-contains-ci
+        string-contains?
+        string-contains-ci?
+        string-findpos
+        string-rfindpos
+        string-find-char
+        string-rfind-char
+        string-split-1 ;; vs. string-split-once ?
+        if-string-split-once
+        string-split-once
+        string-reverse
+        dirname* ;; vs. cj-io-util !
+        string-map
+        ;; string-every see string-util-4.scm
+        string-any
+        string-downcase string-lc
+        string-upcase string-uc
+        string-upcase-first string-ucfirst
+        string-pad-left
+        string-ends-with?
+        string-starts-with? ;;XXX vs string-starts? ?
         strings=?
-	
-	#!optional
-	string-_-starts?
-	string-_-contains)
+        
+        #!optional
+        string-_-starts?
+        string-_-contains)
 
 (include "cj-standarddeclares.scm")
 
@@ -89,24 +89,24 @@
 
 (define (list-dropstop stop? fail? stop fail)
   (named self
-	 (lambda (l)
-	   (if (null? l)
-	       (fail l)
-	       (let-pair ((a r) l)
-			 (cond ((fail? a)
-				(fail r))
-			       ((stop? a)
-				(stop r))
-			       (else
-				(self r))))))))
+         (lambda (l)
+           (if (null? l)
+               (fail l)
+               (let-pair ((a r) l)
+                         (cond ((fail? a)
+                                (fail r))
+                               ((stop? a)
+                                (stop r))
+                               (else
+                                (self r))))))))
 
 (TEST
  > (define t-list-dropstop
      (compose
       (list-dropstop (lambda (v) (eq? v #\.))
-		     (lambda (v) (eq? v #\/))
-		     (lambda (v) (vector 'stop (list->string v)))
-		     (lambda (v) (vector 'fail (list->string v))))
+                     (lambda (v) (eq? v #\/))
+                     (lambda (v) (vector 'stop (list->string v)))
+                     (lambda (v) (vector 'fail (list->string v))))
       string->list))
  > (t-list-dropstop "foo.bar/baz")
  #(stop "bar/baz")
@@ -117,9 +117,9 @@
 
 (define (strip-suffix str)
   ((list-dropstop (lambda (v) (eq? v #\.))
-		  (lambda (v) (eq? v #\/))
-		  (lambda (v) (list->string (reverse v)))
-		  (lambda (v) str))
+                  (lambda (v) (eq? v #\/))
+                  (lambda (v) (list->string (reverse v)))
+                  (lambda (v) str))
    (reverse (string->list str))))
 
 (TEST
@@ -158,14 +158,14 @@
 ;; drop-while but from the end.
 (define (list-trim-right lis pred)
   ((compose reverse
-	     (C drop-while pred _)
-	     reverse) lis))
+             (C drop-while pred _)
+             reverse) lis))
 
 
 (define string-trim-right
   (compose list->string
-	    (C list-trim-right _ char-whitespace?)
-	    string->list))
+            (C list-trim-right _ char-whitespace?)
+            string->list))
 
 (TEST
  > (string-trim-right "")
@@ -185,8 +185,8 @@
   (if (%string-empty? str)
       str
       (if (char=? (string-ref* str -1) #\newline) ;; Perl even ignores \r heh
-	  (substring str 0 (dec (string-length str)))
-	  str)))
+          (substring str 0 (dec (string-length str)))
+          str)))
 
 (TEST
  > (chomp "")
@@ -234,9 +234,9 @@
 ;; is good, and trimming the end too, which may be good too.
 (define (string-trimlines-right str)
   (strings-join (map string-trim-right
-		     (string-split (string-trim-right str)
-				   #\newline))
-		"\n"))
+                     (string-split (string-trim-right str)
+                                   #\newline))
+                "\n"))
 
 (TEST
  > (string-trimlines-right " ")
@@ -281,12 +281,12 @@
 
 (define (string-multiply str n)
   (let* ((len (string-length str))
-	 (out (##make-string (* len n))))
+         (out (##make-string (* len n))))
     (for..< (i 0 n)
-	    (for..< (j 0 len)
-		    (string-set! out
-				 (+ (* i len) j)
-				 (string-ref str j))))
+            (for..< (j 0 len)
+                    (string-set! out
+                                 (+ (* i len) j)
+                                 (string-ref str j))))
     out))
 
 (TEST
@@ -295,11 +295,11 @@
  )
 
 (define-typed (number->padded-string #(natural? width)
-				     #(natural0? x))
+                                     #(natural0? x))
   (let* ((s (number->string x))
-	 (len (string-length s)))
+         (len (string-length s)))
     (string-append (string-multiply "0" (max 0 (- width len)))
-		   s)))
+                   s)))
 
 (TEST
  > (number->padded-string 3 7)
@@ -331,18 +331,18 @@
 
 (define-typed (inexact.number-format x #(natural0? left) #(natural0? right))
   (let* ((str (number->string (inexact.round-at x right)))
-	 (len (string-length str)))
+         (len (string-length str)))
     (if (string-contains? str "e")
-	;; XXX how to do better than this, sigh?
-	str
-	(letv ((before after) (string-split-1 str #\.))
-	      ;; after contains the dot, too
-	      (let* ((lenbefore (string-length before))
-		     (lenafter (string-length after)))
-		(string-append (string-multiply " " (max 0 (- left lenbefore)))
-			       before
-			       after
-			       (string-multiply "0" (- right (dec lenafter)))))))))
+        ;; XXX how to do better than this, sigh?
+        str
+        (letv ((before after) (string-split-1 str #\.))
+              ;; after contains the dot, too
+              (let* ((lenbefore (string-length before))
+                     (lenafter (string-length after)))
+                (string-append (string-multiply " " (max 0 (- left lenbefore)))
+                               before
+                               after
+                               (string-multiply "0" (- right (dec lenafter)))))))))
 
 (TEST
  > (inexact.number-format 3.456 3 3)
@@ -363,20 +363,20 @@
 (define (string-_-starts? char=?)
   (lambda (str substr)
     (let ((strlen (string-length str))
-	  (sublen (string-length substr)))
+          (sublen (string-length substr)))
       (let lp ((stri 0))
-	(let sublp ((subi 0))
-	  (if (< subi sublen)
-	      (let ((stri* (+ stri subi)))
-		(if (< stri* strlen)
-		    (if (char=? (string-ref str stri*)
-				(string-ref substr subi))
-			(sublp (inc subi))
-			;; the only change versus string-_-contains?:
-			#f)
-		    ;; (lp (inc stri)) would be same here:
-		    #f))
-	      #t))))))
+        (let sublp ((subi 0))
+          (if (< subi sublen)
+              (let ((stri* (+ stri subi)))
+                (if (< stri* strlen)
+                    (if (char=? (string-ref str stri*)
+                                (string-ref substr subi))
+                        (sublp (inc subi))
+                        ;; the only change versus string-_-contains?:
+                        #f)
+                    ;; (lp (inc stri)) would be same here:
+                    #f))
+              #t))))))
 
 (define string-starts? (string-_-starts? char=?))
 (define string-starts-ci? (string-_-starts? char-ci=?))
@@ -384,8 +384,8 @@
 (TEST
  > (define (test a b)
      (list (string-starts? a b)
-	   (string-contains? a b)
-	   (string-contains a b)))
+           (string-contains? a b)
+           (string-contains a b)))
  > (test "" "")
  (#t #t 0)
  > (test "foo" "")
@@ -427,16 +427,16 @@
   (let ((len (string-length str)))
     (let lp ((i 0))
       (and (< i len)
-	   (if (pred (string-ref str i))
-	       i
-	       (lp (inc i)))))))
+           (if (pred (string-ref str i))
+               i
+               (lp (inc i)))))))
 
 (define (string-rfindpos str pred) ;; -> (maybe fixnum-natural0?)
   (let lp ((i (- (string-length str) 1)))
     (and (>= i 0)
-	 (if (pred (string-ref str i))
-	     i
-	     (lp (- i 1))))))
+         (if (pred (string-ref str i))
+             i
+             (lp (- i 1))))))
 
 
 (TEST
@@ -459,9 +459,9 @@
   (let ((len (string-length str)))
     (let lp ((i 0))
       (and (< i len)
-	   (if (char=? (string-ref str i) ch)
-	       i
-	       (lp (inc i)))))))
+           (if (char=? (string-ref str i) ch)
+               i
+               (lp (inc i)))))))
 
 (TEST
  > (string-find-char "Hello" #\newline)
@@ -475,9 +475,9 @@
 (define (string-rfind-char str ch)
   (let lp ((i (- (string-length str) 1)))
     (and (>= i 0)
-	 (if (char=? (string-ref str i) ch)
-	     i
-	     (lp (- i 1))))))
+         (if (char=? (string-ref str i) ch)
+             i
+             (lp (- i 1))))))
 
 (TEST
  > (string-rfind-char "Hello" #\newline)
@@ -491,51 +491,51 @@
 
 ;; 1 like 'only split once'
 (define-typed (string-split-1 str
-			      #((either char? procedure?) val-or-pred)
-			      #!optional drop-match?)
+                              #((either char? procedure?) val-or-pred)
+                              #!optional drop-match?)
   (let ((len (string-length str))
-	(pred (if (procedure? val-or-pred)
-		  val-or-pred
-		  (lambda (c)
-		    (eq? c val-or-pred)))))
+        (pred (if (procedure? val-or-pred)
+                  val-or-pred
+                  (lambda (c)
+                    (eq? c val-or-pred)))))
     (let lp ((i 0))
       (if (< i len)
-	  (if (pred (string-ref str i))
-	      (values (substring str 0 i)
-		      (substring str (if drop-match?
-					 (inc i)
-					 i) len))
-	      (lp (inc i)))
-	  (values str "")))))
+          (if (pred (string-ref str i))
+              (values (substring str 0 i)
+                      (substring str (if drop-match?
+                                         (inc i)
+                                         i) len))
+              (lp (inc i)))
+          (values str "")))))
 
 ;; XX mostly-copy-paste of string-split-1
 (define-typed (if-string-split-once
-	       str
-	       #((either char? procedure?) val-or-pred)
-	       #(boolean? drop-match?)
-	       #(procedure? then)
-	       #(procedure? els))
+               str
+               #((either char? procedure?) val-or-pred)
+               #(boolean? drop-match?)
+               #(procedure? then)
+               #(procedure? els))
   (let ((len (string-length str))
-	(pred (if (procedure? val-or-pred)
-		  val-or-pred
-		  (lambda (c)
-		    (eq? c val-or-pred)))))
+        (pred (if (procedure? val-or-pred)
+                  val-or-pred
+                  (lambda (c)
+                    (eq? c val-or-pred)))))
     (let lp ((i 0))
       (if (< i len)
-	  (if (pred (string-ref str i))
-	      (then (substring str 0 i)
-		    (substring str (if drop-match?
-				       (inc i)
-				       i) len))
-	      (lp (inc i)))
-	  (els)))))
+          (if (pred (string-ref str i))
+              (then (substring str 0 i)
+                    (substring str (if drop-match?
+                                       (inc i)
+                                       i) len))
+              (lp (inc i)))
+          (els)))))
 
 ;; same as string-split-1 but returns false as the second value if
 ;; there's no match
 (define (string-split-once str val-or-pred drop-match?)
   (if-string-split-once str val-or-pred drop-match?
-			values
-			(C values str #f)))
+                        values
+                        (C values str #f)))
 
 (TEST
  > (define (t spl failresult)
@@ -551,16 +551,16 @@
       > (equal? (spl "foo" #\?) failresult)
       #t))
  > (%test (t (lambda (str p #!optional ?)
-	       (values->vector (string-split-1 str p ?)))
-	     '#("foo" "")))
+               (values->vector (string-split-1 str p ?)))
+             '#("foo" "")))
  > (%test (t (lambda (str p #!optional ?)
-	       (values->vector (string-split-once str p ?)))
-	     '#("foo" #f)))
+               (values->vector (string-split-once str p ?)))
+             '#("foo" #f)))
  > (%test (t (lambda (str p #!optional ?)
-	       (if-string-split-once str p ?
-				     vector
-				     false/0))
-	     #f)))
+               (if-string-split-once str p ?
+                                     vector
+                                     false/0))
+             #f)))
 
 
 ;; also see VECTOR-reverse in oo-vector-lib, but this may need to
@@ -568,11 +568,11 @@
 (define-typed (string-reverse [string? str])
   (declare (fixnum) (not safe))
   (let* ((len (string-length str))
-	 (out (##make-string len))
-	 (len-1 (dec len)))
+         (out (##make-string len))
+         (len-1 (dec len)))
     (for..< (i 0 len)
-	    (string-set! out i
-			 (string-ref str (- len-1 i))))
+            (string-set! out i
+                         (string-ref str (- len-1 i))))
     out))
 
 
@@ -608,9 +608,9 @@
 ;; finally, hu?
 (define (string-map fn str)
   (let* ((len (string-length str))
-	 (res (##make-string len)))
+         (res (##make-string len)))
     (for..< (i 0 len)
-	    (string-set! res i (fn (string-ref str i))))
+            (string-set! res i (fn (string-ref str i))))
     res))
 
 
@@ -635,10 +635,10 @@
   (let ((len (string-length str)))
     (let lp ((i 0))
       (if (< i len)
-	  (if (fn (string-ref str i))
-	      #t
-	      (lp (inc i)))
-	  #f))))
+          (if (fn (string-ref str i))
+              #t
+              (lp (inc i)))
+          #f))))
 
 (TEST
  > (string-any (lambda (x) (char=? x #\x)) "")
@@ -665,10 +665,10 @@
 (define (string-upcase-first str)
   (let ((len (string-length str)))
     (if (zero? len)
-	str
-	(let ((str* (string-copy str)))
-	  (string-set! str* 0 (char-upcase (string-ref str 0)))
-	  str*))))
+        str
+        (let ((str* (string-copy str)))
+          (string-set! str* 0 (char-upcase (string-ref str 0)))
+          str*))))
 
 
 ;; some other langs call it lc, add aliases?
@@ -691,15 +691,15 @@
 (define (string-pad-left s pad-char to-len)
   (let ((len (string-length s)))
     (if (<= to-len len)
-	s
-	(let ((res (##make-string to-len))
-	      (diff (- to-len len)))
-	  (for..< (i 0 diff)
-		  (string-set! res i pad-char))
-	  (for..< (i diff to-len)
-		  (string-set! res i
-			       (string-ref s (- i diff))))
-	  res))))
+        s
+        (let ((res (##make-string to-len))
+              (diff (- to-len len)))
+          (for..< (i 0 diff)
+                  (string-set! res i pad-char))
+          (for..< (i diff to-len)
+                  (string-set! res i
+                               (string-ref s (- i diff))))
+          res))))
 
 (TEST
  > (string-pad-left "3" #\0 4)
@@ -716,13 +716,13 @@
 (define (string-ends-with? str substr #!optional insensitive?)
   ((on string-length
        (lambda (len0 len1)
-	 (let ((offset (- len0 len1)))
-	   (and (not (negative? offset))
-		((if insensitive?
-		     string-ci=?
-		     string=?)
-		 (substring str offset len0) ;; XX performance
-		 substr)))))
+         (let ((offset (- len0 len1)))
+           (and (not (negative? offset))
+                ((if insensitive?
+                     string-ci=?
+                     string=?)
+                 (substring str offset len0) ;; XX performance
+                 substr)))))
    str substr))
 
 (TEST
@@ -749,17 +749,17 @@
   ;; copypaste -- now optimized though
   ((on string-length
        (lambda (len0 len1)
-	 (let ((offset (- len0 len1)))
-	   (and (not (negative? offset))
-		;; (string=? (substring str 0 len1)
-		;; 	  substr)
-		;; faster:
-		(let lp ((i 0))
-		  (if (< i len1)
-		      (and (char=? (string-ref str i)
-				   (string-ref substr i))
-			   (lp (inc i)))
-		      #t))))))
+         (let ((offset (- len0 len1)))
+           (and (not (negative? offset))
+                ;; (string=? (substring str 0 len1)
+                ;;        substr)
+                ;; faster:
+                (let lp ((i 0))
+                  (if (< i len1)
+                      (and (char=? (string-ref str i)
+                                   (string-ref substr i))
+                           (lp (inc i)))
+                      #t))))))
    str substr))
 
 (TEST
