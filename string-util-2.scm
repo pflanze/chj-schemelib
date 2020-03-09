@@ -11,6 +11,7 @@
          (cj-functional-2 =>)
          srfi-13-kmp
          C
+         (cj-env-2 for..<)
          test
          (cj-env named)
          (list-util let-pair rxtake-while)
