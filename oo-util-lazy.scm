@@ -1,4 +1,4 @@
-;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -16,12 +16,14 @@
 	 (template template-map)
 	 (oo-vector-lib sum)
 	 debuggable-promise
-	 (srfi-1 null-list?))
+	 (srfi-1 null-list?)
+         (warn-plus WARN-ONCE))
 
 (export ilist?
 	istream?
 	ilist-of
 	istream-of
+        stream-of
 	ivector?
 	ivector-of
 	char-ilist?
@@ -119,6 +121,48 @@
 	       (let ((r (cdr v)))
 		 (and (promise? r)
 		      (check r))))))))
+
+
+(define (stream-of pred)
+  (lambda (v)
+    ;; *only* for lazy inputs
+    (letrec ((check (lambda (v depth)
+                      (when (> depth 25)
+                        (WARN-ONCE "don't use stream-of in production"))
+                      (and (promise? v)
+                           (FV (v)
+                               (or (null? v)
+                                   (and (pair? v)
+                                        (pred (car v))
+                                        (check (cdr v) (inc depth)))))))))
+      (or (and (promise? v)
+	       (check v 0))
+	  (and (pair? v)
+	       (pred (car v))
+	       (check (cdr v) 0))))))
+
+(TEST
+ > ((stream-of integer?) '())
+ #f
+ > ((stream-of integer?) (delay '()))
+ #t
+ > ((stream-of integer?) (delay '(1 2)))
+ #f
+ > ((stream-of integer?) (string->stream "123"))
+ #f
+ > ((stream-of char?) (string->stream "123"))
+ #t
+ > ((stream-of char?) (string->stream ""))
+ #t
+ > ((stream-of char?) (string->stream "1"))
+ #t
+ > ((stream-of char?) (force (string->stream "123")))
+ #t
+ > ((stream-of char?) (force (string->stream "1")))
+ #t
+ > ((stream-of char?) (force (string->stream "")))
+ #f)
+
 
 (define ivector? vector?)
 
