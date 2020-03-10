@@ -617,15 +617,25 @@ some informal structure describing what the port was opened from."
 
 
 
-(define (port->stream p read close-port)
-  (let rec ()
+(define (port->stream p read close-port #!optional strip-BOM?)
+  ;; BOM=Byte order mark (U+FEFF), a Unicode character
+  (let rec ((no 0))
     (delay
       (let ((item (read p)))
         (if (eof-object? item)
             (begin
               (close-port p)
               '())
-            (cons item (rec)))))))
+            (cons (if (zero? no)
+                      (let* ((str (source-code item))
+                             (len (string-length str)))
+                        (if (> len 0)
+                            (if (char=? (string-ref str 0) #\xFEFF)
+                                (possibly-sourcify (substring str 1 len)
+                                                   item)
+                                item)
+                            item))
+                      item) (rec (inc no))))))))
 
 (define (directory-item-stream dir)
   (port->stream (open-directory dir)
@@ -644,12 +654,14 @@ some informal structure describing what the port was opened from."
 (define (file-line-stream file)
   (port->stream (open-input-file file)
                 read-line
-                close-port))
+                close-port
+                #t))
 
 (define (file-line/location-stream file)
   (port->stream (open-input-file file)
                 read-line/location
-                close-port))
+                close-port
+                #t))
 
 (define (file-char/location-stream file)
   (let ((p (open-input-file file)))
