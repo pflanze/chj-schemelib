@@ -181,7 +181,7 @@
  )
 
 
-;; A string chom that works like Perl's
+;; A string chomp that works like Perl's
 
 (define (chomp str)
   (if (%string-empty? str)
