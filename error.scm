@@ -11,16 +11,16 @@
 		     (mutable cj-typed-1:.string))
 	 gambit-error)
 
-(export (interface error)
+(export (interface error-interface)
         (methods error-exception.show
                  datum-parsing-exception.show)
-	error+?)
+	error?)
 
 
 
 ;; Base trait/interface for all exception/error values.
 
-(definterface error
+(definterface error-interface
 
   ;; human-readable string representation that explains what the error
   ;; is about in a nice way that's presentable to a user, OK?
@@ -39,23 +39,15 @@
   ;; (e.g. IO routines depending on path *and* permission arguments).
   )
 
-;; Note that |error?| now doesn't return true for Gambit's own error
-;; objects. Use |error+?| for that.
-
 ;; TODO: avoid calling .string on error objects then throwing that as
 ;; error-exception ones, like cj-typed currently does! (Only do the
 ;; .string at the UI boundary, i.e. repl, web, etc.)
 
 
-;; let cj-typed know about us
-(set! cj-typed-1:error? error?)
-(set! cj-typed-1:.string .string)
 
-
-;; also allow all of 'the other' (Gambit, modules?) error/exception
-;; types; careful: they all need to implement the methods from the
-;; error interface, too!
-
+;; Allow all of 'the other' (Gambit, modules?) error/exception types;
+;; careful: they all need to implement the methods from the error
+;; interface, too!
 
 (define. (error-exception.show e)
   `(error-exception ,(.show (error-exception-message e))
@@ -68,22 +60,31 @@
  (error-exception "foo" (list "bar" 2)))
 
 
-(def error+?
-     (either error?
+(def error?
+     "Interface predicate for both Gambit's built-in errors and for
+`error-interface?` (dot-oo based interface)."
+     (either error-interface?
 	     gambit-error#exception?))
 
 
 (TEST
  > (def e (with-exception-catcher
 	   identity (& (open-input-file "oqwuiavuosviue"))))
- > (error+? e)
- #t
  > (error? e)
+ #t
+ > (error-interface? e)
  #f
  > (gambit-error#exception? e)
  #t
  > (no-such-file-or-directory-exception? e)
  #t)
+
+
+
+;; let cj-typed know about us
+(set! cj-typed-1:error? error-interface?) ;; XX or error?
+(set! cj-typed-1:.string .string)
+
 
 
 

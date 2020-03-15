@@ -209,7 +209,7 @@
 
 (defclass (maybe-row/maybe-error
 	   [(maybe (list-of (either string? number? nothing?))) maybe-row]
-	   [(maybe error+?) maybe-error]))
+	   [(maybe error?) maybe-error]))
 
 (def iseq-of-maybe-row/maybe-error? (iseq-of maybe-row/maybe-error?))
 

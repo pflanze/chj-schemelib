@@ -22,7 +22,7 @@ Now, should `Nothing` also be able to carry information? Probably? And implement
 
 ## Fitting into a whole
 
-There is `error?` (an interface) and `error+?` (including Gambit's builtin) for testing for exception values. 
+There is `error-interface?` (an interface) and `error?` (which includes Gambit's builtin errors) for testing for error (exception) values. (Really, think of it as the interface is named `error?`, it (is meant to) cover(s) Gambit's builtins, too.)
 
 TODO:
 
