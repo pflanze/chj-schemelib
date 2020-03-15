@@ -382,9 +382,10 @@ I am cold.
  ;; ^ Note that it is (currently) keeping the numbering unchanged;
  ;;   this may help when going forth and back between SubRip and
  ;;   Scheme representation.
- > (=> (source s (location '(f) (position 1 1)))
-       (string-split/location "\n")
-       .Tshow)
+ > (def v2 (=> (source s (location '(f) (position 1 1)))
+               (string-split/location "\n")
+               .Tshow))
+ > v2
  (Ok (list (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
               "Have any biscuits over there?")
            (T 4 (tim 0 6 58 15) (tim 0 7 0 137)
@@ -393,6 +394,8 @@ I am cold.
               "I am cold.")
            (T 7 (tim 0 7 2 100) (tim 0 7 5 166)
               "- Still with us, Brett?\n- Right.")))
- > (.show (-> Result? (>>= (eval #) (lambda (v*) (return (equal? v* (.Ts v)))))))
- (Ok #t))
+ > (.show (-> Result? (>>= (eval v2) (lambda (v*) (return (equal? v* (.Ts v)))))))
+ (Ok #t)
+ > (equal? v2 (=> s (string-split "\n") .Tshow))
+ #t)
 
