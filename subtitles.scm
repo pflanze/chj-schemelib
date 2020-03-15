@@ -15,6 +15,12 @@
 (export filepath.Tshow
         (class tim)
         (class T)
+        (methods srt-items.Ts
+                 string-stream.Tshow
+                 filepath.Tshow
+                 srt-items.display
+                 srt-items.string
+                 srt-items.save-to!)
         #!optional
         srtlines->Result-of-Ts
         ;; util stuff:
@@ -22,7 +28,7 @@
         Result:string-of-len->number)
 
 
-"Parse and print video subtitle files in the SubRip .srt Format."
+"Parse and print video subtitle files in the SubRip `.srt` Format."
 
 
 ;; Sep. lib? How much of it?
@@ -282,6 +288,7 @@
 (def srt-items? (ilist-of srt-item?))
 
 (def. (srt-items.Ts l) -> (list-of T?)
+  "'Clean up' `srt-item`s to just `T`s."
   (let rec ((l l)
             (dt-ms 0))
     (if-let-pair
@@ -307,16 +314,85 @@
 
 (def. filepath.lines/location file-line/location-stream)
 
-(def. filepath.Tshow
-  (=>* file-line/location-stream
-       srtlines->Result-of-Ts
+(def string/location-stream? (istream-of string/location?))
+(def. string/location-stream.Tshow
+  (=>* srtlines->Result-of-Ts
        Results->Result
        .show))
 
+(def string/locations? (ilist-of string/location?))
+(def. string/locations.Tshow string/location-stream.Tshow)
+
+(def. filepath.Tshow
+  ;; "Convert an `.srt` file to Scheme." -- XX fix def. to allow docstrings
+  (=>* file-line/location-stream
+       .Tshow))
+
+(def. (srt-items.display [(list-of srt-item?) items]
+                         #!optional
+                         [(maybe output-port?) p])
+  (=> items
+      .Ts
+      (.for-each (C .display _ (or p (current-output-port))))))
+
+(def. (srt-items.string items)
+  (call-with-output-string "" (C .display items _)))
+
 (def. (srt-items.save-to! [(list-of srt-item?) items] [path-string? path])
+  ;; "Convert Scheme to a `.srt` file" -- XX ditto
   (call-with-output-file path
     (lambda (p)
       ;; (display #\xFEFF p) ehr. Not working either for smplayer.
-      (=> items
-          .Ts
-          (.for-each (C .display _ p))))))
+      (.display items p))))
+
+
+
+(TEST
+ > (def v (list
+           (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
+              "Have any biscuits over there?")
+           (Tdelay 1001)
+           (T 4 (tim 0 6 57 14) (tim 0 6 59 136)
+              "Here's some cornbread.")
+           (tim 0 7 0 321)
+           (T 5 (tim 0 7 1 812) (tim 0 7 3 589)
+              "I am cold.")
+           (T 7 (tim 0 7 3 591) (tim 0 7 6 657)
+              "- Still with us, Brett?\n- Right.")))
+ > (def s (.string v))
+ > s ;; use .display for proper view in the repl instead!
+ "3
+00:06:54,144 --> 00:06:56,847
+Have any biscuits over there?
+
+4
+00:06:58,015 --> 00:07:00,137
+Here's some cornbread.
+
+5
+00:07:00,321 --> 00:07:02,098
+I am cold.
+
+7
+00:07:02,100 --> 00:07:05,166
+- Still with us, Brett?
+- Right.
+
+"
+ ;; ^ Note that it is (currently) keeping the numbering unchanged;
+ ;;   this may help when going forth and back between SubRip and
+ ;;   Scheme representation.
+ > (=> (source s (location '(f) (position 1 1)))
+       (string-split/location "\n")
+       .Tshow)
+ (Ok (list (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
+              "Have any biscuits over there?")
+           (T 4 (tim 0 6 58 15) (tim 0 7 0 137)
+              "Here's some cornbread.")
+           (T 5 (tim 0 7 0 321) (tim 0 7 2 98)
+              "I am cold.")
+           (T 7 (tim 0 7 2 100) (tim 0 7 5 166)
+              "- Still with us, Brett?\n- Right.")))
+ > (.show (-> Result? (>>= (eval #) (lambda (v*) (return (equal? v* (.Ts v)))))))
+ (Ok #t))
+
