@@ -26,7 +26,7 @@
 (include "cj-standarddeclares.scm")
 
 (both-times
- ;; (not naming this with stars as it can't be changed at runtime
+ ;; (Not naming this with stars as it can't be changed at runtime
  ;; without recompiling both oo-vector-lib and its users.)
  (def oo-vector-lib:implement-thunks #f))
 
@@ -407,11 +407,10 @@
 
   (def (VECTOR-drop v k)
        (let ((res (subVECTOR v k (VECTOR-length v))))
-	 (begin
-	   (when (= (inc! _VECTOR-drop-count)
-                    *oo-lib-VECTOR:max-warn-inefficient-count*)
-             ;; XX use WARN or WARN-ONCE
-             (warn "VECTOR-drop is called often, consider optimizing your algorithm")))
+	 (when (= (inc! _VECTOR-drop-count)
+                  *oo-lib-VECTOR:max-warn-inefficient-count*)
+           (warn ($ "VECTOR-drop is called often, consider "
+                    "optimizing your algorithm")))
 	 res))
   (def. VECTOR.drop VECTOR-drop)
 
@@ -439,8 +438,8 @@
 	     (begin
 	       (when (= (inc! _VECTOR-rest-count)
                         *oo-lib-VECTOR:max-warn-inefficient-count*)
-                 ;; XX use WARN or WARN-ONCE
-                 (warn "VECTOR-rest is called often, consider optimizing your algorithm"))
+                 (warn ($ "VECTOR-rest is called often, consider "
+                          "optimizing your algorithm")))
 	       (subVECTOR v 1 len)))))
   (def. VECTOR.rest VECTOR-rest)
    
@@ -511,7 +510,8 @@
   (def. VECTOR.append/2 VECTOR-append/2)
 
   ;; careful, optimized! (in the sense of append-optimized)
-  (def (VECTOR-split-at s [exact-natural0? n]) ;; not supporting  #!optional tail
+  (def (VECTOR-split-at s [exact-natural0? n])
+       ;; not supporting  #!optional tail
        (let ((len (VECTOR-length s)))
 	 (cond ((zero? n)
 		(values '[] s))
@@ -656,8 +656,11 @@
 	       (let-pair ((str strs*) strs)
 			 (let ((len (VECTOR-length str)))
 			   (for..< (i 0 len)
-				   (VECTOR-set! out (+ pos i) (VECTOR-ref str i)))
+				   (VECTOR-set! out
+                                                (+ pos i)
+                                                (VECTOR-ref str i)))
 			   (lp strs* (+ pos len))))))))
+
   ;; OO-version would be difficult, do what with the empty list? Well
   ;; can do this:
   (def pair-with-car-VECTOR? (pair-with-car VECTOR?))
