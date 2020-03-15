@@ -16,7 +16,7 @@
 
 (require easy
          (dot-oo void/1)
-         (oo-util-lazy ilist?)
+         (oo-util-lazy ilist? iseq-of)
          monad/generic
          test
          monad/syntax)
@@ -28,12 +28,13 @@
                 Result:and
                 Result:or
                 Result:try)
+        Results?
         Result-of
         Ok-of
         Error-of
         Result:Ok?
         Result:Error?
-        Results->Result
+        (method Results.Result)
         Error-source
         Error-source-unfinished-after
         ;; monad ops (XX make an exporter for those! 'implements')
@@ -257,26 +258,46 @@
                            (lambda () (Ok (begin ,@body)))))
 
 
-;; Somewhat related to |cat-Maybes|
-(def (Results->Result l) -> (Result-of ilist? ilist?)
-     "Return an Error of the Error values in l if any (dropping all Ok
+(def Results? (iseq-of Result?))
+
+
+;; (Somewhat (not really) related to |cat-Maybes|.)
+
+;; Monad m => [m a b] -> m [a] [b]
+
+;; This is not the same as Haskell's `sequence`, which only returns
+;; the first failure: (Traversable t, Monad m) => t (m a) -> m (t a)
+
+;; Prelude> sequence [Just 1, Just 2, Just 3]
+;; Just [1,2,3]
+;; Prelude> sequence [Just 1, Nothing, Just 3]
+;; Nothing
+
+;; Prelude> sequence [Right 1, Right 2, Right 3]
+;; Right [1,2,3]
+;; Prelude> sequence [Right 1, Left 2, Right 3]
+;; Left 2
+;; Prelude> sequence [Right 1, Left 2, Left 3]
+;; Left 2
+
+(def. (Results.Result l) -> (Result-of ilist? ilist?)
+  "Return an Error of the Error values in l if any (dropping all Ok
 values); otherwise return an Ok of the Ok values in l."
-     (let lp ((l l)
-              (ok '())
-              (err '()))
-       (if-let-pair ((a l*) (force l))
-                    (if-Ok a
-                           (lp l* (cons it ok) err)
-                           (lp l* ok (cons it err)))
-                    (if (null? err)
-                        (Ok (reverse ok))
-                        (Error (reverse err))))))
+  (let lp ((l l)
+           (ok '())
+           (err '()))
+    (if-let-pair ((a l*) (force l))
+                 (if-Ok a
+                        (lp l* (cons it ok) err)
+                        (lp l* ok (cons it err)))
+                 (if (null? err)
+                     (Ok (reverse ok))
+                     (Error (reverse err))))))
 
 (TEST
- > (.show (Results->Result
-           (list (Ok 1) (Ok 2) (Error 30) (Ok 3) (Error 40) (Ok 5))))
+ > (.show (.Result (list (Ok 1) (Ok 2) (Error 30) (Ok 3) (Error 40) (Ok 5))))
  (Error (list 30 40))
- > (.show (Results->Result (list (Ok 1) (Ok 2))))
+ > (.show (.Result (list (Ok 1) (Ok 2))))
  (Ok (list 1 2)))
 
 

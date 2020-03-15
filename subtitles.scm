@@ -319,7 +319,7 @@
 (def string/location-stream? (istream-of string/location?))
 (def. string/location-stream.Tshow
   (=>* srtlines->Result-of-Ts
-       Results->Result
+       Results.Result
        .show))
 
 (def string/locations? (ilist-of string/location?))
