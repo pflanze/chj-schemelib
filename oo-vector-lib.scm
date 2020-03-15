@@ -7,21 +7,21 @@
 
 
 (require template
-	 easy-1
+         easy-1
          (fixnum inc)
          (cj-env-2 for..<)
-	 test
-	 (test-lib-1 %try)
-	 char-util
+         test
+         (test-lib-1 %try)
+         char-util
          (fixnum-more fixnum-natural0?))
 
 (export sum
-	oo-vector-lib:implement-thunks
-	(macro def-oo-vector-lib-for)
+        oo-vector-lib:implement-thunks
+        (macro def-oo-vector-lib-for)
 
-	string->u8vector string.u8vector ;; XX remove this?
-	u8vector.string			 ;; ditto?
-	)
+        string->u8vector string.u8vector ;; XX remove this?
+        u8vector.string                  ;; ditto?
+        )
 
 (include "cj-standarddeclares.scm")
 
@@ -35,7 +35,7 @@
       ;; functions not implemented but required by oo-util-lazy if adding
       ;; vector as type parameter there:
       (def (error-not-implemented/n . args)
-	   (error-not-implemented))
+           (error-not-implemented))
       (def vector->string error-not-implemented/n)
       (def source-vector->string error-not-implemented/n)
       (def vector-length> error-not-implemented/n)
@@ -48,13 +48,13 @@
       (def vector-ninth error-not-implemented/n)
       (def vector-tenth error-not-implemented/n)
 
-      (def char-vector? false/1)	   ;; XX evil
-      (def source-char-vector? false/1)	   ;; XX evil
+      (def char-vector? false/1)           ;; XX evil
+      (def source-char-vector? false/1)    ;; XX evil
       ))
 
 (IF oo-vector-lib:implement-thunks
     (def (error-not-implemented)
-	 (error "not yet implemented")))
+         (error "not yet implemented")))
 
 
 (def (sum nums)
@@ -163,10 +163,10 @@
            (len* (inc len))
            (v* (make-VECTOR len*)))
       (for..< (j 0 i)
-      	    (VECTOR-set! v* j (VECTOR-ref v j)))
+            (VECTOR-set! v* j (VECTOR-ref v j)))
       (VECTOR-set! v* i val)
       (for..< (j (inc i) len*)
-      	    (VECTOR-set! v* j (VECTOR-ref v (dec j))))
+            (VECTOR-set! v* j (VECTOR-ref v (dec j))))
       v*))
 
 
@@ -240,65 +240,65 @@
   (def (VECTOR-filter/iota fn v)
        (declare (block)(standard-bindings)(extended-bindings)(fixnum))
        (let* ((len (VECTOR-length v))
-	      (v* (make-VECTOR len)))
-	 (let lp ((i 0)
-		  (j 0))
-	   (if (< i len)
-	       (let ((val (##VECTOR-ref v i)))
-		 (if (fn val i)
-		     (begin
-		       (##VECTOR-set! v* j val)
-		       (lp (+ i 1) (+ j 1)))
-		     (lp (+ i 1) j)))
-	       (begin
-		 (VECTOR-shrink! v* j)
-		 v*)))))
+              (v* (make-VECTOR len)))
+         (let lp ((i 0)
+                  (j 0))
+           (if (< i len)
+               (let ((val (##VECTOR-ref v i)))
+                 (if (fn val i)
+                     (begin
+                       (##VECTOR-set! v* j val)
+                       (lp (+ i 1) (+ j 1)))
+                     (lp (+ i 1) j)))
+               (begin
+                 (VECTOR-shrink! v* j)
+                 v*)))))
   (def. (VECTOR.filter/iota v fn)
     (VECTOR-filter/iota fn v))
 
   (def (VECTOR-filter [procedure? fn] [VECTOR? v])
        ;; stupid COPY-PASTE from VECTOR-filter/iota
        (declare (block)(standard-bindings)(extended-bindings)(fixnum)
-		(not safe))
+                (not safe))
        (let* ((len (VECTOR-length v))
-	      (v* (make-VECTOR len)))
-	 (let lp ((i 0)
-		  (j 0))
-	   (if (< i len)
-	       (let ((val (##VECTOR-ref v i)))
-		 (if (fn val)
-		     (begin
-		       (##VECTOR-set! v* j val)
-		       (lp (+ i 1) (+ j 1)))
-		     (lp (+ i 1) j)))
-	       (let ()
-		 (declare (safe))
-		 (VECTOR-shrink! v* j)
-		 v*)))))
+              (v* (make-VECTOR len)))
+         (let lp ((i 0)
+                  (j 0))
+           (if (< i len)
+               (let ((val (##VECTOR-ref v i)))
+                 (if (fn val)
+                     (begin
+                       (##VECTOR-set! v* j val)
+                       (lp (+ i 1) (+ j 1)))
+                     (lp (+ i 1) j)))
+               (let ()
+                 (declare (safe))
+                 (VECTOR-shrink! v* j)
+                 v*)))))
   (def. (VECTOR.filter v fn)
     (VECTOR-filter fn v))
    
   (def (VECTOR-filter-map [procedure? fn] [VECTOR? v])
        ;; stupid COPY-PASTE from VECTOR-filter/iota
        (declare (block)(standard-bindings)(extended-bindings)(fixnum)
-        	(not safe))
+                (not safe))
        (let* ((len (VECTOR-length v))
-	      (v* (make-VECTOR len)))
-	 (let lp ((i 0)
-		  (j 0))
-	   (if (< i len)
-	       (let ((val (fn (##VECTOR-ref v i))))
-		 (if val
-		     (begin
+              (v* (make-VECTOR len)))
+         (let lp ((i 0)
+                  (j 0))
+           (if (< i len)
+               (let ((val (fn (##VECTOR-ref v i))))
+                 (if val
+                     (begin
                        (let ()
                          (declare (safe))
                          (VECTOR-set! v* j val))
-		       (lp (+ i 1) (+ j 1)))
-		     (lp (+ i 1) j)))
-	       (let ()
-		 (declare (safe))
-		 (VECTOR-shrink! v* j)
-		 v*)))))
+                       (lp (+ i 1) (+ j 1)))
+                     (lp (+ i 1) j)))
+               (let ()
+                 (declare (safe))
+                 (VECTOR-shrink! v* j)
+                 v*)))))
   (def. (VECTOR.filter-map v fn)
     (VECTOR-filter-map fn v))
    
@@ -307,53 +307,53 @@
   (def. (VECTOR.for-each/iota v proc)
     (let ((len (VECTOR-length v)))
       (for..< (i 0 len)
-	      (proc (VECTOR-ref v i)
-		    i))))
+              (proc (VECTOR-ref v i)
+                    i))))
    
   (IF (not (eq? 'VECTOR 'string))
       (begin
-	;; Heh these are still using the R5RS number operations
-	;; generics. Rely on the host system to optimize these.
-	(def (VECTOR-inc! v i)
-	     (VECTOR-set! v i
-			  (+ (VECTOR-ref v i) 1)))
-	(def. VECTOR.inc! VECTOR-inc!)
+        ;; Heh these are still using the R5RS number operations
+        ;; generics. Rely on the host system to optimize these.
+        (def (VECTOR-inc! v i)
+             (VECTOR-set! v i
+                          (+ (VECTOR-ref v i) 1)))
+        (def. VECTOR.inc! VECTOR-inc!)
 
-	(def (VECTOR-dec! v i)
-	     (VECTOR-set! v i
-			  (- (VECTOR-ref v i) 1)))
-	(def. VECTOR.dec! VECTOR-dec!)
+        (def (VECTOR-dec! v i)
+             (VECTOR-set! v i
+                          (- (VECTOR-ref v i) 1)))
+        (def. VECTOR.dec! VECTOR-dec!)
 
-	;; could also write (def .sum (C .fold _ + 0)) but then it wouldn't
-	;; be properly extensible?
-	(def (VECTOR-sum v)
-	     (VECTOR.fold v + 0))
-	(def. VECTOR.sum VECTOR-sum)
+        ;; could also write (def .sum (C .fold _ + 0)) but then it wouldn't
+        ;; be properly extensible?
+        (def (VECTOR-sum v)
+             (VECTOR.fold v + 0))
+        (def. VECTOR.sum VECTOR-sum)
 
-	(IF oo-vector-lib:implement-thunks
-	    (def (VECTOR-reverse/tail v tail)
-		 (error-not-implemented)))
+        (IF oo-vector-lib:implement-thunks
+            (def (VECTOR-reverse/tail v tail)
+                 (error-not-implemented)))
 
-	(def (VECTOR-reverse v)
-	     (let* ((len (VECTOR-length v))
-		    (out (make-VECTOR len))
-		    (len-1 (dec len)))
-	       (for..< (i 0 len)
-		       (VECTOR-set! out i
-				    (VECTOR-ref v (- len-1 i))))
-	       out))
-	(def. VECTOR.reverse VECTOR-reverse)))
+        (def (VECTOR-reverse v)
+             (let* ((len (VECTOR-length v))
+                    (out (make-VECTOR len))
+                    (len-1 (dec len)))
+               (for..< (i 0 len)
+                       (VECTOR-set! out i
+                                    (VECTOR-ref v (- len-1 i))))
+               out))
+        (def. VECTOR.reverse VECTOR-reverse)))
    
   ;; Could abstract most code into a separate routine that takes a
   ;; make-vector argument, and uses object ops for the rest, but
   ;; those are not optimized at all yet.
   (def (VECTOR-map/iota f v)
        (let* ((len (VECTOR-length v))
-	      (out (make-VECTOR len)))
-	 (for..< (i 0 len)
-		 (VECTOR-set! out i
-			      (f (VECTOR-ref v i) i)))
-	 out))
+              (out (make-VECTOR len)))
+         (for..< (i 0 len)
+                 (VECTOR-set! out i
+                              (f (VECTOR-ref v i) i)))
+         out))
   (def. (VECTOR.map/iota v f)
     (VECTOR-map/iota f v))
 
@@ -362,8 +362,8 @@
 
   (def (VECTOR-for-each proc v)
        (let ((len (VECTOR-length v)))
-	 (for..< (i 0 len)
-		 (proc (VECTOR-ref v i)))))
+         (for..< (i 0 len)
+                 (proc (VECTOR-ref v i)))))
   (def. (VECTOR.for-each v proc)
     (VECTOR-for-each proc v))
 
@@ -371,20 +371,20 @@
   ;; n-ary:
   (def. (VECTOR.map v fn)
     (let* ((len (VECTOR-length v))
-	   (res (make-VECTOR len)))
+           (res (make-VECTOR len)))
       (for..< (i 0 len)
-	      (VECTOR-set! res i (fn (VECTOR-ref v i))))
+              (VECTOR-set! res i (fn (VECTOR-ref v i))))
       res))
 
   (def. (VECTOR.map-list v fn #!optional (tail '()))
     (let* ((len (VECTOR-length v)))
       (let lp ((l tail)
-	       (i (dec len)))
-	(if (negative? i)
-	    l
-	    (lp (cons (fn (VECTOR-ref v i))
-		      l)
-		(dec i))))))
+               (i (dec len)))
+        (if (negative? i)
+            l
+            (lp (cons (fn (VECTOR-ref v i))
+                      l)
+                (dec i))))))
 
   (def (VECTOR-take v k) (subVECTOR v 0 k))
   (def. VECTOR.take VECTOR-take)
@@ -398,11 +398,11 @@
 
   (def (VECTOR-drop v k)
        (let ((res (subVECTOR v k (VECTOR-length v))))
-	 (when (= (inc! _VECTOR-drop-count)
+         (when (= (inc! _VECTOR-drop-count)
                   *oo-lib-VECTOR:max-warn-inefficient-count*)
            (warn ($ "VECTOR-drop is called often, consider "
                     "optimizing your algorithm")))
-	 res))
+         res))
   (def. VECTOR.drop VECTOR-drop)
 
   (def. (VECTOR.every s pred)
@@ -424,42 +424,42 @@
 
   (def (VECTOR-rest v)
        (let ((len (VECTOR-length v)))
-	 (if (zero? len)
-	     (error "VECTOR-rest: VECTOR is empty")
-	     (begin
-	       (when (= (inc! _VECTOR-rest-count)
+         (if (zero? len)
+             (error "VECTOR-rest: VECTOR is empty")
+             (begin
+               (when (= (inc! _VECTOR-rest-count)
                         *oo-lib-VECTOR:max-warn-inefficient-count*)
                  (warn ($ "VECTOR-rest is called often, consider "
                           "optimizing your algorithm")))
-	       (subVECTOR v 1 len)))))
+               (subVECTOR v 1 len)))))
   (def. VECTOR.rest VECTOR-rest)
    
   (def (VECTOR-first v)
        (let ((len (VECTOR-length v)))
-	 (if (zero? len)
-	     (error "VECTOR-first: VECTOR is empty")
-	     (VECTOR-ref v 0))))
+         (if (zero? len)
+             (error "VECTOR-first: VECTOR is empty")
+             (VECTOR-ref v 0))))
   (def. VECTOR.first VECTOR-first)
 
   (def (VECTOR-second v)
        (let ((len (VECTOR-length v)))
-	 (if (< len 2)
-	     (error "VECTOR-second: VECTOR is too small")
-	     (VECTOR-ref v 1))))
+         (if (< len 2)
+             (error "VECTOR-second: VECTOR is too small")
+             (VECTOR-ref v 1))))
   (def. VECTOR.second VECTOR-second)
 
   (def (VECTOR-third v)
        (let ((len (VECTOR-length v)))
-	 (if (< len 3)
-	     (error "VECTOR-third: VECTOR is too small")
-	     (VECTOR-ref v 2))))
+         (if (< len 3)
+             (error "VECTOR-third: VECTOR is too small")
+             (VECTOR-ref v 2))))
   (def. VECTOR.third VECTOR-third)
 
   (def (VECTOR-last v)
        (let ((len (VECTOR-length v)))
-	 (if (zero? len)
-	     (error "VECTOR-last: VECTOR is empty")
-	     (VECTOR-ref v (dec len)))))
+         (if (zero? len)
+             (error "VECTOR-last: VECTOR is empty")
+             (VECTOR-ref v (dec len)))))
   (def. VECTOR.last VECTOR-last)
 
 
@@ -470,29 +470,29 @@
   (def (VECTOR-sublist v [fixnum? si] [fixnum? ei])
        (declare (fixnum))
        (let rec ((i si))
-	 (if (< si ei)
-	     (cons (VECTOR-ref v i)
-		   (rec (+ i 1)))
-	     '())))
+         (if (< si ei)
+             (cons (VECTOR-ref v i)
+                   (rec (+ i 1)))
+             '())))
   (def. VECTOR.sublist VECTOR-sublist)
 
   (IF oo-vector-lib:implement-thunks
       (def (VECTOR-difference s1 s2 #!optional (equal? equal?))
-	   (error-not-implemented)))
+           (error-not-implemented)))
 
   (IF oo-vector-lib:implement-thunks
       (def (show-VECTOR-difference s1 s2
-				   #!key
-				   (equal? equal?)
-				   (n 2))
-	   (error-not-implemented)))
+                                   #!key
+                                   (equal? equal?)
+                                   (n 2))
+           (error-not-implemented)))
 
   (def (VECTOR-append-optimized a b)
        (if (VECTOR.null? a)
-	   b
-	   (if (VECTOR.null? b)
-	       a
-	       (VECTOR-append a b))))
+           b
+           (if (VECTOR.null? b)
+               a
+               (VECTOR-append a b))))
   (def. VECTOR.append-optimized VECTOR-append-optimized)
 
   (def (VECTOR-append/2 a b)
@@ -504,55 +504,55 @@
   (def (VECTOR-split-at s [exact-natural0? n])
        ;; not supporting  #!optional tail
        (let ((len (VECTOR-length s)))
-	 (cond ((zero? n)
-		(values '[] s))
-	       ((= n len)
-		(values s '[]))
-	       ((< n len)
-		(values (subVECTOR s 0 n)
-			(subVECTOR s n len)))
-	       (else
-		(error "VECTOR-split-at: argument out of bounds:" n)))))
+         (cond ((zero? n)
+                (values '[] s))
+               ((= n len)
+                (values s '[]))
+               ((< n len)
+                (values (subVECTOR s 0 n)
+                        (subVECTOR s n len)))
+               (else
+                (error "VECTOR-split-at: argument out of bounds:" n)))))
   (def. VECTOR.split-at VECTOR-split-at)
 
   (def (VECTOR-Maybe-ref v [exact-natural0? i])
        (let ((len (VECTOR-length v)))
-	 (if (< i len)
-	     (Just (VECTOR-ref v i))
-	     (Nothing))))
+         (if (< i len)
+             (Just (VECTOR-ref v i))
+             (Nothing))))
   (def. VECTOR.Maybe-ref VECTOR-Maybe-ref)
 
   ;; like stream-min&max in stream.scm
   (def (VECTOR-min&max vec
-		       #!key
-		       (cmp generic-cmp)
-		       all?)
+                       #!key
+                       (cmp generic-cmp)
+                       all?)
        (let ((con (lambda (v r)
-		    (if all? (cons v r) v)))
-	     (ex (lambda (vS)
-		   (if all? (car vS) vS)))
-	     (len (VECTOR-length vec)))
+                    (if all? (cons v r) v)))
+             (ex (lambda (vS)
+                   (if all? (car vS) vS)))
+             (len (VECTOR-length vec)))
 
-	 (if (zero? len)
-	     (error "VECTOR-min&max: got empty VECTOR")
+         (if (zero? len)
+             (error "VECTOR-min&max: got empty VECTOR")
 
-	     (let ((v (VECTOR-ref vec 0)))
-	       (declare (fixnum))
-	       (let lp ((i 1)
-			(min (con v '()))
-			(max (con v '())))
-		 (if (< i len)
-		     (let ((v (VECTOR-ref vec i)))
-		       (lp (+ i 1)
-			   (match-cmp (cmp (ex min) v)
-				      ((lt) min)
-				      ((gt) (con v '()))
-				      ((eq) (con v min)))
-			   (match-cmp (cmp (ex max) v)
-				      ((lt) (con v '()))
-				      ((gt) max)
-				      ((eq) (con v max)))))
-		     (values min max)))))))
+             (let ((v (VECTOR-ref vec 0)))
+               (declare (fixnum))
+               (let lp ((i 1)
+                        (min (con v '()))
+                        (max (con v '())))
+                 (if (< i len)
+                     (let ((v (VECTOR-ref vec i)))
+                       (lp (+ i 1)
+                           (match-cmp (cmp (ex min) v)
+                                      ((lt) min)
+                                      ((gt) (con v '()))
+                                      ((eq) (con v min)))
+                           (match-cmp (cmp (ex max) v)
+                                      ((lt) (con v '()))
+                                      ((gt) max)
+                                      ((eq) (con v max)))))
+                     (values min max)))))))
   (def. VECTOR.min&max VECTOR-min&max)
 
   (def VECTOR-min (comp* fst VECTOR-min&max))
@@ -562,7 +562,7 @@
 
   (IF oo-vector-lib:implement-thunks
       (def (VECTOR-rtake&rest s n #!optional (tail '()))
-	   (error-not-implemented)))
+           (error-not-implemented)))
   ;; (def VECTOR.rtake&rest VECTOR-rtake&rest) why when the generic
   ;; will report that anyway!
    
@@ -572,28 +572,28 @@
   ;; for fear of dependencies.
   (define (VECTORs-map fn vecs accept-uneven-lengths?)
     (let* ((lens (map VECTOR-length vecs))
-	   (len (apply min lens))
-	   (cont (lambda ()
-		   (let* ((res (##make-VECTOR len)))
-		     (declare (fixnum))
-		     (let lp ((i 0))
-		       (if (= i len)
-			   res
-			   (begin
-			     (VECTOR-set! res
-					  i
-					  (apply fn
-						 (map (lambda (vec)
-							(VECTOR-ref vec i))
-						      vecs)))
-			     (lp (+ i 1)))))))))
+           (len (apply min lens))
+           (cont (lambda ()
+                   (let* ((res (##make-VECTOR len)))
+                     (declare (fixnum))
+                     (let lp ((i 0))
+                       (if (= i len)
+                           res
+                           (begin
+                             (VECTOR-set! res
+                                          i
+                                          (apply fn
+                                                 (map (lambda (vec)
+                                                        (VECTOR-ref vec i))
+                                                      vecs)))
+                             (lp (+ i 1)))))))))
       (if accept-uneven-lengths?
-	  (cont)
-	  (let ((lenmax (apply max lens)))
-	    (if (= len lenmax)
-		(cont)
-		(error "uneven lengths of input VECTORs (min max):"
-		       len lenmax))))))
+          (cont)
+          (let ((lenmax (apply max lens)))
+            (if (= len lenmax)
+                (cont)
+                (error "uneven lengths of input VECTORs (min max):"
+                       len lenmax))))))
   ;; ^XX really getting wasteful with duplication through template-map
 
   (define (VECTOR-map fn . vecs)
@@ -605,25 +605,25 @@
 
   (def (VECTOR-fold-right fn tail vec)
        (let ((len (VECTOR-length vec)))
-	 (declare (fixnum))
-	 (let rec ((i 0))
-	   (if (= i len)
-	       tail
-	       (fn (VECTOR-ref vec i)
-		   (rec (+ i 1)))))))
+         (declare (fixnum))
+         (let rec ((i 0))
+           (if (= i len)
+               tail
+               (fn (VECTOR-ref vec i)
+                   (rec (+ i 1)))))))
   (def. (VECTOR.fold-right vec fn tail)
     (VECTOR-fold-right fn tail vec))
 
   (def (VECTOR-fold fn tail vec)
        (let ((len (VECTOR-length vec)))
-	 (declare (fixnum))
-	 (let lp ((res tail)
-		  (i 0))
-	   (if (= i len)
-	       res
-	       (lp (fn (VECTOR-ref vec i)
-		       res)
-		   (+ i 1))))))
+         (declare (fixnum))
+         (let lp ((res tail)
+                  (i 0))
+           (if (= i len)
+               res
+               (lp (fn (VECTOR-ref vec i)
+                       res)
+                   (+ i 1))))))
   (def. (VECTOR.fold vec fn tail)
     (VECTOR-fold fn tail vec))
 
@@ -640,17 +640,17 @@
 
   (def (VECTORs-append strs)
        (let* ((out (##make-VECTOR (sum (map VECTOR-length strs)))))
-	 (let lp ((strs strs)
-		  (pos 0))
-	   (if (null? strs)
-	       out
-	       (let-pair ((str strs*) strs)
-			 (let ((len (VECTOR-length str)))
-			   (for..< (i 0 len)
-				   (VECTOR-set! out
+         (let lp ((strs strs)
+                  (pos 0))
+           (if (null? strs)
+               out
+               (let-pair ((str strs*) strs)
+                         (let ((len (VECTOR-length str)))
+                           (for..< (i 0 len)
+                                   (VECTOR-set! out
                                                 (+ pos i)
                                                 (VECTOR-ref str i)))
-			   (lp strs* (+ pos len))))))))
+                           (lp strs* (+ pos len))))))))
 
   ;; OO-version would be difficult, do what with the empty list? Well
   ;; can do this:
