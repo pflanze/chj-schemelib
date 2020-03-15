@@ -330,10 +330,10 @@
 
 (def. (srt-items.display [(list-of srt-item?) items]
                          #!optional
-                         [(maybe output-port?) p])
+                         ([(maybe output-port?) p] (current-output-port)))
   (=> items
       .Ts
-      (.for-each (C .display _ (or p (current-output-port))))))
+      (.for-each (C .display _ p))))
 
 (def. (srt-items.string items)
   (call-with-output-string "" (C .display items _)))
