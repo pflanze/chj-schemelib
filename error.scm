@@ -9,6 +9,7 @@
 (require class
 	 (cj-typed-1 (mutable cj-typed-1:error?)
 		     (mutable cj-typed-1:.string))
+         (cj-source (type source-error))
 	 gambit-error)
 
 (export (interface error-interface)
@@ -59,12 +60,20 @@
  > (with-exception-catcher .show (& (error "foo" "bar" 2)))
  (error-exception "foo" (list "bar" 2)))
 
+(define. (source-error.show e)
+  `(make-source-error ,(.show (source-error-source e))
+                      ,(.show (source-error-message e))
+                      ;; XX rename source-error-args to
+                      ;; source-error-parameters or so
+                      ,(.show (source-error-args e))))
+
 
 (def error?
      "Interface predicate for both Gambit's built-in errors and for
 `error-interface?` (dot-oo based interface)."
      (either error-interface?
-	     gambit-error#exception?))
+	     gambit-error#exception?
+             source-error?))
 
 
 (TEST
