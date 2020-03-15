@@ -93,7 +93,7 @@
 	 => (lambda (producer-arity)
 	      (if (zero? producer-arity)
 		  'ok
-		  (source-error producer "producer must have arity 0")))))
+		  (raise-source-error producer "producer must have arity 0")))))
   ;; XX only when compiled? Since otherwise will be slower (lambdas not
   ;; optimized away etc.)
   (cond ((optim-values:maybe-lambda-exact-arity consumer)

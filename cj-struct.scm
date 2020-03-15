@@ -61,7 +61,7 @@
 		    ;; `(`definition `default-value)
 		    (self (car v)))
 		   (else
-		    (source-error
+		    (raise-source-error
 		     v*
 		     "expecting symbol or dsssl-meta-object")))))))
 
@@ -364,8 +364,8 @@
 				      ;; the vector-ref approach
 				      ;; works in that case, too)
 				      `(,',error-name ,V)))))
-			   (source-error vars*
-					 "invalid number of variables")))))))))))
+			   (raise-source-error
+                            vars* "invalid number of variables")))))))))))
        (define-macro* (,let-name vars+inp . body)
 	 `(,',let*-name (,vars+inp) ,@body)))))
 

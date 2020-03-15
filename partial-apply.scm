@@ -40,7 +40,7 @@
 	       (lambda (n-vars)
 		 (let ((n (- n-vars nargs)))
 		   (if (negative? n)
-		       (source-error
+		       (raise-source-error
 			fnname
 			"function defined with fewer arguments than passed")
 		       (if (and suppress-thunk? (zero? n))

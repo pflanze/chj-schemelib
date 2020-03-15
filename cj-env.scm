@@ -596,7 +596,7 @@
 	(lambda () ,sym)
 	,thunk
 	#f)
-      (source-error sym "not a symbol")))
+      (raise-source-error sym "not a symbol")))
 
 
 (define-macro* (define-parameter name default-value)

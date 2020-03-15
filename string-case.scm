@@ -49,7 +49,7 @@
 				       string? (first ms*)
 				       (lambda (m)
 					 (cons m (rest c*))))
-				      (source-error
+				      (raise-source-error
 				       ms
 				       "currently only supporting 1 match per branch"))))))))
 			 matchcases)))
@@ -115,7 +115,7 @@
 			 `(let ((,V ,val)
 				(,ELSE (lambda () ,@else-exprs)))
 			    ,(string-case-expand cases* V `(,ELSE)))))))
-      (source-error stx "need at least an else case")))
+      (raise-source-error stx "need at least an else case")))
 
 (TEST
  > (define TEST:equal? syntax-equal?)

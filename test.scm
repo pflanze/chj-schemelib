@@ -321,7 +321,7 @@
 	     (match-list*
 	      rest
 	      (()
-	       (source-error stx "expecting form after |>| at end of TEST form"))
+	       (raise-source-error stx "expecting form after |>| at end of TEST form"))
 	      ((expr . rest)
 	       (let ((understand-as-sideeffect
 		      (lambda ()
@@ -354,7 +354,7 @@
 	     (rec rest
 		  `(##namespace ,@(cdr form*))))
 	    (else
-	     (source-error form "expect |>|, got" (cj-desourcify form))))))))))
+	     (raise-source-error form "expect |>|, got" (cj-desourcify form))))))))))
 
  (define TEST:conv
    (TEST:parse/

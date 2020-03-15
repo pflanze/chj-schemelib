@@ -260,7 +260,7 @@
 	      `(lambda ,(append (reverse out-ids) *in-ids)
 		 ,body))
 	     (else
-	      (source-error *in-ids "invalid type for identifier")))))))
+	      (raise-source-error *in-ids "invalid type for identifier")))))))
 
 (TEST
  > (define TEST:equal? syntax-equal?)

@@ -78,7 +78,7 @@
                        catch-clauses)
                 (else
                  #f))))))))
-      (source-error stx "need at least 1 body form and the catch form")))
+      (raise-source-error stx "need at least 1 body form and the catch form")))
 
 
 

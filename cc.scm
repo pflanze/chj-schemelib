@@ -61,6 +61,6 @@
 
 (define-macro* (CC e)
   (or (table-ref cc-map (object->string (cj-desourcify e)) #f)
-      (source-error e "missing manual compilation for expression")))
+      (raise-source-error e "missing manual compilation for expression")))
 
 

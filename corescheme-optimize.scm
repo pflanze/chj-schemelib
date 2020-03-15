@@ -231,7 +231,7 @@ variables, and they are proper lists (i.e. n-ary case is excluded.)"
             (else
              (fallback)))
 
-           (source-error
+           (raise-source-error
             s
             "immediate lambda application with different number of arguments than variables")))
       (fallback))

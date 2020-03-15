@@ -118,7 +118,7 @@
   ;; -> (values args* body*)
   (let ((arg* (source-code arg)))
     (define (err)
-      (source-error arg "expecting symbol or [predicate var]"))
+      (raise-source-error arg "expecting symbol or [predicate var]"))
     (cond ((symbol? arg*)
            (values (cons arg args)
                    body))
@@ -293,12 +293,12 @@
           (if (eq? fst* '->)
               (if ((improper-list/length>= 3) body)
                   (cont/maybe-pred+body (cadr body) (cddr body))
-                  (source-error
+                  (raise-source-error
                    body+
                    "a body starting with -> needs at least 2 more forms"))
               (cont/maybe-pred+body #f body)))
-        (source-error body+
-                      "expecting body forms"))))
+        (raise-source-error body+
+                            "expecting body forms"))))
 
 (TEST
  > (typed-body-parse #f '(a) vector)

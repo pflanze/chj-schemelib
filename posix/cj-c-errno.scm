@@ -202,7 +202,7 @@
 					"if(___result<0) ___result=-errno;"))
 	      ,@argnames)))))
       (else
-       (source-error returntype "unknown return type")))))
+       (raise-source-error returntype "unknown return type")))))
 
 
 ;; and some tests for strerror; probably fail on some OSes, though,

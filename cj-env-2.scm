@@ -166,7 +166,7 @@
                        #!rest
                        body)
   (if (null? body)
-      (source-error stx "missing body form(s)")
+      (raise-source-error stx "missing body form(s)")
       (with-gensyms
        (LP C)
        `(let ,LP ((,C ,n)

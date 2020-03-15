@@ -138,7 +138,7 @@
 	    (bind-used (list->symbolcollection (map source-code bindvars))))
 
        (if (null? bindvars)
-           (source-error
+           (raise-source-error
             stx "missing method arguments (need at least self argument)")
            (letv ((pre body)
                   ;; Also have to parse rest for "->"
@@ -188,9 +188,9 @@
 ;; Sigh.)
 
 (def (joo:source-error-len-1 stx)
-     (source-error stx (string-append
-			"bare symbol given, but remainder "
-			" after it is not of length 1")))
+     (raise-source-error stx (string-append
+                              "bare symbol given, but remainder "
+                              " after it is not of length 1")))
 
 (defmacro (def.* bind . rest)
 
@@ -311,11 +311,13 @@
 
 (def joo:abstract-method-expander-forbidden
      (lambda (stx)
-       (source-error stx "abstract method not allowed in non-abstract class")))
+       (raise-source-error
+        stx "abstract method not allowed in non-abstract class")))
 
 (def joo:implementation-method-expander-forbidden
      (lambda (stx)
-       (source-error stx "method implementation not allowed in interface")))
+       (raise-source-error
+        stx "method implementation not allowed in interface")))
 
 
 ;; How to check for (eq? and, nah, actually only, although including
@@ -800,7 +802,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
 		;; to classes implementing the interface,
 		;; i.e. requiring the jclass forms to re-specify
 		;; those fields (perhaps in slices).
-		(source-error
+		(raise-source-error
 		 decl "field definitions not allowed in interface")
 
 		(let*
@@ -1198,7 +1200,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
      (if super-is-class?
 	 (if is-class?
 	     `extends:
-	     (source-error stx "an interface cannot extend a class"))
+	     (raise-source-error stx "an interface cannot extend a class"))
 	 (if is-class?
 	     `implements:
 	     `extends:)))

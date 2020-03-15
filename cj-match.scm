@@ -55,22 +55,22 @@
    ;; (values constructor apply? rest)
    (lambda (clause)
      (assert* pair? (clause:test clause)
-	       (lambda (test)
-		 (assert* symbol? (car test)
-			   (lambda (hd)
-			     (case hd
-			       ((apply)
-				(assert* pair? (cdr test)
-					  (lambda (test)
-					    (assert* symbol? (car test)
-						      (lambda_
-						       (values _
-							       #t
-							       (cdr test)))))))
-			       (else
-				(values hd
-					#f
-					(cdr test))))))))))
+              (lambda (test)
+                (assert* symbol? (car test)
+                         (lambda (hd)
+                           (case hd
+                             ((apply)
+                              (assert* pair? (cdr test)
+                                       (lambda (test)
+                                         (assert* symbol? (car test)
+                                                  (lambda_
+                                                   (values _
+                                                           #t
+                                                           (cdr test)))))))
+                             (else
+                              (values hd
+                                      #f
+                                      (cdr test))))))))))
 
  (define clause:constructor-xsym (=>* clause:test-parse fst))
  (define clause:apply? (=>* clause:test-parse snd))
@@ -83,12 +83,14 @@
 		 ;; ^ just to handle error myself
 		 (source-code (clause:args clause)))))
        (if (negative? len)
-	   (source-error clause "invalid function application (improper list)")
+	   (raise-source-error clause
+                               "invalid function application (improper list)")
 	   (if (clause:apply? clause)
 	       (if (zero? len)
 		   ;; is this just a stupid Scheme limitation?
-		   (source-error (clause:test clause)
-				 "wrong number of arguments passed to apply")
+		   (raise-source-error
+                    (clause:test clause)
+                    "wrong number of arguments passed to apply")
 		   (- len))
 	       len))))))
 
@@ -232,8 +234,8 @@
 	   ;; split into n-ary and fixed arity cases:
 	   (letv ((groups-nary groups-fixed)
 		  (partition (=>* car
-					clause:test-nargs
-					negative?)
+                                  clause:test-nargs
+                                  negative?)
 			     grouped-by-nargs))
 		 ;; nary groups need to be given names so as to be reusable:
 		 (let* ((narity->name+group
@@ -253,7 +255,8 @@
 			    (,V (source-code ,V*))
 			    (,LEN (improper-length ,V))
 			    (,NO-MATCH (lambda ()
-					 (source-error ,V* ,message-string))))
+					 (raise-source-error ,V*
+                                                             ,message-string))))
 		       (let ,(map (lambda_
 				   (apply
 				    (lambda (nargs name group)
@@ -267,7 +270,7 @@
 				    _))
 				  narity->name+group)
 			 (if (negative? ,LEN)
-			     (source-error
+			     (raise-source-error
 			      ,V*
 			      "matching of improper lists is not implemented")
 			     (case ,LEN
@@ -309,12 +312,12 @@
 					      (,(narity->name nargs)
 					       ,REM)
 					      (,REM))))))
-				  `(source-error ,V* ,message-string)
+				  `(raise-source-error ,V* ,message-string)
 				  (filter clause:apply?
 					  opgroup))))))))))))
 	(else
-	 (source-error constructor
-		       "only list matching is implemented")))))))
+	 (raise-source-error constructor
+                             "only list matching is implemented")))))))
 
 
 (both-times
@@ -328,9 +331,9 @@
        ((1)
 	(handle-op-group input (car clausegroups) message-string))
        ((0)
-	(source-error stx "missing clauses"))
+	(raise-source-error stx "missing clauses"))
        (else
-	(source-error stx "match currently only implements list matching"))))))
+	(raise-source-error stx "match currently only implements list matching"))))))
 
 (define-macro*d (match input . clauses)
   (match-expand stx input clauses "no match"))
@@ -501,7 +504,7 @@
 				(values #f
 					'()))
 			       (else
-				(source-error
+				(raise-source-error
 				 test
 				 "impossible to create such input with list"))))))))
 	     ((if improper? improper proper) test*)))))
@@ -586,7 +589,7 @@
 	   ;; 	      (eq? (source-code (car c)) 'quasiquote)
 	   ;; 	      (= (length c) 2))
 	   ;; 	 (cadr c)
-	   ;; 	 (source-error c* "not quasiquote, BUG?")))
+	   ;; 	 (raise-source-error c* "not quasiquote, BUG?")))
 
 	   ;; but then actually realizing that I probably want it
 	   ;; *with* the quasiquote...
@@ -649,8 +652,8 @@
 					 (cont mcaseclauses-other-update)))
 				(cont mcaseclauses-other-update)))
 			   (`_
-			    (source-error clause
-					  "invalid mcase form")))))
+			    (raise-source-error clause
+                                                "invalid mcase form")))))
        mcase-no-clauses))
 
  (TEST
@@ -684,9 +687,10 @@
                                        ((else . `what)
                                         `(##begin ,@what))))
                               (()
-                               `(source-error ,V ,message-string))
+                               `(raise-source-error ,V ,message-string))
                               (`_
-                               (source-error stx "more than one else clause"))))))
+                               (raise-source-error
+                                stx "more than one else clause"))))))
               (##cond
                ;; XX: ordering of list vs other (vs else) is thrown away here, bad?
 

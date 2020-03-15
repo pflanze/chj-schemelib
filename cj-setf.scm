@@ -46,7 +46,7 @@
 	       (symbol-append (substring s 0 (- (string-length s) 4))
 			      "-"
 			      op!)
-	       (source-error sym* "symbol does not end in |-ref|"))))))
+	       (raise-source-error sym* "symbol does not end in |-ref|"))))))
  
  (def (inc-dec!-expand e op!)
       (mcase e

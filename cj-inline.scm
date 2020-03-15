@@ -44,8 +44,7 @@
   (let ((v (eval proc)))
     (if (procedure? v)
 	(##decompile v)
-	(source-error proc
-		      "does not evaluate to a procedure"))))
+	(raise-source-error proc "does not evaluate to a procedure"))))
 
 (define-macro* (inline proc)
   (let ((idec (lambda () `(inline-through-decompile ,proc))))

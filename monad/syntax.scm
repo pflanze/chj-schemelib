@@ -189,7 +189,7 @@
                 ;;                                  ;; symbol?
                 ;;           ,(symbol-append monadname* ":monad-ops")
                 ;;           ,@args)
-                ;;         (source-error
+                ;;         (raise-source-error
                 ;;          stx "need fn and its arguments as arguments")))
                 ;;      (##source-code stx))
                 ;;     stx)))
@@ -227,7 +227,7 @@
                          e))
                       exprs
                       (lambda (errmsg)
-                        (source-error stx errmsg))))
+                        (raise-source-error stx errmsg))))
 
 (defmacro (mdo . exprs)
   (mdo-expand stx exprs))
@@ -339,8 +339,8 @@
                                       `(##apply ,expr0 ,WS)
                                       expr0)
                                      exprs))))
-      (source-error expr0
-                    "need a symbol here to support n-arity")))
+      (raise-source-error expr0
+                          "need a symbol here to support n-arity")))
 
 ;; But the normal case will really be the 1-ary one:
 (define-macro* (==>* expr0 . exprs)
@@ -389,7 +389,7 @@
 ;; 	  `(##lambda ,VS
 ;; 		     ,(==>-expand (possibly-sourcify `(,expr0 ,@VS) expr0)
 ;;                                   exprs)))
-;; 	(source-error n "expecting expression evaluating to natural0"))))
+;; 	(raise-source-error n "expecting expression evaluating to natural0"))))
 
 
 ;; (define ==>>-expand (=>*-expand/placement

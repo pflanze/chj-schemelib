@@ -149,7 +149,7 @@
 
 (defmacro (Result:and . clauses)
   (if (null? clauses)
-      (source-error stx "need at least one clause")
+      (raise-source-error stx "need at least one clause")
       (if (one-item? clauses)
           (first clauses)
           (let-pair ((a r) (reverse clauses))

@@ -379,7 +379,7 @@
   message
   args)
 
-(define (source-error source message . args)
+(define (raise-source-error source message . args)
   ;; how to make Gambit display it? just wrap for now
   (raise (make-source-error source message args)))
 

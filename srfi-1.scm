@@ -287,7 +287,7 @@
                      `(cons ,l ,r))
                    args
                    (lambda (msg)
-                     (source-error stx "missing arguments"))))
+                     (raise-source-error stx "missing arguments"))))
 
 ;;; (unfold not-pair? car cdr lis values)
 

@@ -123,7 +123,7 @@
                                   ,(.body-scheme s VS)
                                   (clojure:arity-error ,LEN))))
                         (else
-                         (source-error
+                         (raise-source-error
                           (second else-cases)
                           "Can't have more than 1 variadic overload")))))))))))
 
@@ -132,7 +132,7 @@
      (let*-values
          (((name args) (if (pair? args)
                            (values (car args) (cdr args))
-                           (source-error stx "missing definition name")))
+                           (raise-source-error stx "missing definition name")))
           ((docstrings args) (if (and (pair? args)
                                       (string? (source-code (car args))))
                                  (values (list (car args)) (cdr args))
@@ -174,13 +174,15 @@
                             (else-cases (filter (comp negative? .arity)
                                                 cases)))
 
-                        (let ((duplicate-cases (=> (sort real-cases (on .arity <))
-                                                   (group-by (on .arity =))
-                                                   (.filter (=>* length ((C > _ 1)))))))
+                        (let ((duplicate-cases
+                               (=> (sort real-cases (on .arity <))
+                                   (group-by (on .arity =))
+                                   (.filter (=>* length ((C > _ 1)))))))
                           (if
                            (pair? duplicate-cases)
-                           (source-error (.binds-clojure (second (first duplicate-cases)))
-                                         "Can't have 2 overloads with same arity")
+                           (raise-source-error
+                            (.binds-clojure (second (first duplicate-cases)))
+                            "Can't have 2 overloads with same arity")
 
                            (if-let (bad (and (pair? else-cases)
                                              (let* ((toolargelen (- (.arity (first else-cases))))
@@ -189,7 +191,7 @@
                                                                  real-cases)))
                                                (and (pair? bad)
                                                     (first bad)))))
-                                   (source-error
+                                   (raise-source-error
                                     (.binds-clojure bad)
                                     "Can't have fixed arity function with more params than variadic function")
                                    (clojure-definition-multicase name
@@ -197,7 +199,7 @@
                                                                  #f
                                                                  real-cases
                                                                  else-cases)))))))))
-           (source-error stx "missing function arguments/body"))
+           (raise-source-error stx "missing function arguments/body"))
        
        ))
 
@@ -376,8 +378,8 @@ unquote and unquote-splicing at the same time"
                              ,(expand e**)))
                           ;; Clojure fails this at read time already,
                           ;; but we're "hacked"...:
-                          (source-error a
-                                        ($ "missing item after $a*")))))
+                          (raise-source-error a
+                                              ($ "missing item after $a*")))))
 
                    ((unquote)
                     (let (e* (source-code e*))
@@ -437,7 +439,7 @@ unquote and unquote-splicing at the same time"
                            ((unquote)
                             thing)
                            ((unquote-splicing)
-                            (source-error
+                            (raise-source-error
                              e "invalid place for ~@ (or BUG?)"))
                            ((gensym)
                             `',(or (table-ref gensyms thing #f)
@@ -558,14 +560,15 @@ unquote and unquote-splicing at the same time"
                          (values #f (cons arg0 args)))))
                 ((binds args)
                  (if (null? args)
-                     (source-error stx "fn: not enough arguments")
+                     (raise-source-error stx "fn: not enough arguments")
                      (let-pair
                       ((a args) args)
                       (mcase a
                              (vector?
                               (values a args))
                              (else
-                              (source-error stx "fn: missing bindings list")))))))
+                              (raise-source-error
+                               stx "fn: missing bindings list")))))))
     (let ((code `(lambda ,(clojure->scheme-args binds) ,@args)))
       (if maybe-name
           `(named ,maybe-name ,code)
@@ -762,7 +765,7 @@ unquote and unquote-splicing at the same time"
                                      `(clojure#not-not ,t))
                                 ,e))
                       (sequential-pairs cases cons)))
-      (source-error stx "cond requires an even number of forms")))
+      (raise-source-error stx "cond requires an even number of forms")))
 
 (TEST
  > (use-clojure-base)
@@ -823,7 +826,7 @@ unquote and unquote-splicing at the same time"
                      (eq? (source-code t) 'else))
                 (if (eq? res no-match)
                     `(##begin ,@c*)
-                    (source-error c "else clause must be last"))
+                    (raise-source-error c "else clause must be last"))
                 (let ((normal (lambda ()
                                 `(,IF ,t
                                       (##begin ,@c*)

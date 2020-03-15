@@ -65,8 +65,8 @@
        (if (string-starts-with? (symbol.string meth) ".")
            `(dot-oo:show-method-location (method-table-for ,meth)
                                          ',typ)
-           (source-error stx "method argument doesn't start with a dot"
-                         meth)))
+           (raise-source-error stx "method argument doesn't start with a dot"
+                               meth)))
   (case (length args)
     ((1) (assert* symbol? (first args)
                   (lambda_
@@ -80,8 +80,8 @@
                              (lambda (typ)
                                (cont typ meth))))))
     (else
-     (source-error stx ($ "need either 1 argument, type.method, "
-                          "or 2 arguments, .method type")))))
+     (raise-source-error stx ($ "need either 1 argument, type.method, "
+                                "or 2 arguments, .method type")))))
 
 
 

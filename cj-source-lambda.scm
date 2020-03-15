@@ -11,7 +11,7 @@
 (require test
 	 (cj-source-util-2 assert)
 	 (list-util let-pair)
-	 (cj-source source-error)
+	 (cj-source raise-source-error)
 	 (srfi-1 append-reverse)
 	 (cj-typed perhaps-typed.var))
 
@@ -104,8 +104,8 @@
 			  (else
 			   (error "in invalid mode:" expect)))))
 		   (else
-		    (source-error b
-				  "expecting symbol or list of length 2"))))))
+		    (raise-source-error
+                     b "expecting symbol or list of length 2"))))))
     
       (cond ((null? s)
 	     (if (or (not maybe-vs)
@@ -144,7 +144,7 @@
 		  (else
 		   (case expect
 		     ((end)
-		      (source-error b "superfluous item"))
+		      (raise-source-error b "superfluous item"))
 
 		     (else
 		      (handle s* b1 *b expect))))))))

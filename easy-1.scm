@@ -88,7 +88,9 @@
                                              b1*
                                              b2*
                                              args)
-                                        (source-error stx "if requires an uneven number of arguments (and at least 3)"))))))))
+                                        (raise-source-error
+                                         stx
+                                         "if requires an uneven number of arguments (and at least 3)"))))))))
 
 (define-macro* (if t b1 b2 . args)
   (easy-if-expand stx t b1 b2 args identity))
@@ -124,7 +126,7 @@
 (both-times
  (define (def-expand stx first body0 bodyrest begin-form)
    (define (err msg)
-     (source-error stx msg))
+     (raise-source-error stx msg))
    (if (pair? (source-code first))
        (define-typed-expand stx first (cons body0 bodyrest) begin-form)
        (if (null? bodyrest)
@@ -144,7 +146,7 @@
                       (if-let-pair ((binds body) crest)
                                    `(##define ,first
                                       (##lambda ,binds ,body0 ,@body))
-                                   (source-error
+                                   (raise-source-error
                                     code "got lambda without bind form")))
                      (else
                       (err "|def| using docstring but body is not expanding to a lambda, thus can't move it there")))
@@ -321,7 +323,9 @@ list."
                                      (lambda (var i)
                                        `(##set! ,var (vector-ref ,VS ,i)))
                                      vars))))))))))
-        (source-error binds "expecting binding list (optionally improper / with DSSSL meta objects)"))))
+        (raise-source-error
+         binds
+         "expecting binding list (optionally improper / with DSSSL meta objects)"))))
 
 (TEST
  > (def* (a) (list 10))
@@ -447,13 +451,13 @@ list."
       (lambda (exporter)
         (if (procedure? exporter)
             (export (exporter #f))
-            (source-error
+            (raise-source-error
              modsymbol
              (string-append
               "modimport: expecting an exporter procedure"
               " in module-holding symbol"))))
       (lambda ()
-        (source-error
+        (raise-source-error
          modsymbol
          (string-append
           "modimport: module-holding symbol does not"
@@ -508,13 +512,13 @@ list."
                 mod
                 expr
                 (&
-                 (source-error
+                 (raise-source-error
                   mod
                   (string-append
                    "modimport: can't find -exports entry"
                    " for this module symbol"))))
 
-               (source-error
+               (raise-source-error
                 mod
                 ;; XX this was "if no prefix is given", hmm, which is
                 ;; true really?
@@ -524,12 +528,12 @@ list."
 
 (defmacro (modimport expr . vars)
   (if (keyword? (source-code expr))
-      (source-error (second (source-code stx))
-                    ;; expr has been stripped of source information,
-                    ;; gah, for macro expander keyword functionality
-                    (string-append
-                     "modimport: can't take keyword as first argument "
-                     "(did you mean to use |modimport/prefix|?)"))
+      (raise-source-error (second (source-code stx))
+                          ;; expr has been stripped of source information,
+                          ;; gah, for macro expander keyword functionality
+                          (string-append
+                           "modimport: can't take keyword as first argument "
+                           "(did you mean to use |modimport/prefix|?)"))
       (modimport-expand #f expr vars)))
 
 (defmacro (modimport/prefix prefix expr . vars)
@@ -615,10 +619,10 @@ list."
                                         `(,NAMED-LET ,binds
                                                      ,bindsagain
                                                      ,@body*))
-                                    (source-error
+                                    (raise-source-error
                                      stx "missing bindings for named let"))))
                     (else
-                     (source-error stx "letrec does not support naming"))))
+                     (raise-source-error stx "letrec does not support naming"))))
              (else
               `(,LET ,binds ,@body)))))
 

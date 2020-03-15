@@ -46,18 +46,19 @@
 	    (,V (source-code ,V*))
 	    (,LEN (improper-length ,V)))
        (if (negative? ,LEN)
-	   (source-error ,V* "not a proper list")
+	   (raise-source-error ,V* "not a proper list")
 	   ,(let rec ((clauses clauses*))
 	      (cond ((null? clauses)
-		     `(source-error ,V*
-				    ,(let ((str (scm:objects->string
-						 (map car (map cj-desourcify clauses*))
-						 separator: " | ")))
-				       (string-append
-					"no match, expecting "
-					(if (> (length clauses*) 1)
-					    (string-append "any of " str)
-					    str)))))
+		     `(raise-source-error
+                       ,V*
+                       ,(let ((str (scm:objects->string
+                                    (map car (map cj-desourcify clauses*))
+                                    separator: " | ")))
+                          (string-append
+                           "no match, expecting "
+                           (if (> (length clauses*) 1)
+                               (string-append "any of " str)
+                               str)))))
 		    ((pair? clauses)
 		     (let* ((clause* (car clauses))
 			    (clause (source-code clause*))
@@ -93,7 +94,8 @@
 					     ,@body))))
 				,(rec (cdr clauses))))))
 		    (else
-		     ;; can't use source-error here yet (because it has not been defined in this phase)
+		     ;; can't use raise-source-error here yet (because
+		     ;; it has not been defined in this phase)
 		     (error "invalid match syntax: expecting list of clauses, got:" clauses))))))))
 
 ;; require input to be a proper list (complain otherwise):
@@ -119,12 +121,13 @@
 	  ,(if yes-cont `(,yes-cont ,V) `(void))
 	  ,(if (source-code no-cont)
 	       no-cont
-	       `(source-error ,V*
-			      ,(string-append "does not match "
-					      (scm:object->string
-					       (cj-desourcify pred))
-					      " predicate")
-			      ,(gen-full-desourcify/1 V* V)))))))
+	       `(raise-source-error
+                 ,V*
+                 ,(string-append "does not match "
+                                 (scm:object->string
+                                  (cj-desourcify pred))
+                                 " predicate")
+                 ,(gen-full-desourcify/1 V* V)))))))
 
 (define-macro* (assert-desourcified* pred val #!optional yes-cont no-cont)
   (assert*-expand 'cj-desourcify

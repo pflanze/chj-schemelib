@@ -171,13 +171,13 @@
                                                ,no))))))))))
     (if (pair? rest)
         (if else
-            (source-error stx "both no and else given")
+            (raise-source-error stx "both no and else given")
             (if (null? (cdr rest))
                 (cont (car rest))
-                (source-error stx "too many arguments given")))
+                (raise-source-error stx "too many arguments given")))
         (if else
             (cont else)
-            (source-error stx "if-let-pair requires an else branch")))))
+            (raise-source-error stx "if-let-pair requires an else branch")))))
 
 (TEST
  > (define (t v)

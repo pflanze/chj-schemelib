@@ -84,7 +84,7 @@
 			      (lambda (var*)
 				;; heh use key and val right together
 				(or (assq var* exprs)
-				    (source-error var "request for a var I don't know about")))))
+				    (raise-source-error var "request for a var I don't know about")))))
 		   vars*)
 	  
 	  ,@body)))))

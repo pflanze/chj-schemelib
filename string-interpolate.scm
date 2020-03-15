@@ -33,7 +33,7 @@
           (let* ((str expr)
                  (len (string-length str)))
             (define (err rest msg . args)
-              (apply source-error expr*
+              (apply raise-source-error expr*
                      (string-append "(at char pos "
                                     (number->string (- len (length rest)))
                                     ") "

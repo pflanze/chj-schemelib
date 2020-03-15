@@ -87,7 +87,7 @@
 		       (for-each
                         (lambda (s)
                           (when (not (memq (source-code s) '(lt gt eq)))
-                                (source-error
+                                (raise-source-error
                                  s "expecting one of |lt|, |gt|, |eq|")))
                         symbols)
 		       `(,symbols ,body0 ,@body))))))

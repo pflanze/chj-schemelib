@@ -40,8 +40,8 @@
  (def (class=> stx cont)
       (if (pair? compile-time:class-ctx)
 	  (cont (car compile-time:class-ctx))
-	  (source-error stx
-			"not placed within a |more-oo#class| form"))))
+	  (raise-source-error stx
+                              "not placed within a |more-oo#class| form"))))
 
 (defmacro (more-oo#start-class! name subclass?)
   (when (source-code subclass?)

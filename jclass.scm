@@ -140,9 +140,9 @@
 	   (if (or (not require-match?)
 		   (not (eq? (source-code expr*) (source-code expr))))
 	       (possibly-sourcify expr* expr)
-	       (source-error expr "BUG")))
+	       (raise-source-error expr "BUG")))
 	 (if require-match?
-	     (source-error expr "BUG1")
+	     (raise-source-error expr "BUG1")
 	     expr)))
 
 

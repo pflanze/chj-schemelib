@@ -103,12 +103,12 @@
 (define-macro* (RA op . exprs)
   (syntax:right-associate op exprs
 			  (lambda (msg)
-			    (source-error stx msg))))
+			    (raise-source-error stx msg))))
 
 (define-macro* (LA op . exprs)
   (syntax:left-associate op exprs
 			 (lambda (msg)
-			   (source-error stx msg))))
+			   (raise-source-error stx msg))))
 
 (TEST
  > (expansion#RA compose half x*y inc2values)

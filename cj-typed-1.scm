@@ -56,7 +56,7 @@
 				   predstr
 				   strs)))
 		   (if use-source-error?
-		       (source-error v msg)
+		       (raise-source-error v msg)
 		       (error (string-append msg ":") v))))))
       (cond ((eq? w #f)
 	     (err))

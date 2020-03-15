@@ -10,7 +10,7 @@
   (delay
     (let ((sym (val0 mod)))
       (cond ((memq sym (loadstate-loading loadstate))
-	     (source-error (val1 mod) "circular dependency"
+	     (raise-source-error (val1 mod) "circular dependency"
 			   (loadstate-loading loadstate)))
 	    ((memq sym (loadstate-loaded loadstate))
 	     ;; ref, how.

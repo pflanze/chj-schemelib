@@ -76,10 +76,10 @@
      (cond ((snd typename+maybe-methodname)
             => (lambda (methodname)
                  (if (string=? methodname ".")
-                     (source-error src "missing method name after '.' in name")
+                     (raise-source-error src "missing method name after '.' in name")
                      typename+maybe-methodname)))
            (else
-            (source-error src "missing '.' in name")))))
+            (raise-source-error src "missing '.' in name")))))
  
  ;; The full name
  ;; 
@@ -327,7 +327,7 @@
                     ;; `(`definition `default-value)
                     (self (car v)))
                    (else
-                    (source-error
+                    (raise-source-error
                      v*
                      "expecting symbol or typed symbol or dsssl-meta-object")))))))
 

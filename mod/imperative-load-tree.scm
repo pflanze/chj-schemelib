@@ -17,8 +17,9 @@
 		(delay
 		  (let ((sym (val0 mod)))
 		    (cond ((memq sym loading)
-			   (source-error (val1 mod) "circular dependency"
-					 loading))
+			   (raise-source-error (val1 mod)
+                                               "circular dependency"
+                                               loading))
 			  ((assq sym (xbox-get! refs))
 			   => reference)
 			  (else

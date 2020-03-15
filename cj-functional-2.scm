@@ -8,7 +8,7 @@
 
 (require define-macro-star
          cj-env
-	 (cj-source source-error)
+	 (cj-source raise-source-error)
 	 (list-util let-pair lambda-pair)
 	 (list-util-1 map/iota)
 	 (cj-symbol with-gensym)
@@ -323,7 +323,7 @@
                       ((symbol? expr*)
                        (src `(,expr ,res)))
                       (else
-                       (source-error
+                       (raise-source-error
                         expr
                         "expecting a form or a symbol"))))))
               (if (null? exprs*)
@@ -417,7 +417,7 @@
 	  `(##lambda ,VS
 		     ,(=>-expand (possibly-sourcify `(,expr0 ,@VS) expr0)
 				 exprs)))
-	(source-error n "expecting expression evaluating to natural0"))))
+	(raise-source-error n "expecting expression evaluating to natural0"))))
 
 (TEST
  > ((=>* car string) '(#\a #\b))

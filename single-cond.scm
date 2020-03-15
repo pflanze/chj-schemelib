@@ -105,11 +105,11 @@
 			  (case a*
 			    ((error-show:)
 			     (if (null? l*)
-				 (source-error a "expecting value after keyword")
+				 (raise-source-error a "expecting value after keyword")
 				 (let-pair ((b l**) l*)
 					   (lp l** (cons b error-shows)))))
 			    (else
-			     (source-error a "unknown keyword argument" a)))
+			     (raise-source-error a "unknown keyword argument" a)))
 			  (cont/options l error-shows))))))))
 
 

@@ -743,13 +743,14 @@ status"
        (Maybe:cond ((ctx:Maybe-ref ctx (source-code expr)) =>
 		    (comp return-normal-value corescheme-ref))
 		   (else
-		    (source-error expr "undefined variable"
-                                  (source-code expr)))))
+		    (raise-source-error expr
+                                        "undefined variable"
+                                        (source-code expr)))))
 
       (corescheme:literal-atom?
        (if (self-quoting? (source-code expr))
            (%return-normal (corescheme-literal expr))
-           (source-error
+           (raise-source-error
             expr "unquoted empty list treated as invalid function application")))
 
       (pair?
@@ -794,7 +795,7 @@ status"
               ((##quote quote)
                (if (one-item? r)
                    (%return-normal (corescheme-literal (first r)))
-                   (source-error expr "quote form needs 1 argument")))
+                   (raise-source-error expr "quote form needs 1 argument")))
 
               ((##define define)
                (if-let-pair
@@ -833,7 +834,8 @@ status"
                                          ctx**
                                          realmode?)))))
                                ctx*)))))
-                (source-error expr "define form needs at least 1 argument")))
+                (raise-source-error expr
+                                    "define form needs at least 1 argument")))
 
               ((##let let)
                `(let `binds . `body)
@@ -863,7 +865,7 @@ status"
                         (fst ;; dropping ctx changes
                          (_source->corescheme:begin body ctx* realmode?)))
                        es)))))
-                (source-error expr "let form needs at least 1 argument")))
+                (raise-source-error expr "let form needs at least 1 argument")))
               
               ((##let* let*)
                (if-let-pair
@@ -914,7 +916,7 @@ status"
                                     ;; carry over ctx changes.
                                     (_source->corescheme expr ctx realmode?))
                                    exprs))))))))))
-                (source-error expr "let* form needs at least 1 argument")))
+                (raise-source-error expr "let* form needs at least 1 argument")))
 
               ((##lambda lambda)
                (if-let-pair
@@ -924,7 +926,7 @@ status"
                        (corescheme-lambda
                         vars*
                         (_source->corescheme:begin rest ctx* realmode?))))
-                (source-error expr "lambda form needs at least 1 argument")))
+                (raise-source-error expr "lambda form needs at least 1 argument")))
 
               ((##begin begin)
                (_source->corescheme:begin r ctx realmode?))
@@ -944,12 +946,13 @@ status"
                         (fst (_source->corescheme (second r) ctx realmode?))
                         (fst (_source->corescheme (third r) ctx realmode?)))))
                      (else
-                      (source-error expr "if form needs 2 or 3 arguments"))))
+                      (raise-source-error expr
+                                          "if form needs 2 or 3 arguments"))))
               
               (else
-               (source-error a
-                             "undefined variable in function position"
-                             a*))))
+               (raise-source-error a
+                                   "undefined variable in function position"
+                                   a*))))
 
            ;; head is not a symbol: function application
            (if (list? r)
@@ -963,7 +966,7 @@ status"
                        ;; would be invalid ~?
                        (C _source->corescheme _ ctx realmode?))
                  r))
-               (source-error
+               (raise-source-error
                 expr "improper list can't be function application"))))))))
 
 

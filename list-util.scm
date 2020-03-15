@@ -88,7 +88,7 @@
 	   (let-pair ((,a ,r) ,V)
 		     ,@body))))))
    (_
-    (source-error
+    (raise-source-error
      stx "lambda-pair: only a single argument pair supported for now"))))
 
 (TEST
@@ -102,7 +102,7 @@
 	     (let ((l (string-split (symbol->string var) #\.)))
 	       (if (= (length l) 2)
 		   `(let-pair (,(map string->symbol l) ,var*) ,@body)
-		   (source-error
+		   (raise-source-error
 		    var*
 		    "variable name does not contain exactly one dot"))))))
 
@@ -153,11 +153,11 @@
 	       ((unbox)
 		(if (= (improper-length var-or-form*) 2)
 		    `(box-push! ,(cadr var-or-form*) ,val)
-		    (source-error var-or-form "unbox form of improper length")))
+		    (raise-source-error var-or-form "unbox form of improper length")))
 	       (else
-		(source-error var-or-form "unknown kind of form")))))
+		(raise-source-error var-or-form "unknown kind of form")))))
 	  (else
-	   (source-error var-or-form "need variable name or a form")))))
+	   (raise-source-error var-or-form "need variable name or a form")))))
 
 (TEST
  > (define x '())

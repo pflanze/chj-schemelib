@@ -41,7 +41,7 @@
 
  ;; lib
  (define source-xone
-   (lambda (x) (xone/fail x (lambda (e) (source-error x "expecting one item")))))
+   (lambda (x) (xone/fail x (lambda (e) (raise-source-error x "expecting one item")))))
  ;; /lib
 
  ;; % for (mutable/)mutated-from-inside data structures?
@@ -111,7 +111,7 @@
 				   ;; variable definition
 				   (return-definition bind (source-xone rest2)))
 				  (else
-				   (source-error
+				   (raise-source-error
 				    bind
 				    "expecting pair or symbol")))))))
 		       ((begin)
@@ -273,7 +273,7 @@
 						   ,VARNAME)))
 					       (source-code exports)))
 					  ,exports-name))))))))
-			 (source-error
+			 (raise-source-error
 			  export-form
 			  "expecting (export . VAR*) form")))))))
 	      (if (pair? name-or-name+params*)
@@ -312,7 +312,7 @@
 			;; the function variables)
 			`(set! ,(to _) (,M ',(from _))))
 		       vars))))
-	  (source-error
+	  (raise-source-error
 	   stx
 	   "expecting a list of variables to import after the first argument")))))
 
@@ -378,11 +378,11 @@
 	  ((keyword? prefix*)
 	   (cont (symbol-append (keyword->string prefix*) ":")))
 	  (else
-	   (source-error prefix "expecting string or symbol")))))
+	   (raise-source-error prefix "expecting string or symbol")))))
 
 (define (module:import/prefix-expand stx DEFINE expr prefix vars)
   (if (null? vars)
-      (source-error stx "missing bindings to import")
+      (raise-source-error stx "missing bindings to import")
       (module:parse-prefix
        prefix
        (lambda (prefix)
