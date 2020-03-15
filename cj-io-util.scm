@@ -626,7 +626,7 @@ some informal structure describing what the port was opened from."
             (begin
               (close-port p)
               '())
-            (cons (if (zero? no)
+            (cons (if (and strip-BOM? (zero? no))
                       (let* ((str (source-code item))
                              (len (string-length str)))
                         (if (> len 0)
