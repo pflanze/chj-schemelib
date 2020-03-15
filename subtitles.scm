@@ -27,6 +27,8 @@
         Result:string->number
         Result:string-of-len->number)
 
+(include "cj-standarddeclares.scm")
+
 
 "Parse and print video subtitle files in the SubRip `.srt` Format."
 
