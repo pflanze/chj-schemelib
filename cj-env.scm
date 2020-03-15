@@ -87,7 +87,8 @@
 	dup
 	one?
         current-continuation
-        zip-cons)
+        zip-cons
+        load-file)
 
 
 (declare (block)(standard-bindings)(extended-bindings))
@@ -771,3 +772,12 @@
 (define (zip-cons l1 l2)
   (map cons l1 l2))
 
+
+(define (load-file path-or-port-settings)
+  "Like |load| but returns the value of the last expression in the
+file (and doesn't support TEST)."
+  (eval `(##begin
+           ;; set namespace?
+           (##namespace (""))
+           ,@(call-with-input-file path-or-port-settings
+               read-all-source))))
