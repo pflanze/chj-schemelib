@@ -16,6 +16,7 @@
 
 (require easy
          (dot-oo void/1)
+         (oo-util-lazy ilist?)
          monad/generic
          test
          monad/syntax)
@@ -32,6 +33,7 @@
         Error-of
         Result:Ok?
         Result:Error?
+        Results->Result
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Result.>>= Result.>> Result.return Result.unwrap)
         (inline Result->>=) (macro Result->>) Result-return Result-unwrap)
@@ -251,6 +253,29 @@
 (defmacro (Result:try . body)
   `(with-exception-catcher Error
                            (lambda () (Ok (begin ,@body)))))
+
+
+;; Somewhat related to |cat-Maybes|
+(def (Results->Result l) -> (Result-of ilist? ilist?)
+     "Return an Error of the Error values in l if any (dropping all Ok
+values); otherwise return an Ok of the Ok values in l."
+     (let lp ((l l)
+              (ok '())
+              (err '()))
+       (if-let-pair ((a l*) (force l))
+                    (if-Ok a
+                           (lp l* (cons it ok) err)
+                           (lp l* ok (cons it err)))
+                    (if (null? err)
+                        (Ok (reverse ok))
+                        (Error (reverse err))))))
+
+(TEST
+ > (.show (Results->Result
+           (list (Ok 1) (Ok 2) (Error 30) (Ok 3) (Error 40) (Ok 5))))
+ (Error (list 30 40))
+ > (.show (Results->Result (list (Ok 1) (Ok 2))))
+ (Ok (list 1 2)))
 
 
 ;; === Result (Either) monad ===========================================
