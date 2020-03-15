@@ -34,6 +34,8 @@
         Result:Ok?
         Result:Error?
         Results->Result
+        Error-source
+        Error-source-unfinished-after
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Result.>>= Result.>> Result.return Result.unwrap)
         (inline Result->>=) (macro Result->>) Result-return Result-unwrap)
@@ -276,6 +278,17 @@ values); otherwise return an Ok of the Ok values in l."
  (Error (list 30 40))
  > (.show (Results->Result (list (Ok 1) (Ok 2))))
  (Ok (list 1 2)))
+
+
+(def (Error-source val msg . args)
+     "Same as |raise-source-error| but in the Result monad instead of
+the builtin IO/error one."
+     (Error (make-source-error val msg args)))
+
+(def (Error-source-unfinished-after val)
+     "Unexpected end of input"
+     (Error-source val "unfinished after"))
+
 
 
 ;; === Result (Either) monad ===========================================
