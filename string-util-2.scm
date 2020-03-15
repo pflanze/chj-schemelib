@@ -228,7 +228,7 @@
                 (let ((iend (inc (string-rfindpos str cpred))))
                   (if (zero? istart)
                       (if (= iend len)
-                          s
+                          str/loc
                           (possibly-source (substring str 0 iend) maybe-loc))
                       (wrap (substring str istart iend) istart)))))
           (else
@@ -250,7 +250,9 @@
  > (t " Foo ")
  (#t "Foo" "(f)@100.2")
  > (t " \r\n Foo \n ")
- (#t "Foo" "(f)@101.2"))
+ (#t "Foo" "(f)@101.2")
+ > (t "Foo")
+ (#t "Foo" "(f)@100.1"))
 
 
 (define char-newline?
