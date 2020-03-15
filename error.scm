@@ -7,15 +7,15 @@
 
 
 (require class
-	 (cj-typed-1 (mutable cj-typed-1:error?)
-		     (mutable cj-typed-1:.string))
+         (cj-typed-1 (mutable cj-typed-1:error?)
+                     (mutable cj-typed-1:.string))
          (cj-source (type source-error))
-	 gambit-error)
+         gambit-error)
 
 (export (interface error-interface)
         (methods error-exception.show
                  datum-parsing-exception.show)
-	error?)
+        error?)
 
 
 
@@ -52,7 +52,7 @@
 
 (define. (error-exception.show e)
   `(error-exception ,(.show (error-exception-message e))
-		    ,(.show (error-exception-parameters e))))
+                    ,(.show (error-exception-parameters e))))
 
 (TEST
  > (.show (error-exception 1 '(2 3)))
@@ -72,13 +72,13 @@
      "Interface predicate for both Gambit's built-in errors and for
 `error-interface?` (dot-oo based interface)."
      (either error-interface?
-	     gambit-error#exception?
+             gambit-error#exception?
              source-error?))
 
 
 (TEST
  > (def e (with-exception-catcher
-	   identity (& (open-input-file "oqwuiavuosviue"))))
+           identity (& (open-input-file "oqwuiavuosviue"))))
  > (error? e)
  #t
  > (error-interface? e)
