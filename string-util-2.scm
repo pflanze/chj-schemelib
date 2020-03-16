@@ -68,6 +68,8 @@
         string-pad-left
         string-ends-with?
         string-starts-with? ;;XXX vs string-starts? ?
+        string-possibly-strip-start
+        string-possibly-strip-end
         strings=?
         
         #!optional
@@ -820,6 +822,45 @@
  #f
  > (string-starts-with? "ax" "x")
  #f)
+
+
+(define (string-possibly-strip-start str strmatch)
+  (if (string-starts-with? str strmatch)
+      (substring str (string-length strmatch) (string-length str))
+      str))
+
+(TEST
+ > (string-possibly-strip-start "Foo" "Fo")
+ "o"
+ > (string-possibly-strip-start "Foo" "o")
+ "Foo"
+ > (string-possibly-strip-start "Foo Bar" "Fo ")
+ "Foo Bar"
+ > (string-possibly-strip-start "Foo Bar" "Foo ")
+ "Bar"
+ > (string-possibly-strip-start "Foo Bar" "Foo")
+ " Bar")
+
+(define (string-possibly-strip-end str strmatch)
+  (if (string-ends-with? str strmatch)
+      (substring str 0 (- (string-length str) (string-length strmatch)))
+      str))
+
+(TEST
+ > (string-possibly-strip-end "Foo" "Fo")
+ "Foo"
+ > (string-possibly-strip-end "Foo" "oo")
+ "F"
+ > (string-possibly-strip-end "Foo" "o")
+ "Fo"
+ > (string-possibly-strip-end "Foo Bar" " ")
+ "Foo Bar"
+ > (string-possibly-strip-end "Foo Bar" "Bar")
+ "Foo "
+ > (string-possibly-strip-end "Foo Bar" " Bar")
+ "Foo")
+
+
 
 
 (TEST
