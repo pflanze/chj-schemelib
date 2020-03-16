@@ -13,6 +13,7 @@
                  if-let-expand) ;; incl. monad-ops
          monad/generic
          (cj-typed is-monad-name!)
+         (error (interface error-interface))
          test
          monad/syntax)
 
@@ -31,6 +32,8 @@
         Maybe-or ;; 2-ary
         Maybe:or ;; n-ary
         ;; Maybe-and -- use Maybe->>, ok?
+
+        (class Missing-value-exception) ;; move this to error.scm ?
 
         ;; monad ops (XX make an exporter for those! 'implements')
         (methods Maybe.>>= Maybe.>> Maybe.return Maybe.unwrap)
@@ -382,12 +385,21 @@ thrown)."
 (def. Maybe.return Just)
 
 
-(defclass (Maybe-nothing-exception))
+(defclass (Missing-value-exception)
+  extends: error-base
+
+  (defmethod (message s)
+    "missing value"))
+
+(TEST
+ > (.string (Missing-value-exception))
+ "missing value")
+
 
 (def. (Maybe.unwrap r)
   (if-Just r
            it
-           (raise (Maybe-nothing-exception))))
+           (raise (Missing-value-exception))))
 
 (def Maybe-unwrap Maybe.unwrap)
 
@@ -456,13 +468,13 @@ thrown)."
  > (.unwrap (Just 'hi))
  hi
  > (%try (.unwrap (Nothing)))
- (exception text: "This object was raised: [(Maybe-nothing-exception)]\n")
+ (exception text: "This object was raised: [(Missing-value-exception)]\n")
  > (in-monad Maybe
              (unwrap (Just 'hi)))
  hi
  > (%try (in-monad Maybe
                    (unwrap (Nothing))))
- (exception text: "This object was raised: [(Maybe-nothing-exception)]\n"))
+ (exception text: "This object was raised: [(Missing-value-exception)]\n"))
 
 
 ;; Generic monads
