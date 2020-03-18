@@ -340,7 +340,7 @@
 (def. (srt-items.string items)
   (call-with-output-string "" (C .display items _)))
 
-(def. (srt-items.save-to! [(list-of srt-item?) items] [path-string? path])
+(def. (srt-items.save-to! [(list-of srt-item?) items] [path-settings? path])
   ;; "Convert Scheme to a `.srt` file" -- XX ditto
   (call-with-output-file path
     (lambda (p)
