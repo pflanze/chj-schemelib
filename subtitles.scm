@@ -342,7 +342,10 @@
 
 (def. (srt-items.save-to! [(list-of srt-item?) items] [path-settings? path])
   ;; "Convert Scheme to a `.srt` file" -- XX ditto
-  (call-with-output-file path
+  (call-with-output-file (if (string? path)
+                             (list path: path
+                                   char-encoding: 'ISO-8859-1)
+                             path)
     (lambda (p)
       ;; (display #\xFEFF p) ehr. Not working either for smplayer.
       (.display items p))))
