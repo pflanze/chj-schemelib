@@ -19,6 +19,7 @@
 	(macro If)
         (macro if-not)
         (macro when)
+        no
 	natural?
 	natural0?
 	fxnatural?
@@ -148,6 +149,8 @@
  #!void)
 
 
+;; https://sep.yimg.com/ty/cdn/paulgraham/bel.bel?t=1570993483&
+(define no null?)
 
 
 (both-times
