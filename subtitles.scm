@@ -14,7 +14,12 @@
 
 (export filepath.Tshow
         (class tim)
-        (class T)
+        (class Tdelay)
+        (interface T-interface
+          (class Tcomment)
+          (class T
+            (class Toff)
+            (class Treal)))
         (methods srt-items.Ts
                  string-stream.Tshow
                  filepath.Tshow
@@ -190,37 +195,49 @@
 
 (defclass (Tdelay [fixnum? milliseconds]))
 
+(definterface T-interface
+  (method (display s port))
+  (method (add-ms s ms))
+  
 
-(defclass (T [(maybe fixnum?) no]
-             [tim? from]
-             [tim? to]
-             [string? titles])
-  "A subtitle entry"
+  (defclass (Tcomment [string? comment])
 
-  (defmethod (display s port)
-    (displayln no port)
-    (.display from port)
-    (display " --> " port)
-    (.display to port)
-    (newline port)
-    (displayln (chomp titles) port)
-    (newline port))
-
-  (defmethod (add-ms s [real? ms])
-    (if (zero? ms)
-        s
-        (=> s
-            (.from-set (.+ from ms))
-            (.to-set (.+ to ms)))))
-
-  (defclass (Toff)
-    "A subtitle entry that's disabled"
     (defmethod (display s port)
-      (void)))
-  (defclass (Treal)
-    "A `T` holding real time stamps, matched to the video, not to be shifted."
+      (void))
+
+    (defmethod (add-ms s ms)
+      s))
+
+  (defclass (T [(maybe fixnum?) no]
+               [tim? from]
+               [tim? to]
+               [string? titles])
+    "A subtitle entry"
+
+    (defmethod (display s port)
+      (displayln no port)
+      (.display from port)
+      (display " --> " port)
+      (.display to port)
+      (newline port)
+      (displayln (chomp titles) port)
+      (newline port))
+
     (defmethod (add-ms s [real? ms])
-      s)))
+      (if (zero? ms)
+          s
+          (=> s
+              (.from-set (.+ from ms))
+              (.to-set (.+ to ms)))))
+
+    (defclass (Toff)
+      "A subtitle entry that's disabled"
+      (defmethod (display s port)
+        (void)))
+    (defclass (Treal)
+      "A `T` holding real time stamps, matched to the video, not to be shifted."
+      (defmethod (add-ms s [real? ms])
+        s))))
 
 
 
@@ -233,7 +250,7 @@
 ;; Error; but, try to be "proper", 'Rust conforming' or something.)
 
 (def (srtlines->Result-of-Ts lines)
-     -> (istream-of (Result-of T? error?))
+     -> (istream-of (Result-of T-interface? error?))
      (let rec ((lines lines))
        (delay
          (if-let-pair
@@ -282,21 +299,21 @@
 
 
 
-(def srt-item? (either T?
+(def srt-item? (either T-interface?
                        ;; for new positioning:
                        tim?
                        Tdelay?))
 
 (def srt-items? (ilist-of srt-item?))
 
-(def. (srt-items.Ts l) -> (list-of T?)
+(def. (srt-items.Ts l) -> (list-of T-interface?)
   "'Clean up' `srt-item`s to just `T`s."
   (let rec ((l l)
             (dt-ms 0))
     (if-let-pair
      ((a l*) l)
 
-     (xcond ((T? a) (cons (.add-ms a dt-ms) (rec l* dt-ms)))
+     (xcond ((T-interface? a) (cons (.add-ms a dt-ms) (rec l* dt-ms)))
             ((tim? a)
              ;; use a instead of .from time of the next element, from
              ;; then on
