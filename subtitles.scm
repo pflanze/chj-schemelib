@@ -10,7 +10,8 @@
          template
          Result
          monad/lib-for-Result
-         (string-util-1 position-update-in-string))
+         (string-util-1 position-update-in-string)
+         (latin1 latin1-string?))
 
 (export filepath.Tshow
         (class tim)
@@ -211,7 +212,7 @@
   (defclass (T [(maybe fixnum?) no]
                [tim? from]
                [tim? to]
-               [string? titles])
+               [latin1-string? titles])
     "A subtitle entry"
 
     (defmethod (display s port)
