@@ -109,10 +109,10 @@
 	    ;; ^not accepted.
 	    ,@fieldnames)
 		    
-	  (define. (,(symbol-append name '.show) ,S)
+	  (define. (,(symbol-append name '.show) ,S show)
 	    (list ',name
 		  ,@(map (lambda (fieldname)
-			   `(.show (,(accessor fieldname) ,S)))
+			   `(show (,(accessor fieldname) ,S)))
 			 fieldnames))))))
       
    (if opaque
@@ -127,12 +127,12 @@
 (include "gambit-error--include.scm")
 
 (TEST
- > (with-exception-catcher .show (& (error "hum f" #f)))
+ > (with-exception-catcher show (& (error "hum f" #f)))
  (error-exception "hum f" (list #f))
- > (with-exception-catcher .show (& (car "hum f" #f)))
+ > (with-exception-catcher show (& (car "hum f" #f)))
  (wrong-number-of-arguments-exception car (list "hum f" #f))
  > (define e (eval #))
  > (wrong-number-of-arguments-exception? e)
- > (.show (wrong-number-of-arguments-exception-procedure e))
+ > (show (wrong-number-of-arguments-exception-procedure e))
  car)
 

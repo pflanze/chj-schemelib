@@ -101,11 +101,11 @@
 
 
 (TEST
- > (.show (.fftcomplete (Mc (Vc 1+1i 2+1i)
+ > (show (.fftcomplete (Mc (Vc 1+1i 2+1i)
 			    (Vc 4+1i 5+1i)) 3))
  (Mc (Vc 1.+1.i 2.+1.i 2.-1.i)
      (Vc 4.+1.i 5.+1.i 5.-1.i))
- > (.show (.fftcomplete (Mc (Vc 1+1i 2+1i)
+ > (show (.fftcomplete (Mc (Vc 1+1i 2+1i)
 			    (Vc 4+1i 5+1i)
 			    (Vc 6+1i 7+1i)) 3))
  (Mc (Vc 1.+1.i 2.+1.i 2.-1.i)
@@ -154,26 +154,26 @@
 (TEST
  > (define ctx-3*3 (box #f))
  > (define res3*3 (Mc:Mr.fft (Mr (Vr 1 2 3) (Vr 4 5 -6) (Vr 7 8 9)) ctx-3*3))
- > (.show res3*3)
+ > (show res3*3)
  (Mc (Vc 33.+0.i
 	 1.5-7.794228634059947i)
      (Vc -7.5+18.186533479473212i
 	 -12.-8.881784197001252e-16i)
      (Vc -7.5-18.186533479473212i
 	 6.+10.392304845413264i))
- > (CTX (.show (Mc:Mr.fft (Mr (Vr 1)) ctx)))
+ > (CTX (show (Mc:Mr.fft (Mr (Vr 1)) ctx)))
  (Mc (Vc 1.+0.i))
- > (CTX (.show (Mc:Mr.fft (Mr (Vr 1 2)) ctx)))
+ > (CTX (show (Mc:Mr.fft (Mr (Vr 1 2)) ctx)))
  (Mc (Vc 3.+0.i -1.+0.i))
- > (CTX (.show (Mc:Mr.fft (Mr (Vr 1 2 3)) ctx)))
+ > (CTX (show (Mc:Mr.fft (Mr (Vr 1 2 3)) ctx)))
  (Mc (Vc 6.+0.i -1.5+.8660254037844386i))
  > (define ctx-2*2 (box #f))
- > (.show (Mc:Mr.fft (Mr (Vr 1 2) (Vr 3 4)) ctx-2*2))
+ > (show (Mc:Mr.fft (Mr (Vr 1 2) (Vr 3 4)) ctx-2*2))
  (Mc (Vc 10.+0.i -2.+0.i) (Vc -4.+0.i 0.+0.i))
- > (.show (Mc:Mr.fft (Mr (Vr 1 2) (Vr 3 -4)) ctx-2*2))
+ > (show (Mc:Mr.fft (Mr (Vr 1 2) (Vr 3 -4)) ctx-2*2))
  (Mc (Vc 2.+0.i 6.+0.i) (Vc 4.+0.i -8.+0.i))
  > (define res129342 (CTX (Mc:Mr.fft (Mr (Vr 1 2 0 3 4 2)) ctx)))
- > (.show res129342)
+ > (show res129342)
  (Mc (Vc 12.+0.i
 	 -2.+3.4641016151377544i
 	 0.-3.4641016151377544i
@@ -181,7 +181,7 @@
  > (define res129342b (CTX (Mc:Mr.fft
 			    (Mr (Vr 1) (Vr 2) (Vr 0) (Vr 3) (Vr 4) (Vr 2))
 			    ctx)))
- > (.show res129342b)
+ > (show res129342b)
  (Mc (Vc 12.+0.i)
      (Vc -2.+3.4641016151377544i)
      (Vc 0.-3.4641016151377544i)
@@ -189,21 +189,21 @@
      (Vc 0.+3.4641016151377544i)
      (Vc -2.-3.4641016151377544i)
      )
- > (CTX (.show (Mc:Mr.fft (Mr (Vr 1) (Vr 2)) ctx)))
+ > (CTX (show (Mc:Mr.fft (Mr (Vr 1) (Vr 2)) ctx)))
  (Mc (Vc 3.+0.i) (Vc -1.+0.i))
  > (.free-boxed* ctx-3*3 ctx-2*2)
  )
 
 (TEST
- > (.show (CTX (Mr:Mc.ifft (Mc (Vc 6.+0.i -1.5+.8660254037844386i)) 3 #f ctx)))
+ > (show (CTX (Mr:Mc.ifft (Mc (Vc 6.+0.i -1.5+.8660254037844386i)) 3 #f ctx)))
  (Mr (Vr 3. 6. 9.))
- > (.show (CTX (Mr:Mc.ifft res129342 6 #f ctx)))
+ > (show (CTX (Mr:Mc.ifft res129342 6 #f ctx)))
  (Mr (Vr 6. 12. 1.7763568394002505e-15 18. 24. 12.))
- > (.show (CTX (Mr:Mc.ifft res129342b 1 #f ctx)))
+ > (show (CTX (Mr:Mc.ifft res129342b 1 #f ctx)))
  (Mr (Vr 6.) (Vr 12.) (Vr 1.7763568394002505e-15) (Vr 18.) (Vr 24.) (Vr 12.))
  ;; or normalized:
- > (.show (CTX (Mr:Mc.ifft res129342b 1 #t ctx)))
+ > (show (CTX (Mr:Mc.ifft res129342b 1 #t ctx)))
  (Mr (Vr 1.) (Vr 2.) (Vr 2.9605947323337506e-16) (Vr 3.) (Vr 4.) (Vr 2.))
- > (.show (CTX (Mr:.ifft res3*3 3 #t ctx)))
+ > (show (CTX (Mr:.ifft res3*3 3 #t ctx)))
  (Mr (Vr 1. 2. 3.) (Vr 4. 5. -6.) (Vr 7. 8. 9.))
  )

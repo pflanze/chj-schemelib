@@ -279,30 +279,30 @@
  > (.html-colorstring (rgb01t 1 0.5 0))
  "#FF8000"
 
- > (.show (.invert (rgb8 0 128 255)))
+ > (show (.invert (rgb8 0 128 255)))
  (rgb8 255 229 0) ;; hah yes, 128 is not the center.
- > (.show (.invert (rgb8 10 40 245)))
+ > (show (.invert (rgb8 10 40 245)))
  (rgb8 255 253 83)
  ;; oh my. Now question is does this kind of inversion actually make sense?
- > (.show (.scale (rgb8 0 128 255) 0.5))
+ > (show (.scale (rgb8 0 128 255) 0.5))
  (rgb8 0 92 188)
- > (.show (.scale (rgb8 2 10 20) 0.5))
+ > (show (.scale (rgb8 2 10 20) 0.5))
  (rgb8 1 5 11)
 
  > (def c (rgb8 10 128 200))
- > (.show (.scale c 2))
+ > (show (.scale c 2))
  (rgb8 18 176 255)
- > (=> c .rgb01t (.scale 2) .rgb8 .show)
+ > (=> c .rgb01t (.scale 2) .rgb8 show)
  (rgb8 18 176 255)
- > (=> c .invert .invert .show)
+ > (=> c .invert .invert show)
  (rgb8 0 128 200)
- > (=> c .rgb01t .invert .rgb8 .invert .show)
+ > (=> c .rgb01t .invert .rgb8 .invert show)
  (rgb8 0 128 200)
- > (=> c .rgb01l .invert .rgb8 .invert .show)
+ > (=> c .rgb01l .invert .rgb8 .invert show)
  (rgb8 0 128 200)
- > (=> c .rgb01t .invert .invert .rgb8 .show)
+ > (=> c .rgb01t .invert .invert .rgb8 show)
  (rgb8 10 128 200)
- > (=> c .rgb01l .invert .invert .rgb8 .show)
+ > (=> c .rgb01l .invert .invert .rgb8 show)
  (rgb8 10 128 200) )
 
 
@@ -343,7 +343,7 @@
 
 
 (TEST
- > (.show (.rgb8 "#FF00FF"))
+ > (show (.rgb8 "#FF00FF"))
  (rgb8 255 0 255)
  > (%try (.rgb8 "# F00FF"))
  (exception
@@ -357,9 +357,9 @@
  (exception
   text:
   "string.rgb8: expecting positive hex number: \"#-800FF\" \"-8\"\n")
- > (.show (.rgb8 "#F00080"))
+ > (show (.rgb8 "#F00080"))
  (rgb8 240 0 128)
- > (.show (.rgb8 "#88f"))
+ > (show (.rgb8 "#88f"))
  (rgb8 136 136 255)
  > (.html-colorstring (eval #))
  "#8888FF")
@@ -394,14 +394,14 @@
 
 
 (TEST
- > (.show (..* (rgb8 100 50 0) 2))
+ > (show (..* (rgb8 100 50 0) 2))
  ;; (rgb01 40/51 20/51 0)
  (rgb01l .2548754380226136 .06379206392765045 -7.790527343750001e-5)
 
  > (%try (.+ (rgb8 255 128 0) (rgb8 10 10 10)))
  (exception text: "r01l does not match rgb:0..1?: 1.003035109168291\n")
  ;; Now the same with clipping:
- > (.show (.+ (rgb8 255 128 0) (rgb8 10 10 10) #t))
+ > (show (.+ (rgb8 255 128 0) (rgb8 10 10 10) #t))
  (rgb01l 1 .21889579733014106 .0029963123619556426)
  > (.html-colorstring (eval #))
  "#FF810A"
@@ -419,7 +419,7 @@
  > (%try-error (..* (rgb8 100 200 0) 2))
  ;; [error "does not match rgb:0..1?:" 80/51]
  [error "g01l does not match rgb:0..1?:" 1.1551609354972836]
- > (.show (.average (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8)))
+ > (show (.average (rgb01l 0 0.5 0.6) (rgb01l 1 1 0.8)))
  (rgb01l 1/2 .75 .7))
 
 
@@ -429,7 +429,7 @@
 		    (rec (f x))))))
 
 (TEST
- > (=> (iter-stream (C ..* _ 0.9) (rgb01l 1 1 0.5)) (.take 3) .list .show)
+ > (=> (iter-stream (C ..* _ 0.9) (rgb01l 1 1 0.5)) (.take 3) .list show)
  (list (rgb01l 1 1 .5) (rgb01l .9 .9 .45) (rgb01l .81 .81 .405)))
 
 

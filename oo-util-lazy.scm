@@ -336,16 +336,16 @@
 
 (define evaluated-char-stream+? (evaluated-stream+-of char?))
 
-(define. (evaluated-char-stream+.show v)
+(define. (evaluated-char-stream+.show v show)
   `(.stream ,(stream->string v)))
 
 (TEST
  > (def s4 (.stream "foo"))
- > (.show (F s4))
+ > (show (F s4))
  (.list "foo")
- > (.show s4)
+ > (show s4)
  (.stream "foo")
- ;; (XX add tests, here and with all .show tests, to verify that
+ ;; (XX add tests, here and with all show tests, to verify that
  ;; eval'ing the result is actually leading to an equivalent input)
  )
 

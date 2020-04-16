@@ -165,32 +165,32 @@
  [(tim) 1 10 4 0])
 
 (TEST
- > (.show (string/location.tim "Hi"))
+ > (show (string/location.tim "Hi"))
  (Error (make-source-error "Hi" "need exactly one comma" (list)))
- > (.show (string/location.tim "Hi,23"))
+ > (show (string/location.tim "Hi,23"))
  (Error (make-source-error "Hi" "need two ':' characters in hh:mm:ss" (list)))
- > (.show (string/location.tim (source "Hi,23" (location '(f) (position 1 1)))))
+ > (show (string/location.tim (source "Hi,23" (location '(f) (position 1 1)))))
  (Error
   (make-source-error
    (source* "Hi" (list 'f) 1 1)
    "need two ':' characters in hh:mm:ss" (list)))
- > (.show (string/location.tim
+ > (show (string/location.tim
            (source "10:bb:c,f23" (location '(f) (position 1 1)))))
  (Error (make-source-error (source* "bb" (list 'f) 1 4)
                            "not a number" (list)))
- > (.show (string/location.tim
+ > (show (string/location.tim
            (source "10:13:22,f23" (location '(f) (position 1 1)))))
  (Error (make-source-error (source* "f23" (list 'f) 1 10)
                            "not a number" (list)))
- > (.show (string/location.tim "01:52:47,670"))
+ > (show (string/location.tim "01:52:47,670"))
  (Ok (tim 1 52 47 670))
 
  ;; faulty formatting detection:
- > (.show (string/location.tim "01:30:44,200"))
+ > (show (string/location.tim "01:30:44,200"))
  (Ok (tim 1 30 44 200))
- > (.show (string/location.tim "01:30:44,2"))
+ > (show (string/location.tim "01:30:44,2"))
  (Error (make-source-error "2" "expecting string of length" (list 3)))
- > (.show (string/location.tim "01:3:44,200"))
+ > (show (string/location.tim "01:3:44,200"))
  (Error (make-source-error "3" "expecting string of length" (list 2))))
 
 
@@ -417,7 +417,7 @@ I am cold.
               "I am cold.")
            (T 7 (tim 0 7 2 100) (tim 0 7 5 166)
               "- Still with us, Brett?\n- Right.")))
- > (.show (-> Result? (>>= (eval v2) (lambda (v*) (return (equal? v* (.Ts v)))))))
+ > (show (-> Result? (>>= (eval v2) (lambda (v*) (return (equal? v* (.Ts v)))))))
  (Ok #t)
  > (equal? v2 (=> s (string-split "\n") .Tshow))
  #t)

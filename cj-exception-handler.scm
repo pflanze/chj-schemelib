@@ -33,7 +33,7 @@
 ;; method that should return a list with the first item being a
 ;; message string without ":", a ": " is appended by the printer. And
 ;; then a list of values, optionally prepended by a keyword, which
-;; will be written via write or pretty-print (i.e. no .show call is
+;; will be written via write or pretty-print (i.e. no |show| call is
 ;; being applied, OK?)
 (define. (any.maybe-exception-message _) #f)
 

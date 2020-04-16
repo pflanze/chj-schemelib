@@ -42,15 +42,15 @@ exceptions when given too short lists"
 
 
 (TEST
- > (.show (Maybe-split-at-reverse '(5 6 7) 2))
+ > (show (Maybe-split-at-reverse '(5 6 7) 2))
  (Just (values (list 6 5) (list 7)))
- > (.show (Maybe-split-at '(5 6 7) 2))
+ > (show (Maybe-split-at '(5 6 7) 2))
  (Just (values (list 5 6) (list 7)))
- > (.show (Maybe-split-at '(5 6 7) 0))
+ > (show (Maybe-split-at '(5 6 7) 0))
  (Just (values (list) (list 5 6 7)))
- > (.show (Maybe-split-at '(5 6 7) 3))
+ > (show (Maybe-split-at '(5 6 7) 3))
  (Just (values (list 5 6 7) (list)))
- > (.show (Maybe-split-at '(5 6 7) 4))
+ > (show (Maybe-split-at '(5 6 7) 4))
  (Nothing))
 
 

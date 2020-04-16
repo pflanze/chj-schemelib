@@ -67,9 +67,9 @@
 (TEST
  > (srfi-11-bench:t1)
  ok
- > (.show (srfi-11-bench:t2))
+ > (show (srfi-11-bench:t2))
  (values 2 3 4)
- > (.show (srfi-11-bench:t3))
+ > (show (srfi-11-bench:t3))
  (values 2 3 4))
 
 

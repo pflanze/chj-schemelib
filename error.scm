@@ -36,7 +36,7 @@
   ;; For web or Qt applications
   (method (sxml s) -> sxml?)
   
-  ;; Also require .show ?
+  ;; Also require show ?
 
   (method (message s) -> string?)
   (method (parameters s) -> (ilist-of any?))
@@ -97,18 +97,18 @@
 ;; careful: they all need to implement the methods from the error
 ;; interface, too!
 
-(define. (error-exception.show e)
-  `(error-exception ,(.show (error-exception-message e))
-                    ,(.show (error-exception-parameters e))))
+(define. (error-exception.show e show)
+  `(error-exception ,(show (error-exception-message e))
+                    ,(show (error-exception-parameters e))))
 
 (define. error-exception.message error-exception-message)
 (define. error-exception.parameters error-exception-parameters)
 (define. error-exception.string error-base-string)
 
 (TEST
- > (.show (error-exception 1 '(2 3)))
+ > (show (error-exception 1 '(2 3)))
  (error-exception 1 (list 2 3))
- > (with-exception-catcher .show (& (error "foo" "bar" 2)))
+ > (with-exception-catcher show (& (error "foo" "bar" 2)))
  (error-exception "foo" (list "bar" 2))
  > (.string (error-exception "Hi" '(2 "3")))
  "Hi: 2 \"3\""
@@ -117,12 +117,12 @@
 
 
 
-(define. (source-error.show e)
-  `(make-source-error ,(.show (source-error-source e))
-                      ,(.show (source-error-message e))
+(define. (source-error.show e show)
+  `(make-source-error ,(show (source-error-source e))
+                      ,(show (source-error-message e))
                       ;; XX rename source-error-args to
                       ;; source-error-parameters or so
-                      ,(.show (source-error-args e))))
+                      ,(show (source-error-args e))))
 
 
 (def error?
@@ -156,8 +156,10 @@
 
 ;; Gambit's own (non-user) exceptions, move to separate library?
 
-(define. (datum-parsing-exception.show e)
+(define. (datum-parsing-exception.show e show)
   ;; XX evil?: should fail if we're not called via try-show, but if we
   ;; use .show, then try-show shows the top-most datum unpacked. TODO.
-  `(datum-parsing-exception ,@(map try-show (cdr (##vector->list e)))))
+  `(datum-parsing-exception
+    ,@(map (try-show/show show) (cdr (##vector->list e)))))
+
 

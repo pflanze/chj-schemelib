@@ -641,7 +641,7 @@ status"
  > (def (t-_cs:begin v #!optional (get-env (lambda () empty-corescheme-ctx)))
 	(values (RUN-CORESCHEME (_source->corescheme:begin v (get-env) #t))
 		(RUN-CORESCHEME (_source->corescheme:begin v (get-env) #f))))
- > (.show (t-_cs:begin '((define a 1) (define b 2))))
+ > (show (t-_cs:begin '((define a 1) (define b 2))))
  (values (_corescheme-begin
           #f
 	  (list (_corescheme-def #f
@@ -653,7 +653,7 @@ status"
 	 (typed-list corescheme-var?
                      (corescheme-var 'b 2)
                      (corescheme-var 'a 1)))
- > (.show (t-_cs:begin '((define a 1) (define b a))))
+ > (show (t-_cs:begin '((define a 1) (define b a))))
  (values (_corescheme-begin
           #f
 	  (list (_corescheme-def #f
@@ -665,7 +665,7 @@ status"
 	 (typed-list corescheme-var?
                      (corescheme-var 'b 2)
                      (corescheme-var 'a 1)))
- > (.show (t-_cs:begin '((define a b) (define b a))))
+ > (show (t-_cs:begin '((define a b) (define b a))))
  ;; this might be invalid Scheme, but valid Ocaml; XXX: ah, actually
  ;; ambiguous?, if b was defined earlier, that one is used instead!
  (values (_corescheme-begin
@@ -679,7 +679,7 @@ status"
          (typed-list corescheme-var?
                      (corescheme-var 'b 2)
                      (corescheme-var 'a 1)))
- > (.show (.take (snd (t-_cs:begin '((define (odd? n)
+ > (show (.take (snd (t-_cs:begin '((define (odd? n)
 				       (if (zero? n)
 					   #f
 					   (even? (- n 1))))
@@ -971,7 +971,7 @@ status"
 
 
 (TEST
- > (.show (parameterize
+ > (show (parameterize
            ((current-corescheme-id 0))
            (_source->corescheme
             '(define (even? n) (if (zero? n) #t (odd? (- n 1))))
@@ -1143,7 +1143,7 @@ status"
 
  > (def (empty-environment) empty-corescheme-ctx)
  > (def (cs/empty c)
-	(.show (source.corescheme c get-ctx: empty-environment)))
+	(show (source.corescheme c get-ctx: empty-environment)))
 
  > (cs/empty '(define x 2))
  (_corescheme-def #f (corescheme-var 'x 1) (_corescheme-literal #f 2))
@@ -1193,7 +1193,7 @@ status"
 
 
  > (def (cs/default c)
-	(.show (source.corescheme c get-ctx: default-scheme-env)))
+	(show (source.corescheme c get-ctx: default-scheme-env)))
 
  > (cs/default '(+ - * /))
  (_corescheme-app #f
@@ -1225,13 +1225,13 @@ status"
 
 ;; .references
 (TEST
- > (.show (F (RUN-CORESCHEME (.references (corescheme-ref
+ > (show (F (RUN-CORESCHEME (.references (corescheme-ref
                                            (corescheme-var 'foo 1))
                                           (corescheme-var 'foo 1)
                                           '(a)
                                           '()))))
  (list (list (_corescheme-ref #f (corescheme-var 'foo 1)) 'a))
- > (.show (F (RUN-CORESCHEME (.references (corescheme-begin
+ > (show (F (RUN-CORESCHEME (.references (corescheme-begin
                                            (list (corescheme-ref
                                                   (corescheme-var 'foo 1))))
                                           (corescheme-var 'foo 1)

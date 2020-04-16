@@ -42,7 +42,7 @@
 
 
 (TEST
- > (.show (.mirror0 (Mc (Vc 1 2) (Vc 3 4))))
+ > (show (.mirror0 (Mc (Vc 1 2) (Vc 3 4))))
  (Mc (Vc 3.+0.i 4.+0.i) (Vc 1.+0.i 2.+0.i))
  )
 

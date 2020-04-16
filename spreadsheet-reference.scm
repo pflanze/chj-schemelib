@@ -209,7 +209,7 @@
 
 
  ;; various formats:
- > (def p (comp .show .spreadsheet-reference))
+ > (def p (comp show .spreadsheet-reference))
  > (p "IDs!R[-20]C[1]")
  (spreadsheet-reference-relative "IDs" -20 1)
  > (p "R[-20]C[1]")

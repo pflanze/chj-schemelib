@@ -56,8 +56,8 @@
 (define. symboltable.sortedlist symboltable->sortedlist)
 
 
-(define. (symboltable.show v)
-  `(symboltable ,@(map .show (symboltable->sortedlist v))))
+(define. (symboltable.show v show)
+  `(symboltable ,@(map show (symboltable->sortedlist v))))
 
 (define (symboltable-sortedkeys t #!optional (tail '()))
   (cmp-sort (symboltable-keys t tail) symbol-cmp))
@@ -205,7 +205,7 @@
  #((symboltable) 3 #f #f ha 2 b "moo-c" a "moo-a")
  > (symboltable-set t 'c "c")
  #((symboltable) 4 #f #f ha 2 #f #f #f #f #f #f c "c" b "moo-b" a "moo-a")
- > (.show #)
+ > (show #)
  (symboltable (cons 'a "moo-a") (cons 'b "moo-b") (cons 'c "c") (cons 'ha 2))
  > (equal? (symboltable-add t 'c "c") (symboltable-set t 'c "c"))
  #t
@@ -307,7 +307,7 @@
 			  (sequential-pairs keywords+values cons))))
 
 (TEST
- > (.show (symboltable* b: 1 a: 2))
+ > (show (symboltable* b: 1 a: 2))
  (symboltable (cons 'a 2) (cons 'b 1)))
 
 

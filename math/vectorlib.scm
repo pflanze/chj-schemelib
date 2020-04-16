@@ -74,11 +74,11 @@
 (define. Vs.size u64vector-length)
 (define. Vs.list u64vector->list)
 (define list->Vs list->u64vector)
-(define. (Vs.show v)
+(define. (Vs.show v show)
   (cons 'Vs (Vs.list v)))
 
 (TEST
- > (.show (Vs 0 1 18446744073709551615))
+ > (show (Vs 0 1 18446744073709551615))
  (Vs 0 1 18446744073709551615))
 
 ;; === /Choice of machine addressing size ===
@@ -95,11 +95,11 @@
 (define. Vi.size s64vector-length)
 (define. Vi.list s64vector->list)
 (define list->Vi list->s64vector)
-(define. (Vi.show v)
+(define. (Vi.show v show)
   (cons 'Vi (Vi.list v)))
 
 (TEST
- > (.show (Vi 0 -9223372036854775808 9223372036854775807))
+ > (show (Vi 0 -9223372036854775808 9223372036854775807))
  (Vi 0 -9223372036854775808 9223372036854775807))
 
 
@@ -128,7 +128,7 @@
 (define (Vr . x)
   (list->Vr (map exact->inexact x)))
 
-(define. (Vr.show v)
+(define. (Vr.show v show)
   (cons 'Vr (Vr->list v)))
 
 ;; === Vector of complex:
@@ -191,7 +191,7 @@
                              (* (realvector-ref data (inc (fx.twice i))) +i))
                           res))))))
 
-(define. (Vc.show v)
+(define. (Vc.show v show)
   (cons 'Vc (Vc->list v)))
 
 (TEST
@@ -207,11 +207,11 @@
 (TEST
  > (define v (Vc 1 2 3))
  > (.update!* v 3 inc*)
- > (.show v)
+ > (show v)
  (Vc 1.+0.i 2.+0.i 4.+0.i)
  > (define m (Mr (Vr 1 2 3) (Vr 4 5 6)))
  > (.update!* m 1 2 -)
- > (.show m)
+ > (show m)
  (Mr (Vr 1. -2. 3.) (Vr 4. 5. 6.)))
 
 
@@ -550,7 +550,7 @@
     (V<t>-update!*-inline (vector-ref (M<t>.data m) (dec i0)) i1 fn))
   (define. M<t>.update!* M<t>-update!*)
 
-  (define. (M<t>.show m)
+  (define. (M<t>.show m show)
     (let-M<t> ((size0 size1 data) m)
               ;; since show is going to be used for testing, fsck'ing
               ;; makes sense here, ok? (or just warn?)
@@ -558,7 +558,7 @@
               (cons 'M<t>
                     (map (lambda (v)
                            (assert (= (V<t>.size v) size1))
-                           (V<t>.show v))
+                           (V<t>.show v show))
                          (vector->list data))))))
 
 (define-M<> r)
@@ -568,13 +568,13 @@
 (TEST
  > (Mr:zeros 2 3)
  [(Mr) 2 3 [#f64(0. 0. 0.) #f64(0. 0. 0.)]]
- > (.show (Mr:zeros 2 3))
+ > (show (Mr:zeros 2 3))
  (Mr (Vr 0. 0. 0.) (Vr 0. 0. 0.))
  > (Mr:ones 1 3)
  [(Mr) 1 3 [#f64(1. 1. 1.)]]
- > (.show (Mr (Vr 1 2) (Vr 3 4)))
+ > (show (Mr (Vr 1 2) (Vr 3 4)))
  (Mr (Vr 1. 2.) (Vr 3. 4.))
- > (.show (Mc (Vc 1 2) (Vc 3-2i 4)))
+ > (show (Mc (Vc 1 2) (Vc 3-2i 4)))
  (Mc (Vc 1.+0.i 2.+0.i) (Vc 3.-2.i 4.+0.i)))
 
 
@@ -741,13 +741,13 @@
                       (C make-Vr n _))))
 
 (TEST
- > (.show (.replicate-row (Vr 1 2 3) 3))
+ > (show (.replicate-row (Vr 1 2 3) 3))
  (Mr (Vr 1. 2. 3.)
      (Vr 1. 2. 3.)
      (Vr 1. 2. 3.))
- > (.show (.replicate-column (Vr 1 2 3) 3))
+ > (show (.replicate-column (Vr 1 2 3) 3))
  (Mr (Vr 1. 1. 1.) (Vr 2. 2. 2.) (Vr 3. 3. 3.))
- > (map .show (values->list (VrVr.ndgrid (Vr 1 2 3) (Vr -4 -5 -6))))
+ > (map show (values->list (VrVr.ndgrid (Vr 1 2 3) (Vr -4 -5 -6))))
  ((Mr (Vr 1. 1. 1.)
       (Vr 2. 2. 2.)
       (Vr 3. 3. 3.))
@@ -846,13 +846,13 @@
 
 
 (TEST
- > (.show (.map (Vr 1 2 3) inc*))
+ > (show (.map (Vr 1 2 3) inc*))
  (Vr 2. 3. 4.)
- > (.show (.map (Vc 1 2 3) inc*))
+ > (show (.map (Vc 1 2 3) inc*))
  (Vc 2.+0.i 3.+0.i 4.+0.i)
- > (.show (.map (Mr (Vr 1 2) (Vr 3 4)) inc*))
+ > (show (.map (Mr (Vr 1 2) (Vr 3 4)) inc*))
  (Mr (Vr 2. 3.) (Vr 4. 5.))
- > (.show (.map+ (Mr (Vr 1 2) (Vr 3 4)) (lambda (x i0 i1) (+ x i0))))
+ > (show (.map+ (Mr (Vr 1 2) (Vr 3 4)) (lambda (x i0 i1) (+ x i0))))
  (Mr (Vr 1. 2.) (Vr 4. 5.)))
 
 
@@ -949,9 +949,9 @@
 (define. Mc.transpose (mk-transpose @make-Mc))
 
 (TEST
- > (.show (.transpose (Mr (Vr 1 2 3) (Vr 4 5 -6))))
+ > (show (.transpose (Mr (Vr 1 2 3) (Vr 4 5 -6))))
  (Mr (Vr 1. 4.) (Vr 2. 5.) (Vr 3. -6.))
- > (.show (.transpose (Mc (Vc 1 2 3) (Vc 4 5 0-6i))))
+ > (show (.transpose (Mc (Vc 1 2 3) (Vc 4 5 0-6i))))
  (Mc (Vc 1.+0.i 4.+0.i) (Vc 2.+0.i 5.+0.i) (Vc 3.+0.i 0.-6.i)))
 
 
@@ -992,7 +992,7 @@
 
 (TEST
  > (define m (Mc (Vc 1 2 3) (Vc 4 5 6) (Vc 7 8 9)))
- > (.show (McVss.ref-at* m (Vs 2 3 1) 3))
+ > (show (McVss.ref-at* m (Vs 2 3 1) 3))
  (Vc 6.+0.i 9.+0.i 3.+0.i))
 
 
@@ -1045,11 +1045,11 @@
 (define. (Vb.list v)
   (vector->list (Vb.data v)))
 
-(define. (Vb.show v)
+(define. (Vb.show v show)
   (cons 'Vb (Vb.list v)))
 
 (TEST
- > (.show (Vb #t #f #t))
+ > (show (Vb #t #f #t))
  (Vb #t #f #t))
 
 
@@ -1111,12 +1111,12 @@
 (define. Mc.section* (M_.section* @make-Mc))
 
 (TEST
- > (.show (.section* (Mr (Vr 1 2 3)
+ > (show (.section* (Mr (Vr 1 2 3)
                          (Vr 4 5 6)) 1 2 2 2))
  ;; m([1:2],[2:2])
  (Mr (Vr 2.)
      (Vr 5.))
- > (.show (.section* (Mr (Vr 1 2 3)
+ > (show (.section* (Mr (Vr 1 2 3)
                          (Vr 4 5 6)
                          (Vr 7 8 9)) 2 3 2 3))
  ;;  m([2:3],[2:3])

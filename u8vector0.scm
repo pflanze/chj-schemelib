@@ -142,33 +142,33 @@ ___RESULT= ___FIX(res);
 (TEST
  > (string.utf8-u8vector "")
  #u8()
- > (.show #)
+ > (show #)
  (.utf8-u8vector "")
  > (string.utf8-u8vector0 "")
  #u8(0)
- > (.show #)
+ > (show #)
  (.utf8-u8vector0 "")
  > (string.utf8-u8vector "Hello")
  #u8(72 101 108 108 111)
- > (.show #)
+ > (show #)
  (.utf8-u8vector "Hello")
  > (string.utf8-u8vector0 "Hello")
  #u8(72 101 108 108 111 0)
- > (.show #)
+ > (show #)
  (.utf8-u8vector0 "Hello")
  > (string.utf8-u8vector "Hellö")
  #u8(72 101 108 108 195 182)
- > (.show #)
+ > (show #)
  (.utf8-u8vector "Hellö")
  > (string.utf8-u8vector0 "Hellö")
  #u8(72 101 108 108 195 182 0)
- > (.show #)
+ > (show #)
  (.utf8-u8vector0 "Hellö")
  ;; not u8vector0 but embedded \0:
- > (.show '#u8(72 101 108 108 195 182 0 65))
+ > (show '#u8(72 101 108 108 195 182 0 65))
  (.utf8-u8vector "Hell\366\0A")
  ;; invalid utf8:
- > (.show '#u8(72 101 108 108 195 182 0 65 128))
+ > (show '#u8(72 101 108 108 195 182 0 65 128))
  (u8vector 72 101 108 108 195 182 0 65 128)
 
  > (string.utf8-u8vector0 "Hellöl")
@@ -180,7 +180,7 @@ ___RESULT= ___FIX(res);
  [error "null character not allowed"]
 
  ;; Careful, 
- > (.show '#u8(72 101 108 108 195 182 0 65 128 0))
+ > (show '#u8(72 101 108 108 195 182 0 65 128 0))
  ;; NOT (.utf8-u8vector0 "Hell\366") since
  ;; > (eval #)
  ;; #u8(72 101 108 108 195 182 0)
@@ -222,9 +222,9 @@ ___RESULT= ___FIX(res);
 	      (return l))))))
 
 (def (u8vector0:<>.show maybe-utf8-parse constr super-show)
-     "Since there's (currently, XX idea?) no way to fall back method
+     "Since there's (currently, XX idea?) no way to fall back on method
 dispatch, need the |super-show| argument."
-     (lambda (v)
+     (lambda (v show)
        (cond ((maybe-utf8-parse v)
               ;; XX also check that the number of escapes will be
               ;; reasonably small? !
@@ -233,10 +233,10 @@ dispatch, need the |super-show| argument."
                      ;; check that the conversion back is really the same; 
                      (if (equal? (eval res) v)
                          res
-                         (super-show v)))))
+                         (super-show v show)))))
              (else
               ;; fall back to boring definition
-              (super-show v)))))
+              (super-show v show)))))
 
 (def (utf8-decoding-error/2 i v)
      (error "utf-8 decoding error" i v))
@@ -267,7 +267,7 @@ dispatch, need the |super-show| argument."
                      `.utf8-u8vector
                      ;; ugly, can't access that definition, have to
                      ;; define it again:
-                     (lambda (v)
+                     (lambda (v show)
                        `(u8vector ,@(u8vector->list v)))))
 
 
@@ -343,7 +343,7 @@ dispatch, need the |super-show| argument."
 (TEST
  > (def n 500)
  > (def ts (make-list! n (& (let ((v (random-u8vector 5)))
-                              (cons v (.show v))))))
+                              (cons v (show v))))))
  > (for-all ts (lambda-pair ((a b)) (equal? a (eval b))))
  ;; should be guaranteed by code already but hey..
  ()

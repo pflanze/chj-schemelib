@@ -47,7 +47,7 @@ The optionally captured continuation should be contained within `Result` or `Err
 
 ## Showing failure information
 
-* [cj-exception-handler.scm](../cj-exception-handler.scm) implements an "anonymous interface" (actually not, there's not even a predicate for the types that implement the method) with a `.maybe-exception-message` method that extracts a list of a message string then arguments. This is basically the reverse of the `error` calling interface (*but* automatically adding ":" when showing, hence not fully compatible, TODO bug). (TODO: when to `.show` arguments: on display; but, there is a consistency problem (where was it, with `assert`? ).)
+* [cj-exception-handler.scm](../cj-exception-handler.scm) implements an "anonymous interface" (actually not, there's not even a predicate for the types that implement the method) with a `.maybe-exception-message` method that extracts a list of a message string then arguments. This is basically the reverse of the `error` calling interface (*but* automatically adding ":" when showing, hence not fully compatible, TODO bug). (TODO: when to `show` arguments: on display; but, there is a consistency problem (where was it, with `assert`? ).)
 
 * Idea of `.shtml` interface
 

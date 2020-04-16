@@ -237,17 +237,17 @@
      s ($wbtreeparameter data)
      (wbtree:members data)))
 
-  (defmethod- (show s)
+  (defmethod- (show s show)
     (with-wbtable
      s (key? key-cmp value?)
      (if (.empty? s)
-	 `(empty-wbtable-of ,(.show key?)
-			    ,(.show key-cmp)
-			    ,(.show value?))
-	 `((list->wbtable-of ,(.show key?)
-			     ,(.show key-cmp)
-			     ,(.show value?))
-	   (list ,@(map .show (.list s)))))))
+	 `(empty-wbtable-of ,(show key?)
+			    ,(show key-cmp)
+			    ,(show value?))
+	 `((list->wbtable-of ,(show key?)
+			     ,(show key-cmp)
+			     ,(show value?))
+	   (list ,@(map show (.list s)))))))
 
   ;; wbtable.keys
   ;; wbtable.sortedkeys  same ?
@@ -307,8 +307,8 @@
 			  (wbtable.data t))))
 	  ;; worry about huge data or not, forever? only show heads?
 	  (error "incompatible table heads:"
-		 ;; and do an error that does .show implicitely rather
-		 ;; than use .show here, k?
+		 ;; and do an error that does |show| implicitely rather
+		 ;; than use |show| here, k?
 		 h1 h2)))))
 
 
@@ -347,7 +347,7 @@
  > (map (wbtable-of symbol? integer?)
 	(list t t2 t3 't (empty-wbtable-of symbol? symbol-cmp string?)))
  (#t #t #t #f #f)
- > (.show t2)
+ > (show t2)
  ((list->wbtable-of symbol? symbol-cmp integer?)
   (list (cons 'x 1)
 	(cons 'y 2)))
@@ -355,7 +355,7 @@
  > (def u ((list->wbtable-of symbol? symbol-cmp integer?)
 	   '((a . 11) (b . 12) (x . 10))))
  > (def u2 (.union t2 u))
- > (.show u2)
+ > (show u2)
  ((list->wbtable-of symbol? symbol-cmp integer?)
   (list (cons 'a 11)
 	(cons 'b 12)

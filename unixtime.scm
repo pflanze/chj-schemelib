@@ -230,7 +230,7 @@
  > (def l (localtime 20 28 16 12 0 118 5 11 0 0))
  > (def (l* n)
 	(let ((lt (repeatedly n .month-inc (.month-start l))))
-	  (.show (values lt (.localtime-string (.unixtime lt))))))
+	  (show (values lt (.localtime-string (.unixtime lt))))))
  > (l* 0)
  (values (localtime 0 0 0 1 0 118 5 11 -1 0) "Mon, 1 Jan 2018 00:00:00")
  > (l* 1)

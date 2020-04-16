@@ -55,8 +55,8 @@
           list->table))
 
 
-;; Fall back to Scheme .show
-(def. any.show-clojure .show)
+;; Fall back to Scheme |show|
+(def. any.show-clojure show)
 
 (def. (table.show-clojure t)
   `(hash-map ,@(fold-right (lambda (k l)

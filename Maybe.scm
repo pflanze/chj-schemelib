@@ -51,7 +51,7 @@
     (defmethod (maybe-value s)
       #f)
 
-    (defmethod (show s)
+    (defmethod (show s show)
       `(Nothing)))
 
   (defclass (Just value)
@@ -419,9 +419,9 @@ thrown)."
  > (Maybe.>>= (Just 2) inc*)
  3
  ;; ^ not type correct, though--XX catch it?
- > (.show (Maybe.>>= (Just 2) (comp Maybe.return inc*)))
+ > (show (Maybe.>>= (Just 2) (comp Maybe.return inc*)))
  (Just 3)
- > (.show (Maybe.>>= (Nothing) inc*))
+ > (show (Maybe.>>= (Nothing) inc*))
  (Nothing))
 
 
@@ -431,13 +431,13 @@ thrown)."
  > (def (t msg val)
         (push! actions msg)
         val)
- > (.show (in-monad Maybe (mdo (t 'a (Just 2))
+ > (show (in-monad Maybe (mdo (t 'a (Just 2))
                                (t 'b (return 3))
                                (t 'c (return 4)))))
  (Just 4)
  > actions
  (c b a)
- > (.show (in-monad Maybe (mdo (t 'd (return 2))
+ > (show (in-monad Maybe (mdo (t 'd (return 2))
                                (t 'e (Nothing))
                                (t 'f (return 4)))))
  (Nothing)
@@ -445,7 +445,7 @@ thrown)."
  (e d c b a)
  > (in-monad Maybe (mlet (x (t 'g (Just 2))) x))
  2
- > (.show (in-monad Maybe (mlet ((x (t 'h (Nothing)))
+ > (show (in-monad Maybe (mlet ((x (t 'h (Nothing)))
                                  (y (t 'i (return 3))))
                                 x)))
  (Nothing)
@@ -461,7 +461,7 @@ thrown)."
 
 
 (TEST
- > (.show (in-monad Maybe (=<< (comp return inc) (Just 123))))
+ > (show (in-monad Maybe (=<< (comp return inc) (Just 123))))
  (Just 124))
 
 (TEST

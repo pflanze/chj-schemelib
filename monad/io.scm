@@ -93,13 +93,13 @@
 
 (TEST
  > (def a (mdo-in IO (io:print "Hello ") (io:println "world!")))
- > (.show a)
+ > (show a)
  (IO>> (IOProc print (list "Hello ")) (IOProc println (list "world!")))
- > (.show (%with-output-to-string (.run (eval #))))
+ > (show (%with-output-to-string (.run (eval #))))
  (values "Hello world!\n" (void))
- > (.show (%with-output-to-string (.run a)))
+ > (show (%with-output-to-string (.run a)))
  (values "Hello world!\n" (void))
- > (.show (%with-output-to-string (.run (mdo-in IO (io:print "hi") (return "there")))))
+ > (show (%with-output-to-string (.run (mdo-in IO (io:print "hi") (return "there")))))
  (values "hi" "there")
  )
 

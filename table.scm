@@ -90,7 +90,7 @@
 
 
 
-(define. (table.show t)
+(define. (table.show t show)
   (define (get key op dflts)
     (let ((v (op t)))
       (if (any (lambda (dflt _) ;; _ is to prevent the absent value from
@@ -98,7 +98,7 @@
                  (eq? dflt v))
                dflts (make-list (length dflts) #t))
           '()
-          `(,key ,(.show v)))))
+          `(,key ,(show v)))))
   `(table
     ,@(get test: table.test (list ##equal? equal?))
     ,@(get hash: table.hash
@@ -118,27 +118,27 @@
     ,@(get weak-keys: table.weak-keys (list #f))
     ,@(get weak-values: table.weak-values (list #f))
     ,@(get init: table.init (list table:absent))
-    ,@(map .show (cmp-sort (table->list t) (on car generic-cmp)))))
+    ,@(map show (cmp-sort (table->list t) (on car generic-cmp)))))
 
 (TEST
- > (.show (list->table '((a . 1) (b . 2))))
+ > (show (list->table '((a . 1) (b . 2))))
  (table (cons 'a 1) (cons 'b 2))
- > (.show (list->table '((a . 1) (b . 2)) test: eq?))
+ > (show (list->table '((a . 1) (b . 2)) test: eq?))
  (table test: eq? (cons 'a 1) (cons 'b 2))
- > (.show (list->table '((a . 1) (b . 2)) test: equal?))
+ > (show (list->table '((a . 1) (b . 2)) test: equal?))
  (table (cons 'a 1) (cons 'b 2))
- > (.show (list->table '((2 . a) (1 . b)) test: =))
+ > (show (list->table '((2 . a) (1 . b)) test: =))
  (table test: = (cons 1 'b) (cons 2 'a))
 
  ;;XX hm these don't work
- ;; > (.show (list->table '(("a" . 1) ("b" . 2)) weak-keys: #t))
+ ;; > (show (list->table '(("a" . 1) ("b" . 2)) weak-keys: #t))
  ;; (table weak-keys: #t (cons "a" 1) (cons "b" 2))
- ;; > (.show (list->table '(("a" . 1) ("b" . 2)) weak-values: #t))
+ ;; > (show (list->table '(("a" . 1) ("b" . 2)) weak-values: #t))
  ;; (table weak-values: #t (cons "a" 1) (cons "b" 2))
- ;; > (.show (list->table '(("a" . 1) ("b" . 2)) weak-keys: #t weak-values: #t))
+ ;; > (show (list->table '(("a" . 1) ("b" . 2)) weak-keys: #t weak-values: #t))
  ;; (table weak-keys: #t weak-values: #t (cons "a" 1) (cons "b" 2))
 
- > (.show (list->table '((a . 1) (b . 2)) init: 123))
+ > (show (list->table '((a . 1) (b . 2)) init: 123))
  (table init: 123 (cons 'a 1) (cons 'b 2))
  )
 
@@ -191,11 +191,11 @@
 
 ;; table*
 (TEST
- > (.show (table* init: 123))
+ > (show (table* init: 123))
  (table weak-keys: '? weak-values: '? init: 123)
- > (.show (table* "b" 2 "a" 1))
+ > (show (table* "b" 2 "a" 1))
  (table (cons "a" 1) (cons "b" 2))
- > (.show (table* init: 123 "b" 2 "a" 1))
+ > (show (table* init: 123 "b" 2 "a" 1))
  (table init: 123 (cons "a" 1) (cons "b" 2)))
 
 

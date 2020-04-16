@@ -1378,7 +1378,7 @@
 (TEST
  > (F (stream-map values->vector (stream-zip2 (stream-iota) (list "a" "b"))))
  ([0 "a"] [1 "b"])
- > (.show (zip2 '(1 2) '(a b)))
+ > (show (zip2 '(1 2) '(a b)))
  (list (values 1 'a) (values 2 'b)))
 
 

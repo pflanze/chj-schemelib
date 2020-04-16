@@ -116,7 +116,7 @@
 	(if (negative? x)
 	    #f
 	    (- x)))
- > (def t (comp* .show F (C udo f _)))
+ > (def t (comp* show F (C udo f _)))
  > (t '(1 2))
  (values (list -1 -2) #t)
  > (t '(1 -1 2))

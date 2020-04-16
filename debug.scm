@@ -203,7 +203,7 @@
                               (list
                                ',(car form)
                                ,@(map (lambda (v)
-                                        `(.show ,v))
+                                        `(show ,v))
                                       vs))
                               ,@(if tailcall? '() '('...))))
                   ,(let ((call-code `(,(car form) ,@vs)))
@@ -219,10 +219,10 @@
                                              " :")
                                         (list ',(car form)
                                               ,@(map (lambda (v)
-                                                       `(.show ,v))
+                                                       `(show ,v))
                                                      vs))
                                         '->
-                                        (.show ,res)))
+                                        (show ,res)))
                             ,res))))))))
          (debug:parse-level
           form #t

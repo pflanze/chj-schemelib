@@ -98,14 +98,14 @@
  ;; heh. as fast and still shadowed?
 
 
- (def-method- (show s)
+ (def-method- (show s show)
    (let-wbmcollection
     ((p _ lnull lcons) s)
     `(lists.wbmcollection
-      ,(.show (wbtreeparameter.cmp p))
-      ,(.show lnull)
-      ,(.show lcons)
-      ,(.show (.members s))))))
+      ,(show (wbtreeparameter.cmp p))
+      ,(show lnull)
+      ,(show lcons)
+      ,(show (.members s))))))
 
 
 
@@ -143,25 +143,25 @@
 (TEST
  > (def tcmp (on caar real-cmp))
  > (def m (empty-wbmcollection tcmp '() cons))
- > (.show m)
+ > (show m)
  (lists.wbmcollection tcmp (list) cons (list))
  > (def m (.add m '(1 . a)))
- > (.show m)
+ > (show m)
  (lists.wbmcollection tcmp (list) cons (list (list (cons 1 'a)))) ;; XX actually wrong?F
  > (def m (.add m '(1 . b)))
- > (.show m)
+ > (show m)
  (lists.wbmcollection tcmp (list) cons (list (list (cons 1 'b) (cons 1 'a))))
  > (def m (.add m '(2 . c)))
- > (.show m)
+ > (show m)
  (lists.wbmcollection tcmp (list) cons
 		      (list (list (cons 1 'b) (cons 1 'a))
 			    (list (cons 2 'c))))
  > (def g (.maybe-ref m (cons 1 'X)))
- > (.show g)
+ > (show g)
  (list (cons 1 'b) (cons 1 'a))
- > (.show (.delete-group m g))
+ > (show (.delete-group m g))
  (lists.wbmcollection tcmp (list) cons (list (list (cons 2 'c))))
- > (.show (.delete-group m '((1 . x))))
+ > (show (.delete-group m '((1 . x))))
  (lists.wbmcollection tcmp (list) cons (list (list (cons 2 'c))))
  > (def c (list.wbmcollection tcmp '() cons
 			      '((1 . a)

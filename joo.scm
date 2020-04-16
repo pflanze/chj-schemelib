@@ -1015,7 +1015,7 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  #t
  > (.haha (joo_fooo 1 2))
  1
- > (.show (.id (joo_fooo 1 2)))
+ > (show (.id (joo_fooo 1 2)))
  (joo_fooo 1 2))
 
 ;; test checks:

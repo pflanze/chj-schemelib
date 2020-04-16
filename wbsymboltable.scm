@@ -90,9 +90,9 @@
       (list.wbsymboltable-of l value?))
  
 
- (def-method- (show t)
-   `(list.wbsymboltable-of ,(.show (.list t))
-			   ,(.show (=> t
+ (def-method- (show t show)
+   `(list.wbsymboltable-of ,(show (.list t))
+			   ,(show (=> t
 				       (.table-head)
 				       (.value?)))))
 
@@ -113,7 +113,7 @@
 	(number? (cdr '(z "2/3")))]
  ;; OH well? Ugly or actually okay?
  > (def u (list.wbsymboltable-of '((z . "2/3") (a . "a") (b . "b")) string?))
- > (.show u)
+ > (show u)
  (list.wbsymboltable-of (list (cons 'a "a")
 			      (cons 'b "b")
 			      (cons 'z "2/3"))

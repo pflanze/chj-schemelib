@@ -82,10 +82,10 @@
 		  min-length
 		  max-length))
   
-  (defmethod (show s)
+  (defmethod (show s show)
     `(radixtree/entries-alist
-      ,(.show Maybe-value)
-      ,(.show (vectormap.alist entries))
+      ,(show Maybe-value)
+      ,(show (vectormap.alist entries))
       ,min-length
       ,max-length))
 
@@ -176,15 +176,15 @@
 
 
 (TEST
- > (.show (alist.radixtree '()))
+ > (show (alist.radixtree '()))
  (radixtree/entries-alist (Nothing) (list) 0 0)
- > (.show (alist.radixtree '(("a" . a) ("b" . b))))
+ > (show (alist.radixtree '(("a" . a) ("b" . b))))
  (radixtree/entries-alist
   (Nothing)
   (list (cons (vector #\a) (radixtree/entries-alist (Just 'a) (list) 0 0))
 	(cons (vector #\b) (radixtree/entries-alist (Just 'b) (list) 0 0)))
   1 1)
- > (.show (alist.radixtree '(("a" . a) ("ab" . b))))
+ > (show (alist.radixtree '(("a" . a) ("ab" . b))))
  (radixtree/entries-alist
   (Nothing)
   (list (cons (vector #\a)
@@ -280,7 +280,7 @@
  > (.Maybe-ref r2 "")
  [(Nothing)]
 
- > (equal? r2 (eval (.show r2)))
+ > (equal? r2 (eval (show r2)))
  #t
 
  > (.min-length r2)

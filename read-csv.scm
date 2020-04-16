@@ -191,7 +191,7 @@
  "row 1039 col 4 (D1039) in file \"foo.csv\""
  > ((csv-cell-of string?) c)
  #t
- > (.show ((csv-cell-of nothing?) c))
+ > (show ((csv-cell-of nothing?) c))
  (csv-type-error #f (csv-cell "hi" "foo.csv" 1039 4))
  > (x-csv-cell-of c string?)
  "hi"

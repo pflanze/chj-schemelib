@@ -59,10 +59,10 @@
        (trie Maybe-value
 	     (alist.vectormap entries-alist .cmp)))
     
-  (defmethod (show s)
+  (defmethod (show s show)
     `(Maybe-value&entries-alist->trie
-      ,(.show Maybe-value)
-      ,(.show (vectormap.alist entries))))
+      ,(show Maybe-value)
+      ,(show (vectormap.alist entries))))
 
   ;; report the next branching or value holding point (could be the
   ;; end)
@@ -141,12 +141,12 @@
 		    (trie.add t k v))) empty-trie ss))
 
 (TEST
- > (.show empty-trie)
+ > (show empty-trie)
  (Maybe-value&entries-alist->trie (Nothing) (list))
  > (equal? (Maybe-value&entries-alist->trie (Nothing) (list)) empty-trie)
  #t
  > (def t (.add empty-trie "Hi" "world"))
- > (.show t)
+ > (show t)
  (Maybe-value&entries-alist->trie
   (Nothing)
   (list (cons #\H
@@ -155,15 +155,15 @@
 	       (list (cons #\i (Maybe-value&entries-alist->trie (Just "world")
 								(list))))))))
  > (def t2 (.add t "Hj" "2"))
- > (.show (.Maybe-ref t2 "Hi"))
+ > (show (.Maybe-ref t2 "Hi"))
  (Just "world")
- > (.show (.Maybe-ref t2 "H"))
+ > (show (.Maybe-ref t2 "H"))
  (Nothing)
- > (.show (.Maybe-ref t2 "Hj"))
+ > (show (.Maybe-ref t2 "Hj"))
  (Just "2")
- > (.show (.Maybe-ref t2 "Hk"))
+ > (show (.Maybe-ref t2 "Hk"))
  (Nothing)
- > (.show (.Maybe-ref t2 "Hi "))
+ > (show (.Maybe-ref t2 "Hi "))
  (Nothing)
  
  > (%try-error (.add t "Hi" "2"))

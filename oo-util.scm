@@ -69,7 +69,7 @@
 
 (define char-list+? (both pair? (list-of char?)))
 
-(define. (char-list+.show l)
+(define. (char-list+.show l show)
   `(.list ,(char-list.string l)))
 
 (define. string.list string->list)

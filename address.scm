@@ -51,7 +51,7 @@
 
 
 (jclass (address32 #(uint32? value))
-	(def-method (show v)
+	(def-method (show v show)
 	  `(address32* ,(.common-hex-string value 32))))
 
 (def (maybe-address32* str)
@@ -65,11 +65,11 @@
 (TEST
  > (address32* "0x480ca000")
  #((address32) 1208786944)
- > (.show #)
+ > (show #)
  (address32* "0x480ca000")
  > (address32* "0x00020000")
  #((address32) 131072)
- > (.show #)
+ > (show #)
  (address32* "0x00020000")
  > (%try (address32* "480ca000"))
  (exception text: "not an address string: \"480ca000\"\n"))

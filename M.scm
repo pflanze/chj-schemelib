@@ -14,13 +14,13 @@
 
 
 ;; Quick new idea for (pattern) matching, just...  work on the
-;; non-.show representation. Will only work for readable
+;; non-|show| representation. Will only work for readable
 ;; representations though. Isn't this just a Scheme inconsistency? Has
 ;; Clojure fixed this? But could easily change to take the head as the
 ;; constructor and derive the predicate name from it by simply
 ;; appending |?|, or perhaps look up some class property for that.
 
-;; Extend with constant matching?  Actually, the .show way would also
+;; Extend with constant matching?  Actually, the |show| way would also
 ;; work for distinguishing constants `'foo` from variables `foo`!
 ;; Wow. So don't give Clojure's way priority, right?
 

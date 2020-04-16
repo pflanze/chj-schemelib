@@ -176,10 +176,10 @@
 
  (def-method- list wbcollection.members)
 
- (def-method- (show s)
+ (def-method- (show s show)
    `(list.wbcollection
-     ,(.show (wbtreeparameter.cmp (.param s)))
-     ,(.show (wbcollection.members s))))
+     ,(show (wbtreeparameter.cmp (.param s)))
+     ,(show (wbcollection.members s))))
 
  (def-wbcollection-method (members-stream c
 					  #!optional
@@ -261,7 +261,7 @@
 
 
 (TEST
- > (.show
+ > (show
     (with-exception-catcher
      identity
      (& (list.wbcollection real-cmp '(1 3 2 9 -2 3.3 3)))))
@@ -331,9 +331,9 @@
  > (.list r)
  (-2 1 2 3 3.3 9)
 
- > (.show r)
+ > (show r)
  (list.wbcollection real-cmp (list -2 1 2 3 3.3 9))
- > (.show (list.wbcollection real-cmp (list -2 1 2 3 3.3 9)))
+ > (show (list.wbcollection real-cmp (list -2 1 2 3 3.3 9)))
  (list.wbcollection real-cmp (list -2 1 2 3 3.3 9))
  
  ;; > (with-exception-catcher identity (& (set! c (.delete c 1))))
@@ -351,7 +351,7 @@
  > (%try-error (.max c))
  #(error "can't get max from empty wbtree")
 
- > (.show c)
+ > (show c)
  (list.wbcollection real-cmp (list))
  )
 

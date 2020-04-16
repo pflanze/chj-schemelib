@@ -59,29 +59,29 @@
 	     (uappend (.cdr a) b))))
 
 
-(define. (upair.show v)
+(define. (upair.show v show)
   (cons (.car v)
-	(.show (.cdr v))))
+	(show (.cdr v))))
 
-(define. (unull.show v)
+(define. (unull.show v show)
   '())
 
 
 (TEST
- > (.show (ulist integer? 1 2 3))
+ > (show (ulist integer? 1 2 3))
  (1 2 3)
  > (.length (ulist integer? 1 2 3))
  3
- > (.show (.cdr (ulist integer? 1 2 3)))
+ > (show (.cdr (ulist integer? 1 2 3)))
  (2 3)
  > (.car (ulist integer? 1 2 3))
  1
- > (.show (uappend (ulist integer? 1 2) (ulist integer? 10 11)))
+ > (show (uappend (ulist integer? 1 2) (ulist integer? 10 11)))
  (1 2 10 11)
  > (%try-error (uappend (ulist symbol? 'a 'b) (ulist integer? 10 11)))
  #(error "does not match type?:" b) ;; XX aw, type-check is actually
 				    ;; stupid. report function please. FUTURE.
- > (.show (uappend (ulist symbol?) (ulist integer? 10 11)))
+ > (show (uappend (ulist symbol?) (ulist integer? 10 11)))
  (10 11) ;; XX is this alright or should there be a type error reported?
  )
 

@@ -27,8 +27,8 @@
        (>= (vector-length v) 2)
        (eq? (vector-ref v 0) 'error)))
 
-(define. (try-error-error.show v)
-  `(%error ,@(map .show (cdr (vector->list v)))))
+(define. (try-error-error.show v show)
+  `(%error ,@(map show (cdr (vector->list v)))))
 
 ;; XX merge with error-exception.show (actually better approach
 ;; here--except, now, actually, going to error values anyway and
@@ -41,10 +41,10 @@
  > (define e (%try-error (error "fun")))
  > (try-error-error? e)
  #t
- > (.show e)
+ > (show e)
  (%error "fun")
  > (define e (%try-error (error "fun" (vector 1))))
- > (.show e)
+ > (show e)
  (%error "fun" (vector 1))
  > (equal? (eval #) e)
  #t)

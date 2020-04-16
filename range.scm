@@ -554,7 +554,7 @@
 
 
 (TEST
- > (def i (comp* .show .intersection))
+ > (def i (comp* show .intersection))
  > (i (range 10 12) (range 13 14))
  (range 13 12) ;; careful..?
  > (i (range 10 12) (range 12 14))
@@ -631,31 +631,31 @@
  (3 4 5 6 7 8)
  > (.list (.maybe-union (range 3 9) (range 10 9)))
  (3 4 5 6 7 8)
- > (.show (.maybe-union (range 3 9) (range 5 100)))
+ > (show (.maybe-union (range 3 9) (range 5 100)))
  (range 3 100)
- > (.show (.maybe-union (range 3 9) (range 9 100)))
+ > (show (.maybe-union (range 3 9) (range 9 100)))
  (range 3 100)
- > (.show (.maybe-union (range 3 9) (range 10 100)))
+ > (show (.maybe-union (range 3 9) (range 10 100)))
  #f
 
- > (.show (.filling-union (range 3 9) (range 10 100)))
+ > (show (.filling-union (range 3 9) (range 10 100)))
  (range 3 100)
- > (.show (.filling-union (range 3 20) (range 10 100)))
+ > (show (.filling-union (range 3 20) (range 10 100)))
  (range 3 100)
- > (.show (.filling-union (range 20 3) (range 10 100)))
+ > (show (.filling-union (range 20 3) (range 10 100)))
  (range 10 100)
- > (.show (.filling-union (range 10 100) (range 20 3)))
+ > (show (.filling-union (range 10 100) (range 20 3)))
  (range 10 100)
- > (.show (.filling-union (range 20 3) (range 100 10)))
+ > (show (.filling-union (range 20 3) (range 100 10)))
  (range 100 10) ;; whatever~
- > (.show (.filling-union (range 10 3) (range 100 20)))
+ > (show (.filling-union (range 10 3) (range 100 20)))
  (range 100 20) ;; whatever~
- > (.show (.filling-union (range 4 4) (range 100 20)))
+ > (show (.filling-union (range 4 4) (range 100 20)))
  (range 100 20) ;; whatever~
- > (.show (.filling-union (range 4 4) (range 20 100)))
+ > (show (.filling-union (range 4 4) (range 20 100)))
  (range 20 100)
 
- > (=> (.union* (range 10 100) (range 3 9)) .range-list .show)
+ > (=> (.union* (range 10 100) (range 3 9)) .range-list show)
  (list (range 3 9) (range 10 100))
  > (def rs (.union* (range -2 1) (range 3 5)))
  > (.list rs)
@@ -663,14 +663,14 @@
  > (.rlist rs)
  (4 3 0 -1 -2)
  > (=> (.union* (.union* (range -2 1) (range 1 2)) (range 3 5))
-       .range-list .show)
+       .range-list show)
  (list (range -2 2) (range 3 5))
- ;; > (.show (.union* (.union* (range -2 0) (range 1 2)) (range 3 5)))
+ ;; > (show (.union* (.union* (range -2 0) (range 1 2)) (range 3 5)))
  ;; XX todo
  > (def rs (.union* (range 3 5)
                     (.union* (range -2 0)
                              (range 1 2))))
- > (=> rs .range-list .show)
+ > (=> rs .range-list show)
  (list (range -2 0) (range 1 2) (range 3 5))
  > (.list rs)
  (-2 -1 1 3 4)

@@ -11,7 +11,7 @@
 ;; thus can offer lookups by keys instead of whole objects.
 
 ;; "Just" wbcollections with an easier interface, which is also shown
-;; with |.show|. Requires .cmp to be defined for the key type in
+;; with |show|. Requires .cmp to be defined for the key type in
 ;; question.
 
 (require easy
@@ -156,9 +156,9 @@
 
 	(def-method- list wbcollection.members)
 
-	(def-method (show s)
-	  `((collection-on ,(.show .key)
-			   ,(.show key-cmp)
+	(def-method (show s show)
+	  `((collection-on ,(show .key)
+			   ,(show key-cmp)
 			   ,@(if of
 				 (list of: of)
 				 `()))
@@ -242,21 +242,21 @@
 ;; 			  (eq? (cdr p) .cmp)))
 ;; 		    (else #f))))))
 
-;; (def. (collection-on.show v)
+;; (def. (collection-on.show v show)
 ;;   (let* ((fullcmp (wbtreeparameter.cmp (wbcollection.param v)))
 ;; 	 (p (on/registry-ref fullcmp))
 ;; 	 (access (car p))
 ;; 	 (cmp (cdr p)))
-;;     ;; (assert (eq? (.show cmp) '.cmp))
+;;     ;; (assert (eq? (show cmp) '.cmp))
 ;;     (assert (eq? cmp .cmp))
-;;     `((collection-on ,(.show access))
-;;       ,@(map .show (wbcollection.list v)))))
+;;     `((collection-on ,(show access))
+;;       ,@(map show (wbcollection.list v)))))
 
 
 ;; (TEST
 ;;  > (def. number.cmp real-cmp)
 ;;  > (def c ((collection-on car) (cons 4 "four") (cons 2 "two")))
-;;  > (.show c)
+;;  > (show c)
 ;;  ((collection-on car) (cons 2 "two") (cons 4 "four")))
 
 

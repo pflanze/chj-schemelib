@@ -65,7 +65,7 @@
                        (minor-faults 260763)
                        (major-faults 0)))
  ;; ah heh nice thing about all of this wrapping is that it shows up
- ;; in .show etc! No more positional type dependency, "of course",
+ ;; in |show| etc! No more positional type dependency, "of course",
  ;; "heh"!
  > (.check! t))
 

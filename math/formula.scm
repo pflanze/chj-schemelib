@@ -327,7 +327,7 @@ sexpr, and to \"math\" string.
 	  (formula-variable e))))
 
 (TEST
- > (.show (sexpr.formula '(+ 1 2)))
+ > (show (sexpr.formula '(+ 1 2)))
  (formula-operatorapp (formula-op '+ #f 10 #t #t 'left)
 		      (list (formula-constant 1)
 			    (formula-constant 2))))

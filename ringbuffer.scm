@@ -152,15 +152,15 @@
  (3 4)
  > (.length b)
  2
- > (.show (.Maybe-pop! b))
+ > (show (.Maybe-pop! b))
  (Just 3)
  > (list (.empty? b) (.full? b))
  (#f #f)
- > (.show (.Maybe-pop! b))
+ > (show (.Maybe-pop! b))
  (Just 4)
  > (list (.empty? b) (.full? b))
  (#t #f)
- > (.show (.Maybe-pop! b))
+ > (show (.Maybe-pop! b))
  (Nothing)
  > (%try-error (.pop! b))
  [error "queue is empty"]

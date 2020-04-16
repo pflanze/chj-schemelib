@@ -115,9 +115,9 @@
     (defmethod (null l)
       l))
 
-  (defmethod (show v)
-    `(typed-list ,(.show pred)
-                 ,@(map .show (.list v))))
+  (defmethod (show v show)
+    `(typed-list ,(show pred)
+                 ,@(map show (.list v))))
 
   (defmethod (cons rst fst)
     (if (pred fst)
@@ -267,24 +267,24 @@
 
 (TEST
  > (def z (typed-list number?))
- > (.show (.improper-prepend z '(1 2)))
+ > (show (.improper-prepend z '(1 2)))
  (typed-list number? 1 2)
- > (.show (.improper-prepend z '(1 . 2)))
+ > (show (.improper-prepend z '(1 . 2)))
  (typed-list number? 1 2)
- > (.show (.improper-prepend z 3))
+ > (show (.improper-prepend z 3))
  (typed-list number? 3)
- > (%try-error (.show (.improper-prepend z '(a))))
+ > (%try-error (show (.improper-prepend z '(a))))
  [error "typed-list: value does not meet predicate:" a number?])
 
 (TEST
- > (.show (.prepend z '(1 2)))
+ > (show (.prepend z '(1 2)))
  (typed-list number? 1 2)
- > (%try-error (.show (.prepend z '(1 . 2))))
+ > (%try-error (show (.prepend z '(1 . 2))))
  [error "improper list:" 2])
 
 (TEST
  > (def l (typed-list number? 5 6 7))
- > (.show (.take l 2))
+ > (show (.take l 2))
  (typed-list number? 5 6)
 
  ;; should verify such things rules-based:

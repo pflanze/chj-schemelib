@@ -19,6 +19,6 @@ bucket) syntax should/could we have?"
 
 
 (TEST
- > (.show (TABLE foo: 1 bar: (+ 39 1)))
+ > (show (TABLE foo: 1 bar: (+ 39 1)))
  (table (cons "bar" 40) (cons "foo" 1))
  )

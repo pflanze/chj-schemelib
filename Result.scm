@@ -295,9 +295,9 @@ values); otherwise return an Ok of the Ok values in l."
                      (Error (reverse err))))))
 
 (TEST
- > (.show (.Result (list (Ok 1) (Ok 2) (Error 30) (Ok 3) (Error 40) (Ok 5))))
+ > (show (.Result (list (Ok 1) (Ok 2) (Error 30) (Ok 3) (Error 40) (Ok 5))))
  (Error (list 30 40))
- > (.show (.Result (list (Ok 1) (Ok 2))))
+ > (show (.Result (list (Ok 1) (Ok 2))))
  (Ok (list 1 2)))
 
 
@@ -362,9 +362,9 @@ the builtin IO/error one."
  > (Result.>>= (Ok 2) inc*)
  3
  ;; ^ not type correct, though--XX catch it?
- > (.show (Result.>>= (Ok 2) (comp Result.return inc*)))
+ > (show (Result.>>= (Ok 2) (comp Result.return inc*)))
  (Ok 3)
- > (.show (Result.>>= (Error 2) inc*))
+ > (show (Result.>>= (Error 2) inc*))
  (Error 2))
 
 
@@ -374,13 +374,13 @@ the builtin IO/error one."
  > (def (t msg val)
         (push! actions msg)
         val)
- > (.show (in-monad Result (mdo (t 'a (Ok 2))
+ > (show (in-monad Result (mdo (t 'a (Ok 2))
                                 (t 'b (return 3))
                                 (t 'c (return 4)))))
  (Ok 4)
  > actions
  (c b a)
- > (.show (in-monad Result (mdo (t 'd (return 2))
+ > (show (in-monad Result (mdo (t 'd (return 2))
                                 (t 'e (Error "foo"))
                                 (t 'f (return 4)))))
  (Error "foo")
@@ -391,16 +391,16 @@ the builtin IO/error one."
  (e d c b a)
  > (in-monad Result (mlet (x (t 'g (Ok 2))) x))
  2
- > (.show (in-monad Result (mlet ((x (t 'h (Error "foo")))
+ > (show (in-monad Result (mlet ((x (t 'h (Error "foo")))
                                   (y (t 'i (return 3))))
                                  x)))
  (Error "foo")
  > actions
  (h g e d c b a)
 
- > (.show (-> (Result-of integer? symbol?) (mdo (Ok 2) (Ok 3))))
+ > (show (-> (Result-of integer? symbol?) (mdo (Ok 2) (Ok 3))))
  (Ok 3)
- > (.show (-> (Result-of integer? symbol?) (mdo (Error 'foo) (Ok 3))))
+ > (show (-> (Result-of integer? symbol?) (mdo (Error 'foo) (Ok 3))))
  (Error 'foo)
  
  > (define TEST:equal? syntax-equal?)

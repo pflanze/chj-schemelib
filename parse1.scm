@@ -180,7 +180,7 @@
 	 (thunk)))))
 
 
-;; give a ".show"-like view (evaluatable) that's most useful for
+;; give a "show"-like view (evaluatable) that's most useful for
 ;; inspection
 
 (def show-parse1-input-maxlen 12)
@@ -188,11 +188,11 @@
 (def. (iseq.show-parse1-input s)
   (if (stream-length-> s show-parse1-input-maxlen)
       `(cons*
-	,@(map .show (.list (.take s show-parse1-input-maxlen)))
+	,@(map show (.list (.take s show-parse1-input-maxlen)))
 	'...
 	(serial-number->object
 	 ,(object->serial-number (.drop s show-parse1-input-maxlen))))
-      (.show s)))
+      (show s)))
 
 ;; (def. (char-istream.show-parse1-input s)
 ;;   )
@@ -323,7 +323,7 @@
 			       #(iseq? at-input))
 	   (def-method (exception-message _)
 	     (cons* "input does not start with list"
-		    match: (.show match)
+		    match: (show match)
 		    at-input: (.show-parse1-input at-input)
 		    (parse1/input-failure._exception-message _))))
 
@@ -392,7 +392,7 @@
 	  (jclass (match-pred-unexpected-eof #(function? pred) desc)
 		  (def-method (exception-message _)
 		    (list "unexpected end of input while expecting an item satisfying pred"
-			  (or desc (.show pred))))))))
+			  (or desc (show pred))))))))
 
 
 (def parse1:non-capturing-result?
@@ -884,7 +884,7 @@
 
 
 (TEST
- > (.show ((PARSE1 (capture (match-list (.list "foo"))))
+ > (show ((PARSE1 (capture (match-list (.list "foo"))))
 	   (.list "foo bar")))
  (values (.list "foo") (.list " bar"))
 
@@ -899,9 +899,9 @@
 
  > (def p (PARSE1 (capture (meither (match-list (.list "foo"))
 				    (match-list (.list "bar"))))))
- > (.show (p (.list "foo baz")))
+ > (show (p (.list "foo baz")))
  (values (.list "foo") (.list " baz"))
- > (.show (p (.list "bar baz")))
+ > (show (p (.list "bar baz")))
  (values (.list "bar") (.list " baz"))
  > (with-exception-catcher .exception-message (& (p (.list "buz baz"))))
  ("none of the options matched"
@@ -918,9 +918,9 @@
 		    (meither (match-list (.list "H"))
 			     (match-list (.list "h")))
 		    (match-list (.list "ello World"))))))
- > (.show (F (p (.stream "Hello World!"))))
+ > (show (F (p (.stream "Hello World!"))))
  (values (.list "Hello World") (.list "!"))
- > (.show (p (.list "hello World!")))
+ > (show (p (.list "hello World!")))
  (values (.list "hello World") (.list "!"))
  > (with-exception-catcher .exception-message (& (p (.stream "hello world!"))))
  ("input does not start with list"
@@ -949,7 +949,7 @@
 
 
 (TEST
- > (.show ((PARSE1 (mlet ((v (capture-while char-alpha?)))
+ > (show ((PARSE1 (mlet ((v (capture-while char-alpha?)))
 			 (match-list (.list " W"))
 			 (char-of-class '(#\r #\o #\d #\l))
 			 (return (.string (cons #\¿ v)))))
@@ -957,7 +957,7 @@
  (values "¿Hello" (.list "rlds!"))
 
  ;; accept multiple instances of the char class:
- > (.show (F ((PARSE1 (mlet ((v (capture-while char-alpha?)))
+ > (show (F ((PARSE1 (mlet ((v (capture-while char-alpha?)))
 			    (match-list (.list " W"))
 			    (any (char-of-class '(#\r #\o #\d #\l)))
 			    ;; (^ XX could optimize)
@@ -966,7 +966,7 @@
  (values "¿Hello" (.list "s!"))
 
  > (def (p n m)
-	(comp* .show
+	(comp* show
 	       F
 	       (PARSE1 (capture (repeat n m (char-of-class (.list "abcde")))))
 	       .stream))
@@ -1000,7 +1000,7 @@
 	    input: (.stream "xy"))
   input: (.stream "xy"))
 
- > (def p (comp* .show
+ > (def p (comp* show
 		 F
 		 (PARSE1 (capture (many (char-of-class (.list "ab")))))
 		 .stream))
@@ -1013,7 +1013,7 @@
  ;; failure? XX add wrapper?
  ("input does not start with a char out of"
   chars: (#\a #\b) input: (.stream "xbcd"))
- > (.show (F ((PARSE1
+ > (show (F ((PARSE1
 	       (mlet* ((a (capture-while char-alpha?))
 		       (b (capture-while char-numeric?)))
 		      (match-list (.list " W"))
@@ -1036,7 +1036,7 @@
 (TEST
  > (def (p rest-or-point)
 	(comp*
-	 .show
+	 show
 	 F
 	 (PARSE1
 	  (mlet ((num (capture (match-while char-numeric?))))
@@ -1101,16 +1101,16 @@
 
 
 (TEST
- > (def p (comp* .show (PARSE1 anything) .list))
+ > (def p (comp* show (PARSE1 anything) .list))
  > (p "Hello")
  (.list "ello")
  > (p "o")
  (list)
- > (with-exception-catcher .show (& (p "")))
+ > (with-exception-catcher show (& (p "")))
  (generic-unexpected-eof #f 'anything) ;; XX why context #f ?
- > (.show ((PARSE1 nothing) (.list "foo")))
+ > (show ((PARSE1 nothing) (.list "foo")))
  (.list "foo")
- > (def p (comp* .show (PARSE1 (optional whitespace)
+ > (def p (comp* show (PARSE1 (optional whitespace)
 			       (optional (match-pred char-alpha?))
 			       (optional (match-pred char-alpha?))) .list))
  > (p "Hello")
@@ -1120,13 +1120,13 @@
  > (p "H ello")
  (.list " ello")
 
- > (def p (comp* .show (PARSE1 (optional whitespace)
+ > (def p (comp* show (PARSE1 (optional whitespace)
 			       (mlet ((c (capture
 					  (optional (match-pred char-alpha?)))))
 				     (optional (match-pred char-alpha?))
 				     the-end
 				     (return c))) .list))
- > (with-exception-catcher .show (& (p "Hel")))
+ > (with-exception-catcher show (& (p "Hel")))
  (expecting-eof-failure #f (.list "l")) ;; XX why context #f ?
  > (p " He")
  (values (.list "H") (list))
@@ -1137,7 +1137,7 @@
  > (p "")
  (values (list) (list))
 
- > (def p (comp* .show (PARSE1 (capturing-any
+ > (def p (comp* show (PARSE1 (capturing-any
 				(mdo whitespace+
 				     (capture
 				      (many (match-pred char-alpha?))))))
@@ -1155,7 +1155,7 @@
  (values (list (.list "abc") (.list "def"))
 	 (.list " 0 ghi"))
 
- > (def p (comp* .show
+ > (def p (comp* show
 		 (PARSE1
 		  (capturing-any
 		   (mdo whitespace+

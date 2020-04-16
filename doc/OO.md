@@ -169,7 +169,7 @@ sense only.
 Here are some methods which are used and extended widely, and the
 module that introduces them:
 
-`show.scm`, `(.show val)`: convert val back into Scheme code (an
+`show.scm`, `(show val)`: convert val back into Scheme code (an
 s-expression) that generates it. Custom implementations 
 
 `cj-exception-handler.scm`, `(.maybe-exception-message exn)`: custom

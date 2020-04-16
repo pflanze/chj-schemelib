@@ -115,14 +115,15 @@
 			       l))))
 
 
-(define. (value.show v)
+(define. (value.show v show)
   v)
 
-(define. (serialized-source.show v)
+(define. (serialized-source.show v show)
   ;; HACK? Should really have proper source type?
   (vector 'source (cj-desourcify (serialized-source.object v))))
 
-(define. fallible.show fallible-show)
+(define. (fallible.show v show)
+  ((fallible-show/show show) v))
 
 (define. fallible.string fallible-string)
 
