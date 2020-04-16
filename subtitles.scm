@@ -18,9 +18,10 @@
         (class Tdelay)
         (interface T-interface
           (class Tcomment)
-          (class T
-            (class Toff)
-            (class Treal)))
+          (class T/location
+            (class Toff/location)
+            (class Treal/location)))
+        (macros T Toff Treal)
         (methods srt-items.Ts
                  string-stream.Tshow
                  filepath.Tshow
@@ -209,20 +210,24 @@
     (defmethod (add-ms s ms)
       s))
 
-  (defclass (T [(maybe fixnum?) no]
-               [tim? from]
-               [tim? to]
-               [latin1-string? titles])
+  (defclass (T/location [(maybe location?) maybe-location]
+                        [(maybe fixnum?) no]
+                        [tim? from]
+                        [tim? to]
+                        [string? titles])
     "A subtitle entry"
 
     (defmethod (display s port)
-      (displayln no port)
-      (.display from port)
-      (display " --> " port)
-      (.display to port)
-      (newline port)
-      (displayln (chomp titles) port)
-      (newline port))
+      (if (latin1-string? titles)
+          (begin
+            (displayln no port)
+            (.display from port)
+            (display " --> " port)
+            (.display to port)
+            (newline port)
+            (displayln (chomp titles) port)
+            (newline port))
+          (raise-location-error maybe-location "not latin-1" titles)))
 
     (defmethod (add-ms s [real? ms])
       (if (zero? ms)
@@ -231,16 +236,35 @@
               (.from-set (.+ from ms))
               (.to-set (.+ to ms)))))
 
-    (defclass (Toff)
+
+    (defclass (Toff/location)
       "A subtitle entry that's disabled"
       (defmethod (display s port)
         (void)))
-    (defclass (Treal)
+    (defclass (Treal/location)
       "A `T` holding real time stamps, matched to the video, not to be shifted."
       (defmethod (add-ms s [real? ms])
         s))))
 
+(defmacro (T . args) `(T/location ',(maybe-source-location stx) ,@args))
+(defmacro (Toff . args) `(Toff/location ',(maybe-source-location stx) ,@args))
+(defmacro (Treal . args) `(Treal/location ',(maybe-source-location stx) ,@args))
 
+;; so hacky...  show for subtitles.scm
+
+(def. (any.subtitles-show v)
+  (.show v subtitles-show))
+
+(def. (T/location.subtitles-show v)
+  (let-pair ((n r) (show v))
+            (cons (=> n
+                      symbol.string
+                      (string.replace-substring "/location" "")
+                      string.symbol)
+                  (rest r))))
+
+(def (subtitles-show v)
+     (.subtitles-show v))
 
 
 (def string/location-all-whitespace?
@@ -338,7 +362,8 @@
 (def. string/location-stream.Tshow
   (=>* srtlines->Result-of-Ts
        Results.Result
-       .show))
+       ;; show without location info:
+       subtitles-show))
 
 (def string/locations? (ilist-of string/location?))
 (def. string/locations.Tshow string/location-stream.Tshow)
@@ -417,7 +442,13 @@ I am cold.
               "I am cold.")
            (T 7 (tim 0 7 2 100) (tim 0 7 5 166)
               "- Still with us, Brett?\n- Right.")))
- > (show (-> Result? (>>= (eval v2) (lambda (v*) (return (equal? v* (.Ts v)))))))
+ > (show (-> Result?
+             (>>= (eval v2)
+                  (lambda (v*)
+                    ;; need to |subtitles-show| here to ditch the
+                    ;; differing location information
+                    (return (equal? (subtitles-show v*)
+                                    (subtitles-show (.Ts v))))))))
  (Ok #t)
  > (equal? v2 (=> s (string-split "\n") .Tshow))
  #t)
