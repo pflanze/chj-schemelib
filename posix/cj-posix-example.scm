@@ -1,4 +1,4 @@
-;;; Copyright 2006-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2006-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -10,7 +10,7 @@
 	 posix/cj-posix
 	 string-util ;; which one? grr, so..:
 	 string-util-1
-	 string-util-2 ;; incl. string-find-char
+	 string-util-2 ;; incl. string-find-char, string-tr
 	 string-util-3
 	 posix/interrupts
 	 (test TEST)
@@ -23,16 +23,6 @@
   ;; (of course that's inefficient)
   (list->string
    (map integer->char (u8vector->list (subu8vector vec from to)))))
-
-(define (string-tr str from to)
-  ;; inefficient, too
-  (list->string
-   (map (lambda (c)
-          (cond ((string-find-char from c)
-                 => (lambda (i)
-                      (string-ref to i)))
-                (else c)))
-        (string->list str))))
 
 
 (define (tr)

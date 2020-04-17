@@ -12,7 +12,7 @@
          monad/lib-for-Result
          (string-util-1 position-update-in-string)
          (latin1 latin1-string?)
-         (posix/cj-posix-example string-tr))
+         (string-util-2 string-tr))
 
 (export filepath.Tshow
         (class tim)

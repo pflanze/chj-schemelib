@@ -60,6 +60,7 @@
         string-reverse
         dirname* ;; vs. cj-io-util !
         string-map
+        string-tr
         ;; string-every see string-util-4.scm
         string-any
         string-downcase string-lc
@@ -653,12 +654,21 @@
 
 
 ;; finally, hu?
+;; also see VECTOR-map in oo-vector-lib.scm
 (define (string-map fn str)
   (let* ((len (string-length str))
          (res (##make-string len)))
     (for..< (i 0 len)
             (string-set! res i (fn (string-ref str i))))
     res))
+
+(define (string-tr str from to)
+  (string-map (lambda (c)
+                (cond ((string-find-char from c)
+                       => (lambda (i)
+                            (string-ref to i)))
+                      (else c)))
+              str))
 
 
 ;; string-every see string-util-4.scm
