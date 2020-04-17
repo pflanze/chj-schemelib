@@ -11,7 +11,8 @@
          Result
          monad/lib-for-Result
          (string-util-1 position-update-in-string)
-         (latin1 latin1-string?))
+         (latin1 latin1-string?)
+         (posix/cj-posix-example string-tr))
 
 (export filepath.Tshow
         (class tim)
@@ -246,16 +247,17 @@
     
     (defmethod (display s port)
       (.xcheck s)
-      (if (latin1-string? titles)
-          (begin
-            (displayln no port)
-            (.display from port)
-            (display " --> " port)
-            (.display to port)
-            (newline port)
-            (displayln (chomp titles) port)
-            (newline port))
-          (raise-location-error maybe-location "not latin-1" titles)))
+      (let (titles (string-tr titles "’" "'"))
+        (if (latin1-string? titles)
+            (begin
+              (displayln no port)
+              (.display from port)
+              (display " --> " port)
+              (.display to port)
+              (newline port)
+              (displayln (chomp titles) port)
+              (newline port))
+            (raise-location-error maybe-location "not latin-1" titles))))
 
     (defmethod (add-ms s [real? ms])
       (if (zero? ms)
