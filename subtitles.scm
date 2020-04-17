@@ -130,7 +130,14 @@
   ;; ehr
 
   (defmethod (+ s [fixnum? milliseconds])
-    (milliseconds->tim (+ (tim.milliseconds s) milliseconds))))
+    (milliseconds->tim (+ (tim.milliseconds s) milliseconds)))
+
+  ;; could optimize those
+  (defmethod < (on .milliseconds <))
+  (defmethod > (on .milliseconds >))
+  (defmethod <= (on .milliseconds <=))
+  (defmethod >= (on .milliseconds >=))
+  (defmethod = (on .milliseconds =)))
 
 
 
@@ -163,7 +170,21 @@
  > (.+ (tim 1 10 5 0) 1000)
  [(tim) 1 10 6 0]
  > (.+ (tim 1 10 5 0) -1000)
- [(tim) 1 10 4 0])
+ [(tim) 1 10 4 0]
+
+ > (.< (tim 0 1 8 862) (tim 0 1 8 862))
+ #f
+ > (.< (tim 0 1 8 861) (tim 0 1 8 862))
+ #t
+ > (.< (tim 0 1 6 862) (tim 0 1 8 862))
+ #t
+ > (.> (tim 0 1 8 862) (tim 0 1 8 862))
+ #f
+ > (.= (tim 0 1 8 862) (tim 0 1 8 862))
+ #t
+ > (.>= (tim 0 1 8 862) (tim 0 1 8 862))
+ #t)
+
 
 (TEST
  > (show (string/location.tim "Hi"))
@@ -217,7 +238,14 @@
                         [string? titles])
     "A subtitle entry"
 
+    ;; XX should instead fix class stuff so that |to| can be
+    ;; restricted in terms of from directly.
+    (defmethod (xcheck s)
+      (unless (.< from to)
+        (raise-location-error maybe-location "from is after to" from to)))
+    
     (defmethod (display s port)
+      (.xcheck s)
       (if (latin1-string? titles)
           (begin
             (displayln no port)
