@@ -41,6 +41,7 @@
          cj-desourcify
          read-all-source
          (type source-error)
+         (type location-error)
          location-string
          show-location-location
          show-source-location
@@ -51,6 +52,8 @@
          location-warn-to-string*
          location-warn-to-string/normalize
          show-source-error
+         show-location-error
+         show-source-or-location-error
          source-error->string
          show-procedure-location
          source-quote ;; deprecated, use source-quote* instead?
@@ -383,9 +386,22 @@
   ;; how to make Gambit display it? just wrap for now
   (raise (make-source-error source message args)))
 
-;; (define (location-error location message . args)
-;;   (raise (make-source-error source message args)))
-;; todo finish (lost-on-tie?)
+(define-type location-error
+  id: 248b2471-aa50-4b9a-b84b-78036d27c3c9
+  ;;invisible:
+  location
+  message
+  args)
+
+(define (raise-location-error location message . args)
+  (raise (make-location-error location message args)))
+
+;; (define source-or-location-error?
+;;   (either source-error? location-error?))
+(define (source-or-location-error? v)
+  (or (source-error? v)
+      (location-error? v)))
+
 
 
 (define (location-string l #!key non-highlighting? normalize omit-column?)
@@ -503,10 +519,26 @@
 
 (define (show-source-error e #!optional maybe-port)
   (show-source-location (source-error-source e)
-                        errstr: "*** ERROR IN syntax, "
+                        errstr: "*** ERROR IN source, "
                         msg: (source-error-message e)
                         args: (source-error-args e)
                         maybe-port: maybe-port))
+
+;; copy-paste with s/source/location/g
+(define (show-location-error e #!optional maybe-port)
+  (show-location-location (location-error-location e)
+                          errstr: "*** ERROR IN location, "
+                          msg: (location-error-message e)
+                          args: (location-error-args e)
+                          maybe-port: maybe-port))
+
+(define (show-source-or-location-error e #!optional maybe-port)
+  (cond ((source-error? e)
+         (show-source-error e maybe-port))
+        ((location-error? e)
+         (show-location-error e maybe-port))
+        (else
+         (error "show-source-or-location-error: neither source- nor location-error:" e))))
 
 (define (source-error->string e)
   (show-source-location (source-error-source e)

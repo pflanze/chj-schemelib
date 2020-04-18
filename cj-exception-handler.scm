@@ -1,4 +1,4 @@
-;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -85,8 +85,8 @@
     (display (object->serial-number e) p)
     (newline p)
     ;; (Call previous handler instead of the primordial one ?)
-    (cond ((source-error? e)
-	   (show-source-error e p)
+    (cond ((source-or-location-error? e)
+	   (show-source-or-location-error e p)
 	   (##repl))
 	  ((.maybe-exception-message e)
 	   => (lambda (msg)
