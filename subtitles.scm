@@ -14,8 +14,7 @@
          (latin1 latin1-string?)
          (string-util-2 string-tr))
 
-(export filepath.Tshow
-        (class tim)
+(export (class tim)
         (class Tdelay)
         (interface T-interface
           (class Tcomment)
