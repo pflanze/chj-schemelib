@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,7 +7,8 @@
 
 
 (require easy
-	 trie)
+	 trie
+         (oo-list-vector list.rvector))
 
 (export (class radixtree)
 	(method alist.radixtree))
