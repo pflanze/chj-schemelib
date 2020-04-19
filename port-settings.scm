@@ -16,8 +16,8 @@
 (export port-setting?
         path-or-port-settings?
         gambit-encoding?
-        path-or-port-settings.encoding-set
-        path-or-port-settings.maybe-encoding)
+        (methods-for .encoding-set)
+        (methods-for .maybe-encoding))
 
 
 (define (port-settings? v)
@@ -43,24 +43,26 @@
     (else #f)))
 
 
-(define. (path-or-port-settings.encoding-set s [gambit-encoding? encoding])
-  (xcond ((path-string? s)
-          (list path: s
-                char-encoding: encoding))
-         ((port-settings? s)
-          (dsssl-set s char-encoding: encoding))))
+(define. (path-string.encoding-set s [gambit-encoding? encoding])
+  (list path: s
+        char-encoding: encoding))
+
+(define. (port-settings.encoding-set s [gambit-encoding? encoding])
+  (dsssl-set s char-encoding: encoding))
 
 
-(define. (path-or-port-settings.maybe-encoding s)
-  (xcond ((path-string? s) #f)
-         ((port-settings? s)
-          (dsssl-maybe-ref s char-encoding:))))
+(define. (path-string.maybe-encoding s)
+  #f)
+
+(define. (port-settings.maybe-encoding s)
+  (dsssl-maybe-ref s char-encoding:))
 
 
-(define. (path-or-port-settings.delete-encoding s)
-  (xcond ((path-string? s) s)
-         ((port-settings? s)
-          (dsssl-delete s char-encoding:))))
+(define. (path-string.delete-encoding s)
+  s)
+
+(define. (port-settings.delete-encoding s)
+  (dsssl-delete s char-encoding:))
 
 
 (TEST
