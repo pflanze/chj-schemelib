@@ -1,4 +1,4 @@
-;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -14,7 +14,8 @@
          (improper-list improper-fold)
          test)
 
-(export sequential-pairs
+(export dsssl?
+        sequential-pairs
         sequentialpairs->pairs ;; older, obsolete ?
         dsssl->alist
         alist->dsssl
@@ -25,6 +26,29 @@
         dsssl-apply
         #!optional
         dsssl-delete-1)
+
+
+(define (dsssl? v)
+  (cond ((null? v) #t)
+        ((pair? v) (let-pair ((a r) v)
+                             (and (keyword? a)
+                                  (pair? r)
+                                  (dsssl? (cdr r)))))
+        (else #f)))
+
+(TEST
+ > (dsssl? '())
+ #t
+ > (dsssl? '(foo: 1))
+ #t
+ > (dsssl? '(foo:))
+ #f
+ > (dsssl? '(foo: 2 bar: "fo"))
+ #t
+ > (dsssl? '(foo: 2 bar:))
+ #f
+ > (dsssl? '(foo: 2 "fo" bar:))
+ #f)
 
 
 ;; also see chop in stream.scm
