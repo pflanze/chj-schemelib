@@ -19,7 +19,8 @@
          posix/cj-posix ;; posix:environ open close read write seek etc.
          (cj-functional list-of values-of)
          string-bag
-         (cj-source source location position))
+         (cj-source source location position)
+         (oo-util-lazy ilist-of))
 
 (export open-process*
         open-input-process*
@@ -75,7 +76,8 @@
         possibly-create-directory
         putfile
         getfile
-        partial-copy-file)
+        partial-copy-file
+        ls2list)
 
 
 ;; handle setenv:-enriched process specs:
@@ -799,3 +801,13 @@ some informal structure describing what the port was opened from."
          (assert (= (posix:write-u8vector out buf len) len))
          (posix:close out))))
 
+
+(def (ls2list [string? str]) -> (ilist-of string?)
+     (let (p (open-process (list path: "ls2list"
+                                 arguments: '()
+                                 stdin-redirection: #t
+                                 stdout-redirection: #t)))
+       (let (r (future (read-lines p)))
+         (display str p)
+         (close-output-port p)
+         (future-force r))))
