@@ -27,6 +27,8 @@
         #!optional
         dsssl-delete-1)
 
+(include "cj-standarddeclares.scm")
+
 
 (define (dsssl? v)
   (cond ((null? v) #t)
