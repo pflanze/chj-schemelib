@@ -8,6 +8,8 @@
 
 ;; Functions converting lists to vectors.
 
+;; Shouldn't those be in oo-vector-lib?
+
 (require easy
 	 ;;(cj-functional list-of) ;; part of easy?
 	 test)
