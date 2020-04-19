@@ -156,17 +156,6 @@
 
 
 
-;; 'restargs-keyref' 'keyargs-maybe-ref'
-(def (dsssl-maybe-ref args #(keyword? key))
-     (let ((alis (dsssl->alist args)))
-       (eq-alist-maybe-ref alis key)))
-
-(TEST
- > (dsssl-maybe-ref '(a: 1) a:)
- 1
- > (dsssl-maybe-ref '(a: 1) b:)
- #f)
-
 
 (def (dsssl-ref args #(keyword? key) alternative)
      (let lp ((vs args))
@@ -200,6 +189,17 @@
  #t
  > (dsssl-ref '(a: #f b: #f c: #t) d: 'no)
  no)
+
+
+(def (dsssl-maybe-ref args #(keyword? key))
+     (dsssl-ref args key #f))
+
+(TEST
+ > (dsssl-maybe-ref '(a: 1) a:)
+ 1
+ > (dsssl-maybe-ref '(a: 1) b:)
+ #f)
+
 
 
 (def (dsssl-delete-1 args #(keyword? key))
