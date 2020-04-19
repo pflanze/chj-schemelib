@@ -12,7 +12,9 @@
          monad/lib-for-Result
          (string-util-1 position-update-in-string)
          (latin1 latin1-string?)
-         (string-util-2 string-tr))
+         (string-util-2 string-tr)
+         (cj-gambit-sys-io os-exception-codesymbol)
+         port-settings)
 
 (export (class tim)
         (class Tdelay)
@@ -38,6 +40,20 @@
 
 
 "Parse and print video subtitle files in the SubRip `.srt` Format."
+
+
+(def (catching-UTF8-encoding-error thunk then)
+     (with-exception-catcher
+      (lambda (e)
+        (and (os-exception? e)
+             (case (os-exception-codesymbol e)
+               ((cannot-convert-from-utf-8) (then))
+               (else
+                (raise e)))))
+      thunk))
+
+;; lib lib lib!
+
 
 
 ;; Sep. lib? How much of it?
@@ -397,10 +413,13 @@
 (def string/locations? (ilist-of string/location?))
 (def. string/locations.Tshow string/location-stream.Tshow)
 
-(def. filepath.Tshow
-  ;; "Convert an `.srt` file to Scheme." -- XX fix def. to allow docstrings
-  (=>* file-line/location-stream
-       .Tshow))
+(def. (path-or-port-settings.Tshow pps)
+  "Convert an `.srt` file to Scheme."
+  (let (Tshow (=>* file-line/location-stream
+                   .Tshow))
+    (catching-UTF8-encoding-error
+     (& (Tshow pps))
+     (& (Tshow (.encoding-set pps 'ISO-8859-1))))))
 
 (def. (srt-items.display [(list-of srt-item?) items]
                          #!optional
