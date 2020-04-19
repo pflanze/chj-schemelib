@@ -1,5 +1,5 @@
 ;; Added parts are
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -21,11 +21,12 @@
 ;; automatic .show creation below would still be needed.)
 
 
-(require test
-	 cj-phasing
+(require cj-phasing
 	 show
 	 (cj-env symbol-append)
-	 dot-oo)
+	 dot-oo
+         define-macro-star
+         test)
 
 (export error-exception error-exception?
 	no-such-file-or-directory-exception no-such-file-or-directory-exception?
@@ -56,7 +57,13 @@
 	(method number-of-arguments-limit-exception.show)
 	(method type-exception.show)
 	(method os-exception.show)
-	(method no-such-file-or-directory-exception.show))
+	(method no-such-file-or-directory-exception.show)
+
+        (macro define-show-nonserializable)
+        (methods input-port.show
+                 output-port.show)
+        input-port#
+        output-port#)
 
 
 (define-type gambit-error#exception
@@ -136,3 +143,37 @@
  > (show (wrong-number-of-arguments-exception-procedure e))
  car)
 
+
+
+;; Various non-serializable show stuff:
+;; sigh, automatic pls? Do I have another place already for this?
+
+(define (show-nonserializable/typename typename#)
+  (lambda (v show)
+    `(,typename# ,(object->serial-number v))))
+
+(define (unshow-nonserializable/type pred)
+  (lambda (serial)
+    (let ((v (serial-number->object serial)))
+      (if (pred v)
+          v
+          (error "serial number does not represent an object of type:"
+                 serial pred)))))
+
+(define-macro* (define-show-nonserializable typename)
+  "Define a typename.show, showing (typename# 1234)."
+  ;; This is nothing new, todo: 'track down' the places where I did
+  ;; this already manually.
+  (assert* symbol? typename
+           (lambda (typename)
+             (let ((typename# (symbol-append typename "#"))
+                   (pred (symbol-append typename "?")))
+               `(begin
+                  (define. ,(symbol-append typename ".show")
+                    (show-nonserializable/typename ',typename#))
+                  (define ,typename#
+                    (unshow-nonserializable/type ,pred)))))))
+
+
+(define-show-nonserializable input-port)
+(define-show-nonserializable output-port)
