@@ -23,6 +23,7 @@
         dsssl-ref
         dsssl-contains?
         dsssl-delete
+        dsssl-set
         dsssl-defaults
         dsssl-apply
         #!optional
@@ -246,6 +247,25 @@
  (a: 1 c: 4)
  > (dsssl-delete vs '(a: b:))
  (c: 4))
+
+
+(def (dsssl-set v key val)
+     (cons* key val (dsssl-delete v key)))
+
+(TEST
+ > (dsssl-set '() foo: 1)
+ (foo: 1)
+ > (dsssl-set # foo: 2)
+ (foo: 2)
+ > (dsssl-set # bar: 3)
+ (bar: 3 foo: 2)
+ > (dsssl-set # bar: 4)
+ (bar: 4 foo: 2)
+ > (dsssl-set # foo: 0)
+ (foo: 0 bar: 4) ;; Should be OK to change order?
+ > (dsssl-set # hm: "f")
+ (hm: "f" foo: 0 bar: 4))
+
 
 
 (def (dsssl-defaults args args-defaults)
