@@ -88,15 +88,15 @@
  > (sequential-pairs '(a 1 b 2) cons)
  ((a . 1) (b . 2))
  > (sequential-pairs '(a 1) vector)
- (#(a 1))
+ ([a 1])
  > (%try-error (sequential-pairs '(a 1 2) cons))
- #(error
-   "uneven number of elements where sequential pairs are expected:"
-   (a 1 2))
+ [error
+  "uneven number of elements where sequential pairs are expected:"
+  (a 1 2)]
  > (%try-error (sequential-pairs '(a 1 . 2) cons))
- #(error "improper list:" (a 1 . 2))
+ [error "improper list:" (a 1 . 2)]
  > (%try-error (sequential-pairs '(a . 1) cons))
- #(error "improper list:" (a . 1)))
+ [error "improper list:" (a . 1)])
 
 
 (def (dsssl->alist l)
@@ -157,7 +157,7 @@
 
 
 
-(def (dsssl-ref args #(keyword? key) alternative)
+(def (dsssl-ref args [keyword? key] alternative)
      (let lp ((vs args))
        (if (null? vs)
            alternative
@@ -191,7 +191,7 @@
  no)
 
 
-(def (dsssl-maybe-ref args #(keyword? key))
+(def (dsssl-maybe-ref args [keyword? key])
      (dsssl-ref args key #f))
 
 (TEST
@@ -202,7 +202,7 @@
 
 
 
-(def (dsssl-delete-1 args #(keyword? key))
+(def (dsssl-delete-1 args [keyword? key])
      (let rec ((vs args))
        (if (null? vs)
            vs
