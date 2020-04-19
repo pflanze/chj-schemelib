@@ -21,6 +21,7 @@
         alist->dsssl
         dsssl-maybe-ref ;; should move to Maybe ?
         dsssl-ref
+        dsssl-contains?
         dsssl-delete
         dsssl-defaults
         dsssl-apply
@@ -200,6 +201,17 @@
  > (dsssl-maybe-ref '(a: 1) b:)
  #f)
 
+(def dsssl:novalue (gensym 'dsssl:novalue))
+
+(def (dsssl-contains? v [keyword? key])
+     (let (r (dsssl-ref v key dsssl:novalue))
+       (not (eq? r dsssl:novalue))))
+
+(TEST
+ > (dsssl-contains? '(a: 1) a:)
+ #t
+ > (dsssl-contains? '(a: 1) b:)
+ #f)
 
 
 (def (dsssl-delete-1 args [keyword? key])
