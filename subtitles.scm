@@ -108,7 +108,13 @@
   (defclass (subtitles-milliseconds [fixnum? milliseconds])
 
     (defmethod (display s port)
-      (error "not implemented yet, really want to use within |T|?")))
+      (error "not implemented yet, really want to use within |T|?"))
+
+    (defmethod (subtitles-milliseconds s) s)
+    (defmethod (tim s)
+      (milliseconds->tim milliseconds))
+    (defmethod (tm s)
+      (tm (/ milliseconds 1000))))
   
   
   (defclass (tim [natural0? hours-part]
@@ -160,6 +166,12 @@
                     (* 60 (+ minutes-part
                              (* 60 hours-part)))))))
 
+    (defmethod (subtitles-milliseconds s)
+      (subtitles-milliseconds (.milliseconds s)))
+    (defmethod (tim s) s)
+    (defmethod (tm s)
+      (tm (/ (.milliseconds s) 1000)))
+
     ;; (defmethod +
     ;;   (comp// 2 milliseconds->tim (on tim.milliseconds +)))
     ;; ehr
@@ -176,7 +188,13 @@
     (defmethod (milliseconds s)
       (integer (if (exact? seconds)
                    (+ 1/2 (* seconds 1000))
-                   (+ 0.5 (* seconds 1000.)))))))
+                   (+ 0.5 (* seconds 1000.)))))
+
+    (defmethod (subtitles-milliseconds s)
+      (subtitles-milliseconds (.milliseconds s)))
+    (defmethod (tim s)
+      (milliseconds->tim (.milliseconds s)))
+    (defmethod (tm s) s)))
 
 
 
@@ -233,7 +251,17 @@
  [(subtitles-milliseconds) 59530]
  > (.- (tm 60.53) (tm 1.00001))
  [(subtitles-milliseconds) 59530]
- )
+ ;; conversions
+ > (.tm (tm 334.9))
+ [(tm) 334.9]
+ > (.tim (tm 334.9))
+ [(tim) 0 5 34 900]
+ > (.subtitles-milliseconds (tm 334.9))
+ [(subtitles-milliseconds) 334900]
+ > (.tim #)
+ [(tim) 0 5 34 900]
+ > (.tm #)
+ [(tm) 3349/10])
 
 
 (TEST
