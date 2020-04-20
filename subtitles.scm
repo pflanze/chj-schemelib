@@ -104,11 +104,11 @@
   (defmethod >= (on .milliseconds >=))
   (defmethod = (on .milliseconds =))
 
+  (defmethod (display s port)
+    (.display (.tim s) port))
+
 
   (defclass (subtitles-milliseconds [fixnum? milliseconds])
-
-    (defmethod (display s port)
-      (error "not implemented yet, really want to use within |T|?"))
 
     (defmethod (subtitles-milliseconds s) s)
     (defmethod (tim s)
@@ -181,9 +181,6 @@
   
 
   (defclass (tm [real? seconds])
-
-    (defmethod (display s port)
-      (error "not implemented yet, really want to use within |T|?"))
 
     (defmethod (milliseconds s)
       (integer (if (exact? seconds)
