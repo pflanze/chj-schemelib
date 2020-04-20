@@ -16,7 +16,10 @@
          (cj-gambit-sys-io os-exception-codesymbol)
          port-settings)
 
-(export (class tim)
+(export (class subtitles-time
+          (class subtitles-milliseconds)
+          (class tim)
+          (class tm))
         (class Tdelay)
         (interface T-interface
           (class Tcomment)
@@ -86,74 +89,94 @@
 
 (def string/location? (possibly-source-of string?))
 
-(defclass (tim [natural0? hours-part]
-               [0..59? minutes-part]
-               [0..59? seconds-part]
-               [0..999? milliseconds-part])
-
-  (def (string/location.tim v) -> (Result-of tim? error?)
-       (let (commaparts (string-split/location v #\,))
-         (if (= (length commaparts) 2)
-             (let-list
-              ((hmsstr msstr) commaparts)
-              (mlet ((hms (parse-hms hmsstr))
-                     (ms (Result:string-of-len->number msstr 3)))
-                    (let-list ((h m s) hms)
-                              (return (tim h m s ms)))))
-             (Error-source v "need exactly one comma"))))
-  
-  (def (milliseconds->tim [fixnum-natural0? ms])
-       (let*-values (((sec msp) (quotient+modulo ms 1000))
-                     ((min secp) (quotient+modulo sec 60))
-                     ((hours minp) (quotient+modulo min 60)))
-         (tim hours
-              minp
-              secp
-              msp)))
-
-  (defmethod (display s port)
-    (def (pr n padn)
-         (let* ((s (number.string n))
-                (len (string.length s)))
-           (if (<= len padn)
-               (begin
-                 (for..< (i len padn)
-                         (display #\0 port))
-                 (display s port))
-               (error "number must be 1 or 2 digits:" s))))
-    (pr hours-part 2)
-    (display #\: port)
-    (pr minutes-part 2)
-    (display #\: port)
-    (pr seconds-part 2)
-    (display #\, port)
-    (pr milliseconds-part 3))
-
-  (defmethod (milliseconds s)
-    (+ milliseconds-part
-       (* 1000 (+ seconds-part
-                  (* 60 (+ minutes-part
-                           (* 60 hours-part)))))))
+(defclass subtitles-time
 
   (defmethod -ms
-    (on tim.milliseconds -))
+    (on .milliseconds -))
 
   (defmethod -
-    (comp// 2 milliseconds->tim (on tim.milliseconds -)))
-
-  ;; (defmethod +
-  ;;   (comp// 2 milliseconds->tim (on tim.milliseconds +)))
-  ;; ehr
-
-  (defmethod (+ s [fixnum? milliseconds])
-    (milliseconds->tim (+ (tim.milliseconds s) milliseconds)))
+    (comp// 2 subtitles-milliseconds (on .milliseconds -)))
 
   ;; could optimize those
   (defmethod < (on .milliseconds <))
   (defmethod > (on .milliseconds >))
   (defmethod <= (on .milliseconds <=))
   (defmethod >= (on .milliseconds >=))
-  (defmethod = (on .milliseconds =)))
+  (defmethod = (on .milliseconds =))
+
+
+  (defclass (subtitles-milliseconds [fixnum? milliseconds])
+
+    (defmethod (display s port)
+      (error "not implemented yet, really want to use within |T|?")))
+  
+  
+  (defclass (tim [natural0? hours-part]
+                 [0..59? minutes-part]
+                 [0..59? seconds-part]
+                 [0..999? milliseconds-part])
+
+    (def (string/location.tim v) -> (Result-of tim? error?)
+         (let (commaparts (string-split/location v #\,))
+           (if (= (length commaparts) 2)
+               (let-list
+                ((hmsstr msstr) commaparts)
+                (mlet ((hms (parse-hms hmsstr))
+                       (ms (Result:string-of-len->number msstr 3)))
+                      (let-list ((h m s) hms)
+                                (return (tim h m s ms)))))
+               (Error-source v "need exactly one comma"))))
+  
+    (def (milliseconds->tim [fixnum-natural0? ms])
+         (let*-values (((sec msp) (quotient+modulo ms 1000))
+                       ((min secp) (quotient+modulo sec 60))
+                       ((hours minp) (quotient+modulo min 60)))
+           (tim hours
+                minp
+                secp
+                msp)))
+
+    (defmethod (display s port)
+      (def (pr n padn)
+           (let* ((s (number.string n))
+                  (len (string.length s)))
+             (if (<= len padn)
+                 (begin
+                   (for..< (i len padn)
+                           (display #\0 port))
+                   (display s port))
+                 (error "number must be 1 or 2 digits:" s))))
+      (pr hours-part 2)
+      (display #\: port)
+      (pr minutes-part 2)
+      (display #\: port)
+      (pr seconds-part 2)
+      (display #\, port)
+      (pr milliseconds-part 3))
+
+    (defmethod (milliseconds s)
+      (+ milliseconds-part
+         (* 1000 (+ seconds-part
+                    (* 60 (+ minutes-part
+                             (* 60 hours-part)))))))
+
+    ;; (defmethod +
+    ;;   (comp// 2 milliseconds->tim (on tim.milliseconds +)))
+    ;; ehr
+
+    (defmethod (+ s [fixnum? milliseconds])
+      (milliseconds->tim (+ (tim.milliseconds s) milliseconds))))
+  
+
+  (defclass (tm [real? seconds])
+
+    (defmethod (display s port)
+      (error "not implemented yet, really want to use within |T|?"))
+
+    (defmethod (milliseconds s)
+      (integer (if (exact? seconds)
+                   (+ 1/2 (* seconds 1000))
+                   (+ 0.5 (* seconds 1000.)))))))
 
 
 
@@ -200,6 +223,17 @@
  #t
  > (.>= (tim 0 1 8 862) (tim 0 1 8 862))
  #t)
+
+(TEST
+ > (tm 60.53)
+ [(tm) 60.53]
+ > (.milliseconds #)
+ 60530
+ > (.- (tm 60.53) (tm 1))
+ [(subtitles-milliseconds) 59530]
+ > (.- (tm 60.53) (tm 1.00001))
+ [(subtitles-milliseconds) 59530]
+ )
 
 
 (TEST
@@ -371,7 +405,7 @@
 
 (def srt-item? (either T-interface?
                        ;; for new positioning:
-                       tim?
+                       subtitles-time?
                        Tdelay?))
 
 (def srt-items? (ilist-of srt-item?))
@@ -384,13 +418,15 @@
      ((a l*) l)
 
      (xcond ((T-interface? a) (cons (.add-ms a dt-ms) (rec l* dt-ms)))
-            ((tim? a)
+            ((subtitles-time? a)
              ;; use a instead of .from time of the next element, from
              ;; then on
              (if-let-pair
               ((b l**) l*)
-              (rec l*
-                   (.-ms a (.from b)))
+              (begin
+                (assert (T-interface? b))
+                (rec l*
+                     (.-ms a (.from b))))
               '()))
             ((Tdelay? a)
              (rec l*
