@@ -20,6 +20,7 @@
           (class subtitles-milliseconds)
           (class tim)
           (class tm))
+        (parameter current-tm-delay)
         (class Tdelay)
         (interface T-interface
           (class Tcomment)
@@ -89,6 +90,8 @@
 
 (def string/location? (possibly-source-of string?))
 
+(defparameter current-tm-delay -500) ;; milliseconds
+
 (defclass subtitles-time
 
   (defmethod -ms
@@ -114,7 +117,7 @@
     (defmethod (tim s)
       (milliseconds->tim milliseconds))
     (defmethod (tm s)
-      (tm (/ milliseconds 1000))))
+      (milliseconds->tm milliseconds)))
   
   
   (defclass (tim [natural0? hours-part]
@@ -170,7 +173,7 @@
       (subtitles-milliseconds (.milliseconds s)))
     (defmethod (tim s) s)
     (defmethod (tm s)
-      (tm (/ (.milliseconds s) 1000)))
+      (milliseconds->tm (.milliseconds s)))
 
     ;; (defmethod +
     ;;   (comp// 2 milliseconds->tim (on tim.milliseconds +)))
@@ -181,11 +184,21 @@
   
 
   (defclass (tm [real? seconds])
+    "|tm| is meant to be used with mplayer from the command line, to
+copy-paste the positions mplayer is writing to the terminal. To try to
+make it easy to simply copy paste after stopping upon hearing the
+start of an utterance, the value in |current-tm-delay| is added to get
+the actual time value used for positioning the subtitle."
 
+    (def (milliseconds->tm [fixnum? milliseconds])
+         (tm (/ (- milliseconds (-> fixnum? (current-tm-delay)))
+                1000)))
+    
     (defmethod (milliseconds s)
-      (integer (if (exact? seconds)
-                   (+ 1/2 (* seconds 1000))
-                   (+ 0.5 (* seconds 1000.)))))
+      (+ (integer (if (exact? seconds)
+                      (+ 1/2 (* seconds 1000))
+                      (+ 0.5 (* seconds 1000.))))
+         (-> fixnum? (current-tm-delay))))
 
     (defmethod (subtitles-milliseconds s)
       (subtitles-milliseconds (.milliseconds s)))
@@ -240,10 +253,12 @@
  #t)
 
 (TEST
+ > (def old-current-tm-delay (current-tm-delay))
+ > (current-tm-delay -100)
  > (tm 60.53)
  [(tm) 60.53]
  > (.milliseconds #)
- 60530
+ 60430
  > (.- (tm 60.53) (tm 1))
  [(subtitles-milliseconds) 59530]
  > (.- (tm 60.53) (tm 1.00001))
@@ -252,13 +267,14 @@
  > (.tm (tm 334.9))
  [(tm) 334.9]
  > (.tim (tm 334.9))
- [(tim) 0 5 34 900]
+ [(tim) 0 5 34 800]
  > (.subtitles-milliseconds (tm 334.9))
- [(subtitles-milliseconds) 334900]
+ [(subtitles-milliseconds) 334800]
  > (.tim #)
- [(tim) 0 5 34 900]
+ [(tim) 0 5 34 800]
  > (.tm #)
- [(tm) 3349/10])
+ [(tm) 3349/10]
+ > (current-tm-delay old-current-tm-delay))
 
 
 (TEST
