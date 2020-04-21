@@ -324,8 +324,8 @@ the actual time value used for positioning the subtitle."
 
   (defclass (T/location [(maybe location?) maybe-location]
                         [(maybe fixnum?) no]
-                        [tim? from]
-                        [tim? to]
+                        [subtitles-time? from]
+                        [subtitles-time? to]
                         [string? titles])
     "A subtitle entry"
 
