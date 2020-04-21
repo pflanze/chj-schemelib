@@ -117,7 +117,10 @@
     (defmethod (tim s)
       (milliseconds->tim milliseconds))
     (defmethod (tm s)
-      (milliseconds->tm milliseconds)))
+      (milliseconds->tm milliseconds))
+
+    (defmethod (+ s [fixnum? ms])
+      (subtitles-milliseconds (+ milliseconds ms))))
   
   
   (defclass (tim [natural0? hours-part]
@@ -204,7 +207,10 @@ the actual time value used for positioning the subtitle."
       (subtitles-milliseconds (.milliseconds s)))
     (defmethod (tim s)
       (milliseconds->tim (.milliseconds s)))
-    (defmethod (tm s) s)))
+    (defmethod (tm s) s)
+
+    (defmethod (+ s [fixnum? ms])
+      (tm (+ seconds (/ ms 1000))))))
 
 
 
