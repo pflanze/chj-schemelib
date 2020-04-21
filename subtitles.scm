@@ -333,7 +333,7 @@ the actual time value used for positioning the subtitle."
     ;; restricted in terms of from directly.
     (defmethod (xcheck s)
       (unless (.< from to)
-        (raise-location-error maybe-location "from is after to" from to)))
+        (raise-location-error maybe-location "from is not before to" from to)))
     
     (defmethod (display s port)
       (.xcheck s)
