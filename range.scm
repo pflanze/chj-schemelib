@@ -1,4 +1,4 @@
-;;; Copyright 2018-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;; This file is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU Lesser General Public License (LGPL)
@@ -53,7 +53,8 @@
          test-random
          (maybe maybe.>>=)
          (boolean boolean.=)
-         (try retry-when))
+         (try retry-when)
+         (list-range ..))
 
 (export (interface range-interface
                    (class range-or-ranges
