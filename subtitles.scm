@@ -10,6 +10,7 @@
          template
          Result
          monad/lib-for-Result
+         monad/syntax
          (string-util-1 position-update-in-string)
          (latin1 latin1-string?)
          (string-util-2 string-tr)
@@ -341,19 +342,23 @@ the actual time value used for positioning the subtitle."
       (unless (.< from to)
         (raise-location-error maybe-location "from is not before to" from to)))
     
-    (defmethod (display s port)
+    (defmethod (display s port [boolean? latin1?])
       (.xcheck s)
-      (let (titles (string-tr titles "’" "'"))
-        (if (latin1-string? titles)
-            (begin
-              (displayln no port)
-              (.display from port)
-              (display " --> " port)
-              (.display to port)
-              (newline port)
-              (displayln (chomp titles) port)
-              (newline port))
-            (raise-location-error maybe-location "not latin-1" titles))))
+      (let (titles
+            (if latin1?
+                (let (titles (string-tr titles "’" "'"))
+                  (if (latin1-string? titles)
+                      titles
+                      (raise-location-error
+                       maybe-location "not latin-1" titles)))
+                titles))
+        (displayln no port)
+        (.display from port)
+        (display " --> " port)
+        (.display to port)
+        (newline port)
+        (displayln (chomp titles) port)
+        (newline port)))
 
     (defmethod (add-ms s [real? ms])
       (if (zero? ms)
@@ -506,23 +511,29 @@ the actual time value used for positioning the subtitle."
 
 (def. (srt-items.display [(list-of srt-item?) items]
                          #!optional
-                         ([(maybe output-port?) p] (current-output-port)))
+                         ([(maybe output-port?) p] (current-output-port))
+                         latin1?)
   (=> items
       .Ts
-      (.for-each (C .display _ p))))
+      (.for-each (C .display _ p latin1?))))
 
 (def. (srt-items.string items)
   (call-with-output-string "" (C .display items _)))
 
-(def. (srt-items.save-to! [(list-of srt-item?) items] [path-settings? path])
-  "Convert srt objects to a `.srt` file"
-  (call-with-output-file (if (string? path)
-                             (list path: path
-                                   char-encoding: 'ISO-8859-1)
-                             path)
-    (lambda (p)
-      ;; (display #\xFEFF p) ehr. Not working either for smplayer.
-      (.display items p))))
+(def. (srt-items.save-to! [(list-of srt-item?) items] [path-settings? ps])
+  "Convert srt objects to a `.srt` file. If `ps` declares latin-1
+encoding, does some substitutions and if it still fails, reports the
+offending object."
+  (let (ps (.encoding-set ps 'ISO-8859-1))
+   (let (latin1? (in-monad maybe
+                           (==> (.maybe-encoding ps)
+                                maybe-canonical-gambit-encoding
+                                (eq? 'latin1))))
+     (warn "latin1?:" latin1?)
+     (call-with-output-file ps
+       (lambda (p)
+         ;; (display #\xFEFF p) ehr. Not working either for smplayer.
+         (.display items p latin1?))))))
 
 
 
