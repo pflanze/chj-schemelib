@@ -23,6 +23,7 @@
           (class tm))
         (parameter current-tm-delay)
         (class Tdelay)
+        Td ;; alias for Tdelay
         (interface T-interface
           (class Tcomment)
           (class T/location
@@ -315,6 +316,9 @@ the actual time value used for positioning the subtitle."
 
 
 (defclass (Tdelay [fixnum? milliseconds]))
+
+(def Td Tdelay)
+
 
 (definterface T-interface
   (method (display s port))
