@@ -515,7 +515,7 @@ the actual time value used for positioning the subtitle."
   (call-with-output-string "" (C .display items _)))
 
 (def. (srt-items.save-to! [(list-of srt-item?) items] [path-settings? path])
-  ;; "Convert Scheme to a `.srt` file" -- XX ditto
+  "Convert srt objects to a `.srt` file"
   (call-with-output-file (if (string? path)
                              (list path: path
                                    char-encoding: 'ISO-8859-1)
