@@ -15,8 +15,7 @@
          test)
 
 (export path-string?
-        path-settings-list?
-        path-settings?
+        ;; for port-settings see port-settings.scm
         filename-or-.-..-string?
         filename-string?
         path-separator
@@ -158,19 +157,4 @@ file (e.g. console)."
     (and (string? c)
          c)))
 
-
-
-;; Gambit path settings:
-
-(define path-settings-list?
-  (both list?
-        (lambda (v)
-          (let ((len (length v)))
-            (and (even? len)
-                 (cond ((list-index (C eq? _ path:) v)
-                        => even?)
-                       (else #f)))))))
-
-(define path-settings? (either path-string?
-                               path-settings-list?))
 

@@ -25,6 +25,9 @@
   (and (list? v)
        (dsssl? v)
        ;; XX test for particular set of keywords etc?
+       ;; (cond ((list-index (C eq? _ path:) v)
+       ;;        => even?)
+       ;;       (else #f))
        #t))
 
 (TEST

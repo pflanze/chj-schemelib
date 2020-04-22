@@ -520,7 +520,8 @@ the actual time value used for positioning the subtitle."
 (def. (srt-items.string items)
   (call-with-output-string "" (C .display items _)))
 
-(def. (srt-items.save-to! [(list-of srt-item?) items] [path-settings? ps])
+(def. (srt-items.save-to! [(list-of srt-item?) items]
+                          [path-or-port-settings? ps])
   "Convert srt objects to a `.srt` file. If `ps` declares latin-1
 encoding, does some substitutions and if it still fails, reports the
 offending object."
