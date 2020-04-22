@@ -534,7 +534,6 @@ offending object. If `final?` is #t, "
                             (==> (.maybe-encoding ps)
                                  maybe-canonical-gambit-encoding
                                  (eq? 'latin1))))
-      (warn "latin1?:" latin1?)
       (call-with-output-file ps
         (lambda (p)
           ;; (display #\xFEFF p) ehr. Not working for smplayer.
