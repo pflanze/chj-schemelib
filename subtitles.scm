@@ -521,20 +521,24 @@ the actual time value used for positioning the subtitle."
   (call-with-output-string "" (C .display items _)))
 
 (def. (srt-items.save-to! [(list-of srt-item?) items]
-                          [path-or-port-settings? ps])
+                          [path-or-port-settings? ps]
+                          #!optional
+                          [boolean? final?])
   "Convert srt objects to a `.srt` file. If `ps` declares latin-1
 encoding, does some substitutions and if it still fails, reports the
-offending object."
-  (let (ps (.encoding-set-default ps 'ISO-8859-1))
-   (let (latin1? (in-monad maybe
-                           (==> (.maybe-encoding ps)
-                                maybe-canonical-gambit-encoding
-                                (eq? 'latin1))))
-     (warn "latin1?:" latin1?)
-     (call-with-output-file ps
-       (lambda (p)
-         ;; (display #\xFEFF p) ehr. Not working either for smplayer.
-         (.display items p latin1?))))))
+offending object. If `final?` is #t, "
+  (let (ps (if final?
+               (.encoding-set ps 'UTF-16)
+               ps))
+    (let (latin1? (in-monad maybe
+                            (==> (.maybe-encoding ps)
+                                 maybe-canonical-gambit-encoding
+                                 (eq? 'latin1))))
+      (warn "latin1?:" latin1?)
+      (call-with-output-file ps
+        (lambda (p)
+          ;; (display #\xFEFF p) ehr. Not working for smplayer.
+          (.display items p latin1?))))))
 
 
 
