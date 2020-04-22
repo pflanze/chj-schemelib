@@ -15,6 +15,7 @@
 
 (export port-setting?
         path-or-port-settings?
+        maybe-canonical-gambit-encoding
         gambit-encoding?
         (methods-for .encoding-set)
         (methods-for .maybe-encoding))
@@ -35,12 +36,15 @@
   (either path-string? port-settings?))
 
 
-(define (gambit-encoding? v)
+(define (maybe-canonical-gambit-encoding v) ;; -> (maybe symbol?)
   (case v
     ;; XX what are the values exactly?, look up in Gambit source or decide
-    ((UTF-8 utf-8 utf8 UTF8) #t)
-    ((iso-8859-1 ISO-8859-1) #t)
+    ((UTF-8 utf-8 utf8 UTF8) 'utf8)
+    ((iso-8859-1 ISO-8859-1) 'latin1)
     (else #f)))
+
+(define (gambit-encoding? v)
+  (and (maybe-canonical-gambit-encoding v) #t))
 
 
 (define. (path-string.encoding-set s [gambit-encoding? encoding])
