@@ -858,7 +858,8 @@
                            (boolean.= (.contains-range? r1 r2)
                                       (.equal? (.union* r1 r2) r1)))
                           
-                          (raise 'XX))))
+                          ;; (raise 'XX)
+                          )))
  ()
  )
 
