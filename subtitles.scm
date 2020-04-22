@@ -346,7 +346,7 @@ the actual time value used for positioning the subtitle."
       (.xcheck s)
       (let (titles
             (if latin1?
-                (let (titles (string-tr titles "’" "'"))
+                (let (titles (string-tr titles "’„“‚‘" "'\"\"''"))
                   (if (latin1-string? titles)
                       titles
                       (raise-location-error
