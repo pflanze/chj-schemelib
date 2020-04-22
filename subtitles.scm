@@ -523,13 +523,14 @@ the actual time value used for positioning the subtitle."
 (def. (srt-items.save-to! [(list-of srt-item?) items]
                           [path-or-port-settings? ps]
                           #!optional
-                          [boolean? final?])
+                          [(maybe gambit-encoding?) encoding])
   "Convert srt objects to a `.srt` file. If `ps` declares latin-1
 encoding, does some substitutions and if it still fails, reports the
 offending object. If `final?` is #t, "
-  (let (ps (if final?
-               (.encoding-set ps 'UTF-16)
-               ps))
+  (let* ((ps (.encoding-set-default ps 'UTF-16))
+         (ps (if encoding
+                 (.encoding-set ps encoding)
+                 ps)))
     (let (latin1? (in-monad maybe
                             (==> (.maybe-encoding ps)
                                  maybe-canonical-gambit-encoding
