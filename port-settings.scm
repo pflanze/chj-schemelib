@@ -18,6 +18,7 @@
         maybe-canonical-gambit-encoding
         gambit-encoding?
         (methods-for .encoding-set)
+        (methods-for .encoding-set-default)
         (methods-for .maybe-encoding))
 
 
@@ -56,6 +57,13 @@
 
 (define. (port-settings.encoding-set s [gambit-encoding? encoding])
   (dsssl-set s char-encoding: encoding))
+
+
+(define. path-string.encoding-set-default
+  path-string.encoding-set)
+
+(define. (port-settings.encoding-set-default s [gambit-encoding? encoding])
+  (dsssl-defaults s '(char-encoding: encoding)))
 
 
 (define. (path-string.maybe-encoding s)

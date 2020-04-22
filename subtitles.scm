@@ -525,7 +525,7 @@ the actual time value used for positioning the subtitle."
   "Convert srt objects to a `.srt` file. If `ps` declares latin-1
 encoding, does some substitutions and if it still fails, reports the
 offending object."
-  (let (ps (.encoding-set ps 'ISO-8859-1))
+  (let (ps (.encoding-set-default ps 'ISO-8859-1))
    (let (latin1? (in-monad maybe
                            (==> (.maybe-encoding ps)
                                 maybe-canonical-gambit-encoding
