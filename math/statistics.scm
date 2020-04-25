@@ -1,4 +1,4 @@
-;;; Copyright 2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2019-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -13,19 +13,20 @@
                   list-variance list-variance-from)
          test)
 
-(export (method seq.mean)
-        (method seq.product)
-        (method seq.geomean)
-        (method seq.harmmean)
-        (method .std)
-        (method .stdm)
-        (method .var)
-        (method .varm)
-        (class mean&std)
-        (class mean&var)
-        (method seq.mean&std) ;; not all seq supported yet
-        (method seq.mean&var) ;; not all seq supported yet
-        )
+(export (methods seq.mean
+                 seq.product
+                 seq.geomean
+                 seq.harmmean)
+        (generics .std
+                  .stdm
+                  .var
+                  .varm)
+        (classes mean&std
+                 mean&var)
+        ;; not all seq supported yet:
+        (methods seq.mean&std
+                 seq.mean&var))
+
 
 "Basic statistics functions."
 
