@@ -11,7 +11,9 @@
          (cj-math list-average stream-average
                   list-standard-deviation list-standard-deviation-from
                   list-variance list-variance-from)
-         test)
+         test
+         oo-lib-vector
+         oo-lib-u32vector)
 
 (export (methods seq.mean
                  seq.product
