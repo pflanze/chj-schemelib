@@ -517,9 +517,7 @@ the actual time value used for positioning the subtitle."
                          #!optional
                          ([(maybe output-port?) p] (current-output-port))
                          latin1?)
-  (=> items
-      .Ts
-      (.for-each (C .display _ p latin1?))))
+  (=> items .Ts (.for-each (C .display _ p latin1?))))
 
 (def. (srt-items.string items)
   (call-with-output-string "" (C .display items _)))
