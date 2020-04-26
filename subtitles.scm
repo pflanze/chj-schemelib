@@ -500,10 +500,11 @@ scaled)."
      
      '())))
 
-(def. (srt-items.adjust-scale l) ;; -> (list-of T-interface?)
-  "'Clean up' `srt-item`s to just `T`s, taking subtitle-time elements
-as data points for *scaling* the time line (the whole time line is
-scaled by a single linear factor)."
+(def. (srt-items.adjust-scale l #!optional [boolean? keep-times?])
+  -> (if keep-times? (list-of srt-item?) (list-of T-interface?))
+  "'Clean up' `srt-item`s to just `T`s (unless `keep-times?` is #t),
+taking subtitle-time elements as data points for *scaling* the time
+line (the whole time line is scaled by a single linear factor)."
   (let* ((shiftpoints
           (let lp ((l l)
                    (shiftpoints '()))
@@ -534,7 +535,7 @@ scaled by a single linear factor)."
                                  (.from-update f*)
                                  (.to-update f*)))
                             ((subtitles-time? a)
-                             #f)
+                             (and keep-times? a))
                             ((Tdelay? a)
                              ;; ditto
                              (error ($ "don't currently know how to handle "
