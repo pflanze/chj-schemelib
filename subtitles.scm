@@ -15,7 +15,9 @@
          (latin1 latin1-string?)
          (string-util-2 string-tr)
          (cj-gambit-sys-io os-exception-codesymbol)
-         port-settings)
+         port-settings
+         math/least-squares
+         test)
 
 (export (class subtitles-time
           (class subtitles-milliseconds)
@@ -31,6 +33,7 @@
             (class Treal/location)))
         (macros T Toff Treal)
         (methods srt-items.Ts
+                 srt-items.adjust-scale
                  string-stream.Tshow
                  filepath.Tshow
                  srt-items.display
@@ -467,7 +470,9 @@ the actual time value used for positioning the subtitle."
 (def srt-items? (ilist-of srt-item?))
 
 (def. (srt-items.Ts l) -> (list-of T-interface?)
-  "'Clean up' `srt-item`s to just `T`s."
+  "'Clean up' `srt-item`s to just `T`s, taking subtitle-time elements
+as shift points in the time line (time is shifted from there on, not
+scaled)."
   (let rec ((l l)
             (dt-ms 0))
     (if-let-pair
@@ -483,12 +488,52 @@ the actual time value used for positioning the subtitle."
                 (assert (T-interface? b))
                 (rec l*
                      (.-ms a (.from b))))
-              '()))
+              (error "missing T after subtitles-time")))
             ((Tdelay? a)
              (rec l*
                   (+ dt-ms (.milliseconds a)))))
      
      '())))
+
+(def. (srt-items.adjust-scale l) ;; -> (list-of T-interface?)
+  "'Clean up' `srt-item`s to just `T`s, taking subtitle-time elements
+as data points for *scaling* the time line (the whole time line is
+scaled by a single linear factor)."
+  (let* ((shiftpoints
+          (let lp ((l l)
+                   (shiftpoints '()))
+            (if-let-pair
+             ((a l*) l)
+
+             (xcond ((T-interface? a) (lp l* shiftpoints))
+                    ((subtitles-time? a)
+                     (if-let-pair
+                      ((b l**) l*)
+                      (lp l*
+                          (cons (cons a (.from b)) shiftpoints))
+                      (error "missing T after subtitles-time")))
+                    ((Tdelay? a)
+                     ;; An idea is to actually wrap the mapping points,
+                     ;; and run |.Ts| before |.adjust-scale|.
+                     (error ($ "don't currently know how to handle "
+                               "Tdelay with .adjust-scale"))))
+     
+             shiftpoints)))
+         (ps (=> shiftpoints
+                 (.map (applying-pair (on .milliseconds (flip cons))))))
+         (f (.fit ps))
+         (f* (=>* .milliseconds f integer milliseconds->tim)))
+    (.filter-map l (lambda (a)
+                     (xcond ((T-interface? a)
+                             (=> a
+                                 (.from-update f*)
+                                 (.to-update f*)))
+                            ((subtitles-time? a)
+                             #f)
+                            ((Tdelay? a)
+                             ;; ditto
+                             (error ($ "don't currently know how to handle "
+                                       "Tdelay with .adjust-scale"))))))))
 
 
 (def filepath? (both path-string? -f?))
