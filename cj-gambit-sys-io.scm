@@ -25,6 +25,7 @@ on unknown errors."
     (string-case
      msg
      (("can't convert from c utf-8-string") 'cannot-convert-from-utf-8)
+     (("can't convert from c char-string") 'cannot-convert-from-c-char-string)
      (else
       (error "unknown error message (unfinished) for code:" msg code)))))
 

@@ -51,12 +51,17 @@
 "Parse and print video subtitle files in the SubRip `.srt` Format."
 
 
-(def (catching-UTF8-encoding-error thunk then)
+(def (catching-encoding-error thunk triedmsg then)
      (with-exception-catcher
       (lambda (e)
         (and (os-exception? e)
              (case (os-exception-codesymbol e)
-               ((cannot-convert-from-utf-8) (then))
+               ((cannot-convert-from-utf-8
+                 cannot-convert-from-c-char-string)
+                ;; want 'carp'?...
+                (warn "catching-encoding-error: falling back from"
+                      triedmsg)
+                (then))
                (else
                 (raise e)))))
       thunk))
@@ -554,9 +559,13 @@ scaled by a single linear factor)."
   "Convert an `.srt` file to Scheme."
   (let (Tshow (=>* file-line/location-stream
                    .Tshow))
-    (catching-UTF8-encoding-error
+    (catching-encoding-error
      (& (Tshow pps))
-     (& (Tshow (.encoding-set pps 'ISO-8859-1))))))
+     "user-specified encoding to UTF-16"
+     (& (catching-encoding-error
+         (& (Tshow (.encoding-set pps 'UTF-16)))
+         "UTF-16 to ISO-8859-1"
+         (& (Tshow (.encoding-set pps 'ISO-8859-1))))))))
 
 (def. (srt-items.display [(list-of srt-item?) items]
                          #!optional
