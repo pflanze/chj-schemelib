@@ -12,6 +12,7 @@
          )
 
 (export (methods strings.save-to!)
+        T-no-add
         #!optional
         strings?)
 
@@ -33,3 +34,9 @@
              (.for-each ss (C displayln _ p))))))))
 
 
+(def (T-no-add n)
+     (lambda (v)
+       (if (T-interface? v)
+           (=> v
+               (.no-update (C + _ n)))
+           v)))
