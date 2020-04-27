@@ -541,6 +541,32 @@ line (the whole time line is scaled by a single linear factor)."
                              (error ($ "don't currently know how to handle "
                                        "Tdelay with .adjust-scale"))))))))
 
+(TEST
+ > (=> (list (T 3 (tim 0 6 54 144) (tim 0 6 56 847) "a")
+             (tim 0 6 50 0)
+             (T 4 (tim 0 6 57 14) (tim 0 6 59 136) "b")
+             (T 5 (tim 0 7 1 812) (tim 0 7 3 589) "c")
+             (tim 0 8 1 0)
+             (T 7 (tim 0 7 3 591) (tim 0 7 6 657) "d"))
+       .adjust-scale subtitles-show)
+ (list (T 3 (tim 0 6 19 17) (tim 0 6 48 197) "a")
+       (T 4 (tim 0 6 50 0) (tim 0 7 12 907) "b")
+       (T 5 (tim 0 7 41 795) (tim 0 8 0 978) "c")
+       (T 7 (tim 0 8 1 0) (tim 0 8 34 98) "d"))
+ > (=> (list (tim 0 6 20 500)
+             (T 3 (tim 0 6 54 144) (tim 0 6 56 847) "a")
+             (tim 0 6 50 0)
+             (T 4 (tim 0 6 57 14) (tim 0 6 59 136) "b")
+             (T 5 (tim 0 7 1 812) (tim 0 7 3 589) "c")
+             (tim 0 8 1 0)
+             (T 7 (tim 0 7 3 591) (tim 0 7 6 657) "d"))
+       .adjust-scale subtitles-show)
+ (list (T 3 (tim 0 6 20 44) (tim 0 6 48 873) "a")
+       (T 4 (tim 0 6 50 654) (tim 0 7 13 286) "b")
+       (T 5 (tim 0 7 41 827) (tim 0 8 0 779) "c")
+       (T 7 (tim 0 8 0 801) (tim 0 8 33 501) "d")))
+
+
 
 (def filepath? (both path-string? -f?))
 
