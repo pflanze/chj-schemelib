@@ -1,4 +1,4 @@
-;;; Copyright 2016-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -12,6 +12,7 @@
 	 show
 	 cj-cmp
 	 wbtree
+         Maybe
 	 test)
 
 (export (class wbtable)
@@ -21,10 +22,12 @@
 	list->wbtable-of
 	;; list.wbtable-of  nah just too many args, k? ;; no list.wbtable, OK?
 	;; list.wbtable-function
-	(method
+	(methods
 	 wbtable.length
 	 wbtable.ref ;; with required alternative value if missing
 	 wbtable.refx ;; exception
+         wbtable.Maybe-prev
+         wbtable.Maybe-next
 	 wbtable.exists?
 	 wbtable.update
 	 wbtable.update*
@@ -194,6 +197,22 @@
     (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
 	  (else (error "key not found:" key))))
 
+  (defmethod- (Maybe-prev s key)
+    (with-wbtable
+     s ($wbtreeparameter data)
+     (let (v (wbtree:prev data (cons key #f)))
+       (if (wbtree:nothing? v)
+           (Nothing)
+           (Just v)))))
+
+  (defmethod- (Maybe-next s key)
+    (with-wbtable
+     s ($wbtreeparameter data)
+     (let (v (wbtree:next data (cons key #f)))
+       (if (wbtree:nothing? v)
+           (Nothing)
+           (Just v)))))
+
   ;; restrict `contains?` to collections, i.e. full items? And follow
   ;; Perl with `exists`, OK?
   (defmethod- (exists? s key)
@@ -201,17 +220,17 @@
 	 #t))
 
   (def (wbtable:_update s key fn fn-initial initial-value-thunk)
-    (with-wbtable
-     s ($wbtreeparameter data)
-     (if-let ((kv (wbtree:maybe-ref data (cons key #f))))
-	     (let* ((v (cdr kv))
-		    (v* (fn v)))
-	       (if (eq? v v*)
-		   s
-		   (wbtable.data-set s (wbtree:set data (cons key v*)))))
-	     (wbtable.data-set
-	      s (wbtree:set data (cons key (fn-initial
-					    (initial-value-thunk))))))))
+       (with-wbtable
+        s ($wbtreeparameter data)
+        (if-let ((kv (wbtree:maybe-ref data (cons key #f))))
+                (let* ((v (cdr kv))
+                       (v* (fn v)))
+                  (if (eq? v v*)
+                      s
+                      (wbtable.data-set s (wbtree:set data (cons key v*)))))
+                (wbtable.data-set
+                 s (wbtree:set data (cons key (fn-initial
+                                               (initial-value-thunk))))))))
 
   (def-method- (update s key fn initial-value-thunk)
     (wbtable:_update s key fn fn initial-value-thunk))
@@ -405,3 +424,21 @@
  1/6
  > (.fold t (lambda (k.v t) (/ (cdr k.v) t)) 1)
  6)
+
+
+(TEST
+ > (def list.realwbtable (list->wbtable-of real? real-cmp symbol?))
+ > (def t (list.realwbtable '((10 . a) (20 . b) (25 . c))))
+ > (.Maybe-prev t 11)
+ [(Just) (10 . a)]
+ > (.Maybe-next t 11)
+ [(Just) (20 . b)]
+ > (.Maybe-next t 24)
+ [(Just) (25 . c)]
+ > (.Maybe-next t 25)
+ [(Nothing)]
+ > (.Maybe-prev t 25)
+ [(Just) (20 . b)]
+ > (.Maybe-prev t 100)
+ [(Just) (25 . c)])
+
