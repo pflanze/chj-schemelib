@@ -26,6 +26,7 @@
 	 wbtable.length
 	 wbtable.ref ;; with required alternative value if missing
 	 wbtable.refx ;; exception
+         wbtable.Maybe-ref
          wbtable.Maybe-prev
          wbtable.Maybe-next
 	 wbtable.exists?
@@ -196,6 +197,10 @@
   (defmethod- (refx s key)
     (cond ((wbtable.maybe-ref-pair s (cons key #f)) => cdr)
 	  (else (error "key not found:" key))))
+
+  (defmethod- (Maybe-ref s key)
+    (cond ((wbtable.maybe-ref-pair s (cons key #f)) => Just)
+	  (else (Nothing))))
 
   (defmethod- (Maybe-prev s key)
     (with-wbtable
@@ -429,6 +434,10 @@
 (TEST
  > (def list.realwbtable (list->wbtable-of real? real-cmp symbol?))
  > (def t (list.realwbtable '((10 . a) (20 . b) (25 . c))))
+ > (.Maybe-ref t 10)
+ [(Just) (10 . a)] ;; yes, return the pair as well for consistency, OK?
+ > (.Maybe-ref t 11)
+ [(Nothing)]
  > (.Maybe-prev t 11)
  [(Just) (10 . a)]
  > (.Maybe-next t 11)
