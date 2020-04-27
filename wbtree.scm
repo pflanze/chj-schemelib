@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 ;;; based on a text (c) University of Southampton (see below)
 
 ;;;    This file is free software; you can redistribute it and/or modify
@@ -47,6 +47,7 @@
         wbtree:gt
         wbtree:le
         wbtree:ge
+        wbtree:prev
         wbtree:next
         wbtree:union
         wbtree:difference
@@ -636,17 +637,23 @@
                        ((eq) (make-wbtree v (inc s) empty-wbtree r))))))))
 
 
-(define wbtree:next-none (gensym 'no-next))
-(define (wbtree:next-none? x)
-  (eq? x wbtree:next-none))
-;;^ ah btw might use empty-wbtree for that?
-;; ah no. empty wbtrees might be stored!
+(define wbtree:nothing (gensym 'wbtree:nothing))
+(define (wbtree:nothing? x)
+  (eq? x wbtree:nothing))
+;; ^ use empty-wbtree for that? no, empty wbtrees might be stored!
+
+(define* (wbtree:prev t x)
+  ;; XXX: optimize this!!
+  (let ((t* (wbtree:lt t x)))
+    (if (empty-wbtree? t*)
+        wbtree:nothing
+        (wbtree:max t*))))
 
 (define* (wbtree:next t x)
   ;; XXX: optimize this!!
   (let ((t* (wbtree:gt t x)))
     (if (empty-wbtree? t*)
-        wbtree:next-none
+        wbtree:nothing
         (wbtree:min t*))))
 
 
@@ -743,7 +750,7 @@
                   (delay
                     (let ((next-rec2
                            (let ((v* (wbtree:next current-t v)))
-                             (if (wbtree:next-none? v*)
+                             (if (wbtree:nothing? v*)
                                  tail
                                  (rec2 v*)))))
                       ;; check the other 'legs'
