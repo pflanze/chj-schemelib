@@ -500,33 +500,35 @@ scaled)."
      
      '())))
 
+(def (srt-items-shift-points l extract)
+     (let lp ((l l)
+              (shiftpoints '()))
+       (if-let-pair
+        ((a l*) l)
+
+        (xcond ((T-interface? a) (lp l* shiftpoints))
+               ((subtitles-time? a)
+                (if-let-pair
+                 ((b l**) l*)
+                 (lp l*
+                     (cons (cons (extract (.from b))
+                                 (extract a))
+                           shiftpoints))
+                 (error "missing T after subtitles-time")))
+               ((Tdelay? a)
+                ;; An idea is to actually wrap the mapping points,
+                ;; and run |.Ts| before |.adjust-scale|.
+                (error ($ "don't currently know how to handle "
+                          "Tdelay with .adjust-scale"))))
+     
+        shiftpoints)))
+
 (def. (srt-items.adjust-scale l #!optional [boolean? keep-times?])
   -> (if keep-times? (list-of srt-item?) (list-of T-interface?))
   "'Clean up' `srt-item`s to just `T`s (unless `keep-times?` is #t),
 taking subtitle-time elements as data points for *scaling* the time
 line (the whole time line is scaled by a single linear factor)."
-  (let* ((shiftpoints
-          (let lp ((l l)
-                   (shiftpoints '()))
-            (if-let-pair
-             ((a l*) l)
-
-             (xcond ((T-interface? a) (lp l* shiftpoints))
-                    ((subtitles-time? a)
-                     (if-let-pair
-                      ((b l**) l*)
-                      (lp l*
-                          (cons (cons a (.from b)) shiftpoints))
-                      (error "missing T after subtitles-time")))
-                    ((Tdelay? a)
-                     ;; An idea is to actually wrap the mapping points,
-                     ;; and run |.Ts| before |.adjust-scale|.
-                     (error ($ "don't currently know how to handle "
-                               "Tdelay with .adjust-scale"))))
-     
-             shiftpoints)))
-         (ps (=> shiftpoints
-                 (.map (applying-pair (on .milliseconds (flip cons))))))
+  (let* ((ps (srt-items-shift-points l .milliseconds))
          (f (.fit ps))
          (f* (=>* .milliseconds f integer milliseconds->tim)))
     (.filter-map l (lambda (a)
