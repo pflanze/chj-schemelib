@@ -40,12 +40,14 @@
   (either path-string? port-settings?))
 
 
-(define (maybe-canonical-gambit-encoding v) ;; -> (maybe symbol?)
+(define (maybe-canonical-gambit-encoding v) ;; -> (maybe symbol?)  Oh,
+  ;; I thought Gambit accepted multiple ones. Not actually the case,
+  ;; sigh.
   (case v
     ;; XX what are the values exactly?, look up in Gambit source or decide
-    ((UTF-8 utf-8 utf8 UTF8) 'utf8)
-    ((UTF-16 utf-16 utf16 UTF16) 'utf16)
-    ((iso-8859-1 ISO-8859-1) 'latin1)
+    ((UTF-8) 'utf8)
+    ((UTF-16) 'utf16)
+    ((ISO-8859-1) 'latin1)
     (else #f)))
 
 (define (gambit-encoding? v)
@@ -82,10 +84,12 @@
 
 
 (TEST
- > (.encoding-set "foo" 'iso-8859-1)
- (path: "foo" char-encoding: iso-8859-1)
- > (.encoding-set # 'iso-8859-1)
- (char-encoding: iso-8859-1 path: "foo")
+ > (%try (.encoding-set "foo" 'iso-8859-1))
+ (exception text: "encoding does not match gambit-encoding?: iso-8859-1\n")
+ > (.encoding-set "foo" 'ISO-8859-1)
+ (path: "foo" char-encoding: ISO-8859-1)
+ > (.encoding-set # 'ISO-8859-1)
+ (char-encoding: ISO-8859-1 path: "foo")
  > (.encoding-set # 'UTF-8)
  (char-encoding: UTF-8 path: "foo")
  > (.delete-encoding #)
