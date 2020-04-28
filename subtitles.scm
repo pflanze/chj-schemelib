@@ -724,33 +724,33 @@ offending object. If `final?` is #t, "
 (TEST
  > (def v (list
            (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
-              "Have any biscuits over there?")
+              "A b c d?")
            (Tdelay 1001)
            (T 4 (tim 0 6 57 14) (tim 0 6 59 136)
-              "Here's some cornbread.")
+              "E f g h.")
            (tim 0 7 0 321)
            (T 5 (tim 0 7 1 812) (tim 0 7 3 589)
-              "I am cold.")
+              "I j k.")
            (T 7 (tim 0 7 3 591) (tim 0 7 6 657)
-              "- Still with us, Brett?\n- Right.")))
+              "- L m, n?\n- O.")))
  > (def s (.string v))
  > s ;; use .display for proper view in the repl instead!
  "3
 00:06:54,144 --> 00:06:56,847
-Have any biscuits over there?
+A b c d?
 
 4
 00:06:58,015 --> 00:07:00,137
-Here's some cornbread.
+E f g h.
 
 5
 00:07:00,321 --> 00:07:02,098
-I am cold.
+I j k.
 
 7
 00:07:02,100 --> 00:07:05,166
-- Still with us, Brett?
-- Right.
+- L m, n?
+- O.
 
 "
  ;; ^ Note that it is (currently) keeping the numbering unchanged;
@@ -761,13 +761,13 @@ I am cold.
                .Tshow))
  > v2
  (Ok (list (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
-              "Have any biscuits over there?")
+              "A b c d?")
            (T 4 (tim 0 6 58 15) (tim 0 7 0 137)
-              "Here's some cornbread.")
+              "E f g h.")
            (T 5 (tim 0 7 0 321) (tim 0 7 2 98)
-              "I am cold.")
+              "I j k.")
            (T 7 (tim 0 7 2 100) (tim 0 7 5 166)
-              "- Still with us, Brett?\n- Right.")))
+              "- L m, n?\n- O.")))
  > (show (-> Result?
              (>>= (eval v2)
                   (lambda (v*)
