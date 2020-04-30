@@ -19,7 +19,8 @@
          (cj-env-2 unless) ;; what mess
          (string-util-4 string-empty?)
          (oo-lib-string string.last)
-         (show try-show))
+         (show try-show)
+         (cj-functional-2 =>))
 
 (export current-exception
 	write-exception-message
@@ -47,32 +48,41 @@
 
 ;; without a newline afterwards, i.e. do not wrap arond lines, OK?
 (define (write-exception-message v #!optional (p (current-output-port)))
-  (cond ((and (pair? v) (list? v))
-         (let-pair ((a v*) v)
-                   (display a p)
-                   (when (pair? v*)
-                         (if (string? a)
-                             (unless (string-empty? a)
-                                     ;; XX is this evil? For backwards
-                                     ;; compat with Gambit's behaviour
-                                     ;; of showing messages from
-                                     ;; |error|
-                                     (unless (eq? (string.last a) #\:)
-                                             (display #\: p))
-                                     (display #\space p))
+  (let ((oldrt (output-port-readtable p)))
+    ;; we don't want lots of output in error display:
+    (output-port-readtable-set!
+     p
+     (=> oldrt
+         (readtable-max-unescaped-char-set #\U0010ffff)
+         (readtable-max-write-level-set 6)
+         (readtable-max-write-length-set 10)))
+    (cond ((and (pair? v) (list? v))
+           (let-pair ((a v*) v)
+                     (display a p)
+                     (when (pair? v*)
+                       (if (string? a)
+                           (unless (string-empty? a)
+                             ;; XX is this evil? For backwards
+                             ;; compat with Gambit's behaviour
+                             ;; of showing messages from
+                             ;; |error|
+                             (unless (eq? (string.last a) #\:)
+                               (display #\: p))
                              (display #\space p))
-                         (let lp ((l v*))
-                           (when (pair? l)
-                                 (let-pair ((a r) l)
-                                           (write (try-show a) p)
-                                           (when (pair? r)
-                                                 (display #\space p)
-                                                 (lp r))))))))
-	((string? v)
-	 (display v p))
-	(else
-	 ;; just a safe fallback, don't use, OK?
-	 (write v p))))
+                           (display #\space p))
+                       (let lp ((l v*))
+                         (when (pair? l)
+                           (let-pair ((a r) l)
+                                     (write (try-show a) p)
+                                     (when (pair? r)
+                                       (display #\space p)
+                                       (lp r))))))))
+          ((string? v)
+           (display v p))
+          (else
+           ;; just a safe fallback, don't use, OK?
+           (write v p)))
+    (output-port-readtable-set! p oldrt)))
 
 
 (define (cj-exception-handler e)
