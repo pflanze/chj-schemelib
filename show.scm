@@ -193,7 +193,7 @@
   (lambda (v)
     (with-exception-catcher
      (lambda (e)
-       `(try-show ,v))
+       `(try-show ',v))
      (lambda ()
        (show v)))))
 
