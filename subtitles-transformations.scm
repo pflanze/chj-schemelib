@@ -20,7 +20,8 @@
 (export (methods
          ;; alternatives for `srt-items.Ts`:
          srt-items.adjust-scale
-         srt-items.interpolate))
+         srt-items.interpolate
+         srt-items.renumber))
 
 (include "cj-standarddeclares.scm")
 
@@ -184,4 +185,40 @@ subtitle-time element exactly to its following T entry)."
        (T 5 (tim 0 0 0 200) (tim 0 0 0 220) "c")
        (T 6 (tim 0 0 0 260) (tim 0 0 0 280) "d")
        (T 7 (tim 0 0 0 300) (tim 0 0 0 320) "e")))
+
+
+(def. (srt-items.renumber l #!optional ([fixnum? from] 1))
+  (let lp ((l l)
+           (no from)
+           (out '()))
+    (if-let-pair
+     ((a l*) l)
+     (cond
+       ;; should I make no-set part of T-interface, then check for
+       ;; T-interface (and the alternative would then be the classes
+       ;; outside that tree only, i.e. modifiers), would that be
+       ;; safer?
+      ((T/location? a)
+       (lp l*
+           (inc no)
+           (cons (.no-set a no)
+                 out)))
+      (else
+       (lp l*
+           no
+           (cons a out))))
+     (reverse out))))
+
+(TEST
+ > (=> (list (tim 0 0 0 100)
+             (T 3 (tim 0 5 0 100) (tim 0 5 0 200) "a")
+             (T 4 (tim 0 5 0 300) (tim 0 5 0 400) "b")
+             (tim 0 0 0 200)
+             (T 5 (tim 0 5 0 500) (tim 0 5 0 600) "c"))
+       .renumber subtitles-show)
+ (list (tim 0 0 0 100)
+       (T 1 (tim 0 5 0 100) (tim 0 5 0 200) "a")
+       (T 2 (tim 0 5 0 300) (tim 0 5 0 400) "b")
+       (tim 0 0 0 200)
+       (T 3 (tim 0 5 0 500) (tim 0 5 0 600) "c")))
 
