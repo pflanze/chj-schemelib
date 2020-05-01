@@ -37,6 +37,8 @@
                  srt-items.display
                  srt-items.string
                  srt-items.save-to!)
+        list-of-T?
+        Ts?
         #!optional
         srtlines->Result-of-Ts
         ;; util stuff:
@@ -472,7 +474,10 @@ the actual time value used for positioning the subtitle."
 
 (def srt-items? (ilist-of srt-item?))
 
-(def. (srt-items.Ts l) -> (list-of T-interface?)
+(def list-of-T? (list-of T-interface?))
+(def Ts? (ilist-of T-interface?))
+
+(def. (srt-items.Ts l) -> list-of-T?
   "'Clean up' `srt-item`s to just `T`s, taking subtitle-time elements
 as shift points in the time line (time is shifted from there on, not
 scaled)."

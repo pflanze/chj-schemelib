@@ -21,7 +21,8 @@
          ;; alternatives for `srt-items.Ts`:
          srt-items.adjust-scale
          srt-items.interpolate
-         srt-items.renumber))
+         srt-items.renumber
+         Ts.cut-overlaps))
 
 (include "cj-standarddeclares.scm")
 
@@ -221,4 +222,44 @@ subtitle-time element exactly to its following T entry)."
        (T 2 (tim 0 5 0 300) (tim 0 5 0 400) "b")
        (tim 0 0 0 200)
        (T 3 (tim 0 5 0 500) (tim 0 5 0 600) "c")))
+
+
+(def. (Ts.cut-overlaps [list-of-T? l])
+  ;; ^ Force full check always, but use |Ts?| for cheap dispatch. Ok?
+  "In each T, cut the end time to the start of the next T if they
+overlap."
+  (let lp ((l l)
+           (out '()))
+    (let (end (& (reverse out)))
+      (if-let-pair
+       ((a l*) l)
+       (let (unchanged (& (lp l* (cons a out))))
+         (cond ((T/location? a)
+                (if-let (b (find T/location? l*))
+                        (let ((ato (.to a))
+                              (bfrom (.from b)))
+                          (if (.> ato bfrom)
+                              (lp l* (cons (.to-set a bfrom) out))
+                              (unchanged)))
+                        (unchanged)))
+               (else
+                (unchanged))))
+       (end)))))
+
+(TEST
+ > (def v (list (T 3 (tim 0 5 0 100) (tim 0 5 0 350) "a")
+                (T 4 (tim 0 5 0 300) (tim 0 5 0 550) "b")
+                ;; still runs since Ts? doesnt detect the following
+                ;; entry, but this will prevent the cutting from
+                ;; happening:
+                (Tdelay 30)
+                (T 5 (tim 0 5 0 500) (tim 0 5 0 600) "c")
+                (T 7 (tim 0 5 0 580) (tim 0 5 0 590) "c")))
+ > (%try (=> v .cut-overlaps subtitles-show))
+ (exception text: "l does not match list-of-T?:\n([(T/location) [\"/home/chrisjazz/Alien-subtitles/lib/subtitles-transformatio...\n")
+ > (=> v .Ts .cut-overlaps subtitles-show)
+ (list (T 3 (tim 0 5 0 100) (tim 0 5 0 300) "a")
+       (T 4 (tim 0 5 0 300) (tim 0 5 0 530) "b")
+       (T 5 (tim 0 5 0 530) (tim 0 5 0 610) "c")
+       (T 7 (tim 0 5 0 610) (tim 0 5 0 620) "c")))
 
