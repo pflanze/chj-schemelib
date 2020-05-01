@@ -22,5 +22,7 @@
  > (%try (.ref-real v 0))
  (exception text: "value fails to meet predicate: (real? +1.4142135623730951i)\n")
  > (%try (.ref-inexact-real v 0))
- (exception text: "value fails to meet predicate: (real? +1.4142135623730951i)\n"))
+ (exception text: "value fails to meet predicate: (real? +1.4142135623730951i)\n")
+ > (.list/tail '[a b c] '(1 2 3))
+ (a b c 1 2 3))
 

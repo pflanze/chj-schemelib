@@ -163,10 +163,10 @@
            (len* (inc len))
            (v* (make-VECTOR len*)))
       (for..< (j 0 i)
-            (VECTOR-set! v* j (VECTOR-ref v j)))
+              (VECTOR-set! v* j (VECTOR-ref v j)))
       (VECTOR-set! v* i val)
       (for..< (j (inc i) len*)
-            (VECTOR-set! v* j (VECTOR-ref v (dec j))))
+              (VECTOR-set! v* j (VECTOR-ref v (dec j))))
       v*))
 
 
@@ -225,6 +225,15 @@
         (if (< i len)
             (lp (cons (VECTOR-ref v i) l)
                 (inc i))
+            l))))
+
+  (def. (VECTOR.list/tail v tail)
+    (let ((len (VECTOR-length v)))
+      (let lp ((l tail)
+               (i (dec len)))
+        (if (>= i 0)
+            (lp (cons (VECTOR-ref v i) l)
+                (dec i))
             l))))
 
   ;; XX already have |string-empty?|
