@@ -13,6 +13,7 @@
 
 (export (methods strings.save-to!)
         T-no-add
+        i
         #!optional
         strings?)
 
@@ -40,3 +41,19 @@
            (=> v
                (.no-update (C + _ n)))
            v)))
+
+(def i
+     (=>* (string.split #\newline)
+          (.map (lambda (line)
+                  (if (string.null? (trim-both line))
+                      line
+                      ($ "<i>${line}</i>"))))
+          (strings-join "\n")))
+
+(TEST
+ > (i "fun")
+ "<i>fun</i>"
+ > (i "fun \n")
+ "<i>fun </i>\n"
+ > (i "fun \nThere")
+ "<i>fun </i>\n<i>There</i>")
