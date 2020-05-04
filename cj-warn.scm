@@ -1,4 +1,4 @@
-;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -52,7 +52,7 @@
   (port-run-hooks! p))
 
 ;; sep sep lib?
-(define (displayln v p)
+(define (displayln v #!optional (p (current-output-port)))
   (display v p)
   (newline p))
 ;;/sep sep lib
