@@ -32,8 +32,10 @@
             (class Treal/location)))
         (macros T Toff Treal)
         (methods srt-items.Ts
-                 string-stream.Tshow
-                 filepath.Tshow
+                 string/location-stream.Result-of-Ts
+                 string/locations.Result-of-Ts
+                 path-or-port-settings.Result-of-Ts
+                 Tshow
                  srt-items.display
                  srt-items.string
                  srt-items.save-to!)
@@ -509,26 +511,27 @@ scaled)."
 (def. filepath.lines/location file-line/location-stream)
 
 (def string/location-stream? (istream-of string/location?))
-(def. string/location-stream.Tshow
+(def. string/location-stream.Result-of-Ts
   (=>* srtlines->Result-of-Ts
-       Results.Result
-       ;; show without location info:
-       subtitles-show))
+       Results.Result))
 
 (def string/locations? (ilist-of string/location?))
-(def. string/locations.Tshow string/location-stream.Tshow)
+(def. string/locations.Result-of-Ts string/location-stream.Result-of-Ts)
 
-(def. (path-or-port-settings.Tshow pps)
+(def. (path-or-port-settings.Result-of-Ts pps)
   "Convert an `.srt` file to Scheme."
-  (let (Tshow (=>* file-line/location-stream
-                   .Tshow))
+  (let (RTs (=>* file-line/location-stream
+                 .Result-of-Ts))
     (catching-encoding-error
-     (& (Tshow pps))
+     (& (RTs pps))
      "user-specified encoding to UTF-16"
      (& (catching-encoding-error
-         (& (Tshow (.encoding-set pps 'UTF-16)))
+         (& (RTs (.encoding-set pps 'UTF-16)))
          "UTF-16 to ISO-8859-1"
-         (& (Tshow (.encoding-set pps 'ISO-8859-1))))))))
+         (& (RTs (.encoding-set pps 'ISO-8859-1))))))))
+
+(def Tshow (=>* .Result-of-Ts subtitles-show))
+
 
 (def. (srt-items.display [(list-of srt-item?) items]
                          #!optional
@@ -598,7 +601,7 @@ I j k.
  ;;   Scheme representation.
  > (def v2 (=> (source s (location '(f) (position 1 1)))
                (string-split/location "\n")
-               .Tshow))
+               Tshow))
  > v2
  (Ok (list (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
               "A b c d?")
