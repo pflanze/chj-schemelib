@@ -19,7 +19,9 @@
         gambit-encoding?
         (methods-for .encoding-set)
         (methods-for .encoding-set-default)
-        (methods-for .maybe-encoding))
+        (methods-for .maybe-encoding)
+        (methods-for .path-string)
+        (methods-for .maybe-path-string))
 
 
 (define (port-settings? v)
@@ -94,4 +96,35 @@
  (char-encoding: UTF-8 path: "foo")
  > (.delete-encoding #)
  (path: "foo"))
+
+
+(define. (path-string.path-string s) s)
+(define. (port-settings.path-string ps) -> path-string?
+  (or (dsssl-maybe-ref ps path:)
+      (error "port-settings.path-string: missing path: entry" ps)))
+
+(define. (path-string.maybe-path-string s) s)
+(define. (port-settings.maybe-path-string ps) -> (maybe path-string?)
+  (dsssl-maybe-ref ps path:))
+
+(TEST
+ > (.maybe-path-string "foo")
+ "foo"
+ > (.path-string "foo")
+ "foo"
+ > (%try (.path-string ""))
+ (exception
+  text: "no method found for generic .path-string for value: \"\"\n")
+ > (.path-string '(char-encoding: latin1 path: "foo"))
+ "foo"
+ > (%try-error (.path-string '(char-encoding: latin1)))
+ [error "port-settings.path-string: missing path: entry"
+        (char-encoding: latin1)]
+ > (.maybe-path-string '(char-encoding: latin1))
+ #f
+ > (.maybe-path-string '(char-encoding: latin1 path: "foo"))
+ "foo"
+ > (%try (.maybe-path-string '(char-encoding: latin1 path: "")))
+ (exception
+  text: "value fails to meet predicate: ((maybe path-string?) \"\")\n"))
 
