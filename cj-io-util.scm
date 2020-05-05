@@ -206,13 +206,13 @@ some informal structure describing what the port was opened from."
         v)))
 
 (define (read-line/location port)
-  (let ((line (read-line port)))
+  (let* ((lineno (input-port-line port))
+         (line (read-line port)))
     (if (eof-object? line)
         line
         (source line
                 (location (port-name port)
-                          (position (input-port-line port)
-                                    1))))))
+                          (position lineno 1))))))
 
 
 ;; would preferably use read-line as the name, but, better don't
