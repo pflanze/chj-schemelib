@@ -61,7 +61,7 @@
                ((cannot-convert-from-utf-8
                  cannot-convert-from-c-char-string)
                 ;; want 'carp'?...
-                (warn "catching-encoding-error: falling back"
+                (warn ";; catching-encoding-error: falling back"
                       triedmsg)
                 (then))
                (else
