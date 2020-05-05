@@ -59,16 +59,17 @@
 (def (catching-encoding-error thunk triedmsg then)
      (with-exception-catcher
       (lambda (e)
-        (and (os-exception? e)
-             (case (os-exception-codesymbol e)
-               ((cannot-convert-from-utf-8
-                 cannot-convert-from-c-char-string)
-                ;; want 'carp'?...
-                (warn ";; catching-encoding-error: falling back"
-                      triedmsg)
-                (then))
-               (else
-                (raise e)))))
+        (if (os-exception? e)
+            (case (os-exception-codesymbol e)
+              ((cannot-convert-from-utf-8
+                cannot-convert-from-c-char-string)
+               ;; want 'carp'?...
+               (warn ";; catching-encoding-error: falling back"
+                     triedmsg)
+               (then))
+              (else
+               (raise e)))
+            (raise e)))
       thunk))
 
 ;; lib lib lib!
