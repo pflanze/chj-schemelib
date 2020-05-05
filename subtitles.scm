@@ -16,6 +16,7 @@
          (string-util-2 string-tr)
          (cj-gambit-sys-io os-exception-codesymbol)
          port-settings
+         (cj-port pretty-string)
          test)
 
 (export (class subtitles-time
@@ -36,6 +37,8 @@
                  string/locations.Result-of-Ts
                  path-or-port-settings.Result-of-Ts
                  Tshow
+                 path-or-port-settings.print-scheme
+                 path-or-port-settingss.print-scheme
                  srt-items.display
                  srt-items.string
                  srt-items.save-to!)
@@ -532,6 +535,56 @@ scaled)."
 
 (def Tshow (=>* .Result-of-Ts subtitles-show))
 
+
+;; XX lib ?
+
+(def ellipsis (box '...))
+;; ^ hmm, should I call it |...|, so that (list 0 1 ...) actually,
+;; well, still not works? What about the unicode ellipsis?
+(def ellipsis? (C eq? _ ellipsis))
+(def. (ellipsis.show v show)
+  '...)
+
+(def show-prepare:maxlen 5)
+
+(def (show-prepare v)
+     (if (list? v)
+         (if (length-> v show-prepare:maxlen)
+             (=> v
+                 (take show-prepare:maxlen)
+                 (append (list ellipsis)))
+             v)
+         v))
+
+(TEST
+ > (=> (iota 10) show-prepare show)
+ (list 0 1 2 3 4 ...))
+
+
+(def. (path-or-port-settings.print-scheme pps #!optional [(maybe exact-natural0?) i])
+  ;; commented file name
+  (display ";; ") (writeln (.path-string pps))
+  (if-Ok (.Result-of-Ts pps)
+         (pretty-print `(def ,(if i (symbol-append 'v (.string (inc i))) 'v)
+                             ,(subtitles-show it)))
+         ;; errors:
+         (=> it
+             show-prepare
+             try-show
+             ;; comment out:
+             pretty-string
+             (.split "\n")
+             (.map (C string-append ";; " _))
+             (.for-each displayln)))
+  (newline))
+
+(def path-or-port-settingss? (iseq-of path-or-port-settings?))
+
+(def. (path-or-port-settingss.print-scheme ppss)
+  (.for-each/iota ppss .print-scheme))
+
+
+;; -----------
 
 (def. (srt-items.display [(list-of srt-item?) items]
                          #!optional
