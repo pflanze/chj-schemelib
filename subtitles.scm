@@ -61,7 +61,7 @@
                ((cannot-convert-from-utf-8
                  cannot-convert-from-c-char-string)
                 ;; want 'carp'?...
-                (warn "catching-encoding-error: falling back from"
+                (warn "catching-encoding-error: falling back"
                       triedmsg)
                 (then))
                (else
@@ -524,10 +524,10 @@ scaled)."
                  .Result-of-Ts))
     (catching-encoding-error
      (& (RTs pps))
-     "user-specified encoding to UTF-16"
+     "from user-specified encoding to UTF-16"
      (& (catching-encoding-error
          (& (RTs (.encoding-set pps 'UTF-16)))
-         "UTF-16 to ISO-8859-1"
+         "from UTF-16 to ISO-8859-1"
          (& (RTs (.encoding-set pps 'ISO-8859-1))))))))
 
 (def Tshow (=>* .Result-of-Ts subtitles-show))
