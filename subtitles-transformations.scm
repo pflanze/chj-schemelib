@@ -22,7 +22,8 @@
          srt-items.adjust-scale
          srt-items.interpolate
          srt-items.renumber
-         Ts.cut-overlaps))
+         Ts.cut-overlaps
+         Ts.drop-parentized))
 
 (include "cj-standarddeclares.scm")
 
@@ -262,4 +263,37 @@ overlap."
        (T 4 (tim 0 5 0 300) (tim 0 5 0 530) "b")
        (T 5 (tim 0 5 0 530) (tim 0 5 0 610) "c")
        (T 7 (tim 0 5 0 610) (tim 0 5 0 620) "c")))
+
+
+
+;; XX lib?
+
+(def. (string.parentized? str)
+  (let* ((str (string-trim-right str))
+         ;; ^ (optim: string-trim-right is evil, not only does it copy on
+         ;;   no-change, but it goes via lists.)
+         (len (string.length str)))
+    (and (>= len 2)
+         (eq? (string.ref str 0) #\()
+         (eq? (string.ref str (dec len)) #\)))))
+
+(TEST
+ > (.parentized? "()")
+ #t
+ > (.parentized? "(")
+ #f
+ > (.parentized? "(13")
+ #f
+ > (.parentized? "(13)")
+ #t
+ > (.parentized? "a(13) ")
+ #f
+ > (.parentized? "(13) ")
+ #t
+ > (.parentized? "(13) 4")
+ #f)
+
+
+(def. (Ts.drop-parentized l)
+  (.filter l (complement (=>* .titles .parentized?))))
 
