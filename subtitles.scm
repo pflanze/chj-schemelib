@@ -37,8 +37,8 @@
                  string/locations.Result-of-Ts
                  path-or-port-settings.Result-of-Ts
                  Tshow
-                 path-or-port-settings.print-scheme
-                 path-or-port-settingss.print-scheme
+                 path-or-port-settings.srt->scheme
+                 path-or-port-settingss.srt->scheme
                  srt-items.display
                  srt-items.string
                  srt-items.save-to!)
@@ -561,7 +561,7 @@ scaled)."
  (list 0 1 2 3 4 ...))
 
 
-(def. (path-or-port-settings.print-scheme pps #!optional [(maybe exact-natural0?) i])
+(def. (path-or-port-settings.srt->scheme pps #!optional [(maybe exact-natural0?) i])
   ;; commented file name
   (display ";; ") (writeln (.path-string pps))
   (if-Ok (.Result-of-Ts pps)
@@ -580,8 +580,8 @@ scaled)."
 
 (def path-or-port-settingss? (iseq-of path-or-port-settings?))
 
-(def. (path-or-port-settingss.print-scheme ppss)
-  (.for-each/iota ppss .print-scheme))
+(def. (path-or-port-settingss.srt->scheme ppss)
+  (.for-each/iota ppss .srt->scheme))
 
 
 ;; -----------
