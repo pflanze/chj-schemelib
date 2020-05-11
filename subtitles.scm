@@ -336,7 +336,7 @@ the actual time value used for positioning the subtitle."
 
 (definterface T-interface
   (method (display s port))
-  (method (add-ms s ms))
+  (method (+ s ms))
   
 
   (defclass (Tcomment [string? comment])
@@ -344,7 +344,7 @@ the actual time value used for positioning the subtitle."
     (defmethod (display s port)
       (void))
 
-    (defmethod (add-ms s ms)
+    (defmethod (+ s ms)
       s))
 
   (defclass (T/location [(maybe location?) maybe-location]
@@ -378,7 +378,7 @@ the actual time value used for positioning the subtitle."
         (displayln (chomp titles) port)
         (newline port)))
 
-    (defmethod (add-ms s [real? ms])
+    (defmethod (+ s [real? ms])
       (if (zero? ms)
           s
           (=> s
@@ -392,7 +392,7 @@ the actual time value used for positioning the subtitle."
         (void)))
     (defclass (Treal/location)
       "A `T` holding real time stamps, matched to the video, not to be shifted."
-      (defmethod (add-ms s [real? ms])
+      (defmethod (+ s [real? ms])
         s))))
 
 (defmacro (T . args) `(T/location ',(maybe-source-location stx) ,@args))
@@ -492,7 +492,7 @@ scaled)."
     (if-let-pair
      ((a l*) l)
 
-     (xcond ((T-interface? a) (cons (.add-ms a dt-ms) (rec l* dt-ms)))
+     (xcond ((T-interface? a) (cons (.+ a dt-ms) (rec l* dt-ms)))
             ((subtitles-time? a)
              ;; use a instead of .from time of the next element, from
              ;; then on
