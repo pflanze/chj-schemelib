@@ -114,6 +114,8 @@ subtitle-time element exactly to its following T entry)."
       (if-let-pair
        ((a l*) l)
        (xcond
+        ((T-meta? a)
+         (lp l* (cons a out)))
         ((T-interface? a)
          (let ((with-prev+next
                 (lambda (prev next)
