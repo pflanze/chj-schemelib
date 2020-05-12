@@ -335,13 +335,13 @@ the actual time value used for positioning the subtitle."
 
 
 (definterface T-interface
-  (method (display s port))
+  (method (display s port [boolean? latin1?]))
   (method (+ s ms))
   
 
   (defclass (Tcomment [string? comment])
 
-    (defmethod (display s port)
+    (defmethod (display s port [boolean? latin1?])
       (void))
 
     (defmethod (+ s ms)
