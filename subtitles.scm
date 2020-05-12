@@ -27,7 +27,9 @@
         (class Tdelay)
         Td ;; alias for Tdelay
         (interface T-interface
-          (class Tcomment)
+          (class T-meta
+            (class Tcomment)
+            (class Twrap))
           (class T/location
             (class Toff/location)
             (class Treal/location)))
@@ -345,14 +347,16 @@ the actual time value used for positioning the subtitle."
   (method (to-update s fn))
   
 
-  (defclass (Tcomment [string? comment])
-
-    (defmethod (display s port [boolean? latin1?])
-      (void))
-
+  (defclass T-meta
+    (defmethod (display s port [boolean? latin1?]) (void))
     (defmethod (+ s ms) s)
     (defmethod (from-update s fn) s)
-    (defmethod (to-update s fn) s))
+    (defmethod (to-update s fn) s)
+
+    (defclass (Tcomment [string? comment]))
+
+    (defclass (Twrap [srt-item? srt-item])
+      "An inactivated srt-item"))
 
   (defclass (T/location [(maybe location?) maybe-location]
                         [(maybe fixnum?) no]
