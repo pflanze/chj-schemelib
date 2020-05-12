@@ -337,6 +337,12 @@ the actual time value used for positioning the subtitle."
 (definterface T-interface
   (method (display s port [boolean? latin1?]))
   (method (+ s ms))
+  ;; Place here because .adjust-scale in subtitles-transformations is
+  ;; checking for T-interface; and don't want to make one more
+  ;; subcategory? (And T-interface would be the wrong name if it
+  ;; didn't contain these?):
+  (method (from-update s fn))
+  (method (to-update s fn))
   
 
   (defclass (Tcomment [string? comment])
@@ -344,8 +350,9 @@ the actual time value used for positioning the subtitle."
     (defmethod (display s port [boolean? latin1?])
       (void))
 
-    (defmethod (+ s ms)
-      s))
+    (defmethod (+ s ms) s)
+    (defmethod (from-update s fn) s)
+    (defmethod (to-update s fn) s))
 
   (defclass (T/location [(maybe location?) maybe-location]
                         [(maybe fixnum?) no]
