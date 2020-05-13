@@ -684,6 +684,6 @@ I j k.
                     (return (equal? (subtitles-show v*)
                                     (subtitles-show (.Ts v))))))))
  (Ok #t)
- > (equal? v2 (=> s (string-split "\n") .Tshow))
+ > (equal? v2 (=> s (string-split "\n") Tshow))
  #t)
 
