@@ -25,7 +25,7 @@
            (class subtitles-milliseconds)
            (class tim)
            (class tm))
-          (interface T-interface
+          (interface subtitles-item
             (class T-meta
               (class Tcomment)
               (class Twrap))
@@ -35,20 +35,20 @@
         (parameter current-tm-delay)
         Td ;; alias for Tdelay
         (macros T Toff Treal)
-        (methods subtitles-directives.Ts
-                 string/location-stream.Result-of-Ts
-                 string/locations.Result-of-Ts
-                 path-or-port-settings.Result-of-Ts
+        (methods subtitles-directives.subtitles-items
+                 string/location-stream.Result-of-subtitles-items
+                 string/locations.Result-of-subtitles-items
+                 path-or-port-settings.Result-of-subtitles-items
                  Tshow
                  path-or-port-settings.srt->scheme
                  path-or-port-settingss.srt->scheme
                  subtitles-directives.display
                  subtitles-directives.string
                  subtitles-directives.save-to!)
-        list-of-T?
-        Ts?
+        list-of-subtitles-item?
+        subtitles-items?
         #!optional
-        srtlines->Result-of-Ts
+        srtlines->Result-of-subtitles-items
         ;; util stuff:
         Result:string->number
         Result:string-of-len->number)
@@ -238,12 +238,12 @@ the actual time value used for positioning the subtitle."
   (defclass (Tdelay [fixnum? milliseconds]))
 
 
-  (definterface T-interface
+  (definterface subtitles-item
     (method (display s port [boolean? latin1?]))
     (method (+ s ms))
     ;; Place here because .adjust-scale in subtitles-transformations is
-    ;; checking for T-interface; and don't want to make one more
-    ;; subcategory? (And T-interface would be the wrong name if it
+    ;; checking for subtitles-item; and don't want to make one more
+    ;; subcategory? (And subtitles-item would be the wrong name if it
     ;; didn't contain these?):
     (method (from-update s fn))
     (method (to-update s fn))
@@ -343,8 +343,8 @@ the actual time value used for positioning the subtitle."
 ;; (Could take improper list approach in error case, tail being the
 ;; Error; but, try to be "proper", 'Rust conforming' or something.)
 
-(def (srtlines->Result-of-Ts lines)
-     -> (istream-of (Result-of T-interface? error?))
+(def (srtlines->Result-of-subtitles-items lines)
+     -> (istream-of (Result-of subtitles-item? error?))
      (let rec ((lines lines))
        (delay
          (if-let-pair
@@ -393,17 +393,17 @@ the actual time value used for positioning the subtitle."
 
 
 
-(def subtitles-directive? (either T-interface?
+(def subtitles-directive? (either subtitles-item?
                        ;; for new positioning:
                        subtitles-time?
                        Tdelay?))
 
 (def subtitles-directives? (ilist-of subtitles-directive?))
 
-(def list-of-T? (list-of T-interface?))
-(def Ts? (ilist-of T-interface?))
+(def list-of-subtitles-item? (list-of subtitles-item?))
+(def subtitles-items? (ilist-of subtitles-item?))
 
-(def. (subtitles-directives.Ts l) -> list-of-T?
+(def. (subtitles-directives.subtitles-items l) -> list-of-subtitles-item?
   "'Clean up' `subtitles-directive`s to just `T`s, taking subtitle-time elements
 as shift points in the time line (time is shifted from there on, not
 scaled)."
@@ -412,14 +412,14 @@ scaled)."
     (if-let-pair
      ((a l*) l)
 
-     (xcond ((T-interface? a) (cons (.+ a dt-ms) (rec l* dt-ms)))
+     (xcond ((subtitles-item? a) (cons (.+ a dt-ms) (rec l* dt-ms)))
             ((subtitles-time? a)
              ;; use a instead of .from time of the next element, from
              ;; then on
              (if-let-pair
               ((b l**) l*)
               (begin
-                (assert (T-interface? b))
+                (assert (subtitles-item? b))
                 (rec l*
                      (.-ms a (.from b))))
               (error "missing T after subtitles-time")))
@@ -435,17 +435,17 @@ scaled)."
 (def. filepath.lines/location file-line/location-stream)
 
 (def string/location-stream? (istream-of string/location?))
-(def. string/location-stream.Result-of-Ts
-  (=>* srtlines->Result-of-Ts
+(def. string/location-stream.Result-of-subtitles-items
+  (=>* srtlines->Result-of-subtitles-items
        Results.Result))
 
 (def string/locations? (ilist-of string/location?))
-(def. string/locations.Result-of-Ts string/location-stream.Result-of-Ts)
+(def. string/locations.Result-of-subtitles-items string/location-stream.Result-of-subtitles-items)
 
-(def. (path-or-port-settings.Result-of-Ts pps)
+(def. (path-or-port-settings.Result-of-subtitles-items pps)
   "Convert an `.srt` file to Scheme."
   (let (RTs (=>* file-line/location-stream
-                 .Result-of-Ts))
+                 .Result-of-subtitles-items))
     (catching-encoding-error
      (& (RTs pps))
      "from user-specified encoding to UTF-16"
@@ -454,7 +454,7 @@ scaled)."
          "from UTF-16 to ISO-8859-1"
          (& (RTs (.encoding-set pps 'ISO-8859-1))))))))
 
-(def Tshow (=>* .Result-of-Ts subtitles-show))
+(def Tshow (=>* .Result-of-subtitles-items subtitles-show))
 
 
 ;; XX lib ?
@@ -485,7 +485,7 @@ scaled)."
 (def. (path-or-port-settings.srt->scheme pps #!optional [(maybe exact-natural0?) i])
   ;; commented file name
   (display ";; ") (writeln (.path-string pps))
-  (if-Ok (.Result-of-Ts pps)
+  (if-Ok (.Result-of-subtitles-items pps)
          (pretty-print `(def ,(if i (symbol-append 'v (.string (inc i))) 'v)
                              ,(subtitles-show it)))
          ;; errors:
@@ -511,7 +511,7 @@ scaled)."
                          #!optional
                          ([(maybe output-port?) p] (current-output-port))
                          latin1?)
-  (=> items .Ts (.for-each (C .display _ p latin1?))))
+  (=> items .subtitles-items (.for-each (C .display _ p latin1?))))
 
 (def. (subtitles-directives.string items)
   (call-with-output-string "" (C .display items _)))
@@ -591,7 +591,7 @@ I j k.
                     ;; need to |subtitles-show| here to ditch the
                     ;; differing location information
                     (return (equal? (subtitles-show v*)
-                                    (subtitles-show (.Ts v))))))))
+                                    (subtitles-show (.subtitles-items v))))))))
  (Ok #t)
  > (equal? v2 (=> s (string-split "\n") Tshow))
  #t)

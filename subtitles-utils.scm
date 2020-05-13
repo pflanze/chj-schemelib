@@ -39,7 +39,7 @@
 
 (def (T-no-add n)
      (lambda (v)
-       (if (T-interface? v)
+       (if (subtitles-item? v)
            (=> v
                (.no-update (C + _ n)))
            v)))

@@ -18,12 +18,12 @@
          test)
 
 (export (methods
-         ;; alternatives for `subtitles-directives.Ts`:
+         ;; alternatives for `subtitles-directives.subtitles-items`:
          subtitles-directives.adjust-scale
          subtitles-directives.interpolate
          subtitles-directives.renumber
-         Ts.cut-overlaps
-         Ts.drop-parentized)
+         subtitles-items.cut-overlaps
+         subtitles-items.drop-parentized)
         #!optional
         string.parentized?)
 
@@ -38,7 +38,7 @@
        (if-let-pair
         ((a l*) l)
 
-        (xcond ((T-interface? a) (lp l* shiftpoints))
+        (xcond ((subtitles-item? a) (lp l* shiftpoints))
                ((subtitles-time? a)
                 (if-let-pair
                  ((b l**) l*)
@@ -49,14 +49,14 @@
                  (error "missing T after subtitles-time")))
                ((Tdelay? a)
                 ;; An idea is to actually wrap the mapping points,
-                ;; and run |.Ts| before |.adjust-scale|.
+                ;; and run |.subtitles-items| before |.adjust-scale|.
                 (error ($ "don't currently know how to handle "
                           "Tdelay with .adjust-scale"))))
      
         shiftpoints)))
 
 (def. (subtitles-directives.adjust-scale l #!optional [boolean? keep-times?])
-  -> (if keep-times? (list-of subtitles-directive?) (list-of T-interface?))
+  -> (if keep-times? (list-of subtitles-directive?) (list-of subtitles-item?))
   "'Clean up' `subtitles-directive`s to just `T`s (unless `keep-times?` is #t),
 taking subtitle-time elements as data points for *scaling* the time
 line (the whole time line is scaled by a single linear factor)."
@@ -64,7 +64,7 @@ line (the whole time line is scaled by a single linear factor)."
          (f (.fit ps))
          (f* (=>* .milliseconds f integer milliseconds->tim)))
     (.filter-map l (lambda (a)
-                     (xcond ((T-interface? a)
+                     (xcond ((subtitles-item? a)
                              (=> a
                                  (.from-update f*)
                                  (.to-update f*)))
@@ -104,7 +104,7 @@ line (the whole time line is scaled by a single linear factor)."
 (def list->real/real-wbtable (list->wbtable-of real? real-cmp real?))
 
 (def. (subtitles-directives.interpolate l #!optional [boolean? keep-times?])
-  -> (if keep-times? (list-of subtitles-directive?) (list-of T-interface?))
+  -> (if keep-times? (list-of subtitles-directive?) (list-of subtitles-item?))
   "'Clean up' `subtitles-directive`s to just `T`s (unless `keep-times?` is #t),
 interpolating linearly between subtitle-time elements (tieing each
 subtitle-time element exactly to its following T entry)."
@@ -118,7 +118,7 @@ subtitle-time element exactly to its following T entry)."
        (xcond
         ((T-meta? a)
          (lp l* (cons a out)))
-        ((T-interface? a)
+        ((subtitles-item? a)
          (let ((with-prev+next
                 (lambda (prev next)
                   (let (f (lambda (t)
@@ -200,8 +200,8 @@ subtitle-time element exactly to its following T entry)."
     (if-let-pair
      ((a l*) l)
      (cond
-       ;; should I make no-set part of T-interface, then check for
-       ;; T-interface (and the alternative would then be the classes
+       ;; should I make no-set part of subtitles-item, then check for
+       ;; subtitles-item (and the alternative would then be the classes
        ;; outside that tree only, i.e. modifiers), would that be
        ;; safer?
       ((T/location? a)
@@ -229,8 +229,8 @@ subtitle-time element exactly to its following T entry)."
        (T 3 (tim 0 5 0 500) (tim 0 5 0 600) "c")))
 
 
-(def. (Ts.cut-overlaps [list-of-T? l])
-  ;; ^ Force full check always, but use |Ts?| for cheap dispatch. Ok?
+(def. (subtitles-items.cut-overlaps [list-of-subtitles-item? l])
+  ;; ^ Force full check always, but use |subtitles-items?| for cheap dispatch. Ok?
   "In each T, cut the end time to the start of the next T if they
 overlap."
   (let lp ((l l)
@@ -254,15 +254,15 @@ overlap."
 (TEST
  > (def v (list (T 3 (tim 0 5 0 100) (tim 0 5 0 350) "a")
                 (T 4 (tim 0 5 0 300) (tim 0 5 0 550) "b")
-                ;; still runs since Ts? doesnt detect the following
+                ;; still runs since subtitles-items? doesnt detect the following
                 ;; entry, but this will prevent the cutting from
                 ;; happening:
                 (Tdelay 30)
                 (T 5 (tim 0 5 0 500) (tim 0 5 0 600) "c")
                 (T 7 (tim 0 5 0 580) (tim 0 5 0 590) "c")))
  > (%try (=> v .cut-overlaps subtitles-show))
- (exception text: "l does not match list-of-T?:\n([(T/location) [\"/home/chrisjazz/Alien-subtitles/lib/subtitles-transformatio...\n")
- > (=> v .Ts .cut-overlaps subtitles-show)
+ (exception text: "l does not match list-of-subtitles-item?:\n([(T/location) [\"/home/chrisjazz/Alien-subtitles/lib/subtitles-transformatio...\n")
+ > (=> v .subtitles-items .cut-overlaps subtitles-show)
  (list (T 3 (tim 0 5 0 100) (tim 0 5 0 300) "a")
        (T 4 (tim 0 5 0 300) (tim 0 5 0 530) "b")
        (T 5 (tim 0 5 0 530) (tim 0 5 0 610) "c")
@@ -304,6 +304,6 @@ overlap."
  #f)
 
 
-(def. (Ts.drop-parentized l)
+(def. (subtitles-items.drop-parentized l)
   (.filter l (complement (=>* .titles .parentized?))))
 
