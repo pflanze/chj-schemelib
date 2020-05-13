@@ -23,7 +23,9 @@
          srt-items.interpolate
          srt-items.renumber
          Ts.cut-overlaps
-         Ts.drop-parentized))
+         Ts.drop-parentized)
+        #!optional
+        string.parentized?)
 
 (include "cj-standarddeclares.scm")
 
