@@ -44,7 +44,7 @@
                (.no-update (C + _ n)))
            v)))
 
-(def i
+(def subtitles-utils#i
      (=>* (string.split #\newline)
           (.map (lambda (line)
                   (if (string.null? (trim-both line))
@@ -53,6 +53,7 @@
           (strings-join "\n")))
 
 (TEST
+ > (##namespace ("subtitles-utils#" i))
  > (i "fun")
  "<i>fun</i>"
  > (i "fun \n")
