@@ -399,7 +399,7 @@ the actual time value used for positioning the subtitle."
 
     (defclass (Toff/location)
       "A subtitle entry that's disabled"
-      (defmethod (display s port)
+      (defmethod (display s port [boolean? latin1?])
         (void)))
     (defclass (Treal/location)
       "A `T` holding real time stamps, matched to the video, not to be shifted."
