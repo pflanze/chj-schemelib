@@ -286,6 +286,12 @@ overlap."
  #t
  > (.parentized? "(")
  #f
+ > (.parentized? "((")
+ #f
+ > (.parentized? "(]")
+ #f
+ > (.parentized? "[]")
+ #f
  > (.parentized? "(13")
  #f
  > (.parentized? "(13)")
