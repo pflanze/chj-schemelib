@@ -23,7 +23,8 @@
          subtitles-directives.interpolate
          subtitles-directives.renumber
          subtitles-items.cut-overlaps
-         subtitles-items.drop-parentized)
+         subtitles-items.drop-parentized
+         subtitles-directives.map-Ts)
         #!optional
         string.parentized?)
 
@@ -307,3 +308,10 @@ overlap."
 (def. (subtitles-items.drop-parentized l)
   (.filter l (complement (=>* .titles .parentized?))))
 
+
+(def. (subtitles-directives.map-Ts l fn)
+  "Map T?s in l via fn, other values are left untouched."
+  (.map l (lambda (v)
+            (if (T? v)
+                (fn v)
+                v))))
