@@ -19,7 +19,7 @@
          (cj-port pretty-string)
          test)
 
-(export (interface srt-item
+(export (interface subtitles-directive
           (class Tdelay)
           (class subtitles-time
            (class subtitles-milliseconds)
@@ -35,16 +35,16 @@
         (parameter current-tm-delay)
         Td ;; alias for Tdelay
         (macros T Toff Treal)
-        (methods srt-items.Ts
+        (methods subtitles-directives.Ts
                  string/location-stream.Result-of-Ts
                  string/locations.Result-of-Ts
                  path-or-port-settings.Result-of-Ts
                  Tshow
                  path-or-port-settings.srt->scheme
                  path-or-port-settingss.srt->scheme
-                 srt-items.display
-                 srt-items.string
-                 srt-items.save-to!)
+                 subtitles-directives.display
+                 subtitles-directives.string
+                 subtitles-directives.save-to!)
         list-of-T?
         Ts?
         #!optional
@@ -112,7 +112,7 @@
 (defparameter current-tm-delay -500) ;; milliseconds
 
 
-(definterface srt-item
+(definterface subtitles-directive
 
   (defclass subtitles-time
 
@@ -257,8 +257,8 @@ the actual time value used for positioning the subtitle."
 
       (defclass (Tcomment [string? comment]))
 
-      (defclass (Twrap [srt-item? srt-item])
-        "An inactivated srt-item"))
+      (defclass (Twrap [subtitles-directive? subtitles-directive])
+        "An inactivated subtitles-directive"))
 
     (defclass (T/location [(maybe location?) maybe-location]
                           [(maybe fixnum?) no]
@@ -393,18 +393,18 @@ the actual time value used for positioning the subtitle."
 
 
 
-(def srt-item? (either T-interface?
+(def subtitles-directive? (either T-interface?
                        ;; for new positioning:
                        subtitles-time?
                        Tdelay?))
 
-(def srt-items? (ilist-of srt-item?))
+(def subtitles-directives? (ilist-of subtitles-directive?))
 
 (def list-of-T? (list-of T-interface?))
 (def Ts? (ilist-of T-interface?))
 
-(def. (srt-items.Ts l) -> list-of-T?
-  "'Clean up' `srt-item`s to just `T`s, taking subtitle-time elements
+(def. (subtitles-directives.Ts l) -> list-of-T?
+  "'Clean up' `subtitles-directive`s to just `T`s, taking subtitle-time elements
 as shift points in the time line (time is shifted from there on, not
 scaled)."
   (let rec ((l l)
@@ -507,16 +507,16 @@ scaled)."
 
 ;; -----------
 
-(def. (srt-items.display [(list-of srt-item?) items]
+(def. (subtitles-directives.display [(list-of subtitles-directive?) items]
                          #!optional
                          ([(maybe output-port?) p] (current-output-port))
                          latin1?)
   (=> items .Ts (.for-each (C .display _ p latin1?))))
 
-(def. (srt-items.string items)
+(def. (subtitles-directives.string items)
   (call-with-output-string "" (C .display items _)))
 
-(def. (srt-items.save-to! [(list-of srt-item?) items]
+(def. (subtitles-directives.save-to! [(list-of subtitles-directive?) items]
                           [path-or-port-settings? ps]
                           #!optional
                           [(maybe gambit-encoding?) encoding])

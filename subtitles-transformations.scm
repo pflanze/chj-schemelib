@@ -18,10 +18,10 @@
          test)
 
 (export (methods
-         ;; alternatives for `srt-items.Ts`:
-         srt-items.adjust-scale
-         srt-items.interpolate
-         srt-items.renumber
+         ;; alternatives for `subtitles-directives.Ts`:
+         subtitles-directives.adjust-scale
+         subtitles-directives.interpolate
+         subtitles-directives.renumber
          Ts.cut-overlaps
          Ts.drop-parentized)
         #!optional
@@ -32,7 +32,7 @@
 "Extra functionality: transformations on subtitles"
 
 
-(def (srt-items-shift-points l extract)
+(def (subtitles-directives-shift-points l extract)
      (let lp ((l l)
               (shiftpoints '()))
        (if-let-pair
@@ -55,12 +55,12 @@
      
         shiftpoints)))
 
-(def. (srt-items.adjust-scale l #!optional [boolean? keep-times?])
-  -> (if keep-times? (list-of srt-item?) (list-of T-interface?))
-  "'Clean up' `srt-item`s to just `T`s (unless `keep-times?` is #t),
+(def. (subtitles-directives.adjust-scale l #!optional [boolean? keep-times?])
+  -> (if keep-times? (list-of subtitles-directive?) (list-of T-interface?))
+  "'Clean up' `subtitles-directive`s to just `T`s (unless `keep-times?` is #t),
 taking subtitle-time elements as data points for *scaling* the time
 line (the whole time line is scaled by a single linear factor)."
-  (let* ((ps (srt-items-shift-points l .milliseconds))
+  (let* ((ps (subtitles-directives-shift-points l .milliseconds))
          (f (.fit ps))
          (f* (=>* .milliseconds f integer milliseconds->tim)))
     (.filter-map l (lambda (a)
@@ -103,12 +103,12 @@ line (the whole time line is scaled by a single linear factor)."
 
 (def list->real/real-wbtable (list->wbtable-of real? real-cmp real?))
 
-(def. (srt-items.interpolate l #!optional [boolean? keep-times?])
-  -> (if keep-times? (list-of srt-item?) (list-of T-interface?))
-  "'Clean up' `srt-item`s to just `T`s (unless `keep-times?` is #t),
+(def. (subtitles-directives.interpolate l #!optional [boolean? keep-times?])
+  -> (if keep-times? (list-of subtitles-directive?) (list-of T-interface?))
+  "'Clean up' `subtitles-directive`s to just `T`s (unless `keep-times?` is #t),
 interpolating linearly between subtitle-time elements (tieing each
 subtitle-time element exactly to its following T entry)."
-  (let* ((ps (srt-items-shift-points l .milliseconds))
+  (let* ((ps (subtitles-directives-shift-points l .milliseconds))
          (tbl (list->real/real-wbtable ps)))
     (let lp ((l l)
              (out '()))
@@ -193,7 +193,7 @@ subtitle-time element exactly to its following T entry)."
        (T 7 (tim 0 0 0 300) (tim 0 0 0 320) "e")))
 
 
-(def. (srt-items.renumber l #!optional ([fixnum? from] 1))
+(def. (subtitles-directives.renumber l #!optional ([fixnum? from] 1))
   (let lp ((l l)
            (no from)
            (out '()))
