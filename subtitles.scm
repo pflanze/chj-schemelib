@@ -22,9 +22,9 @@
 (export (interface subtitles-directive
           (class Tdelay)
           (class subtitles-time
-           (class subtitles-milliseconds)
-           (class tim)
-           (class tm))
+            (class subtitles-milliseconds)
+            (class tim)
+            (class tm))
           (interface subtitles-item
             (class T-meta
               (class Tcomment)
@@ -35,6 +35,8 @@
         (parameter current-tm-delay)
         Td ;; alias for Tdelay
         (macros T Toff Treal)
+        T? Toff? Treal?
+
         (methods subtitles-directives.subtitles-items
                  string/location-stream.Result-of-subtitles-items
                  string/locations.Result-of-subtitles-items
@@ -314,6 +316,10 @@ the actual time value used for positioning the subtitle."
 (defmacro (T . args) `(T/location ',(maybe-source-location stx) ,@args))
 (defmacro (Toff . args) `(Toff/location ',(maybe-source-location stx) ,@args))
 (defmacro (Treal . args) `(Treal/location ',(maybe-source-location stx) ,@args))
+
+(def T? T/location?)
+(def Toff? Toff/location?)
+(def Treal? Treal/location?)
 
 
 ;; for tests, see subtitles-test.scm
