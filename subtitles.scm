@@ -195,6 +195,8 @@
            (* 1000 (+ seconds-part
                       (* 60 (+ minutes-part
                                (* 60 hours-part)))))))
+      (defmethod tm-seconds-real
+        (=>* .tm .seconds-real))
 
       (defmethod (subtitles-milliseconds s)
         (subtitles-milliseconds (.milliseconds s)))
@@ -226,6 +228,9 @@ the actual time value used for positioning the subtitle."
                         (+ 1/2 (* seconds 1000))
                         (+ 0.5 (* seconds 1000.))))
            (-> fixnum? (current-tm-delay))))
+
+      (defmethod (seconds-real v)
+        (inexact seconds))
 
       (defmethod (subtitles-milliseconds s)
         (subtitles-milliseconds (.milliseconds s)))
