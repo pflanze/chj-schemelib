@@ -28,7 +28,10 @@
          subtitles-items.drop-parentized
 
          ;; in any stage:
-         subtitles-directives.map-Ts)
+         subtitles-directives.map-Ts
+
+         ;; other:
+         subtitles-directives.shift-points)
 
         #!optional
         string.parentized?)
@@ -38,35 +41,35 @@
 "Extra functionality: transformations on subtitles"
 
 
-(def (subtitles-directives-shift-points l extract)
-     (let lp ((l l)
-              (shiftpoints '()))
-       (if-let-pair
-        ((a l*) l)
+(def. (subtitles-directives.shift-points l extract)
+  (let lp ((l l)
+           (shiftpoints '()))
+    (if-let-pair
+     ((a l*) l)
 
-        (xcond ((subtitles-item? a) (lp l* shiftpoints))
-               ((subtitles-time? a)
-                (if-let-pair
-                 ((b l**) l*)
-                 (lp l*
-                     (cons (cons (extract (.from b))
-                                 (extract a))
-                           shiftpoints))
-                 (error "missing T after subtitles-time")))
-               ((Tdelay? a)
-                ;; An idea is to actually wrap the mapping points,
-                ;; and run |.subtitles-items| before |.adjust-scale|.
-                (error ($ "don't currently know how to handle "
-                          "Tdelay with .adjust-scale"))))
+     (xcond ((subtitles-item? a) (lp l* shiftpoints))
+            ((subtitles-time? a)
+             (if-let-pair
+              ((b l**) l*)
+              (lp l*
+                  (cons (cons (extract (.from b))
+                              (extract a))
+                        shiftpoints))
+              (error "missing T after subtitles-time")))
+            ((Tdelay? a)
+             ;; An idea is to actually wrap the mapping points,
+             ;; and run |.subtitles-items| before |.adjust-scale|.
+             (error ($ "don't currently know how to handle "
+                       "Tdelay with .adjust-scale"))))
      
-        shiftpoints)))
+     shiftpoints)))
 
 (def. (subtitles-directives.adjust-scale l #!optional [boolean? keep-times?])
   -> (if keep-times? (list-of subtitles-directive?) (list-of subtitles-item?))
   "'Clean up' `subtitles-directive`s to just `T`s (unless `keep-times?` is #t),
 taking subtitle-time elements as data points for *scaling* the time
 line (the whole time line is scaled by a single linear factor)."
-  (let* ((ps (subtitles-directives-shift-points l .milliseconds))
+  (let* ((ps (subtitles-directives.shift-points l .milliseconds))
          (f (.fit ps))
          (f* (=>* .milliseconds f integer milliseconds->tim)))
     (.filter-map l (lambda (a)
@@ -114,7 +117,7 @@ line (the whole time line is scaled by a single linear factor)."
   "'Clean up' `subtitles-directive`s to just `T`s (unless `keep-times?` is #t),
 interpolating linearly between subtitle-time elements (tieing each
 subtitle-time element exactly to its following T entry)."
-  (let* ((ps (subtitles-directives-shift-points l .milliseconds))
+  (let* ((ps (subtitles-directives.shift-points l .milliseconds))
          (tbl (list->real/real-wbtable ps)))
     (let lp ((l l)
              (out '()))
