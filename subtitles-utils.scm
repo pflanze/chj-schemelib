@@ -78,9 +78,16 @@
                           (r r*))
                   (if-let-pair
                    ((a l*) l)
-                   (if (eq? a #\space)
-                       (lp- l* #t (cons nbsp r))
-                       (lp l #f r))
+                   (cond ((eq? a #\space)
+                          (lp- l* #t (cons nbsp r)))
+                         ((eq? a #\newline)
+                          ;; drop both the minus and the newline -- XX
+                          ;; check that there's a non-whitespace
+                          ;; character following?
+                          (lp l* #f (cdr r)))
+                         ;; ^ XX should do that case even if
+                         ;; nbsp-after-minus is #f?
+                         (else (lp l #f r)))
                    r))
                 (lp l prev-space? r*))))
      (if-let-pair
@@ -138,7 +145,9 @@ next non-space character with non-breaking spaces."
  > (t "\nder uns  sagen\nkonnte, \ndass die Früchte verdorben waren.\n")
  " der uns  sagen konnte, dass die Früchte verdorben waren.\n"
  > (t "Kriege ich den Schlüssel \nvon\nIhnen, Sir?\n- Ja,\nich werde ihn übergeben. -  Gut so!")
- "Kriege ich den Schlüssel von Ihnen, Sir?\n- Ja, ich werde ihn übergeben. -  Gut so!")
+ "Kriege ich den Schlüssel von Ihnen, Sir?\n- Ja, ich werde ihn übergeben. -  Gut so!"
+ > (t "a-\nb")
+ "ab")
 
 
 
