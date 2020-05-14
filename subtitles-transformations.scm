@@ -22,9 +22,14 @@
          subtitles-directives.adjust-scale
          subtitles-directives.interpolate
          subtitles-directives.renumber
+
+         ;; after processing to subtitles-items:
          subtitles-items.cut-overlaps
          subtitles-items.drop-parentized
+
+         ;; in any stage:
          subtitles-directives.map-Ts)
+
         #!optional
         string.parentized?)
 
