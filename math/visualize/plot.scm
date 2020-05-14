@@ -9,6 +9,7 @@
 (require easy
          dsssl
          math/smoothfn
+         (math/predicates number-vector?)
 	 test
 	 (math/vectorlib-1 view)
 	 (oo-lib-u32vector u32vector-inc!))
