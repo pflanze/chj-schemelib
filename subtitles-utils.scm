@@ -16,6 +16,8 @@
         i
         (methods chars.subtitle-strip-newlines
                  string.subtitle-strip-newlines)
+        (generic .subtitle-item)
+        bare->subtitle-items
         #!optional
         strings?)
 
@@ -137,4 +139,46 @@ next non-space character with non-breaking spaces."
  " der uns  sagen konnte, dass die Früchte verdorben waren.\n"
  > (t "Kriege ich den Schlüssel \nvon\nIhnen, Sir?\n- Ja,\nich werde ihn übergeben. -  Gut so!")
  "Kriege ich den Schlüssel von Ihnen, Sir?\n- Ja, ich werde ihn übergeben. -  Gut so!")
+
+
+
+(def. real.subtitle-item tm)
+
+(def. string.subtitle-item
+  (lambda (str)
+    (let (len (string-length str))
+      (or (>= len 3)
+          (error "too short"))
+      (or (string.starts-with? str "A:")
+          (error "does not start with A:"))
+      (cond ((string.maybe-number (substring str 2 len)) => tm)
+            (else (error "not a number after A:"))))))
+
+(def. symbol.subtitle-item
+  (=>* symbol.string
+       string.subtitle-item))
+
+(def. subtitles-directive.subtitle-item identity)
+
+(TEST
+ > (%try-error (.subtitle-item 'foo))
+ [error "does not start with A:"]
+ > (%try-error (.subtitle-item 'A:foo))
+ [error "not a number after A:"]
+ > (.subtitle-item 'A:12)
+ [(tm) 12]
+ > (.subtitle-item 'A:12.56)
+ [(tm) 12.56]
+ > (%try-error (.subtitle-item 'B:12.56))
+ [error "does not start with A:"]
+ > (.subtitle-item 12.56)
+ [(tm) 12.56]
+ > (.subtitle-item (Tcomment ""))
+ [(Tcomment) ""])
+
+
+(def (bare->subtitle-items l)
+     "Convert bare real numbers as well as '|A:1234.5| style variants
+into |tm| objects"
+     (.map l .subtitle-item))
 
