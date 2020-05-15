@@ -31,7 +31,8 @@
          subtitles-directives.map-Ts
 
          ;; other:
-         subtitles-directives.shift-points)
+         subtitles-directives.shift-points
+         subtitles-directives.interpolate-function-for)
 
         #!optional
         string.parentized?)
@@ -63,6 +64,8 @@
                        "Tdelay with .adjust-scale"))))
      
      shiftpoints)))
+
+
 
 (def. (subtitles-directives.adjust-scale l #!optional [boolean? keep-times?])
   -> (if keep-times? (list-of subtitles-directive?) (list-of subtitles-item?))
@@ -112,13 +115,45 @@ line (the whole time line is scaled by a single linear factor)."
 
 (def list->real/real-wbtable (list->wbtable-of real? real-cmp real?))
 
+;; l -> [exact-integer? t-ms] -> [exact-integer? t-ms] -> exact-integer?
+(def. (subtitles-directives.interpolate-function-for l) -> function?
+  (let* ((ps (subtitles-directives.shift-points l .milliseconds))
+         (tbl (list->real/real-wbtable ps)))
+    (lambda ([exact-integer? t-ms]) -> (Maybe function?)
+       (let ((with-prev+next
+              (lambda (prev next)
+                (return (lambda ([exact-integer? t-ms]) -> exact-integer?
+                           (=>> t-ms
+                                (interpolate prev next)
+                                integer))))))
+         (Maybe:if (.Maybe-ref tbl t-ms)
+                   (Maybe:if-let ((n (.Maybe-next tbl t-ms)))
+                                 (with-prev+next it n)
+                                 ;; for the `to` value in the last
+                                 ;; entry, interpolate from before:
+                                 (>>= (.Maybe-prev tbl t-ms)
+                                      (C with-prev+next _ it)))
+                   (mlet ((prev (.Maybe-prev tbl t-ms))
+                          (next (.Maybe-next tbl t-ms)))
+                         (with-prev+next prev next)))))))
+
+
 (def. (subtitles-directives.interpolate l #!optional [boolean? keep-times?])
   -> (if keep-times? (list-of subtitles-directive?) (list-of subtitles-item?))
   "'Clean up' `subtitles-directive`s to just `T`s (unless `keep-times?` is #t),
 interpolating linearly between subtitle-time elements (tieing each
 subtitle-time element exactly to its following T entry)."
-  (let* ((ps (subtitles-directives.shift-points l .milliseconds))
-         (tbl (list->real/real-wbtable ps)))
+  (let* ((Maybe-f-for
+          (subtitles-directives.interpolate-function-for l))
+         ;; The above works on milliseconds, but we'll need to deal
+         ;; with any subtitles-time:
+         (Maybe-timf-for
+          (lambda (for-t) -> (Maybe function?)
+             (>>= (Maybe-f-for (.milliseconds for-t))
+                  (lambda (f)
+                    (return (=>* .milliseconds
+                                 f
+                                 milliseconds->tim)))))))
     (let lp ((l l)
              (out '()))
       
@@ -127,42 +162,20 @@ subtitle-time element exactly to its following T entry)."
        (xcond
         ((T-meta? a)
          (lp l* (cons a out)))
+
         ((subtitles-item? a)
-         (let ((with-prev+next
-                (lambda (prev next)
-                  (let (f (lambda (t)
-                            (=>> t
-                                 .milliseconds
-                                 (interpolate prev next)
-                                 integer
-                                 milliseconds->tim)))
-                    (=> a
-                        (.from-update f)
-                        (.to-update f)
-                        Just))))
-               (t (=> a .from .milliseconds)))
-           (lp l*
-               (cons
-                (Maybe:if
-                 (-> Maybe?
-                     (Maybe:if (.Maybe-ref tbl t)
-                               (Maybe:if-let ((n (.Maybe-next tbl t)))
-                                             (with-prev+next it n)
-                                             ;; for the last entry,
-                                             ;; interpolate from
-                                             ;; before:
-                                             (>>= (.Maybe-prev tbl t)
-                                                  (C with-prev+next _ it)))
-                               (mlet ((prev (.Maybe-prev tbl t))
-                                      (next (.Maybe-next tbl t)))
-                                     (with-prev+next prev next))))
-                 it
-                 ;; and, already don't know details !
-                 (raise-location-error
-                  (.maybe-location a)
-                  "T out of range, please make sure the start and the end of the subtitles are paired with subtitle-time entries"
-                  a))
-                out))))
+         (Maybe:if-let ((f (Maybe-timf-for (.from a))))
+                       (=> a
+                           (.from-update f)
+                           (.to-update f)
+                           ((lambda (a*)
+                              (lp l* (cons a* out)))))
+                       ;; (and, already don't know details about the error
+                       ;; due to using Maybe not Result...: )
+                       (raise-location-error
+                        (.maybe-location a)
+                        "T out of range, please make sure the start and the end of the subtitles are paired with subtitle-time entries"
+                        a)))
 
         ((subtitles-time? a)
          (if keep-times?
