@@ -28,6 +28,8 @@
                      ;; AH don't have location info here
                      (error "can't find" t)))))
 
+(defparameter current-interpolate-plot-stepsize 3000)
+
 (def. (subtitles-directives.interpolate-plot l)
   "Show plot of new vs. original t values:
 
@@ -45,6 +47,28 @@
                        (tims (.filter l subtitles-time?)))
                   (warn "number of nonT items:" (.length nonT))
                   (warn "number of time items:" (.length tims)))
-                (return (plot (.interpolate-plot-function tbl)
-                              x0 x1)))))))
+                (let (stepfunction
+                      ;; HACK: plot that steps up by a constant for
+                      ;; every time directive to see where they are.
+                      (let (steptbl
+                            (=> (.list tbl)
+                                (.map/iota (lambda-pair
+                                            ((tx ty) i)
+                                            (cons tx (* i (current-interpolate-plot-stepsize)))))
+                                list->real/real-wbtable))
+                        (lambda (t)
+                          ;; sharp steps, actually what I want
+                          (Maybe:cond ((.Maybe-ref steptbl t)
+                                       (cdr it))
+                                      ((.Maybe-next steptbl t)
+                                       (cdr it))
+                                      ((.Maybe-prev steptbl t)
+                                       ;; last one ?
+                                       (WARN "missing entry")
+                                       (cdr it))
+                                      (else
+                                       (error "bug"))))))
+                  (return (plot (list (.interpolate-plot-function tbl)
+                                      stepfunction)
+                                x0 x1))))))))
 
