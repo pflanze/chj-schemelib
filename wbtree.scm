@@ -32,6 +32,8 @@
         wbtree:maybe-ref&rank
         wbtree:min
         wbtree:max
+        wbtree:maybe-min
+        wbtree:maybe-max
         wbtree:set
         wbtree:add
         wbtree:delete
