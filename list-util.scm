@@ -74,27 +74,36 @@
       `(begin ,@body)))))
 
 (define-macro* (lambda-pair bindforms . body)
-  ;; for now just support a single argument pair. Should look into
-  ;; generalizing lambda-values.
-  (match-list*
-   bindforms
-   ((argpair1)
-    ;;(with-gensym V  dependency sigh.
-    (let ((V (gensym 'V)))
-      (match-list*
-       argpair1
-       ((a r)
-	`(lambda (,V)
-	   (let-pair ((,a ,r) ,V)
-		     ,@body))))))
-   (_
-    (raise-source-error
-     stx "lambda-pair: only a single argument pair supported for now"))))
+  ;; Should look into generalizing lambda-values.
+  (assert* list? bindforms
+           (lambda (bindforms)
+             (let ((var+fn-s
+                    (map (lambda (bindform)
+                           (if (list? (source-code bindform))
+                               (match-list* bindform
+                                            ((a r)
+                                             ;; (with-gensym dependency cycle)
+                                             (let ((V (gensym 'V)))
+                                               (cons V
+                                                     (lambda (body)
+                                                       `((let-pair ((,a ,r) ,V)
+                                                                   ,@body)))))))
+                           
+                               (cons bindform
+                                     #f)))
+                         bindforms)))
+               `(lambda ,(map car var+fn-s)
+                  ,@(fold (lambda (var+fn body)
+                            (cond ((cdr var+fn) => (lambda (f) (f body)))
+                                  (else body)))
+                          body
+                          var+fn-s))))))
 
 (TEST
  > ((lambda-pair ((a b)) (vector a b)) (cons 9 10))
- #(9 10)
- )
+ [9 10]
+ > ((lambda-pair (x (a b) y) (vector x a b y)) 8 (cons 9 10) 11)
+ [8 9 10 11])
 
 (define-macro* (with-pair var* . body)
   (assert* symbol? var*
