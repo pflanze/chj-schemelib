@@ -63,7 +63,7 @@
              ;; An idea is to actually wrap the mapping points,
              ;; and run |.subtitles-items| before |.adjust-scale|.
              (error ($ "don't currently know how to handle "
-                       "Tdelay with .adjust-scale"))))
+                       "Tdelay in this context"))))
      
      shiftpoints)))
 
