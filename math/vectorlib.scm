@@ -1,4 +1,4 @@
-;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -197,11 +197,11 @@
 (TEST
  > (Vr 2 3 -4.5)
  #f64(2. 3. -4.5)
- > (Vr.show #)
+ > (show #)
  (Vr 2. 3. -4.5)
  > (Vc 1 2-3i)
  [(Vc) 2 #f64(1. 0. 2. -3.)]
- > (Vc.show #)
+ > (show #)
  (Vc 1.+0.i 2.-3.i))
 
 (TEST
