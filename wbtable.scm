@@ -29,6 +29,8 @@
          wbtable.Maybe-ref
          wbtable.Maybe-prev
          wbtable.Maybe-next
+         wbtable.Maybe-min
+         wbtable.Maybe-max
 	 wbtable.exists?
 	 wbtable.update
 	 wbtable.update*
@@ -214,6 +216,22 @@
     (with-wbtable
      s ($wbtreeparameter data)
      (let (v (wbtree:next data (cons key #f)))
+       (if (wbtree:nothing? v)
+           (Nothing)
+           (Just v)))))
+
+  (defmethod- (Maybe-min s)
+    (with-wbtable
+     s ($wbtreeparameter data)
+     (let (v (wbtree:min data))
+       (if (wbtree:nothing? v)
+           (Nothing)
+           (Just v)))))
+
+  (defmethod- (Maybe-max s)
+    (with-wbtable
+     s ($wbtreeparameter data)
+     (let (v (wbtree:max data))
        (if (wbtree:nothing? v)
            (Nothing)
            (Just v)))))
