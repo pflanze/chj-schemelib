@@ -900,6 +900,7 @@ unquote and unquote-splicing at the same time"
           ;; testing, but we can use an indirection via a custom cond
           ;; macro.
           (if-let-expand `myscheme-unhygienic#cond
+                         `#t
                          (=> binds
                              source-code
                              vector->list
@@ -908,7 +909,7 @@ unquote and unquote-splicing at the same time"
                          yes no))
          ;; fall back to Scheme
          ((either pair? symbol?)
-          (if-let-expand `##cond binds yes no))))
+          (if-let-expand `##cond `#t binds yes no))))
 
 (TEST
  > (use-clojure-base)

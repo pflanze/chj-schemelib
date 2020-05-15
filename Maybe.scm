@@ -256,14 +256,14 @@
 
 (defmacro (Maybe:if-let* assignments yes #!optional no)
   ;; return (Nothing) in "void" case? Doesn't make sense over #f. Just void?
-  (if-let*-expand `Maybe:cond assignments yes (or no `(void))))
+  (if-let*-expand `Maybe:cond `else assignments yes (or no `(void))))
 
 (defmacro (Maybe:if-let assignments yes #!optional no)
-  (if-let-expand `Maybe:cond assignments yes (or no `(void))))
+  (if-let-expand `Maybe:cond `else assignments yes (or no `(void))))
 
 ;; same as Maybe:if-let
 (defmacro (if-let-Just assignments yes #!optional no)
-  (if-let-expand `Maybe:cond assignments yes (or no `(void))))
+  (if-let-expand `Maybe:cond `else assignments yes (or no `(void))))
 
 (defmacro (if-Just t then else)
   "If the value returned by `t` is a `Just`, its contents is bound to

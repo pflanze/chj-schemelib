@@ -39,7 +39,7 @@
 
 
 
-(def (if-let*-expand COND [(source-of list?) assignments] yes no)
+(def (if-let*-expand COND elsekey [(source-of list?) assignments] yes no)
      (with-gensym
       NO
       `(let ((,NO (lambda () ,no)))
@@ -48,12 +48,12 @@
                                (`(`var `test-expr)
                                 (assert* symbol? var)
                                 `(,COND (,test-expr => (lambda (,var) ,yes))
-                                        (#t (,NO))))))
+                                        (,elsekey (,NO))))))
                       yes
                       (source-code assignments)))))
 
 (defmacro (if-let* assignments yes #!optional no)
-  (if-let*-expand `cond assignments yes no))
+  (if-let*-expand `cond #t assignments yes no))
 
 
 (TEST
@@ -97,7 +97,7 @@
 ;; Probably?)  but don't make the variables visible to "subsequent"
 ;; terms, only to `yes`
 
-(def (if-let-expand COND assignments yes no)
+(def (if-let-expand COND elsekey assignments yes no)
      (assert*
       list? assignments
       (lambda (assignments*)
@@ -109,7 +109,7 @@
                    (`(`var `test)
                     (assert* symbol? var) ;; XX cj-typed ?
                     `(cond (,test => (lambda (,var) ,yes))
-                           (#t ,no))))
+                           (,elsekey ,no))))
        
             ;; multi-binding variant
             (let* ((assignments**
@@ -128,7 +128,7 @@
                   ,(fold-right (lambda-values
                                 ((var test-expr tmpvar) yes)
                                 `(,COND (,test-expr => (lambda (,tmpvar) ,yes))
-                                        (#t (,NO))))
+                                        (,elsekey (,NO))))
                                `(let ,(map (lambda-values
                                             ((var test-expr tmpvar))
                                             `(,var ,tmpvar))
@@ -138,13 +138,13 @@
 
 (defmacro (if-let assignments yes #!optional no)
   ;; if no is #f, just pass it on as code, and it will result in #f, too ":)"
-  (if-let-expand `cond assignments yes no))
+  (if-let-expand `cond `#t assignments yes no))
 
 (defmacro (when-let assignments . body)
-  (if-let-expand `cond assignments `(begin ,@body) `#f))
+  (if-let-expand `cond `#t assignments `(begin ,@body) `#f))
 
 (defmacro (when-let* assignments . body)
-  (if-let*-expand `cond assignments `(begin ,@body) `#f))
+  (if-let*-expand `cond `#t assignments `(begin ,@body) `#f))
 
 
 (TEST
@@ -260,7 +260,7 @@
 
 ;; rename to when-let ?
 (defmacro (and-let assignments yes)
-  (if-let-expand `cond assignments yes #f))
+  (if-let-expand `cond `#t assignments yes #f))
 
 
 
