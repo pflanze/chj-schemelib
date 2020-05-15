@@ -32,6 +32,7 @@
 
          ;; other:
          subtitles-directives.shift-points
+         subtitles-directives.shift-points-wbtable
          subtitles-directives.interpolate-function-for)
 
         #!optional
@@ -115,10 +116,12 @@ line (the whole time line is scaled by a single linear factor)."
 
 (def list->real/real-wbtable (list->wbtable-of real? real-cmp real?))
 
+(def. subtitles-directives.shift-points-wbtable
+  (=>* (.shift-points .milliseconds) list->real/real-wbtable))
+
 ;; l -> [exact-integer? t-ms] -> [exact-integer? t-ms] -> exact-integer?
 (def. (subtitles-directives.interpolate-function-for l) -> function?
-  (let* ((ps (subtitles-directives.shift-points l .milliseconds))
-         (tbl (list->real/real-wbtable ps)))
+  (let (tbl (.shift-points-wbtable l))
     (lambda ([exact-integer? t-ms]) -> (Maybe function?)
        (let ((with-prev+next
               (lambda (prev next)
