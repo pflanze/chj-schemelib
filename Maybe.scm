@@ -170,32 +170,38 @@
  (begin a b))
 
 
-;; Stupid, only allowing one test, why. Should extend, similar to
-;; Maybe:or, ah wait, Result:or. Anyway, similar to cond.
-(defmacro (Maybe:cond t+then #!optional else)
-  (let ((else* (if else
-                   (mcase else
-                          (`(else . `rest)
-                           (rest->begin rest))
-                          (`(`t . `rest)
-                           (assert* true? t)
-                           (rest->begin rest)))
-                   `(void))))
-    (mcase t+then
-           (`(`t => `then)
-            (with-gensym V
-                         `(let ((,V ,t))
-                            (cond ((Just? ,V)
-                                   (,then (@Just.value ,V)))
-                                  ((Nothing? ,V)
-                                   ,else*)
-                                  (else
-                                   (Maybe:error ,V))))))
-           (`(`t . `rest)
-            ;; actually introduces |it| like, well, Maybe:if
-            `(Maybe:if ,t
-                       ,(rest->begin rest)
-                       ,else*)))))
+(defmacro (Maybe:cond . clauses)
+  "Similar to |cond|, including offering |=>| syntax; binds |it| like
+|Maybe:if| if |=>| is not used."
+  (let* ((handle-clause
+          (lambda (clause else)
+            (mcase clause
+                   (`(`t => `then)
+                    (with-gensym V
+                                 `(let ((,V ,t))
+                                    (cond ((Just? ,V)
+                                           (,then (@Just.value ,V)))
+                                          ((Nothing? ,V)
+                                           ,else)
+                                          (else
+                                           (Maybe:error ,V))))))
+                   (`(`t . `rest)
+                    `(Maybe:if ,t
+                               ,(rest->begin rest)
+                               ,else)))))
+         (handle-clause/else
+          (lambda (clause else)
+            (mcase clause
+                   (`(else . `rest)
+                    (rest->begin rest))
+                   (else
+                    (handle-clause clause else))))))
+    (if-let-pair
+     ((lst rclauses*) (reverse clauses))
+     (fold handle-clause
+           (handle-clause/else lst `(void))
+           rclauses*)
+     (raise-source-error stx "need at least 1 clause"))))
 
 (TEST
  > (Maybe:cond ((Nothing) => 'no))
@@ -206,7 +212,15 @@
  2
  > (Maybe:cond ((Just 3) => identity) (else 'fail))
  3
- )
+ > (Maybe:cond ((Just 3) 'y)
+               ((Just 4) => identity)
+               (else 'fail))
+ y
+ > (Maybe:cond ((Nothing) => identity)
+               ((Just 4) => identity)
+               (else 'fail))
+ 4)
+
 
 (TEST
  > (def (psqrt x)
