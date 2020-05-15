@@ -120,12 +120,12 @@ line (the whole time line is scaled by a single linear factor)."
 (def. subtitles-directives.shift-points-wbtable
   (=>* (.shift-points .milliseconds) list->real/real-wbtable))
 
-;; wbtable? -> [exact-integer? t-ms] -> [exact-integer? t-ms] -> exact-integer?
+;; wbtable? -> [real? t-ms] -> [real? t-ms] -> exact-integer?
 (def. (wbtable.interpolate-function-for tbl) -> function?
-  (lambda ([exact-integer? t-ms]) -> (Maybe function?)
+  (lambda ([real? t-ms]) -> (Maybe function?)
      (let ((with-prev+next
             (lambda (prev next)
-              (return (lambda ([exact-integer? t-ms]) -> exact-integer?
+              (return (lambda ([real? t-ms]) -> exact-integer?
                          (=>> t-ms
                               (interpolate prev next)
                               integer))))))
@@ -140,7 +140,7 @@ line (the whole time line is scaled by a single linear factor)."
                         (next (.Maybe-next tbl t-ms)))
                        (with-prev+next prev next))))))
 
-;; l -> [exact-integer? t-ms] -> [exact-integer? t-ms] -> exact-integer?
+;; l -> [real? t-ms] -> [real? t-ms] -> exact-integer?
 (def. (subtitles-directives.interpolate-function-for l) -> function?
   (.interpolate-function-for (.shift-points-wbtable l)))
 
