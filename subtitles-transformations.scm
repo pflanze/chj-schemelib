@@ -33,6 +33,7 @@
          ;; other:
          subtitles-directives.shift-points
          subtitles-directives.shift-points-wbtable
+         wbtable.interpolate-function-for
          subtitles-directives.interpolate-function-for)
 
         #!optional
@@ -119,26 +120,29 @@ line (the whole time line is scaled by a single linear factor)."
 (def. subtitles-directives.shift-points-wbtable
   (=>* (.shift-points .milliseconds) list->real/real-wbtable))
 
+;; wbtable? -> [exact-integer? t-ms] -> [exact-integer? t-ms] -> exact-integer?
+(def. (wbtable.interpolate-function-for tbl) -> function?
+  (lambda ([exact-integer? t-ms]) -> (Maybe function?)
+     (let ((with-prev+next
+            (lambda (prev next)
+              (return (lambda ([exact-integer? t-ms]) -> exact-integer?
+                         (=>> t-ms
+                              (interpolate prev next)
+                              integer))))))
+       (Maybe:if (.Maybe-ref tbl t-ms)
+                 (Maybe:if-let ((n (.Maybe-next tbl t-ms)))
+                               (with-prev+next it n)
+                               ;; for the `to` value in the last
+                               ;; entry, interpolate from before:
+                               (>>= (.Maybe-prev tbl t-ms)
+                                    (C with-prev+next _ it)))
+                 (mlet ((prev (.Maybe-prev tbl t-ms))
+                        (next (.Maybe-next tbl t-ms)))
+                       (with-prev+next prev next))))))
+
 ;; l -> [exact-integer? t-ms] -> [exact-integer? t-ms] -> exact-integer?
 (def. (subtitles-directives.interpolate-function-for l) -> function?
-  (let (tbl (.shift-points-wbtable l))
-    (lambda ([exact-integer? t-ms]) -> (Maybe function?)
-       (let ((with-prev+next
-              (lambda (prev next)
-                (return (lambda ([exact-integer? t-ms]) -> exact-integer?
-                           (=>> t-ms
-                                (interpolate prev next)
-                                integer))))))
-         (Maybe:if (.Maybe-ref tbl t-ms)
-                   (Maybe:if-let ((n (.Maybe-next tbl t-ms)))
-                                 (with-prev+next it n)
-                                 ;; for the `to` value in the last
-                                 ;; entry, interpolate from before:
-                                 (>>= (.Maybe-prev tbl t-ms)
-                                      (C with-prev+next _ it)))
-                   (mlet ((prev (.Maybe-prev tbl t-ms))
-                          (next (.Maybe-next tbl t-ms)))
-                         (with-prev+next prev next)))))))
+  (.interpolate-function-for (.shift-points-wbtable l)))
 
 
 (def. (subtitles-directives.interpolate l #!optional [boolean? keep-times?])
