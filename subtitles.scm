@@ -181,7 +181,7 @@
                      (for..< (i len padn)
                              (display #\0 port))
                      (display s port))
-                   (error "number must be 1 or 2 digits:" s))))
+                   (error ($ "number must be <= $padn digits long:") s))))
         (pr hours-part 2)
         (display #\: port)
         (pr minutes-part 2)
