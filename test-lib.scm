@@ -17,7 +17,8 @@
 	 test)
 
 (export try-error-error?
-	(method try-error-error.show)
+	(method try-error-error.show
+                location-error.show)
 	;; and, used in the generated code by the above:
 	(macro %error)
         (macro TRY))
@@ -63,3 +64,10 @@
 
 (define-macro* (TRY expr)
   `(_TRY (lambda () ,expr)))
+
+
+;; right place?
+(define. (location-error.show v show)
+  `(location-error ,(show (location-error-location v))
+                   ,(show (location-error-message v))
+                   ,(show (location-error-args v))))
