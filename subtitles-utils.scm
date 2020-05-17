@@ -152,45 +152,48 @@ next non-space character with non-breaking spaces."
 
 
 
-(def. real.subtitle-item tm)
+(def. (real.subtitle-item v loc)
+  (tm v))
 
-(def. string.subtitle-item
-  (lambda (str)
-    (let (len (string-length str))
-      (or (>= len 3)
-          (error "too short"))
-      (or (string.starts-with? str "A:")
-          (error "does not start with A:"))
-      (cond ((string.maybe-number (substring str 2 len)) => tm)
-            (else (error "not a number after A:"))))))
+(def. (string.subtitle-item str loc)
+  (let (len (string-length str))
+    (or (>= len 3)
+        (raise-location-error loc "too short"))
+    (or (string.starts-with? str "A:")
+        (raise-location-error loc "does not start with A:"))
+    (cond ((string.maybe-number (substring str 2 len)) => tm)
+          (else (raise-location-error loc "not a number after A:")))))
 
-(def. symbol.subtitle-item
-  (=>* symbol.string
-       string.subtitle-item))
+(def. (symbol.subtitle-item v loc)
+  (=> v
+      symbol.string
+      (string.subtitle-item loc)))
 
-(def. subtitles-directive.subtitle-item identity)
+(def. (subtitles-directive.subtitle-item v loc) v)
 
 (TEST
- > (%try-error (.subtitle-item 'foo))
- [error "does not start with A:"]
- > (%try-error (.subtitle-item 'A:foo))
- [error "not a number after A:"]
- > (.subtitle-item 'A:12)
+ > (def l (location "foo" (position 10 11)))
+ > (TRY (.subtitle-item 'foo l))
+ (location-error (location "foo" (position 10 11)) "does not start with A:" (list))
+ > (TRY (.subtitle-item 'A:foo l))
+ (location-error (location "foo" (position 10 11)) "not a number after A:" (list))
+ > (.subtitle-item 'A:12 l)
  [(tm) 12]
- > (.subtitle-item 'A:12.56)
+ > (.subtitle-item 'A:12.56 l)
  [(tm) 12.56]
- > (%try-error (.subtitle-item 'B:12.56))
- [error "does not start with A:"]
- > (.subtitle-item 12.56)
+ > (TRY (.subtitle-item 'B:12.56 l))
+ (location-error (location "foo" (position 10 11)) "does not start with A:" (list))
+ > (.subtitle-item 12.56 l)
  [(tm) 12.56]
- > (.subtitle-item (Tcomment ""))
+ > (.subtitle-item (Tcomment "") l)
  [(Tcomment) ""])
 
 
 (def (bare->subtitle-items l)
      "Convert bare real numbers as well as '|A:1234.5| style variants
 into |tm| objects"
-     (.map l .subtitle-item))
+     (.map l (lambda (v)
+               (.subtitle-item (source-code v) (maybe-source-location v)))))
 
 
 (def (subtitles:_list . items)
@@ -206,9 +209,13 @@ passes the items through `bare->subtitle-items`."
                     (symbol?
                      (if (=> item source-code symbol.string
                              (string.starts-with? "A:"))
-                         `(quote ,item)
+                         `(quote-source ,item)
                          item))
                     (else
                      item)))
            items)))
+
+(TEST
+ > (subtitles:list A:123 1255 (tm 4) (+ 1 2))
+ ([(tm) 123] [(tm) 1255] [(tm) 4] [(tm) 3]))
 
