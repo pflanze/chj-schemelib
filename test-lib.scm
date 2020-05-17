@@ -18,8 +18,8 @@
 
 (export try-error-error?
 	(method try-error-error.show
-                location-error.show
-                location.show)
+                location-error.show)
+        location-show
         position-show
         (macro TRY)
 	#!optional
@@ -70,17 +70,22 @@
 
 ;; right place?
 (define. (location-error.show v show)
-  `(location-error ,(show (location-error-location v))
+  `(location-error ,(location-show (location-error-location v) show)
                    ,(show (location-error-message v))
                    ,(show (location-error-args v))))
 
-;; hmm somewhat risky
-(define. (location.show v show)
-  `(location ,(show (location-container v))
-             ,(position-show (location-position v))))
+;; can't define location.show, location? is too imprecise (matches
+;; cj-struct objects!--ok, better dot-oo dispatch would solve this
+;; particular one)
+(define (location-show maybe-v show)
+  (cond (maybe-v
+         => (lambda (v) 
+              `(location ,(show (location-container v))
+                         ,(position-show (location-position v) show))))
+        (else #f)))
 
 ;; don't want to define position.show, position? is just fixnum?
-(define (position-show v)
+(define (position-show v show)
   `(position ,(position-line v)
              ,(position-column v)))
 
