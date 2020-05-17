@@ -193,17 +193,22 @@ into |tm| objects"
      (.map l .subtitle-item))
 
 
+(def (subtitles:_list . items)
+     (bare->subtitle-items items))
+
+
 (defmacro (subtitles:list . items)
-  "Like |list| but auto-quotes symbols that start with `A:` (to then
-be processed by `bare->subtitle-items`)."
-  `(list ,@(map (lambda (item)
-                  (mcase item
-                         (symbol?
-                          (if (=> item source-code symbol.string
-                                  (string.starts-with? "A:"))
-                              `(quote ,item)
-                              item))
-                         (else
-                          item)))
-                items)))
+  "Like |list| but auto-quotes symbols that start with `A:` and then
+passes the items through `bare->subtitle-items`."
+  `(subtitles:_list
+    ,@(map (lambda (item)
+             (mcase item
+                    (symbol?
+                     (if (=> item source-code symbol.string
+                             (string.starts-with? "A:"))
+                         `(quote ,item)
+                         item))
+                    (else
+                     item)))
+           items)))
 
