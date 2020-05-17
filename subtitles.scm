@@ -335,6 +335,9 @@ the actual time value used for positioning the subtitle."
 (def. (any.subtitles-show v)
   (.show v subtitles-show))
 
+(def. (list.subtitles-show v)
+  `(subtitles:list ,@(map subtitles-show v)))
+
 (def. (T/location.subtitles-show v)
   (let-pair ((n r) (show v))
             (cons (=> n
@@ -588,14 +591,15 @@ I j k.
                (string-split/location "\n")
                Tshow))
  > v2
- (Ok (list (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
-              "A b c d?")
-           (T 4 (tim 0 6 58 15) (tim 0 7 0 137)
-              "E f g h.")
-           (T 5 (tim 0 7 0 321) (tim 0 7 2 98)
-              "I j k.")
-           (T 7 (tim 0 7 2 100) (tim 0 7 5 166)
-              "- L m, n?\n- O.")))
+ (Ok (subtitles:list
+      (T 3 (tim 0 6 54 144) (tim 0 6 56 847)
+         "A b c d?")
+      (T 4 (tim 0 6 58 15) (tim 0 7 0 137)
+         "E f g h.")
+      (T 5 (tim 0 7 0 321) (tim 0 7 2 98)
+         "I j k.")
+      (T 7 (tim 0 7 2 100) (tim 0 7 5 166)
+         "- L m, n?\n- O.")))
  > (show (-> Result?
              (>>= (eval v2)
                   (lambda (v*)
