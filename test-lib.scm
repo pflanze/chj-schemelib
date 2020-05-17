@@ -18,10 +18,12 @@
 
 (export try-error-error?
 	(method try-error-error.show
-                location-error.show)
-	;; and, used in the generated code by the above:
-	(macro %error)
-        (macro TRY))
+                location-error.show
+                location.show)
+        position-show
+        (macro TRY)
+	#!optional
+	(macro %error))
 
 
 (define (try-error-error? v)
@@ -71,3 +73,14 @@
   `(location-error ,(show (location-error-location v))
                    ,(show (location-error-message v))
                    ,(show (location-error-args v))))
+
+;; hmm somewhat risky
+(define. (location.show v show)
+  `(location ,(show (location-container v))
+             ,(position-show (location-position v))))
+
+;; don't want to define position.show, position? is just fixnum?
+(define (position-show v)
+  `(position ,(position-line v)
+             ,(position-column v)))
+
