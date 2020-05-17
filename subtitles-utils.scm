@@ -18,6 +18,7 @@
                  string.subtitle-strip-newlines)
         (generic .subtitle-item)
         bare->subtitle-items
+        (macro subtitles:list)
         #!optional
         strings?)
 
@@ -190,4 +191,19 @@ next non-space character with non-breaking spaces."
      "Convert bare real numbers as well as '|A:1234.5| style variants
 into |tm| objects"
      (.map l .subtitle-item))
+
+
+(defmacro (subtitles:list . items)
+  "Like |list| but auto-quotes symbols that start with `A:` (to then
+be processed by `bare->subtitle-items`)."
+  `(list ,@(map (lambda (item)
+                  (mcase item
+                         (symbol?
+                          (if (=> item source-code symbol.string
+                                  (string.starts-with? "A:"))
+                              `(quote ,item)
+                              item))
+                         (else
+                          item)))
+                items)))
 
