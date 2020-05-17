@@ -1,4 +1,4 @@
-;;; Copyright 2006-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2006-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+         cj-source
 	 test
 	 cj-exception)
 
@@ -49,10 +50,25 @@
 		     error-exception-message
 		     error-exception-parameters))
 
+;; XX should (1) bring to consistent naming, (2) provide
+;; source-error.show, not this
+(define source-error->structure
+  (try-error-handler source-error?
+		     'source-error
+		     source-error-message
+		     source-error-args))
+
+(define (*-error->structure e)
+  ;;can't use xcond yet
+  (cond ((source-error? e) (source-error->structure e))
+        ((error-exception? e) (error-exception->structure e))
+        (else (raise e))))
+;; oh, and it's missing location-error still, now. *UGLY*
+;; /XX
 
 (define (%try-error-f thunk)
   (with-exception-catcher
-   error-exception->structure
+   *-error->structure
    thunk))
 
 (define-macro* (%try-error form)
