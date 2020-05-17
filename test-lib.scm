@@ -1,4 +1,4 @@
-;;; Copyright (<)2011-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright (<)2011-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -19,7 +19,8 @@
 (export try-error-error?
 	(method try-error-error.show)
 	;; and, used in the generated code by the above:
-	(macro %error))
+	(macro %error)
+        (macro TRY))
 
 
 (define (try-error-error? v)
@@ -49,3 +50,16 @@
  > (equal? (eval #) e)
  #t)
 
+
+(define (_TRY thunk)
+  (continuation-capture
+   (lambda (outside)
+     (with-exception-catcher
+      show
+      (lambda ()
+        (let ((val (thunk)))
+          (continuation-graft outside
+                              error "non-exception value:" val)))))))
+
+(define-macro* (TRY expr)
+  `(_TRY (lambda () ,expr)))
