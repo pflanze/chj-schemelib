@@ -65,71 +65,125 @@
  "<i>fun </i>\n<i>There</i>")
 
 
-(def. (chars.subtitle-strip-newlines l [boolean? nbsp-after-minus?])
-  (reverse
-   (let lp ((l l)
-            (prev-space? #f)
-            (r '()))
-     (def (process- l r)
-          "process part after #\\- character"
-          (let (r* (cons #\- r))
-            (if nbsp-after-minus?
-                (let lp- ((l l)
-                          (prev-space? prev-space?)
-                          (r r*))
-                  (if-let-pair
-                   ((a l*) l)
-                   (cond ((eq? a #\space)
-                          (lp- l* #t (cons nbsp r)))
-                         ((eq? a #\newline)
-                          ;; drop both the minus and the newline -- XX
-                          ;; check that there's a non-whitespace
-                          ;; character following?
-                          (lp l* #f (cdr r)))
-                         ;; ^ XX should do that case even if
-                         ;; nbsp-after-minus is #f?
-                         (else (lp l #f r)))
-                   r))
-                (lp l prev-space? r*))))
-     (if-let-pair
-      ((a l*) l)
-      (cond ((eq? a #\-)
-             (process- l* r))
-            ((eq? a #\newline)
-             (if-let-pair
-              ((b l**) l*)
-              (if (eq? b #\-)
-                  ;; leave newline in and process #\-
-                  (process- l** (cons a r))
-                  ;; replace newline with a space, unless previous
-                  ;; character was a space already
-                  (lp l*
-                      ;; consider newline a space regardless of
-                      ;; whether it was replaced by a space? XX make a
-                      ;; whitespace flag, fully?
-                      #t
-                      (if prev-space? r (cons #\space r))))
-              (cons a r)))
-            (else
-             (lp l* (eq? a #\space) (cons a r))))
-      r))))
+(defclass (strip-newlines-options [boolean? nbsp-after-minus?]
+                                  [boolean? strip-all-newlines?])
+  "Options for .subtitle-strip-newlines:
 
-(def. (string.subtitle-strip-newlines str [boolean? nbsp-after-minus?])
-     "Strip unnecessary newlines from a subtitle segment string; if
-the second argument is true, will replace spaces between a `-` and the
-next non-space character with non-breaking spaces."
-     ;; good that I don't keep them split up?
-     (=> str
-         .list
-         (.subtitle-strip-newlines nbsp-after-minus?)
-         char-list.string))
+nbsp-after-minus?: whether to replace spaces between a `-` and the
+next non-space character with non-breaking spaces.
+
+strip-all-newlines?: whether to strip all newline characters, even
+those left of a `-`.
+")
+
+(def (chars.maybe-first-char-after l pred)
+     (if-let-pair ((a r) (drop-while pred l))
+                  a
+                  #f))
+
+(def. (chars.subtitle-strip-newlines l [strip-newlines-options? options])
+  (let.-static
+   (strip-newlines-options. (nbsp-after-minus?
+                             strip-all-newlines?) options)
+
+   (reverse
+    (let lp ((l l)
+             (prev-space? #f) ;; (maybe char?)
+             (r '()))
+      (def (process- l r [(maybe char?) prev-space?])
+           "process part after #\\- character, which is to be handled
+as either a hyphen (removed), the start of another person
+talking (space afterwards replaced by nbsp), a lone minus at the end
+of a line (left alone), or a 'connection hyphen' in \"a-b\" (left
+alone)."
+           (if (eq? (chars.maybe-first-char-after l (C eq? _ #\space))
+                    #\newline)
+               (if prev-space?
+                   ;; "a -\n..." or "a\n-\n...", lone minus at end of
+                   ;; line, keep:
+                   (lp l #f (cons #\- r))
+                   ;; "a- \n...": hyphenation, remove
+                   (lp (drop-while char-whitespace? l)
+                       #f
+                       ;; drop '-':
+                       r))
+
+               ;; "a-b" or "a- b" or "a - b" or "a\n- b"
+               (let (r* (cons #\- r))
+                 (if prev-space?
+                     ;; "a - b" or "a\n- b", start of another person talking
+                     (if nbsp-after-minus?
+                         (let lp- ((l l)
+                                   (r r*))
+                           (if-let-pair
+                            ((a l*) l)
+                            (case a
+                              ((#\space)
+                               (lp- l* (cons nbsp r)))
+                              ((#\newline)
+                               ;; should only happen in other parent
+                               ;; branch
+                               (error "BUG"))
+                              (else
+                               ;; non-whitespace after /-\s*/
+                               (lp l #f r)))
+                            ;; EOF
+                            r))
+                         (lp l prev-space? r*))
+
+                     ;; "a-b" or "a- b" (never "a-\nb"), leave as is
+                     (lp l #f r*)))))
+      (if-let-pair
+       ((a l*) l)
+       (case a
+         ((#\-)
+          ;; "-" or "a-" or " -" or "\n-" (could be a hyphen)
+          (process- l* r prev-space?))
+         ((#\newline)
+          (if-let-pair
+           ((b l**) l*)
+           (case b
+             ((#\-)
+              ;; "\n-"
+              (process- l**
+                        (cons (if strip-all-newlines?
+                                  #\space
+                                  a)
+                              r)
+                        #\newline))
+             (else
+              ;; replace newline with a space, unless previous
+              ;; character was a space already
+              (lp l*
+                  ;; consider newline a space regardless of
+                  ;; whether it was replaced by a space? XX make a
+                  ;; whitespace flag, fully?
+                  #t
+                  (if prev-space? r (cons #\space r)))))
+           ;; EOF
+           (cons a r)))
+         (else
+          (lp l*
+              (and (char-whitespace? a) a)
+              (cons a r))))
+       ;; EOF
+       r)))))
+
+(def. (string.subtitle-strip-newlines str [strip-newlines-options? options])
+  "Strip unnecessary newlines from a subtitle segment string."
+  ;; good that I don't keep them split up?
+  (=> str
+      .list
+      (chars.subtitle-strip-newlines options)
+      char-list.string))
 ;; BTW:
 ;;  .list -> .char-list or .chars ?
 ;;  char-list.string -> chars.string ?
 
 
 (TEST
- > (def t (C .subtitle-strip-newlines _ #t))
+ > (def t (C .subtitle-strip-newlines _ (strip-newlines-options #t #f)))
+ > (def t2 (C .subtitle-strip-newlines _ (strip-newlines-options #t #t)))
  > (t "a b")
  "a b"
  > (t "a\nb")
@@ -147,8 +201,29 @@ next non-space character with non-breaking spaces."
  " der uns  sagen konnte, dass die Früchte verdorben waren.\n"
  > (t "Kriege ich den Schlüssel \nvon\nIhnen, Sir?\n- Ja,\nich werde ihn übergeben. -  Gut so!")
  "Kriege ich den Schlüssel von Ihnen, Sir?\n- Ja, ich werde ihn übergeben. -  Gut so!"
+ > (t2 "Kriege ich den Schlüssel \nvon\nIhnen, Sir?\n- Ja,\nich werde ihn übergeben. -  Gut so!")
+ "Kriege ich den Schlüssel von Ihnen, Sir? - Ja, ich werde ihn übergeben. -  Gut so!"
  > (t "a-\nb")
- "ab")
+ "ab"
+ > (t2 "a\n-\nb")
+ "a - b"
+ > (t2 "a\n-b")
+ "a -b"
+ > (t2 "a\n- b")
+ "a - b"
+ > (t2 "a- \nb")
+ "ab"
+ ;; ^ still understood to be hyphenation; same here:
+ > (t "a- \nb")
+ "ab"
+ > (t "a-b-c")
+ "a-b-c"
+ > (t2 "a-b-c")
+ "a-b-c"
+ > (t "a- b- c")
+ "a- b- c"
+ > (t2 "a- b- c")
+ "a- b- c")
 
 
 
