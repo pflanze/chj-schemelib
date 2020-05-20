@@ -273,7 +273,12 @@ overlap."
                         (let ((ato (.to a))
                               (bfrom (.from b)))
                           (if (.> ato bfrom)
-                              (lp l* (cons (.xcheck (.to-set a bfrom)) out))
+                              (if (.> bfrom (.from a))
+                                  (lp l* (cons (.to-set a bfrom) out))
+                                  (raise-location-error
+                                   (.maybe-location b)
+                                   "T starts on or before the start of the previous T"
+                                   b))
                               (unchanged)))
                         (unchanged)))
                (else
