@@ -246,6 +246,8 @@ alone)."
 
 (def. (subtitles-directive.subtitle-item v loc) v)
 
+(def. (ilist.subtitle-item v loc) v)
+
 (TEST
  > (def l (location "foo" (position 10 11)))
  > (TRY (.subtitle-item 'foo l))
