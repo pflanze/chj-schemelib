@@ -298,12 +298,13 @@ the actual time value used for positioning the subtitle."
           (displayln (chomp titles) port)
           (newline port)))
 
-      (defmethod (+ s [real? ms])
-        (if (zero? ms)
-            s
-            (=> s
-                (.from-set (.+ from ms))
-                (.to-set (.+ to ms)))))
+      (defmethod (+ s [(either real? subtitles-time?) ms-or-time])
+        (let (ms (if (real? ms-or-time) ms-or-time (.milliseconds ms-or-time)))
+          (if (zero? ms)
+              s
+              (=> s
+                  (.from-set (.+ from ms))
+                  (.to-set (.+ to ms))))))
 
 
       (defclass (Toff/location)
