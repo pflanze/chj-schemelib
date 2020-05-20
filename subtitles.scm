@@ -417,11 +417,6 @@ the actual time value used for positioning the subtitle."
 
 
 
-(def subtitles-directive? (either subtitles-item?
-                       ;; for new positioning:
-                       subtitles-time?
-                       Tdelay?))
-
 (def subtitles-directives? (ilist-of subtitles-directive?))
 
 (def list-of-subtitles-item? (list-of subtitles-item?))
