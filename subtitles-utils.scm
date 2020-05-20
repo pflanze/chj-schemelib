@@ -235,9 +235,9 @@ alone)."
     (or (>= len 3)
         (raise-location-error loc "too short"))
     (or (string.starts-with? str "A:")
-        (raise-location-error loc "does not start with A:"))
+        (raise-location-error loc "does not start with \"A:\"" str))
     (cond ((string.maybe-number (substring str 2 len)) => tm)
-          (else (raise-location-error loc "not a number after A:")))))
+          (else (raise-location-error loc "not a number after \"A:\"" str)))))
 
 (def. (symbol.subtitle-item v loc)
   (=> v
@@ -251,15 +251,15 @@ alone)."
 (TEST
  > (def l (location "foo" (position 10 11)))
  > (TRY (.subtitle-item 'foo l))
- (location-error (location "foo" (position 10 11)) "does not start with A:" (list))
+ (location-error (location "foo" (position 10 11)) "does not start with \"A:\"" (list "foo"))
  > (TRY (.subtitle-item 'A:foo l))
- (location-error (location "foo" (position 10 11)) "not a number after A:" (list))
+ (location-error (location "foo" (position 10 11)) "not a number after \"A:\"" (list "A:foo"))
  > (.subtitle-item 'A:12 l)
  [(tm) 12]
  > (.subtitle-item 'A:12.56 l)
  [(tm) 12.56]
  > (TRY (.subtitle-item 'B:12.56 l))
- (location-error (location "foo" (position 10 11)) "does not start with A:" (list))
+ (location-error (location "foo" (position 10 11)) "does not start with \"A:\"" (list "B:12.56"))
  > (.subtitle-item 12.56 l)
  [(tm) 12.56]
  > (.subtitle-item (Tcomment "") l)
