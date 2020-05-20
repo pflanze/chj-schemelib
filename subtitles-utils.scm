@@ -282,12 +282,18 @@ into |tm| objects"
 passes the items through `bare->subtitle-items`."
   `(subtitles:_list
     ,@(map (lambda (item)
+             ;; Could use .subtitle-item here, too, to report location
+             ;; information while it is still available (but would
+             ;; have to be careful to only apply it to literals!); or,
+             ;; could quote-source strings as well. Do the latter.
              (mcase item
                     (symbol?
                      (if (=> item source-code symbol.string
                              (string.starts-with? "A:"))
                          `(quote-source ,item)
                          item))
+                    (string?
+                     `(quote-source ,item))
                     (else
                      item)))
            items)))
