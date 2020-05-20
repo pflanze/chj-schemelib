@@ -273,7 +273,7 @@ overlap."
                         (let ((ato (.to a))
                               (bfrom (.from b)))
                           (if (.> ato bfrom)
-                              (lp l* (cons (.to-set a bfrom) out))
+                              (lp l* (cons (.xcheck (.to-set a bfrom)) out))
                               (unchanged)))
                         (unchanged)))
                (else
