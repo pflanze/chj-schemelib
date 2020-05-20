@@ -113,6 +113,12 @@
 
 (defparameter current-tm-delay -500) ;; milliseconds
 
+(def (subtitles:time->milliseconds time) -> fixnum?
+     "`time` is understood to be in milliseconds if it's a bare real
+number. Otherwise must support `.milliseconds` method."
+     (cond ((fixnum? time) time)
+           ((real? time) (integer time))
+           (else (.milliseconds time))))
 
 (definterface subtitles-directive
 
@@ -143,8 +149,9 @@
       (defmethod (tm s)
         (milliseconds->tm milliseconds))
 
-      (defmethod (+ s [fixnum? ms])
-        (subtitles-milliseconds (+ milliseconds ms))))
+      (defmethod (+ s time)
+        (let (ms (subtitles:time->milliseconds time))
+          (subtitles-milliseconds (+ milliseconds ms)))))
   
   
     (defclass (tim [natural0? hours-part]
@@ -208,8 +215,9 @@
       ;;   (comp// 2 milliseconds->tim (on tim.milliseconds +)))
       ;; ehr
 
-      (defmethod (+ s [fixnum? milliseconds])
-        (milliseconds->tim (+ (tim.milliseconds s) milliseconds))))
+      (defmethod (+ s time)
+        (let (ms (subtitles:time->milliseconds time))
+          (milliseconds->tim (+ (tim.milliseconds s) ms)))))
   
 
     (defclass (tm [real? seconds])
@@ -238,8 +246,9 @@ the actual time value used for positioning the subtitle."
         (milliseconds->tim (.milliseconds s)))
       (defmethod (tm s) s)
 
-      (defmethod (+ s [fixnum? ms])
-        (tm (+ seconds (/ ms 1000))))))
+      (defmethod (+ s time)
+        (let (ms (subtitles:time->milliseconds time))
+          (tm (+ seconds (/ ms 1000)))))))
 
 
   (defclass (Tdelay [fixnum? milliseconds]))
@@ -298,8 +307,8 @@ the actual time value used for positioning the subtitle."
           (displayln (chomp titles) port)
           (newline port)))
 
-      (defmethod (+ s [(either real? subtitles-time?) ms-or-time])
-        (let (ms (if (real? ms-or-time) ms-or-time (.milliseconds ms-or-time)))
+      (defmethod (+ s time)
+        (let (ms (subtitles:time->milliseconds time))
           (if (zero? ms)
               s
               (=> s
@@ -313,7 +322,7 @@ the actual time value used for positioning the subtitle."
           (void)))
       (defclass (Treal/location)
         "A `T` holding real time stamps, matched to the video, not to be shifted."
-        (defmethod (+ s [real? ms])
+        (defmethod (+ s time)
           s)))))
 
 
