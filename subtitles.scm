@@ -19,7 +19,7 @@
          (cj-port pretty-string)
          test)
 
-(export (interface subtitles-directive
+(export (class subtitles-directive
           (class Tdelay)
           (class subtitles-time
             (class subtitles-milliseconds)
@@ -120,7 +120,23 @@ number. Otherwise must support `.milliseconds` method."
            ((real? time) (integer time))
            (else (.milliseconds time))))
 
-(definterface subtitles-directive
+
+;; Placed here only since it can't fit inside `defclass
+;; subtitles-directive` (interface can't be nested within class; XX
+;; TODO: make possible syntactically?)
+(definterface subtitles-item-interface
+  (method (display s port [boolean? latin1?]))
+  (method (+ s ms))
+  ;; Place here because .adjust-scale in subtitles-transformations is
+  ;; checking for subtitles-item; and don't want to make one more
+  ;; subcategory? (And subtitles-item would be the wrong name if it
+  ;; didn't contain these?):
+  (method (from-update s fn))
+  (method (to-update s fn)))
+
+
+(defclass subtitles-directive
+  (defmethod (subtitles-directive-unwrap s) s)
 
   (defclass subtitles-time
 
@@ -254,16 +270,8 @@ the actual time value used for positioning the subtitle."
   (defclass (Tdelay [fixnum? milliseconds]))
 
 
-  (definterface subtitles-item
-    (method (display s port [boolean? latin1?]))
-    (method (+ s ms))
-    ;; Place here because .adjust-scale in subtitles-transformations is
-    ;; checking for subtitles-item; and don't want to make one more
-    ;; subcategory? (And subtitles-item would be the wrong name if it
-    ;; didn't contain these?):
-    (method (from-update s fn))
-    (method (to-update s fn))
-  
+  (defclass subtitles-item
+    implements: subtitles-item-interface
 
     (defclass T-meta
       (defmethod (display s port [boolean? latin1?]) (void))
@@ -273,7 +281,7 @@ the actual time value used for positioning the subtitle."
 
       (defclass (Tcomment [string? comment]))
 
-      (defclass (Twrap [subtitles-directive? subtitles-directive])
+      (defclass (Twrap [subtitles-directive? subtitles-directive-unwrap])
         "An inactivated subtitles-directive"))
 
     (defclass (T/location [(maybe location?) maybe-location]
