@@ -173,8 +173,7 @@ subtitle-time element exactly to its following T entry)."
         ((subtitles-item? a)
          (Maybe:if-let ((f (Maybe-timf-for (.from a))))
                        (=> a
-                           (.from-update f)
-                           (.to-update f)
+                           (.from-to-update f)
                            ((lambda (a*)
                               (lp l* (cons a* out)))))
                        ;; (and, already don't know details about the error
