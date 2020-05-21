@@ -19,7 +19,8 @@
          (cj-port pretty-string)
          test)
 
-(export (class subtitles-directive
+(export (class T-config)
+        (class subtitles-directive
           (class Tdelay)
           (class subtitles-time
             (class subtitles-milliseconds)
@@ -30,12 +31,13 @@
               (class Tcomment)
               (class Twrap))
             (class T/location
+              (class T/config/location)
               (class Toff/location)
               (class Treal/location))))
         (parameter current-tm-delay)
         Td ;; alias for Tdelay
-        (macros T Toff Treal)
-        T? Toff? Treal?
+        (macros T T/config Toff Treal)
+        T? T/config? Toff? Treal?
 
         (methods subtitles-directives.subtitles-items
                  string/location-stream.Result-of-subtitles-items
@@ -110,6 +112,11 @@
 (def 0..999? (both fixnum? (C <= 0 _ 999)))
 
 (def string/location? (possibly-source-of string?))
+
+
+(defclass (T-config #!key [boolean? keep-length-unchanged?])
+  "Configuration for T/config objects.")
+
 
 (defparameter current-tm-delay -500) ;; milliseconds
 
@@ -338,10 +345,20 @@ the actual time value used for positioning the subtitle."
                   (.from-to-set (.+ from ms) (.+ to ms))))))
 
 
+      (defclass (T/config/location [T-config? config])
+
+        (defmethod (from-to-update s f)
+          (if (@T-config.keep-length-unchanged? config)
+              (let (from* (f from))
+                (.from-to-set s from* (.+ to (.- from* from))))
+              ;; call super class method
+              (T/location.from-to-update s f))))
+
       (defclass (Toff/location)
         "A subtitle entry that's disabled"
         (defmethod (display s port [boolean? latin1?])
           (void)))
+
       (defclass (Treal/location)
         "A `T` holding real time stamps, matched to the video, not to be shifted."
         (defmethod (+ s time)
@@ -351,10 +368,12 @@ the actual time value used for positioning the subtitle."
 (def Td Tdelay)
 
 (defmacro (T . args) `(T/location ',(maybe-source-location stx) ,@args))
+(defmacro (T/config . args) `(T/config/location ',(maybe-source-location stx) ,@args))
 (defmacro (Toff . args) `(Toff/location ',(maybe-source-location stx) ,@args))
 (defmacro (Treal . args) `(Treal/location ',(maybe-source-location stx) ,@args))
 
 (def T? T/location?)
+(def T/config? T/config/location?)
 (def Toff? Toff/location?)
 (def Treal? Treal/location?)
 
