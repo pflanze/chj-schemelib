@@ -51,6 +51,9 @@
                  subtitles-directives.save-to!)
         list-of-subtitles-item?
         subtitles-items?
+
+        string/location.tim
+        
         #!optional
         srtlines->Result-of-subtitles-items
         ;; util stuff:
