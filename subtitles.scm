@@ -291,6 +291,21 @@ the actual time value used for positioning the subtitle."
                           [string? titles])
       "A subtitle entry"
 
+      (defmacro (@T/location.from-set! s val) `(##vector-set! ,s 3 ,val))
+      (defmacro (@T/location.to-set! s val) `(##vector-set! ,s 4 ,val))
+      
+      (defmethod (from-to-set s from to)
+        (let (s* (vector-copy s))
+          (@T/location.from-set! s* from)
+          (@T/location.to-set! s* to)
+          s*))
+
+      (defmethod (from-to-update s f)
+        (let (s* (vector-copy s))
+          (@T/location.from-set! s* (f from))
+          (@T/location.to-set! s* (f to))
+          s*))
+      
       ;; XX should instead fix class stuff so that |to| can be
       ;; restricted in terms of from directly.
       (defmethod (xcheck s)
@@ -320,8 +335,7 @@ the actual time value used for positioning the subtitle."
           (if (zero? ms)
               s
               (=> s
-                  (.from-set (.+ from ms))
-                  (.to-set (.+ to ms))))))
+                  (.from-to-set (.+ from ms) (.+ to ms))))))
 
 
       (defclass (Toff/location)
