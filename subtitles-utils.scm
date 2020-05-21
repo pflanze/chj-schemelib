@@ -234,10 +234,14 @@ alone)."
   (let (len (string-length str))
     (or (>= len 3)
         (raise-location-error loc "too short"))
-    (or (string.starts-with? str "A:")
-        (raise-location-error loc "does not start with \"A:\"" str))
-    (cond ((string.maybe-number (substring str 2 len)) => tm)
-          (else (raise-location-error loc "not a number after \"A:\"" str)))))
+    (if (string.starts-with? str "A:")
+        (cond ((string.maybe-number (substring str 2 len)) => tm)
+              (else (raise-location-error loc "not a number after \"A:\"" str)))
+        (if-Ok (string/location.tim str)
+               it
+               (raise-location-error
+                loc "does not start with \"A:\" and doesn't parse as srt time"
+                str it)))))
 
 (def. (symbol.subtitle-item v loc)
   (=> v
@@ -251,7 +255,9 @@ alone)."
 (TEST
  > (def l (location "foo" (position 10 11)))
  > (TRY (.subtitle-item 'foo l))
- (location-error (location "foo" (position 10 11)) "does not start with \"A:\"" (list "foo"))
+ (location-error (location "foo" (position 10 11))
+                 "does not start with \"A:\" and doesn't parse as srt time"
+                 (list "foo" (make-source-error "foo" "need exactly one comma" (list))))
  > (TRY (.subtitle-item 'A:foo l))
  (location-error (location "foo" (position 10 11)) "not a number after \"A:\"" (list "A:foo"))
  > (.subtitle-item 'A:12 l)
@@ -259,7 +265,9 @@ alone)."
  > (.subtitle-item 'A:12.56 l)
  [(tm) 12.56]
  > (TRY (.subtitle-item 'B:12.56 l))
- (location-error (location "foo" (position 10 11)) "does not start with \"A:\"" (list "B:12.56"))
+ (location-error (location "foo" (position 10 11))
+                 "does not start with \"A:\" and doesn't parse as srt time"
+                 (list "B:12.56" (make-source-error "B:12.56" "need exactly one comma" (list))))
  > (.subtitle-item 12.56 l)
  [(tm) 12.56]
  > (.subtitle-item (Tcomment "") l)
