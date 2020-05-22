@@ -9,11 +9,11 @@
 (require template
          easy-1
          (fixnum inc)
+         (fixnum-more fixnum-natural0?)
          (cj-env-2 for..<)
          test
          (test-lib-1 %try)
-         char-util
-         (fixnum-more fixnum-natural0?))
+         char-util)
 
 (export sum
         oo-vector-lib:implement-thunks
@@ -157,6 +157,21 @@
           ;; protection from redefinition of VECTOR-copy ?
           (VECTOR-set! v* i val)
           v*)))
+
+
+  (define-typed (VECTOR-update! [VECTOR? vec] [fixnum-natural0? i] [procedure? fn])
+    (let ((len (VECTOR-length vec)))
+      (if (< i len)
+          (VECTOR-set! vec i (fn (VECTOR-ref vec i)))
+          (error "index out of range" i))))
+
+  (define-typed (VECTOR-update [VECTOR? vec] [fixnum-natural0? i] [procedure? fn])
+    "This implementation is inefficient for large VECTORs"
+    (VECTOR-update! (VECTOR-copy vec) i fn))
+
+  (def. VECTOR.update! VECTOR-update!)
+  (def. VECTOR.update VECTOR-update)
+
   
   (def. (VECTOR.insert v i val)
     (let* ((len (VECTOR-length v))

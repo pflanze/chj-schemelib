@@ -14,7 +14,8 @@
 	 oo-lib-string
 	 oo-lib-s32vector
 	 ;; alternatively could require oo-lib-all
-	 test)
+	 test
+         (range char.inc))
 
 
 (TEST
@@ -219,4 +220,16 @@
  #(1 a 2)
  > (vector.insert (vector 1 2) 2 'a)
  #(1 2 a))
+
+(TEST
+ > (define s "hello")
+ > (.update! s 2 char.inc)
+ "hemlo"
+ > s
+ "hemlo"
+ > (define s "hello")
+ > (.update s 3 char.inc)
+ "helmo"
+ > s
+ "hello")
 
