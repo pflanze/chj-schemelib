@@ -28,7 +28,7 @@
                      ;; AH don't have location info here
                      (error "can't find" t)))))
 
-(defparameter current-interpolate-plot-stepsize 3000)
+(defparameter current-interpolate-plot-stepsize 1000)
 
 (def. (subtitles-directives.interpolate-plot l)
   "Show plot of new vs. original t values:
