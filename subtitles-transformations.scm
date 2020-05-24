@@ -10,6 +10,7 @@
          subtitles
          Maybe
          monad/syntax
+         (html-remove string.remove-html-markup)
          ;; for .adjust-scale
          math/least-squares
          ;; for .interpolate:
@@ -338,7 +339,9 @@ overlap."
 
 
 (def. (subtitles-items.drop-parentized l)
-  (.filter l (complement (=>* .titles .parentized?))))
+  (.filter l (complement (=>* .titles
+                              string.remove-html-markup
+                              string.parentized?))))
 
 
 (def. (subtitles-directives.map-Ts l fn)
