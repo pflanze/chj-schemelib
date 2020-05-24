@@ -7,6 +7,7 @@
 
 
 (require easy
+         (list-util-3 charlist-ci-starts-with?)
          test)
 
 (export (methods chars.remove-html-markup
@@ -25,6 +26,13 @@ within tags."
 ;; unlike char-list? which is list-of, OK? XX move and make consistent
 (def chars? (ilist-of char?))
 
+(def _charlist-ci-starts-with? (list-starts-with?/equal? char-ci=?))
+;; and give it a nicer API:
+(def (charlist-ci-starts-with? lis sublis) -> (maybe ilist?)
+     "Returns the remainder after sublis if lis starts with sublis."
+     (letv ((? rest) (_charlist-ci-starts-with? lis sublis))
+           (and ? rest)))
+
 (def. (chars.remove-html-markup cs)
   (let outer ((cs cs))
     (if-let-pair ((c cs*) cs)
@@ -40,6 +48,15 @@ within tags."
                                      (else
                                       (lp cs*)))
                                    (error "missing '>' after '<'"))))
+                   ((#\&)
+                    (cond ((charlist-ci-starts-with? cs* '(#\l #\t #\;))
+                           => (lambda (rest) (cons #\< (outer rest))))
+                          ((charlist-ci-starts-with? cs* '(#\g #\t #\;))
+                           => (lambda (rest) (cons #\> (outer rest))))
+                          ((charlist-ci-starts-with? cs* '(#\a #\m #\p #\;))
+                           => (lambda (rest) (cons #\& (outer rest))))
+                          (else
+                           (cons c (outer cs*)))))
                    (else
                     (cons c (outer cs*))))
                  '())))
@@ -63,5 +80,8 @@ within tags."
  > (%try (.remove-html-markup "123  <f>5</"))
  (exception text: "missing '>' after '<'\n")
  > (%try (.remove-html-markup "123  <f>5</<"))
- (exception text: "'<' after '<'\n"))
+ (exception text: "'<' after '<'\n")
+ > (.remove-html-markup "123 &lt;&LT;&amp;&amp;&amp <f &lt;> &GT;&gt; ")
+ "123 <<&&&amp  >> ")
+
 
