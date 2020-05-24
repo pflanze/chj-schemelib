@@ -16,6 +16,7 @@
          ;; for .interpolate:
          wbtable
          math/interpolate
+         (oo-util string.findpos string.rfindpos) ;; in easy anyway?
          test)
 
 (export (methods
@@ -306,19 +307,47 @@ overlap."
 
 ;; XX lib?
 
-(def. (string.parentized? str)
-  (let* ((str (string-trim-right str))
-         ;; ^ (optim: string-trim-right is evil, not only does it copy on
-         ;;   no-change, but it goes via lists.)
-         (len (string.length str)))
-    (and (>= len 2)
-         (eq? (string.ref str 0) #\()
-         (eq? (string.ref str (dec len)) #\)))))
+(def. (string.parentized? str) -> (maybe true?) ;; heh, for the `maybe` monad
+  "Whether str is a (possibly empty) string enclosed in parens and
+optionally whitespace."
+  (let (len (string.length str))
+    (mlet ((start (string.findpos str (complement char-whitespace?)))
+           (end (string.rfindpos str (complement char-whitespace?))))
+          ;; end is the index of the last character, not the len of
+          ;; the slice
+          (let lp ((i start)
+                   (level 0))
+            (if (<= i end)
+                (let ((c (string.ref str i))
+                      (lp/level (C lp (inc i) _)))
+                  (if (eq? c #\()
+                      (lp/level (inc level))
+                      (if (= i start)
+                          #f
+                          (if (eq? c #\))
+                              (let (level (dec level))
+                                (if (positive? level)
+                                    (lp/level level)
+                                    (= i end)))
+                              (lp/level level)))))
+                (zero? level))))))
 
 (TEST
+ > (.parentized? "")
+ #f
+ > (.parentized? " \n ")
+ #f
  > (.parentized? "()")
  #t
+ > (.parentized? " (x) \n ")
+ #t
+ > (.parentized? " \n\r (\n) \n  \r\t ")
+ #t
  > (.parentized? "(")
+ #f
+ > (.parentized? ")")
+ #f
+ > (.parentized? "x)")
  #f
  > (.parentized? "((")
  #f
@@ -330,12 +359,26 @@ overlap."
  #f
  > (.parentized? "(13)")
  #t
+ > (.parentized? "(13)a")
+ #f
  > (.parentized? "a(13) ")
  #f
- > (.parentized? "(13) ")
+ > (.parentized? " ( (13) ")
+ #f
+ > (.parentized? " ( (13) ) ")
  #t
+ > (.parentized? "  (13) ) ")
+ #f
+ > (.parentized? " x( (13) ) ")
+ #f
  > (.parentized? "(13) 4")
- #f)
+ #f
+ > (.parentized? "(13) (4)")
+ #f
+ > (.parentized? "(13)(4)")
+ #f
+ > (.parentized? "(13()4)")
+ #t)
 
 
 (def. (subtitles-items.drop-parentized l)
