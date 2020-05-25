@@ -7,39 +7,39 @@
 
 
 (require C
-	 ;; (cj-functional either) circular dependency
-	 (list-util let-pair) ;; for either
-	 (fixnum inc)
-	 test)
+         ;; (cj-functional either) circular dependency
+         (list-util let-pair) ;; for either
+         (fixnum inc)
+         test)
 
 (export char=?/ ;; ?
-	char-one-of?/
-	char-digit?
-	char-alpha-lc?
-	char-alpha-uc?
-	char-alpha?
-	char-alphanumeric?
-	char-numeric+?
-	char-alphanumeric+?
-	char-space?
+        char-one-of?/
+        char-digit?
+        char-alpha-lc?
+        char-alpha-uc?
+        char-alpha?
+        char-alphanumeric?
+        char-numeric+?
+        char-alphanumeric+?
+        char-space?
         char-whitespace?
-	char-in-range?
-	char-hexdigit?
-	
-	#!optional
-	on-char)
+        char-in-range?
+        char-hexdigit?
+        
+        #!optional
+        on-char)
 
 ;;XX to avoid circular dependency on cj-functional
 (define (either . fs)
   (if (null? fs)
       (lambda x
-	#f)
+        #f)
       (let-pair ((f fs*) fs)
-		((lambda (r)
-		   (lambda x
-		     (or (apply f x)
-			 (apply r x))))
-		 (apply either fs*)))))
+                ((lambda (r)
+                   (lambda x
+                     (or (apply f x)
+                         (apply r x))))
+                 (apply either fs*)))))
 
 
 
@@ -50,9 +50,9 @@
   (let ((strlen (string-length str)))
     (lambda (c)
       (let lp ((i 0))
-	(and (< i strlen)
-	    (or (char=? c (string-ref str i))
-		(lp (inc i))))))))
+        (and (< i strlen)
+            (or (char=? c (string-ref str i))
+                (lp (inc i))))))))
 
 (TEST
  > ((char-one-of?/ "Halo") #\_)
@@ -114,14 +114,14 @@
 
 (define (char-in-range? fromchar tochar)
   (let ((from (char->integer fromchar))
-	(to (char->integer tochar)))
+        (to (char->integer tochar)))
     (lambda (v)
       (<= from (char->integer v) to))))
 
 (define char-hexdigit?
   (either char-digit?
-	  (char-in-range? #\a #\f)
-	  (char-in-range? #\A #\F)))
+          (char-in-range? #\a #\f)
+          (char-in-range? #\A #\F)))
 
 (TEST
  > (char-hexdigit? #\x)
