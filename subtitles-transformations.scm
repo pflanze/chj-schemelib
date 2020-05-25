@@ -386,18 +386,18 @@ optionally whitespace."
 
 (defclass (delete-parentized-config [function? char-match-pred]
                                     [chars? replacement]
-                                    [boolean? delete-space-after?])
+                                    [function? drop-after-pred])
   "`char-match-pred` must return #t for all characters allowed in
-parentized groups that are to be replaced by `replacement`. If
-`delete-space-after?` is true, spaces (not whitespace) after a
-replaced group are dropped.")
+parentized groups that are to be replaced by `replacement`. After a
+replaced group, further characters are dropped as long as
+`drop-after-pred` is true.")
 
 (def. (chars.delete-parentized cs [delete-parentized-config? config])
   "Replace subsequences wrapped in parens according to the
 config. Nested parens are properly matched."
   (let.-static
    (delete-parentized-config.
-    (char-match-pred replacement delete-space-after?) config)
+    (char-match-pred replacement drop-after-pred) config)
    (let rec ((cs cs))
      (if-let-pair
       ((c cs*) cs)
@@ -416,9 +416,7 @@ config. Nested parens are properly matched."
                  (let (level* (dec level))
                    (if (zero? level*)
                        (append replacement
-                               (rec (if delete-space-after?
-                                        (.drop-while cs* char-space?)
-                                        cs*)))
+                               (rec (.drop-while cs* drop-after-pred)))
                        (lp cs* level* skipped*))))
                 (else
                  (if (char-match-pred c)
@@ -443,8 +441,8 @@ config. Nested parens are properly matched."
       char-list.string))
 
 (TEST
- > (def c1 (delete-parentized-config any? (.list "yo") #f))
- > (def c2 (=> c1 (.delete-space-after?-set #t)))
+ > (def c1 (delete-parentized-config any? (.list "yo") false/1))
+ > (def c2 (=> c1 (.drop-after-pred-set char-space?)))
  > (.delete-parentized "(Hi) there!" c1)
  "yo there!"
  > (.delete-parentized "(Hi) there!" c2)
