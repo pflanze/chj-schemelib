@@ -20,13 +20,14 @@
          test)
 
 (export (class T-config)
+        (interface subtitles-item-interface)
         (class subtitles-directive
           (class Tdelay)
           (class subtitles-time
             (class subtitles-milliseconds)
             (class tim)
             (class tm))
-          (interface subtitles-item
+          (class subtitles-item
             (class T-meta
               (class Tcomment)
               (class Twrap))
