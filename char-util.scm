@@ -1,4 +1,4 @@
-;;; Copyright 2013-2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -21,7 +21,8 @@
 	char-alphanumeric?
 	char-numeric+?
 	char-alphanumeric+?
-	char-whitespace?
+	char-space?
+        char-whitespace?
 	char-in-range?
 	char-hexdigit?
 	
@@ -96,6 +97,10 @@
  > (every char-alphanumeric? (string->list "abc_123_A"))
  #t
  )
+
+
+(define (char-space? c)
+  (eq? c #\space))
 
 ;; XX unify with |u8-whitespace?| (but make it a dependency or? Only
 ;; have those once please, really. Make u8* a dependency on us,
