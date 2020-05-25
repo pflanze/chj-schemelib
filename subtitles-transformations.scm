@@ -49,6 +49,32 @@
 "Extra functionality: transformations on subtitles"
 
 
+;;XX lib
+(defmacro (docstring-from fnname)
+  ;; Add some kind of (also human readable?) marker to let future
+  ;; docstring retrieval tool retrieve docstring from fnname at
+  ;; runtime (presumably):
+  (assert* symbol? fnname
+           (lambda (fnname)
+             ($ "look up docstring of: $fnname"))))
+
+(defmacro (def.-string-charlist-proxy
+            arity
+            [(source-of symbol?) toname]
+            [(source-of symbol?) fromname])
+  ;;(assert* fixnum-natural0? arity)
+  (let (args (map (lambda (i) (gensym)) (iota (-> fixnum-natural? (eval arity)))))
+    `(def. (,toname ,@args)
+       (docstring-from ,fromname)
+       (=> ,(first args)
+           string.list
+           (,fromname ,@(rest args))
+           char-list.string))))
+
+;;/lib
+
+
+
 (def. (subtitles-directives.shift-points l extract)
   (let lp ((l l)
            (shiftpoints '()))
@@ -430,15 +456,7 @@ config. Nested parens are properly matched."
          (cons c (rec cs*))))
       '()))))
 
-(defmacro (docstring-from fnname)
-  `(begin))
-
-(def. (string.delete-parentized cs config)
-  (docstring-from chars.delete-parentized)
-  (=> cs
-      string.list
-      (chars.delete-parentized config)
-      char-list.string))
+(def.-string-charlist-proxy 2 string.delete-parentized chars.delete-parentized)
 
 (TEST
  > (def c1 (delete-parentized-config any? (.list "yo") false/1))
