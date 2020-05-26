@@ -50,6 +50,9 @@
            string.list
            (,fromname ,@(rest args))
            char-list.string))))
+;; BTW:
+;;  .list -> .char-list or .chars ?
+;;  char-list.string -> chars.string ?
 
 ;;/lib
 
@@ -112,6 +115,8 @@ those left of a `-`.
                   #f))
 
 (def. (chars.subtitle-strip-newlines l [strip-newlines-options? options])
+  "Strip unnecessary newlines from a subtitle segment string."
+  ;; good that I don't keep them split up?
   (let.-static
    (strip-newlines-options. (nbsp-after-minus?
                              strip-all-newlines?) options)
@@ -199,16 +204,9 @@ alone)."
        ;; EOF
        r)))))
 
-(def. (string.subtitle-strip-newlines str [strip-newlines-options? options])
-  "Strip unnecessary newlines from a subtitle segment string."
-  ;; good that I don't keep them split up?
-  (=> str
-      .list
-      (chars.subtitle-strip-newlines options)
-      char-list.string))
-;; BTW:
-;;  .list -> .char-list or .chars ?
-;;  char-list.string -> chars.string ?
+(def.-string-charlist-proxy 2 string.subtitle-strip-newlines
+  chars.subtitle-strip-newlines)
+
 
 
 (TEST
