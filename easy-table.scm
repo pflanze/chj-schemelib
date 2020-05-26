@@ -4,6 +4,7 @@
          (slib-sort sort))
 
 (export (macro TABLE)
+        table-of-string-settings?
         TABLE?
         (method TABLE.show))
 
@@ -24,9 +25,20 @@ bucket) syntax should/could we have?"
 						  ,val))))))))
 
 
+(def (table-of-string-settings? v)
+     (and (table? v)
+          (let ((t (table-test v))
+                (h (table-hash v)))
+            (and (or (eq? t eq?) (eq? t ##eq?)
+                     (eq? t equal?) (eq? t ##equal?)
+                     (eq? t string=?) (eq? t ##string=?))
+                 (or (eq? h eq?-hash) (eq? h ##eq?-hash)
+                     (eq? h equal?-hash) (eq? h ##equal?-hash)
+                     ;; what about string hash ?
+                     )))))
 
-(def TABLE? (table-of-key string?))
-;; XXX check options, too!
+(def TABLE? (both table-of-string-settings?
+                  (table-of-key string?)))
 
 (def. (TABLE.show v show)
   `(TABLE ,@(=> (table->list v)
