@@ -18,6 +18,7 @@
 	table-init
 	table
         table-of
+        table-of-key
 	table*
 	table-keys
 	table-values
@@ -80,13 +81,19 @@
   (_table options+pairs))
 
 
-
 (define (table-of key? val?)
   (lambda (v)
     (and (table? v)
          (every (lambda (k.v)
                   (and (key? (car k.v))
                        (val? (cdr k.v))))
+                (table->list v)))))
+
+(define (table-of-key key?)
+  (lambda (v)
+    (and (table? v)
+         (every (lambda (k.v)
+                  (key? (car k.v)))
                 (table->list v)))))
 
 
