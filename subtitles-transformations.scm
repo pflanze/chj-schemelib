@@ -37,9 +37,6 @@
          subtitles-directives.shift-points-wbtable
          wbtable.interpolate-function-for
          subtitles-directives.interpolate-function-for)
-        
-        (class delete-parentized-config)
-        (methods chars.delete-parentized string.delete-parentized)
 
         #!optional
         string.parentized?)
@@ -47,31 +44,6 @@
 (include "cj-standarddeclares.scm")
 
 "Extra functionality: transformations on subtitles"
-
-
-;;XX lib
-(defmacro (docstring-from fnname)
-  ;; Add some kind of (also human readable?) marker to let future
-  ;; docstring retrieval tool retrieve docstring from fnname at
-  ;; runtime (presumably):
-  (assert* symbol? fnname
-           (lambda (fnname)
-             ($ "look up docstring of: $fnname"))))
-
-(defmacro (def.-string-charlist-proxy
-            arity
-            [(source-of symbol?) toname]
-            [(source-of symbol?) fromname])
-  ;;(assert* fixnum-natural0? arity)
-  (let (args (map (lambda (i) (gensym)) (iota (-> fixnum-natural? (eval arity)))))
-    `(def. (,toname ,@args)
-       (docstring-from ,fromname)
-       (=> ,(first args)
-           string.list
-           (,fromname ,@(rest args))
-           char-list.string))))
-
-;;/lib
 
 
 
@@ -408,82 +380,6 @@ optionally whitespace."
  #f
  > (.parentized? "(13()4)")
  #t)
-
-
-(defclass (delete-parentized-config [function? char-match-pred]
-                                    [chars? replacement]
-                                    [function? drop-after-pred])
-  "`char-match-pred` must return #t for all characters allowed in
-parentized groups that are to be replaced by `replacement`. After a
-replaced group, further characters are dropped as long as
-`drop-after-pred` is true.")
-
-(def. (chars.delete-parentized cs [delete-parentized-config? config])
-  "Replace subsequences wrapped in parens according to the
-config. Nested parens are properly matched."
-  (let.-static
-   (delete-parentized-config.
-    (char-match-pred replacement drop-after-pred) config)
-   (let rec ((cs cs))
-     (if-let-pair
-      ((c cs*) cs)
-      (case c
-        ((#\()
-         (let lp ((cs cs*)
-                  (level 1)
-                  (skipped '(#\()))
-           (if-let-pair
-            ((c cs*) cs)
-            (let (skipped* (cons c skipped))
-              (case c
-                ((#\()
-                 (lp cs* (inc level) skipped*))
-                ((#\))
-                 (let (level* (dec level))
-                   (if (zero? level*)
-                       (append replacement
-                               (rec (.drop-while cs* drop-after-pred)))
-                       (lp cs* level* skipped*))))
-                (else
-                 (if (char-match-pred c)
-                     (lp cs* level skipped*)
-                     ;; not a group
-                     (rappend skipped (rec cs))))))
-            ;;XX use continuation-capture for proper 'placement'? and
-            ;;is it still faster then b wl ?
-            (error "unmatched paren"))))
-        (else
-         (cons c (rec cs*))))
-      '()))))
-
-(def.-string-charlist-proxy 2 string.delete-parentized chars.delete-parentized)
-
-(TEST
- > (def c1 (delete-parentized-config any? (.list "yo") false/1))
- > (def c2 (=> c1 (.drop-after-pred-set char-space?)))
- > (.delete-parentized "(Hi) there!" c1)
- "yo there!"
- > (.delete-parentized "(Hi) there!" c2)
- "yothere!"
- > (def c3 (=> c2 (.replacement-set '())))
- > (.delete-parentized "(Hi) there!" c3)
- "there!"
- > (.delete-parentized "(Hi) there! (too) yes." c3)
- "there! yes."
- > (def c4 (=> c1 (.replacement-set '(#\-))))
- > (.delete-parentized "(Hi) there! (too) yes." c4)
- "- there! - yes."
- > (.delete-parentized "(Hi there! too) yes, (yes)." c4)
- "- yes, -."
- > (.delete-parentized "(Hi (there!) too) yes, (yes)." c4)
- "- yes, -."
- > (TRY (.delete-parentized "(Hi (there! too) yes, (yes)." c4))
- (error-exception "unmatched paren" (list))
- > (def c5 (=> c4 (.char-match-pred-set char-alpha?)))
- > (.delete-parentized "(Hi there! too) yes, (yes)." c5)
- "(Hi there! too) yes, -.")
-
-
 
 
 (def. (subtitles-items.drop-parentized l)
