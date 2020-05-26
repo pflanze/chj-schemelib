@@ -264,7 +264,9 @@ replaced group, further characters are dropped as long as
 
 (def. (chars.delete-parentized cs [delete-parentized-config? config])
   "Replace subsequences wrapped in parens according to the
-config. Nested parens are properly matched."
+config. Nested parens are properly matched.
+
+See also `subtitles-items.drop-parentized`."
   (let.-static
    (delete-parentized-config.
     (char-match-pred replacement drop-after-pred) config)

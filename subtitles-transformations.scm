@@ -383,6 +383,9 @@ optionally whitespace."
 
 
 (def. (subtitles-items.drop-parentized l)
+  "Drop items whose titles are wrapped in parens.
+
+See also `.delete-parentized`."
   (.filter l (complement (=>* .titles
                               string.remove-html-markup
                               string.parentized?))))
