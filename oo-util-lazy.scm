@@ -350,7 +350,7 @@
  )
 
 
-;; move to an iseq.scm ?
+;; XX move to an iseq.scm, or rather seq.scm
 
 (define (iseq? v)
   (FV (v)
