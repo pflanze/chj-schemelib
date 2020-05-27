@@ -19,6 +19,7 @@
 	table
         table-of
         table-of-key
+        table-of-value
 	table*
 	table-keys
 	table-values
@@ -94,6 +95,13 @@
     (and (table? v)
          (every (lambda (k.v)
                   (key? (car k.v)))
+                (table->list v)))))
+
+(define (table-of-value value?)
+  (lambda (v)
+    (and (table? v)
+         (every (lambda (k.v)
+                  (value? (cdr k.v)))
                 (table->list v)))))
 
 
