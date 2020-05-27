@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,6 +8,8 @@
 
 (require (cj-symbol with-gensym with-gensyms)
 	 (list-util-1 map/iota)
+         (list-util lambda-pair)
+         ;; cj-typed -- can't use
 	 test
 	 (cj-symbol syntax-equal?))
 
@@ -15,13 +17,20 @@
 
 
 ;; Avoid macro's late binding: evaluate used expressions only
-;; once. But only if they are not just symbols: leave symbol
-;; references late-bound. This can allow to resolve mutual definitions
-;; without an extra function wrapper, and can avoid the need for
-;; allocating closures.
+;; once[1]. But only if they are not just symbols: leave symbol
+;; references late-bound. This can allow to resolve mutual (really:
+;; recursive) definitions without an extra function wrapper, and can
+;; avoid the need for allocating closures.
+
+;; [1] *But*, now (starting in 2020) bind those lazily. So, those
+;; expressions are only evaluated once, but still late. Thus
+;; recursive definitions will always work.
 
 (define (early-bind-expressions:expr+ expr)
-  (list
+  "For `expr`, decide whether to evaluate it outside the lambda.
+
+   Returns: (pair-of (maybe symbol?) expr?)"
+  (cons
    ;; what variable name the end code should use to hold the result of
    ;; the evaluation of expr, if any:
    (if (symbol? (source-code expr))
@@ -34,12 +43,20 @@
 (define (early-bind-expressions:expr+s . exprs)
   (early-bind-expressions:expr+s* exprs))
 
+(define (early-bind-expressions:use-expr+ expr+)
+  ;; if a symbol was created, use it, otherwise the original
+  ;; var-expr name
+  (cond ((car expr+)
+         => (lambda (var)
+              `(force ,var)))
+        (else
+         (cdr expr+))))
+
 (define (early-bind-expressions:expr+s-ref-expr* expr+s i)
-  (let ((expr+ (list-ref expr+s i)))
-    ;; if a symbol was created, use it, otherwise the original
-    ;; var-expr name
-    (or (car expr+)
-	(cadr expr+))))
+  "From the list of var/expr pairings, pick the `i`th and from that
+give the expression that gives the function or macro to be
+called (which may be a `(force )` expression."
+  (early-bind-expressions:use-expr+ (list-ref expr+s i)))
 
 (define (early-bind-expressions:wrap expr+s code)
   ;; Build code to evaluate the expressions used by the end code that
@@ -48,7 +65,10 @@
   (let ((need-eval (filter car expr+s)))
     (if (null? need-eval)
 	code
-	`(##let ,need-eval ,code))))
+	`(##let ,(map (lambda-pair ((var expr))
+                              `(,var (delay ,expr)))
+                      need-eval)
+                ,code))))
 
 
 ;; For "rest argument" support (a single variable in the macro
@@ -57,11 +77,8 @@
 (define (early-bind-expressions:expr+s* exprs)
   (map early-bind-expressions:expr+ exprs))
 
-(define (early-bind-expressions:bind expr+s)
-  (map (lambda (expr+)
-	 (or (car expr+)
-	     (cadr expr+)))
-       expr+s))
+(define (early-bind-expressions:bind-for-use expr+s)
+  (map early-bind-expressions:use-expr+ expr+s))
 
 
 ;; codegen-expr is generating code that is being wrapped to early-bind
@@ -93,7 +110,7 @@
        `(let ((,EXPR+S (early-bind-expressions:expr+s* ,var-of-exprS)))
 	  (early-bind-expressions:wrap
 	   ,EXPR+S
-	   (let ((,var-of-exprS (early-bind-expressions:bind ,EXPR+S)))
+	   (let ((,var-of-exprS (early-bind-expressions:bind-for-use ,EXPR+S)))
 	     ,codegen-expr))))))
 
 (TEST
@@ -154,10 +171,10 @@
  	     (a? (car v))
  	     (b? (cdr v))))
  > (expansion#my-pair-of (maybe a?) b?)
- (##let ((GEN:-2449 (maybe a?)))
+ (##let ((GEN:-2449 (delay (maybe a?))))
  	(lambda (v)
  	  (and (pair? v)
- 	       (GEN:-2449 (car v))
+ 	       ((force GEN:-2449) (car v))
  	       (b? (cdr v)))))
  )
 
