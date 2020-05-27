@@ -59,9 +59,8 @@
 (define (iseq+-of pred)
   (lambda (v)
     (FV (v)
-	(if (pair? v)
-	    (pred (car v))
-	    #f))))
+	(and (pair? v)
+             (pred (car v))))))
 
 
 (define char-iseq+? (iseq+-of char?))
