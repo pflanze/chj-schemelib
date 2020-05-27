@@ -6,6 +6,7 @@
 (export (macro TABLE)
         table-of-string-settings?
         TABLE?
+        TABLE-of
         (method TABLE.show))
 
 "Just some experimenting, what 'literal' 'hashtable' (untyped object
@@ -39,6 +40,10 @@ bucket) syntax should/could we have?"
 
 (def TABLE? (both table-of-string-settings?
                   (table-of-key string?)))
+
+(def (TABLE-of value?)
+     (both TABLE?
+          (table-of-value value?)))
 
 (def. (TABLE.show v show)
   `(TABLE ,@(=> (table->list v)
