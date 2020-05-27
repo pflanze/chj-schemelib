@@ -12,6 +12,7 @@
 	 (cj-source-quasiquote quasiquote-source)
 	 stream ;; (only optionally? (lazily? well.))
 	 stream-Maybe ;; (ah well, more dependencies)
+         seq
 	 list-util-1
 	 (template template-map)
 	 (oo-vector-lib sum)
@@ -348,31 +349,6 @@
  ;; (XX add tests, here and with all show tests, to verify that
  ;; eval'ing the result is actually leading to an equivalent input)
  )
-
-
-;; XX move to an iseq.scm, or rather seq.scm
-
-(define (iseq? v)
-  (FV (v)
-      (pair-or-null? v)))
-
-(define (iseq-of pred)
-  (lambda (v)
-    (FV (v)
-	(if (pair? v)
-	    (pred (car v))
-	    (null? v)))))
-
-
-(define (iseq+-of pred)
-  (lambda (v)
-    (FV (v)
-	(if (pair? v)
-	    (pred (car v))
-	    #f))))
-
-
-(define char-iseq+? (iseq+-of char?))
 
 
 

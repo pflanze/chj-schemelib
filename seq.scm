@@ -1,4 +1,4 @@
-;;; Copyright 2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2019-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,26 +7,42 @@
 
 
 (require (cj-functional-2 either)
-         lazy
+         (lazy FV)
          (debuggable-promise possibly-use-debuggable-promise);; ever hack
-         (oo-util-lazy iseq?)
          (scheme-meta homogenous-vector?)
-         (cj-inline inline)
          (cj-struct-tag cj-struct#vector?)
+         (predicates-1 pair-or-null?)
          ;; test
          )
 
-(export seq?)
+(export iseq?
+        iseq-of
+        iseq+-of
+        seq?
+        seq-of
 
-"sequence interface definition. Note that unlike Clojure's seq which are called iseq? here, these include (number and other) vectors."
+        char-iseq+?)
+
+"Sequence interface definition."
+;; XX "Note that unlike Clojure's seq which are called iseq? here, these include (number and other) vectors."
 
 
 (include "cj-standarddeclares.scm")
 (possibly-use-debuggable-promise)
 
 
-;; performance business
-(define seq#iseq? (inline iseq?))
+(define (iseq? v)
+  (FV (v)
+      (pair-or-null? v)))
+
+(define (iseq-of pred)
+  (lambda (v)
+    (FV (v)
+	(if (pair? v)
+	    (pred (car v))
+	    (null? v)))))
+
+
 
 (define seq#homogenous-vector?
   (let ()
@@ -34,7 +50,19 @@
     homogenous-vector?))
 
 
-(define seq? (either seq#iseq?
+(define seq? (either iseq?
                      cj-struct#vector?
                      seq#homogenous-vector?))
+
+
+;;XX what is this again, for?
+(define (iseq+-of pred)
+  (lambda (v)
+    (FV (v)
+	(if (pair? v)
+	    (pred (car v))
+	    #f))))
+
+
+(define char-iseq+? (iseq+-of char?))
 
