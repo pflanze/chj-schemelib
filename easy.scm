@@ -9,5 +9,6 @@
 	 cj-functional-2
 	 cj-functional
 	 jclass
-	 class)
+	 class
+         seq)
 
