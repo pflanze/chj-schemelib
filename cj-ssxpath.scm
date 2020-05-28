@@ -1,4 +1,4 @@
-;;; Copyright 2013-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -14,7 +14,7 @@
          cj-env ;; natural0?, should be moved
          debuggable-promise
          predicates
-         (oo-util-lazy iseq-of)
+         (seq iseq-of)
          (fixnum-more fixnum-natural0?)
          test)
 
@@ -24,12 +24,6 @@
 
 
 (possibly-use-debuggable-promise)
-
-;; XXX move
-;; seq is a bit of a mis-leading term, though. what about vectors etc.?
-;; sgh linked ? ilseq  well. iseq not seq  ok?
-;;/move
-
 
 
 ;; Simple XPath alike matching for SXML.
