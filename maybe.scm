@@ -58,6 +58,7 @@
 
 
 (def-inline (just v) v) ;; == id
+;; XX should |just| check that v is not #f ?
 (def-inline (nothing) #f) ;; == false/0
 
 (defmacro (if-just t then else)
