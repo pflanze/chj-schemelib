@@ -186,8 +186,9 @@
  (lambda (GEN:X-3567) (a GEN:X-3567))
 
  > (expansion#compose a (maybe b) (complement c))
- (##let ((GEN:-546 (maybe b)) (GEN:-547 (complement c)))
-   (lambda (GEN:V-548) (a (GEN:-546 (GEN:-547 GEN:V-548)))))
+ (##let ((GEN:-546 (delay (maybe b)))
+         (GEN:-547 (delay (complement c))))
+   (lambda (GEN:V-548) (a ((force GEN:-546) ((force GEN:-547) GEN:V-548)))))
 
  > (expansion#compose// 1 a b c)
  (lambda (GEN:-3382) (a (b (c GEN:-3382))))

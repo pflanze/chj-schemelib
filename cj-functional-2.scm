@@ -353,13 +353,13 @@
  > (expansion#=> foo)
  foo
  > (expansion#=> (foo))
- (##let ((GEN:-2348 (foo))) GEN:-2348)
+ (##let ((GEN:-2348 (delay (foo)))) (force GEN:-2348))
  > (=>-expand 'foo '())
  foo
  > (=>-expand 'foo '((bar 1)))
  (bar foo 1)
  > (=>-expand '(foo) '((bar 1)))
- (##let ((GEN:-3817 (foo))) (bar GEN:-3817 1))
+ (##let ((GEN:-3817 (delay (foo)))) (bar (force GEN:-3817) 1))
 
  > (=>-expand 'input '((foo-set 1) (bar-set 2)))
  ;; (bar-set (foo-set input 1) 2)
@@ -456,45 +456,48 @@
  ;; (##lambda (GEN:-672) (string ((lambda (x) #\y) GEN:-672)))
  (##lambda
   (GEN:-6695)
-  (##let ((GEN:-1 ((lambda (x) #\y) GEN:-6695)))
-	 (string GEN:-1)))
+  (##let ((GEN:-1 (delay ((lambda (x) #\y) GEN:-6695))))
+         ;; XX surely useless delay and force here (or, leave that to
+         ;; optimizer?)
+	 (string (force GEN:-1))))
  
  > (expansion#=>*/arity 0 (lambda (x) #\y) string)
  ;; (##lambda () (string ((lambda (x) #\y))))
  (##lambda ()
-	   (##let ((GEN:-1 ((lambda (x) #\y))))
-		  (string GEN:-1)))
+	   (##let ((GEN:-1 (delay ((lambda (x) #\y)))))
+		  (string (force GEN:-1))))
  
  > (expansion#=>*/arity 2 (lambda (x y) #\y) string)
  ;; (##lambda (GEN:-1 GEN:-2) (string ((lambda (x y) #\y) GEN:-1 GEN:-2)))
  (##lambda
   (GEN:-6908 GEN:-6909)
-  (##let ((GEN:-1 ((lambda (x y) #\y) GEN:-6908 GEN:-6909)))
-	 (string GEN:-1)))
+  (##let ((GEN:-1 (delay ((lambda (x y) #\y) GEN:-6908 GEN:-6909))))
+	 (string (force GEN:-1))))
 
  > (expansion#=>*/arity 1 e0 e1 e2)
  ;; (##lambda (GEN:-723) (e2 (e1 (e0 GEN:-723))))
  ;;XX bummer, can't see intermediate after e0
  (##lambda
   (GEN:-7121)
-  (##let ((GEN:-1 (e0 GEN:-7121)))
-	 (##let ((GEN:tmp-7122 (e1 GEN:-1)))
+  (##let ((GEN:-1 (delay (e0 GEN:-7121))))
+         ;; XX even here still useless delay
+	 (##let ((GEN:tmp-7122 (e1 (force GEN:-1))))
 		(e2 GEN:tmp-7122))))
  
  > (expansion#=>*/arity 1 (e0) e1 e2)
  ;; (##lambda (GEN:-724) (e2 (e1 ((e0) GEN:-724))))
  (##lambda
   (GEN:-7337)
-  (##let ((GEN:-1 ((e0) GEN:-7337)))
-	 (##let ((GEN:tmp-7338 (e1 GEN:-1)))
+  (##let ((GEN:-1 (delay ((e0) GEN:-7337))))
+	 (##let ((GEN:tmp-7338 (e1 (force GEN:-1))))
 		(e2 GEN:tmp-7338))))
  
  > (expansion#=>*/arity 1 e0 (e1) e2)
  ;;(##lambda (GEN:-725) (e2 (e1 (e0 GEN:-725))))
  (##lambda
   (GEN:-7550)
-  (##let ((GEN:-1 (e0 GEN:-7550)))
-	 (##let ((GEN:tmp-7551 (e1 GEN:-1)))
+  (##let ((GEN:-1 (delay (e0 GEN:-7550))))
+	 (##let ((GEN:tmp-7551 (e1 (force GEN:-1))))
 		(e2 GEN:tmp-7551))))
  
 
@@ -513,8 +516,8 @@
  ;;(##lambda GEN:V-670 (string (##apply car GEN:V-670)))
  (##lambda
   GEN:V-7766
-  (##let ((GEN:-1 (##apply car GEN:V-7766)))
-	 (string GEN:-1))))
+  (##let ((GEN:-1 (delay (##apply car GEN:V-7766))))
+	 (string (force GEN:-1)))))
 
 
 

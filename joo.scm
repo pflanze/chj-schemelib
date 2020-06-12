@@ -1152,8 +1152,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  > (expansion#with. fooagain2 p (list z x a n))
  (let-fooagain2 ((x _ z) p) (list z x a n))
  > (expansion#with. fooagain2 (a bc) (list y z a n))
- (##let ((GEN:-23362 (a bc)))
-        (let-fooagain2 ((_ y z) GEN:-23362)
+ (##let ((GEN:-23362 (delay (a bc))))
+        (let-fooagain2 ((_ y z) (force GEN:-23362))
                        (list y z a n))))
 
 
