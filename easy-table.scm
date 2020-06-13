@@ -1,3 +1,11 @@
+;;; Copyright 2019-2020 by Christian Jaeger <ch@christianjaeger.ch>
+
+;;;    This file is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License (GPL) as published 
+;;;    by the Free Software Foundation, either version 2 of the License, or
+;;;    (at your option) any later version.
+
+
 (require easy
          (dsssl sequential-pairs)
 	 (table-1 table-of-key)
@@ -38,8 +46,13 @@ bucket) syntax should/could we have?"
                      ;; what about string hash ?
                      )))))
 
-(def TABLE? (both table-of-string-settings?
-                  (table-of-key string?)))
+(def (table-of-no-special-settings? v)
+     (not (table-maybe-init v)) ;; XX ok? still incomplete
+     )
+
+(def TABLE? (all-of table-of-string-settings?
+                    table-of-no-special-settings?
+                    (table-of-key string?)))
 
 (def (TABLE-of value?)
      (both TABLE?
