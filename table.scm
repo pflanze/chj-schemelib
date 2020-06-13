@@ -193,10 +193,10 @@
 (TEST
  > (show (table* init: 123))
  (table weak-keys: '? weak-values: '? init: 123)
- > (show (table* "b" 2 "a" 1))
- (table (cons "a" 1) (cons "b" 2))
- > (show (table* init: 123 "b" 2 "a" 1))
- (table init: 123 (cons "a" 1) (cons "b" 2)))
+ > (show (table* "b" 2 'a 1)) ;; don't use all string keys or TABLE? matches
+ (table (cons 'a 1) (cons "b" 2))
+ > (show (table* init: 123 "b" 2 'a 1))
+ (table init: 123 (cons 'a 1) (cons "b" 2)))
 
 
 
