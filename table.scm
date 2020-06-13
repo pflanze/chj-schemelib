@@ -76,6 +76,7 @@
 (define. table.weak-keys table-weak-keys)
 (define. table.weak-values table-weak-values)
 (define. table.init table-init)
+(define. table.maybe-init table-maybe-init)
 
 (define. table.keys table-keys)
 (define. table.sorted-keys table-sorted-keys)

@@ -16,6 +16,7 @@
 	table-weak-keys
 	table-weak-values
 	table-init
+        table-maybe-init
 	table
         table-of
         table-of-key
@@ -63,6 +64,10 @@
   (@vector-ref t 6))
 
 (define table:absent (table-init (list->table '())))
+
+(define-typed (table-maybe-init #(table? t))
+  (let ((v (@vector-ref t 6)))
+    (if (eq? v table:absent) #f v)))
 
 (define (_table options+pairs)
   (let lp ((opts '())
