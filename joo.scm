@@ -88,12 +88,14 @@
  (foo a bar let))
 
 
+(def (joo:arg->var bind)
+     (let ((bind* (source-code bind)))
+       (if (pair? bind*) (car bind*)
+           bind)))
+
 (def (joo:args->vars args) -> (ilist-of (possibly-source-of symbol?))
      "Get the variable names out of a function args bindings list."
-     (map (lambda (bind)
-	    (let ((bind* (source-code bind)))
-	      (if (pair? bind*) (car bind*)
-		  bind)))
+     (map joo:arg->var
 	  (filter (comp-function (either pair? symbol?) source-code)
 		  (improper-list->list (args-detype args)))))
 
@@ -151,10 +153,13 @@ declaration)"
 (def (joo:body* stx
                 [symbol? class-name]
 		[(list-of (source-of symbol?)) fields]
-		bind
-                ;; ^ raw method arguments; maybe should separate first
-                ;; argument (used in `(car bindvars) below) so that it
-                ;; doesn't have to be a symbol, for |with.|
+                self
+                ;; ^ the first method argument, as expression that
+                ;; evaluates to self (either just the symbol out of
+                ;; the method argument list, or whatever expression
+                ;; from |with.|)
+		restbinds
+                ;; ^ raw method arguments without the first one
 		rest
 		;; ^ body plus possibly -> from method definition or lambda
 		)
@@ -162,39 +167,64 @@ declaration)"
      "For |def-method|, |def.*| and |with.|: make object fields
 visible in the body (via aliasing to variables of the same name)"
      (let* ((used (list->symbolcollection (joo:body-symbols rest)))
-	    (bindvars (joo:args->vars bind))
-	    (bind-used (list->symbolcollection (map source-code bindvars))))
+	    (restbindvars (joo:args->vars restbinds))
+	    (bind-used (list->symbolcollection
+                        (let ((vars (map source-code restbindvars))
+                              (self* (source-code self)))
+                          (if (symbol? self*)
+                              (cons self* vars)
+                              vars)))))
 
-       (if (null? bindvars)
-           (raise-source-error
-            stx "missing method arguments (need at least self argument)")
-           (letv ((pre body)
-                  ;; Also have to parse rest for "->"
-                  ;; syntax *UH*, that's bad? Well the ->
-                  ;; is part of the binds thing,
-                  ;; basically, but still, XX should
-                  ;; really provide proper parsers!
-                  ;; (S-expr *is* just a layer in the
-                  ;; syntax parsing. Really.)
-                  (if (and (pair? rest)
-                           (eq? (source-code (car rest)) '->)
-                           (pair? (cdr rest)))
-                      (values (take rest 2)
-                              (drop rest 2))
-                      (values '()
-                              rest)))
-                 `(,@pre
-                   (,(symbol-append 'let- class-name)
-                    (,(map (lambda (nam)
-                             (let ((nam* (source-code nam)))
-                               (if (and (symboltable-ref used nam* #f)
-                                        (not
-                                         (symboltable-ref bind-used nam* #f)))
-                                   nam
-                                   '_)))
-                           fields)
-                     ,(car bindvars))
-                    ,@body))))))
+       (letv ((pre body)
+              ;; Also have to parse rest for "->"
+              ;; syntax *UH*, that's bad? Well the ->
+              ;; is part of the binds thing,
+              ;; basically, but still, XX should
+              ;; really provide proper parsers!
+              ;; (S-expr *is* just a layer in the
+              ;; syntax parsing. Really.)
+              (if (and (pair? rest)
+                       (eq? (source-code (car rest)) '->)
+                       (pair? (cdr rest)))
+                  (values (take rest 2)
+                          (drop rest 2))
+                  (values '()
+                          rest)))
+             `(,@pre
+               (,(symbol-append 'let- class-name)
+                (,(map (lambda (nam)
+                         (let ((nam* (source-code nam)))
+                           (if (and (symboltable-ref used nam* #f)
+                                    (not
+                                     (symboltable-ref bind-used nam* #f)))
+                               nam
+                               '_)))
+                       fields)
+                 ,self)
+                ,@body)))))
+
+
+(def (raise-joo:let-first+rest-args-error stx)
+     (raise-source-error stx "missing method arguments (need at least self argument)"))
+
+(defmacro (joo:let-first+rest-args first+rest-vars [(source-of symbol?) args]
+                                   . body)
+  "Extract self argument out of args, and the rest, for use in
+joo:body*, expecting args to be a bindings list (not to be used for
+`with.`)."
+  ;; kinda sick so much code for this. Wanted to define the
+  ;; joo:arg->var and error handling once.
+  (mcase first+rest-vars
+         (`(`var0 `varr)
+          (with-gensym
+           ARG0
+           `(if-let-pair ((,ARG0 ,varr) (source-code ,args))
+                         (let ((,var0 (joo:arg->var ,ARG0)))
+                           ,@body)
+                         ;; (wow heh, *can* access the outer stx: by
+                         ;; simply 'delaying' access to it (not
+                         ;; unquoting here).)
+                         (raise-joo:let-first+rest-args-error stx))))))
 
 
 (def (joo:class-name.joo-type class-name)
@@ -228,12 +258,15 @@ visible in the body (via aliasing to variables of the same name)"
 	       (symbol.string (source-code class-name.method))))
 
 	     (let ((class-name (string.symbol class-name-str)))
-	       `(def. (,class-name.method ,@binds)
-		  ,@(joo:body* stx
-                               class-name
-			       (joo:class-name.all-field-names class-name)
-			       binds
-			       body)))))
+               (joo:let-first+rest-args
+                (binds0 bindsrest) binds
+                `(def. (,class-name.method ,@binds)
+                   ,@(joo:body* stx
+                                class-name
+                                (joo:class-name.all-field-names class-name)
+                                binds0
+                                bindsrest
+                                body))))))
   
   (mcase bind
 	 (pair?
@@ -256,16 +289,12 @@ visible in the body (via aliasing to variables of the same name)"
 (defmacro (with. class-name val . body)
   (assert* symbol? class-name
            (lambda (class-name)
-             (early-bind-expressions
-              ;; needed for no good reason except to make joo:body*
-              ;; happy
-              (val)
-              (the (joo:body* stx
-                              class-name
-                              (joo:class-name.all-field-names class-name)
-                              (list val)
-                              body))))))
-
+             (the (joo:body* stx
+                             class-name
+                             (joo:class-name.all-field-names class-name)
+                             val
+                             '()
+                             body)))))
 
 ;; def-method- and def-method
 (def (joo:implementation-method-expander-for
@@ -288,18 +317,21 @@ visible in the body (via aliasing to variables of the same name)"
 	 (`(`METHOD `bind . `rest)
 
 	  (def (expand-with-bindings name args body)
-	       `(def. (,(source.symbol-append class-name. name)
-		       ,@args)
-		  ,@(if (and maybe-fields
-			     ;; only non-abstract classes have let-
-			     ;; forms
-			     (not abstract?))
-			(joo:body* stx
-                                   class-name
-                                   maybe-fields
-                                   args
-                                   body)
-			body)))
+               (joo:let-first+rest-args
+                (first-arg rest-of-args) args
+                `(def. (,(source.symbol-append class-name. name)
+                        ,@args)
+                   ,@(if (and maybe-fields
+                              ;; only non-abstract classes have let-
+                              ;; forms
+                              (not abstract?))
+                         (joo:body* stx
+                                    class-name
+                                    maybe-fields
+                                    first-arg
+                                    rest-of-args
+                                    body)
+                         body))))
 
 	  (mcase
 	   bind
@@ -1136,6 +1168,12 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  #t
  )
 
+(TEST
+ > (TRY (eval '(joo-class (baa a b) (def-method (foo) 1))))
+ (make-source-error
+  (list 'def-method (list 'foo) 1)
+  "missing method arguments (need at least self argument)"
+  (list)))
 
 ;; def-method
 (TEST
@@ -1180,9 +1218,8 @@ ___SCMOBJ joo__joo_type_covers_instanceP(___SCMOBJ s, ___SCMOBJ v) {
  > (expansion#with. fooagain2 p (list z x a n))
  (let-fooagain2 ((x _ z) p) (list z x a n))
  > (expansion#with. fooagain2 (a bc) (list y z a n))
- (##let ((GEN:-23362 (delay (a bc))))
-        (let-fooagain2 ((_ y z) (force GEN:-23362))
-                       (list y z a n))))
+ (let-fooagain2 ((_ y z) (a bc))
+                (list y z a n)))
 
 
 
