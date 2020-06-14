@@ -1,4 +1,4 @@
-;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -48,6 +48,7 @@
 	(macro def.*) ;; XX should I provide |define.*|, too?
         (macro with.)
 	#!optional
+        joo:body?
 	joo:parse-decl
         joo:class-name.joo-type
         joo:class-name.all-field-names
@@ -78,7 +79,8 @@
 ;; smarter and will elide unused vector-ref's (and even better move
 ;; used ones to better places).)
 
-(def (joo:body-symbols body) ;; -> (list-of symbol?)
+(def (joo:body-symbols body) -> (ilist-of symbol?)
+     "All symbols used in `body`."
      (filter symbol? (flatten (cj-desourcify body))))
 
 (TEST
@@ -86,7 +88,8 @@
  (foo a bar let))
 
 
-(def (joo:args->vars args)
+(def (joo:args->vars args) -> (ilist-of (possibly-source-of symbol?))
+     "Get the variable names out of a function args bindings list."
      (map (lambda (bind)
 	    (let ((bind* (source-code bind)))
 	      (if (pair? bind*) (car bind*)
@@ -119,9 +122,32 @@
  (row-stream s index-names reverse? tail))
 
 
+(def (joo:body? v)
+     "a body expression, i.e. a list to be used via `,@`,
+and which can (contain multiple expressions? and) start with a `->`
+declaration)"
+     (and (ilist? v)
+          (if (pair? v)
+              (let-pair ((a r) v)
+                        (if (eq? (source-code a) '->)
+                            (pair? r)
+                            #t))
+              #t)))
 
-;; for |def-method|, |def.*| and |with.|: make fields visible in the
-;; body
+(TEST
+ > (joo:body? '())
+ #t
+ > (joo:body? '(foo))
+ #t
+ > (joo:body? '(->))
+ #f
+ > (joo:body? '(-> foo?))
+ #t ;; although will only be valid for void? heh
+ > (joo:body? '(-> foo? (hi)))
+ #t)
+
+
+
 (def (joo:body* stx
                 [symbol? class-name]
 		[(list-of (source-of symbol?)) fields]
@@ -132,7 +158,9 @@
 		rest
 		;; ^ body plus possibly -> from method definition or lambda
 		)
-     ;; -> list? -- why? so it is compatible with body itself, right
+     -> joo:body?
+     "For |def-method|, |def.*| and |with.|: make object fields
+visible in the body (via aliasing to variables of the same name)"
      (let* ((used (list->symbolcollection (joo:body-symbols rest)))
 	    (bindvars (joo:args->vars bind))
 	    (bind-used (list->symbolcollection (map source-code bindvars))))
