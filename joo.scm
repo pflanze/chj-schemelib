@@ -79,7 +79,7 @@
 ;; smarter and will elide unused vector-ref's (and even better move
 ;; used ones to better places).)
 
-(def (joo:body-symbols body) -> (ilist-of symbol?)
+(def (joo:body-symbols body) ;; -> (ilist-of symbol?)
      "All symbols used in `body`."
      (filter symbol? (flatten (cj-desourcify body))))
 
@@ -93,7 +93,7 @@
        (if (pair? bind*) (car bind*)
            bind)))
 
-(def (joo:args->vars args) -> (ilist-of (possibly-source-of symbol?))
+(def (joo:args->vars args) ;; -> (ilist-of (possibly-source-of symbol?))
      "Get the variable names out of a function args bindings list."
      (map joo:arg->var
 	  (filter (comp-function (either pair? symbol?) source-code)
@@ -128,7 +128,7 @@
      "a body expression, i.e. a list to be used via `,@`,
 and which can (contain multiple expressions? and) start with a `->`
 declaration)"
-     (and (ilist? v)
+     (and (list? v)
           (if (pair? v)
               (let-pair ((a r) v)
                         (if (eq? (source-code a) '->)
