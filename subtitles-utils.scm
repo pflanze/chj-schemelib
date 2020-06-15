@@ -417,7 +417,7 @@ See also `subtitles-items.drop-parentized`."
                ;; yep, name, delete/replace it
                (let (rem (rec cs* #f #f #f))
                  (cond (after-dash?
-                        (drop-while char-space? rem))
+                        (drop-while char-whitespace? rem))
                        ((or 
                          (and no-dash-at-line-start? line-start?))
                         rem)
@@ -425,7 +425,7 @@ See also `subtitles-items.drop-parentized`."
                         (cons #\- rem)))))
               ((name-char? c)
                (lp-namechars cs* (cons c res) #f))
-              ((and allow-space-in-names? (char-space? c) (not last-was-space?))
+              ((and allow-space-in-names? (char-whitespace? c) (not last-was-space?))
                (lp-namechars cs* (cons c res) #t))
               (else
                ;; not a name
@@ -484,7 +484,11 @@ See also `subtitles-items.drop-parentized`."
  > (.delete-names "A B C D: FOO. D E F: G!" c+)
  "- FOO. - G!"
  > (.delete-names "A B\nC D: FOO. D E F: G!" c+)
- "A B\n- FOO. - G!"
+ "- FOO. - G!"
+ > (.delete-names "A B\nc D: FOO. D E F  G!" c+)
+ "A B\nc D: FOO. D E F  G!"
+ > (.delete-names "A B\nC D: FOO. D E F  G!" c+)
+ "- FOO. D E F  G!"
  )
 
 
