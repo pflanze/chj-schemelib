@@ -18,6 +18,14 @@
         char-alpha-lc?
         char-alpha-uc?
         char-alpha?
+
+        char-international-lc?
+        char-international-uc?
+        char-international?
+        char-alpha-international-lc?
+        char-alpha-international-uc?
+        char-alpha-international?
+
         char-alphanumeric?
         char-numeric+?
         char-alphanumeric+?
@@ -79,6 +87,27 @@
 
 (define char-alpha?
   (either char-alpha-lc? char-alpha-uc?))
+
+
+;; XX properly fix those
+(define char-international-lc?
+  (char-one-of?/ "äöüçâêîôûàèìòùáéíóú"))
+
+(define char-international-uc?
+  (char-one-of?/ "ÄÖÜÇÂÊÎÔÛÀÈÌÒÙÁÉÍÓÚ"))
+
+(define char-international?
+  (either char-international-lc? char-international-uc?))
+
+(define char-alpha-international-lc?
+  (either char-alpha-lc? char-international-lc?))
+
+(define char-alpha-international-uc?
+  (either char-alpha-uc? char-international-uc?))
+
+(define char-alpha-international?
+  (either char-alpha-international-lc? char-alpha-international-uc?))
+
 
 (define char-alphanumeric?
   (either char-digit? char-alpha? (char=?/ #\_)))
