@@ -18,7 +18,11 @@
                  string.subtitle-strip-newlines)
 
         (class delete-parentized-config)
-        (methods chars.delete-parentized string.delete-parentized)
+        (methods string.delete-parentized chars.delete-parentized)
+
+        (class delete-names-config)
+        default-delete-names-config
+        (methods string.delete-names chars.delete-names)
 
         (generic .subtitle-item)
         bare->subtitle-items
@@ -50,6 +54,21 @@
            string.list
            (,fromname ,@(rest args))
            char-list.string))))
+
+(defmacro (def.-string-charlist-proxy/optional
+            arity
+            [(source-of symbol?) toname]
+            [(source-of symbol?) fromname])
+  ;;(assert* fixnum-natural0? arity)
+  (let-pair ((arg0 args)
+             (map (lambda (i) (gensym)) (iota (-> fixnum-natural? (eval arity)))))
+            `(def. (,toname ,arg0 #!optional ,@args)
+               (docstring-from ,fromname)
+               (=> ,arg0
+                   string.list
+                   (,fromname ,@args)
+                   char-list.string))))
+
 ;; BTW:
 ;;  .list -> .char-list or .chars ?
 ;;  char-list.string -> chars.string ?
@@ -330,9 +349,147 @@ See also `subtitles-items.drop-parentized`."
  "(Hi there! too) yes, -.")
 
 
+;; .delete-names should probably care about parens, too, so, the
+;; proper solution would be to make a single full parser for the
+;; subtitle texts.
+
+(defclass (delete-names-config [function? name-char?]
+                               [boolean? no-dash-at-line-start?]
+                               [string? end-of-sentence-chars]
+                               [boolean? allow-space-in-names?]))
+
+(def default-delete-names-config
+     (delete-names-config char-alpha-international?
+                          #f
+                          ".?!\n"
+                          #f))
+
+;; how are these "names" called?
+(def. (chars.delete-names cs #!optional maybe-config)
+  "Delete/replace names of people who say something."
+  (with.
+   delete-names-config
+   (or maybe-config
+       default-delete-names-config)
+
+   (let ((end-of-sentence-char? (char-one-of end-of-sentence-chars))
+         (char-dash? (lambda (c) (char=? c #\-))))
+
+     (let rec ((cs cs)
+               (line-start? #t)
+               (sentence-start? #t)
+               (after-dash? #f))
+       (if-let-pair
+        ((c cs*) cs)
+        (cond
+         ((char-newline? c)
+          (cons c (rec cs*
+                       #t
+                       (or sentence-start?
+                           (end-of-sentence-char? c))
+                       #f)))
+         ((char-dash? c)
+          ;; dash is ignored for start of sentence and line detection
+          (cons c (rec cs*
+                       line-start?
+                       sentence-start?
+                       #t)))
+         ((end-of-sentence-char? c)
+          (cons c (rec cs*
+                       (char-newline? c)
+                       #t
+                       #f)))
+         ((char-whitespace? c)
+          ;; ^ XX really only space and tab; form feed and such would
+          ;; count as sentence and line start?
+          (cons c (rec cs*
+                       line-start?
+                       sentence-start?
+                       after-dash?)))
+         ((and sentence-start? (name-char? c))
+          (let lp-namechars ((cs cs*)
+                             (res (cons c '()))
+                             (last-was-space? #f))
+            (if-let-pair
+             ((c cs*) cs)
+             (cond
+              ((and (char=? c #\:) (not last-was-space?))
+               ;; yep, name, delete/replace it
+               (let (rem (rec cs* #f #f #f))
+                 (cond (after-dash?
+                        (drop-while char-space? rem))
+                       ((or 
+                         (and no-dash-at-line-start? line-start?))
+                        rem)
+                       (else
+                        (cons #\- rem)))))
+              ((name-char? c)
+               (lp-namechars cs* (cons c res) #f))
+              ((and allow-space-in-names? (char-space? c) (not last-was-space?))
+               (lp-namechars cs* (cons c res) #t))
+              (else
+               ;; not a name
+               (append-reverse res 
+                               (rec cs
+                                    (char-newline? c)
+                                    (end-of-sentence-char? c)
+                                    (char-dash? c)))))
+             (reverse res))))
+         (else
+          (cons c (rec cs*
+                       (char-newline? c)
+                       (end-of-sentence-char? c)
+                       (char-dash? c)))))
+        '())))))
+
+
+(def.-string-charlist-proxy/optional 2 string.delete-names chars.delete-names)
+
+(TEST
+ > (.delete-names "FOO: I did this. Bar: And I did that: something.")
+ "- I did this. - And I did that: something."
+ > (def c (=> default-delete-names-config
+              (.name-char?-set char-alpha-uc?)))
+ > (.delete-names "FOO: I did this. Bar: And I did that. BAZ: And I was lazy." c)
+ "- I did this. Bar: And I did that. - And I was lazy."
+
+ > (.delete-names "- I like that.\n- FOO: Me too.")
+ "- I like that.\n- Me too."
+ > (.delete-names "- Foo: yes!\n- Bar:no. -Baz: sure!")
+ "- yes!\n- no. -sure!" ;; OK with the "-sure"?
+
+ > (.delete-names "FOO:All good?")
+ "-All good?"
+ > (.delete-names "FOO:\nAll good?")
+ "-\nAll good?"
+ ;; This (currently) interacts with string-newlines in a (literally?)
+ ;; 'interesting' way: (but is really a bug, todo fix?)
+ > (def nlo (strip-newlines-options #t #f))
+ > (.subtitle-strip-newlines (.delete-names "FOO:\nAll good?") nlo)
+ "All good?"
+ > (.subtitle-strip-newlines (.delete-names "FOO: All good?") nlo)
+ "- All good?"
+
+ ;; Non-ascii languages:
+ > (.delete-names "- Das ist fein.\n- MÄDCHEN: Nein!")
+ "- Das ist fein.\n- Nein!"
+
+ ;; Names with space: default is off
+ > (.delete-names "WALLACE AND GROMMIT:\nHi!")
+ "WALLACE AND GROMMIT:\nHi!"
+ ;; Turn it on (you may want to restrict to uppercase only, too):
+ > (def c+ (=> c (.allow-space-in-names?-set #t)))
+ > (.delete-names "WALLACE AND GROMMIT:\nHi!" c+)
+ "-\nHi!"
+ > (.delete-names "A B C D: FOO. D E F: G!" c+)
+ "- FOO. - G!"
+ > (.delete-names "A B\nC D: FOO. D E F: G!" c+)
+ "A B\n- FOO. - G!"
+ )
 
 
 
+;; === subtitles:list -- easy time syntax =========================
 
 (def. (real.subtitle-item v loc)
   (tm v))
