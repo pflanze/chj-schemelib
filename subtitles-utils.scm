@@ -22,6 +22,7 @@
 
         (class delete-names-config)
         default-delete-names-config
+        delete-names-config:uc/space
         (methods string.delete-names chars.delete-names)
 
         (generic .subtitle-item)
@@ -363,6 +364,11 @@ See also `subtitles-items.drop-parentized`."
                           #f
                           ".?!\n"
                           #f))
+
+(def delete-names-config:uc/space
+     (=> default-delete-names-config
+         (.name-char?-set char-alpha-international-uc?)
+         (.allow-space-in-names?-set #t)))
 
 ;; how are these "names" called?
 (def. (chars.delete-names cs #!optional maybe-config)
