@@ -137,9 +137,9 @@ those left of a `-`.
 (def. (chars.subtitle-strip-newlines l [strip-newlines-options? options])
   "Strip unnecessary newlines from a subtitle segment string."
   ;; good that I don't keep them split up?
-  (let.-static
-   (strip-newlines-options. (nbsp-after-minus?
-                             strip-all-newlines?) options)
+  (with.
+   strip-newlines-options
+   options
 
    (reverse
     (let lp ((l l)
