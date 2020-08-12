@@ -25,6 +25,8 @@
         (macro xcase)
         (macro cond)
         (macro xcond)
+        (macro pmatch)
+        (macro pmatch-lambda)
         (macro string-match)
         (macro repeat)
         (macro unless)
@@ -164,6 +166,42 @@
 (define-macro* (xcond . cases)
   `(cond ,@cases
          (else (error "no match"))))
+
+
+(define-macro* (pmatch expr . cases)
+  (with-gensym
+   V
+   (let* ((have-else? #f)
+          (cases* (map (mcase-lambda
+                        (`(else . `rest)
+                         (set! have-else? #t)
+                         `(else ,@rest))
+                        (`(`pexpr . `rest)
+                         `((,pexpr, V) ,@rest)))
+                       cases)))
+     `(let ((,V ,expr))
+        (cond ,@cases*
+              ,@(if have-else? `()
+                    `((else (error "no match")))))))))
+
+(TEST
+ > (define (t v)
+     (pmatch v
+       (number? 'num)
+       (string? 'str)))
+ > (t "foo")
+ str
+ > (t 123)
+ num
+ > (%try-error (t 'bar))
+ [error "no match"])
+
+(define-macro* (pmatch-lambda . cases)
+  (with-gensym
+   V
+   `(lambda (,V)
+      (pmatch ,V
+        ,@cases))))
 
 
 (define-macro* (string-match expr . cases)
