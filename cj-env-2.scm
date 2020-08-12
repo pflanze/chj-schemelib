@@ -177,7 +177,11 @@
                          (set! have-else? #t)
                          `(else ,@rest))
                         (`(`pexpr . `rest)
-                         `((,pexpr, V) ,@rest)))
+                         (mcase pexpr
+                                (`(quote `val)
+                                 `((eq? ,V ',val) ,@rest))
+                                (else
+                                 `((,pexpr ,V) ,@rest)))))
                        cases)))
      `(let ((,V ,expr))
         (cond ,@cases*
@@ -188,9 +192,12 @@
  > (define (t v)
      (pmatch v
        (number? 'num)
+       ('foo 'is-foo)
        (string? 'str)))
  > (t "foo")
  str
+ > (t 'foo)
+ is-foo
  > (t 123)
  num
  > (%try-error (t 'bar))
