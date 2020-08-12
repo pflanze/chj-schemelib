@@ -23,7 +23,8 @@
 	current-unixtime*
 	current-unixtime
 	(macro xcase)
-	(macro xcond)
+	(macro cond)
+        (macro xcond)
 	(macro string-match)
 	(macro repeat)
 	(macro unless)
@@ -119,8 +120,36 @@
  > (xcase 2 ((3) 'gut) ((2) 'guttoo))
  guttoo
  > (%try-error (xcase 1 ((3) 'gut) ((2) 'guttoo)))
- #(error "no match for:" 1)
- )
+ #(error "no match for:" 1))
+
+
+(define-macro* (cond . cases)
+  `(##cond ,@(map (mcase-lambda
+                   ;; add *proper* local scope to enable local defines
+                   (`(`cond-expr . `case-body)
+                    (if (and (pair? case-body)
+                             (eq? (source-code (car case-body)) '=>))
+                        `(,cond-expr => (##let () ,@(cdr case-body)))
+                        `(,cond-expr (##let () ,@case-body)))))
+                  cases)))
+
+(TEST
+ > (define (t v)
+     (define (maybe-sqrt v)
+       (if (and (number? v)
+                (positive? v))
+           (sqrt v)
+           #f))
+     (cond ((maybe-sqrt v) => maybe-sqrt)
+           ((number? v) (define (sq x) (* x x)) (sq (+ v 2)))
+           (else 'no-match)))
+ > (t 81)
+ 3
+ > (t -8)
+ 36
+ > (t 'f)
+ no-match)
+
 
 (define-macro* (xcond . cases)
   `(cond ,@cases
