@@ -177,11 +177,15 @@
                          (set! have-else? #t)
                          `(else ,@rest))
                         (`(`pexpr . `rest)
-                         (mcase pexpr
-                                (`(quote `val)
-                                 `((eq? ,V ',val) ,@rest))
-                                (else
-                                 `((,pexpr ,V) ,@rest)))))
+                         `(,(mcase pexpr
+                                   (self-quoting?
+                                    `(equal? ,V ,pexpr))
+                                   (`(quote `val)
+                                    `(equal? ,V ',val))
+                                   (else
+                                    ;; predicate
+                                    `(,pexpr ,V)))
+                           ,@rest)))
                        cases)))
      `(let ((,V ,expr))
         (cond ,@cases*
@@ -191,11 +195,17 @@
 (TEST
  > (define (t v)
      (pmatch v
+       (123.4 'is-123_4)
        (number? 'num)
        ('foo 'is-foo)
+       ("bar" 'is-bar)
        (string? 'str)))
  > (t "foo")
  str
+ > (t "bar")
+ is-bar
+ > (t 123.4)
+ is-123_4
  > (t 'foo)
  is-foo
  > (t 123)
