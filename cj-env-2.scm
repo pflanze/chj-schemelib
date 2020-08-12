@@ -7,34 +7,34 @@
 
 
 (require define-macro-star
-	 (cj-match mcase)
-	 cj-symbol
-	 test
-	 ;; ?
-	 C
-	 ;; cj-env-1 cj-source, sigh
-	 cj-functional
-	 debuggable-promise)
+         (cj-match mcase)
+         cj-symbol
+         test
+         ;; ?
+         C
+         ;; cj-env-1 cj-source, sigh
+         cj-functional
+         debuggable-promise)
 
 (export object->serial-number-string
-	(macro for..<)
-	(macro for..)
-	(macro for..<*)
-	current-unixtime*
-	current-unixtime
-	(macro xcase)
-	(macro cond)
+        (macro for..<)
+        (macro for..)
+        (macro for..<*)
+        current-unixtime*
+        current-unixtime
+        (macro xcase)
+        (macro cond)
         (macro xcond)
-	(macro string-match)
-	(macro repeat)
-	(macro unless)
-	-e
-	append-newline
-	(macro future)
-	future?
-	@future-force
-	future-force
-	(macro CA))
+        (macro string-match)
+        (macro repeat)
+        (macro unless)
+        -e
+        append-newline
+        (macro future)
+        future?
+        @future-force
+        future-force
+        (macro CA))
 
 
 (declare (block)(standard-bindings)(extended-bindings))
@@ -58,8 +58,8 @@
   (mcase var-from-to
          (`(`var `from `to)
           (with-gensyms
-	   (LP)
-	   `(##let ,LP ((,var ,from))
+           (LP)
+           `(##let ,LP ((,var ,from))
                    (##if (fx< ,var ,to)
                          (##begin
                           ,@body
@@ -69,8 +69,8 @@
   (mcase var-from-to
          (`(`var `from `to)
           (with-gensyms
-	   (LP)
-	   `(##let ,LP ((,var ,from))
+           (LP)
+           `(##let ,LP ((,var ,from))
                    (##if (fx<= ,var ,to)
                          (##begin
                           ,@body
@@ -82,11 +82,11 @@
   (mcase var-from-to
          (`(`var `from `to)
           (with-gensyms
-	   (LP TO)
-	   `(let ((,TO ,to))
-	      (assert (fixnum? ,TO))
-	      (let ,LP ((,var ,from))
-		   (##if (##fixnum.< ,var ,TO)
+           (LP TO)
+           `(let ((,TO ,to))
+              (assert (fixnum? ,TO))
+              (let ,LP ((,var ,from))
+                   (##if (##fixnum.< ,var ,TO)
                          (begin
                            ,@body
                            (,LP (##fixnum.+ ,var 1))))))))))
@@ -112,9 +112,9 @@
    V
    `(let ((,V ,expr))
       (case ,V
-	,@cases
-	(else ;; #t doesn't work for case, only for cond
-	 (error "no match for:" ,V))))))
+        ,@cases
+        (else ;; #t doesn't work for case, only for cond
+         (error "no match for:" ,V))))))
 
 (TEST
  > (xcase 2 ((3) 'gut) ((2) 'guttoo))
@@ -163,7 +163,7 @@
 
 (define-macro* (xcond . cases)
   `(cond ,@cases
-	 (else (error "no match"))))
+         (else (error "no match"))))
 
 
 (define-macro* (string-match expr . cases)
@@ -171,27 +171,27 @@
    V
    `(let ((,V ,expr))
       (cond ,@(map (lambda (c)
-		     (mcase c
-			    (`(else . `body)
-			     c)
-			    (`(`string-expr . `body)
-			     `((string=? ,string-expr ,V)
-			       ,@body))))
-		   cases)))))
+                     (mcase c
+                            (`(else . `body)
+                             c)
+                            (`(`string-expr . `body)
+                             `((string=? ,string-expr ,V)
+                               ,@body))))
+                   cases)))))
 
 (TEST
  > (string-match (string-append "foo" "bar")
-		 ("foobar" 1)
-		 (else 'no))
+                 ("foobar" 1)
+                 (else 'no))
  1
  > (string-match (string-append "foo" "bar")
-		 ("foobarr" 1)
-		 ((string-append "foob" "ar") 2)
-		 (else 'no))
+                 ("foobarr" 1)
+                 ((string-append "foob" "ar") 2)
+                 (else 'no))
  2
  > (string-match (string-append "foo" "bar")
-		 ((string-append "foob" "r") 2)
-		 (else 'no))
+                 ((string-append "foob" "r") 2)
+                 (else 'no))
  no)
 
 
@@ -276,17 +276,17 @@
 
 (define-macro* (CA . forms)
   (let* ((_? (lambda (v)
-	       (eq? (source-code v) '_)))
-	 (forms* (map (lambda (form)
-			(if (_? form)
-			    (cons #t (gensym))
-			    (cons #f form)))
-		      forms))
-	 (vs (map cdr (filter car forms*))))
+               (eq? (source-code v) '_)))
+         (forms* (map (lambda (form)
+                        (if (_? form)
+                            (cons #t (gensym))
+                            (cons #f form)))
+                      forms))
+         (vs (map cdr (filter car forms*))))
     (with-gensym
      R
      `(lambda ,(if* vs `(,@vs . ,R) R)
-	(apply ,@(map cdr forms*) ,R)))))
+        (apply ,@(map cdr forms*) ,R)))))
 
 (TEST
  > ((CA vector) 1 2)
