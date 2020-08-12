@@ -127,10 +127,16 @@
   `(##cond ,@(map (mcase-lambda
                    ;; add *proper* local scope to enable local defines
                    (`(`cond-expr . `case-body)
-                    (if (and (pair? case-body)
-                             (eq? (source-code (car case-body)) '=>))
-                        `(,cond-expr => (##let () ,@(cdr case-body)))
-                        `(,cond-expr (##let () ,@case-body)))))
+                    (let ((let-of (lambda (body)
+                                    ;; Empty let is not allowed, empty
+                                    ;; cond is. Oh my.
+                                    (if (null? body)
+                                        `()
+                                        `((##let () ,@body))))))
+                     (if (and (pair? case-body)
+                              (eq? (source-code (car case-body)) '=>))
+                         `(,cond-expr => ,@(let-of (cdr case-body)))
+                         `(,cond-expr ,@(let-of case-body))))))
                   cases)))
 
 (TEST
@@ -142,11 +148,15 @@
            #f))
      (cond ((maybe-sqrt v) => maybe-sqrt)
            ((number? v) (define (sq x) (* x x)) (sq (+ v 2)))
+           ((string? v))
+           ;;((boolean? v) =>) invalid anyway
            (else 'no-match)))
  > (t 81)
  3
  > (t -8)
  36
+ > (t "foo")
+ #t ;; waiiiit, I didn't know? *Not* #!void !
  > (t 'f)
  no-match)
 
