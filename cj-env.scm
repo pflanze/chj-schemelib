@@ -7,92 +7,92 @@
 
 
 (require define-macro-star
-	 cj-phasing
-	 cj-inline-1
-	 test
-	 cj-source ;; cj-env-1 included in cj-source
-	 fixnum
-	 (cj-source show-procedure-location)
-	 on)
+         cj-phasing
+         cj-inline-1
+         test
+         cj-source ;; cj-env-1 included in cj-source
+         fixnum
+         (cj-source show-procedure-location)
+         on)
 
 (export (macro IF)
-	(macro If)
+        (macro If)
         (macro if-not)
         (macro when)
         no
-	natural?
-	natural0?
-	fxnatural?
-	fxnatural0?
-	positive-real?
+        natural?
+        natural0?
+        fxnatural?
+        fxnatural0?
+        positive-real?
         uint1?
         uint2?
         uint4?
-	uint8?  
-	uint16? 
-	uint32? 
-	uint64? 
-	uint128?
+        uint8?  
+        uint16? 
+        uint32? 
+        uint64? 
+        uint128?
         int1?
         int2?
         int4?
-	int8?   
-	int16?  
-	int32?  
-	int64?  
-	int128? 
-	make-list
-	(macro first-then/) ;; re-export
-	(macro on)          ;; re-export
-	(macro on/registry) ;; "hack", ?
-	(macro path-normalize/origin=source)
-	equal?*
-	(macro thunk)
-	box-copy
-	box-inc!
-	box-dec!
-	box-update!
-	box-add!
-	box-set!
-	bitwise-or
-	(macro inc!)
-	(macro dec!)
-	(macro add!)
-	inc* 1+
-	dec*
-	not*
-	(macro if*)
-	(macro or*)
-	(macro and*)
-	run-loop (macro loop)
-	pp-through
-	no-pp-through
-	number->integer ;; XX vs |integer| ?
-	force-thunk
-	(macro lambda_)
-	(macro fut) ;; XX vs. |future| ?
-	fjoin
-	symbol-value-or
-	make-unbound ;; ?
-	unbound?
-	thunk-symbol-value-or ;;?
-	(macro macro-symbol-value-or)
-	(macro define-parameter)
-	(macro show-def)
-	(macro define-if-not-defined)
-	(macro define-if-not-defined-strict)
-	gambit:load
-	*if-symbol-value
-	table-update! ;; XX move to table.scm ?
-	keyword->symbol
-	symbol->keyword
-	bignum? ;; XX move to cj-gambit-sys or so?
-	symbol-or-string->string
-	symbol-append
-	symbol=?
-	keyword=?
-	dup
-	one?
+        int8?   
+        int16?  
+        int32?  
+        int64?  
+        int128? 
+        make-list
+        (macro first-then/) ;; re-export
+        (macro on)          ;; re-export
+        (macro on/registry) ;; "hack", ?
+        (macro path-normalize/origin=source)
+        equal?*
+        (macro thunk)
+        box-copy
+        box-inc!
+        box-dec!
+        box-update!
+        box-add!
+        box-set!
+        bitwise-or
+        (macro inc!)
+        (macro dec!)
+        (macro add!)
+        inc* 1+
+        dec*
+        not*
+        (macro if*)
+        (macro or*)
+        (macro and*)
+        run-loop (macro loop)
+        pp-through
+        no-pp-through
+        number->integer ;; XX vs |integer| ?
+        force-thunk
+        (macro lambda_)
+        (macro fut) ;; XX vs. |future| ?
+        fjoin
+        symbol-value-or
+        make-unbound ;; ?
+        unbound?
+        thunk-symbol-value-or ;;?
+        (macro macro-symbol-value-or)
+        (macro define-parameter)
+        (macro show-def)
+        (macro define-if-not-defined)
+        (macro define-if-not-defined-strict)
+        gambit:load
+        *if-symbol-value
+        table-update! ;; XX move to table.scm ?
+        keyword->symbol
+        symbol->keyword
+        bignum? ;; XX move to cj-gambit-sys or so?
+        symbol-or-string->string
+        symbol-append
+        symbol=?
+        keyword=?
+        dup
+        one?
         current-continuation
         zip-cons
         load-file)
@@ -118,9 +118,9 @@
 (define-macro* (If test yes #!optional no)
   (let ((V (gensym 'v)))
     `(##let ((,V ,test))
-	    (##if (##eq? ,V #t)
-		  ,yes
-		  (##if (##eq? ,V #f)
+            (##if (##eq? ,V #t)
+                  ,yes
+                  (##if (##eq? ,V #f)
                         ,(or no `(##void))
                         (If-error ,V))))))
 
@@ -162,7 +162,7 @@
 (both-times
  (define (natural? x)
    (and (integer? x)
-	(positive? x))))
+        (positive? x))))
 
 ;; XX move to predicates.scm ?:
 
@@ -206,7 +206,7 @@
 
 (define (int_? bits)
   (let ((ma (- (arithmetic-shift 1 (dec bits)) 1))
-	(mi (- (arithmetic-shift 1 (dec bits)))))
+        (mi (- (arithmetic-shift 1 (dec bits)))))
     (if (and (fixnum? mi) (fixnum? ma))
         (lambda (x)
           (and (fixnum? x)
@@ -228,12 +228,12 @@
 (TEST
  > (define (t _)
      (map _
-	  (list 0 1 -1 127 128 -127 -128 -129
-		255 256 -255 -256
-		18446744073709551615
-		18446744073709551616
-		-9223372036854775808
-		-9223372036854775809)))
+          (list 0 1 -1 127 128 -127 -128 -129
+                255 256 -255 -256
+                18446744073709551615
+                18446744073709551616
+                -9223372036854775808
+                -9223372036854775809)))
  > (t uint8?)
  (#t #t #f #t #t #f #f #f #t #f #f #f #f #f #f #f)
  > (t int8?)
@@ -277,11 +277,11 @@
 
 (define-macro* (on/registry access cmp)
   (let ((ACCESS (gensym 'access))
-	(CMP (gensym 'cmp)))
+        (CMP (gensym 'cmp)))
     `(let ((,ACCESS ,access)
-	   (,CMP ,cmp))
+           (,CMP ,cmp))
        (on/registry-add! (first-then 2 ,ACCESS ,CMP)
-			 ,ACCESS ,CMP))))
+                         ,ACCESS ,CMP))))
 
 ;;/hack.
 
@@ -289,12 +289,12 @@
 ;; Can't unify because of bootstrapping, right?
 (define-macro* (path-normalize/origin=source path)
   (let* ((loc (source-location path))
-	 (container (container->path (location-container loc)))
-	 (path (source-code path)))
+         (container (container->path (location-container loc)))
+         (path (source-code path)))
     (or (string? container)
-	(error "path-normalize/origin=source: only works in files, not:" container))
+        (error "path-normalize/origin=source: only works in files, not:" container))
     (let ((sourcedir
-	   (path-directory container)))
+           (path-directory container)))
       `(path-normalize ,path #f ,sourcedir))))
 
 
@@ -302,14 +302,14 @@
 (define (equal?* . vs)
   ;; don't use let-pair yet (bootstrap)
   (let ((v1 (car vs))
-	(vs (cdr vs)))
+        (vs (cdr vs)))
     (let lp ((vs vs))
       (if (null? vs)
-	  #t
-	  (let ((v (car vs))
-		(vs (cdr vs)))
-	    (and (equal? v1 v)
-		 (lp vs)))))))
+          #t
+          (let ((v (car vs))
+                (vs (cdr vs)))
+            (and (equal? v1 v)
+                 (lp vs)))))))
 (TEST
  > (equal?* 2 2 2)
  #t
@@ -410,9 +410,9 @@
   `(if (##not (not* ,test))
        ,yes
        ,@(if no ;; careful; relying on source code wrapping so that
-		;; the code `#f will be true here
-	     (list no)
-	     '())))
+                ;; the code `#f will be true here
+             (list no)
+             '())))
 
 (TEST
  > (if* #t 1 2)
@@ -429,10 +429,10 @@
   (if (null? exprs)
       expr
       (let ((V (gensym 'V)))
-	`(let ((,V ,expr))
-	   (if (not* ,V)
-	       ,(or*-expand (car exprs) (cdr exprs))
-	       ,V)))))
+        `(let ((,V ,expr))
+           (if (not* ,V)
+               ,(or*-expand (car exprs) (cdr exprs))
+               ,V)))))
 
 (TEST
  > (or*-expand '(foo) '())
@@ -468,10 +468,10 @@
   (if (null? exprs)
       expr
       (let ((V (gensym 'V)))
-	`(let ((,V ,expr))
-	   (if* ,V
-	       ,(and*-expand (car exprs) (cdr exprs))
-	       ,V)))))
+        `(let ((,V ,expr))
+           (if* ,V
+               ,(and*-expand (car exprs) (cdr exprs))
+               ,V)))))
 
 (define-macro* (and* . exprs)
   (if (null? exprs)
@@ -515,22 +515,22 @@
   (define port (current-error-port))
   (if (pair? r)
       (if (null? (cdr r))
-	  (begin
-	    (display a port)
-	    (display ":" port)
-	    (newline port)
-	    (pretty-print (car r) port)
-	    (car r))
-	  (error "too many arguments"))
+          (begin
+            (display a port)
+            (display ":" port)
+            (newline port)
+            (pretty-print (car r) port)
+            (car r))
+          (error "too many arguments"))
       (begin
-	(pretty-print a port)
-	a)))
+        (pretty-print a port)
+        a)))
 
 (define (no-pp-through a . r)
   (if (pair? r)
       (if (null? (cdr r))
-	  (car r)
-	  (error "too many arguments"))
+          (car r)
+          (error "too many arguments"))
       a))
 
 
@@ -572,8 +572,8 @@
   (with-exception-catcher
    (lambda (e)
      (if (unbound-global-exception? e)
-	 (thunk)
-	 (raise e)))
+         (thunk)
+         (raise e)))
    (lambda ()
      (eval sym))))
 
@@ -587,7 +587,7 @@
 (define (unbound? v)
   (or (##unbound? v)
       (and (vector? v)
-	   (eq? (vector-ref v 0) unbound:type-tag))))
+           (eq? (vector-ref v 0) unbound:type-tag))))
 
 
 ;; This variant is using closures instead of eval, thus works on
@@ -600,17 +600,17 @@
    (lambda ()
      (let ((v (sym-thunk)))
        (if (if strict?
-	       (##unbound? v)
-	       (unbound? v))
-	   (or-thunk)
-	   v)))))
+               (##unbound? v)
+               (unbound? v))
+           (or-thunk)
+           v)))))
 
 (define-macro* (macro-symbol-value-or sym thunk)
   (if (symbol? (source-code sym))
       `(thunk-symbol-value-or
-	(lambda () ,sym)
-	,thunk
-	#f)
+        (lambda () ,sym)
+        ,thunk
+        #f)
       (raise-source-error sym "not a symbol")))
 
 
@@ -624,32 +624,32 @@
   (let ((expr* (source-code expr)))
     `((current-show-def)
       ,(if (symbol? expr*)
-	   ;; XX A tiny bit evil: checks macro expander
-	   ;; *first*. I.e. relies on current fact that if macro
-	   ;; expander is defined then there's also a macro and it can
-	   ;; never be unbound in the toplevel. Other way around would
-	   ;; be more future safe?
-	   (if (define-macro-star-maybe-ref expr*)
-	       (symbol-append "expander#" (source-code expr))
-	       expr)
-	   expr))))
+           ;; XX A tiny bit evil: checks macro expander
+           ;; *first*. I.e. relies on current fact that if macro
+           ;; expander is defined then there's also a macro and it can
+           ;; never be unbound in the toplevel. Other way around would
+           ;; be more future safe?
+           (if (define-macro-star-maybe-ref expr*)
+               (symbol-append "expander#" (source-code expr))
+               expr)
+           expr))))
 
 
 (define-macro* (define-if-not-defined name expr)
   (assert* symbol? name
-	   (lambda (name)
-	     `(define ,name
-		(thunk-symbol-value-or (lambda () ,name)
-				       (lambda () ,expr)
-				       #f)))))
+           (lambda (name)
+             `(define ,name
+                (thunk-symbol-value-or (lambda () ,name)
+                                       (lambda () ,expr)
+                                       #f)))))
 
 (define-macro* (define-if-not-defined-strict name expr)
   (assert* symbol? name
-	   (lambda (name)
-	     `(define ,name
-		(thunk-symbol-value-or (lambda () ,name)
-				       (lambda () ,expr)
-				       #t)))))
+           (lambda (name)
+             `(define ,name
+                (thunk-symbol-value-or (lambda () ,name)
+                                       (lambda () ,expr)
+                                       #t)))))
 
 (TEST
  > (define-if-not-defined abczxfwef 10)
@@ -684,44 +684,44 @@
    (lambda (cont)
      (with-exception-catcher
       (lambda (e)
-	(if (unbound-global-exception? e)
-	    (*else)
-	    (raise e)))
+        (if (unbound-global-exception? e)
+            (*else)
+            (raise e)))
       (lambda ()
-	(continuation-graft
-	 cont
-	 *then
-	 (eval sym)))))))
+        (continuation-graft
+         cont
+         *then
+         (eval sym)))))))
 
 (TEST
  > (*if-symbol-value 'woiuewfoiu
-		     vector
-		     (lambda () 'no))
+                     vector
+                     (lambda () 'no))
  no
  > (*if-symbol-value '*if-symbol-value
-		     (lambda (v) (eq? v *if-symbol-value))
-		     (lambda () 'no))
+                     (lambda (v) (eq? v *if-symbol-value))
+                     (lambda () 'no))
  #t
  > (with-exception-catcher
     unbound-global-exception-variable
     (lambda ()
       (*if-symbol-value '*if-symbol-value
-			(lambda (v) xh68zzn3j5mc9p2tu2q)
-			(lambda () 'no))))
+                        (lambda (v) xh68zzn3j5mc9p2tu2q)
+                        (lambda () 'no))))
  xh68zzn3j5mc9p2tu2q)
 
 
 (define table-update!:noval (box 'noval))
 (define (table-update! t k fn
-		       #!optional
-		       ;; *not* called in tail pos!
-		       (notexist (lambda ()
-				   (error "key not found"))))
+                       #!optional
+                       ;; *not* called in tail pos!
+                       (notexist (lambda ()
+                                   (error "key not found"))))
   (let ((v (table-ref t k table-update!:noval)))
     (table-set! t k
-		(if (eq? v table-update!:noval)
-		    (notexist)
-		    (fn v)))))
+                (if (eq? v table-update!:noval)
+                    (notexist)
+                    (fn v)))))
 
 ;; tests see cj-env-test
 
@@ -741,24 +741,24 @@
 
 (define (symbol-or-string->string v)
   (cond ((string? v)
-	 v)
-	((symbol? v)
-	 (symbol->string v))
-	(else (error "invalid type:" v))))
+         v)
+        ((symbol? v)
+         (symbol->string v))
+        (else (error "invalid type:" v))))
 
 (define (symbol-append . vals)
   (string->symbol
    (apply string-append
-	  (map 
-	   symbol-or-string->string
-	   vals))))
+          (map 
+           symbol-or-string->string
+           vals))))
 
 
 (define (symbol=? a b)
   (if (symbol? a)
       (if (symbol? b)
-	  (eq? a b)
-	  (error "not a symbol:" b))
+          (eq? a b)
+          (error "not a symbol:" b))
       (error "not a symbol:" a)))
 
 ;; deprecated, OK?
@@ -767,8 +767,8 @@
 (define (keyword=? a b)
   (if (keyword? a)
       (if (keyword? b)
-	  (eq? a b)
-	  (error "not a keyword:" b))
+          (eq? a b)
+          (error "not a keyword:" b))
       (error "not a keyword:" a)))
 
 ;; deprecated, OK?
