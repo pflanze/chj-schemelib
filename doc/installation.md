@@ -16,7 +16,7 @@
 2. Set up Emacs:
 
     * Choose or create a unix user to use
-    * As that user, set up ~/.emacs, ~/.emacs.d/, and ~/bin or PATH to have all the settings and tools; easiest by using [chj-home](https://pflanze@github.com/pflanze/chj-home) which is easiest to install via chjize as mentioned above, then as that user running:
+    * As that user, set up ~/.emacs, ~/.emacs.d/, and ~/bin or PATH to have all the settings and tools; easiest by using [chj-home](https://github.com/pflanze/chj-home) which is easiest to install via chjize as mentioned above, then as that user running:
     
             /opt/chj/chjize/bin/mod-user
             trash ~/.emacs.d  # if already created earlier
