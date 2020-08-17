@@ -136,7 +136,11 @@
             (if (and (string? (source-code body0))
                      (null? bodyrest))
                 ;; docstring
-                (let ((code (macro-star-expand body1)))
+                (let* ((code (macro-star-expand body1))
+                       (anyway (lambda ()
+                                 ;; Simply drop the docstring, for now; it's still
+                                 ;; useful for documenting already!
+                                 `(##define ,first ,code))))
                   (if-let-pair
                    ((c0 crest) (source-code code))
                    (case (source-code c0)
@@ -145,12 +149,14 @@
                      ((##lambda)
                       (if-let-pair ((binds body) crest)
                                    `(##define ,first
-                                      (##lambda ,binds ,body0 ,@body))
+                                              (##lambda ,binds ,body0 ,@body))
                                    (raise-source-error
                                     code "got lambda without bind form")))
                      (else
-                      (err "|def| using docstring but body is not expanding to a lambda, thus can't move it there")))
-                   (err "|def| using docstring but body is not a form, thus can't move it there")))
+                      ;; (err "|def| using docstring but body is not expanding to a lambda, thus can't move it there")
+                      (anyway)))
+                   ;; (err "|def| using docstring but body is not a form, thus can't move it there")
+                   (anyway)))
                 (err "|def|, if given a bare variable, requires only one expression, or two if the first is a docstring")))))))
 
 
@@ -180,8 +186,9 @@
  ;; (define-typed (x a) "foo" 10)
  ;; (define x (typed-lambda (a) "foo" 10))
  (define x (##lambda (a) (##begin "foo" 10)))
- > (with-exception-catcher source-error-message (& (eval '(def x "foo" 10))))
- "|def| using docstring but body is not a form, thus can't move it there"
+ > (def x "foo" 10)
+ > x
+ 10
  > (expansion#def x "foo")
  ;; (define x "foo")
  (##define x "foo")
