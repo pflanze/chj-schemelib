@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -25,11 +25,17 @@
 	fxnatural?
 	fxnatural0?
 	positive-real?
+        uint1?
+        uint2?
+        uint4?
 	uint8?  
 	uint16? 
 	uint32? 
 	uint64? 
 	uint128?
+        int1?
+        int2?
+        int4?
 	int8?   
 	int16?  
 	int32?  
@@ -37,7 +43,7 @@
 	int128? 
 	make-list
 	(macro first-then/) ;; re-export
-	(macro on) ;; re-export
+	(macro on)          ;; re-export
 	(macro on/registry) ;; "hack", ?
 	(macro path-normalize/origin=source)
 	equal?*
@@ -189,6 +195,9 @@
                (exact? x)
                (<= 0 x ma))))))
 
+(define uint1? (uint_? 1))
+(define uint2? (uint_? 2))
+(define uint4? (uint_? 4))
 (define uint8? (uint_? 8))
 (define uint16? (uint_? 16))
 (define uint32? (uint_? 32))
@@ -207,6 +216,9 @@
                (exact? x)
                (<= mi x ma))))))
 
+(define int1? (int_? 1))
+(define int2? (int_? 2))
+(define int4? (int_? 4))
 (define int8? (int_? 8))
 (define int16? (int_? 16))
 (define int32? (int_? 32))
