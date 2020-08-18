@@ -27,7 +27,11 @@
         positive-real?
         uint1?
         uint2?
+        uint3?
         uint4?
+        uint5?
+        uint6?
+        uint7?
         uint8?  
         uint16? 
         uint32? 
@@ -35,8 +39,12 @@
         uint128?
         int1?
         int2?
+        int3?
         int4?
-        int8?   
+        int5?
+        int6?
+        int7?
+        int8?  
         int16?  
         int32?  
         int64?  
@@ -197,7 +205,11 @@
 
 (define uint1? (uint_? 1))
 (define uint2? (uint_? 2))
+(define uint3? (uint_? 3))
 (define uint4? (uint_? 4))
+(define uint5? (uint_? 5))
+(define uint6? (uint_? 6))
+(define uint7? (uint_? 7))
 (define uint8? (uint_? 8))
 (define uint16? (uint_? 16))
 (define uint32? (uint_? 32))
@@ -218,7 +230,11 @@
 
 (define int1? (int_? 1))
 (define int2? (int_? 2))
+(define int3? (int_? 3))
 (define int4? (int_? 4))
+(define int5? (int_? 5))
+(define int6? (int_? 6))
+(define int7? (int_? 7))
 (define int8? (int_? 8))
 (define int16? (int_? 16))
 (define int32? (int_? 32))
