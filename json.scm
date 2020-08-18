@@ -37,13 +37,19 @@
                  (list-of json-expr?)
                  (TABLE-of json-expr?))))
 
+
+;; XX finish seq-of rework then get rid of these
+(def *iseq-of (lambda (T?)
+                (either (vector-of T?) (iseq-of T?))))
+(def *seq-of *iseq-of)
+
 (def json-expr?
      "exhaustive check"
-     (json-expr?/list-of seq-of))
+     (json-expr?/list-of *seq-of))
 
 (def ijson-expr?
      "fast check only"
-     (json-expr?/list-of iseq-of))
+     (json-expr?/list-of *iseq-of))
 
 (TEST
  > (def (t jsexpr?)
