@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -44,7 +44,8 @@
 	(macro @5th)
 	values?
 	values-equal?
-	values-map)
+	values-map
+        values-map*)
 
 (include "cj-standarddeclares.scm")
 
@@ -504,4 +505,17 @@
  [4 9 16]
  > (t 2 3 4 5)
  [4 9 16 25])
+
+(define (values-map* . fs)
+  (lambda (vals)
+    (apply values (map (lambda (f v)
+                         (f v))
+                       fs
+                       (values->list vals)))))
+
+(TEST
+ > (def t (values-map* car cdr))
+ > (values->vector (t (values '(a b c)
+                              '(1 2 3))))
+ [a (2 3)])
 
