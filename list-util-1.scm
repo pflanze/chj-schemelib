@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -22,7 +22,8 @@
 	map/last?
 	reverse-map/tail
 	reverse-map
-	flatten1)
+	flatten1
+        unfold*)
 
 
 ;; srfi-1 defines first, but not rest (nor head nor tail)
@@ -176,4 +177,14 @@
 		    (cons v l)))
 	      tail
 	      lis))
+
+
+(define (unfold* stop? select next seed #!optional (tail '()))
+  "Same as unfold but inserts the exiting seed at the end of the list,
+and takes a plain value as the optional tail argument."
+  (let rec ((seed seed))
+    (cons (select seed)
+          (if (stop? seed)
+              tail
+              (rec (next seed))))))
 
