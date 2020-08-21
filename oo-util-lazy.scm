@@ -586,7 +586,7 @@
    (define. (istream.chop/map s n f #!optional (tail '()))
      (stream-chop/map n s f tail))
 
-   (define. (istream.chop n s #!optional (tail '()))
+   (define. (istream.chop s n #!optional (tail '()))
      (stream-chop n s tail))
 
    (define. (istream.zip s . ss)
