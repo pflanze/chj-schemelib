@@ -6,7 +6,7 @@
 
 (require slib-sort
 	 (cj-env on)
-	 (srfi-11 lambda-values fst)
+	 (values lambda-values fst)
 	 oo-lib-vector
 	 define-macro-star)
 

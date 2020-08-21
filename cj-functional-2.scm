@@ -14,7 +14,7 @@
 	 (cj-symbol with-gensym)
 	 (code-util early-bind-expressions)
          (lazy FV)
-         (srfi-11 values? values->list)
+         (values values? values->list)
 	 ;; for tests:
 	 test
 	 (fixnum inc dec)

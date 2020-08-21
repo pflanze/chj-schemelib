@@ -32,7 +32,7 @@
 	 cj-source-quasiquote
 	 jclass
 	 md5
-	 srfi-11
+	 values
 	 (cj-u8vector-util write-u8vector)
 	 (predicates-1 string-of-length))
 

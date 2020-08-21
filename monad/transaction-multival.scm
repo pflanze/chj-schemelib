@@ -7,7 +7,7 @@
 
 
 (require monad/syntax
-	 srfi-11)
+	 values)
 
 
 ;; particular monad for use in transactions:

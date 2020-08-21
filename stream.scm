@@ -13,7 +13,7 @@
 	 list-util
 	 cj-cmp
 	 (cj-functional compose compose*)
-	 srfi-11
+	 values
 	 cj-typed
 	 cut
 	 debuggable-promise
@@ -23,8 +23,7 @@
          (fixnum-more fixnum-natural?)
 	 test
 	 (cj-env on when)
-         (cj-functional-2 => flip)
-         )
+         (cj-functional-2 => flip))
 
 (export stream-null?
 	stream-pair?

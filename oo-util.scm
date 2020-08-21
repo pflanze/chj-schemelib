@@ -12,7 +12,7 @@
                         string-findpos
                         string-rfindpos)
 	 (cj-functional list-of)
-	 (srfi-11 values->vector values->list letv)
+	 (values values->vector values->list letv)
 	 cj-env
 	 show
 	 (cj-source show-source-location show-location-location

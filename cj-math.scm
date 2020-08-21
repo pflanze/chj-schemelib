@@ -10,9 +10,9 @@
          list-util
          slib-sort
          define-strict-and-lazy
+         (values values->vector letv)
          test
-	 (test-logic ∀ qcheck*)
-         (srfi-11 values->vector letv))
+	 (test-logic ∀ qcheck*))
 
 (export quotient+modulo
         quotient+remainder

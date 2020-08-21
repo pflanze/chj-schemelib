@@ -7,7 +7,7 @@
 
 
 (require (list-util let-pair)
-	 (srfi-11 letv values->vector)
+	 (values letv values->vector)
 	 (fixnum inc)
 	 define-nested
 	 slib-sort

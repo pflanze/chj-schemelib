@@ -9,7 +9,7 @@
 (require fixnum
 	 test
 	 list-util
-	 srfi-11)
+	 values)
 
 
 (export shell-quote

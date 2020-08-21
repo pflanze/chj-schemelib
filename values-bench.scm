@@ -7,21 +7,20 @@
 
 
 (require easy
-	 srfi-11
 	 (cj-gambit-sys-0 @vector-ref))
 
-(export srfi-11-bench)
+(export values-bench)
 
 (include "cj-standarddeclares.scm")
 
 
-(def (srfi-11-bench n)
+(def (values-bench n)
      (repeat n (letv ((a b) (let ()
 			      (declare (not safe) (fixnum))
 			      (values (* n n) (* (+ n 1) n))))
 		     b)))
 
-(def (srfi-11-bench-unsafe n)
+(def (values-bench-unsafe n)
      (repeat n (let ()
 		 (declare (not safe))
 		 (letv ((a b) (let ()
@@ -30,7 +29,7 @@
 		       b))))
 
 
-(def (srfi-11-bench-manual n)
+(def (values-bench-manual n)
      (repeat n
 	     (let ()
 	       (let* ((GEN:V-1130
@@ -41,7 +40,7 @@
 		      (b (@vector-ref GEN:V-1130 1)))
 		 b))))
 
-(def (srfi-11-bench-call n)
+(def (values-bench-call n)
      (repeat n
 	     (call-with-values
 		 (lambda ()
@@ -52,24 +51,24 @@
 
 
 ;; compiled, unlike in TEST environment
-(def (srfi-11-bench:t1)
+(def (values-bench:t1)
      (letv (() (values))
 	   'ok))
 
-(def (srfi-11-bench:t2)
+(def (values-bench:t2)
      (letv ((a) (values 2 3 4))
 	   a))
 
-(def (srfi-11-bench:t3)
+(def (values-bench:t3)
      (letv ((a) (values (values 2 3 4)))
 	   a))
 
 (TEST
- > (srfi-11-bench:t1)
+ > (values-bench:t1)
  ok
- > (show (srfi-11-bench:t2))
+ > (show (values-bench:t2))
  (values 2 3 4)
- > (show (srfi-11-bench:t3))
+ > (show (values-bench:t3))
  (values 2 3 4))
 
 

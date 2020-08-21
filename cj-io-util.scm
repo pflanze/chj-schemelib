@@ -14,7 +14,7 @@
                         keyword-alist:delete
                         keyword-alist:set)
          (alist <alist>)
-         srfi-11
+         values
          srfi-1
          posix/cj-posix ;; posix:environ open close read write seek etc.
          (cj-functional list-of values-of)

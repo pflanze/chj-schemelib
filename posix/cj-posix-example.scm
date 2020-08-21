@@ -14,7 +14,7 @@
 	 string-util-3
 	 posix/interrupts
 	 (test TEST)
-         (srfi-11 values->vector))
+         (values values->vector))
 
 
 (define BUFSIZ 10)

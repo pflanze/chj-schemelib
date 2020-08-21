@@ -12,7 +12,7 @@
 	 test
 	 cj-typed ;; wow can use it, seems we're later anyway, no circular problem!
 	 simple-match
-	 srfi-11
+	 values
 	 (simple-match-1 assert*)
 	 (list-util-lazy xone/fail))
 

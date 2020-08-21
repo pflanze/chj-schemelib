@@ -9,8 +9,7 @@
 (require cj-phasing
          cj-env
          (srfi-1 iota)
-	 srfi-11
-         values)
+	 values)
 
 (export zip-values
 	;; zip-values/0 and /1 are not useful so don't generate them ok?

@@ -7,7 +7,7 @@
 
 
 (require define-macro-star
-         srfi-11
+         values
          cj-typed
          (cj-env when)
 	 test)

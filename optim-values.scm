@@ -6,11 +6,6 @@
 ;;;    (at your option) any later version.
 
 
-;; Starting not to put all of my values related stuff into srfi-11.scm
-;; (it is pointless for dependency reasons since srfi-11.scm depends
-;; on this, but avoids sending people to the wrong place for
-;; documentation)
-
 (require define-macro-star
 	 ;; (cj-source-util schemedefinition-arity:pattern->template)
 	 cj-symbol-with

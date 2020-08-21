@@ -17,7 +17,8 @@
          cj-typed ;; incl. args-vars
          dot-oo ;; incl. define.
          oo-util ;; for .string generic and some basic methods
-         srfi-11
+         values
+         ;; values-util ?
          define-module
          cj-match
          simple-match ;; provided by cj-match ?

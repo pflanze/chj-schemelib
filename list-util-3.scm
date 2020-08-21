@@ -11,7 +11,7 @@
 	 named
 	 test
 	 local-test
-	 (srfi-11 letv values->vector lambda-values)
+	 (values letv values->vector lambda-values)
 	 (cj-functional compose*)
 	 lazy
 	 debuggable-promise

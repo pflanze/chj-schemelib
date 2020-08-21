@@ -243,7 +243,7 @@
 	       (error "improper list ending in:" l))))
       (error "need non-empty list, got:" lis)))
 (TEST
- > (require (srfi-11)))
+ > (require values))
 (TEST
  > (values->vector (split-preferred '(1) <))
  #(1 (1) ())

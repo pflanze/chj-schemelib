@@ -1,4 +1,4 @@
-;;; Copyright 2010-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -11,7 +11,7 @@
 	 (fixnum inc dec)
 	 cj-symbol
 	 (list-util let-pair)
-	 (srfi-11 apply-values)
+	 (values apply-values)
 	 (lazy FV)
 	 (cj-gambit-sys maybe-decompile)
 	 ;;(cj-source-util schemedefinition-arity:pattern->template)

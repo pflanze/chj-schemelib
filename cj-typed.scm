@@ -15,7 +15,7 @@
          (cj-functional-2 list-of)
          (simple-match-1 assert*)
          test
-         srfi-11
+         values
          ;; cj-match  could, no need so far
          (cj-source-util-2 assert)
          (improper-list improper-length
