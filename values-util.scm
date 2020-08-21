@@ -1,4 +1,4 @@
-;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,14 +6,11 @@
 ;;;    (at your option) any later version.
 
 
-;; finally start a lib outside srfi-11.
-
-(require easy
+(require cj-phasing
+         cj-env
+         (srfi-1 iota)
 	 srfi-11
-	 ;; ^ TODO: move the stuff in srfi-11.scm that's not from
-	 ;; srfi-11 to values.scm
-	 (list-range ..) ;; make part of easy?
-	 )
+         values)
 
 (export zip-values
 	;; zip-values/0 and /1 are not useful so don't generate them ok?
@@ -23,48 +20,50 @@
 	zip-values/5
 	lazy-values-split/2)
 
+
+
 ;; XX but should this be in list-util or so instead? sigh ~forever.
 
 (compile-time
- (def (zip-values-code-for i)
-      (let ((name (symbol-append 'zip-values/ (.string i)))
-	    (vs (map (comp-function gensym .string) (.. 1 i))))
-	`(def (,name ,@vs)
-	      (if (and ,@(map (lambda (v)
-				`(null? ,v))
-			      vs))
-		  '()
-		  (cons (values ,@(map (lambda (v)
-					 `(car ,v))
-				       vs))
-			(,name ,@(map (lambda (v)
-					`(cdr ,v))
-				      vs))))))))
+ (define (zip-values-code-for i)
+   (let ((name (symbol-append 'zip-values/ (.string i)))
+         (vs (map (compose gensym .string) (iota i 1))))
+     `(define (,name ,@vs)
+        (if (and ,@(map (lambda (v)
+                          `(null? ,v))
+                        vs))
+            '()
+            (cons (values ,@(map (lambda (v)
+                                   `(car ,v))
+                                 vs))
+                  (,name ,@(map (lambda (v)
+                                  `(cdr ,v))
+                                vs))))))))
 
 (insert-result-of
  `(begin
     ,@(map zip-values-code-for (.. 2 5))))
 
 
-(def (zip-values a b . rest)
-     (if (null? rest)
-	 (zip-values/2 a b)
-	 (if (null? (cdr rest))
-	     (zip-values/3 a b (car rest))
-	     (if (null? (cddr rest))
-		 (zip-values/4 a b (car rest) (cadr rest))
-		 (if (null? (cdddr rest))
-		     (zip-values/5 a b (car rest) (cadr rest) (caddr rest))
-		     (error "zip-values: too many arguments"))))))
+(define (zip-values a b . rest)
+  (if (null? rest)
+      (zip-values/2 a b)
+      (if (null? (cdr rest))
+          (zip-values/3 a b (car rest))
+          (if (null? (cddr rest))
+              (zip-values/4 a b (car rest) (cadr rest))
+              (if (null? (cdddr rest))
+                  (zip-values/5 a b (car rest) (cadr rest) (caddr rest))
+                  (error "zip-values: too many arguments"))))))
 
 
 (TEST
- > (def l (zip-values '(a b) '(1 2)))
+ > (define l (zip-values '(a b) '(1 2)))
  > (map fst l)
  (a b)
  > (map snd l)
  (1 2)
- > (def l (zip-values '(a b) '(1 2) '(#t #f) '("a" "b") '(-1 -2)))
+ > (define l (zip-values '(a b) '(1 2) '(#t #f) '("a" "b") '(-1 -2)))
  > (map fst l)
  (a b)
  > (map snd l)
@@ -88,14 +87,14 @@
 
 
 
-(def (lazy-values-split/2 v)
+(define (lazy-values-split/2 v)
      (values (delay (fst (force v)))
 	     (delay (snd (force v)))))
 
 (TEST
  ;; Making a pure recursive multi-value return function lazy. ("udo"
  ;; like "up down", well.)
- > (def (udo f l)
+ > (define (udo f l)
 	(lazy-values-split/2
 	 (delay
 	   (FV (l)
@@ -110,13 +109,13 @@
 						       OK?))))
 				   (else
 				    (values '() #f)))))))))
- > (def c 0)
- > (def (f x)
-	(inc! c)
-	(if (negative? x)
-	    #f
-	    (- x)))
- > (def t (comp* show F (C udo f _)))
+ > (define c 0)
+ > (define (f x)
+     (inc! c)
+     (if (negative? x)
+         #f
+         (- x)))
+ > (define t (compose* show F (C udo f _)))
  > (t '(1 2))
  (values (list -1 -2) #t)
  > (t '(1 -1 2))

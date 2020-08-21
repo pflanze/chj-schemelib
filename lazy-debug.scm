@@ -1,4 +1,4 @@
-;;; Copyright 2010-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,7 @@
 (require lazy
 	 debuggable-promise
 	 (vector-util vector-map)
-	 (srfi-11 values-map values->list))
+	 (values-util values-map values->list))
 
 (export F
 	F1

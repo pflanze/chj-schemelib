@@ -11,7 +11,7 @@
          (cj-source-util-2 assert)
          (scheme-meta self-quoting?)
          (cj-gambit-sys procedure-name)
-         (srfi-11 values? values->list)
+         (values values? values->list)
          ;; dot-oo depends on cj-env already, and we want to add on/registry.show :
          (cj-env on/registry? on/registry-ref natural0?)
          debuggable-promise
