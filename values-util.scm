@@ -9,7 +9,9 @@
 (require cj-phasing
          cj-env
          (srfi-1 iota)
-	 values)
+	 values
+         (cj-functional compose)
+         test)
 
 (export zip-values
 	;; zip-values/0 and /1 are not useful so don't generate them ok?
@@ -24,9 +26,13 @@
 ;; XX but should this be in list-util or so instead? sigh ~forever.
 
 (compile-time
+ (define (.. a b) ;; copy to avoid dependency cycle
+   (if (<= a b)
+       (iota (inc (- b a)) a)
+       (error "..: b is smaller than a:" a b)))
  (define (zip-values-code-for i)
-   (let ((name (symbol-append 'zip-values/ (.string i)))
-         (vs (map (compose gensym .string) (iota i 1))))
+   (let ((name (symbol-append 'zip-values/ (number->string i)))
+         (vs (map (compose gensym number->string) (iota i 1))))
      `(define (,name ,@vs)
         (if (and ,@(map (lambda (v)
                           `(null? ,v))
