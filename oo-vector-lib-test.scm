@@ -233,3 +233,16 @@
  > s
  "hello")
 
+(TEST
+ > (def f (.function s))
+ > (f 0)
+ #\h
+ > (f 1)
+ #\e
+ > (f 4)
+ #\o
+ > (%try (f 5))
+ (exception text: "(Argument 2) Out of range\n(string-ref \"hello\" 5)\n")
+ > (%try (f -1)) ;; XX hmmm should i do the string-ref* thing?; ah, .function*
+ (exception text: "(Argument 2) Out of range\n(string-ref \"hello\" -1)\n"))
+

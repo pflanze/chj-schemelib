@@ -67,6 +67,10 @@
 
 (deftemplate (def-oo-vector-lib-for VECTOR)
 
+  (def. (VECTOR.function v)
+    (lambda (i)
+      (VECTOR-ref v i)))
+
   (def. VECTOR.VECTOR identity)
 
   (def. VECTOR.ref VECTOR-ref)
