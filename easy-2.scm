@@ -10,5 +10,8 @@
 	 cj-functional
 	 jclass
 	 class
-         seq)
+         seq
+         ;; should be optional but given current joke of a loader,
+         ;; force load here:
+         cj-exception-handler)
 
