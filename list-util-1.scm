@@ -179,12 +179,11 @@
 	      lis))
 
 
-(define (unfold* stop? select next seed #!optional (tail '()))
-  "Same as unfold but inserts the exiting seed at the end of the list,
-and takes a plain value as the optional tail argument."
+(define (unfold* stop? select next seed #!optional (gentail (lambda () '())))
+  "Same as unfold but inserts the exiting seed at the end of the list."
   (let rec ((seed seed))
     (cons (select seed)
           (if (stop? seed)
-              tail
+              (gentail)
               (rec (next seed))))))
 
