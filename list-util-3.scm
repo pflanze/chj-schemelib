@@ -1,4 +1,4 @@
-;;; Copyright 2016-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -15,15 +15,14 @@
 	 (cj-functional compose*)
 	 lazy
 	 debuggable-promise
-	 cj-match
-	 )
+	 cj-match)
 
 ;; XX rename this to iseq-util-3 or something, change prefixes, or
 ;; what? All functions here also accept streams even though still
 ;; naming them *list*. -- except move out let-list and if-let-pair
 (export	list-starts-with?/equal? list-starts-with?
 	char-list-starts-with-string?
-	(macro let-list)
+	(macros let-list if-let-list)
         (macro if-let-pair))
 
 (possibly-use-debuggable-promise)
@@ -96,28 +95,19 @@
 	   (char-list-starts-with-string? (string->list input) match)))))
 
 
-;; We were tempted to call this |letl| at first, like |letv|, since it
-;; only allows to decompose one value after all. But, that's quite a
-;; moot argument as all the other decomposition forms like let-pair or
-;; let-$anystructure only take one, too. And we forgot that we named
-;; it letl.
-(define-macro* (let-list bind . body)
+
+(define (if-let-list-expand stx bind yes no/2)
   (mcase bind
 	 (`(`vars `expr)
 	  (with-gensyms
 	   (V ERR)
 	   `(##let* ((,V ,expr)
                      (,ERR (##lambda ()
-                                     (error ,(string-append
-                                              "let-list: expected a list containing "
-                                              (object->string (cj-desourcify vars))
-                                              " but got:")
-                                            ,V))))
+                                     ,(no/2 vars V))))
                     ,(let rec ((vars (source-code vars)))
                        (cond ((null? vars)
                               `(##if (##null? ,V)
-                                     (##let ()
-                                            ,@body)
+                                     ,yes
                                      (,ERR)))
                              ((pair? vars)
                               (let-pair ((var vars*) vars)
@@ -129,12 +119,42 @@
                              (else
                               ;; rest argument
                               `(##let ((,vars ,V))
-                                      ,@body)))))))))
+                                      ,yes)))))))))
+
+
+(define (list-util-3#let-list-error vars-string v)
+  (error (string-append
+          "let-list: expected a list containing "
+          vars-string
+          " but got:")
+         v))
+
+;; We were tempted to call this |letl| at first, like |letv|, since it
+;; only allows to decompose one value after all. But, that's quite a
+;; moot argument as all the other decomposition forms like let-pair or
+;; let-$anystructure only take one, too. And we forgot that we named
+;; it letl.
+(define-macro* (let-list bind . body)
+  (if-let-list-expand stx bind
+                      `(##let () ,@body)
+                      (lambda (vars V)
+                        `(list-util-3#let-list-error
+                          ,(object->string (cj-desourcify vars))
+                          ,V))))
+
+(define-macro* (if-let-list bind yes no)
+  (if-let-list-expand stx bind yes (lambda (vars V) no)))
 
 (TEST
  > (%try-error (let-list ((a b d e f) (list 10 22 33)) b))
  [error "let-list: expected a list containing (a b d e f) but got:" (10 22 33)]
+ > (if-let-list ((a b d e f) (list 10 22 33))
+                b
+                'no)
+ no
  > (let-list ((a b d) (list 10 22 33)) b)
+ 22
+ > (if-let-list ((a b d) (list 10 22 33)) b 'no)
  22
  > (%try-error (let-list ((a b) (list 10 22 33)) b))
  [error "let-list: expected a list containing (a b) but got:" (10 22 33)]
