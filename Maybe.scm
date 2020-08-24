@@ -8,7 +8,7 @@
 
 ;; Also see Result.scm
 
-(require easy
+(require easy-2
          (if-let if-let*-expand
                  if-let-expand) ;; incl. monad-ops
          monad/generic

@@ -1,4 +1,4 @@
-;;; Copyright 2016-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy
+(require easy-2
 	 Maybe
 	 (list-util let-pair)
 	 (lazy FV)

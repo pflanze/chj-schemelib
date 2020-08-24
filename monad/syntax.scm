@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy
+(require easy-2
          (cj-functional-2 =>*-expand/placement))
 
 (export (macros use-monad

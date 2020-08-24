@@ -14,7 +14,7 @@
 
 ;; Following Rust terminology here.
 
-(require easy
+(require easy-2
          (dot-oo void/1)
          (oo-util-lazy ilist? iseq-of)
          monad/generic

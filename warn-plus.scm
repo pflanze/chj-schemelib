@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy
+(require easy-2
 	 (simple-match-1 warn*)
 	 (cj-env-2 object->serial-number-string)
 	 symboltable
