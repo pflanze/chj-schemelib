@@ -8,6 +8,7 @@
 
 (require easy-2
          oo-util-lazy
+         scheme-parse
          docstring-base
          (cj-gambit-sys decompile)
          test)
@@ -23,9 +24,7 @@ part (using docstrings in code) see `docstring-base.scm`."
 "Todo: module docstrings. First do module info."
 
 
-;; XX lib: share those with (core)scheme parsing modules, or rather
-;; (also) with cj-typed! *Except*, here we need to also deal with
-;; expanded macros, which isn't necessary there.
+;; XX lib: move to scheme-parse.scm, or cj-typed or corescheme ?
 
 (##namespace ("docstring#"
               parse-lambda:body
@@ -39,15 +38,13 @@ part (using docstrings in code) see `docstring-base.scm`."
 (def (parse-lambda:body [ilist? exprs]) -> (maybe (pair-of list? ilist?))
      "return lambda body and the remainder after the lambda"
      (if-let-pair ((expr exprs*) exprs)
-                  (if-let-pair ((a r) expr)
-                               (if (eq? a 'lambda)
-                                   (if-let-pair ((argS r*) r)
-                                                ;; XX handle cj-typed `->`
-                                                ;; esp. expanded one, ugh.
-                                                (cons r* exprs*)
-                                                #f)
+                  (if (scheme-parse:lambda? expr)
+                      (if-let-pair ((argS r*) (rest expr))
+                                   ;; XX handle cj-typed `->`
+                                   ;; esp. expanded one, ugh.
+                                   (cons r* exprs*)
                                    #f)
-                               #f)
+                      #f)
                   #f))
 
 (def (extract-quoted qv)
