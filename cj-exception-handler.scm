@@ -19,7 +19,6 @@
          (cj-env-2 unless) ;; what mess
          (string-util-4 string-empty?)
          (oo-lib-string string.last)
-         (show try-show)
          (cj-functional-2 =>))
 
 (export current-exception
@@ -36,7 +35,7 @@
 ;; message string without ":", a ": " is appended by the printer. And
 ;; then a list of values, optionally prepended by a keyword, which
 ;; will be written via write or pretty-print (i.e. no |show| call is
-;; being applied, OK?)---ehr, *do* apply |try-show| now, OK???
+;; being applied, OK?)
 (define. (any.maybe-exception-message _) #f)
 
 ;; And hey, why not start adding the method to Gambit's objects, too,
@@ -73,7 +72,7 @@
                        (let lp ((l v*))
                          (when (pair? l)
                            (let-pair ((a r) l)
-                                     (write (try-show a) p)
+                                     (write a p)
                                      (when (pair? r)
                                        (display #\space p)
                                        (lp r))))))))
