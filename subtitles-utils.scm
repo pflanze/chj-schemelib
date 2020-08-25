@@ -34,15 +34,6 @@
 (include "cj-standarddeclares.scm")
 
 
-;;XX lib
-(defmacro (docstring-from fnname)
-  ;; Add some kind of (also human readable?) marker to let future
-  ;; docstring retrieval tool retrieve docstring from fnname at
-  ;; runtime (presumably):
-  (assert* symbol? fnname
-           (lambda (fnname)
-             ($ "look up docstring of: $fnname"))))
-
 (defmacro (def.-string-charlist-proxy
             arity
             [(source-of symbol?) toname]
