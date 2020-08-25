@@ -196,14 +196,25 @@ specifications than path-or-port-settings (e.g. location)."
         (mlet ((port
                 (with-exception-catcher
                  Error
-                 (& (Ok (open-*-file pps)))))
-               (res
-                (op port))
-               (closeres
-                (with-exception-catcher
-                 Error
-                 (& (Ok (close-port port))))))
-              (return res))))
+                 (& (Ok (open-*-file pps))))))
+              (let* ((tag (box 'exception-on-op))
+                     (res (with-exception-catcher
+                           (lambda (e)
+                             (with-exception-catcher id (& (close-port port)))
+                             (Error `(,tag ,e)))
+                           (lambda ()
+                             (op port)))))
+                (if (and (Error? res)
+                         (let (err (Error.value res))
+                           (and (pair? err)
+                                (eq? (car err) tag))))
+                    (raise (cadr (Error.value res))) ;; my is this correct?
+
+                    ;; otherwise normally close port and return
+                    (with-exception-catcher
+                     (lambda (e) (Error `(close-port ,port ,e)))
+                     (& (close-port port)
+                        res)))))))
 
 (def Result:call-with-input-file
      (make-Result:call-with-*-file open-input-file))
