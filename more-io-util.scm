@@ -32,7 +32,9 @@
         (methods location.read-all-source
                  location.read-all
                  location.expr-source
-                 location.expr)
+                 location.expr
+                 procedure.getcode)
+        (macro getcode)
         #!optional
         process-spec?)
 
@@ -272,4 +274,21 @@ information. (Careful, slow.)"
          (return (cj-desourcify src)))))
 
 
+;; XX Why am I calling this getcode now? .expr may really be too
+;; ambiguous above.
 
+(def. (procedure.getcode proc) -> Result?
+  (if-let (loc (.maybe-location proc))
+          (.expr loc)
+          (Error `("proc has no location information" ,proc))))
+
+;; like |show-def|
+(defmacro (getcode expr)
+  "Return the code of the procedure or macro in expr, if possible"
+  (let (expr* (source-code expr))
+    `(.getcode
+      ,(if (symbol? expr*)
+           (if (define-macro-star-maybe-ref expr*)
+               (symbol-append "expander#" expr*)
+               expr)
+           expr))))
