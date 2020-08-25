@@ -13,7 +13,7 @@
          (cj-env-2 xcond)
          (cj-path path-string?))
 
-(export port-setting?
+(export port-settings?
         path-or-port-settings?
         maybe-canonical-gambit-encoding
         gambit-encoding?
