@@ -239,7 +239,7 @@
 
 (TEST
  > (modulepaths-satisfying? '("lib/Maybe.scm" "lib/easy.scm"))
- #((Error) #((requires) Maybe easy))
+ #((Error) #((requires) Maybe easy-2))
  > (modulepaths-satisfying? '("lib/easy-1.scm" "lib/Maybe.scm"))
  #((Error) #((requires) easy-1 define-macro-star))
  > (modulepaths-satisfying? '("lib/cj-source.scm"
