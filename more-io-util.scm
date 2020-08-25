@@ -15,6 +15,8 @@
                      directory-item-stream)
          (cj-path path-string?)
          (Result Ok Error)
+         monad/syntax
+         port-settings
          test)
 
 (export (jclass command)
@@ -24,6 +26,10 @@
         file-contents
         glob-match
         glob
+        Result:read-all-source
+        Result:read-all
+        Result:call-with-input-file
+        Result:call-with-output-file
         
         #!optional
         process-spec?)
@@ -163,3 +169,35 @@
                                    (directory-item-stream dirpath))
                     (stream-map (lambda (item)
                                   (path-append dirpath item)))))))
+
+
+
+(def (make-Result:read-all* read-all)
+     (lambda ([input-port? port]) -> Result?
+        ;; Should we capture IO exceptions? That would really be unusual
+        ;; though and perhaps better signalled as exceptions rather than
+        ;; cancellable errors. So only do the return part.
+        (return (read-all port))))
+
+(def Result:read-all-source (make-Result:read-all* read-all-source))
+(def Result:read-all (make-Result:read-all* read-all))
+
+(def (make-Result:call-with-*-file open-*-file)
+     (lambda ([path-or-port-settings? pps] [procedure? op]) -> Result?
+        (mlet ((port
+                (with-exception-catcher
+                 Error
+                 (& (Ok (open-*-file pps)))))
+               (res
+                (op port))
+               (closeres
+                (with-exception-catcher
+                 Error
+                 (& (Ok (close-port port))))))
+              (return res))))
+
+(def Result:call-with-input-file
+     (make-Result:call-with-*-file open-input-file))
+(def Result:call-with-output-file
+     (make-Result:call-with-*-file open-output-file))
+
