@@ -18,7 +18,7 @@
          (cj-env when)
          (cj-env-2 unless) ;; what mess
          (string-util-4 string-empty?)
-         (oo-lib-string string.last)
+         ;; (oo-lib-string string.last)
          (cj-functional-2 =>))
 
 (export current-exception
@@ -27,6 +27,16 @@
 	cj-exception-handler:activate-if-primordial!
         (method any.maybe-exception-message)
         (method error-exception.maybe-exception-message))
+
+
+;; Copy from oo-lib-string (oo-vector-lib) to allow this module to be
+;; loaded from easy-2:
+(define string-last
+  (lambda (v)
+    (let ((len (string-length v)))
+      (if (zero? len)
+          (error "string-last: string is empty")
+          (string-ref v (dec len))))))
 
 
 (define current-exception (make-parameter #f))
@@ -65,7 +75,7 @@
                              ;; compat with Gambit's behaviour
                              ;; of showing messages from
                              ;; |error|
-                             (unless (eq? (string.last a) #\:)
+                             (unless (eq? (string-last a) #\:)
                                (display #\: p))
                              (display #\space p))
                            (display #\space p))
