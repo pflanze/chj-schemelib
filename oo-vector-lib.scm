@@ -11,6 +11,8 @@
          (fixnum inc)
          (fixnum-more fixnum-natural0?)
          (cj-env-2 for..<)
+         ;; only in expanded code
+         Maybe
          test
          (test-lib-1 %try)
          char-util)
