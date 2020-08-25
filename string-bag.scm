@@ -1,4 +1,4 @@
-;;; Copyright 2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -9,7 +9,7 @@
 
 ;; XX reimplement on top of bag.scm
 
-(require easy
+(require easy-2
 	 test
 	 (cj-port with-output-to-string) ;; for test only
 	 )

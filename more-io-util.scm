@@ -8,7 +8,7 @@
 
 ;; Newer, better, higher-level IO routines (than the cj-io-util ~mess)
 
-(require easy
+(require easy-2
          (cj-env-2 future)
          (cj-io-util open-process*
                      dirname+basename

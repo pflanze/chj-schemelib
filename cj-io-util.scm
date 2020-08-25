@@ -6,7 +6,7 @@
 ;;;    (at your option) any later version.
 
 
-(require easy
+(require easy-2
          (cj-port port-name)
          test
          (cj-path path-string?)

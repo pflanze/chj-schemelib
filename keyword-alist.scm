@@ -1,4 +1,4 @@
-;;; Copyright 2016 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2016-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,7 +7,7 @@
 
 ;; alist parametrized for keywords, and tests
 
-(require easy
+(require easy-2
 	 test
 	 (cj-alist keyword-equal?) ;; should we move this?
 	 (alist <alist>))
