@@ -7,6 +7,7 @@
 
 
 (require easy-2
+         oo-util-lazy
          docstring-base
          (cj-gambit-sys decompile)
          test)
