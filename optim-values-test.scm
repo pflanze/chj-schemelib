@@ -11,32 +11,6 @@
 
 
 (TEST
- > (optim-values:lambda? '(lambda ()))
- #t
- > (cj-desourcify (optim-values:maybe-lambda-binds '(lambda (x))))
- (x)
- > (optim-values:lambda? '(##lambda (x)))
- #t
- ;; well:
- > (optim-values:lambda? '(lambda-values (x)))
- #f)
-
-
-(TEST
- > (optim-values:maybe-lambda-exact-arity '(lambda ()))
- 0
- > (optim-values:maybe-lambda-exact-arity '(lambda (x a b)))
- 3
- > (optim-values:maybe-lambda-exact-arity '(lambda (x a . b)))
- #f
- > (optim-values:maybe-lambda-exact-arity '(lambda (x a #!optional b)))
- #f
- ;; well:
- > (optim-values:maybe-lambda-exact-arity '(lambda-pair (a)))
- #f)
-
-
-(TEST
  > (define TEST:equal? syntax-equal?)
  > (expansion#%call-with-values (lambda () (values 3 4 5)) (lambda (a b c) b))
  (##let ((GEN:V-3073 ((lambda () (values 3 4 5)))))

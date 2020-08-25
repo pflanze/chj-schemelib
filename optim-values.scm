@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -7,6 +7,7 @@
 
 
 (require define-macro-star
+         scheme-parse
 	 ;; (cj-source-util schemedefinition-arity:pattern->template)
 	 cj-symbol-with
 	 ;;(srfi-1 iota) avoid
@@ -38,36 +39,6 @@
   `(@vector-length ,v))
 
 
-;; XX finally have one place for scheme syntax analysis please...
-(define (optim-values:maybe-lambda-binds v)
-  (let ((v (source-code v)))
-    (and (pair? v)
-	 (let ((h (source-code (car v))))
-	   (and (or (eq? h 'lambda)
-		    (eq? h '##lambda))
-		(let ((r (cdr v)))
-		  (and (pair? r)
-		       (car r))))))))
-
-(define (optim-values:lambda? v)
-  (and (optim-values:maybe-lambda-binds v) #t))
-
-;; tests see optim-values-test.scm
-
-
-(define (optim-values:maybe-lambda-exact-arity v)
-  (cond ((optim-values:maybe-lambda-binds v)
-	 => (lambda (binds)
-	      ;; wow need to strip source info here
-	      (let ((t (schemedefinition-arity:pattern->template
-			(source-code binds))))
-		(and (eq? (vector-ref t 0) 'exact)
-		     (vector-ref t 1)))))
-	(else #f)))
-
-;; tests see optim-values-test.scm
-
-
 (define (optim-values:error val expected-arity)
   (define (show vs)
     (apply error
@@ -84,14 +55,14 @@
 (define-macro* (%call-with-values producer consumer)
   (define (fallback)
     `(call-with-values ,producer ,consumer))
-  (cond ((optim-values:maybe-lambda-exact-arity producer)
+  (cond ((scheme-parse:maybe-lambda-exact-arity producer)
 	 => (lambda (producer-arity)
 	      (if (zero? producer-arity)
 		  'ok
 		  (raise-source-error producer "producer must have arity 0")))))
   ;; XX only when compiled? Since otherwise will be slower (lambdas not
   ;; optimized away etc.)
-  (cond ((optim-values:maybe-lambda-exact-arity consumer)
+  (cond ((scheme-parse:maybe-lambda-exact-arity consumer)
 	 => (lambda (arity)
 	      (if (= arity 1)
 		  ;; To be fair, there *could* be values tuples of
