@@ -6,8 +6,6 @@
 ;;;    (at your option) any later version.
 
 
-;; Newer, better, higher-level IO routines (than the cj-io-util ~mess)
-
 (require easy-2
          (cj-env-2 future)
          (cj-io-util open-process*
@@ -17,6 +15,7 @@
          (Result Ok Error)
          monad/syntax
          port-settings
+         container
          test)
 
 (export (jclass command)
@@ -30,9 +29,19 @@
         Result:read-all
         Result:call-with-input-file
         Result:call-with-output-file
-        
+        (methods location.read-all-source
+                 location.read-all
+                 location.expr-source
+                 location.expr)
         #!optional
         process-spec?)
+
+(include "cj-standarddeclares.scm")
+
+"Newer, better, higher-level IO routines (than the cj-io-util ~mess).
+
+Includes Result based I/O, and methods for different source/sink
+specifications than path-or-port-settings (e.g. location)."
 
 
 (def (process-spec? v)
@@ -200,4 +209,56 @@
      (make-Result:call-with-*-file open-input-file))
 (def Result:call-with-output-file
      (make-Result:call-with-*-file open-output-file))
+
+
+
+(def (make-location->read-all-source Result-read-all)
+     (lambda ([location? loc]) -> (Result-of ilist? any?)
+        "Read all exprs from the source file containing loc."
+        (let (c (location-container loc))
+          (if (path-string? c)
+              (Result:call-with-input-file c Result-read-all)
+              (Error `("location container is not a path string" ,c))))))
+
+(def. location.read-all-source
+  (make-location->read-all-source Result:read-all-source))
+(def. location.read-all
+  (make-location->read-all-source Result:read-all))
+
+
+(def. (location.expr-source loc) -> (Result-of source? any?)
+  "Retrieve expr at loc from the source file, with location
+information. (Careful, slow.)"
+  (mlet ((l (.read-all-source loc)))
+        ;; Deep find; really deep for-each, short-cut when found.
+        (call/cc
+         (lambda (exit)
+           (let find-in ((v l))
+             (cond ((source? v)
+                    (let (loc2 (source-location v))
+                      ;; Need a `location.equal?` that normalizes
+                      ;; paths? Yes would, in case compiled objects
+                      ;; were moved. BUT, location-container is
+                      ;; already guaranteed to be the same (XX really?
+                      ;; Compilation units can have a mix of location
+                      ;; information, but that doesn't matter; so, I
+                      ;; think that yes?) Thus just check position.
+                      (if ((on location-position =) loc loc2)
+                          (exit (Ok v))
+                          (find-in (source-code v)))))
+                   ((container? v)
+                    (.for-each-item v find-in))
+                   (else
+                    (when #f
+                      (warn "ignoring:" v)))))
+           (Error `("location not found in backing file" ,loc))))))
+
+(def. (location.expr loc) -> (Result-of any? any?)
+  "Retrieve expr at loc from the source file, without location
+information. (Careful, slow.)"
+  (>>= (.expr-source loc)
+       (lambda (src)
+         (return (cj-desourcify src)))))
+
+
 
