@@ -1,4 +1,4 @@
-;;; Copyright 2006-2017 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2006-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -6,7 +6,8 @@
 ;;;    (at your option) any later version.
 
 
-(require (fixnum dec)
+(require define-macro-star
+         (fixnum dec)
 	 test
 	 cj-env	;;XX update what exactly?
 	 cj-typed
@@ -43,6 +44,7 @@
 
 	repl
 	repl-within
+        (macro STEP)
 
 	continuation-maybe-location
 
@@ -654,6 +656,13 @@ memset(obj+offset,value,numbytes);
 (define-typed (repl-within #(continuation? c) #!optional (arg1 ""))
   ;; don't know what arg1 is for
   (##repl-within c arg1))
+
+
+(define-macro* (STEP expr)
+  "Turn on stepping for expr (and beyond). Easier than wrapping expr
+with begin and (step) manually."
+  `(begin (step) ,expr))
+
 
 (define-typed (continuation-maybe-location #(continuation? c))
   (##continuation-locat c))
