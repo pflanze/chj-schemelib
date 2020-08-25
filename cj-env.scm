@@ -86,6 +86,9 @@
         thunk-symbol-value-or ;;?
         (macro macro-symbol-value-or)
         (macro define-parameter)
+        (generics .maybe-location
+                  .location
+                  .show-location)
         (macro show-def)
         (macro define-if-not-defined)
         (macro define-if-not-defined-strict)

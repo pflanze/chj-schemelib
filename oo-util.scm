@@ -140,15 +140,25 @@
 (define. string.symbol-append source:symbol-append)
 
 
+(define. (any.maybe-location v)
+  (error "no .maybe-location method defined for:" v))
+
+(define. location.maybe-location identity)
+(define. source.maybe-location source-location)
+(define. (procedure.maybe-location [procedure? p])
+  (##procedure-locat p))
+
 (define. (any.location v)
-  (error "no .location method defined for:" v))
+  (or (.maybe-location v)
+      (error "does not contain location information:" v)))
 
 (define. any.show-location
   (compose show-location-location .location))
 
-(define. location.show-location show-location-location)
+;; (define. location.show-location show-location-location) use any.show-location
 (define. source.show-location show-source-location)
 (define. procedure.show-location show-procedure-location)
+
 
 ;; make |show-def| more general:
 (current-show-def .show-location)
