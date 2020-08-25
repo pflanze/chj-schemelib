@@ -23,6 +23,53 @@
 	 ;; string-util-3 -- cycle
 	 string-util-4)
 
+(export inexact exact.inexact
+        (methods number.inexact)
+        (methods values.vector
+                 values.list
+                 number.string
+                 string.maybe-number
+                 string.number
+                 symbol.string
+                 string.symbol
+                 keyword.string
+                 string.keyword
+                 keyword.symbol
+                 symbol.keyword)
+        char-list?
+        (methods char-list.string)
+        char-list+?
+        (methods char-list+.show)
+        string->stream
+        (methods string.list
+                 string.stream
+                 char.integer
+                 integer.char
+                 string.append
+                 string.length
+                 integer.length
+                 string.reverse
+                 string.findpos
+                 string.rfindpos)
+        (methods source.symbol-append
+                 symbol.symbol-append
+                 string.symbol-append)
+        (methods any.maybe-location
+                 location.maybe-location
+                 source.maybe-location
+                 procedure.maybe-location
+                 any.location
+                 any.show-location
+                 source.show-location
+                 procedure.show-location)
+        number-zero?
+        (methods any.perl-true?
+                 number-zero.perl-true?
+                 false.perl-true?
+                 string.perl-true?)
+        ;; XX and then large-ish number of dash to dot conversions
+        )
+
 (possibly-use-debuggable-promise)
 
 
