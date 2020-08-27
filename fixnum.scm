@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,8 +8,10 @@
 
 (require define-macro-star)
 
-(export (macro inc)
-	(macro dec))
+(export (macros inc
+                dec
+                inc-by
+                dec-by))
 
 
 ;; Also see safe-fx.scm ! (Perhaps merge?)
@@ -45,3 +47,22 @@
       `(fx- ,e 1)))
 
 
+(define-macro* (inc-by n)
+  (if (mod:compiled?)
+      `(lambda (x)
+         (declare (fixnum))
+         (+ x ,n))
+      `(lambda (x)
+         (fx+ x ,n))))
+
+(define-macro* (dec-by n)
+  (let ((x (gensym)))
+    (if (mod:compiled?)
+        `(lambda (,x)
+           (declare (fixnum))
+           (- ,x ,n))
+        `(lambda (,x)
+           (fx- ,x ,n)))))
+
+
+;; Tests see fixnum-test.scm

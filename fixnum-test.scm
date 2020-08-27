@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -10,6 +10,7 @@
 	 (cj-gambit-sys max-fixnum)
 	 test)
 
+;;XX compile this module!
 
 ;; "should allow anything that works for vector access. Then could do
 ;; unsafe. What about wrap-around?"
@@ -36,4 +37,23 @@
  > (with-exception-catcher fixnum-overflow-exception?
 			   (& (fixnum-test:dec min-fixnum)))
  #t)
+
+
+
+(def inc10 (inc-by 10))
+(def dec10 (dec-by 10))
+
+(TEST
+ > ((dec-by 10) 10)
+ 0
+ > ((dec-by 10) 100)
+ 90
+ > ((inc-by 10) 100)
+ 110
+ > (dec10 10)
+ 0
+ > (dec10 100)
+ 90
+ > (inc10 100)
+ 110)
 
