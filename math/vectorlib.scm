@@ -239,7 +239,25 @@
  )
 
 (define (.. from to)
+  "Integers from..to, inclusive"
   (iota (inc (- to from)) from))
+
+(define (..? from to)
+  "Predicate to check for integers in from..to, inclusive"
+  (lambda (v)
+    (and (fixnum? v)
+         (<= from v to))))
+
+(TEST
+ > ((..? 1 2) 0)
+ #f
+ > ((..? 1 2) 1)
+ #t
+ > ((..? 1 2) 2)
+ #t
+ > ((..? 1 2) 3)
+ #f)
+
 
 (define (V_:.. V_:iota)
   (lambda (from to) ;; inclusive
