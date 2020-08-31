@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -1228,7 +1228,8 @@
 ;; https://hackage.haskell.org/package/split-0.2.3.1/docs/Data-List-Split.html#v:chunksOf
 ;; <jcowan> group-by-size works for me
 
-;; Also see sequential-pairs and sequentialpairs->pairs in dsssl.scm
+;; Also see sequential-pairs and sequentialpairs->pairs in dsssl.scm,
+;; and sectionize below.
 
 (define-strict-and-lazy
   chop/map
