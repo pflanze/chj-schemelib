@@ -1235,6 +1235,8 @@
   chop/map
   stream-chop/map
   (typed-lambda ([natural? n] s [procedure? f] #!optional (tail '()))
+                "Split `s` into pieces of length `n` or (in the case
+of the last piece) potentially less. Also see `sectionize`."
 	   (let buildup ((s s)
 			 (l '())
 			 (m n))
@@ -1389,6 +1391,9 @@
 
 (define-strict-and-lazy sectionize stream-sectionize
   (typed-lambda ([fixnum-natural? section-len] l)
+                "Return a list of vectors representing pieces of `l`
+of exactly length `section-len` (it is an error to give inputs that
+don't evenly split). Also see `chop`."
     (let rec ((l l))
       (DELAY
         (let ((v (make-vector section-len)))
