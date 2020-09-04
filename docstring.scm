@@ -132,7 +132,7 @@ indirectly via `docstring-from`)."
            #f))
       #f))
 
-(TEST
+'(TEST
  > (docstring#parse-body:docstring
     '(docstring-from: 'docstring #!void "hmm" 'hi))
  ("hmm" 'hi) ;; WRONG
@@ -158,7 +158,7 @@ indirectly via `docstring-from`)."
                 (strings-join "\n\n")))))
 
 
-(TEST
+'(TEST
  > (define (t a b)
      "Hi there"
      (docstring-from docstring))
