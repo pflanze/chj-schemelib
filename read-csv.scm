@@ -39,7 +39,7 @@
 ;; type error reporting
 (defclass (csv-type-error maybe-nested-error ;; force |error?| here instead of BUG msg below?
                           [csv-cell? cell])
-  implements: error
+  implements: error-interface
 
   (defmethod (string s)
     (string-append
@@ -66,7 +66,7 @@
                           [string? message]
                           [(maybe fixnum-natural0?) column])
   extends: error/continuation
-  implements: error ;; <- put this into error/continuation class?
+  implements: error-interface ;; <- put this into error/continuation class?
 
   ;; XX .string is old code, instead use .location now internally?
   ;; And/or introduce a global protocol for errors which are not just
