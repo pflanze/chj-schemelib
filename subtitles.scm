@@ -494,10 +494,6 @@ scaled)."
      '())))
 
 
-(def filepath? (both path-string? -f?))
-
-(def. filepath.lines/location file-line/location-stream)
-
 (def string/location-stream? (istream-of string/location?))
 (def. string/location-stream.Result-of-subtitles-items
   (=>* srtlines->Result-of-subtitles-items
