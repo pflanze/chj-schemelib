@@ -66,8 +66,8 @@
         port->stream
         directory-item-stream
         file-line-stream
-        file-line/location-stream
-        file-char/location-stream
+        file-line/location-stream  path-string.lines/location
+        file-char/location-stream  path-string.chars/location
         process-line-stream
         process-read-stream
         user-name-or-id->id
@@ -665,6 +665,9 @@ some informal structure describing what the port was opened from."
                 close-port
                 #t))
 
+(define. path-string.lines/location file-line/location-stream)
+
+
 (define (file-char/location-stream file)
   (let ((p (open-input-file file)))
     (let rec ((line 1)
@@ -682,7 +685,10 @@ some informal structure describing what the port was opened from."
                         (rec (fx+ line 1)
                              1)
                         (rec line
-                             (fx+ col 1)))))))))) 
+                             (fx+ col 1))))))))))
+
+(define. path-string.chars/location file-char/location-stream)
+
 
 (define (process-status-assert-zero process)
   (lambda (status)
