@@ -1,4 +1,4 @@
-;;; Copyright 2013-2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2013-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -35,7 +35,7 @@
 	      (name-members-vector (symbol-append name ":members-vector")))
 	  `(begin
 	     ,@(map (lambda (sym)
-		      `(define-if-not-defined ,sym ',sym))
+		      `(define-if-free ,sym ',sym))
 		    syms)
 	     (define ,name-members
 	       ',syms)
