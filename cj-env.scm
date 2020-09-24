@@ -730,6 +730,20 @@
  xh68zzn3j5mc9p2tu2q)
 
 
+;; A define-if-not-defined that doesn't error out when a macro exists
+;; with the given name (only can detect define-macro* macros, as
+;; Gambit doesn't offer a published interface for others and is giving
+;; a compile time error for (lambda (x) x) which prevents the
+;; define-if-not-defined approach from working):
+
+(define-macro* (define-if-free sym expr)
+  (if (define-macro-star-maybe-ref (source-code sym))
+      `(begin)
+      `(define-if-not-defined ,sym ,expr)))
+
+
+
+
 (define table-update!:noval (box 'noval))
 (define (table-update! t k fn
                        #!optional
