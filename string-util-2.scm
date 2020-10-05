@@ -13,6 +13,7 @@
          C
          (string-util-1 position-update-in-string)
          (cj-env-2 for..<)
+         debuggable-promise
          test
          (cj-env named)
          (list-util let-pair rxtake-while)
@@ -78,6 +79,8 @@
         string-_-contains)
 
 (include "cj-standarddeclares.scm")
+
+(possibly-use-debuggable-promise)
 
 
 (define (suffix-list l)
