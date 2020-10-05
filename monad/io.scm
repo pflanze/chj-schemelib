@@ -1,4 +1,4 @@
-;;; Copyright 2010-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2010-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -19,7 +19,7 @@
 (defclass (IO)
 
   (defclass (IO>> [IO? a]
-                  [IO? b])
+                  [(either promise? IO?) b])
     (defmethod (run s)
       (.run a)
       (.run b)))
