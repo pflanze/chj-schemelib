@@ -29,6 +29,7 @@
          (cj-env-2 for..<)
          (list-util-1 improper-map)
          continuation-carp
+         debuggable-promise
          ;; tests
          test
          (test-lib-1 %try))
@@ -63,6 +64,7 @@
 ;;      dot-oo:method-table-set!
 ;;      dot-oo:new-method-table)
 
+(possibly-use-debuggable-promise)
 
 
 ;; (XX lost the string-split that allowed to give me limits on the
@@ -142,11 +144,12 @@
   (table-set! dot-oo:genericname->method-table
               genericname method-table)
   (lambda (obj . rest)
-    (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
-           => (lambda (method)
-                (apply method obj rest)))
-          (else
-           (dot-oo:generic-error genericname obj)))))
+    (let ((obj (force obj)))
+     (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
+            => (lambda (method)
+                 (apply method obj rest)))
+           (else
+            (dot-oo:generic-error genericname obj))))))
 
 ;; optimization to avoid allocation of rest arguments (alternatively
 ;; also see dot-oo-optim.scm):
