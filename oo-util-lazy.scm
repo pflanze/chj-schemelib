@@ -49,27 +49,6 @@
 
 (possibly-use-debuggable-promise)
 
-;; Methods on lazy data
-
-(insert-result-of
- `(begin
-    ,@(map (lambda (method-name)
-	     (quasiquote-source
-	      (define. (,(source:symbol-append 'promise method-name) v)
-		(,method-name (force v)))))
-	   '(
-	     .length ;; vs. istream.length which only works on streams
-	     .car
-	     .cdr
-	     .first
-	     .rest
-	     ;; .cadr
-	     ;; .cddr  ah won't work, need to dispatch to deeper-forcing ones
-	     ;; .ref ;; hmm there is a list.ref, will be slow
-	     ;;.equal nope, instead istream.equal? can work
-	     ))))
-
-
 
 ;; Types: don't want to use list?, as that's inefficient and for
 ;; stream even worse. Thus don't want to name it stream? for
