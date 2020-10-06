@@ -144,12 +144,18 @@
   (table-set! dot-oo:genericname->method-table
               genericname method-table)
   (lambda (obj . rest)
-    (let ((obj (force obj)))
-     (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
-            => (lambda (method)
-                 (apply method obj rest)))
-           (else
-            (dot-oo:generic-error genericname obj))))))
+    ;; (Writing out the 2 attempts manually instead of risking to
+    ;; allocate closures.)
+    (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
+           => (lambda (method)
+                (apply method obj rest)))
+          (else
+           (let ((obj (force obj)))
+             (cond ((dot-oo:method-table-maybe-ref-method method-table obj)
+                    => (lambda (method)
+                         (apply method obj rest)))
+                   (else
+                    (dot-oo:generic-error genericname obj))))))))
 
 ;; optimization to avoid allocation of rest arguments (alternatively
 ;; also see dot-oo-optim.scm):
