@@ -17,17 +17,10 @@
 
 
 ;; Avoid macro's late binding: evaluate used expressions only
-;; once[1]. But only if they are not just symbols: leave symbol
+;; once. But only if they are not just symbols: leave symbol
 ;; references late-bound. This can allow to resolve mutual (really:
 ;; recursive) definitions without an extra function wrapper, and can
 ;; avoid the need for allocating closures.
-
-;; [1] *But*, now (starting in 2020) bind those lazily. So, those
-;; expressions are only evaluated once, but still late. Thus recursive
-;; definitions will always work. -- XX: but, should probably revert
-;; that and instead require the user to wrap the whole compose form in
-;; `delay`, and perhaps build auto-forcing into the language, *OR*
-;; improve the compiler to handle cyclic definitions!
 
 (define (early-bind-expressions:expr+ expr)
   "For `expr`, decide whether to evaluate it outside the lambda.
@@ -51,14 +44,14 @@
   ;; var-expr name
   (cond ((car expr+)
          => (lambda (var)
-              `(force ,var)))
+              var))
         (else
          (cdr expr+))))
 
 (define (early-bind-expressions:expr+s-ref-expr* expr+s i)
   "From the list of var/expr pairings, pick the `i`th and from that
 give the expression that gives the function or macro to be
-called (which may be a `(force )` expression."
+called."
   (early-bind-expressions:use-expr+ (list-ref expr+s i)))
 
 (define (early-bind-expressions:wrap expr+s code)
@@ -69,7 +62,7 @@ called (which may be a `(force )` expression."
     (if (null? need-eval)
 	code
 	`(##let ,(map (lambda-pair ((var expr))
-                              `(,var (delay ,expr)))
+                                   `(,var ,expr))
                       need-eval)
                 ,code))))
 
@@ -174,11 +167,11 @@ called (which may be a `(force )` expression."
  	     (a? (car v))
  	     (b? (cdr v))))
  > (expansion#my-pair-of (maybe a?) b?)
- (##let ((GEN:-2449 (delay (maybe a?))))
+ (##let ((GEN:-2449 (maybe a?)))
  	(lambda (v)
  	  (and (pair? v)
- 	       ((force GEN:-2449) (car v))
- 	       (b? (cdr v)))))
- )
+ 	       (GEN:-2449 (car v))
+ 	       (b? (cdr v))))))
+
 
 
