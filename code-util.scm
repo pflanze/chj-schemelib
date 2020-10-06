@@ -23,8 +23,11 @@
 ;; avoid the need for allocating closures.
 
 ;; [1] *But*, now (starting in 2020) bind those lazily. So, those
-;; expressions are only evaluated once, but still late. Thus
-;; recursive definitions will always work.
+;; expressions are only evaluated once, but still late. Thus recursive
+;; definitions will always work. -- XX: but, should probably revert
+;; that and instead require the user to wrap the whole compose form in
+;; `delay`, and perhaps build auto-forcing into the language, *OR*
+;; improve the compiler to handle cyclic definitions!
 
 (define (early-bind-expressions:expr+ expr)
   "For `expr`, decide whether to evaluate it outside the lambda.
