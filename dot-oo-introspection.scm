@@ -22,7 +22,8 @@
          (cj-symbol symbol<?)
          srfi-1
          table-1
-         (oo-vector-lib sum))
+         (oo-vector-lib sum)
+         debuggable-promise)
 
 (export (macros method-table-for
                 show-methods
@@ -38,6 +39,10 @@
         show-generics-for)
 
 "Introspection facilities for method dispatch. Also see `doc/OO.md`."
+
+(include "cj-standarddeclares.scm")
+
+(possibly-use-debuggable-promise)
 
 
 (define-macro* (method-table-for generic-name-sym)

@@ -1,4 +1,4 @@
-;;; Copyright 2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2019-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -8,6 +8,7 @@
 
 (require easy ;; for now, change if need earlier?
          (joo joo:class-name.joo-type)
+         debuggable-promise
          test)
 
 (export
@@ -44,6 +45,11 @@
           ))
 
 "Introspection facilities for joo"
+
+(include "cj-standarddeclares.scm")
+
+(possibly-use-debuggable-promise)
+
 
 ;; Didn't I write some of those already, I'm sure I did, where, sigh.
 

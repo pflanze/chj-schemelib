@@ -15,6 +15,7 @@
 	 (code-util early-bind-expressions)
          (lazy FV)
          (values values? values->list)
+         debuggable-promise
 	 ;; for tests:
 	 test
 	 (fixnum inc dec)
@@ -53,6 +54,8 @@
         =>*-expand/placement)
 
 (include "cj-standarddeclares.scm")
+
+(possibly-use-debuggable-promise)
 
 
 (define (flip-function f)

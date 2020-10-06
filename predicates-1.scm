@@ -1,4 +1,4 @@
-;;; Copyright 2014-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2020 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -16,6 +16,7 @@
 	 (string-util-4 string-empty?
 			string-every)
 	 (improper-list-1 improper-every)
+         debuggable-promise
 	 test)
 
 
@@ -67,6 +68,8 @@
 	parameter-of)
 
 (include "cj-standarddeclares-1--include.scm")
+
+(possibly-use-debuggable-promise)
 
 
 (define (box-of pred)
