@@ -177,42 +177,40 @@ assumed."
            stx "need 1 (expr) or 2 (level and expr) arguments"))))
 
 (TEST
- > (def *debug* 2)
- > (def x 123) 
- > (DEBUG* x)
- 123
- > (DEBUG* 1 x)
- 123
- > (DEBUG* 0 x)
- 123
- > (DEBUG* 2 x)
- ;; prints: #<continuation #4> 123
- 123
- > (DEBUG* "x" x)
- 123
- > (DEBUG* 2 "x" x)
- ;; prints: #<continuation #6> x 123
- 123
  > (def (x-msg msg)
      (let (l (string-split msg ">"))
        (cons (first (string-split (first l) char-digit?))
              (rest l))))
- > (def-values (msg res) (%with-error-to-string (DBG (+ 10 20))))
- > msg
- ""
- > res
- 30
- > (def-values (msg res) (%with-error-to-string (DBG 2 (+ 10 20))))
- > (x-msg msg)
- ("#<continuation #" " (+ 10 20) 30\n")
- > res
- 30
+ > (defmacro (debug:TST expr)
+     `(letv ((msg res) (%with-error-to-string ,expr))
+            (list (x-msg msg)
+                  res)))
+
+ > (def *debug* 2)
+ > (def x 123) 
+ > (debug:TST (DEBUG* x))
+ (("") 123)
+ > (debug:TST (DEBUG* 1 x))
+ (("") 123)
+ > (debug:TST (DEBUG* 0 x))
+ (("") 123)
+ > (debug:TST (DEBUG* 2 x))
+ ;; prints: #<continuation #4> 123
+ (("#<continuation #" " 123\n") 123)
+ > (debug:TST (DEBUG* "x" x))
+ (("") 123)
+ > (debug:TST (DEBUG* 2 "x" x))
+ ;; prints: #<continuation #6> x 123
+ (("#<continuation #" " x 123\n") 123)
+ > (debug:TST (DBG (+ 10 20)))
+ (("") 30)
+ > (debug:TST (DBG 2 (+ 10 20)))
+ (("#<continuation #" " (+ 10 20) 30\n")
+  30)
  > (def *debug* 1)
- > (def-values (msg res) (%with-error-to-string (DBG (+ 10 20))))
- > (x-msg msg)
- ("#<continuation #" " (+ 10 20) 30\n")
- > res
- 30)
+ > (debug:TST (DBG (+ 10 20)))
+ (("#<continuation #" " (+ 10 20) 30\n")
+  30))
 
 
 ;; The syntax supports an optional level then an optional marker
