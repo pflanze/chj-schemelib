@@ -21,7 +21,8 @@
 	 string-util-1
 	 string-util-2
 	 ;; string-util-3 -- cycle
-	 string-util-4)
+	 string-util-4
+         char-util)
 
 (export inexact exact.inexact
         (methods number.inexact)
@@ -68,7 +69,27 @@
                  false.perl-true?
                  string.perl-true?)
         ;; XX and then large-ish number of dash to dot conversions
-        )
+        (methods
+         char.one-of?/
+         char.digit?
+         char.alpha-lc?
+         char.alpha-uc?
+         char.alpha?
+
+         char.international-lc?
+         char.international-uc?
+         char.international?
+         char.alpha-international-lc?
+         char.alpha-international-uc?
+         char.alpha-international?
+
+         char.alphanumeric?
+         char.numeric+?
+         char.alphanumeric+?
+         char.space?
+         char.whitespace?
+         char.in-range?
+         char.hexdigit?))
 
 (possibly-use-debuggable-promise)
 
@@ -323,4 +344,24 @@
 	     string-every
 	     string-first-line
 
+             char-one-of?/
+             char-digit?
+             char-alpha-lc?
+             char-alpha-uc?
+             char-alpha?
+
+             char-international-lc?
+             char-international-uc?
+             char-international?
+             char-alpha-international-lc?
+             char-alpha-international-uc?
+             char-alpha-international?
+
+             char-alphanumeric?
+             char-numeric+?
+             char-alphanumeric+?
+             char-space?
+             char-whitespace?
+             char-in-range?
+             char-hexdigit?
 	     ))))
