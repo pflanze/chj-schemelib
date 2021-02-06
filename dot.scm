@@ -13,9 +13,10 @@
 ;; apt install xdot # or imagemagick
 
 (require easy
-	 bag
+         bag
 	 (cj-env-2 object->serial-number-string)
-	 (cj-io-util xbacktick xsystem))
+	 (cj-io-util xbacktick xsystem)
+	 tempfile)
 
 (export display-dot)
 
@@ -171,7 +172,8 @@
 
 
 ;; XX tmpfile?
-(defparameter dot:tmp-path ".dot-scm.dot")
+(defparameter dot:tempfile
+  (& (tempfile "/tmp/dot-scm-")))
 
 (defparameter dot:display-cmd
   (letv ((p c) (Xbacktick "which" "xdot"))
@@ -180,7 +182,7 @@
 	    '("display"))))
 
 (def. (dot-bag.display l)
-  (let (path (dot:tmp-path))
+  (let (path ((dot:tempfile)))
     (=> l
 	dot-bag.string-bag
 	(putfile path))
