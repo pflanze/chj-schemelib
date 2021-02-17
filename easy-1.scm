@@ -64,6 +64,7 @@
         (macro let)
         (macro letrec)
         (macro $)
+        desourcify
         
         #!optional
         module-symbol?
@@ -687,4 +688,7 @@ list."
      (##namespace ("" $ string-interpolate string-append .string inc fx+))
      ($ "foo" " $bar-world, you" 12 (inc 13)))
  "foo 100, you1214")
+
+
+(def desourcify cj-desourcify)
 
