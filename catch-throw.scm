@@ -1,4 +1,4 @@
-;;; Copyright 2014 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2014-2021 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -124,8 +124,13 @@
 ;; 1975.  But why call it catch? What about?:
 
 (defmacro (with-exit var . body)
-  `(call/cc (lambda (,var)
-	      ,@body)))
+  (with-gensyms
+   (ret val)
+   `(continuation-capture
+     (lambda (,ret)
+       (let ((,var (lambda (,val)
+                     (continuation-return ,ret ,val))))
+         ,@body)))))
 
 (TEST
  > (with-exit foo
