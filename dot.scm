@@ -1,4 +1,4 @@
-;;; Copyright 2018 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2018-2021 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
@@ -13,9 +13,10 @@
 ;; apt install xdot # or imagemagick
 
 (require easy
-	 bag
+         bag
 	 (cj-env-2 object->serial-number-string)
-	 (cj-io-util xbacktick xsystem))
+	 (cj-io-util xbacktick xsystem)
+	 tempfile)
 
 (export display-dot)
 
@@ -171,7 +172,8 @@
 
 
 ;; XX tmpfile?
-(defparameter dot:tmp-path ".dot-scm.dot")
+(defparameter dot:tempfile
+  (& (tempfile "/tmp/dot-scm-")))
 
 (defparameter dot:display-cmd
   (letv ((p c) (Xbacktick "which" "xdot"))
@@ -180,7 +182,7 @@
 	    '("display"))))
 
 (def. (dot-bag.display l)
-  (let ((path (dot:tmp-path)))
+  (let (path ((dot:tempfile)))
     (=> l
 	dot-bag.string-bag
 	(putfile path))
@@ -207,17 +209,17 @@
 	  (*dot-bag r*))))
 
 (def. (vector.dot-bag v v*)
-  (let ((ws* (vector.map-list v dot-wrap)))
+  (let (ws* (vector.map-list v dot-wrap))
     (cons (dot-> v* ws*)
 	  (ilist.map ws* *dot-bag))))
 
 (def. (values.dot-bag v v*)
-  (let ((ws* (vector.map-list (values->vector v) dot-wrap)))
+  (let (ws* (=> v values->vector (vector.map-list dot-wrap)))
     (cons (dot-> v* ws*)
 	  (ilist.map ws* *dot-bag))))
 
 (def. (struct.dot-bag v v*)
-  (let ((ws* (ilist.map (struct-values v) dot-wrap)))
+  (let (ws* (=> v struct-values (ilist.map dot-wrap)))
     (cons (dot-> v* ws*)
 	  (ilist.map ws* *dot-bag))))
 

@@ -1,12 +1,10 @@
-;;; Copyright 2017-2019 by Christian Jaeger <ch@christianjaeger.ch>
+;;; Copyright 2017-2021 by Christian Jaeger <ch@christianjaeger.ch>
 
 ;;;    This file is free software; you can redistribute it and/or modify
 ;;;    it under the terms of the GNU General Public License (GPL) as published 
 ;;;    by the Free Software Foundation, either version 2 of the License, or
 ;;;    (at your option) any later version.
 
-
-;; A bag is an improper list of values and bags.
 
 (require easy
 	 define-strict-and-lazy
@@ -25,6 +23,15 @@
 	bag->stream
 	bag->string
 	)
+
+
+"A bag is an improper list of values and bags.
+
+Bags are useful for efficient gathering of output since it avoids
+copying, and in particular the problem of increasingly large string
+concatenation (with O(n^2) computing complexity). This is the same
+idea as Erlang's `iolist`s.
+"
 
 
 (def (bag-of pred)

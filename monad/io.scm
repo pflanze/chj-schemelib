@@ -13,13 +13,16 @@
 ;; IO monad
 
 
+(def possibly-lazy-IO? (either promise? IO?))
+
+
 ;; XX define an interface that we'll implement here
 
 
 (defclass (IO)
 
   (defclass (IO>> [IO? a]
-                  [(either promise? IO?) b])
+                  [possibly-lazy-IO? b])
     (defmethod (run s)
       (.run a)
       (.run b)))
@@ -55,7 +58,18 @@
 
 
 ;; for monad/syntax
-(def IO->> IO>>)
+
+;;(def IO->> IO>>)
+
+;; To show the location of the `b` expression in case it returned an
+;; invalid type, which is much better when using `mdo` since otherwise
+;; that would show the location of the `a` expression instead.
+
+(defmacro (IO->> a b)
+  `(IO>> ,a
+         ,(sourcify `(-> possibly-lazy-IO? ,b) b)))
+
+
 (def IO->>= IO>>=)
 (def IO-return IOReturn)
 
